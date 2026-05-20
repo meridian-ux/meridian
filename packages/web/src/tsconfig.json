@@ -12,8 +12,6 @@
     "declaration": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": ".",
-    "rootDir": ".",
     "types": []
   },
   "include": ["**/*.ts", "**/*.d.ts"],
