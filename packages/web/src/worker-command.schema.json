@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian.dev/schemas/worker-command.schema.json",
+  "title": "MeridianWorkerCommand",
+  "description": "Command envelope used by Meridian worker-backed components.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["type", "payload"],
+      "properties": {
+        "type": { "const": "init" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "tenant": { "type": "string" },
+            "attributes": { "type": "object" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type", "name", "value"],
+      "properties": {
+        "type": { "const": "attributeChanged" },
+        "name": { "type": "string", "minLength": 1 },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type", "name"],
+      "properties": {
+        "type": { "const": "event" },
+        "name": { "type": "string", "minLength": 1 },
+        "payload": {}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "dispose" }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

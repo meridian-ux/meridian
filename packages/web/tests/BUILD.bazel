@@ -1,0 +1,25 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "src_lib",
+    srcs = [
+        "//src:core",
+    ],
+)
+
+vitest_test(
+    name = "unit",
+    srcs = [
+        "dom.test.ts",
+        "patch.test.ts",
+        "proto_json.test.ts",
+        "workers.test.ts",
+    ],
+    deps = [
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)

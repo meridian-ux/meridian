@@ -1,0 +1,36 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+
+package(default_visibility = ["//visibility:public"])
+
+# Raw source files (TS, schema). Consumers that bundle meridian into a
+# server-side JAR or other resource container depend on this filegroup.
+filegroup(
+    name = "resources",
+    srcs = glob(
+        ["**/*"],
+        exclude = [
+            "BUILD.bazel",
+            "tsconfig.json",
+        ],
+    ),
+)
+
+# Just the worker-command JSON schema for consumers that only want
+# the contract definition (e.g., proto/schema validators).
+filegroup(
+    name = "worker_command_schema",
+    srcs = ["worker-command.schema.json"],
+)
+
+# Compiled TS surface: emits .js + .d.ts alongside sources.
+ts_project(
+    name = "core",
+    srcs = glob([
+        "**/*.ts",
+        "**/*.d.ts",
+    ]),
+    declaration = True,
+    out_dir = ".",
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+)
