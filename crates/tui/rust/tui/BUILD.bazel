@@ -1,0 +1,25 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["Cargo.toml"])
+
+rust_library(
+    name = "tui",
+    srcs = [
+        "src/invoker.rs",
+        "src/lib.rs",
+        "src/state.rs",
+        "src/widget.rs",
+    ],
+    crate_name = "meridian_tui",
+    edition = "2021",
+    deps = [
+        "//rust/uiview",
+        "@crates//:crossterm",
+        "@crates//:prost",
+        "@crates//:ratatui",
+        "@crates//:serde_json",
+        "@crates//:thiserror",
+    ],
+)
