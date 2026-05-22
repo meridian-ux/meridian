@@ -76,15 +76,43 @@ export interface AdhocPanel {
   handler_id: string;
 }
 
+export interface IntegerSpinner {
+  min?: number;
+  max?: number;
+  default_value?: number;
+  step?: number;
+}
+
+export interface TextInput {
+  default_value?: string;
+}
+
+export interface FormField {
+  field_id: string;
+  label: string;
+  request_field: string;
+  // proto oneof: exactly one of these is set.
+  integer?: IntegerSpinner;
+  text?: TextInput;
+}
+
+export interface LroPanel {
+  start: RpcCall;
+  metadata_type: string;
+  response_type: string;
+  run_button_label?: string;
+  inputs?: FormField[];
+  finalize?: RpcCall;
+  result?: TablePanel;
+}
+
 export interface PanelDescriptor {
   panel_id: string;
   title: string;
   // proto oneof: exactly one of these is set.
   table?: TablePanel;
+  lro?: LroPanel;
   adhoc?: AdhocPanel;
-  // LroPanel intentionally omitted from the TS side until the web
-  // renderer ships the LRO driver. The wasm core handles it for
-  // hosts that build their own JS-side polling loop.
 }
 
 /** Context the wasm core expects when building requests. */
