@@ -21,3 +21,15 @@ mod widget;
 pub use invoker::{RpcError, RpcInvoker};
 pub use state::PanelAppState;
 pub use widget::PanelView;
+
+// Re-export the ratatui + crossterm crates so downstream consumers
+// (cli chrome) can render their own widgets against the SAME
+// ratatui version meridian uses. Without this, isolated crate
+// universes (rules_rust++_crate+++crate vs rules_rust++crate+crate)
+// surface two distinct `ratatui::Frame` types and a Frame passed
+// from cli into PanelView::draw fails to type-check.
+pub use crossterm;
+pub use ratatui;
+// serde_json::Value appears in the RpcInvoker trait signature, so
+// downstream impls must use meridian's serde_json — re-export it.
+pub use serde_json;
