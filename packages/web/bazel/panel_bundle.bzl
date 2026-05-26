@@ -24,6 +24,8 @@ your renderer's loadable assets; the dev runtime fsnotify-watches the
 file for hot reload.
 """
 
+load("@rules_proto//proto:defs.bzl", "ProtoInfo")
+
 def _meridian_panel_bundle_impl(ctx):
     proto_info = ctx.attr.proto[ProtoInfo]
     out = ctx.actions.declare_file(ctx.label.name + ".binpb")
