@@ -9,6 +9,7 @@ rust_library(
     srcs = [
         "src/invoker.rs",
         "src/lib.rs",
+        "src/prompt.rs",
         "src/state.rs",
         "src/widget.rs",
     ],
@@ -19,6 +20,7 @@ rust_library(
         "@crates//:crossterm",
         "@crates//:prost",
         "@crates//:ratatui",
+        "@crates//:regex",
         "@crates//:serde_json",
         "@crates//:thiserror",
     ],

@@ -10,5 +10,6 @@ meridian-uiview = { path = "../uiview" }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
 prost = { workspace = true }
+regex = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -1,6 +1,6 @@
 // meridian-tui: ratatui-based renderer for Meridian PanelDescriptors.
 //
-// Two pieces:
+// Three pieces:
 //   * `PanelView` — stateful widget rendering one panel into a
 //     ratatui Frame. Caches the current rows/result and exposes
 //     key-handling (Up/Down to move selection, Enter to fire row
@@ -9,16 +9,23 @@
 //     active one, plus context (resource path, identity, form values).
 //     Hosts plug in an `RpcInvoker` to bridge to whatever transport
 //     they use (mocked in the demo, tonic-backed in production).
+//   * `render_prompt` — one-shot helper for `PromptPanel`. Drives
+//     crossterm raw mode + alternate screen internally; returns
+//     collected field values (or a confirmation boolean) on submit,
+//     `Cancelled` on Esc. Suitable for `bazel run`-style CLIs
+//     (e.g. rules_cloudformation's cfn_console).
 //
 // No JSON↔proto bridge at this layer — meridian-uiview's
 // RequestBuilder produces serde_json::Value requests, and the host
 // `RpcInvoker` deals with marshaling.
 
 mod invoker;
+mod prompt;
 mod state;
 mod widget;
 
 pub use invoker::{RpcError, RpcInvoker};
+pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use widget::PanelView;
 

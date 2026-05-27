@@ -105,6 +105,12 @@ impl PanelView {
                 chunks[2],
                 &format!("Adhoc panel — handler_id: {}", adhoc.handler_id),
             ),
+            Some(Body::Prompt(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Prompt panels: drive via the standalone prompt renderer (meridian::prompt — not via PanelView).",
+            ),
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }
     }
