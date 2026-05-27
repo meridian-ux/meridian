@@ -9,6 +9,7 @@ rust_library(
     srcs = [
         "src/invoker.rs",
         "src/lib.rs",
+        "src/llm_prompt.rs",
         "src/prompt.rs",
         "src/state.rs",
         "src/widget.rs",

@@ -20,11 +20,13 @@
 // `RpcInvoker` deals with marshaling.
 
 mod invoker;
+mod llm_prompt;
 mod prompt;
 mod state;
 mod widget;
 
 pub use invoker::{RpcError, RpcInvoker};
+pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use widget::PanelView;
