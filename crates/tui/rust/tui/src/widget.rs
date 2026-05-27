@@ -111,6 +111,12 @@ impl PanelView {
                 chunks[2],
                 "Prompt panels: drive via the standalone prompt renderer (meridian::prompt — not via PanelView).",
             ),
+            Some(Body::LlmPrompt(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "LLM-prompt panels: renderer pending. The descriptor carries system/user templates + slots — host should fill slots, substitute, and pair with an LroPanel for execution.",
+            ),
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }
     }
