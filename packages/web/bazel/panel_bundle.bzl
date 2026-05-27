@@ -37,24 +37,25 @@ def _meridian_panel_bundle_impl(ctx):
     # resolve imports (the meridian.ui.v1 schema imports
     # google/api/field_behavior.proto).
     proto_paths = proto_info.transitive_proto_path.to_list()
-    sources = proto_info.transitive_sources.to_list()
 
-    # The trailing positional arg to protoc must be a .proto file
-    # whose import graph reaches `message`. The direct sources of
-    # the `proto` target satisfy this — pick the first one as the
-    # entrypoint; --descriptor_set_in semantics would let us skip
-    # this but protoc's --encode mode still wants a source file.
+    # The trailing positional args to protoc are .proto files whose
+    # combined symbol table must define `message`. v0.1 picked
+    # direct_sources[0] which worked while the schema was a single
+    # uiview.proto. After the v0.2.0 split, the top-level message
+    # (PanelBundle) lives in panel.proto and isn't reachable from
+    # rpc.proto (the first src). Pass ALL direct sources so the
+    # symbol table is complete regardless of src ordering.
     direct_sources = proto_info.direct_sources
     if not direct_sources:
         fail("proto target {} has no direct sources".format(ctx.attr.proto.label))
-    entry = direct_sources[0]
+    entries = " ".join([s.path for s in direct_sources])
 
     protoc = ctx.executable._protoc
-    cmd = "{protoc} {paths} --encode={msg} {entry} < {src} > {out}".format(
+    cmd = "{protoc} {paths} --encode={msg} {entries} < {src} > {out}".format(
         protoc = protoc.path,
         paths = " ".join(["--proto_path=" + p for p in proto_paths]),
         msg = ctx.attr.message,
-        entry = entry.path,
+        entries = entries,
         src = ctx.file.src.path,
         out = out.path,
     )
