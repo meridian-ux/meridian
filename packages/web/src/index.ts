@@ -1,4 +1,9 @@
 export { apiJson } from './api.js';
+export {
+  CHAT_PANEL_CSS,
+  MChatPanel,
+  registerChatPanel,
+} from './chat_panel.js';
 export { escHtml, shortName } from './dom.js';
 export { patchClassName, patchHtml, patchText } from './patch.js';
 export {
