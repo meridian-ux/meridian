@@ -1,0 +1,12 @@
+package(default_visibility = ["//visibility:public"])
+
+# Meridian's style layer (web binding). Pure static assets a host stages next
+# to the renderer, the same way @brand//mdbook:theme is staged:
+#   - web/meridian.css : the base stylesheet (all look via --mer-* tokens)
+#   - web/theme.ts     : Theme (meridian.theme.v1) -> --mer-* var binding
+# The Theme *contract* is //proto:theme_proto; this is its web expression.
+# Other renderers (TUI/JavaFX/Swift) get their own bindings under their dirs.
+filegroup(
+    name = "web",
+    srcs = glob(["web/**"]),
+)

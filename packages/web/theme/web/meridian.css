@@ -1,0 +1,125 @@
+/* meridian web base stylesheet — the STYLE layer for the web renderer.
+ *
+ * The renderer (src/uiview) emits semantic, style-free DOM with
+ * `.meridian-uiview-*` classes. This sheet gives those classes their look
+ * ENTIRELY through `--mer-*` custom properties, so a Theme (meridian.theme.v1)
+ * is the single source of style. The fallbacks below are a neutral dark skin
+ * so meridian is presentable with no Theme applied; a skin (e.g. the fastverk
+ * brand identity) overrides them by setting `--mer-*` on `:root` (or any
+ * ancestor) — see theme.ts `applyTheme()` / `themeToCssVars()`.
+ *
+ * Nothing here is brand-specific. Keep it that way: brand lives in a Theme. */
+
+.meridian-uiview-body {
+  --_bg: var(--mer-bg, #15161a);
+  --_surface: var(--mer-surface, #1c1e24);
+  --_fg: var(--mer-fg, #ece7da);
+  --_muted: var(--mer-muted, #9a9488);
+  --_border: var(--mer-border, #2c2f37);
+  --_accent: var(--mer-accent, #6aa0f2);
+  --_accent-strong: var(--mer-accent-strong, var(--_accent));
+  --_on-accent: var(--mer-on-accent, #15161a);
+  --_code-bg: var(--mer-code-bg, #101116);
+  --_code-fg: var(--mer-code-fg, var(--_fg));
+  --_sans: var(--mer-font-sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  --_mono: var(--mer-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --_radius: var(--mer-radius, 8px);
+  --_unit: var(--mer-unit, 4px);
+
+  color: var(--_fg);
+  background: var(--_bg);
+  font-family: var(--_sans);
+  font-size: var(--mer-font-size, 14px);
+  line-height: 1.5;
+}
+
+.meridian-uiview-header {
+  font-family: var(--_sans);
+  font-weight: var(--mer-heading-weight, 600);
+  letter-spacing: var(--mer-heading-tracking, -0.01em);
+  color: var(--_fg);
+  margin: 0 0 calc(var(--_unit) * 1) 0;
+}
+
+.meridian-uiview-meta {
+  color: var(--_muted);
+  font-size: 0.875em;
+  margin: 0 0 calc(var(--_unit) * 3) 0;
+}
+
+.meridian-uiview-placeholder {
+  color: var(--_muted);
+  padding: calc(var(--_unit) * 4);
+  border: 1px dashed var(--_border);
+  border-radius: var(--_radius);
+  text-align: center;
+}
+
+.meridian-uiview-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  overflow: hidden;
+}
+
+.meridian-uiview-table th,
+.meridian-uiview-table td {
+  text-align: left;
+  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  border-bottom: 1px solid var(--_border);
+}
+
+.meridian-uiview-table thead th {
+  background: var(--_surface);
+  color: var(--_muted);
+  font-weight: var(--mer-heading-weight, 600);
+}
+
+.meridian-uiview-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--_surface) 45%, transparent);
+}
+
+.meridian-uiview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.meridian-uiview-body a {
+  color: var(--_accent);
+  text-decoration: none;
+}
+.meridian-uiview-body a:hover {
+  text-decoration: underline;
+}
+
+.meridian-uiview-body code,
+.meridian-uiview-body pre {
+  font-family: var(--_mono);
+  background: var(--_code-bg);
+  color: var(--_code-fg);
+  border-radius: calc(var(--_radius) - 3px);
+}
+.meridian-uiview-body code {
+  padding: 1px 5px;
+}
+.meridian-uiview-body pre {
+  padding: calc(var(--_unit) * 3);
+  overflow: auto;
+}
+
+/* Buttons (e.g. table RowAction) — primary fill from the accent token. */
+.meridian-uiview-body button {
+  font: inherit;
+  cursor: pointer;
+  padding: calc(var(--_unit) * 1.5) calc(var(--_unit) * 3);
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+}
+.meridian-uiview-body button.primary {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--_accent), var(--_accent-strong));
+  color: var(--_on-accent);
+  font-weight: 600;
+}
