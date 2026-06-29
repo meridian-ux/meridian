@@ -13,3 +13,15 @@ prost = { workspace = true }
 regex = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+
+[build-dependencies]
+# Used by build.rs to compile meridian.theme.v1 from proto/theme.proto for
+# cargo consumers. Bazel consumers opt into `bazel_proto` (the theme_proto
+# sibling crate from //rust/uiview) instead.
+prost-build = { workspace = true }
+
+[features]
+# When set, the Bazel-generated `theme_proto` sibling crate is used for the
+# theme module's proto types instead of cargo's build.rs codegen. Bazel targets
+# enable this in their `crate_features`.
+bazel_proto = []

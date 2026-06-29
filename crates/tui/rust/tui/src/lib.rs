@@ -14,6 +14,14 @@
 //     collected field values (or a confirmation boolean) on submit,
 //     `Cancelled` on Esc. Suitable for `bazel run`-style CLIs
 //     (e.g. rules_cloudformation's cfn_console).
+//   * `Palette` / `Theme` — the TUI's theme binding. `Palette` maps a
+//     `meridian.theme.v1.Theme` (parsed `#RRGGBB` -> ratatui `Color::Rgb`)
+//     to the styles every widget sources its look from, so NO color
+//     literal lives in the renderer. `PanelView::with_palette` and the
+//     `palette` argument to `render_prompt` / `render_llm_prompt` carry it.
+//     `Palette::default()` is a neutral dark look for un-skinned runs; a
+//     brand skin (e.g. @brand's fastverk Theme) drives it identically to
+//     every other meridian renderer.
 //
 // No JSON↔proto bridge at this layer — meridian-uiview's
 // RequestBuilder produces serde_json::Value requests, and the host
@@ -23,12 +31,14 @@ mod invoker;
 mod llm_prompt;
 mod prompt;
 mod state;
+mod theme;
 mod widget;
 
 pub use invoker::{RpcError, RpcInvoker};
 pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
+pub use theme::{parse_hex, Mode, Palette, Theme};
 pub use widget::PanelView;
 
 // Re-export the ratatui + crossterm crates so downstream consumers

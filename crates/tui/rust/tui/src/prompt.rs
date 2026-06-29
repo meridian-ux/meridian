@@ -26,11 +26,12 @@ use meridian_uiview::proto::{
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame, Terminal,
 };
+
+use crate::theme::Palette;
 
 /// Result of a one-shot prompt rendering. Cancellation is its own
 /// variant so the caller distinguishes Esc from a denied confirmation.
@@ -81,7 +82,14 @@ pub enum PromptError {
 ///
 /// Drives crossterm directly so the caller doesn't have to manage
 /// terminal state. Suitable as a one-shot from a `bazel run` binary.
-pub fn render_prompt(panel: &PromptPanel) -> Result<PromptResponse, PromptError> {
+///
+/// All look comes from `palette` (derive it from a `meridian.theme.v1.Theme`
+/// via `Palette::from_theme`, or pass `Palette::default()` for the neutral
+/// look). No `Color::` / `Style::` literal lives in this renderer.
+pub fn render_prompt(
+    panel: &PromptPanel,
+    palette: &Palette,
+) -> Result<PromptResponse, PromptError> {
     if !panel.is_confirmation && panel.fields.is_empty() {
         return Err(PromptError::EmptyPrompt);
     }
@@ -104,9 +112,9 @@ pub fn render_prompt(panel: &PromptPanel) -> Result<PromptResponse, PromptError>
     let mut term = Terminal::new(backend)?;
 
     let result = if panel.is_confirmation {
-        run_confirmation(&mut term, panel)
+        run_confirmation(&mut term, panel, palette)
     } else {
-        run_form(&mut term, panel)
+        run_form(&mut term, panel, palette)
     };
 
     // Always restore terminal state, even on Err.
@@ -127,6 +135,7 @@ pub fn render_prompt(panel: &PromptPanel) -> Result<PromptResponse, PromptError>
 fn run_confirmation<B: ratatui::backend::Backend>(
     term: &mut Terminal<B>,
     panel: &PromptPanel,
+    palette: &Palette,
 ) -> Result<PromptResponse, PromptError> {
     let accept = if panel.accept_label.is_empty() {
         "Yes"
@@ -140,7 +149,7 @@ fn run_confirmation<B: ratatui::backend::Backend>(
     };
 
     loop {
-        term.draw(|f| draw_confirmation(f, panel, accept, cancel))?;
+        term.draw(|f| draw_confirmation(f, panel, accept, cancel, palette))?;
 
         if let Event::Key(KeyEvent {
             code, kind, modifiers, ..
@@ -163,30 +172,37 @@ fn run_confirmation<B: ratatui::backend::Backend>(
     }
 }
 
-fn draw_confirmation(f: &mut Frame, panel: &PromptPanel, accept: &str, cancel: &str) {
+fn draw_confirmation(
+    f: &mut Frame,
+    panel: &PromptPanel,
+    accept: &str,
+    cancel: &str,
+    palette: &Palette,
+) {
     let area = f.area();
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(header_body_footer(&panel.detail))
         .split(area);
 
-    draw_header(f, chunks[0], panel);
+    draw_header(f, chunks[0], panel, palette);
     if !panel.detail.is_empty() {
         draw_detail(f, chunks[1], &panel.detail);
     }
     let prompt = Line::from(vec![
         Span::raw("  "),
-        Span::styled(format!("{accept} [y]"), Style::default().fg(Color::Green)),
+        Span::styled(format!("{accept} [y]"), palette.success_style()),
         Span::raw("   "),
-        Span::styled(
-            format!("{cancel} [n/Enter]"),
-            Style::default().fg(Color::Red),
-        ),
+        Span::styled(format!("{cancel} [n/Enter]"), palette.danger_style()),
         Span::raw("   "),
-        Span::styled("Cancel [Esc]", Style::default().fg(Color::DarkGray)),
+        Span::styled("Cancel [Esc]", palette.meta()),
     ]);
     f.render_widget(
-        Paragraph::new(prompt).block(Block::default().borders(Borders::TOP)),
+        Paragraph::new(prompt).block(
+            Block::default()
+                .borders(Borders::TOP)
+                .border_style(palette.border_style()),
+        ),
         chunks[chunks.len() - 1],
     );
 }
@@ -211,12 +227,13 @@ struct FieldState {
 fn run_form<B: ratatui::backend::Backend>(
     term: &mut Terminal<B>,
     panel: &PromptPanel,
+    palette: &Palette,
 ) -> Result<PromptResponse, PromptError> {
     let mut states: Vec<FieldState> = panel.fields.iter().map(initial_state).collect();
     let mut focus: usize = 0;
 
     loop {
-        term.draw(|f| draw_form(f, panel, &states, focus))?;
+        term.draw(|f| draw_form(f, panel, &states, focus, palette))?;
 
         if let Event::Key(KeyEvent { code, kind, modifiers, .. }) = event::read()? {
             if kind != KeyEventKind::Press {
@@ -455,21 +472,21 @@ fn header_body_footer(detail: &str) -> Vec<Constraint> {
     }
 }
 
-fn draw_header(f: &mut Frame, area: Rect, panel: &PromptPanel) {
+fn draw_header(f: &mut Frame, area: Rect, panel: &PromptPanel, palette: &Palette) {
     let text = if panel.description.is_empty() {
-        Span::styled(
-            "Prompt",
-            Style::default().add_modifier(Modifier::BOLD),
-        )
+        Span::styled("Prompt", palette.title())
     } else {
         Span::styled(
             panel.description.lines().next().unwrap_or("").to_string(),
-            Style::default().add_modifier(Modifier::BOLD),
+            palette.title(),
         )
     };
     f.render_widget(
-        Paragraph::new(Line::from(text))
-            .block(Block::default().borders(Borders::BOTTOM)),
+        Paragraph::new(Line::from(text)).block(
+            Block::default()
+                .borders(Borders::BOTTOM)
+                .border_style(palette.border_style()),
+        ),
         area,
     );
 }
@@ -481,7 +498,13 @@ fn draw_detail(f: &mut Frame, area: Rect, detail: &str) {
     );
 }
 
-fn draw_form(f: &mut Frame, panel: &PromptPanel, states: &[FieldState], focus: usize) {
+fn draw_form(
+    f: &mut Frame,
+    panel: &PromptPanel,
+    states: &[FieldState],
+    focus: usize,
+    palette: &Palette,
+) {
     let area = f.area();
     let outer = Layout::default()
         .direction(Direction::Vertical)
@@ -493,7 +516,7 @@ fn draw_form(f: &mut Frame, panel: &PromptPanel, states: &[FieldState], focus: u
         .split(area);
 
     if !panel.description.is_empty() {
-        draw_header(f, outer[0], panel);
+        draw_header(f, outer[0], panel, palette);
     }
 
     // Field rows: 2 lines per field (label + value) + 1 for error if any.
@@ -508,7 +531,7 @@ fn draw_form(f: &mut Frame, panel: &PromptPanel, states: &[FieldState], focus: u
         .split(outer[1]);
 
     for (i, s) in states.iter().enumerate() {
-        draw_field(f, rows[i], s, i == focus);
+        draw_field(f, rows[i], s, i == focus, palette);
     }
 
     let accept = if panel.accept_label.is_empty() {
@@ -517,32 +540,28 @@ fn draw_form(f: &mut Frame, panel: &PromptPanel, states: &[FieldState], focus: u
         &panel.accept_label
     };
     let footer = Line::from(vec![
-        Span::styled(
-            format!(" {accept} [Enter] "),
-            Style::default().fg(Color::Green),
-        ),
+        Span::styled(format!(" {accept} [Enter] "), palette.success_style()),
         Span::raw(" "),
-        Span::styled(" Cancel [Esc] ", Style::default().fg(Color::DarkGray)),
+        Span::styled(" Cancel [Esc] ", palette.meta()),
         Span::raw(" "),
-        Span::styled(
-            " Navigate [Tab / Shift+Tab] ",
-            Style::default().fg(Color::DarkGray),
-        ),
+        Span::styled(" Navigate [Tab / Shift+Tab] ", palette.meta()),
     ]);
     f.render_widget(
-        Paragraph::new(footer).block(Block::default().borders(Borders::TOP)),
+        Paragraph::new(footer).block(
+            Block::default()
+                .borders(Borders::TOP)
+                .border_style(palette.border_style()),
+        ),
         outer[2],
     );
 }
 
-fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool) {
+fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette: &Palette) {
     let marker = if focused { "▶ " } else { "  " };
     let label_style = if focused {
-        Style::default()
-            .fg(Color::Cyan)
-            .add_modifier(Modifier::BOLD)
+        palette.focused()
     } else {
-        Style::default().fg(Color::Gray)
+        palette.text()
     };
 
     let value_str = match s.field.kind.as_ref() {
@@ -564,23 +583,20 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool) {
             Span::styled(marker, label_style),
             Span::styled(&s.field.label, label_style),
             if !s.field.description.is_empty() {
-                Span::styled(
-                    format!("  — {}", s.field.description),
-                    Style::default().fg(Color::DarkGray),
-                )
+                Span::styled(format!("  — {}", s.field.description), palette.meta())
             } else {
                 Span::raw("")
             },
         ]),
         Line::from(vec![
             Span::raw("    "),
-            Span::styled(value_str, Style::default().fg(Color::White)),
+            Span::styled(value_str, palette.value()),
         ]),
     ];
     if let Some(err) = &s.error {
         lines.push(Line::from(vec![
             Span::raw("    "),
-            Span::styled(format!("✗ {err}"), Style::default().fg(Color::Red)),
+            Span::styled(format!("✗ {err}"), palette.danger_style()),
         ]));
     }
 

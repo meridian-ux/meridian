@@ -12,12 +12,18 @@ rust_library(
         "src/llm_prompt.rs",
         "src/prompt.rs",
         "src/state.rs",
+        "src/theme.rs",
         "src/widget.rs",
     ],
     crate_name = "meridian_tui",
     edition = "2021",
+    # `bazel_proto` cfg-gates the theme module to pull prost types from the
+    # `//rust/uiview:theme_proto` sibling crate instead of build.rs/OUT_DIR
+    # (the cargo path). Same pattern as //rust/uiview:uiview.
+    crate_features = ["bazel_proto"],
     deps = [
         "//rust/uiview",
+        "//rust/uiview:theme_proto",
         "@crates//:crossterm",
         "@crates//:prost",
         "@crates//:ratatui",

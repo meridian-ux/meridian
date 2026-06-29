@@ -25,6 +25,7 @@ use std::collections::HashMap;
 use meridian_uiview::proto::{LlmPromptPanel, PromptPanel};
 
 use crate::prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
+use crate::theme::Palette;
 
 /// Result of rendering an `LlmPromptPanel` interactively.
 #[derive(Debug, Clone)]
@@ -47,6 +48,7 @@ pub enum LlmPromptResponse {
 /// `render_prompt`).
 pub fn render_llm_prompt(
     panel: &LlmPromptPanel,
+    palette: &Palette,
 ) -> Result<LlmPromptResponse, PromptError> {
     // Build a synthetic PromptPanel from the slot FormFields. If
     // there are no slots, the templates carry no `{{...}}`
@@ -71,7 +73,7 @@ pub fn render_llm_prompt(
         cancel_label: "Cancel".to_string(),
         detail: String::new(),
     };
-    let response = render_prompt(&synthetic)?;
+    let response = render_prompt(&synthetic, palette)?;
     match response {
         PromptResponse::Submitted(values) => {
             let rendered_system = substitute(&panel.system_template, &values);
@@ -117,7 +119,8 @@ mod tests {
             output_json_schema: String::new(),
             description: String::new(),
         };
-        let r = render_llm_prompt(&panel).expect("no-slots path doesn't enter raw mode");
+        let r = render_llm_prompt(&panel, &Palette::default())
+            .expect("no-slots path doesn't enter raw mode");
         match r {
             LlmPromptResponse::Submitted {
                 rendered_system,

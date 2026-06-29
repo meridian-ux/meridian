@@ -2,21 +2,27 @@ use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{PanelDescriptor, TablePanel};
 use meridian_uiview::{render_table, Context, RenderedRow, RequestBuilder};
 use ratatui::layout::{Constraint, Layout};
-use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
 use ratatui::Frame;
 
 use crate::invoker::RpcInvoker;
+use crate::theme::Palette;
 
 /// Stateful ratatui widget rendering one PanelDescriptor. For
 /// TablePanels it does its own populate call against the invoker
 /// (lazy + cached); for LroPanels it shows a placeholder telling
 /// the operator to wire the LRO driver; for AdhocPanels it surfaces
 /// the handler_id so the host knows which custom view to swap in.
+///
+/// All look comes from `palette` (derived from a `meridian.theme.v1.Theme`):
+/// no `Color::` / `Style::` literal lives in this file. Hosts that load a skin
+/// build a `Palette::from_theme(...)` and pass it via `with_palette`; the
+/// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
     cached: Option<CachedTable>,
     table_state: TableState,
+    palette: Palette,
 }
 
 struct CachedTable {
@@ -29,7 +35,23 @@ impl PanelView {
         Self {
             cached: None,
             table_state: TableState::default(),
+            palette: Palette::default(),
         }
+    }
+
+    /// Build a PanelView that sources its look from `palette` (typically
+    /// `Palette::from_theme(&theme, mode)`). Use this to skin the renderer.
+    pub fn with_palette(palette: Palette) -> Self {
+        Self {
+            cached: None,
+            table_state: TableState::default(),
+            palette,
+        }
+    }
+
+    /// Swap the active palette (e.g. on a runtime theme/mode change).
+    pub fn set_palette(&mut self, palette: Palette) {
+        self.palette = palette;
     }
 
     /// Forces the next render to refetch the table data.
@@ -83,7 +105,7 @@ impl PanelView {
         // Header.
         let title = Paragraph::new(Span::styled(
             descriptor.title.clone(),
-            Style::default().add_modifier(Modifier::BOLD),
+            self.palette.title(),
         ));
         frame.render_widget(title, chunks[0]);
 
@@ -163,7 +185,7 @@ impl PanelView {
         let cached = self.cached.as_ref().unwrap();
         let meta = Paragraph::new(Span::styled(
             format!("{} {}", cached.rows.len(), cached.item_noun),
-            Style::default().fg(ratatui::style::Color::DarkGray),
+            self.palette.meta(),
         ));
         frame.render_widget(meta, meta_area);
 
@@ -174,7 +196,7 @@ impl PanelView {
                 .map(|col| Cell::from(col.header.clone()))
                 .collect::<Vec<_>>(),
         )
-        .style(Style::default().add_modifier(Modifier::BOLD));
+        .style(self.palette.header());
 
         let rows: Vec<Row> = cached
             .rows
@@ -197,11 +219,14 @@ impl PanelView {
             .collect();
 
         let widget = Table::new(rows, constraints)
+            .style(self.palette.text())
             .header(header)
-            .block(Block::default().borders(Borders::ALL))
-            .row_highlight_style(
-                Style::default().add_modifier(Modifier::REVERSED),
-            );
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(self.palette.border_style()),
+            )
+            .row_highlight_style(self.palette.selection());
 
         frame.render_stateful_widget(widget, body_area, &mut self.table_state);
     }
@@ -215,11 +240,11 @@ impl PanelView {
     ) {
         let meta = Paragraph::new(Line::from(""));
         frame.render_widget(meta, meta_area);
-        let body = Paragraph::new(Span::styled(
-            text,
-            Style::default().fg(ratatui::style::Color::DarkGray),
-        ))
-        .block(Block::default().borders(Borders::ALL));
+        let body = Paragraph::new(Span::styled(text, self.palette.meta())).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(self.palette.border_style()),
+        );
         frame.render_widget(body, body_area);
     }
 
