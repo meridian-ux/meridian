@@ -1,0 +1,23 @@
+{
+  "name": "@meridian/web-react",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "React adapter for the meridian WebRenderer seam: a kit-agnostic core (MeridianProvider, PanelRenderer, ComponentKit, reactWebRenderer) that renders meridian.ui.v1 PanelDescriptors through a swappable ComponentKit (MUI, shadcn, …). The premium web renderer tier of the meridian renderer family.",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3"
+  }
+}
