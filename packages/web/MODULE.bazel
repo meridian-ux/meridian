@@ -1,6 +1,6 @@
 module(
     name = "meridian_web",
-    version = "0.1.0",
+    version = "0.1.1",
 )
 
 # meridian-web — the web-components renderer of the meridian design language: the
@@ -16,6 +16,16 @@ bazel_dep(name = "aspect_rules_js", version = "3.1.2")
 bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
 bazel_dep(name = "rules_nodejs", version = "6.7.4")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# rules_proto + protobuf back //bazel/panel_bundle.bzl (the meridian_panel_bundle
+# rule): it loads ProtoInfo from @rules_proto, and its protoc tool defaults to
+# @protobuf//:protoc. Those `load`/attr-default references resolve against THIS
+# module's repo mapping (the rule is defined here), so they must be visible from
+# meridian_web for any consumer of the rule — even though meridian_web's own JS
+# targets never touch proto. (The caller still supplies the proto_library via the
+# rule's `proto` attr.)
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "protobuf", version = "33.4")
 
 # rules_vite is dev-only: it wires the vitest_test targets. Lives in the
 # tomato-bazel registry (see .bazelrc), not BCR.

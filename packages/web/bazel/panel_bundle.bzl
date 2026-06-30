@@ -9,12 +9,12 @@ reflection-free (no prost-reflect, no protobuf-js dynamic loader).
 Usage:
 
 ```python
-load("@meridian//bazel:panel_bundle.bzl", "meridian_panel_bundle")
+load("@meridian_web//bazel:panel_bundle.bzl", "meridian_panel_bundle")
 
 meridian_panel_bundle(
     name = "panels",
     src = "panels.textproto",
-    proto = "@meridian//proto:uiview_proto",
+    proto = "@meridian_schemas//proto:uiview_proto",
     message = "meridian.ui.v1.PanelBundle",
 )
 ```
