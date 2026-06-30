@@ -1,0 +1,64 @@
+module(
+    name = "meridian_tui",
+    version = "0.1.0",
+)
+
+# meridian-tui — the ratatui terminal renderer of the meridian design language.
+# A native-Rust PanelDescriptor renderer (table / prompt / llm_prompt widgets, a
+# panel-app state machine, an RpcInvoker trait) built on the shared rust core in
+# meridian-uiview-core: it consumes that module's native `uiview` lib + the
+# `theme_proto` prost crate cross-repo (the Bazel module graph), so renderers
+# never depend on each other — only on the core.
+bazel_dep(name = "meridian_uiview_core", version = "0.1.1")
+
+# Proto toolchain machinery. tui declares NO proto_library / rust_prost_library
+# itself, but Bazel rebuilds meridian-uiview-core's rust_prost_library targets
+# (theme_proto / uiview_proto) in THIS root build context, so the proto rules +
+# the prebuilt protoc toolchain (see .bazelrc prefer_prebuilt_protoc, which
+# references @protobuf) must be visible here too. googleapis supplies
+# google/api/field_behavior.proto that uiview.proto imports.
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "protobuf", version = "33.4")
+bazel_dep(name = "googleapis", version = "0.0.0-20260422-20ac242a")
+
+# Rust: the ratatui renderer lib. Crate deps resolve via crate_universe reading
+# rust/Cargo.toml + Cargo.lock. No proto codegen here (the prost types come from
+# meridian-uiview-core); no wasm (the TUI is native only).
+bazel_dep(name = "rules_rust", version = "0.70.0")
+
+# Rust toolchain (native host only — no wasm32 target).
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.85.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+# crate_universe reads rust/Cargo.toml + Cargo.lock. The native crates the TUI
+# pulls (ratatui, crossterm, …); the first-party `meridian_uiview` + `theme_proto`
+# come cross-repo via the BUILD deps, NOT from @crates.
+# isolate=True: meridian-uiview-core also defines a crate universe named `crates`;
+# crate_universe rejects two same-named universes across modules. Isolating this
+# usage namespaces it so the names don't clash (and keeps `@crates` referenceable
+# from this module's BUILD files).
+crate = use_extension(
+    "@rules_rust//crate_universe:extensions.bzl",
+    "crate",
+    isolate = True,
+)
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//rust:Cargo.lock",
+    manifests = ["//rust:Cargo.toml"],
+)
+use_repo(crate, "crates")
+
+# Reuse meridian-uiview-core's tonic-free prost toolchain when this build context
+# (re)builds its rust_prost_library targets (theme_proto / uiview_proto).
+# Registering it here (root module) makes it win toolchain resolution over the
+# default tonic-bearing toolchain shipped by rules_rust_prost, so theme_proto is
+# generated against the same prost the uiview lib uses (and we don't drag
+# tonic/tokio/mio into a native renderer).
+register_toolchains("@meridian_uiview_core//rust:prost_toolchain")

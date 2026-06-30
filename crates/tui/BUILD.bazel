@@ -1,0 +1,4 @@
+package(default_visibility = ["//visibility:public"])
+
+# meridian-tui is a pure-Rust module; the targets live under //rust/tui.
+# This root package exists only to anchor the module.

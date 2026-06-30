@@ -1,0 +1,10 @@
+package(default_visibility = ["//visibility:public"])
+
+# Cargo.toml + Cargo.lock are exposed as targets so crate_universe can read them
+# as the dep manifest (configured in MODULE.bazel under the `crate` extension).
+# The tonic-free prost toolchain lives in meridian-uiview-core; this module
+# registers it from there (see MODULE.bazel), so there's no prost_toolchain here.
+exports_files([
+    "Cargo.toml",
+    "Cargo.lock",
+])

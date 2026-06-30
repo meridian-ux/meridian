@@ -6,12 +6,17 @@ license.workspace = true
 description = "ratatui-based renderer for Meridian PanelDescriptors."
 
 [dependencies]
-meridian-uiview = { path = "../uiview" }
+# The first-party `meridian_uiview` core + `theme_proto` are supplied cross-repo
+# by Bazel (`@meridian_uiview_core//rust/uiview` + `:theme_proto` in BUILD.bazel),
+# NOT as a cargo path dep — meridian-uiview-core is a separate Bazel module. So
+# standalone `cargo build` of this crate is not wired; Bazel is authoritative.
 ratatui = { workspace = true }
 crossterm = { workspace = true }
 prost = { workspace = true }
 regex = { workspace = true }
-serde_json = { workspace = true }
+# serde_json is supplied cross-repo by Bazel (`@meridian_uiview_core//rust:serde_json`)
+# so the `serde_json::Value` that crosses the uiview API boundary is one shared
+# crate instance; it is intentionally NOT a cargo dep here.
 thiserror = { workspace = true }
 
 [build-dependencies]
