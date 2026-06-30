@@ -1,42 +1,18 @@
 {
-  "name": "@meridian/core",
+  "name": "meridian-web-workspace",
   "version": "0.1.0",
   "private": true,
-  "description": "Lightweight web component runtime: typed worker controller, DOM patch helpers, template loader, UI kit CSS, and Bazel rules for declarative component graphs.",
+  "description": "Workspace root for meridian-web — the web-components renderer of the meridian design language. Consumed by hosts via Bazel (//src:core) + the //bazel:panel_bundle.bzl rule. The TS surface depends on the design language via npm (@savvifi/meridian-schemas + @savvifi/meridian-proto-ts).",
   "type": "module",
-  "main": "./src/index.js",
-  "types": "./src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.js"
-    },
-    "./uiview": {
-      "types": "./src/uiview/index.d.ts",
-      "import": "./src/uiview/index.js"
-    },
-    "./*": {
-      "types": "./src/*.d.ts",
-      "import": "./src/*.js"
-    }
-  },
-  "files": [
-    "src/**/*.ts",
-    "src/**/*.js",
-    "src/**/*.d.ts",
-    "src/**/*.json",
-    "bazel/**/*.bzl",
-    "BUILD.bazel",
-    "MODULE.bazel",
-    "README.md"
-  ],
   "dependencies": {
+    "@savvifi/meridian-proto-ts": "^0.1.0",
+    "@savvifi/meridian-schemas": "^0.1.0",
     "@bufbuild/protobuf": "2.12.1"
   },
   "devDependencies": {
-    "@bufbuild/protoc-gen-es": "2.12.1",
+    "typescript": "5.6.2",
     "vitest": "2.1.4",
-    "typescript": "5.6.2"
+    "jsdom": "25.0.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild"]

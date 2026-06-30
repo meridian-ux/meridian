@@ -23,3 +23,21 @@ vitest_test(
         ":src_lib",
     ],
 )
+
+# Render conformance + the binary-boundary guard for the B1 canonical/binpb
+# rewrite: each shape fixture renders through renderPanel into jsdom, with a mock
+# wasm that fromBinary-validates every Uint8Array the renderer emits.
+vitest_test(
+    name = "conformance",
+    srcs = [
+        "conformance.test.ts",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)

@@ -1,3 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["defs.bzl"])
+# Ship the meridian_panel_bundle rule (textproto PanelBundle -> binpb) for
+# consumers: `load("@meridian_web//bazel:panel_bundle.bzl", "meridian_panel_bundle")`.
+# The rule is consumer-parameterized — the caller supplies `proto` (e.g.
+# @meridian_schemas//proto:uiview_proto) and brings rules_proto + protobuf in
+# their own module — so meridian-web itself needs no proto toolchain.
+exports_files(["panel_bundle.bzl"])
