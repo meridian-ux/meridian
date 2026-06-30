@@ -1,6 +1,6 @@
 module(
     name = "meridian_web",
-    version = "0.1.1",
+    version = "0.1.2",
 )
 
 # meridian-web — the web-components renderer of the meridian design language: the
@@ -16,6 +16,12 @@ bazel_dep(name = "aspect_rules_js", version = "3.1.2")
 bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
 bazel_dep(name = "rules_nodejs", version = "6.7.4")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# esbuild bundles //src:browser_bundle — a single self-contained browser ESM
+# (protobuf-es + @savvifi/meridian-proto-ts inlined) for hosts that drive meridian
+# panels in a bundler-free static frontend (e.g. botnoc). 0.26.0 targets rules_js
+# 3.x and auto-registers a default esbuild toolchain (no extension wiring needed).
+bazel_dep(name = "aspect_rules_esbuild", version = "0.26.0")
 
 # rules_proto + protobuf back //bazel/panel_bundle.bzl (the meridian_panel_bundle
 # rule): it loads ProtoInfo from @rules_proto, and its protoc tool defaults to

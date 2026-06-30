@@ -27,7 +27,10 @@
     "https://bcr.bazel.build/modules/aspect_bazel_lib/2.22.5/source.json": "ac2c3213df8f985785f1d0aeb7f0f73d5324e6e67d593d9b9470fb74a25d4a9b",
     "https://bcr.bazel.build/modules/aspect_bazel_lib/2.7.7/MODULE.bazel": "491f8681205e31bb57892d67442ce448cda4f472a8e6b3dc062865e29a64f89c",
     "https://bcr.bazel.build/modules/aspect_bazel_lib/2.8.1/MODULE.bazel": "812d2dd42f65dca362152101fbec418029cc8fd34cbad1a2fde905383d705838",
+    "https://bcr.bazel.build/modules/aspect_rules_esbuild/0.26.0/MODULE.bazel": "6c902d97038c3ab07b6c4e67c97abc61b20182fcfa84fa7dee82fc724f12e455",
+    "https://bcr.bazel.build/modules/aspect_rules_esbuild/0.26.0/source.json": "4cc3ece7ab661bb391a9e24fe55c4b567d60a9ea9d9e91d772dad373cbcb6217",
     "https://bcr.bazel.build/modules/aspect_rules_js/2.0.0/MODULE.bazel": "b45b507574aa60a92796e3e13c195cd5744b3b8aff516a9c0cb5ae6a048161c5",
+    "https://bcr.bazel.build/modules/aspect_rules_js/3.0.3/MODULE.bazel": "28a30e8fc33bf64a67835d64d124f6e05a7d59648dcb27b110fb3502f761e503",
     "https://bcr.bazel.build/modules/aspect_rules_js/3.1.2/MODULE.bazel": "e3685502155d3cc65f3bf98e714f7435de67d7f8f355d63478a80197310311fc",
     "https://bcr.bazel.build/modules/aspect_rules_js/3.1.2/source.json": "a32ab71831452b945f3f83a1b1feb9402007e600bce55ac76e15ef0c1e08b520",
     "https://bcr.bazel.build/modules/aspect_rules_ts/3.8.9/MODULE.bazel": "bd5f9ebf517cfcd377eaa7ce1cb16035d167f00774b77789909590c53bc6f20c",
@@ -183,6 +186,7 @@
     "https://bcr.bazel.build/modules/rules_license/1.0.0/MODULE.bazel": "a7fda60eefdf3d8c827262ba499957e4df06f659330bbe6cdbdb975b768bb65c",
     "https://bcr.bazel.build/modules/rules_license/1.0.0/source.json": "a52c89e54cc311196e478f8382df91c15f7a2bfdf4c6cd0e2675cc2ff0b56efb",
     "https://bcr.bazel.build/modules/rules_nodejs/6.2.0/MODULE.bazel": "ec27907f55eb34705adb4e8257952162a2d4c3ed0f0b3b4c3c1aad1fac7be35e",
+    "https://bcr.bazel.build/modules/rules_nodejs/6.5.0/MODULE.bazel": "546d0cf79f36f9f6e080816045f97234b071c205f4542e3351bd4424282a8810",
     "https://bcr.bazel.build/modules/rules_nodejs/6.7.3/MODULE.bazel": "c22a48b2a0dbf05a9dc5f83837bbc24c226c1f6e618de3c3a610044c9f336056",
     "https://bcr.bazel.build/modules/rules_nodejs/6.7.4/MODULE.bazel": "e6a241a55c82e999145553d2e00a08fc6ebadf62b63d108fb5e984696ffd0bd2",
     "https://bcr.bazel.build/modules/rules_nodejs/6.7.4/source.json": "34e7a8a3b4c8d630ac0e0492b3fed9dba41fe008a0edf220b7d88fa38ac53698",
@@ -234,8 +238,10 @@
     "https://bcr.bazel.build/modules/tar.bzl/0.10.4/source.json": "20143442376c03426f6135292ba02d825cb75308aa47e6bf42dd4cc5a435c2ff",
     "https://bcr.bazel.build/modules/tar.bzl/0.2.1/MODULE.bazel": "52d1c00a80a8cc67acbd01649e83d8dd6a9dc426a6c0b754a04fe8c219c76468",
     "https://bcr.bazel.build/modules/tar.bzl/0.5.1/MODULE.bazel": "7c2eb3dcfc53b0f3d6f9acdfd911ca803eaf92aadf54f8ca6e4c1f3aee288351",
+    "https://bcr.bazel.build/modules/tar.bzl/0.6.0/MODULE.bazel": "a3584b4edcfafcabd9b0ef9819808f05b372957bbdff41601429d5fd0aac2e7c",
     "https://bcr.bazel.build/modules/upb/0.0.0-20220923-a547704/MODULE.bazel": "7298990c00040a0e2f121f6c32544bab27d4452f80d9ce51349b1a28f3005c43",
     "https://bcr.bazel.build/modules/yq.bzl/0.1.1/MODULE.bazel": "9039681f9bcb8958ee2c87ffc74bdafba9f4369096a2b5634b88abc0eaefa072",
+    "https://bcr.bazel.build/modules/yq.bzl/0.3.2/MODULE.bazel": "0384efa70e8033d842ea73aa4b7199fa099709e236a7264345c03937166670b6",
     "https://bcr.bazel.build/modules/yq.bzl/0.3.4/MODULE.bazel": "d3a270662f5d766cd7229732d65a5a5bc485240c3007343dd279edfb60c9ae27",
     "https://bcr.bazel.build/modules/yq.bzl/0.3.4/source.json": "786dafdc2843722da3416e4343ee1a05237227f068590779a6e8496a2064c0f9",
     "https://bcr.bazel.build/modules/zlib/1.2.11/MODULE.bazel": "07b389abc85fdbca459b69e2ec656ae5622873af3f845e1c9d80fe179f3effa0",
@@ -266,7 +272,9 @@
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_bazel_lib/2.22.5/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_bazel_lib/2.7.7/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_bazel_lib/2.8.1/MODULE.bazel": "not found",
+    "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_rules_esbuild/0.26.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_rules_js/2.0.0/MODULE.bazel": "not found",
+    "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_rules_js/3.0.3/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_rules_js/3.1.2/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_rules_ts/3.8.9/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/aspect_tools_telemetry/0.3.3/MODULE.bazel": "not found",
@@ -398,6 +406,7 @@
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_license/0.0.7/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_license/1.0.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_nodejs/6.2.0/MODULE.bazel": "not found",
+    "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_nodejs/6.5.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_nodejs/6.7.3/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_nodejs/6.7.4/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/rules_pkg/0.7.0/MODULE.bazel": "not found",
@@ -442,8 +451,10 @@
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/tar.bzl/0.10.4/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/tar.bzl/0.2.1/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/tar.bzl/0.5.1/MODULE.bazel": "not found",
+    "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/tar.bzl/0.6.0/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/upb/0.0.0-20220923-a547704/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/yq.bzl/0.1.1/MODULE.bazel": "not found",
+    "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/yq.bzl/0.3.2/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/yq.bzl/0.3.4/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/zlib/1.2.11/MODULE.bazel": "not found",
     "https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/modules/zlib/1.2.12/MODULE.bazel": "not found",
@@ -452,10 +463,108 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "@@aspect_rules_esbuild+//esbuild:extensions.bzl%esbuild": {
+      "general": {
+        "bzlTransitiveDigest": "zssv1Ic38vyofq4hPAxpWm+IIEP/5plsgduuxwe6BPs=",
+        "usagesDigest": "LSQ+zZp7JNgnBONTxxXnwGr4NTh2qtQYk7qwXXz5qWo=",
+        "recordedInputs": [
+          "REPO_MAPPING:aspect_rules_esbuild+,aspect_rules_js aspect_rules_js+",
+          "REPO_MAPPING:aspect_rules_esbuild+,aspect_tools_telemetry_report aspect_tools_telemetry++telemetry+aspect_tools_telemetry_report",
+          "REPO_MAPPING:aspect_rules_esbuild+,bazel_skylib bazel_skylib+",
+          "REPO_MAPPING:aspect_rules_js+,aspect_rules_js aspect_rules_js+",
+          "REPO_MAPPING:aspect_rules_js+,aspect_tools_telemetry_report aspect_tools_telemetry++telemetry+aspect_tools_telemetry_report",
+          "REPO_MAPPING:aspect_rules_js+,bazel_features bazel_features+",
+          "REPO_MAPPING:aspect_rules_js+,bazel_lib bazel_lib+",
+          "REPO_MAPPING:aspect_rules_js+,bazel_skylib bazel_skylib+",
+          "REPO_MAPPING:aspect_rules_js+,bazel_tools bazel_tools",
+          "REPO_MAPPING:aspect_rules_js+,protobuf protobuf+",
+          "REPO_MAPPING:aspect_rules_js+,tar.bzl tar.bzl+",
+          "REPO_MAPPING:bazel_features+,bazel_features_globals bazel_features++version_extension+bazel_features_globals",
+          "REPO_MAPPING:bazel_features+,bazel_features_version bazel_features++version_extension+bazel_features_version",
+          "REPO_MAPPING:bazel_lib+,bazel_lib bazel_lib+",
+          "REPO_MAPPING:bazel_lib+,bazel_skylib bazel_skylib+",
+          "REPO_MAPPING:bazel_lib+,bazel_tools bazel_tools",
+          "REPO_MAPPING:protobuf+,proto_bazel_features bazel_features+",
+          "REPO_MAPPING:tar.bzl+,bazel_lib bazel_lib+",
+          "REPO_MAPPING:tar.bzl+,bazel_skylib bazel_skylib+",
+          "REPO_MAPPING:tar.bzl+,tar.bzl tar.bzl+"
+        ],
+        "generatedRepoSpecs": {
+          "esbuild_darwin-x64": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild:repositories.bzl%esbuild_repositories",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "platform": "darwin-x64"
+            }
+          },
+          "esbuild_darwin-arm64": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild:repositories.bzl%esbuild_repositories",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "platform": "darwin-arm64"
+            }
+          },
+          "esbuild_linux-x64": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild:repositories.bzl%esbuild_repositories",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "platform": "linux-x64"
+            }
+          },
+          "esbuild_linux-arm64": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild:repositories.bzl%esbuild_repositories",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "platform": "linux-arm64"
+            }
+          },
+          "esbuild_win32-x64": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild:repositories.bzl%esbuild_repositories",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "platform": "win32-x64"
+            }
+          },
+          "esbuild_toolchains": {
+            "repoRuleId": "@@aspect_rules_esbuild+//esbuild/private:toolchains_repo.bzl%toolchains_repo",
+            "attributes": {
+              "esbuild_version": "0.19.9",
+              "user_repository_name": "esbuild"
+            }
+          },
+          "npm__esbuild_0.19.9": {
+            "repoRuleId": "@@aspect_rules_js+//npm/private:npm_import.bzl%npm_import_rule",
+            "attributes": {
+              "key": "npm__esbuild_0.19.9",
+              "package": "esbuild",
+              "version": "0.19.9",
+              "root_package": "",
+              "integrity": "sha512-U9CHtKSy+EpPsEBa+/A2gMs/h3ylBC0H0KSqIg7tpztHerLi6nrrcoUJAkNCEPumx8yJ+Byic4BVwHgRbN0TBg==",
+              "lifecycle_hooks": [],
+              "exclude_package_contents_presets": []
+            }
+          },
+          "npm__esbuild_0.19.9__links": {
+            "repoRuleId": "@@aspect_rules_js+//npm/private:npm_import.bzl%npm_import_links_rule",
+            "attributes": {
+              "key": "npm__esbuild_0.19.9",
+              "package": "esbuild",
+              "version": "0.19.9",
+              "root_package": "",
+              "deps": {},
+              "deps_oss": {},
+              "deps_cpus": {},
+              "lifecycle_build_target": false,
+              "exclude_package_contents_presets": []
+            }
+          }
+        }
+      }
+    },
     "@@aspect_rules_ts+//ts:extensions.bzl%ext": {
       "general": {
         "bzlTransitiveDigest": "axls+7DzE6tzeppZH+xWR9lJ/k6OusXMYmf7L7yH0eU=",
-        "usagesDigest": "JiPuVCW4wD3AoBAlxvabaMwfMdd2FB9tQL9oOX63DQ4=",
+        "usagesDigest": "GRlwHtOkY3nKA/5zDFaJEF0QOBVFNWtkuP6OnLndBOc=",
         "recordedInputs": [
           "REPO_MAPPING:aspect_rules_ts+,aspect_rules_ts aspect_rules_ts+",
           "REPO_MAPPING:aspect_rules_ts+,bazel_tools bazel_tools"
@@ -477,7 +586,7 @@
     "@@aspect_tools_telemetry+//:extension.bzl%telemetry": {
       "general": {
         "bzlTransitiveDigest": "cl5A2O84vDL6Tt+Qga8FCj1DUDGqn+e7ly5rZ+4xvcc=",
-        "usagesDigest": "SL/Ux0sDsis2z3QhL3migTQfl1xVmfpboobz3DvGBxI=",
+        "usagesDigest": "auBufXsT8/Z7z/yaI/qUjO8XWqc/0rtQYHt/YasIw7E=",
         "recordedInputs": [
           "REPO_MAPPING:aspect_tools_telemetry+,bazel_lib bazel_lib+",
           "REPO_MAPPING:aspect_tools_telemetry+,bazel_skylib bazel_skylib+"
@@ -489,6 +598,7 @@
               "deps": {
                 "aspect_rules_js": "3.1.2",
                 "aspect_rules_ts": "3.8.9",
+                "aspect_rules_esbuild": "0.26.0",
                 "aspect_tools_telemetry": "0.3.3"
               }
             }
@@ -556,7 +666,7 @@
     "@@rules_nodejs+//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "oZFClfRhTTwsYzpxVPkOpOt/r0+OzEfEV37au0jFZ0s=",
-        "usagesDigest": "KS5PIuWK9P3irz4fHF2Q1S/461SGypYJAHsQYm0sR5Y=",
+        "usagesDigest": "pv4HiUwFQXm2/UCfkP03UBN3tfHgWW5X4zAxNpksLyE=",
         "recordedInputs": [],
         "generatedRepoSpecs": {
           "nodejs_linux_amd64": {

@@ -1,3 +1,4 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 
 package(default_visibility = ["//visibility:public"])
@@ -33,6 +34,29 @@ ts_project(
     out_dir = ".",
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+    ],
+)
+
+# Self-contained browser ESM for bundler-free hosts (botnoc's static frontend).
+# Bundles the compiled browser.js entry (//src:core) + inlines its npm deps
+# (protobuf-es + @savvifi/meridian-proto-ts) so the output has NO bare imports.
+# Hosts serve this one file (e.g. at /meridian/bundle.js) and `import { renderPanel,
+# decodeBundle, encodeGalleryPanel, registerChatPanel } from "..."`.
+esbuild(
+    name = "browser_bundle",
+    srcs = [":core"],
+    entry_point = "browser.js",
+    bundle = True,
+    format = "esm",
+    minify = True,
+    output = "meridian_web.bundle.js",
+    platform = "browser",
+    sourcemap = "external",
+    target = "es2022",
     deps = [
         "//:node_modules/@bufbuild/protobuf",
         "//:node_modules/@savvifi/meridian-proto-ts",
