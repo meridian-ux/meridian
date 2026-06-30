@@ -119,25 +119,13 @@ export interface PanelDescriptor {
   adhoc?: AdhocPanel;
 }
 
-/** Context the wasm core expects when building requests. */
-export interface RenderContext {
-  currentResourcePath: string | null;
-  uiIdentity: object | null;
-  selectedRow: object | null;
-  formValues: Record<string, unknown>;
-}
-
 /** One rendered row as returned by the wasm `renderTable` call. */
 export interface RenderedRow {
   raw: Record<string, unknown>;
   cells: string[];
 }
 
-/** Host-supplied transport. Mirrors the Rust RpcInvoker trait. */
-export interface RpcInvoker {
-  invoke(
-    service: string,
-    method: string,
-    request: object,
-  ): Promise<object>;
-}
+// RenderContext + RpcInvoker (the framework-neutral transport/runtime contracts)
+// moved to ./transport.ts so the fracture can route them into meridian-schemas
+// with the seam. Re-exported via the uiview barrel for source compatibility.
+export type { RenderContext, RpcInvoker } from "./transport.js";
