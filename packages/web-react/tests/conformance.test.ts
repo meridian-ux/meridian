@@ -9,8 +9,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@meridian/core/uiview";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";

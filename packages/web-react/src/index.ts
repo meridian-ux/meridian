@@ -1,7 +1,7 @@
-// @meridian/web-react — the React renderer tier of the meridian renderer family.
+// @savvifi/meridian-web-react — the React renderer tier of the meridian renderer family.
 //
 // A kit-agnostic React adapter over the framework-neutral WebRenderer seam
-// (@meridian/core/uiview): it renders meridian.ui.v1 PanelDescriptors through a
+// (@savvifi/meridian-schemas/uiview): it renders meridian.ui.v1 PanelDescriptors through a
 // swappable ComponentKit. `reactWebRenderer(kit)` yields a WebRenderer a host
 // can mount, a peer of the web-components / TUI / native renderers.
 

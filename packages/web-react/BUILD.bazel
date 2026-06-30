@@ -1,4 +1,5 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_vite//vite:defs.bzl", "vitest_test")
@@ -7,10 +8,10 @@ package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
 
-# @meridian/web-react — the React renderer tier (kit-agnostic) over the
+# @savvifi/meridian-web-react — the React renderer tier (kit-agnostic) over the
 # WebRenderer seam. Compiles the .tsx adapter + the html reference kit. Resolves
-# the seam from @meridian/core/uiview and the canonical types from
-# @meridian/proto-ts (both first-party links in //:BUILD.bazel); react is its own.
+# the seam from @savvifi/meridian-schemas/uiview and the canonical types from
+# @savvifi/meridian-proto-ts (both first-party links in //:BUILD.bazel); react is its own.
 ts_project(
     name = "web_react",
     srcs = glob([
@@ -26,8 +27,8 @@ ts_project(
         ":node_modules/react",
         ":node_modules/react-dom",
         "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@meridian/core",
-        "//:node_modules/@meridian/proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/@savvifi/meridian-proto-ts",
     ],
 )
 
@@ -36,6 +37,19 @@ ts_project(
 js_library(
     name = "web_react_lib",
     srcs = [":web_react"],
+)
+
+# The publishable @savvifi/meridian-web-react npm package: package.json at the
+# root + the compiled src/*.{js,d.ts}. Published to npmjs (see the OIDC workflow
+# in .github/workflows/publish.yml).
+npm_package(
+    name = "pkg",
+    srcs = [
+        "package.json",
+        ":web_react",
+    ],
+    package = "@savvifi/meridian-web-react",
+    visibility = ["//visibility:public"],
 )
 
 # Runtime test: renders a PanelDescriptor through htmlKit via react-dom/server.
@@ -47,7 +61,7 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@meridian/proto-ts",
+        "//:node_modules/@savvifi/meridian-proto-ts",
         "//:node_modules/vitest",
     ],
 )
@@ -65,7 +79,7 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@meridian/proto-ts",
+        "//:node_modules/@savvifi/meridian-proto-ts",
         "//:node_modules/vitest",
     ],
 )

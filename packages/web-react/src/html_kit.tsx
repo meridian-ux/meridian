@@ -6,7 +6,7 @@
 
 import type { CSSProperties } from "react";
 
-import type { Theme } from "@meridian/proto-ts/proto/theme_pb.js";
+import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 
 import type { ComponentKit } from "./component_kit.js";
 

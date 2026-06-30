@@ -1,18 +1,18 @@
 // reactWebRenderer — turns a ComponentKit into a meridian `WebRenderer` (the
-// framework-neutral seam from @meridian/core/uiview). This is the React branch
+// framework-neutral seam from @savvifi/meridian-schemas/uiview). This is the React branch
 // of the web swap point: `reactWebRenderer(muiKit)` and
 // `reactWebRenderer(shadcnKit)` are both WebRenderers a host can mount, peers of
 // the web-components renderer — all consuming the same PanelDescriptor + Theme.
 
 import { createRoot } from "react-dom/client";
 
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
-import type { Theme } from "@meridian/proto-ts/proto/theme_pb.js";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type {
   MountOptions,
   PanelHandle,
   WebRenderer,
-} from "@meridian/core/uiview";
+} from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import { PanelRenderer } from "./panel_renderer.js";

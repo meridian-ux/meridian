@@ -6,9 +6,9 @@
 import { createContext, useContext } from "react";
 import type { ComponentType, ReactNode } from "react";
 
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
-import type { Theme } from "@meridian/proto-ts/proto/theme_pb.js";
-import type { RpcInvoker } from "@meridian/core/uiview";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 

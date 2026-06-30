@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 
 import { useMeridian } from "./provider.js";
 

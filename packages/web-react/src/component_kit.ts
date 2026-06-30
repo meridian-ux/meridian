@@ -9,14 +9,14 @@
 
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 
-import type { GalleryPanel } from "@meridian/proto-ts/proto/gallery_pb.js";
-import type { LlmPromptPanel } from "@meridian/proto-ts/proto/llm_prompt_pb.js";
-import type { LroPanel } from "@meridian/proto-ts/proto/lro_pb.js";
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
-import type { PromptPanel } from "@meridian/proto-ts/proto/prompt_pb.js";
-import type { TablePanel } from "@meridian/proto-ts/proto/table_pb.js";
-import type { Theme } from "@meridian/proto-ts/proto/theme_pb.js";
-import type { RpcInvoker } from "@meridian/core/uiview";
+import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
+import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 /** Props every shape component receives: its panel, the parent descriptor, transport. */
 export interface ShapeProps<P> {

@@ -1,22 +1,22 @@
 // Canonical PanelDescriptor fixtures — one per meridian.ui.v1 shape. This is the
 // seed of the cross-renderer conformance corpus (the crank gate, COORDINATION
 // §14): every renderer (web-components, react, tui, …) should render these same
-// descriptors. They are built from the generated @meridian/proto-ts schemas, so
+// descriptors. They are built from the generated @savvifi/meridian-proto-ts schemas, so
 // they can also be serialized (toBinary / toJson) and handed to non-JS renderers.
 
 import { create } from "@bufbuild/protobuf";
 
-import { FormFieldSchema } from "@meridian/proto-ts/proto/form_pb.js";
-import { GalleryPanelSchema } from "@meridian/proto-ts/proto/gallery_pb.js";
-import { LlmPromptPanelSchema } from "@meridian/proto-ts/proto/llm_prompt_pb.js";
-import { LroPanelSchema } from "@meridian/proto-ts/proto/lro_pb.js";
-import type { PanelDescriptor } from "@meridian/proto-ts/proto/panel_pb.js";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import {
   AdhocPanelSchema,
   PanelDescriptorSchema,
-} from "@meridian/proto-ts/proto/panel_pb.js";
-import { PromptPanelSchema } from "@meridian/proto-ts/proto/prompt_pb.js";
-import { TablePanelSchema } from "@meridian/proto-ts/proto/table_pb.js";
+} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
+import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 export interface Fixture {
   name: string;
