@@ -28,3 +28,4 @@ export {
 export { PanelRenderer } from "./panel_renderer.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";
+export { shadcnKit } from "./shadcn_kit.js";

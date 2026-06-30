@@ -1,0 +1,106 @@
+// shadcnKit — a second reference ComponentKit, dependency-free, emitting the
+// shadcn/ui Tailwind class + CSS-variable conventions.
+//
+// It exists to prove **Swap B** (swap the kit → same PanelRenderer dispatch,
+// different look) with a real second kit beyond the minimal htmlKit, and to give
+// the savvi `mui-kit` (wrapping @aion/ui) a richer structural template. Like
+// htmlKit it pulls NO component library: a production shadcn-kit (Radix
+// primitives) would be its own package, a peer of mui-kit — this is the
+// in-core reference that keeps web-react kit-agnostic.
+
+import type { CSSProperties } from "react";
+
+import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+
+import type { ComponentKit } from "./component_kit.js";
+
+// Bind the meridian palette to shadcn/ui's CSS custom properties so shadcn
+// Tailwind classes (bg-card, text-muted-foreground, border, …) paint the skin.
+// (Hex here for the reference; a production shadcn-kit would emit hsl triplets
+// for the `hsl(var(--token))` convention.)
+function themeToStyle(theme: Theme | undefined): CSSProperties {
+  if (!theme) return {};
+  const pal = theme.dark ?? theme.light;
+  if (!pal) return {};
+  return {
+    ["--background" as string]: pal.bg,
+    ["--card" as string]: pal.surface,
+    ["--foreground" as string]: pal.fg,
+    ["--muted-foreground" as string]: pal.muted,
+    ["--border" as string]: pal.border,
+    ["--primary" as string]: pal.accent,
+    ["--primary-foreground" as string]: pal.onAccent,
+    ["--destructive" as string]: pal.danger,
+    background: "var(--background)",
+    color: "var(--foreground)",
+  };
+}
+
+export const shadcnKit: ComponentKit = {
+  id: "shadcn",
+  themeToStyle,
+  Chrome: ({ descriptor, children }) => (
+    <section className="rounded-lg border bg-card text-card-foreground shadow-sm">
+      <header className="border-b px-4 py-3">
+        <h3 className="text-sm font-semibold leading-none tracking-tight">
+          {descriptor.title || descriptor.panelId}
+        </h3>
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  ),
+  Table: ({ panel }) => (
+    <div className="relative w-full overflow-auto">
+      <table className="w-full caption-bottom text-sm">
+        <thead className="[&_tr]:border-b">
+          <tr className="border-b transition-colors">
+            {panel.columns.map((col, i) => (
+              <th
+                key={i}
+                className="h-10 px-2 text-left align-middle font-medium text-muted-foreground"
+              >
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="[&_tr:last-child]:border-0">
+          <tr className="border-b transition-colors hover:bg-muted/50">
+            <td
+              className="p-2 align-middle text-muted-foreground"
+              colSpan={panel.columns.length || 1}
+            >
+              {panel.placeholder || "(load to populate)"}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  ),
+  Prompt: ({ panel }) => (
+    <form className="grid gap-4">
+      {panel.fields.map((field) => (
+        <div key={field.fieldId} className="grid gap-2">
+          <label className="text-sm font-medium leading-none">{field.label}</label>
+        </div>
+      ))}
+    </form>
+  ),
+  Lro: ({ panel }) => (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+      >
+        {panel.runButtonLabel || "Run"}
+      </button>
+    </div>
+  ),
+  Fallback: ({ descriptor }) => (
+    <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+      {descriptor.body.case
+        ? `unsupported panel shape: ${descriptor.body.case}`
+        : "(empty panel)"}
+    </div>
+  ),
+};

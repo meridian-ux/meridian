@@ -12,9 +12,11 @@ import { describe, expect, it } from "vitest";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import type { ComponentKit } from "../src/component_kit.js";
 import { htmlKit } from "../src/html_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { MeridianProvider, type ReactAdhocFactory } from "../src/provider.js";
+import { shadcnKit } from "../src/shadcn_kit.js";
 import { FIXTURES } from "./fixtures.js";
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
@@ -67,5 +69,52 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
     const html = render(fx.descriptor, adhoc);
     expect(html).toContain("custom-dash");
     expect(html).not.toContain("unsupported panel shape");
+  });
+});
+
+// ── Swap B: the same fixtures through a SECOND kit (shadcnKit) ──────────────
+// Swapping the ComponentKit changes the look + concrete components, NOT the
+// PanelRenderer dispatch. This is the React-side proof of Swap B, and the
+// structural template the savvi mui-kit (wrapping @aion/ui) follows.
+function renderWith(
+  kit: ComponentKit,
+  descriptor: PanelDescriptor,
+): string {
+  return renderToStaticMarkup(
+    createElement(
+      MeridianProvider,
+      { invoker, kit, adhoc: {} },
+      createElement(PanelRenderer, { descriptor }),
+    ),
+  );
+}
+
+describe("Swap B — shadcnKit renders the same fixtures, different look", () => {
+  for (const fx of FIXTURES) {
+    it(`shadcnKit renders the ${fx.name} shape and shows its title`, () => {
+      const html = renderWith(shadcnKit, fx.descriptor);
+      expect(html.length).toBeGreaterThan(0);
+      expect(html).toContain(fx.descriptor.title);
+    });
+  }
+
+  // shadcnKit implements the same shape set as htmlKit (table/prompt/lro).
+  it("covers every shape shadcnKit implements (no fallback for those)", () => {
+    for (const fx of FIXTURES) {
+      if (!HTMLKIT_IMPLEMENTS.has(fx.shape)) continue;
+      expect(
+        isFallback(renderWith(shadcnKit, fx.descriptor)),
+        `${fx.name} must render via shadcnKit`,
+      ).toBe(false);
+    }
+  });
+
+  it("is a real swap — identical dispatch, different markup vs htmlKit", () => {
+    const table = FIXTURES.find((f) => f.shape === "table")!;
+    const htmlOut = renderWith(htmlKit, table.descriptor);
+    const shadcnOut = renderWith(shadcnKit, table.descriptor);
+    expect(htmlOut).toContain("mer-table"); // htmlKit's own classes
+    expect(shadcnOut).toContain("caption-bottom"); // shadcn/Tailwind classes
+    expect(shadcnOut).not.toContain("mer-table");
   });
 });
