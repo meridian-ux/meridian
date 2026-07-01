@@ -145,6 +145,12 @@ impl PanelView {
                 chunks[2],
                 "Gallery panels: not yet supported in the TUI renderer.",
             ),
+            Some(Body::Form(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Form panels (entity detail sections): not yet supported in the TUI renderer.",
+            ),
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }
     }
