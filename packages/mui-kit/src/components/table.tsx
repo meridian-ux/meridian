@@ -52,6 +52,17 @@ export function MeridianTable<T>({
   getRowKey,
   pagination,
 }: MeridianTableProps<T>): ReactNode {
+  // A table with no columns can't render a meaningful grid (e.g. a list whose
+  // columns are resolved at runtime). Show a clean note, never a bare pager.
+  if (columns.length === 0) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <Typography color="text.secondary" variant="body2">
+          List — columns resolved at runtime.
+        </Typography>
+      </Box>
+    );
+  }
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>

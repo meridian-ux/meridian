@@ -31,11 +31,45 @@ const skin = create(ThemeSchema, {
   }),
 });
 
-// Catalog invoker: returns a few placeholder rows so tables show their columns +
-// layout structure (this is a structure/layout catalog, not live data).
-const catalogInvoker: RpcInvoker = {
-  invoke: async () => ({ items: [{}, {}, {}], products: [{}, {}, {}], rows: [{}, {}, {}], nextCursor: "" }),
-};
+// Sample words so rows aren't blank (this is a STRUCTURE catalog, not live data —
+// cell values are synthesized from each table's real column field_paths).
+const SAMPLE = ["Alpha", "Bravo", "Charlie", "Delta"];
+function setNested(target: Record<string, unknown>, path: string, value: unknown): void {
+  if (!path) return;
+  const keys = path.split(".");
+  let cur = target;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (typeof cur[keys[i]] !== "object" || cur[keys[i]] === null) cur[keys[i]] = {};
+    cur = cur[keys[i]] as Record<string, unknown>;
+  }
+  cur[keys[keys.length - 1]] = value;
+}
+
+// Build a per-view invoker that returns sample rows shaped to each TablePanel's
+// columns (field_paths) + rows_field, so the catalog shows populated cells that
+// match the real column-set. Any populate method returns the union of all
+// tables' rows fields, so the right key is always present.
+function buildInvoker(view: {
+  slots?: { panel?: { table?: { rowsField?: string; columns?: { fieldPath?: string }[] } } }[];
+}): RpcInvoker {
+  const payload: Record<string, unknown> = { nextCursor: "" };
+  for (const slot of view.slots ?? []) {
+    // toJson inlines the oneof, so a table panel is `slot.panel.table`.
+    const table = slot.panel?.table;
+    if (!table) continue;
+    const rowsField = table.rowsField || "items";
+    const cols = table.columns ?? [];
+    const rows = [0, 1, 2].map((i) => {
+      const row: Record<string, unknown> = {};
+      cols.forEach((c, j) => {
+        if (c.fieldPath) setNested(row, c.fieldPath, SAMPLE[(i + j) % SAMPLE.length]);
+      });
+      return row;
+    });
+    payload[rowsField] = rows;
+  }
+  return { invoke: async () => payload };
+}
 
 interface Entry {
   name: string;
@@ -88,11 +122,12 @@ async function render(name: string): Promise<void> {
   if (!container) throw new Error("no #root");
   container.style.background = skin.light?.bg ?? "#fff";
   const view = fromJson(ViewDescriptorSchema, entry.view as never);
+  const invoker = buildInvoker(entry.view as never);
   if (!root) root = createRoot(container);
   root.render(
     createElement(
       MeridianMuiProvider,
-      { invoker: catalogInvoker, theme: skin, adhoc },
+      { invoker, theme: skin, adhoc },
       createElement(ViewRenderer, { view }),
     ),
   );
