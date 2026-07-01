@@ -10,7 +10,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import {
@@ -19,7 +19,11 @@ import {
   PanelDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import {
+  PaginationMode,
+  PaginationSchema,
+  TablePanelSchema,
+} from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import {
   ActionPlacement,
   type ViewDescriptor,
@@ -176,5 +180,72 @@ describe("aionMuiKit renders the real studio views via @aion/ui (MUI)", () => {
     await expectText("Review Status");
     await expectText("Attributes");
     await expectText("Delete"); // a view header action
+  });
+});
+
+// OFFSET server pagination: the invoker returns one page per offset; advancing the
+// MUI pager re-invokes populate with the next offset (usePagedRows → DataTableView).
+const PAGE_ROWS = ["Alpha", "Bravo", "Charlie", "Delta"].map((name) => ({ name }));
+const pagedInvoker: RpcInvoker = {
+  invoke: async (_service, method, request) => {
+    if (method === "list-paged") {
+      const offset = (request as { offset?: number }).offset ?? 0;
+      const limit = (request as { limit?: number }).limit ?? 2;
+      return { products: PAGE_ROWS.slice(offset, offset + limit), total: PAGE_ROWS.length };
+    }
+    return {};
+  },
+};
+
+const pagedListView: ViewDescriptor = create(ViewDescriptorSchema, {
+  id: "paged-list-view",
+  title: "Paged Products",
+  kind: ViewKind.LIST,
+  layout: { mode: { case: "list", value: {} } },
+  slots: [
+    {
+      id: "content",
+      role: "content",
+      position: 10,
+      panel: create(PanelDescriptorSchema, {
+        panelId: "paged-list",
+        title: "Paged",
+        body: {
+          case: "table",
+          value: create(TablePanelSchema, {
+            rowsField: "products",
+            columns: [{ header: "Name", fieldPath: "name" }],
+            populate: create(RpcCallSchema, { service: "svc", method: "list-paged" }),
+            pagination: create(PaginationSchema, {
+              mode: PaginationMode.OFFSET,
+              pageSize: 2,
+              offsetRequestField: "offset",
+              limitRequestField: "limit",
+              totalField: "total",
+            }),
+          }),
+        },
+      }),
+    },
+  ],
+});
+
+describe("aionMuiKit OFFSET pagination (server paging via the invoker)", () => {
+  it("fetches page 1, then advances to page 2 via the MUI pager", async () => {
+    render(
+      <MeridianMuiProvider invoker={pagedInvoker}>
+        <ViewRenderer view={pagedListView} />
+      </MeridianMuiProvider>,
+    );
+    // page 1 (offset 0)
+    await expectText("Alpha");
+    await expectText("Bravo");
+    expect(screen.queryByText("Charlie")).toBeNull();
+    // advance — re-invokes populate with offset=2
+    const next = await screen.findByRole("button", { name: /go to next page/i });
+    fireEvent.click(next);
+    // page 2 (offset 2)
+    await expectText("Charlie");
+    await expectText("Delta");
   });
 });

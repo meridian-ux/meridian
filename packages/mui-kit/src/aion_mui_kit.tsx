@@ -12,7 +12,7 @@
 // genuinely-general primitives migrate into this package so it no longer
 // depends on @aion/ui.
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { DataTableView, type Column } from "@aion/ui/data-display/table/DataTableView";
@@ -21,7 +21,7 @@ import {
   type FormFieldDescriptor,
   type FormSubmitConfig,
 } from "@aion/ui/layout/FormView";
-import { Alert, Box, Button, Stack } from "@mui/material";
+import { Alert, Box, Button, Stack, TablePagination } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import type {
@@ -29,7 +29,11 @@ import type {
   ComponentKit,
   ShapeProps,
 } from "@savvifi/meridian-web-react";
-import { useMeridianTheme } from "@savvifi/meridian-web-react";
+import {
+  PaginationMode,
+  useMeridianTheme,
+  usePagedRows,
+} from "@savvifi/meridian-web-react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
@@ -84,33 +88,12 @@ function invoke(invoker: RpcInvoker, call: RpcCall | undefined, req: Row = {}): 
 // ── Table ───────────────────────────────────────────────────────────────────
 
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState<boolean>(Boolean(panel.populate));
-
-  useEffect(() => {
-    if (!panel.populate) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    invoker
-      .invoke(panel.populate.service, panel.populate.method, {})
-      .then((response) => {
-        if (cancelled) return;
-        const list = getNested(response, panel.rowsField);
-        setRows(Array.isArray(list) ? (list as Row[]) : []);
-      })
-      .catch(() => {
-        if (!cancelled) setRows([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [panel, invoker]);
+  // usePagedRows (from meridian-web-react) is the kit-agnostic pagination brain:
+  // CLIENT returns all fetched rows (DataTableView paginates them locally — aion's
+  // own MUI pager, which the app relies on); OFFSET / CURSOR fetch one page at a
+  // time via the invoker and we render a MUI TablePagination footer to drive it.
+  const paged = usePagedRows(panel, invoker);
+  const client = paged.mode === PaginationMode.CLIENT;
 
   const columns = useMemo<Column<Row>[]>(
     () =>
@@ -124,6 +107,25 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   );
 
   const rowActions = panel.actions ?? [];
+
+  const serverFooter = client ? undefined : (
+    <TablePagination
+      component="div"
+      count={paged.total ?? -1}
+      page={paged.page}
+      rowsPerPage={paged.pageSize}
+      rowsPerPageOptions={[paged.pageSize]}
+      onPageChange={(_event, next) =>
+        next > paged.page ? paged.goNext() : paged.goPrev()
+      }
+      slotProps={{
+        actions: {
+          nextButton: { disabled: !paged.hasNext },
+          previousButton: { disabled: !paged.hasPrev },
+        },
+      }}
+    />
+  );
 
   return (
     <Box>
@@ -141,14 +143,16 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           ))}
         </Stack>
       )}
-      {/* aion's DataTableView brings client-side pagination for free (usePagination
-          + TablePagination). Server / cursor pagination is a meridian TablePanel
-          contract item for the next major — see PAGINATION.md. */}
       <DataTableView
         columns={columns}
-        rows={rows}
-        isLoading={loading}
+        rows={paged.rows}
+        isLoading={paged.loading}
         emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
+        // CLIENT ⇒ DataTableView's own pager over all rows; server modes page
+        // externally (paged.rows is already the current page) with a MUI footer.
+        paginated={client}
+        pageSize={paged.pageSize}
+        footer={serverFooter}
         getRowKey={(row) =>
           String((row as { id?: unknown }).id ?? JSON.stringify(row))
         }
