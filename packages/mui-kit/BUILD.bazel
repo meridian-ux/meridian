@@ -125,3 +125,63 @@ tectonic_pdf(
     srcs = [":catalog_figures"],
     main = "catalog/catalog.tex",
 )
+
+# ── Studio catalog: render the REAL studio views (projected to ViewDescriptors) ──
+# Names must match harness/studio-viewdescriptors.json entries (from studio-api's
+# meridian-catalog-export).
+STUDIO_VIEWS = [
+    "documents-list", "products-list", "tasks-list", "plan-years-list",
+    "environments-list", "environment-mappings-list", "platforms-list",
+    "sponsors-list", "organizations-list", "teams-list", "modules-list",
+    "documents-detail", "products-detail", "tasks-detail", "plan-years-detail",
+    "environments-detail", "environment-mappings-detail", "platforms-detail",
+    "sponsors-detail", "organizations-detail", "teams-detail", "modules-detail",
+]
+
+esbuild(
+    name = "studio_harness_bundle",
+    srcs = glob(
+        ["harness/**/*.tsx", "harness/**/*.ts", "src/**/*.tsx", "src/**/*.ts"],
+        allow_empty = True,
+    ) + ["harness/studio-viewdescriptors.json"],
+    bundle = True,
+    entry_point = "harness/studio-entry.tsx",
+    format = "iife",
+    output = "studio_harness.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_run_binary(
+    name = "studio_catalog_figures",
+    srcs = [
+        ":studio_harness.bundle.js",
+        "@chrome//:chrome",
+    ],
+    args = [
+        "$(execpath @chrome//:chrome)",
+        "$(execpath :studio_harness.bundle.js)",
+        "studio-figures",
+    ],
+    outs = ["studio-figures/%s.png" % f for f in STUDIO_VIEWS] + ["studio-figures/figures.tex"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    tool = ":capture_bin",
+)
+
+tectonic_pdf(
+    name = "studio_catalog",
+    srcs = [":studio_catalog_figures"],
+    main = "catalog/studio-catalog.tex",
+)
