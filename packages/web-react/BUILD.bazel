@@ -84,6 +84,21 @@ vitest_test(
     ],
 )
 
+# Pagination wiring: the pure request/response field mapping the usePagedRows hook
+# glues together (CLIENT / OFFSET / CURSOR), driven by TablePanel.pagination.
+vitest_test(
+    name = "pagination",
+    srcs = ["tests/pagination.test.ts"],
+    deps = [
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        ":web_react_lib",
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/vitest",
+    ],
+)
+
 # ViewRenderer round-trip over the two real studio views (products list + detail):
 # the composition/layout tier renders through the kits (ViewDescriptor -> slots ->
 # panels + FormPanel + actions).

@@ -29,6 +29,14 @@ export {
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
 export { ViewRenderer } from "./view_renderer.js";
+export {
+  usePagedRows,
+  resolvePagination,
+  buildPageRequest,
+  readPage,
+  PaginationMode,
+  type PagedTable,
+} from "./pagination.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";
 export { shadcnKit } from "./shadcn_kit.js";
