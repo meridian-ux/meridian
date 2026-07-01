@@ -22,7 +22,6 @@
             "position": 10,
             "panel": {
               "panelId": "documents-list-view-table",
-              "title": "Documents",
               "table": {
                 "populate": {
                   "service": "savvi.studio.document",
@@ -85,7 +84,6 @@
             "position": 10,
             "panel": {
               "panelId": "products-list-view-table",
-              "title": "Products",
               "table": {
                 "populate": {
                   "service": "savvi.studio.product",
@@ -140,7 +138,6 @@
             "position": 10,
             "panel": {
               "panelId": "tasks-list-view-table",
-              "title": "My Tasks",
               "table": {
                 "populate": {
                   "service": "savvi.studio.task",
@@ -211,7 +208,6 @@
             "position": 10,
             "panel": {
               "panelId": "plan-years-list-view-table",
-              "title": "Plan Years",
               "table": {
                 "populate": {
                   "service": "savvi.studio.plan-year",
@@ -286,7 +282,6 @@
             "position": 10,
             "panel": {
               "panelId": "environments-list-view-table",
-              "title": "Environments",
               "table": {
                 "populate": {
                   "service": "savvi.studio.environment",
@@ -353,7 +348,6 @@
             "position": 10,
             "panel": {
               "panelId": "environment-mappings-list-view-table",
-              "title": "Environment Mappings",
               "table": {
                 "populate": {
                   "service": "savvi.studio.environment-mapping",
@@ -416,7 +410,6 @@
             "position": 10,
             "panel": {
               "panelId": "platforms-list-view-table",
-              "title": "Platforms",
               "table": {
                 "populate": {
                   "service": "savvi.studio.platform",
@@ -483,7 +476,6 @@
             "position": 10,
             "panel": {
               "panelId": "sponsors-list-view-table",
-              "title": "Sponsors",
               "table": {
                 "populate": {
                   "service": "savvi.studio.sponsor",
@@ -562,7 +554,6 @@
             "position": 10,
             "panel": {
               "panelId": "organizations-list-view-table",
-              "title": "Organizations",
               "table": {
                 "populate": {
                   "service": "core.identity",
@@ -620,7 +611,6 @@
             "position": 10,
             "panel": {
               "panelId": "teams-list-view-table",
-              "title": "Teams",
               "table": {
                 "populate": {
                   "service": "savvi.studio.team",
@@ -671,7 +661,6 @@
             "position": 10,
             "panel": {
               "panelId": "modules-list-view-table",
-              "title": "Modules",
               "table": {
                 "populate": {
                   "service": "modules",
@@ -738,19 +727,9 @@
             "position": 20,
             "placement": {},
             "panel": {
-              "panelId": "summary-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.document",
-                  "method": "get"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "summary-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-summary"
               }
             }
           },
@@ -812,19 +791,26 @@
             "position": 30,
             "placement": {},
             "panel": {
-              "panelId": "configuration-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.product",
-                  "method": "get-product"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "configuration-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "type",
+                    "label": "Product Type",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Review Status",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "data",
+                    "label": "Attributes",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
@@ -879,20 +865,42 @@
               "column": "COLUMN_SIDEBAR"
             },
             "panel": {
-              "panelId": "workflow-table",
+              "panelId": "workflow-form",
               "title": "Task Details",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.task",
-                  "method": "get"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "type",
+                    "label": "Task Type",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "assignedTo",
+                    "label": "Assigned To",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "delegatedTo",
+                    "label": "Delegated To",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "organization",
+                    "label": "Organization",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Status",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "dueDate",
+                    "label": "Due Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           },
@@ -970,19 +978,9 @@
             "position": 10,
             "placement": {},
             "panel": {
-              "panelId": "header-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.plan-year",
-                  "method": "get-plan-year"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
               }
             }
           },
@@ -992,19 +990,76 @@
             "position": 20,
             "placement": {},
             "panel": {
-              "panelId": "summary-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.plan-year",
-                  "method": "get-plan-year"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "summary-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Plan Year",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "startDate",
+                    "label": "Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "endDate",
+                    "label": "End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Plan Year Status",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "numberOfEligibles",
+                    "label": "Number of Eligibles",
+                    "integer": {}
+                  },
+                  {
+                    "fieldId": "leadImplementor",
+                    "label": "Lead Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "coImplementor",
+                    "label": "Co-Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "employerContact",
+                    "label": "Sponsor Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "brokerContact",
+                    "label": "Broker Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeStartDate",
+                    "label": "OE Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeEndDate",
+                    "label": "OE End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "uatStartDate",
+                    "label": "UAT Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "goLiveDate",
+                    "label": "Go Live Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           },
@@ -1232,19 +1287,31 @@
             "position": 30,
             "placement": {},
             "panel": {
-              "panelId": "details-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.environment",
-                  "method": "get-environment"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "key",
+                    "label": "Key",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "description",
+                    "label": "Description",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "credentialsRef",
+                    "label": "Credentials Reference",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
@@ -1296,19 +1363,36 @@
             "position": 30,
             "placement": {},
             "panel": {
-              "panelId": "details-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.environment-mapping",
-                  "method": "get-environment-mapping"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "environment",
+                    "label": "Environment",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "externalSponsorId",
+                    "label": "External Sponsor ID",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "planMappings",
+                    "label": "Plan Mappings (External Plan → Product)",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "externalCoverageIds",
+                    "label": "External Coverage IDs",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "externalData",
+                    "label": "External Data",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
@@ -1360,19 +1444,26 @@
             "position": 30,
             "placement": {},
             "panel": {
-              "panelId": "details-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.platform",
-                  "method": "get-platform"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "nickname",
+                    "label": "Nickname",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "description",
+                    "label": "Description",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
@@ -1412,19 +1503,9 @@
             "position": 10,
             "placement": {},
             "panel": {
-              "panelId": "header-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.sponsor",
-                  "method": "get-sponsor"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
               }
             }
           },
@@ -1436,9 +1517,9 @@
               "headerRow": true
             },
             "panel": {
-              "panelId": "plan-year-selector-adhoc",
-              "adhoc": {
-                "handlerId": "entity-detail-section"
+              "panelId": "plan-year-selector-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
               }
             }
           },
@@ -1452,21 +1533,78 @@
               "tabPosition": 1
             },
             "panel": {
-              "panelId": "summary-table",
+              "panelId": "summary-form",
               "title": "Plan Year Information",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.plan-year",
-                  "method": "get-plan-year"
-                },
-                "rowsField": "items",
-                "itemNoun": "plan-years",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Plan Year",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "startDate",
+                    "label": "Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "endDate",
+                    "label": "End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Plan Year Status",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "numberOfEligibles",
+                    "label": "Number of Eligibles",
+                    "integer": {}
+                  },
+                  {
+                    "fieldId": "leadImplementor",
+                    "label": "Lead Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "coImplementor",
+                    "label": "Co-Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "employerContact",
+                    "label": "Sponsor Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "brokerContact",
+                    "label": "Broker Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeStartDate",
+                    "label": "OE Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeEndDate",
+                    "label": "OE End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "uatStartDate",
+                    "label": "UAT Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "goLiveDate",
+                    "label": "Go Live Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY",
+                "itemNoun": "plan-years"
               }
             }
           },
@@ -1682,19 +1820,9 @@
             "position": 30,
             "placement": {},
             "panel": {
-              "panelId": "members-table",
-              "table": {
-                "populate": {
-                  "service": "savvi.studio.team",
-                  "method": "list-team-members"
-                },
-                "rowsField": "items",
-                "pagination": {
-                  "mode": "PAGINATION_MODE_CURSOR",
-                  "pageSize": 25,
-                  "cursorRequestField": "cursor",
-                  "nextCursorField": "nextCursor"
-                }
+              "panelId": "members-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
@@ -1764,9 +1892,9 @@
               "tabPosition": 2
             },
             "panel": {
-              "panelId": "tab-objects-adhoc",
-              "adhoc": {
-                "handlerId": "entity-detail-section"
+              "panelId": "tab-objects-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
               }
             }
           },
@@ -1808,9 +1936,9 @@
               "tabPosition": 4
             },
             "panel": {
-              "panelId": "tab-exports-adhoc",
-              "adhoc": {
-                "handlerId": "entity-detail-section"
+              "panelId": "tab-exports-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
               }
             }
           }
