@@ -123,6 +123,8 @@ export interface PagedTable {
   goNext: () => void;
   /** Jump to a page (OFFSET only; no-op otherwise). */
   setPage: (page: number) => void;
+  /** True when the populate RPC rejected — so the kit shows an error, not "no data". */
+  error: boolean;
 }
 
 /**
@@ -138,6 +140,7 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   const [total, setTotal] = useState<number | undefined>(undefined);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(Boolean(panel.populate));
+  const [error, setError] = useState<boolean>(false);
 
   // Reset paging when the panel identity changes.
   useEffect(() => {
@@ -152,6 +155,7 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     }
     let cancelled = false;
     setLoading(true);
+    setError(false);
     const cursor = mode === PaginationMode.CURSOR ? cursorStack[page] ?? "" : undefined;
     const request =
       mode === PaginationMode.CLIENT
@@ -167,7 +171,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
         setNextCursor(read.nextCursor);
       })
       .catch(() => {
-        if (!cancelled) setRows([]);
+        // Surface the failure — a table that shows "no data" on a failed fetch is
+        // a UI mishap (the user reads it as "there are none").
+        if (!cancelled) {
+          setRows([]);
+          setError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -206,5 +215,5 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     if (mode === PaginationMode.OFFSET) setPageState(Math.max(0, target));
   };
 
-  return { mode, pageSize, rows, loading, page, total, hasPrev, hasNext, goNext, goPrev, setPage };
+  return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage };
 }
