@@ -14,7 +14,10 @@
 import { toBinary } from "@bufbuild/protobuf";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type {
+  FormPanel,
+  PanelDescriptor,
+} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
@@ -99,7 +102,41 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     }
     return;
   }
+  if (body.case === "form") {
+    meta.textContent = "";
+    root.appendChild(buildForm(body.value));
+    return;
+  }
   meta.textContent = "(no body set)";
+}
+
+// Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
+// fields as a read-only card; EDIT draws inputs. Field values (READONLY) + submit
+// wiring (EDIT) are host concerns; this renders the structure. FORM_MODE_EDIT = 2.
+function buildForm(panel: FormPanel): HTMLElement {
+  const form = document.createElement("form");
+  form.className = "meridian-uiview-form";
+  const edit = panel.mode === 2;
+  for (const field of panel.fields) {
+    const label = document.createElement("label");
+    label.className = "meridian-uiview-field";
+    const span = document.createElement("span");
+    span.className = "meridian-uiview-field-label";
+    span.textContent = field.label;
+    label.appendChild(span);
+    if (edit) {
+      const input = document.createElement("input");
+      input.name = field.fieldId;
+      label.appendChild(input);
+    } else {
+      const value = document.createElement("span");
+      value.className = "meridian-uiview-field-value";
+      value.dataset.field = field.fieldId;
+      label.appendChild(value);
+    }
+    form.appendChild(label);
+  }
+  return form;
 }
 
 async function renderTablePanel(

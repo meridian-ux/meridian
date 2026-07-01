@@ -30,7 +30,7 @@ import {
   type PanelDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 
-// The PanelDescriptor renderer (table / lro / adhoc) + its host-facing types.
+// The PanelDescriptor renderer (table / lro / adhoc / form) + its host-facing types.
 export { renderPanel } from "./uiview/renderer.js";
 export { webComponentsRenderer } from "./uiview/web_components_renderer.js";
 export type {
@@ -38,6 +38,9 @@ export type {
   RenderPanelOptions,
   UiviewWasm,
 } from "./uiview/renderer.js";
+// The composition/layout tier: renders a ViewDescriptor (layout of panels).
+export { renderView } from "./uiview/view_renderer.js";
+export type { RenderViewOptions } from "./uiview/view_renderer.js";
 
 // The framework-neutral transport contracts the host implements (type-only;
 // erased at build time — re-exported so hosts can import them from the bundle).
