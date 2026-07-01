@@ -113,19 +113,49 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
   );
   return (
     <div className="mer-tabs">
-      <div className="mer-tabstrip" role="tablist">
-        {ordered.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            className={i === active ? "mer-tab active" : "mer-tab"}
-            onClick={() => setActive(i)}
-          >
-            {s.placement?.tabLabel || s.title || s.id}
-          </button>
-        ))}
+      <div
+        className="mer-tabstrip"
+        role="tablist"
+        // Structural + affordance styling (kit-neutral). Colors read the --mer-*
+        // theme vars a kit exposes (MeridianMuiProvider / htmlKit set these),
+        // falling back to sensible defaults so tabs look like tabs in any kit.
+        style={{
+          display: "flex",
+          gap: 4,
+          borderBottom: "1px solid var(--mer-border, #e0e0e0)",
+          marginBottom: 16,
+        }}
+      >
+        {ordered.map((s, i) => {
+          const isActive = i === active;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={isActive ? "mer-tab active" : "mer-tab"}
+              onClick={() => setActive(i)}
+              style={{
+                appearance: "none",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px 14px",
+                fontSize: 14,
+                fontFamily: "inherit",
+                color: isActive ? "var(--mer-accent, #1976d2)" : "var(--mer-fg, inherit)",
+                fontWeight: isActive ? 600 : 400,
+                borderBottom: isActive
+                  ? "2px solid var(--mer-accent, #1976d2)"
+                  : "2px solid transparent",
+                marginBottom: "-1px",
+              }}
+            >
+              {s.placement?.tabLabel || s.title || s.id}
+            </button>
+          );
+        })}
       </div>
       {ordered[active] ? <SlotView slot={ordered[active]} /> : null}
     </div>
@@ -136,14 +166,19 @@ function TwoColumnSlots({ slots }: { slots: Slot[] }): ReactNode {
   // Column.COLUMN_SIDEBAR = 2; everything else (main / unspecified) is main.
   const sidebar = slots.filter((s) => s.placement?.column === 2);
   const main = slots.filter((s) => s.placement?.column !== 2);
+  // Structural flex (kit-neutral): main + sidebar sit side by side, wrapping to
+  // stacked on narrow viewports. Without this the columns would stack always.
   return (
-    <div className="mer-two-column">
-      <div className="mer-col-main">
+    <div
+      className="mer-two-column"
+      style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}
+    >
+      <div className="mer-col-main" style={{ flex: "2 1 320px", minWidth: 0 }}>
         {main.map((s) => (
           <SlotView key={s.id} slot={s} />
         ))}
       </div>
-      <aside className="mer-col-sidebar">
+      <aside className="mer-col-sidebar" style={{ flex: "1 1 240px", minWidth: 0 }}>
         {sidebar.map((s) => (
           <SlotView key={s.id} slot={s} />
         ))}
