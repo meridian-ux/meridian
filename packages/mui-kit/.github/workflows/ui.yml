@@ -26,21 +26,19 @@ jobs:
       - name: Chrome system dependencies
         run: npx --yes playwright@1.59.0 install-deps chromium
 
-      - name: Install bazelisk
-        run: npm install -g @bazel/bazelisk
-
       # rules_chrome / rules_tectonic resolve from the fastverk registry; the rest
       # from BCR. (The repo .bazelrc leaves registries to the environment.)
+      # bazelisk is preinstalled on GitHub-hosted runners as `bazel`.
       - name: Real-browser UI test (hermetic Chrome)
         run: |
-          bazelisk test //:browser_test \
+          bazel test //:browser_test \
             --registry=https://registry.fastverk.com/ \
             --registry=https://bcr.bazel.build/ \
             --test_output=errors
 
       - name: Build the visual catalog
         run: |
-          bazelisk build //:catalog \
+          bazel build //:catalog \
             --registry=https://registry.fastverk.com/ \
             --registry=https://bcr.bazel.build/
           cp -L bazel-bin/catalog.pdf meridian-mui-kit-catalog.pdf
