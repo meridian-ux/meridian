@@ -30,7 +30,7 @@ import {
   PaginationSchema,
   TablePanelSchema,
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { PaletteSchema, ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { PaletteSchema, type Theme, ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import {
   ActionPlacement,
   Column,
@@ -43,9 +43,9 @@ import { ViewRenderer } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 
-// ── a sample skin, so the catalog shows themed MUI ──────────────────────────
+// ── sample skins, so the catalog shows themed MUI (light + dark + a 2nd skin) ──
 const skin = create(ThemeSchema, {
-  id: "sample",
+  id: "savvi",
   light: create(PaletteSchema, {
     bg: "#ffffff",
     surface: "#ffffff",
@@ -54,6 +54,29 @@ const skin = create(ThemeSchema, {
     border: "#e3e8ee",
     accent: "#2f6f4f",
     accentStrong: "#1f4d37",
+  }),
+  dark: create(PaletteSchema, {
+    bg: "#0f1419",
+    surface: "#1a222c",
+    fg: "#e6edf3",
+    muted: "#9aa7b4",
+    border: "#2b3743",
+    accent: "#5fb98c",
+    accentStrong: "#3f9d6f",
+  }),
+});
+
+// A second skin (indigo) to show the theme range in the catalog.
+const skinIndigo = create(ThemeSchema, {
+  id: "indigo",
+  light: create(PaletteSchema, {
+    bg: "#ffffff",
+    surface: "#ffffff",
+    fg: "#1a1d2b",
+    muted: "#5b607b",
+    border: "#e5e6f0",
+    accent: "#4f46e5",
+    accentStrong: "#3730a3",
   }),
 });
 
@@ -88,6 +111,11 @@ const cursorInvoker: RpcInvoker = {
     return { items: [], nextCursor: "" };
   },
 };
+
+// State invokers: empty (no rows), loading (never resolves → spinner), error (rejects).
+const emptyInvoker: RpcInvoker = { invoke: async () => ({ products: [] }) };
+const loadingInvoker: RpcInvoker = { invoke: () => new Promise(() => {}) };
+const errorInvoker: RpcInvoker = { invoke: async () => { throw new Error("boom"); } };
 
 const noopInvoker: RpcInvoker = { invoke: async () => ({}) };
 
@@ -173,6 +201,10 @@ interface Fixture {
   group: string;
   view: ViewDescriptor;
   invoker: RpcInvoker;
+  /** Skin override (defaults to `skin`). */
+  theme?: Theme;
+  /** light | dark (defaults to light). */
+  mode?: "light" | "dark";
 }
 
 const fixtures: Fixture[] = [
@@ -407,6 +439,82 @@ const fixtures: Fixture[] = [
       ],
     }),
   },
+
+  // ── States ──
+  {
+    name: "table-empty",
+    label: "Table · empty state",
+    group: "States",
+    invoker: emptyInvoker,
+    view: listView("table-empty", tablePanel("list-empty", "products")),
+  },
+  {
+    name: "table-loading",
+    label: "Table · loading state",
+    group: "States",
+    invoker: loadingInvoker,
+    view: listView("table-loading", tablePanel("list-loading", "products")),
+  },
+  {
+    name: "table-error",
+    label: "Table · error state (failed fetch)",
+    group: "States",
+    invoker: errorInvoker,
+    view: listView("table-error", tablePanel("list-error", "products")),
+  },
+
+  // ── Theming ──
+  {
+    name: "dark-table",
+    label: "Dark · table",
+    group: "Theming",
+    invoker: clientInvoker,
+    mode: "dark",
+    view: listView("dark-table", tablePanel("list-products", "products")),
+  },
+  {
+    name: "dark-detail",
+    label: "Dark · stacked detail (header + form)",
+    group: "Theming",
+    invoker: noopInvoker,
+    mode: "dark",
+    view: create(ViewDescriptorSchema, {
+      id: "dark-detail",
+      title: "Product Details",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "stacked", value: {} } },
+      actions: productActions,
+      slots: [
+        headerSlot,
+        { id: "config", role: "configuration", position: 30, title: "Configuration", panel: configForm(FormMode.READONLY) },
+      ],
+    }),
+  },
+  {
+    name: "dark-tabbed",
+    label: "Dark · tabbed",
+    group: "Theming",
+    invoker: clientInvoker,
+    mode: "dark",
+    view: create(ViewDescriptorSchema, {
+      id: "dark-tabbed",
+      title: "Product Details",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "tabbed", value: {} } },
+      slots: [
+        { id: "overview", role: "content", position: 10, placement: { tabLabel: "Overview", tabPosition: 0 }, panel: configForm(FormMode.READONLY) },
+        { id: "items", role: "content", position: 20, placement: { tabLabel: "Items", tabPosition: 1 }, panel: tablePanel("list-products", "products") },
+      ],
+    }),
+  },
+  {
+    name: "skin-indigo",
+    label: "Skin · indigo (2nd theme)",
+    group: "Theming",
+    invoker: clientInvoker,
+    theme: skinIndigo,
+    view: listView("skin-indigo", tablePanel("list-products", "products")),
+  },
 ];
 
 const adhoc = {
@@ -428,10 +536,13 @@ async function render(name: string): Promise<void> {
   const container = document.getElementById("root");
   if (!container) throw new Error("no #root");
   if (!root) root = createRoot(container);
+  // Paint the page background for the active mode so dark fixtures read correctly.
+  const palette = (fixture.mode === "dark" ? (fixture.theme ?? skin).dark : (fixture.theme ?? skin).light);
+  container.style.background = palette?.bg ?? "#ffffff";
   root.render(
     createElement(
       MeridianMuiProvider,
-      { invoker: fixture.invoker, theme: skin, adhoc },
+      { invoker: fixture.invoker, theme: fixture.theme ?? skin, mode: fixture.mode ?? "light", adhoc },
       createElement(ViewRenderer, { view: fixture.view }),
     ),
   );

@@ -27,8 +27,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
       '@savvifi/meridian-web-react':
-        specifier: ^0.3.1
-        version: 0.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.3.2
+        version: 0.3.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1
@@ -560,8 +560,8 @@ packages:
   '@savvifi/meridian-schemas@0.3.0':
     resolution: {integrity: sha512-m42UzZn6a4TMFKjlfdtItgzfjqfYmpDRN24rSMPoVbTw4aMuiR+ypZbQOTLj15IS8C56f1UahnfRvR7yD9xunA==}
 
-  '@savvifi/meridian-web-react@0.3.1':
-    resolution: {integrity: sha512-3BnmlmYmbOleLKv2oN8MvN6WcUHsHb81uMAIGTdaGAyHnqf+uGiuPJAv5XvybqO/M8lTD7mbIWc1gLq5WPk+xw==}
+  '@savvifi/meridian-web-react@0.3.2':
+    resolution: {integrity: sha512-KdodXVZEzpEYfRH5NO6tN8WEkR0h0ue5myGa+z6uNoOtrUyhKDPbzKk/LUJ0u7cH834Z8JLQRjcVAjpMoe9WsQ==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -1637,7 +1637,7 @@ snapshots:
     dependencies:
       '@savvifi/meridian-proto-ts': 0.3.0
 
-  '@savvifi/meridian-web-react@0.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@savvifi/meridian-web-react@0.3.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
       '@savvifi/meridian-proto-ts': 0.3.0

@@ -154,6 +154,29 @@ async function main() {
       await seen("Widget");
       await seen("Product Type");
     });
+
+    // ── States ──
+    await check("table-empty: shows the empty placeholder, no rows", async () => {
+      await render("table-empty");
+      await seen("No products.");
+      await absent("Widget");
+    });
+    await check("table-error: shows an error affordance, not 'no data'", async () => {
+      await render("table-error");
+      await seen("Failed to load");
+      await absent("No products.");
+    });
+
+    // ── Theming ──
+    await check("dark-table: renders in dark mode (rows present)", async () => {
+      await render("dark-table");
+      await seen("Widget");
+      await seen("Status");
+    });
+    await check("skin-indigo: renders with the 2nd skin", async () => {
+      await render("skin-indigo");
+      await seen("Widget");
+    });
   } finally {
     await browser.close();
   }

@@ -144,14 +144,20 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           ))}
         </Stack>
       )}
-      <MeridianTable
-        columns={columns}
-        rows={rows}
-        loading={paged.loading}
-        emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
-        getRowKey={(row) => String((row as { id?: unknown }).id ?? JSON.stringify(row))}
-        pagination={{ page, count, pageSize, onPageChange }}
-      />
+      {paged.error ? (
+        <Alert severity="error" className="mer-table-error">
+          Failed to load {panel.itemNoun || "items"}.
+        </Alert>
+      ) : (
+        <MeridianTable
+          columns={columns}
+          rows={rows}
+          loading={paged.loading}
+          emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
+          getRowKey={(row) => String((row as { id?: unknown }).id ?? JSON.stringify(row))}
+          pagination={{ page, count, pageSize, onPageChange }}
+        />
+      )}
     </Box>
   );
 }

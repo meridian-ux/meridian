@@ -91,6 +91,13 @@ FIXTURES = [
     "layout-stacked",
     "layout-tabbed",
     "layout-two-column",
+    "table-empty",
+    "table-loading",
+    "table-error",
+    "dark-table",
+    "dark-detail",
+    "dark-tabbed",
+    "skin-indigo",
 ]
 
 # Build action: run the capturer to produce a labeled PNG per fixture + a
