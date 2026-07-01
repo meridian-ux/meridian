@@ -49,9 +49,10 @@ function setNested(target: Record<string, unknown>, path: string, value: unknown
 // columns (field_paths) + rows_field, so the catalog shows populated cells that
 // match the real column-set. Any populate method returns the union of all
 // tables' rows fields, so the right key is always present.
-function buildInvoker(view: {
-  slots?: { panel?: { table?: { rowsField?: string; columns?: { fieldPath?: string }[] } } }[];
-}): RpcInvoker {
+function buildInvoker(
+  view: { slots?: { panel?: { table?: { rowsField?: string; columns?: { fieldPath?: string }[] } } }[] },
+  sampleRows?: unknown[],
+): RpcInvoker {
   const payload: Record<string, unknown> = { nextCursor: "" };
   for (const slot of view.slots ?? []) {
     // toJson inlines the oneof, so a table panel is `slot.panel.table`.
@@ -59,13 +60,18 @@ function buildInvoker(view: {
     if (!table) continue;
     const rowsField = table.rowsField || "items";
     const cols = table.columns ?? [];
-    const rows = [0, 1, 2].map((i) => {
-      const row: Record<string, unknown> = {};
-      cols.forEach((c, j) => {
-        if (c.fieldPath) setNested(row, c.fieldPath, SAMPLE[(i + j) % SAMPLE.length]);
-      });
-      return row;
-    });
+    // Prefer REAL rows captured from the live op (studio-api export). Otherwise
+    // synthesize from the column field_paths so cells aren't blank.
+    const rows =
+      sampleRows && sampleRows.length > 0
+        ? sampleRows
+        : [0, 1, 2].map((i) => {
+            const row: Record<string, unknown> = {};
+            cols.forEach((c, j) => {
+              if (c.fieldPath) setNested(row, c.fieldPath, SAMPLE[(i + j) % SAMPLE.length]);
+            });
+            return row;
+          });
     payload[rowsField] = rows;
   }
   return { invoke: async () => payload };
@@ -77,6 +83,7 @@ interface Entry {
   group: string;
   kind: string;
   view: unknown;
+  sampleRows?: unknown[];
 }
 const entries = (studioBundle as { entries: Entry[] }).entries;
 
@@ -122,7 +129,7 @@ async function render(name: string): Promise<void> {
   if (!container) throw new Error("no #root");
   container.style.background = skin.light?.bg ?? "#fff";
   const view = fromJson(ViewDescriptorSchema, entry.view as never);
-  const invoker = buildInvoker(entry.view as never);
+  const invoker = buildInvoker(entry.view as never, entry.sampleRows);
   if (!root) root = createRoot(container);
   root.render(
     createElement(

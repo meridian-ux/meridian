@@ -453,7 +453,153 @@
             "placement": "ACTION_PLACEMENT_OVERFLOW"
           }
         ]
-      }
+      },
+      "sampleRows": [
+        {
+          "id": "1521742607695221796",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.274Z",
+          "updatedOn": "2026-07-01T05:01:50.274Z"
+        },
+        {
+          "id": "1521742607808468005",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.311Z",
+          "updatedOn": "2026-07-01T05:01:50.311Z"
+        },
+        {
+          "id": "1521742607821050918",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.314Z",
+          "updatedOn": "2026-07-01T05:01:50.314Z"
+        },
+        {
+          "id": "1521742761865254104",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.031Z",
+          "updatedOn": "2026-07-01T05:02:27.031Z"
+        },
+        {
+          "id": "1521742761970111705",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.066Z",
+          "updatedOn": "2026-07-01T05:02:27.066Z"
+        },
+        {
+          "id": "1521742761982694618",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.069Z",
+          "updatedOn": "2026-07-01T05:02:27.069Z"
+        },
+        {
+          "id": "1521745491694458429",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.873Z",
+          "updatedOn": "2026-07-01T05:13:17.873Z"
+        },
+        {
+          "id": "1521745491820287550",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.913Z",
+          "updatedOn": "2026-07-01T05:13:17.913Z"
+        },
+        {
+          "id": "1521745491841259071",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.918Z",
+          "updatedOn": "2026-07-01T05:13:17.918Z"
+        },
+        {
+          "id": "1521745672619955846",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.009Z",
+          "updatedOn": "2026-07-01T05:14:01.009Z"
+        },
+        {
+          "id": "1521745672754173575",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.051Z",
+          "updatedOn": "2026-07-01T05:14:01.051Z"
+        },
+        {
+          "id": "1521745672775145096",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.056Z",
+          "updatedOn": "2026-07-01T05:14:01.056Z"
+        },
+        {
+          "id": "1521745822998337338",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.861Z",
+          "updatedOn": "2026-07-01T05:14:36.861Z"
+        },
+        {
+          "id": "1521745823124166459",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.902Z",
+          "updatedOn": "2026-07-01T05:14:36.902Z"
+        },
+        {
+          "id": "1521745823140943676",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.906Z",
+          "updatedOn": "2026-07-01T05:14:36.906Z"
+        },
+        {
+          "id": "1521746200355674094",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.830Z",
+          "updatedOn": "2026-07-01T05:16:06.830Z"
+        },
+        {
+          "id": "1521746200477308911",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.870Z",
+          "updatedOn": "2026-07-01T05:16:06.870Z"
+        },
+        {
+          "id": "1521746200494086128",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.874Z",
+          "updatedOn": "2026-07-01T05:16:06.874Z"
+        }
+      ]
     },
     {
       "name": "sponsors-list",
