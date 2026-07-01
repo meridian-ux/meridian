@@ -1,0 +1,59 @@
+name: ui
+
+# Real-browser UI gate + visual catalog. Runs the 0-tolerance browser test in
+# hermetic Chrome for Testing (rules_chrome), then builds the rules_tectonic
+# catalog PDF and publishes it as a downloadable workflow artifact — and attaches
+# it to the GitHub release when a `catalog-*` tag is pushed.
+on:
+  push:
+    branches: [main]
+    tags: ["catalog-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # needed to attach the PDF to a release on catalog-* tags
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # System libraries Chrome for Testing needs on Linux. Playwright knows the
+      # right set per Ubuntu version, so let it install them (chromium deps only).
+      - name: Chrome system dependencies
+        run: npx --yes playwright@1.59.0 install-deps chromium
+
+      - name: Install bazelisk
+        run: npm install -g @bazel/bazelisk
+
+      # rules_chrome / rules_tectonic resolve from the fastverk registry; the rest
+      # from BCR. (The repo .bazelrc leaves registries to the environment.)
+      - name: Real-browser UI test (hermetic Chrome)
+        run: |
+          bazelisk test //:browser_test \
+            --registry=https://registry.fastverk.com/ \
+            --registry=https://bcr.bazel.build/ \
+            --test_output=errors
+
+      - name: Build the visual catalog
+        run: |
+          bazelisk build //:catalog \
+            --registry=https://registry.fastverk.com/ \
+            --registry=https://bcr.bazel.build/
+          cp -L bazel-bin/catalog.pdf meridian-mui-kit-catalog.pdf
+
+      - name: Upload catalog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meridian-mui-kit-catalog
+          path: meridian-mui-kit-catalog.pdf
+          if-no-files-found: error
+
+      - name: Attach catalog to release (catalog-* tags)
+        if: startsWith(github.ref, 'refs/tags/catalog-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" meridian-mui-kit-catalog.pdf --clobber --repo "${GITHUB_REPOSITORY}"
