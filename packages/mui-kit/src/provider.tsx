@@ -21,7 +21,7 @@ import type { ReactAdhocFactory } from "@savvifi/meridian-web-react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
-import { aionMuiKit } from "./aion_mui_kit.js";
+import { muiKit } from "./mui_kit.js";
 import { themeProtoToMuiTheme } from "./theme.js";
 
 export interface MeridianMuiProviderProps {
@@ -46,7 +46,7 @@ export function MeridianMuiProvider({
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <MeridianProvider theme={theme} invoker={invoker} kit={aionMuiKit} adhoc={adhoc}>
+      <MeridianProvider theme={theme} invoker={invoker} kit={muiKit} adhoc={adhoc}>
         {children}
       </MeridianProvider>
     </ThemeProvider>

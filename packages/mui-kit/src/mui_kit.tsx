@@ -1,27 +1,18 @@
-// aionMuiKit — a meridian ComponentKit that paints panels with the aion MUI
-// component set (@aion/ui). It is one implementation of the ComponentKit
-// interface exported by @savvifi/meridian-web-react, a peer of htmlKit /
-// shadcnKit: the kit-agnostic PanelRenderer / ViewRenderer dispatch the
-// descriptor shapes to these components, so the same ViewDescriptor renders
-// here with MUI tables + forms (and aion's built-in table pagination) instead
-// of plain HTML.
+// muiKit — a meridian ComponentKit that paints panels with MUI. One
+// implementation of the ComponentKit interface exported by
+// @savvifi/meridian-web-react, a peer of htmlKit / shadcnKit: the kit-agnostic
+// PanelRenderer / ViewRenderer dispatch the descriptor shapes to these
+// components, so the same ViewDescriptor renders here as MUI tables + forms
+// (with CLIENT / OFFSET / CURSOR pagination) instead of plain HTML.
 //
-// The kit WRAPS the published @aion/ui components (DataTableView, FormView)
-// rather than reimplementing them — so the MUI look, the reducers, and the
-// hooks the app already relies on are reused verbatim. Later ("lift") the
-// genuinely-general primitives migrate into this package so it no longer
-// depends on @aion/ui.
+// The kit owns its components (MeridianTable / MeridianForm, lifted + generalized
+// from the aion @aion/ui patterns) — no @aion/ui dependency — so the MUI table +
+// form patterns are reusable by any meridian host, not just aion/studio.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { DataTableView, type Column } from "@aion/ui/data-display/table/DataTableView";
-import {
-  FormView,
-  type FormFieldDescriptor,
-  type FormSubmitConfig,
-} from "@aion/ui/layout/FormView";
-import { Alert, Box, Button, Stack, TablePagination } from "@mui/material";
+import { Alert, Box, Button, Stack } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import type {
@@ -52,6 +43,8 @@ import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import { ActionPlacement, type Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import { MeridianForm, type MeridianFormField } from "./components/form.js";
+import { MeridianTable, type MeridianColumn } from "./components/table.js";
 import { themeProtoToMuiTheme } from "./theme.js";
 
 type Row = Record<string, unknown>;
@@ -88,48 +81,52 @@ function invoke(invoker: RpcInvoker, call: RpcCall | undefined, req: Row = {}): 
 // ── Table ───────────────────────────────────────────────────────────────────
 
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
-  // usePagedRows (from meridian-web-react) is the kit-agnostic pagination brain:
-  // CLIENT returns all fetched rows (DataTableView paginates them locally — aion's
-  // own MUI pager, which the app relies on); OFFSET / CURSOR fetch one page at a
-  // time via the invoker and we render a MUI TablePagination footer to drive it.
+  // usePagedRows (meridian-web-react) is the kit-agnostic pagination brain:
+  // CLIENT returns all fetched rows (we slice locally); OFFSET / CURSOR fetch one
+  // page at a time via the invoker. MeridianTable just displays a page + a pager.
   const paged = usePagedRows(panel, invoker);
   const client = paged.mode === PaginationMode.CLIENT;
+  const [clientPage, setClientPage] = useState(0);
+  useEffect(() => setClientPage(0), [panel]);
 
-  const columns = useMemo<Column<Row>[]>(
+  const columns = useMemo<MeridianColumn<Row>[]>(
     () =>
       panel.columns.map((col: TableColumn, index) => ({
         id: col.fieldPath || col.header || String(index),
-        label: col.header,
+        header: col.header,
         width: col.prefWidth || undefined,
         render: (row: Row) => formatCell(getNested(row, col.fieldPath), col.format),
       })),
     [panel.columns],
   );
 
+  const pageSize = paged.pageSize;
+  let rows: Row[];
+  let page: number;
+  let count: number;
+  let onPageChange: (target: number) => void;
+  if (client) {
+    // CLIENT: paginate the full fetched set locally.
+    rows = paged.rows.slice(clientPage * pageSize, (clientPage + 1) * pageSize);
+    page = clientPage;
+    count = paged.rows.length;
+    onPageChange = (target) => setClientPage(target);
+  } else {
+    // Server modes: paged.rows is already the current page. MUI derives Next/Prev
+    // from `count` — OFFSET knows its total; CURSOR (no total) synthesizes it from
+    // hasNext ("one more page exists").
+    rows = paged.rows;
+    page = paged.page;
+    count =
+      paged.mode === PaginationMode.OFFSET && paged.total !== undefined
+        ? paged.total
+        : paged.hasNext
+          ? (paged.page + 1) * pageSize + 1
+          : (paged.page + 1) * pageSize;
+    onPageChange = (target) => (target > paged.page ? paged.goNext() : paged.goPrev());
+  }
+
   const rowActions = panel.actions ?? [];
-
-  // MUI TablePagination derives next/prev-enabled from `count`. OFFSET knows its
-  // total; CURSOR (aion's preferred paradigm) does not, so synthesize a count from
-  // hasNext — "one more page exists" — which is exactly what drives the Next button.
-  const count =
-    paged.mode === PaginationMode.OFFSET && paged.total !== undefined
-      ? paged.total
-      : paged.hasNext
-        ? (paged.page + 1) * paged.pageSize + 1
-        : (paged.page + 1) * paged.pageSize;
-
-  const serverFooter = client ? undefined : (
-    <TablePagination
-      component="div"
-      count={count}
-      page={paged.page}
-      rowsPerPage={paged.pageSize}
-      rowsPerPageOptions={[paged.pageSize]}
-      onPageChange={(_event, next) =>
-        next > paged.page ? paged.goNext() : paged.goPrev()
-      }
-    />
-  );
 
   return (
     <Box>
@@ -147,19 +144,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           ))}
         </Stack>
       )}
-      <DataTableView
+      <MeridianTable
         columns={columns}
-        rows={paged.rows}
-        isLoading={paged.loading}
+        rows={rows}
+        loading={paged.loading}
         emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
-        // CLIENT ⇒ DataTableView's own pager over all rows; server modes page
-        // externally (paged.rows is already the current page) with a MUI footer.
-        paginated={client}
-        pageSize={paged.pageSize}
-        footer={serverFooter}
-        getRowKey={(row) =>
-          String((row as { id?: unknown }).id ?? JSON.stringify(row))
-        }
+        getRowKey={(row) => String((row as { id?: unknown }).id ?? JSON.stringify(row))}
+        pagination={{ page, count, pageSize, onPageChange }}
       />
     </Box>
   );
@@ -188,13 +179,13 @@ function initValues(fields: FormField[]): Record<string, string | number> {
   return values;
 }
 
-function buildDescriptors(
+function buildFields(
   fields: FormField[],
   values: Record<string, string | number>,
   set: (id: string, value: string | number) => void,
   disabled: boolean,
-): FormFieldDescriptor[] {
-  return fields.map((field): FormFieldDescriptor => {
+): MeridianFormField[] {
+  return fields.map((field): MeridianFormField => {
     const base = {
       key: field.fieldId,
       label: field.label,
@@ -215,10 +206,7 @@ function buildDescriptors(
           type: "select",
           value: String(values[field.fieldId] ?? ""),
           onChange: (value: string) => set(field.fieldId, value),
-          options: field.kind.value.allowedValues.map((value) => ({
-            value,
-            label: value,
-          })),
+          options: field.kind.value.allowedValues.map((value) => ({ value, label: value })),
         };
       default:
         return {
@@ -251,18 +239,11 @@ function FieldForm({
   );
   const set = (id: string, value: string | number) =>
     setValues((prev) => ({ ...prev, [id]: value }));
-  const descriptors = buildDescriptors(fields, values, set, disabled);
-  const submit: FormSubmitConfig = {
-    label: submitLabel,
-    disabled: submitDisabled,
-    onSubmit: () => onSubmit?.(values),
-  };
   return (
-    <FormView
-      fields={descriptors}
+    <MeridianForm
+      fields={buildFields(fields, values, set, disabled)}
       description={description || undefined}
-      submit={submit}
-      variant="card"
+      submit={{ label: submitLabel, disabled: submitDisabled, onSubmit: () => onSubmit?.(values) }}
     />
   );
 }
@@ -275,19 +256,12 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
       disabled={!edit}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
       submitDisabled={!edit}
-      onSubmit={
-        edit
-          ? (values) => invoke(invoker, panel.submit, values as Row)
-          : undefined
-      }
+      onSubmit={edit ? (values) => invoke(invoker, panel.submit, values as Row) : undefined}
     />
   );
 }
 
 function PromptShape({ panel }: { panel: PromptPanel }): ReactNode {
-  // A standalone input collector: no RPC side effect (values return to the
-  // in-process caller). The web kit renders the form; wiring the return value
-  // is host-specific.
   return (
     <FieldForm
       fields={panel.fields}
@@ -325,10 +299,6 @@ function Chrome({
   descriptor: PanelDescriptor;
   children: ReactNode;
 }): ReactNode {
-  // Bind the meridian Theme to MUI per panel, so the single-panel
-  // reactWebRenderer(aionMuiKit) mount path is themed too (the view path also
-  // gets one theme provider from MeridianMuiProvider — nesting the same theme
-  // is harmless).
   const theme = useMeridianTheme();
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme), [theme]);
   return (
@@ -358,9 +328,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
         <Button
           key={action.id}
           size="small"
-          variant={
-            action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"
-          }
+          variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
           onClick={() => invoke(invoker, action.call)}
         >
           {action.label}
@@ -373,14 +341,11 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
 function themeToStyle(theme: Theme | undefined): CSSProperties {
   const palette = theme?.light;
   if (!palette) return {};
-  return {
-    background: palette.bg || undefined,
-    color: palette.fg || undefined,
-  };
+  return { background: palette.bg || undefined, color: palette.fg || undefined };
 }
 
-/** The aion MUI ComponentKit — plug into MeridianProvider / reactWebRenderer. */
-export const aionMuiKit: ComponentKit = {
+/** The MUI ComponentKit — plug into MeridianProvider / reactWebRenderer. */
+export const muiKit: ComponentKit = {
   id: "mui",
   themeToStyle,
   Chrome,
@@ -397,3 +362,6 @@ export const aionMuiKit: ComponentKit = {
   Fallback,
   ActionBar,
 };
+
+/** @deprecated Back-compat alias — the kit no longer wraps @aion/ui. Use `muiKit`. */
+export const aionMuiKit = muiKit;

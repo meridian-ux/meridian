@@ -1,15 +1,23 @@
-// Theme binding — maps a meridian.theme.v1.Theme (the neutral skin) onto the
-// aion MUI theme (@aion/ui's ThemeConfig → createStudioTheme). One meridian
-// skin (e.g. the savvi brand in aion/brand) therefore drives the MUI look of
-// every panel this kit paints, exactly as it drives the web-components and TUI
-// renderers.
+// Theme binding — maps a meridian.theme.v1.Theme (the neutral skin) onto a MUI
+// theme. Owned by the kit (no @aion/ui dependency): a `ThemeConfig` of design
+// tokens → MUI `createTheme`, carrying the aion look (system-ui type, no-shout
+// buttons, hairline card borders) so one meridian skin drives the MUI look of
+// every panel this kit paints — as it drives the web-components and TUI renderers.
 
-import { createStudioTheme, type ThemeConfig } from "@aion/ui/theme/themes";
-import type { Theme as MuiTheme } from "@mui/material/styles";
+import { createTheme, type Theme as MuiTheme } from "@mui/material/styles";
+
 import type { Palette, Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 
-// Sensible neutral defaults for any token a Theme leaves unset (proto3 string
-// fields default to ""), so a partial or absent Theme still yields a valid MUI theme.
+export interface ThemeConfig {
+  mode: "light" | "dark";
+  primary: { main: string; light: string; dark: string };
+  secondary: { main: string };
+  background: { default: string; paper: string };
+  text: { primary: string; secondary: string };
+  border: { card: string; button: string };
+}
+
+// Neutral defaults for any token a Theme leaves unset (proto3 strings default "").
 const FALLBACK = {
   bg: "#ffffff",
   surface: "#ffffff",
@@ -23,12 +31,8 @@ const FALLBACK = {
 const pick = (value: string | undefined, fallback: string): string =>
   value && value.length > 0 ? value : fallback;
 
-/**
- * Map a meridian Theme (+ desired light/dark mode) to @aion/ui's `ThemeConfig`.
- * `dark` is optional in the proto; when a caller requests dark mode but the
- * Theme has no dark palette, it falls back to the light palette (per theme.proto).
- */
-export function themeProtoToStudioConfig(
+/** Map a meridian Theme (+ mode) to a MUI-shaped ThemeConfig of design tokens. */
+export function themeProtoToThemeConfig(
   theme: Theme | undefined,
   mode: "light" | "dark" = "light",
 ): ThemeConfig {
@@ -53,10 +57,35 @@ export function themeProtoToStudioConfig(
   };
 }
 
-/** Build a ready-to-use MUI theme from a meridian Theme. */
+/** Build a MUI theme from a ThemeConfig (the lifted `createStudioTheme`). */
+export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
+  return createTheme({
+    palette: {
+      mode: config.mode,
+      primary: config.primary,
+      secondary: config.secondary,
+      background: config.background,
+      text: config.text,
+    },
+    typography: {
+      fontFamily:
+        'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    },
+    components: {
+      MuiButton: { styleOverrides: { root: { textTransform: "none" } } },
+      MuiCard: {
+        styleOverrides: {
+          root: { border: `1px solid ${config.border.card}`, boxShadow: "none" },
+        },
+      },
+    },
+  });
+}
+
+/** Build a ready-to-use MUI theme directly from a meridian Theme. */
 export function themeProtoToMuiTheme(
   theme: Theme | undefined,
   mode: "light" | "dark" = "light",
 ): MuiTheme {
-  return createStudioTheme(themeProtoToStudioConfig(theme, mode));
+  return createMuiThemeFromConfig(themeProtoToThemeConfig(theme, mode));
 }
