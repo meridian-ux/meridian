@@ -1,0 +1,9 @@
+common --enable_bzlmod
+
+# Registries (fastverk for rules_chrome / rules_tectonic, BCR for the rest) +
+# the GitHub credential helper for hermetic binary fetches are provided by the
+# machine/CI ~/.bazelrc (same setup the meridian repos build under).
+
+build --announce_rc
+build --keep_going
+test --test_output=errors

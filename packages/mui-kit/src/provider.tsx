@@ -22,7 +22,7 @@ import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { muiKit } from "./mui_kit.js";
-import { themeProtoToMuiTheme } from "./theme.js";
+import { themeProtoToCssVars, themeProtoToMuiTheme } from "./theme.js";
 
 export interface MeridianMuiProviderProps {
   invoker: RpcInvoker;
@@ -32,7 +32,7 @@ export interface MeridianMuiProviderProps {
   mode?: "light" | "dark";
   /** Host adhoc-panel handlers, keyed by AdhocPanel.handler_id. */
   adhoc?: Record<string, ReactAdhocFactory>;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function MeridianMuiProvider({
@@ -43,12 +43,17 @@ export function MeridianMuiProvider({
   children,
 }: MeridianMuiProviderProps): ReactNode {
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
+  const cssVars = useMemo(() => themeProtoToCssVars(theme, mode), [theme, mode]);
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <MeridianProvider theme={theme} invoker={invoker} kit={muiKit} adhoc={adhoc}>
-        {children}
-      </MeridianProvider>
+      {/* Expose the skin as --mer-* vars so ViewRenderer's kit-neutral layout
+          chrome (tab strip, etc.) picks up the active theme. */}
+      <div style={cssVars}>
+        <MeridianProvider theme={theme} invoker={invoker} kit={muiKit} adhoc={adhoc}>
+          {children}
+        </MeridianProvider>
+      </div>
     </ThemeProvider>
   );
 }

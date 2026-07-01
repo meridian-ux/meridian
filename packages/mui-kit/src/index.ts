@@ -11,6 +11,7 @@ export {
 export {
   themeProtoToThemeConfig,
   themeProtoToMuiTheme,
+  themeProtoToCssVars,
   createMuiThemeFromConfig,
   type ThemeConfig,
 } from "./theme.js";

@@ -4,6 +4,8 @@
 // buttons, hairline card borders) so one meridian skin drives the MUI look of
 // every panel this kit paints — as it drives the web-components and TUI renderers.
 
+import type { CSSProperties } from "react";
+
 import { createTheme, type Theme as MuiTheme } from "@mui/material/styles";
 
 import type { Palette, Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
@@ -88,4 +90,27 @@ export function themeProtoToMuiTheme(
   mode: "light" | "dark" = "light",
 ): MuiTheme {
   return createMuiThemeFromConfig(themeProtoToThemeConfig(theme, mode));
+}
+
+/**
+ * The meridian palette as the `--mer-*` CSS custom properties that ViewRenderer's
+ * kit-neutral layout chrome (the tab strip, etc.) reads. Applied by
+ * MeridianMuiProvider so the layout affordances pick up the active skin — the
+ * same variables the web-components / html renderers use, so one skin styles all.
+ */
+export function themeProtoToCssVars(
+  theme: Theme | undefined,
+  mode: "light" | "dark" = "light",
+): CSSProperties {
+  const palette: Partial<Palette> =
+    (mode === "dark" ? theme?.dark : theme?.light) ?? theme?.light ?? {};
+  const vars: Record<string, string> = {
+    "--mer-bg": pick(palette.bg, FALLBACK.bg),
+    "--mer-surface": pick(palette.surface, FALLBACK.surface),
+    "--mer-fg": pick(palette.fg, FALLBACK.fg),
+    "--mer-muted": pick(palette.muted ?? palette.fg, FALLBACK.muted),
+    "--mer-border": pick(palette.border, FALLBACK.border),
+    "--mer-accent": pick(palette.accent, FALLBACK.accent),
+  };
+  return vars as CSSProperties;
 }

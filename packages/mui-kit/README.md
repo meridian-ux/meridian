@@ -90,6 +90,26 @@ meridian-web-react's `usePagedRows`:
 ```bash
 pnpm install     # everything resolves from npmjs (React, MUI, emotion, meridian-*)
 pnpm typecheck
-pnpm test        # jsdom round-trip of the real studio views + CLIENT/OFFSET/CURSOR pagination
+pnpm test        # fast jsdom round-trip (inner loop): CLIENT/OFFSET/CURSOR pagination
 pnpm build       # dist/ (tsc)
 ```
+
+## Real-browser tests + visual catalog (Bazel)
+
+jsdom is the fast inner loop; the confidence loop runs in **real, hermetic Chrome
+for Testing** (`rules_chrome` + Playwright) — 0 tolerance for UI mishaps. One
+fixture harness (`harness/entry.tsx`, every primitive + layout) is esbuild-bundled
+and driven in the browser; the *same* fixtures produce the screenshot catalog, so
+the doc can never drift from what the kit renders.
+
+```bash
+bazel test  //:browser_test     # renders every fixture in real Chrome + asserts
+                                #   real interactions: pagination clicks re-fetch
+                                #   (offset + cursor), tabs switch, forms edit,
+                                #   header-above-form ordering, actions render.
+bazel build //:catalog_figures  # a labeled PNG per primitive/layout (build artifact)
+bazel build //:catalog          # → bazel-bin/catalog.pdf — the visual catalog
+                                #   (rules_tectonic), every primitive + layout.
+```
+
+`FIXTURES` in `BUILD.bazel` must match `window.meridianHarness.list()`.

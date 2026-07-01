@@ -27,8 +27,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
       '@savvifi/meridian-web-react':
-        specifier: ^0.3.0
-        version: 0.3.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.3.1
+        version: 0.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1
@@ -44,6 +44,9 @@ importers:
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
+      playwright:
+        specifier: 1.59.0
+        version: 1.59.0
       react:
         specifier: ^19.2.0
         version: 19.2.7
@@ -557,8 +560,8 @@ packages:
   '@savvifi/meridian-schemas@0.3.0':
     resolution: {integrity: sha512-m42UzZn6a4TMFKjlfdtItgzfjqfYmpDRN24rSMPoVbTw4aMuiR+ypZbQOTLj15IS8C56f1UahnfRvR7yD9xunA==}
 
-  '@savvifi/meridian-web-react@0.3.0':
-    resolution: {integrity: sha512-V5Ce9JHVx75SHWrLGeCsiS5TSweEV63pMgSL4SBEC6qklpe2Rt5jt1U1/Z0sfcdWF0iboPiM+X/YZpuw3US94Q==}
+  '@savvifi/meridian-web-react@0.3.1':
+    resolution: {integrity: sha512-3BnmlmYmbOleLKv2oN8MvN6WcUHsHb81uMAIGTdaGAyHnqf+uGiuPJAv5XvybqO/M8lTD7mbIWc1gLq5WPk+xw==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -794,6 +797,11 @@ packages:
     resolution: {integrity: sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==}
     engines: {node: '>= 6'}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -953,6 +961,16 @@ packages:
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
+
+  playwright-core@1.59.0:
+    resolution: {integrity: sha512-PW/X/IoZ6BMUUy8rpwHEZ8Kc0IiLIkgKYGNFaMs5KmQhcfLILNx9yCQD0rnWeWfz1PNeqcFP1BsihQhDOBCwZw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.59.0:
+    resolution: {integrity: sha512-wihGScriusvATUxmhfENxg0tj1vHEFeIwxlnPFKQTOQVd7aG08mUfvvniRP/PtQOC+2Bs52kBOC/Up1jTXeIbw==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss@8.5.16:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
@@ -1619,7 +1637,7 @@ snapshots:
     dependencies:
       '@savvifi/meridian-proto-ts': 0.3.0
 
-  '@savvifi/meridian-web-react@0.3.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@savvifi/meridian-web-react@0.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
       '@savvifi/meridian-proto-ts': 0.3.0
@@ -1872,6 +1890,9 @@ snapshots:
       hasown: 2.0.4
       mime-types: 2.1.35
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -2036,6 +2057,14 @@ snapshots:
   pathval@2.0.1: {}
 
   picocolors@1.1.1: {}
+
+  playwright-core@1.59.0: {}
+
+  playwright@1.59.0:
+    dependencies:
+      playwright-core: 1.59.0
+    optionalDependencies:
+      fsevents: 2.3.2
 
   postcss@8.5.16:
     dependencies:
