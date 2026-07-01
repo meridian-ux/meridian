@@ -249,3 +249,67 @@ describe("aionMuiKit OFFSET pagination (server paging via the invoker)", () => {
     await expectText("Delta");
   });
 });
+
+// CURSOR pagination — aion's PREFERRED paradigm (tRPC infinite-query shape:
+// input { cursor }, output { items, nextCursor }). The invoker returns the next
+// page keyed by the opaque cursor; advancing re-invokes populate with it.
+const cursorInvoker: RpcInvoker = {
+  invoke: async (_service, method, request) => {
+    if (method !== "list-cursor") return {};
+    const cursor = (request as { cursor?: string }).cursor ?? "";
+    if (cursor === "") return { items: [{ name: "Uno" }, { name: "Dos" }], nextCursor: "c1" };
+    if (cursor === "c1") return { items: [{ name: "Tres" }, { name: "Cuatro" }], nextCursor: "" };
+    return { items: [], nextCursor: "" };
+  },
+};
+
+const cursorListView: ViewDescriptor = create(ViewDescriptorSchema, {
+  id: "cursor-list-view",
+  title: "Cursor Products",
+  kind: ViewKind.LIST,
+  layout: { mode: { case: "list", value: {} } },
+  slots: [
+    {
+      id: "content",
+      role: "content",
+      position: 10,
+      panel: create(PanelDescriptorSchema, {
+        panelId: "cursor-list",
+        title: "Cursor",
+        body: {
+          case: "table",
+          value: create(TablePanelSchema, {
+            rowsField: "items",
+            columns: [{ header: "Name", fieldPath: "name" }],
+            populate: create(RpcCallSchema, { service: "svc", method: "list-cursor" }),
+            pagination: create(PaginationSchema, {
+              mode: PaginationMode.CURSOR,
+              pageSize: 2,
+              cursorRequestField: "cursor",
+              nextCursorField: "nextCursor",
+            }),
+          }),
+        },
+      }),
+    },
+  ],
+});
+
+describe("aionMuiKit CURSOR pagination (aion's preferred paradigm)", () => {
+  it("fetches the first page, then advances via the opaque cursor", async () => {
+    render(
+      <MeridianMuiProvider invoker={cursorInvoker}>
+        <ViewRenderer view={cursorListView} />
+      </MeridianMuiProvider>,
+    );
+    // first page (no cursor)
+    await expectText("Uno");
+    await expectText("Dos");
+    expect(screen.queryByText("Tres")).toBeNull();
+    // advance — re-invokes populate with cursor "c1"
+    const next = await screen.findByRole("button", { name: /go to next page/i });
+    fireEvent.click(next);
+    await expectText("Tres");
+    await expectText("Cuatro");
+  });
+});

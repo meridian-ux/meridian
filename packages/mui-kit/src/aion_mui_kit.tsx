@@ -108,22 +108,26 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   const rowActions = panel.actions ?? [];
 
+  // MUI TablePagination derives next/prev-enabled from `count`. OFFSET knows its
+  // total; CURSOR (aion's preferred paradigm) does not, so synthesize a count from
+  // hasNext — "one more page exists" — which is exactly what drives the Next button.
+  const count =
+    paged.mode === PaginationMode.OFFSET && paged.total !== undefined
+      ? paged.total
+      : paged.hasNext
+        ? (paged.page + 1) * paged.pageSize + 1
+        : (paged.page + 1) * paged.pageSize;
+
   const serverFooter = client ? undefined : (
     <TablePagination
       component="div"
-      count={paged.total ?? -1}
+      count={count}
       page={paged.page}
       rowsPerPage={paged.pageSize}
       rowsPerPageOptions={[paged.pageSize]}
       onPageChange={(_event, next) =>
         next > paged.page ? paged.goNext() : paged.goPrev()
       }
-      slotProps={{
-        actions: {
-          nextButton: { disabled: !paged.hasNext },
-          previousButton: { disabled: !paged.hasPrev },
-        },
-      }}
     />
   );
 
