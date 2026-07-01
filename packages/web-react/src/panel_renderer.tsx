@@ -34,6 +34,11 @@ export function PanelRenderer({
         <kit.Lro panel={body.value} descriptor={descriptor} invoker={invoker} />
       );
       break;
+    case "form":
+      inner = (
+        <kit.Form panel={body.value} descriptor={descriptor} invoker={invoker} />
+      );
+      break;
     case "gallery":
       inner = kit.Gallery ? (
         <kit.Gallery panel={body.value} descriptor={descriptor} invoker={invoker} />

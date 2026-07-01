@@ -68,6 +68,21 @@ export const htmlKit: ComponentKit = {
       <button type="button">{panel.runButtonLabel || "Run"}</button>
     </div>
   ),
+  Form: ({ panel }) => (
+    // FORM_MODE_EDIT = 2; anything else renders read-only.
+    <form className="mer-form" data-mode={panel.mode}>
+      {panel.fields.map((field) => (
+        <label key={field.fieldId} className="mer-field">
+          <span className="mer-field-label">{field.label}</span>
+          {panel.mode === 2 ? (
+            <input className="mer-field-input" name={field.fieldId} />
+          ) : (
+            <span className="mer-field-value" data-field={field.fieldId} />
+          )}
+        </label>
+      ))}
+    </form>
+  ),
   Fallback: ({ descriptor }) => (
     <pre className="mer-fallback">
       {descriptor.body.case

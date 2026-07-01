@@ -12,10 +12,14 @@ import type { ComponentType, CSSProperties, ReactNode } from "react";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type {
+  FormPanel,
+  PanelDescriptor,
+} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 /** Props every shape component receives: its panel, the parent descriptor, transport. */
@@ -30,6 +34,13 @@ export type PromptPanelProps = ShapeProps<PromptPanel>;
 export type LroPanelProps = ShapeProps<LroPanel>;
 export type GalleryPanelProps = ShapeProps<GalleryPanel>;
 export type LlmPromptPanelProps = ShapeProps<LlmPromptPanel>;
+export type FormPanelProps = ShapeProps<FormPanel>;
+
+/** Props for a kit's action bar: the actions to render + transport to fire them. */
+export interface ActionBarProps {
+  actions: Action[];
+  invoker: RpcInvoker;
+}
 
 /** A set of components + a theme binding that paints meridian panels. */
 export interface ComponentKit {
@@ -46,9 +57,16 @@ export interface ComponentKit {
   Table: ComponentType<TablePanelProps>;
   Prompt: ComponentType<PromptPanelProps>;
   Lro: ComponentType<LroPanelProps>;
+  /** Entity "detail section" / CRUD form (FormPanel: READONLY | EDIT). */
+  Form: ComponentType<FormPanelProps>;
   /** Optional richer shapes; PanelRenderer falls back when a kit omits them. */
   Gallery?: ComponentType<GalleryPanelProps>;
   LlmPrompt?: ComponentType<LlmPromptPanelProps>;
   /** Rendered for unknown / unset / unsupported shapes. */
   Fallback: ComponentType<{ descriptor: PanelDescriptor }>;
+  /**
+   * Renders a view/slot's actions (ViewDescriptor.actions / Slot.actions).
+   * Optional — ViewRenderer falls back to plain buttons when a kit omits it.
+   */
+  ActionBar?: ComponentType<ActionBarProps>;
 }

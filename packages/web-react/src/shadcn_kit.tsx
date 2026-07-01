@@ -96,6 +96,24 @@ export const shadcnKit: ComponentKit = {
       </button>
     </div>
   ),
+  Form: ({ panel }) => (
+    // FORM_MODE_EDIT = 2; anything else renders read-only.
+    <form className="grid gap-4" data-mode={panel.mode}>
+      {panel.fields.map((field) => (
+        <div key={field.fieldId} className="grid gap-2">
+          <label className="text-sm font-medium leading-none">{field.label}</label>
+          {panel.mode === 2 ? (
+            <input
+              name={field.fieldId}
+              className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground" data-field={field.fieldId} />
+          )}
+        </div>
+      ))}
+    </form>
+  ),
   Fallback: ({ descriptor }) => (
     <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
       {descriptor.body.case

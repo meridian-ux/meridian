@@ -13,6 +13,8 @@ export type {
   LroPanelProps,
   GalleryPanelProps,
   LlmPromptPanelProps,
+  FormPanelProps,
+  ActionBarProps,
 } from "./component_kit.js";
 export {
   MeridianProvider,
@@ -26,6 +28,7 @@ export {
   type ReactAdhocFactory,
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
+export { ViewRenderer } from "./view_renderer.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";
 export { shadcnKit } from "./shadcn_kit.js";
