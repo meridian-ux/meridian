@@ -1,6 +1,6 @@
 module(
     name = "meridian_web",
-    version = "0.2.2",
+    version = "0.3.0",
 )
 
 # meridian-web — the web-components renderer of the meridian design language: the

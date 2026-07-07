@@ -238,7 +238,7 @@ async function renderLroPanel(
   formRow.style.padding = "4px 0";
   const formGetters: Record<string, () => unknown> = {};
   for (const field of panel.inputs) {
-    formRow.appendChild(buildFormInput(field, formGetters));
+    formRow.appendChild(buildFormInput(field, formGetters, opts.invoker));
   }
   if (panel.inputs.length > 0) {
     root.appendChild(formRow);
@@ -279,9 +279,34 @@ async function renderLroPanel(
   };
 }
 
+// The RPC-populated-dropdown shape (EnumSelection.options_source, schemas >=0.4.0).
+// Read via a cast so this renderer builds against older @savvifi/meridian-proto-ts
+// that predates the field — it's present at runtime once the emitter uses schemas
+// >=0.4.0, and absent (falls back to allowed_values) otherwise.
+interface OptionsSourceShape {
+  service: string;
+  method: string;
+  optionsField: string;
+  valueField: string;
+  labelField: string;
+}
+
+// Walk a dotted ProtoPath (e.g. "configs" or "outer.items") over a decoded
+// JSON-over-HTTP response object.
+function resolvePath(obj: unknown, path: string): unknown {
+  if (!path) return obj;
+  let cur: unknown = obj;
+  for (const seg of path.split(".")) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
 function buildFormInput(
   field: FormField,
   getters: Record<string, () => unknown>,
+  invoker?: RpcInvoker,
 ): HTMLElement {
   const wrapper = document.createElement("label");
   wrapper.style.display = "inline-flex";
@@ -310,6 +335,63 @@ function buildFormInput(
     input.value = kind.value.defaultValue;
     getters[field.fieldId] = () => input.value;
     wrapper.appendChild(input);
+  } else if (kind.case === "enumSelection") {
+    const spec = kind.value;
+    const select = document.createElement("select");
+    getters[field.fieldId] = () => select.value;
+    const src = (spec as unknown as { optionsSource?: OptionsSourceShape })
+      .optionsSource;
+    if (src && src.service) {
+      // RPC-populated: render a placeholder, then fill the <select> once the
+      // options RPC (e.g. ListConfigs) returns. Mirrors renderTablePanel's invoke.
+      const loading = document.createElement("option");
+      loading.textContent = "Loading…";
+      loading.disabled = true;
+      select.appendChild(loading);
+      if (invoker) {
+        invoker
+          .invoke(src.service, src.method, {})
+          .then((resp) => {
+            select.replaceChildren();
+            const items = resolvePath(resp, src.optionsField);
+            const arr = Array.isArray(items) ? items : [];
+            for (const it of arr) {
+              const value = String(resolvePath(it, src.valueField) ?? "");
+              const label = src.labelField
+                ? resolvePath(it, src.labelField)
+                : value;
+              const opt = document.createElement("option");
+              opt.value = value;
+              opt.textContent = String(label ?? value);
+              if (value === spec.defaultValue) opt.selected = true;
+              select.appendChild(opt);
+            }
+            if (arr.length === 0) {
+              const none = document.createElement("option");
+              none.textContent = "(none)";
+              none.disabled = true;
+              select.appendChild(none);
+            }
+          })
+          .catch((err: unknown) => {
+            select.replaceChildren();
+            const failed = document.createElement("option");
+            failed.textContent = `Failed: ${(err as Error).message}`;
+            failed.disabled = true;
+            select.appendChild(failed);
+          });
+      }
+    } else {
+      // Static allowed_values.
+      for (const value of spec.allowedValues) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        if (value === spec.defaultValue) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+    wrapper.appendChild(select);
   }
   return wrapper;
 }
