@@ -226,7 +226,13 @@ async function renderLroPanel(
 ): Promise<void> {
   const { root } = opts;
 
-  metaEl.textContent = opts.context.currentResourcePath
+  // A "standalone" LRO (e.g. a create form) has a start RPC with no bindings, so it
+  // does NOT act on the current resource — every input comes from the form. Such a
+  // panel is always runnable; a resource-scoped LRO still needs an active resource.
+  const standalone = (panel.start?.bindings?.length ?? 0) === 0;
+  const runnable = standalone || !!opts.context.currentResourcePath;
+
+  metaEl.textContent = runnable
     ? "Click the button to run."
     : "No active resource.";
 
@@ -249,7 +255,7 @@ async function renderLroPanel(
   actionRow.style.padding = "4px 0";
   const runButton = document.createElement("button");
   runButton.textContent = panel.runButtonLabel || "Run";
-  runButton.disabled = !opts.context.currentResourcePath;
+  runButton.disabled = !runnable;
   actionRow.appendChild(runButton);
   root.appendChild(actionRow);
 
