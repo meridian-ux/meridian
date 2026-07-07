@@ -129,23 +129,23 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   const rowActions = panel.actions ?? [];
 
-  // View-level ROW-placement actions (from the ViewRenderer) render per-row and
-  // fire against the row's resource. Only op actions (with a `call`) are shown;
-  // nav actions (no call, e.g. edit → a route) are the host's nav seam. aion rows
-  // carry `id`, so the op is invoked with `{ id: row.id }`.
+  // View-level ROW-placement actions (from the ViewRenderer) render per-row. An
+  // op action (with a `call`) fires against the row's resource — aion rows carry
+  // `id`, so it's invoked with `{ id: row.id }`. A host-resolved action (no
+  // `call`, e.g. edit/view_details → a route) renders as a labeled button the
+  // host wires via its action/nav seam — same contract as the header actions.
   const viewRowActions = useContext(MeridianRowActionsContext);
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(
     () =>
-      viewRowActions
-        .filter((action) => action.call)
-        .map((action) => ({
-          id: action.id,
-          label: action.label,
-          onClick: (row: Row) => {
-            const id = (row as { id?: unknown }).id;
-            void invoker.invoke(action.call!.service, action.call!.method, id != null ? { id } : {});
-          },
-        })),
+      viewRowActions.map((action) => ({
+        id: action.id,
+        label: action.label,
+        onClick: (row: Row) => {
+          if (!action.call) return; // host-resolved (nav/custom) — wired by the host
+          const id = (row as { id?: unknown }).id;
+          void invoker.invoke(action.call.service, action.call.method, id != null ? { id } : {});
+        },
+      })),
     [viewRowActions, invoker],
   );
 
