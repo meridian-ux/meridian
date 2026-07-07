@@ -35,7 +35,10 @@ export {
   buildPageRequest,
   readPage,
   PaginationMode,
+  MeridianInitialDataContext,
   type PagedTable,
+  type MeridianPageSeed,
+  type MeridianInitialData,
 } from "./pagination.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";

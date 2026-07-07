@@ -13,7 +13,7 @@
 // The request/response field wiring is pure + separately testable
 // (`buildPageRequest` / `readPage`); the hook is thin glue over them.
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 import {
   PaginationMode,
@@ -27,6 +27,21 @@ export { PaginationMode } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 const DEFAULT_PAGE_SIZE = 20;
 
 type Row = Record<string, unknown>;
+
+/** A pre-fetched page-0 result to seed a table for SSR/hydration (no refetch flash). */
+export interface MeridianPageSeed {
+  rows: Row[];
+  total?: number;
+  nextCursor?: string;
+}
+/** SSR seed map, keyed by a populate call's `${service}.${method}`. */
+export type MeridianInitialData = Record<string, MeridianPageSeed>;
+/**
+ * Server-computed initial page data, provided by ViewRenderer's `initialData`.
+ * usePagedRows reads it to seed page-0 state so SSR renders real rows and the
+ * client hydrates without an immediate refetch. Undefined ⇒ normal fetch-on-mount.
+ */
+export const MeridianInitialDataContext = createContext<MeridianInitialData | undefined>(undefined);
 
 /** Follow a dotted path (e.g. "page.offset") into a value. */
 function getNested(source: unknown, path: string): unknown {
@@ -133,14 +148,27 @@ export interface PagedTable {
  */
 export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable {
   const { pagination, mode, pageSize } = resolvePagination(panel);
+  // SSR seed for this table's populate call, if the host provided one.
+  const initialData = useContext(MeridianInitialDataContext);
+  const seed =
+    panel.populate && initialData
+      ? initialData[`${panel.populate.service}.${panel.populate.method}`]
+      : undefined;
+
   const [page, setPageState] = useState(0);
   // Cursor visited for each page index (CURSOR mode); index 0 = "" (first page).
   const [cursorStack, setCursorStack] = useState<string[]>([""]);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [total, setTotal] = useState<number | undefined>(undefined);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(Boolean(panel.populate));
+  const [rows, setRows] = useState<Row[]>(seed?.rows ?? []);
+  const [total, setTotal] = useState<number | undefined>(
+    seed ? (mode === PaginationMode.CLIENT ? seed.rows.length : seed.total) : undefined,
+  );
+  const [nextCursor, setNextCursor] = useState<string | undefined>(seed?.nextCursor);
+  const [loading, setLoading] = useState<boolean>(Boolean(panel.populate) && !seed);
   const [error, setError] = useState<boolean>(false);
+  // When SSR-seeded, the page-0 rows are already in state, so skip the first
+  // client fetch on mount (keeps the server-rendered rows — no hydration flash).
+  // Consumed once; later page changes fetch normally.
+  const seedPendingRef = useRef<boolean>(Boolean(seed));
 
   // Reset paging when the panel identity changes.
   useEffect(() => {
@@ -151,6 +179,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   useEffect(() => {
     if (!panel.populate) {
       setLoading(false);
+      return;
+    }
+    // Consume the SSR seed on the first mount at page 0 — state already holds the
+    // page-0 rows, so don't refetch.
+    if (seedPendingRef.current && page === 0) {
+      seedPendingRef.current = false;
       return;
     }
     let cancelled = false;

@@ -19,6 +19,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
+import { MeridianInitialDataContext, type MeridianInitialData } from "./pagination.js";
 
 // Fire an action's RpcCall. Binding resolution (row/form context → request
 // fields) is a later increment; the first cut fires with an empty request and
@@ -68,8 +69,19 @@ function byPosition(a: Slot, b: Slot): number {
   return (a.position || 0) - (b.position || 0);
 }
 
-/** Renders a ViewDescriptor. The layout mode selects the arrangement of slots. */
-export function ViewRenderer({ view }: { view: ViewDescriptor }): ReactNode {
+/**
+ * Renders a ViewDescriptor. The layout mode selects the arrangement of slots.
+ * `initialData` (optional) is a server-computed page-0 seed keyed by each table
+ * populate's `${service}.${method}`; when present, usePagedRows renders those rows
+ * on the first paint (SSR) and skips the initial client refetch on hydration.
+ */
+export function ViewRenderer({
+  view,
+  initialData,
+}: {
+  view: ViewDescriptor;
+  initialData?: MeridianInitialData;
+}): ReactNode {
   const slots = [...view.slots].sort(byPosition);
   const layout = view.layout?.mode;
 
@@ -95,7 +107,7 @@ export function ViewRenderer({ view }: { view: ViewDescriptor }): ReactNode {
       );
   }
 
-  return (
+  const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}>
       <header className="mer-view-header">
         <h2 className="mer-view-title">{view.title}</h2>
@@ -103,6 +115,15 @@ export function ViewRenderer({ view }: { view: ViewDescriptor }): ReactNode {
       </header>
       {body}
     </div>
+  );
+
+  // Provide the SSR seed to the table hooks below (no-op when undefined).
+  return initialData ? (
+    <MeridianInitialDataContext.Provider value={initialData}>
+      {rendered}
+    </MeridianInitialDataContext.Provider>
+  ) : (
+    rendered
   );
 }
 
