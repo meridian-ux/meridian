@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The MUI ComponentKit for the meridian React renderer — paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone — no @aion/ui dependency.",
   "type": "module",
   "license": "UNLICENSED",
@@ -29,7 +29,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "^0.3.0",
     "@savvifi/meridian-schemas": "^0.3.0",
-    "@savvifi/meridian-web-react": "^0.3.2",
+    "@savvifi/meridian-web-react": "^0.3.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -40,7 +40,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "^0.3.0",
     "@savvifi/meridian-schemas": "^0.3.0",
-    "@savvifi/meridian-web-react": "^0.3.2",
+    "@savvifi/meridian-web-react": "0.3.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
     "@types/react": "^19.2.0",

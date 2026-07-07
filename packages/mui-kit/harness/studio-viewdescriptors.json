@@ -60,6 +60,18 @@
               }
             }
           }
+        ],
+        "actions": [
+          {
+            "id": "archive",
+            "label": "Archive",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
         ]
       }
     },
@@ -87,7 +99,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.product",
-                  "method": "get-product"
+                  "method": "list-products"
                 },
                 "rowsField": "items",
                 "itemNoun": "products",
@@ -113,6 +125,28 @@
                 }
               }
             }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "clone",
+            "label": "Clone",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "export_yaml",
+            "label": "Export Yaml",
+            "placement": "ACTION_PLACEMENT_HEADER"
           }
         ]
       }
@@ -141,7 +175,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.task",
-                  "method": "get"
+                  "method": "list"
                 },
                 "rowsField": "items",
                 "itemNoun": "tasks",
@@ -183,6 +217,13 @@
                 }
               }
             }
+          }
+        ],
+        "actions": [
+          {
+            "id": "delegate",
+            "label": "Delegate",
+            "placement": "ACTION_PLACEMENT_HEADER"
           }
         ]
       }
@@ -258,6 +299,23 @@
               }
             }
           }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "view_details",
+            "label": "View Details",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
         ]
       }
     },
@@ -285,7 +343,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.environment",
-                  "method": "get-environment"
+                  "method": "list-environments"
                 },
                 "rowsField": "items",
                 "itemNoun": "environments",
@@ -351,7 +409,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.environment-mapping",
-                  "method": "get-environment-mapping"
+                  "method": "list-environment-mappings"
                 },
                 "rowsField": "items",
                 "itemNoun": "environment-mappings",
@@ -413,7 +471,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.platform",
-                  "method": "get-platform"
+                  "method": "list-platforms"
                 },
                 "rowsField": "items",
                 "itemNoun": "platforms",
@@ -598,6 +656,30 @@
           "description": "charlie — seeded for the catalog",
           "createdOn": "2026-07-01T05:16:06.874Z",
           "updatedOn": "2026-07-01T05:16:06.874Z"
+        },
+        {
+          "id": "1524099077074065677",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.353Z",
+          "updatedOn": "2026-07-07T17:05:36.353Z"
+        },
+        {
+          "id": "1524099077267003662",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.411Z",
+          "updatedOn": "2026-07-07T17:05:36.411Z"
+        },
+        {
+          "id": "1524099077283780879",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.415Z",
+          "updatedOn": "2026-07-07T17:05:36.415Z"
         }
       ]
     },
@@ -625,7 +707,7 @@
               "table": {
                 "populate": {
                   "service": "savvi.studio.sponsor",
-                  "method": "get-sponsor"
+                  "method": "list-sponsors"
                 },
                 "rowsField": "items",
                 "itemNoun": "sponsors",
@@ -675,6 +757,28 @@
                 }
               }
             }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "activate",
+            "label": "Activate",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "deactivate",
+            "label": "Deactivate",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
           }
         ]
       }
@@ -782,6 +886,23 @@
                 }
               }
             }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "invite_by_email",
+            "label": "Invite By Email",
+            "placement": "ACTION_PLACEMENT_HEADER"
           }
         ]
       }
@@ -1929,6 +2050,13 @@
                 "handlerId": "entity-detail-summary"
               }
             }
+          }
+        ],
+        "actions": [
+          {
+            "id": "view_details",
+            "label": "View Details",
+            "placement": "ACTION_PLACEMENT_HEADER"
           }
         ]
       }

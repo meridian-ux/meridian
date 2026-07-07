@@ -9,7 +9,7 @@
 // from the aion @aion/ui patterns) — no @aion/ui dependency — so the MUI table +
 // form patterns are reusable by any meridian host, not just aion/studio.
 
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, IconButton, Menu, MenuItem, Stack } from "@mui/material";
@@ -21,6 +21,7 @@ import type {
   ShapeProps,
 } from "@savvifi/meridian-web-react";
 import {
+  MeridianRowActionsContext,
   PaginationMode,
   useMeridianTheme,
   usePagedRows,
@@ -44,7 +45,7 @@ import { ActionPlacement, type Action } from "@savvifi/meridian-proto-ts/proto/v
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
-import { MeridianTable, type MeridianColumn } from "./components/table.js";
+import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
 import { themeProtoToMuiTheme } from "./theme.js";
 
 type Row = Record<string, unknown>;
@@ -128,6 +129,26 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   const rowActions = panel.actions ?? [];
 
+  // View-level ROW-placement actions (from the ViewRenderer) render per-row and
+  // fire against the row's resource. Only op actions (with a `call`) are shown;
+  // nav actions (no call, e.g. edit → a route) are the host's nav seam. aion rows
+  // carry `id`, so the op is invoked with `{ id: row.id }`.
+  const viewRowActions = useContext(MeridianRowActionsContext);
+  const perRowActions = useMemo<MeridianRowAction<Row>[]>(
+    () =>
+      viewRowActions
+        .filter((action) => action.call)
+        .map((action) => ({
+          id: action.id,
+          label: action.label,
+          onClick: (row: Row) => {
+            const id = (row as { id?: unknown }).id;
+            void invoker.invoke(action.call!.service, action.call!.method, id != null ? { id } : {});
+          },
+        })),
+    [viewRowActions, invoker],
+  );
+
   return (
     <Box>
       {rowActions.length > 0 && (
@@ -156,6 +177,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
           getRowKey={(row) => String((row as { id?: unknown }).id ?? JSON.stringify(row))}
           pagination={{ page, count, pageSize, onPageChange }}
+          rowActions={perRowActions.length > 0 ? perRowActions : undefined}
         />
       )}
     </Box>

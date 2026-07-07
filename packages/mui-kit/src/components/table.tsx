@@ -8,7 +8,9 @@ import type { ReactNode } from "react";
 
 import {
   Box,
+  Button,
   CircularProgress,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -35,6 +37,13 @@ export interface MeridianTablePager {
   onPageChange: (page: number) => void;
 }
 
+/** A per-row action — a labeled button that fires against a specific row. */
+export interface MeridianRowAction<T> {
+  id: string;
+  label: string;
+  onClick: (row: T) => void;
+}
+
 export interface MeridianTableProps<T> {
   columns: MeridianColumn<T>[];
   rows: T[];
@@ -42,6 +51,8 @@ export interface MeridianTableProps<T> {
   emptyMessage?: string;
   getRowKey?: (row: T, index: number) => string | number;
   pagination?: MeridianTablePager;
+  /** Per-row actions rendered in a trailing column (edit/delete …). */
+  rowActions?: MeridianRowAction<T>[];
 }
 
 export function MeridianTable<T>({
@@ -51,7 +62,9 @@ export function MeridianTable<T>({
   emptyMessage = "No data.",
   getRowKey,
   pagination,
+  rowActions,
 }: MeridianTableProps<T>): ReactNode {
+  const hasRowActions = Boolean(rowActions && rowActions.length > 0);
   // A table with no columns can't render a meaningful grid (e.g. a list whose
   // columns are resolved at runtime). Show a clean note, never a bare pager.
   if (columns.length === 0) {
@@ -88,6 +101,7 @@ export function MeridianTable<T>({
                   {column.header}
                 </TableCell>
               ))}
+              {hasRowActions && <TableCell align="right" />}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -98,6 +112,22 @@ export function MeridianTable<T>({
                     {column.render(row)}
                   </TableCell>
                 ))}
+                {hasRowActions && (
+                  <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                      {rowActions!.map((action) => (
+                        <Button
+                          key={action.id}
+                          size="small"
+                          variant="outlined"
+                          onClick={() => action.onClick(row)}
+                        >
+                          {action.label}
+                        </Button>
+                      ))}
+                    </Stack>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
