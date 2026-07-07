@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, Stack } from "@mui/material";
+import { Alert, Box, Button, IconButton, Menu, MenuItem, Stack } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import type {
@@ -327,10 +327,15 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
 }
 
 function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   if (!actions || actions.length === 0) return null;
+  // OVERFLOW actions collapse into a kebab (⋮) menu; the rest render inline
+  // (PRIMARY = contained, others = outlined). Honors the projected placement.
+  const inline = actions.filter((a: Action) => a.placement !== ActionPlacement.OVERFLOW);
+  const overflow = actions.filter((a: Action) => a.placement === ActionPlacement.OVERFLOW);
   return (
-    <Stack direction="row" spacing={1} className="mer-actions">
-      {actions.map((action: Action) => (
+    <Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
+      {inline.map((action: Action) => (
         <Button
           key={action.id}
           size="small"
@@ -340,6 +345,33 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
           {action.label}
         </Button>
       ))}
+      {overflow.length > 0 && (
+        <>
+          <IconButton
+            size="small"
+            aria-label="more actions"
+            className="mer-actions-overflow"
+            onClick={(event) => setAnchor(event.currentTarget)}
+          >
+            <Box component="span" sx={{ fontSize: 20, lineHeight: 1 }}>
+              &#8942;
+            </Box>
+          </IconButton>
+          <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+            {overflow.map((action: Action) => (
+              <MenuItem
+                key={action.id}
+                onClick={() => {
+                  setAnchor(null);
+                  invoke(invoker, action.call);
+                }}
+              >
+                {action.label}
+              </MenuItem>
+            ))}
+          </Menu>
+        </>
+      )}
     </Stack>
   );
 }
