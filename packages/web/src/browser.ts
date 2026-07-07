@@ -49,6 +49,14 @@ export type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview
 // The chat-panel web component (lazy-registered by hosts that show chat panels).
 export { CHAT_PANEL_CSS, MChatPanel, registerChatPanel } from "./chat_panel.js";
 
+// The assistant-panel web component — the GENERIC MCP-host chat plane (chat.v1),
+// as opposed to the agora-loop <m-chat-panel>. Lazy-registered by hosts.
+export {
+  ASSISTANT_PANEL_CSS,
+  MAssistantPanel,
+  registerAssistantPanel,
+} from "./assistant_panel.js";
+
 // Canonical message types the host reads off a decoded bundle.
 export type { GalleryPanel, PanelBundle, PanelDescriptor };
 

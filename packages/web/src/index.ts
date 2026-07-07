@@ -4,6 +4,11 @@ export {
   MChatPanel,
   registerChatPanel,
 } from './chat_panel.js';
+export {
+  ASSISTANT_PANEL_CSS,
+  MAssistantPanel,
+  registerAssistantPanel,
+} from './assistant_panel.js';
 export { escHtml, shortName } from './dom.js';
 export { patchClassName, patchHtml, patchText } from './patch.js';
 export {
