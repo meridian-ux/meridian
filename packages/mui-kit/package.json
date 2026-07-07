@@ -4,7 +4,6 @@
   "description": "The MUI ComponentKit for the meridian React renderer — paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone — no @aion/ui dependency.",
   "type": "module",
   "license": "UNLICENSED",
-  "private": true,
   "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -57,5 +56,8 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
