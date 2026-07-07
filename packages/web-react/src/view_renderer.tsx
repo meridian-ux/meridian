@@ -6,10 +6,11 @@
 // Actions via the invoker. The layout STRUCTURE is kit-agnostic; the panels and
 // the action affordances come from the active ComponentKit.
 
-import { useState } from "react";
+import { createContext, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type {
   Action,
   Slot,
@@ -20,6 +21,13 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
 import { MeridianInitialDataContext, type MeridianInitialData } from "./pagination.js";
+
+/**
+ * Row-scoped actions (ActionPlacement.ROW), provided by ViewRenderer for the
+ * active kit's table to render per-row and fire with the row bound (aion rows
+ * carry `id`, so the kit invokes `{ id: row.id }`). Empty ⇒ no per-row column.
+ */
+export const MeridianRowActionsContext = createContext<Action[]>([]);
 
 // Fire an action's RpcCall. Binding resolution (row/form context → request
 // fields) is a later increment; the first cut fires with an empty request and
@@ -107,23 +115,33 @@ export function ViewRenderer({
       );
   }
 
+  // Header shows non-row actions; ROW actions go per-row in the table (below).
+  const headerActions = view.actions.filter((a) => a.placement !== ActionPlacement.ROW);
+  const rowActions = view.actions.filter((a) => a.placement === ActionPlacement.ROW);
+
   const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}>
       <header className="mer-view-header">
         <h2 className="mer-view-title">{view.title}</h2>
-        <ActionsView actions={view.actions} />
+        <ActionsView actions={headerActions} />
       </header>
       {body}
     </div>
   );
 
-  // Provide the SSR seed to the table hooks below (no-op when undefined).
+  // Provide the per-row actions to the kit's table, and the SSR seed to the
+  // table hooks (no-op when undefined).
+  const withRowActions = (
+    <MeridianRowActionsContext.Provider value={rowActions}>
+      {rendered}
+    </MeridianRowActionsContext.Provider>
+  );
   return initialData ? (
     <MeridianInitialDataContext.Provider value={initialData}>
-      {rendered}
+      {withRowActions}
     </MeridianInitialDataContext.Provider>
   ) : (
-    rendered
+    withRowActions
   );
 }
 
