@@ -38,6 +38,8 @@ ts_project(
         "//:node_modules/@bufbuild/protobuf",
         "//:node_modules/@savvifi/meridian-proto-ts",
         "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/@xterm/addon-fit",
+        "//:node_modules/@xterm/xterm",
     ],
 )
 
@@ -61,5 +63,7 @@ esbuild(
         "//:node_modules/@bufbuild/protobuf",
         "//:node_modules/@savvifi/meridian-proto-ts",
         "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/@xterm/addon-fit",
+        "//:node_modules/@xterm/xterm",
     ],
 )

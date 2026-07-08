@@ -25,6 +25,8 @@ import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import { renderTerminalPanel } from "../terminal_panel.js";
+
 /** One rendered row as returned by the wasm `renderTable` call. */
 export interface RenderedRow {
   raw: Record<string, unknown>;
@@ -107,7 +109,53 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     root.appendChild(buildForm(body.value));
     return;
   }
+  // TerminalPanel (schemas >=0.5.0) — matched via a cast so this renderer builds
+  // against the installed @savvifi/meridian-proto-ts that predates the field. The
+  // `terminal` oneof arm is present at runtime once the host's panel bundle is
+  // emitted with schemas >=0.5.0.
+  if ((body as { case?: string }).case === "terminal") {
+    meta.textContent = "";
+    const spec = (body as unknown as { value: TerminalPanelShape }).value;
+    const slot = document.createElement("div");
+    slot.className = "meridian-uiview-body";
+    root.appendChild(slot);
+    renderTerminalPanel(slot, {
+      url: fillTemplate(spec.url, opts.context),
+      tool: spec.tool,
+      cols: spec.cols,
+      rows: spec.rows,
+    });
+    return;
+  }
   meta.textContent = "(no body set)";
+}
+
+// The canonical TerminalPanel shape (schemas >=0.5.0). Declared locally because
+// the installed proto-ts predates the field; the decoded message carries these
+// at runtime.
+interface TerminalPanelShape {
+  url: string;
+  tool?: string;
+  cols?: number;
+  rows?: number;
+}
+
+// Fill `{field}` placeholders in a URL template from the render context — the
+// selected row first (e.g. the clicked workspace's `name`), then the trailing
+// segment of `currentResourcePath` as a fallback for `{name}`. Unknown keys
+// resolve to "" so a partially-bound template still produces a valid URL.
+function fillTemplate(tpl: string, ctx: RenderContext): string {
+  return tpl.replace(/\{([^}]+)\}/g, (_m, key: string) => {
+    const fromRow = ctx.selectedRow
+      ? resolvePath(ctx.selectedRow, key)
+      : undefined;
+    if (fromRow != null && fromRow !== "") return String(fromRow);
+    if (key === "name" && ctx.currentResourcePath) {
+      const segs = ctx.currentResourcePath.split("/");
+      return segs[segs.length - 1] ?? "";
+    }
+    return "";
+  });
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the

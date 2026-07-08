@@ -57,6 +57,17 @@ export {
   registerAssistantPanel,
 } from "./assistant_panel.js";
 
+// The terminal primitive — xterm.js spliced to a pty over a WebSocket. Drives the
+// `terminal` PanelDescriptor arm (via renderPanel) and is exported directly so
+// hosts can mount a terminal inside a bespoke (adhoc) view — e.g. a dev-workspace
+// card that launches a tool session in place. xterm is inlined into this bundle.
+export {
+  TERMINAL_PANEL_CSS,
+  injectTerminalCss,
+  renderTerminalPanel,
+} from "./terminal_panel.js";
+export type { TerminalHandle, TerminalSpec } from "./terminal_panel.js";
+
 // Canonical message types the host reads off a decoded bundle.
 export type { GalleryPanel, PanelBundle, PanelDescriptor };
 
