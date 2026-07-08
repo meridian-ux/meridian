@@ -1,6 +1,6 @@
 module(
     name = "meridian_tui",
-    version = "0.2.0",
+    version = "0.3.0",
 )
 
 # meridian-tui — the ratatui terminal renderer of the meridian design language.
@@ -9,7 +9,7 @@ module(
 # meridian-uiview-core: it consumes that module's native `uiview` lib + the
 # `theme_proto` prost crate cross-repo (the Bazel module graph), so renderers
 # never depend on each other — only on the core.
-bazel_dep(name = "meridian_uiview_core", version = "0.2.0")
+bazel_dep(name = "meridian_uiview_core", version = "0.3.0")
 
 # Proto toolchain machinery. tui declares NO proto_library / rust_prost_library
 # itself, but Bazel rebuilds meridian-uiview-core's rust_prost_library targets

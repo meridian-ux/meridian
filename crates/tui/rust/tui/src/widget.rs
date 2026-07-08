@@ -6,6 +6,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
 use ratatui::Frame;
 
+use crate::content;
 use crate::invoker::RpcInvoker;
 use crate::theme::Palette;
 
@@ -23,6 +24,14 @@ pub struct PanelView {
     cached: Option<CachedTable>,
     table_state: TableState,
     palette: Palette,
+    // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
+    // Action). Advanced by the same select_next/prev the host wires for table
+    // rows; `content_len` is set at render time so the cursor wraps into range.
+    content_selected: usize,
+    content_len: usize,
+    // Whether a masked CopyValue secret is currently revealed (host toggles via
+    // toggle_reveal); copy still yields plaintext regardless.
+    reveal_secret: bool,
 }
 
 struct CachedTable {
@@ -36,6 +45,9 @@ impl PanelView {
             cached: None,
             table_state: TableState::default(),
             palette: Palette::default(),
+            content_selected: 0,
+            content_len: 0,
+            reveal_secret: false,
         }
     }
 
@@ -46,6 +58,9 @@ impl PanelView {
             cached: None,
             table_state: TableState::default(),
             palette,
+            content_selected: 0,
+            content_len: 0,
+            reveal_secret: false,
         }
     }
 
@@ -67,6 +82,9 @@ impl PanelView {
             }
             let i = self.table_state.selected().map(|i| (i + 1) % n).unwrap_or(0);
             self.table_state.select(Some(i));
+        } else if self.content_len > 0 {
+            // Content shapes (Choice / ConnectFlow) — advance the target cursor.
+            self.content_selected = (self.content_selected + 1) % self.content_len;
         }
     }
 
@@ -82,7 +100,35 @@ impl PanelView {
                 .map(|i| if i == 0 { n - 1 } else { i - 1 })
                 .unwrap_or(0);
             self.table_state.select(Some(i));
+        } else if self.content_len > 0 {
+            self.content_selected =
+                (self.content_selected + self.content_len - 1) % self.content_len;
         }
+    }
+
+    /// The active option/target index for the current content shape (for hosts
+    /// that want to resolve the selection to a `ConnectTarget` / `ChoiceOption`).
+    pub fn content_selection(&self) -> usize {
+        self.content_selected
+    }
+
+    /// Toggle reveal of a masked CopyValue secret (bind to e.g. the `r` key).
+    pub fn toggle_reveal(&mut self) {
+        self.reveal_secret = !self.reveal_secret;
+    }
+
+    /// The affordance the host should invoke (open the URI / run the command) for
+    /// the current selection on a Catalog / Action / ConnectFlow panel — the
+    /// invocation seam the host wires to Enter, like table RowActions. Returns
+    /// None for shapes with no invocable affordance at the cursor.
+    pub fn selected_affordance<'d>(
+        &self,
+        descriptor: &'d PanelDescriptor,
+    ) -> Option<&'d meridian_uiview::proto::Affordance> {
+        descriptor
+            .body
+            .as_ref()
+            .and_then(|b| content::selected_affordance(b, self.content_selected))
     }
 
     /// Renders the panel into `area`. Hosts pre-divide their layout
@@ -108,6 +154,11 @@ impl PanelView {
             self.palette.title(),
         ));
         frame.render_widget(title, chunks[0]);
+
+        // Content shapes use the whole region below the header; reset the
+        // content cursor length each frame (set again by Choice / ConnectFlow).
+        let content_area = chunks[1].union(chunks[2]);
+        self.content_len = 0;
 
         // Body.
         match descriptor.body.as_ref() {
@@ -150,6 +201,53 @@ impl PanelView {
                 chunks[1],
                 chunks[2],
                 "Form panels (entity detail sections): not yet supported in the TUI renderer.",
+            ),
+            // ── content shapes ────────────────────────────────────────────────
+            Some(Body::Choice(panel)) => {
+                self.content_len = panel.options.len();
+                content::render_choice(frame, content_area, panel, &self.palette, self.content_selected);
+            }
+            Some(Body::Snippet(panel)) => {
+                content::render_snippet(frame, content_area, panel, &self.palette);
+            }
+            Some(Body::Action(panel)) => {
+                // One invocable affordance — selectable so the host can wire Enter
+                // to `selected_affordance` (open URI / run command).
+                self.content_len = if panel.action.is_some() { 1 } else { 0 };
+                content::render_action(frame, content_area, panel, &self.palette);
+            }
+            Some(Body::ConnectFlow(panel)) => {
+                self.content_len = panel.targets.len();
+                content::render_connect_flow(
+                    frame,
+                    content_area,
+                    panel,
+                    &self.palette,
+                    self.content_selected,
+                    self.reveal_secret,
+                );
+            }
+            Some(Body::CopyValue(panel)) => {
+                self.content_len = 0;
+                content::render_copy_value(frame, content_area, panel, &self.palette, self.reveal_secret);
+            }
+            Some(Body::Catalog(panel)) => {
+                self.content_len = panel.items.len();
+                content::render_catalog(frame, content_area, panel, &self.palette, self.content_selected);
+            }
+            Some(Body::Grammar(panel)) => {
+                // The terminal's capability set is text + a sparkline (no
+                // svg/raster), so a GrammarPanel degrades down the ladder.
+                content::render_grammar(frame, content_area, panel, &self.palette);
+            }
+            Some(Body::Stat(panel)) => {
+                content::render_stat(frame, content_area, panel, &self.palette);
+            }
+            Some(Body::Terminal(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Terminal panels are web-specific (xterm.js) — not rendered in the TUI.",
             ),
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }

@@ -27,6 +27,7 @@
 // RequestBuilder produces serde_json::Value requests, and the host
 // `RpcInvoker` deals with marshaling.
 
+mod content;
 mod invoker;
 mod llm_prompt;
 mod prompt;
@@ -34,6 +35,11 @@ mod state;
 mod theme;
 mod widget;
 
+pub use content::{
+    glyph, grammar_language_name, osc52, render_action, render_catalog, render_choice,
+    render_connect_flow, render_copy_value, render_grammar, render_snippet, render_stat,
+    selected_affordance,
+};
 pub use invoker::{RpcError, RpcInvoker};
 pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
