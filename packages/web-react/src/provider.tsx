@@ -15,11 +15,27 @@ import type { ComponentKit } from "./component_kit.js";
 /** The React renderer's AdhocPanel factory: a component rendered for a handler_id. */
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
+/**
+ * Host handler for actions that carry no RpcCall. aion's `actions`/`action-set-key`
+ * (view_details / edit / create …) project as host-resolved *keys* — the renderer
+ * draws the affordance, but the meaning (usually a route) is the host's. When such
+ * an action fires, the renderer calls this with the action's id + the view's
+ * subject (entity type) + the bound row id (ROW actions). Actions that DO carry an
+ * RpcCall still go through the invoker; this covers only the no-call remainder.
+ */
+export type MeridianActionHandler = (
+  actionId: string,
+  entityType?: string,
+  entityId?: string | number,
+) => void;
+
 export interface MeridianContextValue {
   theme?: Theme;
   invoker: RpcInvoker;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
+  /** Optional host handler for no-call actions (nav/custom). Absent ⇒ no-op. */
+  onAction?: MeridianActionHandler;
 }
 
 const MeridianContext = createContext<MeridianContextValue | null>(null);
@@ -38,6 +54,8 @@ export const useComponentKit = (): ComponentKit => useMeridian().kit;
 export const useAdhocHandler = (
   handlerId: string,
 ): ReactAdhocFactory | undefined => useMeridian().adhoc[handlerId];
+export const useActionHandler = (): MeridianActionHandler | undefined =>
+  useMeridian().onAction;
 
 export interface MeridianProviderProps extends MeridianContextValue {
   children: ReactNode;

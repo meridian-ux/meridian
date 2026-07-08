@@ -6,7 +6,7 @@
 // Actions via the invoker. The layout STRUCTURE is kit-agnostic; the panels and
 // the action affordances come from the active ComponentKit.
 
-import { createContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -20,6 +20,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
+import type { MeridianActionHandler } from "./provider.js";
 import { MeridianInitialDataContext, type MeridianInitialData } from "./pagination.js";
 
 /**
@@ -29,17 +30,35 @@ import { MeridianInitialDataContext, type MeridianInitialData } from "./paginati
  */
 export const MeridianRowActionsContext = createContext<Action[]>([]);
 
-// Fire an action's RpcCall. Binding resolution (row/form context → request
-// fields) is a later increment; the first cut fires with an empty request and
-// lets the invoker/backend supply defaults.
-function fireAction(invoker: RpcInvoker, action: Action): void {
+/**
+ * The subject of the view being rendered (ViewDescriptor.subjectKind, e.g. the
+ * entity type). The active kit reads this so a no-call action can tell the host's
+ * onAction handler *which* entity the affordance is about. Empty on non-entity views.
+ */
+export const MeridianViewContext = createContext<{ subjectKind?: string }>({});
+
+// Fire an action. Actions carrying an RpcCall go through the invoker; no-call
+// actions (host-resolved keys — nav/custom) fall to the host's onAction handler
+// with the view subject + optional bound row id. Binding resolution (row/form
+// context → request fields) for RpcCall actions is a later increment; the first
+// cut fires with an empty request and lets the invoker/backend supply defaults.
+function fireAction(
+  invoker: RpcInvoker,
+  onAction: MeridianActionHandler | undefined,
+  action: Action,
+  subjectKind?: string,
+  entityId?: string | number,
+): void {
   if (action.call) {
     void invoker.invoke(action.call.service, action.call.method, {});
+    return;
   }
+  onAction?.(action.id, subjectKind, entityId);
 }
 
 function ActionsView({ actions }: { actions: Action[] }): ReactNode {
-  const { kit, invoker } = useMeridian();
+  const { kit, invoker, onAction } = useMeridian();
+  const { subjectKind } = useContext(MeridianViewContext);
   if (!actions || actions.length === 0) return null;
   if (kit.ActionBar) {
     return <kit.ActionBar actions={actions} invoker={invoker} />;
@@ -50,7 +69,7 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
         <button
           key={a.id}
           type="button"
-          onClick={() => fireAction(invoker, a)}
+          onClick={() => fireAction(invoker, onAction, a, subjectKind)}
         >
           {a.label}
         </button>
@@ -129,12 +148,15 @@ export function ViewRenderer({
     </div>
   );
 
-  // Provide the per-row actions to the kit's table, and the SSR seed to the
-  // table hooks (no-op when undefined).
+  // Provide the per-row actions + the view subject to the kit's table (so no-call
+  // actions can reach the host's onAction with the entity type), and the SSR seed
+  // to the table hooks (no-op when undefined).
   const withRowActions = (
-    <MeridianRowActionsContext.Provider value={rowActions}>
-      {rendered}
-    </MeridianRowActionsContext.Provider>
+    <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind }}>
+      <MeridianRowActionsContext.Provider value={rowActions}>
+        {rendered}
+      </MeridianRowActionsContext.Provider>
+    </MeridianViewContext.Provider>
   );
   return initialData ? (
     <MeridianInitialDataContext.Provider value={initialData}>

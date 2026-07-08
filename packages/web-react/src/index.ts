@@ -23,12 +23,18 @@ export {
   useRpcInvoker,
   useComponentKit,
   useAdhocHandler,
+  useActionHandler,
   type MeridianContextValue,
   type MeridianProviderProps,
   type ReactAdhocFactory,
+  type MeridianActionHandler,
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
-export { ViewRenderer, MeridianRowActionsContext } from "./view_renderer.js";
+export {
+  ViewRenderer,
+  MeridianRowActionsContext,
+  MeridianViewContext,
+} from "./view_renderer.js";
 export {
   usePagedRows,
   resolvePagination,
