@@ -1,0 +1,34 @@
+name: publish
+
+# OIDC trusted publishing to npmjs. The 0.1.x line was seeded with a token; every
+# subsequent publish flows through here tokenlessly with a provenance attestation.
+# Configure a Trusted Publisher on @savvifi/meridian-mui-kit (npmjs Settings):
+#   Provider GitHub Actions · Owner meridian-ux · Repo meridian-mui-kit · Workflow publish.yml
+# (mui-kit builds its dist with tsc via `pnpm build`, then `npm publish`; the Bazel
+# targets in this repo are the browser test + the visual catalog, not the package.)
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write # OIDC trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      # OIDC trusted publishing needs npm >= 11.5.1; Node 22 ships an older npm.
+      - name: Upgrade npm + install pnpm
+        run: npm install -g npm@latest pnpm@10
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm build
+      - name: Publish (OIDC provenance)
+        run: npm publish --access public
