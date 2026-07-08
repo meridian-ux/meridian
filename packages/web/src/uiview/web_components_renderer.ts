@@ -41,6 +41,14 @@ export function webComponentsRenderer(wasm: UiviewWasm): WebRenderer {
         | Record<string, (root: HTMLElement, d: PanelDescriptor) => void>
         | undefined;
 
+      const renderIcon = opts.renderIcon as
+        | ((key: string) => HTMLElement | undefined)
+        | undefined;
+
+      const renderGrammar = opts.renderGrammar as
+        | ((o: { language: string; source: string; data?: unknown }) => HTMLElement | undefined)
+        | undefined;
+
       const render = (descriptor: PanelDescriptor) =>
         renderPanel({
           wasm,
@@ -49,6 +57,8 @@ export function webComponentsRenderer(wasm: UiviewWasm): WebRenderer {
           invoker: opts.invoker,
           context,
           adhocFactories,
+          renderIcon,
+          renderGrammar,
         });
 
       await render(opts.descriptor);

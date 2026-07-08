@@ -12,7 +12,14 @@
 // decodes them with prost. There is no JSON / snake_case DTO in between.
 
 import { toBinary } from "@bufbuild/protobuf";
+import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
+import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type {
   FormPanel,
@@ -21,9 +28,12 @@ import type {
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import type { Snippet, SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
 import { renderTerminalPanel } from "../terminal_panel.js";
 
@@ -62,6 +72,25 @@ export interface RenderPanelOptions {
     string,
     (root: HTMLElement, descriptor: PanelDescriptor) => void
   >;
+  /**
+   * Host glyph resolver for the content shapes' `icon` keys (ChoiceOption.icon,
+   * Affordance.icon, ConnectTarget.icon, CatalogItem.icon). Returns an
+   * HTMLElement to inline as the glyph. Absent ⇒ no glyph is drawn but the key
+   * still lands on `data-icon`, so it is never dropped (host CSS can resolve it).
+   */
+  renderIcon?: (key: string) => HTMLElement | undefined;
+  /**
+   * Host renderer for a GrammarPanel — a declarative grammar (markdown / mermaid
+   * / plantuml / vega). The descriptor names the `language` + `source`; the host
+   * wires the actual library (mermaid.render, vega-embed, a markdown parser) and
+   * returns an HTMLElement to mount. Absent (or returns nothing) ⇒ the renderer
+   * falls back to the source in a `<pre>`. The kit itself imports no grammar lib.
+   */
+  renderGrammar?: (opts: {
+    language: string;
+    source: string;
+    data?: unknown;
+  }) => HTMLElement | undefined;
 }
 
 /**
@@ -109,13 +138,12 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     root.appendChild(buildForm(body.value));
     return;
   }
-  // TerminalPanel (schemas >=0.5.0) — matched via a cast so this renderer builds
-  // against the installed @savvifi/meridian-proto-ts that predates the field. The
-  // `terminal` oneof arm is present at runtime once the host's panel bundle is
-  // emitted with schemas >=0.5.0.
-  if ((body as { case?: string }).case === "terminal") {
+  // TerminalPanel — an xterm.js terminal over a pty WebSocket. WEB-SPECIFIC.
+  // Canonical at schemas 0.5.0 (proto/terminal.proto), so `terminal` is now a
+  // first-class oneof case (no cast, no local shape). See terminal_panel.ts.
+  if (body.case === "terminal") {
     meta.textContent = "";
-    const spec = (body as unknown as { value: TerminalPanelShape }).value;
+    const spec = body.value;
     const slot = document.createElement("div");
     slot.className = "meridian-uiview-body";
     root.appendChild(slot);
@@ -127,17 +155,57 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     });
     return;
   }
+  // GrammarPanel — a declarative grammar (markdown / mermaid / plantuml / vega).
+  // The host wires the per-language renderers via renderGrammar (mermaid, vega-
+  // embed, a markdown lib); this kit stays grammar-lib-free and falls back to the
+  // source in a <pre>.
+  if (body.case === "grammar") {
+    meta.textContent = "";
+    root.appendChild(buildGrammar(opts, body.value));
+    return;
+  }
+  // StatPanel — a KPI tile. Full-parity content shape; delta/trend/formatting via
+  // the shared computeStat (identical to the other renderers).
+  if (body.case === "stat") {
+    meta.textContent = "";
+    root.appendChild(buildStat(body.value));
+    return;
+  }
+  // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
+  // These carry no populate RPC, so there is nothing to load — clear the meta and
+  // draw straight from the descriptor. They emit the same `mer-*` classes the
+  // web-react htmlKit does, so ONE skin styles both web renderers identically.
+  if (body.case === "choice") {
+    meta.textContent = "";
+    root.appendChild(buildChoice(opts, body.value));
+    return;
+  }
+  if (body.case === "snippet") {
+    meta.textContent = "";
+    if (body.value.snippet) root.appendChild(buildSnippet(body.value.snippet));
+    return;
+  }
+  if (body.case === "action") {
+    meta.textContent = "";
+    root.appendChild(buildAction(opts, body.value));
+    return;
+  }
+  if (body.case === "copyValue") {
+    meta.textContent = "";
+    if (body.value.value) root.appendChild(buildCopyValue(body.value.value));
+    return;
+  }
+  if (body.case === "connectFlow") {
+    meta.textContent = "";
+    root.appendChild(buildConnectFlow(opts, body.value));
+    return;
+  }
+  if (body.case === "catalog") {
+    meta.textContent = "";
+    root.appendChild(buildCatalog(opts, body.value));
+    return;
+  }
   meta.textContent = "(no body set)";
-}
-
-// The canonical TerminalPanel shape (schemas >=0.5.0). Declared locally because
-// the installed proto-ts predates the field; the decoded message carries these
-// at runtime.
-interface TerminalPanelShape {
-  url: string;
-  tool?: string;
-  cols?: number;
-  rows?: number;
 }
 
 // Fill `{field}` placeholders in a URL template from the render context — the
@@ -156,6 +224,382 @@ function fillTemplate(tpl: string, ctx: RenderContext): string {
     }
     return "";
   });
+}
+
+// ===========================================================================
+// Content shapes — imperative DOM builders with real interactivity (copy, tab
+// switch, secret reveal) wired via addEventListener, since this renderer runs
+// live in the browser. Field-complete to the same parity contract the web-react
+// kits enforce: icon (host glyph via renderIcon + data-icon), option/affordance
+// description, snippet language, secret mask+reveal, empty-state placeholder.
+// ===========================================================================
+
+function el(tag: string, className?: string, text?: string): HTMLElement {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function copyOnClick(button: HTMLElement, text: string): void {
+  button.addEventListener("click", () => {
+    void navigator?.clipboard?.writeText(text);
+    const prev = button.textContent;
+    button.textContent = "Copied";
+    window.setTimeout(() => {
+      button.textContent = prev;
+    }, 1200);
+  });
+}
+
+// Glyph: the host resolver's element when wired, else nothing — but the key is
+// always carried on the parent's `data-icon`, so it is never dropped.
+function appendGlyph(opts: RenderPanelOptions, parent: HTMLElement, key: string): void {
+  if (!key) return;
+  parent.dataset.icon = key;
+  const glyph = opts.renderIcon?.(key);
+  if (glyph) {
+    glyph.classList.add("mer-icon");
+    parent.appendChild(glyph);
+  }
+}
+
+function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement {
+  const item = el("span", "mer-affordance-item");
+  const primary = aff.style === AffordanceStyle.PRIMARY;
+  const cls = `mer-affordance${primary ? " mer-affordance-primary" : ""}`;
+  let control: HTMLElement;
+  if (aff.invoke.case === "uri") {
+    const a = el("a", cls);
+    (a as HTMLAnchorElement).href = aff.invoke.value;
+    control = a;
+  } else {
+    control = el("button", `${cls} mer-copy`);
+    (control as HTMLButtonElement).type = "button";
+    copyOnClick(control, aff.invoke.case === "command" ? aff.invoke.value : "");
+  }
+  if (aff.icon) control.dataset.icon = aff.icon;
+  if (aff.description) control.title = aff.description;
+  appendGlyph(opts, control, aff.icon);
+  control.appendChild(el("span", undefined, aff.label));
+  item.appendChild(control);
+  // Description rendered inline (not just a tooltip) so it is never dropped.
+  if (aff.description) item.appendChild(el("span", "mer-affordance-desc", aff.description));
+  return item;
+}
+
+function buildSnippet(snippet: Snippet): HTMLElement {
+  const fig = el("figure", "mer-snippet");
+  if (snippet.language) fig.dataset.lang = snippet.language;
+  const caption = snippet.path || snippet.label;
+  if (caption || snippet.language) {
+    const cap = el("figcaption", "mer-snippet-caption", caption);
+    if (snippet.language) cap.appendChild(el("span", undefined, ` (${snippet.language})`));
+    fig.appendChild(cap);
+  }
+  const copy = el("button", "mer-copy mer-snippet-copy", "Copy");
+  (copy as HTMLButtonElement).type = "button";
+  copyOnClick(copy, snippet.content);
+  fig.appendChild(copy);
+  const pre = el("pre", "mer-snippet-pre");
+  pre.appendChild(el("code", undefined, snippet.content));
+  fig.appendChild(pre);
+  return fig;
+}
+
+function buildCopyValue(value: CopyValue): HTMLElement {
+  const wrap = el("div", "mer-copyvalue");
+  if (value.secret) wrap.dataset.secret = "true";
+  if (value.label) wrap.appendChild(el("span", "mer-copyvalue-label", value.label));
+  const btn = el("button", "mer-copy mer-copyvalue-btn");
+  (btn as HTMLButtonElement).type = "button";
+  const code = el("code", "mer-copyvalue-value", value.secret ? "••••••••" : value.value);
+  btn.appendChild(code);
+  copyOnClick(btn, value.value); // copy always yields plaintext
+  wrap.appendChild(btn);
+  if (value.secret) {
+    const reveal = el("button", "mer-reveal", "Reveal");
+    (reveal as HTMLButtonElement).type = "button";
+    reveal.setAttribute("aria-pressed", "false");
+    let shown = false;
+    reveal.addEventListener("click", () => {
+      shown = !shown;
+      code.textContent = shown ? value.value : "••••••••";
+      reveal.textContent = shown ? "Hide" : "Reveal";
+      reveal.setAttribute("aria-pressed", String(shown));
+    });
+    wrap.appendChild(reveal);
+  }
+  if (value.help) wrap.appendChild(el("span", "mer-copyvalue-help", value.help));
+  return wrap;
+}
+
+function buildChoice(opts: RenderPanelOptions, panel: ChoicePanel): HTMLElement {
+  const wrap = el("div", "mer-choice");
+  wrap.setAttribute("role", "tablist");
+  wrap.dataset.style = String(panel.style);
+  if (panel.prompt) wrap.appendChild(el("p", "mer-choice-prompt", panel.prompt));
+  const list = el("div", "mer-choice-options");
+  const defId = panel.defaultOptionId || panel.options[0]?.id;
+  const tabs: HTMLElement[] = [];
+  for (const opt of panel.options) {
+    const b = el("button", "mer-choice-option");
+    (b as HTMLButtonElement).type = "button";
+    b.setAttribute("role", "tab");
+    b.dataset.option = opt.id;
+    b.setAttribute("aria-selected", String(opt.id === defId));
+    appendGlyph(opts, b, opt.icon);
+    b.appendChild(el("span", "mer-choice-option-label", opt.label));
+    if (opt.description) b.appendChild(el("span", "mer-choice-option-desc", opt.description));
+    b.addEventListener("click", () => {
+      for (const t of tabs) t.setAttribute("aria-selected", String(t === b));
+    });
+    tabs.push(b);
+    list.appendChild(b);
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function buildAction(opts: RenderPanelOptions, panel: ActionPanel): HTMLElement {
+  const wrap = el("div", "mer-action");
+  if (panel.description) wrap.appendChild(el("p", "mer-action-desc", panel.description));
+  if (panel.action) wrap.appendChild(buildAffordance(opts, panel.action));
+  return wrap;
+}
+
+function buildCatalog(opts: RenderPanelOptions, panel: CatalogPanel): HTMLElement {
+  const wrap = el("div", "mer-catalog");
+  wrap.dataset.style = String(panel.style);
+  if (panel.items.length === 0) {
+    wrap.appendChild(el("p", "mer-empty", panel.placeholder || "(empty)"));
+    return wrap;
+  }
+  for (const item of panel.items) {
+    const card = el("article", "mer-catalog-item");
+    if (item.icon) card.dataset.icon = item.icon;
+    const head = el("div", "mer-catalog-head");
+    const name = el("span", "mer-catalog-name");
+    appendGlyph(opts, name, item.icon);
+    name.appendChild(el("span", undefined, item.name));
+    head.appendChild(name);
+    if (item.state) head.appendChild(el("span", "mer-catalog-state", item.state));
+    card.appendChild(head);
+    if (item.description) card.appendChild(el("p", "mer-catalog-desc", item.description));
+    if (item.tag) card.appendChild(el("span", "mer-catalog-tag", item.tag));
+    if (item.action) card.appendChild(buildAffordance(opts, item.action));
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+function buildConnectFlow(opts: RenderPanelOptions, panel: ConnectFlowPanel): HTMLElement {
+  const wrap = el("div", "mer-connect");
+  if (panel.prompt) wrap.appendChild(el("p", "mer-connect-prompt", panel.prompt));
+  if (panel.endpoint) wrap.appendChild(buildCopyValue(panel.endpoint));
+  if (panel.targets.length === 0) {
+    wrap.appendChild(el("p", "mer-empty", panel.placeholder || "(no targets)"));
+    return wrap;
+  }
+  const defId = panel.defaultTargetId || panel.targets[0]?.id;
+  const tabs = el("div", "mer-connect-tabs");
+  tabs.setAttribute("role", "tablist");
+  const bodies = el("div", "mer-connect-bodies");
+  const tabEls: HTMLElement[] = [];
+  const bodyEls: HTMLElement[] = [];
+  for (const t of panel.targets) {
+    const tab = el("button", "mer-connect-tab");
+    (tab as HTMLButtonElement).type = "button";
+    tab.setAttribute("role", "tab");
+    tab.dataset.target = t.id;
+    tab.setAttribute("aria-selected", String(t.id === defId));
+    appendGlyph(opts, tab, t.icon);
+    tab.appendChild(el("span", undefined, t.label));
+    tabs.appendChild(tab);
+
+    const section = el("section", "mer-connect-body");
+    section.dataset.target = t.id;
+    section.hidden = t.id !== defId;
+    if (t.name) section.appendChild(el("h3", "mer-connect-name", t.name));
+    if (t.description) section.appendChild(el("p", "mer-connect-note", t.description));
+    if (t.actions.length > 0) {
+      const row = el("div", "mer-connect-actions");
+      for (const a of t.actions) row.appendChild(buildAffordance(opts, a));
+      section.appendChild(row);
+    }
+    for (const s of t.configs) section.appendChild(buildSnippet(s));
+    bodies.appendChild(section);
+
+    tab.addEventListener("click", () => {
+      for (const x of tabEls) x.setAttribute("aria-selected", String(x === tab));
+      for (const b of bodyEls) b.hidden = b.dataset.target !== t.id;
+    });
+    tabEls.push(tab);
+    bodyEls.push(section);
+  }
+  wrap.appendChild(tabs);
+  wrap.appendChild(bodies);
+  return wrap;
+}
+
+// GrammarPanel — a declarative rendering grammar (markdown / mermaid / plantuml /
+// graphviz / vega). Content negotiation for grammars: the descriptor names the
+// (language, source); the host's renderGrammar is the surface's transcoder set —
+// it returns an element for languages this surface can display, or null when it
+// can't. On null the kit walks the DEGRADATION LADDER, so it never blanks:
+//   (1) MARKDOWN → a minimal native md→DOM render (text is universally displayable);
+//   (2) else `alt` (author text fallback) if set;
+//   (3) else the `source` in a labeled code block (always displayable — it's text).
+// The kit imports NO grammar library. SSR-safe: the source is preserved in a
+// text/plain <script> for host hydration.
+function buildGrammar(opts: RenderPanelOptions, panel: GrammarPanel): HTMLElement {
+  const lang = grammarLanguageName(panel.language);
+  const wrap = el("div", "mer-grammar");
+  wrap.dataset.grammarLanguage = lang;
+  if (panel.title) wrap.appendChild(el("div", "mer-grammar-title", panel.title));
+  const src = document.createElement("script");
+  src.setAttribute("type", "text/plain");
+  src.className = "mer-grammar-source";
+  src.textContent = panel.source;
+  wrap.appendChild(src);
+
+  const mount = el("div", "mer-grammar-mount");
+  wrap.appendChild(mount);
+
+  // Try the surface's transcoder first.
+  const rendered = opts.renderGrammar?.({ language: lang, source: panel.source, data: panel.data });
+  if (rendered instanceof HTMLElement) {
+    mount.appendChild(rendered);
+  } else if (lang === "markdown") {
+    // Ladder (1): markdown is text — render it natively, no library.
+    mount.appendChild(renderMarkdown(panel.source));
+  } else if (panel.alt) {
+    // Ladder (2): author-provided text fallback.
+    mount.appendChild(el("p", "mer-grammar-alt", panel.alt));
+  } else {
+    // Ladder (3): the source verbatim, labeled with its language.
+    const fig = el("figure", "mer-grammar-fallback");
+    fig.appendChild(el("figcaption", "mer-grammar-fallback-label", lang || "source"));
+    const pre = el("pre");
+    pre.appendChild(el("code", undefined, panel.source));
+    fig.appendChild(pre);
+    mount.appendChild(fig);
+  }
+  if (panel.caption) wrap.appendChild(el("div", "mer-grammar-caption", panel.caption));
+  return wrap;
+}
+
+// GrammarLanguage enum → the lowercase token on data-grammar-language + passed to
+// renderGrammar. 1=markdown 2=mermaid 3=plantuml 4=graphviz 5=vega-lite 6=vega
+// (0/unknown → "").
+function grammarLanguageName(language: number): string {
+  return (
+    ["", "markdown", "mermaid", "plantuml", "graphviz", "vega-lite", "vega"][language] ?? ""
+  );
+}
+
+// Minimal, dependency-free markdown → DOM for the degradation ladder: ATX
+// headings, fenced code, unordered lists, and inline **bold** / `code`. Not a
+// full CommonMark parser — a legible native fallback (a host wanting fidelity
+// wires renderGrammar with a real markdown lib).
+function renderMarkdown(source: string): HTMLElement {
+  const root = el("div", "mer-grammar-markdown");
+  const lines = source.split("\n");
+  let list: HTMLElement | null = null;
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith("```")) {
+      const buf: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith("```")) buf.push(lines[i++]);
+      i++; // closing fence
+      const pre = el("pre");
+      pre.appendChild(el("code", undefined, buf.join("\n")));
+      root.appendChild(pre);
+      list = null;
+      continue;
+    }
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) {
+      root.appendChild(inlineMd(el(`h${Math.min(h[1].length + 2, 6)}`), h[2]));
+      list = null;
+    } else if (/^\s*[-*]\s+/.test(line)) {
+      if (!list) {
+        list = el("ul");
+        root.appendChild(list);
+      }
+      list.appendChild(inlineMd(document.createElement("li"), line.replace(/^\s*[-*]\s+/, "")));
+    } else if (line.trim() === "") {
+      list = null;
+    } else {
+      root.appendChild(inlineMd(el("p"), line));
+      list = null;
+    }
+    i++;
+  }
+  return root;
+}
+
+// Apply inline **bold** + `code` into `host`, escaping via textContent (no HTML
+// injection — every segment is a text node or a <strong>/<code> wrapping text).
+function inlineMd(host: HTMLElement, text: string): HTMLElement {
+  const re = /(\*\*([^*]+)\*\*|`([^`]+)`)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) host.appendChild(document.createTextNode(text.slice(last, m.index)));
+    if (m[2] !== undefined) host.appendChild(el("strong", undefined, m[2]));
+    else host.appendChild(el("code", undefined, m[3]));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) host.appendChild(document.createTextNode(text.slice(last)));
+  return host;
+}
+
+// StatPanel — a KPI tile. Delta/trend/formatting come from the SHARED computeStat
+// (@savvifi/meridian-schemas/uiview), identical to the react kits + tui — the
+// delta/trend is COMPUTED, never author-marked. Semantic color (via
+// data-semantics) only when higher_is_better is set. Hand-drawn SVG sparkline
+// via the shared statSparklinePoints (no chart library).
+function buildStat(panel: StatPanel): HTMLElement {
+  const s = computeStat(panel);
+  const wrap = el("div", "mer-stat");
+  wrap.dataset.trend = s.trend;
+  wrap.dataset.semantics = s.semantics;
+  wrap.appendChild(el("div", "mer-stat-label", panel.label));
+
+  const row = el("div", "mer-stat-value-row");
+  row.appendChild(el("span", "mer-stat-value", s.formattedValue));
+  if (s.formattedDelta) {
+    const arrow = trendArrow(s.trend);
+    const delta = el("span", "mer-stat-delta", (arrow ? `${arrow} ` : "") + s.formattedDelta);
+    delta.dataset.semantics = s.semantics;
+    delta.dataset.trend = s.trend;
+    row.appendChild(delta);
+  }
+  wrap.appendChild(row);
+
+  const points = statSparklinePoints(s.series);
+  if (points) {
+    const svgNs = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNs, "svg");
+    svg.setAttribute("class", "mer-stat-spark");
+    svg.setAttribute("viewBox", "0 0 100 24");
+    svg.setAttribute("width", "100");
+    svg.setAttribute("height", "24");
+    svg.setAttribute("preserveAspectRatio", "none");
+    const line = document.createElementNS(svgNs, "polyline");
+    line.setAttribute("points", points);
+    line.setAttribute("fill", "none");
+    line.setAttribute("stroke", "currentColor");
+    line.setAttribute("stroke-width", "1.5");
+    line.setAttribute("vector-effect", "non-scaling-stroke");
+    svg.appendChild(line);
+    wrap.appendChild(svg);
+  }
+  if (panel.caption) wrap.appendChild(el("div", "mer-stat-caption", panel.caption));
+  return wrap;
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the

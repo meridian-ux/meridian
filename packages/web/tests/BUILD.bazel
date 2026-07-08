@@ -41,3 +41,56 @@ vitest_test(
         ":src_lib",
     ],
 )
+
+# The six brand-neutral content shapes (choice / snippet / action / connect_flow /
+# copy_value / catalog) rendered through renderPanel into jsdom — field-complete
+# (icon seam, descriptions, snippet language, secret reveal, placeholder).
+vitest_test(
+    name = "content",
+    srcs = [
+        "content.test.ts",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# GrammarPanel — content negotiation + the degradation ladder (native markdown /
+# host renderer / alt / source), rendered through renderPanel into jsdom.
+vitest_test(
+    name = "grammar",
+    srcs = [
+        "fixtures.ts",
+        "grammar.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# StatPanel — the KPI tile (computed delta/trend via the shared computeStat + an
+# SVG sparkline).
+vitest_test(
+    name = "stat",
+    srcs = [
+        "fixtures.ts",
+        "stat.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
