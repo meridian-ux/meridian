@@ -44,8 +44,26 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import { ActionPlacement, type Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
+import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
+import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import {
+  ActionView,
+  CatalogView,
+  ChoiceView,
+  ConnectFlowView,
+  CopyValueView,
+  GrammarView,
+  SnippetView,
+  StatView,
+} from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
 import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
 import { themeProtoToMuiTheme } from "./theme.js";
@@ -440,6 +458,19 @@ export const muiKit: ComponentKit = {
   Form: ({ panel, invoker }: ShapeProps<FormPanel>) => (
     <FormShape panel={panel} invoker={invoker} />
   ),
+  // ── content shapes (MUI) ────────────────────────────────────────────────────
+  Choice: ({ panel }: ShapeProps<ChoicePanel>) => <ChoiceView panel={panel} />,
+  Snippet: ({ panel }: ShapeProps<SnippetPanel>) =>
+    panel.snippet ? <SnippetView snippet={panel.snippet} /> : null,
+  Action: ({ panel }: ShapeProps<ActionPanel>) => <ActionView panel={panel} />,
+  ConnectFlow: ({ panel }: ShapeProps<ConnectFlowPanel>) => (
+    <ConnectFlowView panel={panel} />
+  ),
+  CopyValue: ({ panel }: ShapeProps<CopyValuePanel>) =>
+    panel.value ? <CopyValueView value={panel.value} /> : null,
+  Catalog: ({ panel }: ShapeProps<CatalogPanel>) => <CatalogView panel={panel} />,
+  Grammar: ({ panel }: ShapeProps<GrammarPanel>) => <GrammarView panel={panel} />,
+  Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Fallback,
   ActionBar,
 };
