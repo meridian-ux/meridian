@@ -9,7 +9,13 @@
 
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 
+import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
+import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type {
@@ -17,6 +23,8 @@ import type {
   PanelDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
+import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
@@ -35,6 +43,18 @@ export type LroPanelProps = ShapeProps<LroPanel>;
 export type GalleryPanelProps = ShapeProps<GalleryPanel>;
 export type LlmPromptPanelProps = ShapeProps<LlmPromptPanel>;
 export type FormPanelProps = ShapeProps<FormPanel>;
+// Content shapes (static, brand-neutral) — see meridian.ui.v1 choice/snippet/
+// affordance/connect_flow/copy_value/catalog protos.
+export type ChoicePanelProps = ShapeProps<ChoicePanel>;
+export type SnippetPanelProps = ShapeProps<SnippetPanel>;
+export type ActionPanelProps = ShapeProps<ActionPanel>;
+export type ConnectFlowPanelProps = ShapeProps<ConnectFlowPanel>;
+export type CopyValuePanelProps = ShapeProps<CopyValuePanel>;
+export type CatalogPanelProps = ShapeProps<CatalogPanel>;
+// Specialized panel (web-specific rich render; degrades per the ladder).
+export type GrammarPanelProps = ShapeProps<GrammarPanel>;
+// Full-parity KPI tile.
+export type StatPanelProps = ShapeProps<StatPanel>;
 
 /** Props for a kit's action bar: the actions to render + transport to fire them. */
 export interface ActionBarProps {
@@ -62,6 +82,25 @@ export interface ComponentKit {
   /** Optional richer shapes; PanelRenderer falls back when a kit omits them. */
   Gallery?: ComponentType<GalleryPanelProps>;
   LlmPrompt?: ComponentType<LlmPromptPanelProps>;
+  /**
+   * Optional content shapes (choice / snippet / action / connect-flow /
+   * copy-value / catalog). Static, brand-neutral surfaces; PanelRenderer falls
+   * back when a kit omits them.
+   */
+  Choice?: ComponentType<ChoicePanelProps>;
+  Snippet?: ComponentType<SnippetPanelProps>;
+  Action?: ComponentType<ActionPanelProps>;
+  ConnectFlow?: ComponentType<ConnectFlowPanelProps>;
+  CopyValue?: ComponentType<CopyValuePanelProps>;
+  Catalog?: ComponentType<CatalogPanelProps>;
+  /**
+   * GrammarPanel (markdown / mermaid / plantuml / graphviz / vega). Specialized:
+   * the rich render is host-wired via renderGrammar; the kit degrades to native
+   * markdown / alt / source. PanelRenderer falls back when a kit omits it.
+   */
+  Grammar?: ComponentType<GrammarPanelProps>;
+  /** KPI tile — a labeled number with a COMPUTED delta/trend + sparkline. */
+  Stat?: ComponentType<StatPanelProps>;
   /** Rendered for unknown / unset / unsupported shapes. */
   Fallback: ComponentType<{ descriptor: PanelDescriptor }>;
   /**

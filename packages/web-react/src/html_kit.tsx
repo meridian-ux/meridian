@@ -9,6 +9,24 @@ import type { CSSProperties } from "react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 
 import type { ComponentKit } from "./component_kit.js";
+import {
+  AffordanceControl,
+  CatalogContent,
+  ChoiceContent,
+  ConnectFlowContent,
+  CopyValueContent,
+  GrammarContent,
+  SnippetContent,
+  StatContent,
+  classesFor,
+} from "./content_shapes.js";
+
+// The six content shapes are rendered by the shared, field-complete
+// content_shapes module (icon / description / language / secret-reveal /
+// placeholder all realized) with htmlKit's `mer-*` class vocabulary. shadcnKit
+// delegates to the SAME module (different class table), so the two reference
+// kits cannot drift.
+const c = classesFor("html");
 
 function themeToStyle(theme: Theme | undefined): CSSProperties {
   if (!theme) return {};
@@ -83,6 +101,20 @@ export const htmlKit: ComponentKit = {
       ))}
     </form>
   ),
+  // ── content shapes (shared, field-complete renderers) ───────────────────────
+  Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
+  Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
+  Action: ({ panel }) => (
+    <div className="mer-action">
+      {panel.description && <p className="mer-action-desc">{panel.description}</p>}
+      {panel.action && <AffordanceControl c={c} affordance={panel.action} />}
+    </div>
+  ),
+  CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
+  ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
+  Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
+  Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (
     <pre className="mer-fallback">
       {descriptor.body.case
