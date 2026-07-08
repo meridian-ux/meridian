@@ -13,6 +13,23 @@ import type { CSSProperties } from "react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 
 import type { ComponentKit } from "./component_kit.js";
+import {
+  AffordanceControl,
+  CatalogContent,
+  ChoiceContent,
+  ConnectFlowContent,
+  CopyValueContent,
+  GrammarContent,
+  SnippetContent,
+  StatContent,
+  classesFor,
+} from "./content_shapes.js";
+
+// The six content shapes delegate to the shared, field-complete content_shapes
+// module (same code as htmlKit) with shadcn's Tailwind class table — so the two
+// reference kits are guaranteed field-parity (icon / description / language /
+// secret-reveal / placeholder). Different classes, identical dispatch: Swap B.
+const c = classesFor("shadcn");
 
 // Bind the meridian palette to shadcn/ui's CSS custom properties so shadcn
 // Tailwind classes (bg-card, text-muted-foreground, border, …) paint the skin.
@@ -114,6 +131,22 @@ export const shadcnKit: ComponentKit = {
       ))}
     </form>
   ),
+  // ── content shapes (shared, field-complete renderers) ───────────────────────
+  Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
+  Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
+  Action: ({ panel }) => (
+    <div className="grid gap-2">
+      {panel.description && (
+        <p className="text-sm text-muted-foreground">{panel.description}</p>
+      )}
+      {panel.action && <AffordanceControl c={c} affordance={panel.action} />}
+    </div>
+  ),
+  CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
+  ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
+  Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
+  Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (
     <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
       {descriptor.body.case

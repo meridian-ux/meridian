@@ -14,6 +14,14 @@ export type {
   GalleryPanelProps,
   LlmPromptPanelProps,
   FormPanelProps,
+  ChoicePanelProps,
+  SnippetPanelProps,
+  ActionPanelProps,
+  ConnectFlowPanelProps,
+  CopyValuePanelProps,
+  CatalogPanelProps,
+  GrammarPanelProps,
+  StatPanelProps,
   ActionBarProps,
 } from "./component_kit.js";
 export {
@@ -24,10 +32,14 @@ export {
   useComponentKit,
   useAdhocHandler,
   useActionHandler,
+  useIcon,
+  useGrammarResolver,
   type MeridianContextValue,
   type MeridianProviderProps,
   type ReactAdhocFactory,
   type MeridianActionHandler,
+  type MeridianIconResolver,
+  type MeridianGrammarResolver,
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
 export {
@@ -49,3 +61,6 @@ export {
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";
 export { shadcnKit } from "./shadcn_kit.js";
+// Shared grammar helpers (reused by other kits, e.g. mui): one markdown impl +
+// the GrammarLanguage → token map for the degradation ladder.
+export { renderMarkdown, grammarLanguageName } from "./content_shapes.js";

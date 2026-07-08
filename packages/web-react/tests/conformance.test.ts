@@ -39,8 +39,21 @@ function isFallback(html: string): boolean {
 }
 
 // htmlKit (the reference kit) implements these shapes; gallery/llmPrompt fall
-// back by design (a richer kit like mui-kit would implement them).
-const HTMLKIT_IMPLEMENTS = new Set(["table", "prompt", "lro"]);
+// back by design (a richer kit like mui-kit would implement them). The six
+// content shapes (choice/snippet/action/connectFlow/copyValue/catalog) are
+// implemented by both reference kits.
+const HTMLKIT_IMPLEMENTS = new Set([
+  "table",
+  "prompt",
+  "lro",
+  "choice",
+  "snippet",
+  "action",
+  "connectFlow",
+  "copyValue",
+  "catalog",
+  "stat",
+]);
 
 describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
   for (const fx of FIXTURES) {

@@ -4,6 +4,7 @@
 // `reactWebRenderer(shadcnKit)` are both WebRenderers a host can mount, peers of
 // the web-components renderer — all consuming the same PanelDescriptor + Theme.
 
+import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -32,6 +33,12 @@ export function reactWebRenderer(
             invoker={opts.invoker}
             kit={kit}
             adhoc={opts.adhoc ?? {}}
+            renderIcon={opts.renderIcon as ((key: string) => ReactNode) | undefined}
+            renderGrammar={
+              opts.renderGrammar as
+                | ((o: { language: string; source: string; data?: unknown }) => ReactNode)
+                | undefined
+            }
           >
             <PanelRenderer descriptor={descriptor} />
           </MeridianProvider>,

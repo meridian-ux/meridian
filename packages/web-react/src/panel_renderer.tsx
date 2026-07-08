@@ -57,6 +57,66 @@ export function PanelRenderer({
         <kit.Fallback descriptor={descriptor} />
       );
       break;
+    case "choice":
+      inner = kit.Choice ? (
+        <kit.Choice panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "snippet":
+      inner = kit.Snippet ? (
+        <kit.Snippet panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "action":
+      inner = kit.Action ? (
+        <kit.Action panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "connectFlow":
+      inner = kit.ConnectFlow ? (
+        <kit.ConnectFlow
+          panel={body.value}
+          descriptor={descriptor}
+          invoker={invoker}
+        />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "copyValue":
+      inner = kit.CopyValue ? (
+        <kit.CopyValue panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "catalog":
+      inner = kit.Catalog ? (
+        <kit.Catalog panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "grammar":
+      inner = kit.Grammar ? (
+        <kit.Grammar panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "stat":
+      inner = kit.Stat ? (
+        <kit.Stat panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
     case "adhoc": {
       const Adhoc = adhoc[body.value.handlerId];
       inner = Adhoc ? (
