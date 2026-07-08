@@ -5,21 +5,16 @@
 // `--mer-*` custom properties. One Theme drives every renderer; this is its
 // terminal expression.
 //
-// Two compilation paths for the proto types, mirroring meridian-uiview:
-//   * Bazel — the `theme_proto` sibling crate (rules_rust_prost over
-//     //proto:theme_proto), re-exported via the `bazel_proto` feature.
-//   * cargo (default) — build.rs runs prost-build over ../../proto/theme.proto
-//     and emits meridian.theme.v1.rs into OUT_DIR.
+// Proto types come from the Bazel `rust_prost_library` crate
+// `@meridian_uiview_core//rust/uiview:theme_proto` (over
+// `@meridian_schemas//proto:theme_proto`), re-exported here as an ordinary crate
+// dep — the single, Bazel-native codegen path (no cargo/prost-build fallback).
 
 use ratatui::style::{Color, Modifier, Style};
 
 /// prost-generated types for meridian.theme.v1.
 pub mod proto {
-    #[cfg(feature = "bazel_proto")]
     pub use theme_proto::meridian::theme::v1::*;
-
-    #[cfg(not(feature = "bazel_proto"))]
-    include!(concat!(env!("OUT_DIR"), "/meridian.theme.v1.rs"));
 }
 
 // Re-export the wire types the TUI binding consumes. `Typography` and
@@ -148,6 +143,11 @@ impl Palette {
     /// An entered field value / code.
     pub fn value(&self) -> Style {
         Style::default().fg(self.code_fg)
+    }
+
+    /// Accent-colored line (charts / sparklines).
+    pub fn accent_line(&self) -> Style {
+        Style::default().fg(self.accent)
     }
 }
 

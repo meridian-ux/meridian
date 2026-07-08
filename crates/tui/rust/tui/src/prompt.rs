@@ -277,6 +277,7 @@ fn initial_state(f: &FormField) -> FieldState {
         Some(Kind::EnumSelection(EnumSelection {
             allowed_values,
             default_value,
+            ..
         })) => {
             let idx = allowed_values
                 .iter()

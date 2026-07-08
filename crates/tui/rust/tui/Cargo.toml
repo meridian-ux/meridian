@@ -19,14 +19,6 @@ regex = { workspace = true }
 # crate instance; it is intentionally NOT a cargo dep here.
 thiserror = { workspace = true }
 
-[build-dependencies]
-# Used by build.rs to compile meridian.theme.v1 from proto/theme.proto for
-# cargo consumers. Bazel consumers opt into `bazel_proto` (the theme_proto
-# sibling crate from //rust/uiview) instead.
-prost-build = { workspace = true }
-
-[features]
-# When set, the Bazel-generated `theme_proto` sibling crate is used for the
-# theme module's proto types instead of cargo's build.rs codegen. Bazel targets
-# enable this in their `crate_features`.
-bazel_proto = []
+# No [build-dependencies]/[features]: the theme prost types come from the Bazel
+# `theme_proto` rust_prost_library (@meridian_uiview_core//rust/uiview:theme_proto)
+# as a normal dep — there is no cargo/prost-build fallback.
