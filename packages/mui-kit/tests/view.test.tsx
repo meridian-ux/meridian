@@ -313,3 +313,84 @@ describe("aionMuiKit CURSOR pagination (aion's preferred paradigm)", () => {
     await expectText("Cuatro");
   });
 });
+
+// The host action/nav seam: aion projects `actions`/`action-set-key` (view_details
+// / edit …) as NO-CALL actions — the renderer draws the button, the host resolves
+// the meaning (usually a route). A no-call action fires MeridianMuiProvider.onAction
+// with (actionId, subjectKind, entityId?); a call-bearing action still hits the invoker.
+const actionRowsInvoker: RpcInvoker = {
+  invoke: async (_service, method) => {
+    if (method === "list-orgs") {
+      return { organizations: [{ id: "org-1", name: "Acme" }, { id: "org-2", name: "Globex" }] };
+    }
+    return {};
+  },
+};
+
+const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
+  id: "organizations-list-view",
+  title: "Organizations",
+  subjectKind: "organizations",
+  kind: ViewKind.LIST,
+  layout: { mode: { case: "list", value: {} } },
+  actions: [
+    // no-call HEADER action (host-resolved key → a route)
+    { id: "create", label: "New Organization", placement: ActionPlacement.HEADER },
+    // no-call ROW action → per-row button, bound to the row id
+    { id: "view_details", label: "View Details", placement: ActionPlacement.ROW },
+  ],
+  slots: [
+    {
+      id: "content",
+      role: "content",
+      position: 10,
+      panel: create(PanelDescriptorSchema, {
+        panelId: "orgs-list",
+        title: "Organizations",
+        body: {
+          case: "table",
+          value: create(TablePanelSchema, {
+            itemNoun: "organization",
+            rowsField: "organizations",
+            columns: [{ header: "Name", fieldPath: "name" }],
+            populate: create(RpcCallSchema, { service: "savvi.studio.org", method: "list-orgs" }),
+          }),
+        },
+      }),
+    },
+  ],
+});
+
+describe("aionMuiKit host action/nav seam (no-call actions → onAction)", () => {
+  it("fires onAction with (actionId, subjectKind) for a no-call HEADER action", async () => {
+    const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    render(
+      <MeridianMuiProvider
+        invoker={actionRowsInvoker}
+        onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+      >
+        <ViewRenderer view={orgsListView} />
+      </MeridianMuiProvider>,
+    );
+    const createBtn = await screen.findByRole("button", { name: "New Organization" });
+    fireEvent.click(createBtn);
+    expect(calls).toContainEqual(["create", "organizations", undefined]);
+  });
+
+  it("fires onAction with the bound row id for a per-row no-call action", async () => {
+    const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    render(
+      <MeridianMuiProvider
+        invoker={actionRowsInvoker}
+        onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+      >
+        <ViewRenderer view={orgsListView} />
+      </MeridianMuiProvider>,
+    );
+    // rows populate → one "View Details" button per row
+    const buttons = await screen.findAllByRole("button", { name: "View Details" });
+    expect(buttons.length).toBe(2);
+    fireEvent.click(buttons[0]);
+    expect(calls).toContainEqual(["view_details", "organizations", "org-1"]);
+  });
+});

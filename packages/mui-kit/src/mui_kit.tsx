@@ -22,7 +22,9 @@ import type {
 } from "@savvifi/meridian-web-react";
 import {
   MeridianRowActionsContext,
+  MeridianViewContext,
   PaginationMode,
+  useActionHandler,
   useMeridianTheme,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
@@ -135,18 +137,25 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // `call`, e.g. edit/view_details → a route) renders as a labeled button the
   // host wires via its action/nav seam — same contract as the header actions.
   const viewRowActions = useContext(MeridianRowActionsContext);
+  const { subjectKind } = useContext(MeridianViewContext);
+  const onAction = useActionHandler();
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(
     () =>
       viewRowActions.map((action) => ({
         id: action.id,
         label: action.label,
         onClick: (row: Row) => {
-          if (!action.call) return; // host-resolved (nav/custom) — wired by the host
           const id = (row as { id?: unknown }).id;
-          void invoker.invoke(action.call.service, action.call.method, id != null ? { id } : {});
+          if (action.call) {
+            void invoker.invoke(action.call.service, action.call.method, id != null ? { id } : {});
+            return;
+          }
+          // Host-resolved (nav/custom) — route to the host's onAction with the
+          // view subject + this row's id (view_details / edit … → a route).
+          onAction?.(action.id, subjectKind, id as string | number | undefined);
         },
       })),
-    [viewRowActions, invoker],
+    [viewRowActions, invoker, onAction, subjectKind],
   );
 
   return (
@@ -350,6 +359,18 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
 
 function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const { subjectKind } = useContext(MeridianViewContext);
+  const onAction = useActionHandler();
+  // Fire a header/overflow action: RpcCall actions go through the invoker; no-call
+  // actions (host-resolved keys — nav/custom) route to the host's onAction with
+  // the view subject (no row id at the header level).
+  const fire = (action: Action): void => {
+    if (action.call) {
+      invoke(invoker, action.call);
+      return;
+    }
+    onAction?.(action.id, subjectKind);
+  };
   if (!actions || actions.length === 0) return null;
   // OVERFLOW actions collapse into a kebab (⋮) menu; the rest render inline
   // (PRIMARY = contained, others = outlined). Honors the projected placement.
@@ -362,7 +383,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
           key={action.id}
           size="small"
           variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
-          onClick={() => invoke(invoker, action.call)}
+          onClick={() => fire(action)}
         >
           {action.label}
         </Button>
@@ -385,7 +406,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
                 key={action.id}
                 onClick={() => {
                   setAnchor(null);
-                  invoke(invoker, action.call);
+                  fire(action);
                 }}
               >
                 {action.label}
