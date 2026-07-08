@@ -19,6 +19,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import { MeridianProvider } from "@savvifi/meridian-web-react";
 import type {
   MeridianActionHandler,
+  MeridianGrammarResolver,
+  MeridianIconResolver,
   ReactAdhocFactory,
 } from "@savvifi/meridian-web-react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
@@ -41,6 +43,12 @@ export interface MeridianMuiProviderProps {
    * buttons render but no-op; RpcCall actions always route through the invoker.
    */
   onAction?: MeridianActionHandler;
+  /** Host glyph resolver for the content shapes' `icon` keys (renderer draws,
+   *  host wires). Absent ⇒ no glyph drawn (the key still lands as `data-icon`). */
+  renderIcon?: MeridianIconResolver;
+  /** Host transcoder for GrammarPanel (markdown / mermaid / vega …). Absent/null
+   *  ⇒ the degradation ladder (native markdown → alt → source). */
+  renderGrammar?: MeridianGrammarResolver;
   children?: ReactNode;
 }
 
@@ -50,6 +58,8 @@ export function MeridianMuiProvider({
   mode = "light",
   adhoc = {},
   onAction,
+  renderIcon,
+  renderGrammar,
   children,
 }: MeridianMuiProviderProps): ReactNode {
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
@@ -66,6 +76,8 @@ export function MeridianMuiProvider({
           kit={muiKit}
           adhoc={adhoc}
           onAction={onAction}
+          renderIcon={renderIcon}
+          renderGrammar={renderGrammar}
         >
           {children}
         </MeridianProvider>
