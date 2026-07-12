@@ -40,6 +40,19 @@ export type MeridianActionHandler = (
 export type MeridianIconResolver = (key: string) => ReactNode;
 
 /**
+ * Host resolver for a table cell's link destination. A TableColumn with a
+ * `ColumnLink` renders its value as a link; the renderer never builds a URL
+ * (meridian is URL-agnostic) — it calls this with the link's target kind + the
+ * cell's value (the entity id) and the host returns its own route (or undefined
+ * to draw plain text). The link peer of `renderIcon` / `renderGrammar`:
+ * renderer draws, host wires. Absent ⇒ link cells render as plain text.
+ */
+export type MeridianHrefResolver = (
+  entityType: string,
+  entityId: string,
+) => string | undefined;
+
+/**
  * Host transcoder for a GrammarPanel (markdown / mermaid / plantuml / graphviz /
  * vega). The surface's capability set: return a React node for languages this
  * host can display, or null for the rest → the renderer degrades down the ladder
@@ -62,6 +75,9 @@ export interface MeridianContextValue {
   renderIcon?: MeridianIconResolver;
   /** Optional host transcoder for GrammarPanel. Absent/null ⇒ degradation ladder. */
   renderGrammar?: MeridianGrammarResolver;
+  /** Optional host resolver for a table cell's link destination (ColumnLink).
+   *  Absent ⇒ link cells render as plain text. */
+  resolveHref?: MeridianHrefResolver;
 }
 
 const MeridianContext = createContext<MeridianContextValue | null>(null);
@@ -98,6 +114,11 @@ export function useIcon(key: string | undefined): ReactNode {
  *  then degrades. */
 export const useGrammarResolver = (): MeridianGrammarResolver | undefined =>
   useMeridian().renderGrammar;
+
+/** The host's table-cell link resolver (or undefined). A link column renders
+ *  plain text when absent. */
+export const useHrefResolver = (): MeridianHrefResolver | undefined =>
+  useMeridian().resolveHref;
 
 export interface MeridianProviderProps extends MeridianContextValue {
   children: ReactNode;

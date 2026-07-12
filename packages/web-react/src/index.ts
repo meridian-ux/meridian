@@ -34,12 +34,14 @@ export {
   useActionHandler,
   useIcon,
   useGrammarResolver,
+  useHrefResolver,
   type MeridianContextValue,
   type MeridianProviderProps,
   type ReactAdhocFactory,
   type MeridianActionHandler,
   type MeridianIconResolver,
   type MeridianGrammarResolver,
+  type MeridianHrefResolver,
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
 export {
