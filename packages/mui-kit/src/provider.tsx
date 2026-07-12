@@ -20,6 +20,7 @@ import { MeridianProvider } from "@savvifi/meridian-web-react";
 import type {
   MeridianActionHandler,
   MeridianGrammarResolver,
+  MeridianHrefResolver,
   MeridianIconResolver,
   ReactAdhocFactory,
 } from "@savvifi/meridian-web-react";
@@ -49,6 +50,9 @@ export interface MeridianMuiProviderProps {
   /** Host transcoder for GrammarPanel (markdown / mermaid / vega …). Absent/null
    *  ⇒ the degradation ladder (native markdown → alt → source). */
   renderGrammar?: MeridianGrammarResolver;
+  /** Host resolver for a table cell's link destination (ColumnLink). Absent ⇒
+   *  link cells render as plain text. */
+  resolveHref?: MeridianHrefResolver;
   children?: ReactNode;
 }
 
@@ -60,6 +64,7 @@ export function MeridianMuiProvider({
   onAction,
   renderIcon,
   renderGrammar,
+  resolveHref,
   children,
 }: MeridianMuiProviderProps): ReactNode {
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
@@ -78,6 +83,7 @@ export function MeridianMuiProvider({
           onAction={onAction}
           renderIcon={renderIcon}
           renderGrammar={renderGrammar}
+          resolveHref={resolveHref}
         >
           {children}
         </MeridianProvider>

@@ -12,7 +12,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, IconButton, Menu, MenuItem, Stack } from "@mui/material";
+import { Alert, Box, Button, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import type {
@@ -25,6 +25,7 @@ import {
   MeridianViewContext,
   PaginationMode,
   useActionHandler,
+  useHrefResolver,
   useMeridianTheme,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
@@ -110,15 +111,30 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   const [clientPage, setClientPage] = useState(0);
   useEffect(() => setClientPage(0), [panel]);
 
+  // A ColumnLink cell renders its value as a host-resolved link (resolveHref);
+  // target_kind empty ⇒ the view's own subject. Absent resolver ⇒ plain text.
+  const resolveHref = useHrefResolver();
+  const { subjectKind } = useContext(MeridianViewContext);
+
   const columns = useMemo<MeridianColumn<Row>[]>(
     () =>
       panel.columns.map((col: TableColumn, index) => ({
         id: col.fieldPath || col.header || String(index),
         header: col.header,
         width: col.prefWidth || undefined,
-        render: (row: Row) => formatCell(getNested(row, col.fieldPath), col.format),
+        render: (row: Row) => {
+          const raw = getNested(row, col.fieldPath);
+          const text = formatCell(raw, col.format);
+          // target_kind empty ⇒ the view's own subject (a self/detail link).
+          const targetKind = col.link ? col.link.targetKind || subjectKind : undefined;
+          if (targetKind && resolveHref && raw != null && raw !== "") {
+            const href = resolveHref(targetKind, String(raw));
+            if (href) return <Link href={href} underline="hover">{text}</Link>;
+          }
+          return text;
+        },
       })),
-    [panel.columns],
+    [panel.columns, resolveHref, subjectKind],
   );
 
   const pageSize = paged.pageSize;
@@ -155,7 +171,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // `call`, e.g. edit/view_details → a route) renders as a labeled button the
   // host wires via its action/nav seam — same contract as the header actions.
   const viewRowActions = useContext(MeridianRowActionsContext);
-  const { subjectKind } = useContext(MeridianViewContext);
   const onAction = useActionHandler();
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(
     () =>
