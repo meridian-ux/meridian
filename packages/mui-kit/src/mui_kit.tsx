@@ -12,7 +12,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
+import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import type {
@@ -102,6 +102,32 @@ function invoke(invoker: RpcInvoker, call: RpcCall | undefined, req: Row = {}): 
 
 // ── Table ───────────────────────────────────────────────────────────────────
 
+/** Page-size options for the table's page-size selector (parity with DataTableView). */
+const TABLE_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
+/** A status/enum column renders its value as a colored MUI Chip (like the old table). */
+function isStatusColumn(col: TableColumn): boolean {
+  return col.format === ColumnFormat.ENUM_NAME || /^(status|state)$/i.test(col.header.trim());
+}
+
+/** Map a status string to an MUI Chip color — best-effort by common vocabulary. */
+function statusChipColor(value: string): "default" | "success" | "warning" | "error" | "info" {
+  const v = value.toLowerCase();
+  if (/(active|complete|approv|success|paid|done|resolved|enabled|live|ready)/.test(v)) return "success";
+  if (/(pending|draft|open|in.?progress|review|waiting|processing|scheduled)/.test(v)) return "warning";
+  if (/(error|fail|reject|cancel|declin|expired|disabled|inactive|blocked)/.test(v)) return "error";
+  return "default";
+}
+
+/** Stable comparator over cell values (numeric-aware; nulls sort first). */
+function compareCellValues(a: unknown, b: unknown): number {
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+}
+
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
   // usePagedRows (meridian-web-react) is the kit-agnostic pagination brain:
   // CLIENT returns all fetched rows (we slice locally); OFFSET / CURSOR fetch one
@@ -109,50 +135,89 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   const paged = usePagedRows(panel, invoker);
   const client = paged.mode === PaginationMode.CLIENT;
   const [clientPage, setClientPage] = useState(0);
-  useEffect(() => setClientPage(0), [panel]);
+  // Renderer-local page-size override (CLIENT only) — 0 ⇒ use the panel's page size.
+  const [clientPageSize, setClientPageSize] = useState(0);
+  // Host-controlled column sort. CLIENT sorts the full fetched set (parity with the
+  // old DataTableView); server modes sort the current page in place.
+  const [sort, setSort] = useState<{ columnId?: string; direction: "asc" | "desc" }>({ direction: "asc" });
+  useEffect(() => {
+    setClientPage(0);
+    setSort({ direction: "asc" });
+  }, [panel]);
 
   // A ColumnLink cell renders its value as a host-resolved link (resolveHref);
   // target_kind empty ⇒ the view's own subject. Absent resolver ⇒ plain text.
   const resolveHref = useHrefResolver();
   const { subjectKind } = useContext(MeridianViewContext);
+  const onAction = useActionHandler();
 
   const columns = useMemo<MeridianColumn<Row>[]>(
     () =>
-      panel.columns.map((col: TableColumn, index) => ({
-        id: col.fieldPath || col.header || String(index),
-        header: col.header,
-        width: col.prefWidth || undefined,
-        render: (row: Row) => {
-          const raw = getNested(row, col.fieldPath);
-          const text = formatCell(raw, col.format);
-          // target_kind empty ⇒ the view's own subject (a self/detail link).
-          const targetKind = col.link ? col.link.targetKind || subjectKind : undefined;
-          if (targetKind && resolveHref && raw != null && raw !== "") {
-            const href = resolveHref(targetKind, String(raw));
-            if (href) return <Link href={href} underline="hover">{text}</Link>;
-          }
-          return text;
-        },
-      })),
+      panel.columns.map((col: TableColumn, index) => {
+        const status = isStatusColumn(col);
+        return {
+          id: col.fieldPath || col.header || String(index),
+          header: col.header,
+          width: col.prefWidth || undefined,
+          sortable: true,
+          render: (row: Row) => {
+            const raw = getNested(row, col.fieldPath);
+            const text = formatCell(raw, col.format);
+            // target_kind empty ⇒ the view's own subject (a self/detail link).
+            const targetKind = col.link ? col.link.targetKind || subjectKind : undefined;
+            if (targetKind && resolveHref && raw != null && raw !== "") {
+              const href = resolveHref(targetKind, String(raw));
+              if (href) return <Link href={href} underline="hover">{text}</Link>;
+            }
+            // Status/enum ⇒ a colored chip (matches the old studio status pills).
+            if (status && raw != null && raw !== "") {
+              const label = String(text);
+              return <Chip label={label} size="small" variant="outlined" color={statusChipColor(label)} />;
+            }
+            return text;
+          },
+        };
+      }),
     [panel.columns, resolveHref, subjectKind],
   );
 
-  const pageSize = paged.pageSize;
+  // Resolve the sort column's field_path (columns are keyed by field_path||header).
+  const sortFieldPath = useMemo(() => {
+    if (!sort.columnId) return undefined;
+    const col = panel.columns.find((c) => (c.fieldPath || c.header) === sort.columnId);
+    return col?.fieldPath || undefined;
+  }, [sort.columnId, panel.columns]);
+  const sortRows = (input: Row[]): Row[] => {
+    if (!sortFieldPath) return input;
+    const dir = sort.direction === "asc" ? 1 : -1;
+    return [...input].sort(
+      (a, b) => compareCellValues(getNested(a, sortFieldPath), getNested(b, sortFieldPath)) * dir,
+    );
+  };
+  const toggleSort = (columnId: string) =>
+    setSort((s) =>
+      s.columnId === columnId
+        ? { columnId, direction: s.direction === "asc" ? "desc" : "asc" }
+        : { columnId, direction: "asc" },
+    );
+
+  const pageSize = (client && clientPageSize) || paged.pageSize;
   let rows: Row[];
   let page: number;
   let count: number;
   let onPageChange: (target: number) => void;
   if (client) {
-    // CLIENT: paginate the full fetched set locally.
-    rows = paged.rows.slice(clientPage * pageSize, (clientPage + 1) * pageSize);
+    // CLIENT: sort + paginate the full fetched set locally.
+    const sorted = sortRows(paged.rows);
+    rows = sorted.slice(clientPage * pageSize, (clientPage + 1) * pageSize);
     page = clientPage;
     count = paged.rows.length;
     onPageChange = (target) => setClientPage(target);
   } else {
-    // Server modes: paged.rows is already the current page. MUI derives Next/Prev
-    // from `count` — OFFSET knows its total; CURSOR (no total) synthesizes it from
-    // hasNext ("one more page exists").
-    rows = paged.rows;
+    // Server modes: paged.rows is already the current page (sort it in place). MUI
+    // derives Next/Prev from `count` — OFFSET knows its total; CURSOR (no total)
+    // synthesizes it from hasNext ("one more page exists").
+    rows = sortRows(paged.rows);
     page = paged.page;
     count =
       paged.mode === PaginationMode.OFFSET && paged.total !== undefined
@@ -163,6 +228,27 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
     onPageChange = (target) => (target > paged.page ? paged.goNext() : paged.goPrev());
   }
 
+  // Clicking a row opens the entity — the host resolves `(actionId, subject, id)`
+  // to the detail route (aion rows carry `id`). Only when a subject + handler exist.
+  const onRowClick =
+    onAction && subjectKind
+      ? (row: Row) => {
+          const id = (row as { id?: unknown }).id;
+          if (id != null) onAction("open", subjectKind, id as string | number);
+        }
+      : undefined;
+
+  // "Showing X of Y" only when Y is a real total (CLIENT counts the fetched set;
+  // OFFSET reads a total). CURSOR has no total, so show just the current count —
+  // never a synthesized "of Y" (which would read as a real total).
+  const noun = panel.itemNoun || "items";
+  const footer =
+    rows.length === 0
+      ? undefined
+      : paged.total !== undefined
+        ? `Showing ${rows.length} of ${paged.total} ${noun}`
+        : `Showing ${rows.length} ${noun}`;
+
   const rowActions = panel.actions ?? [];
 
   // View-level ROW-placement actions (from the ViewRenderer) render per-row. An
@@ -171,7 +257,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // `call`, e.g. edit/view_details → a route) renders as a labeled button the
   // host wires via its action/nav seam — same contract as the header actions.
   const viewRowActions = useContext(MeridianRowActionsContext);
-  const onAction = useActionHandler();
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(
     () =>
       viewRowActions.map((action) => ({
@@ -218,8 +303,24 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           loading={paged.loading}
           emptyMessage={panel.placeholder || `No ${panel.itemNoun || "items"}.`}
           getRowKey={(row) => String((row as { id?: unknown }).id ?? JSON.stringify(row))}
-          pagination={{ page, count, pageSize, onPageChange }}
+          pagination={{
+            page,
+            count,
+            pageSize,
+            onPageChange,
+            pageSizeOptions: client ? TABLE_PAGE_SIZE_OPTIONS : undefined,
+            onPageSizeChange: client
+              ? (size) => {
+                  setClientPageSize(size);
+                  setClientPage(0);
+                }
+              : undefined,
+          }}
           rowActions={perRowActions.length > 0 ? perRowActions : undefined}
+          onRowClick={onRowClick}
+          sort={{ columnId: sort.columnId, direction: sort.direction, onToggle: toggleSort }}
+          footer={footer}
+          size="medium"
         />
       )}
     </Box>
