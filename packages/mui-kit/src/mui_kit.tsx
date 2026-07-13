@@ -212,12 +212,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
     onPageChange = (target) => setClientPage(target);
   } else {
     // Server modes: paged.rows is already the current page (sort it in place). MUI
-    // derives Next/Prev from `count` — OFFSET knows its total; CURSOR (no total)
-    // synthesizes it from hasNext ("one more page exists").
+    // derives its "X–Y of Z" label + Back/Next from `count` — use the real total
+    // whenever the op returns one (OFFSET, or CURSOR now that the aion op computes
+    // totalCount); otherwise synthesize from hasNext ("one more page exists").
     rows = sortRows(paged.rows);
     page = paged.page;
     count =
-      paged.mode === PaginationMode.OFFSET && paged.total !== undefined
+      paged.total !== undefined
         ? paged.total
         : paged.hasNext
           ? (paged.page + 1) * pageSize + 1
@@ -236,8 +237,8 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
       : undefined;
 
   // "Showing X of Y" only when Y is a real total (CLIENT counts the fetched set;
-  // OFFSET reads a total). CURSOR has no total, so show just the current count —
-  // never a synthesized "of Y" (which would read as a real total).
+  // OFFSET and CURSOR read the op's totalCount). Without a total, show just the
+  // current count — never a synthesized "of Y" (which would read as a real total).
   const noun = panel.itemNoun || "items";
   const footer =
     rows.length === 0
