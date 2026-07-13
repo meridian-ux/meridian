@@ -39,6 +39,20 @@ export function PanelRenderer({
         <kit.Form panel={body.value} descriptor={descriptor} invoker={invoker} />
       );
       break;
+    case "detailHeader":
+      inner = kit.DetailHeader ? (
+        <kit.DetailHeader panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "recordCard":
+      inner = kit.RecordCard ? (
+        <kit.RecordCard panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
     case "gallery":
       inner = kit.Gallery ? (
         <kit.Gallery panel={body.value} descriptor={descriptor} invoker={invoker} />

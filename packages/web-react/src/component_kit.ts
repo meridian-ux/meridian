@@ -19,8 +19,10 @@ import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.j
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type {
+  DetailHeaderPanel,
   FormPanel,
   PanelDescriptor,
+  RecordCardPanel,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
@@ -43,6 +45,9 @@ export type LroPanelProps = ShapeProps<LroPanel>;
 export type GalleryPanelProps = ShapeProps<GalleryPanel>;
 export type LlmPromptPanelProps = ShapeProps<LlmPromptPanel>;
 export type FormPanelProps = ShapeProps<FormPanel>;
+// Detail-view shapes: a record header + a read-only key/value card.
+export type DetailHeaderPanelProps = ShapeProps<DetailHeaderPanel>;
+export type RecordCardPanelProps = ShapeProps<RecordCardPanel>;
 // Content shapes (static, brand-neutral) — see meridian.ui.v1 choice/snippet/
 // affordance/connect_flow/copy_value/catalog protos.
 export type ChoicePanelProps = ShapeProps<ChoicePanel>;
@@ -79,6 +84,16 @@ export interface ComponentKit {
   Lro: ComponentType<LroPanelProps>;
   /** Entity "detail section" / CRUD form (FormPanel: READONLY | EDIT). */
   Form: ComponentType<FormPanelProps>;
+  /**
+   * Detail-view header — a record's title + optional subtitle/status + descriptor
+   * rows, fetched via the panel's `populate`. PanelRenderer falls back when omitted.
+   */
+  DetailHeader?: ComponentType<DetailHeaderPanelProps>;
+  /**
+   * Read-only key/value record card (the detail "section"). PanelRenderer falls
+   * back when a kit omits it.
+   */
+  RecordCard?: ComponentType<RecordCardPanelProps>;
   /** Optional richer shapes; PanelRenderer falls back when a kit omits them. */
   Gallery?: ComponentType<GalleryPanelProps>;
   LlmPrompt?: ComponentType<LlmPromptPanelProps>;
