@@ -8,13 +8,14 @@
 // Table): sortable headers, clickable rows (open the entity), a page-size
 // selector, a "Showing X of Y" footer, and per-row actions as a ⋮ overflow menu.
 
-import type { ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 
 import {
   Box,
-  Button,
   CircularProgress,
-  Stack,
+  IconButton,
+  Menu,
+  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -78,6 +79,42 @@ export interface MeridianTableProps<T> {
   footer?: ReactNode;
   /** Row density. Default "medium" (parity with the old studio DataTableView). */
   size?: "small" | "medium";
+}
+
+/** A per-row ⋮ overflow menu of the row's actions (matches the old studio
+ *  TableActionsView — actions live inside each row, not a bar above the table). */
+function RowActionsMenu<T>({ row, actions }: { row: T; actions: MeridianRowAction<T>[] }): ReactNode {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      <IconButton
+        size="small"
+        aria-label="Row actions"
+        onClick={(event: MouseEvent<HTMLElement>) => {
+          event.stopPropagation();
+          setAnchor(event.currentTarget);
+        }}
+      >
+        <Box component="span" sx={{ fontSize: 20, lineHeight: 1 }}>
+          &#8942;
+        </Box>
+      </IconButton>
+      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+        {actions.map((action) => (
+          <MenuItem
+            key={action.id}
+            onClick={(event: MouseEvent<HTMLElement>) => {
+              event.stopPropagation();
+              setAnchor(null);
+              action.onClick(row);
+            }}
+          >
+            {action.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
 }
 
 export function MeridianTable<T>({
@@ -173,21 +210,11 @@ export function MeridianTable<T>({
                 {hasRowActions && (
                   <TableCell
                     align="right"
-                    sx={{ whiteSpace: "nowrap" }}
+                    padding="checkbox"
+                    sx={{ pr: 1 }}
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                      {rowActions!.map((action) => (
-                        <Button
-                          key={action.id}
-                          size="small"
-                          variant="outlined"
-                          onClick={() => action.onClick(row)}
-                        >
-                          {action.label}
-                        </Button>
-                      ))}
-                    </Stack>
+                    <RowActionsMenu row={row} actions={rowActions!} />
                   </TableCell>
                 )}
               </TableRow>

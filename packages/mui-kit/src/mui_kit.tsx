@@ -13,7 +13,6 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
 
 import type {
   ActionBarProps,
@@ -26,7 +25,6 @@ import {
   PaginationMode,
   useActionHandler,
   useHrefResolver,
-  useMeridianTheme,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
@@ -67,7 +65,6 @@ import {
 } from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
 import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
-import { themeProtoToMuiTheme } from "./theme.js";
 
 type Row = Record<string, unknown>;
 
@@ -249,17 +246,30 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         ? `Showing ${rows.length} of ${paged.total} ${noun}`
         : `Showing ${rows.length} ${noun}`;
 
-  const rowActions = panel.actions ?? [];
-
-  // View-level ROW-placement actions (from the ViewRenderer) render per-row. An
-  // op action (with a `call`) fires against the row's resource — aion rows carry
-  // `id`, so it's invoked with `{ id: row.id }`. A host-resolved action (no
-  // `call`, e.g. edit/view_details → a route) renders as a labeled button the
-  // host wires via its action/nav seam — same contract as the header actions.
+  // Row actions render INSIDE each row as a ⋮ overflow menu (matching the old
+  // studio TableActionsView — not a bar above the table). Two sources merge:
+  //  - TablePanel.actions (RowAction[]): fire the RpcCall against THIS row (aion
+  //    rows carry `id`, so `{ id: row.id }`).
+  //  - View-level ROW-placement actions (MeridianRowActionsContext): an op action
+  //    (with a `call`) invokes against the row; a host-resolved action (no call —
+  //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
-  const perRowActions = useMemo<MeridianRowAction<Row>[]>(
-    () =>
-      viewRowActions.map((action) => ({
+  const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
+    const result: MeridianRowAction<Row>[] = [];
+    (panel.actions ?? []).forEach((action, index) => {
+      result.push({
+        id: `panel-action-${index}`,
+        label: action.label,
+        onClick: (row: Row) => {
+          const id = (row as { id?: unknown }).id;
+          if (action.rpc) {
+            void invoker.invoke(action.rpc.service, action.rpc.method, id != null ? { id } : {});
+          }
+        },
+      });
+    });
+    for (const action of viewRowActions) {
+      result.push({
         id: action.id,
         label: action.label,
         onClick: (row: Row) => {
@@ -268,30 +278,15 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
             void invoker.invoke(action.call.service, action.call.method, id != null ? { id } : {});
             return;
           }
-          // Host-resolved (nav/custom) — route to the host's onAction with the
-          // view subject + this row's id (view_details / edit … → a route).
           onAction?.(action.id, subjectKind, id as string | number | undefined);
         },
-      })),
-    [viewRowActions, invoker, onAction, subjectKind],
-  );
+      });
+    }
+    return result;
+  }, [panel.actions, viewRowActions, invoker, onAction, subjectKind]);
 
   return (
     <Box>
-      {rowActions.length > 0 && (
-        <Stack direction="row" spacing={1} sx={{ mb: 1 }} className="mer-row-actions">
-          {rowActions.map((action, index) => (
-            <Button
-              key={index}
-              size="small"
-              variant="outlined"
-              onClick={() => invoke(invoker, action.rpc)}
-            >
-              {action.label}
-            </Button>
-          ))}
-        </Stack>
-      )}
       {paged.error ? (
         <Alert severity="error" className="mer-table-error">
           Failed to load {panel.itemNoun || "items"}.
@@ -470,14 +465,15 @@ function Chrome({
   descriptor: PanelDescriptor;
   children: ReactNode;
 }): ReactNode {
-  const theme = useMeridianTheme();
-  const muiTheme = useMemo(() => themeProtoToMuiTheme(theme), [theme]);
+  // MeridianMuiProvider already installs the mode-correct MUI ThemeProvider over
+  // the whole subtree. Rebuilding a theme here via themeProtoToMuiTheme(theme)
+  // dropped the mode → every panel fell back to the LIGHT theme, so dark-mode
+  // tables rendered as dim/unreadable text on the dark page. Just wrap the panel;
+  // it inherits the provider's (correct-mode) theme.
   return (
-    <ThemeProvider theme={muiTheme}>
-      <Box className="mer-panel" data-panel={descriptor.panelId}>
-        {children}
-      </Box>
-    </ThemeProvider>
+    <Box className="mer-panel" data-panel={descriptor.panelId}>
+      {children}
+    </Box>
   );
 }
 
