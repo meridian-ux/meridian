@@ -3,6 +3,10 @@
 // it is handed + an optional MUI TablePagination footer. All pagination logic
 // (CLIENT slice / OFFSET / CURSOR fetch) lives in meridian-web-react's
 // usePagedRows; this component just displays a page.
+//
+// Parity target = studio's old @aion/ui DataTableView (a medium-density MUI
+// Table): sortable headers, clickable rows (open the entity), a page-size
+// selector, a "Showing X of Y" footer, and per-row actions as a ⋮ overflow menu.
 
 import type { ReactNode } from "react";
 
@@ -18,6 +22,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TableSortLabel,
   Typography,
 } from "@mui/material";
 
@@ -26,6 +31,8 @@ export interface MeridianColumn<T> {
   header: string;
   width?: string | number;
   align?: "left" | "right" | "center";
+  /** When true, the header renders a clickable sort toggle (host-controlled sort). */
+  sortable?: boolean;
   render: (row: T) => ReactNode;
 }
 
@@ -35,9 +42,19 @@ export interface MeridianTablePager {
   count: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  /** Page-size options for the selector; omit ⇒ the selector is hidden (locked). */
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
 }
 
-/** A per-row action — a labeled button that fires against a specific row. */
+/** Host-controlled sort state (sorting happens upstream, over the full row set). */
+export interface MeridianSortState {
+  columnId?: string;
+  direction: "asc" | "desc";
+  onToggle: (columnId: string) => void;
+}
+
+/** A per-row action — a labeled item fired against a specific row. */
 export interface MeridianRowAction<T> {
   id: string;
   label: string;
@@ -51,8 +68,16 @@ export interface MeridianTableProps<T> {
   emptyMessage?: string;
   getRowKey?: (row: T, index: number) => string | number;
   pagination?: MeridianTablePager;
-  /** Per-row actions rendered in a trailing column (edit/delete …). */
+  /** Per-row actions rendered in a trailing ⋮ overflow-menu column (edit/delete …). */
   rowActions?: MeridianRowAction<T>[];
+  /** Clicking a row (open the entity). Adds a pointer cursor + hover affordance. */
+  onRowClick?: (row: T) => void;
+  /** Host-controlled column sort. Absent ⇒ headers are plain (no sort). */
+  sort?: MeridianSortState;
+  /** Trailing meta line, e.g. "Showing 12 of 340 products". */
+  footer?: ReactNode;
+  /** Row density. Default "medium" (parity with the old studio DataTableView). */
+  size?: "small" | "medium";
 }
 
 export function MeridianTable<T>({
@@ -63,6 +88,10 @@ export function MeridianTable<T>({
   getRowKey,
   pagination,
   rowActions,
+  onRowClick,
+  sort,
+  footer,
+  size = "medium",
 }: MeridianTableProps<T>): ReactNode {
   const hasRowActions = Boolean(rowActions && rowActions.length > 0);
   // A table with no columns can't render a meaningful grid (e.g. a list whose
@@ -90,30 +119,63 @@ export function MeridianTable<T>({
       </Box>
     );
   }
+  const showPageSizeSelector = Boolean(
+    pagination?.pageSizeOptions && pagination.pageSizeOptions.length > 1 && pagination.onPageSizeChange,
+  );
+  // MUI TablePagination requires the active rowsPerPage to be one of the options,
+  // else it drops the selector — merge the current page size in (sorted, unique).
+  const pageSizeOptions =
+    showPageSizeSelector && pagination
+      ? Array.from(new Set([pagination.pageSize, ...pagination.pageSizeOptions!])).sort((a, b) => a - b)
+      : pagination
+        ? [pagination.pageSize]
+        : [];
   return (
     <>
       <TableContainer>
-        <Table size="small">
+        <Table size={size}>
           <TableHead>
             <TableRow>
-              {columns.map((column) => (
-                <TableCell key={column.id} align={column.align ?? "left"} sx={{ width: column.width }}>
-                  {column.header}
-                </TableCell>
-              ))}
-              {hasRowActions && <TableCell align="right" />}
+              {columns.map((column) => {
+                const active = sort?.columnId === column.id;
+                return (
+                  <TableCell key={column.id} align={column.align ?? "left"} sx={{ width: column.width }}>
+                    {sort && column.sortable ? (
+                      <TableSortLabel
+                        active={active}
+                        direction={active ? sort.direction : "asc"}
+                        onClick={() => sort.onToggle(column.id)}
+                      >
+                        {column.header}
+                      </TableSortLabel>
+                    ) : (
+                      column.header
+                    )}
+                  </TableCell>
+                );
+              })}
+              {hasRowActions && <TableCell align="right" sx={{ width: 56 }} />}
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.map((row, index) => (
-              <TableRow key={getRowKey ? getRowKey(row, index) : index} hover>
+              <TableRow
+                key={getRowKey ? getRowKey(row, index) : index}
+                hover
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                sx={onRowClick ? { cursor: "pointer" } : undefined}
+              >
                 {columns.map((column) => (
                   <TableCell key={column.id} align={column.align ?? "left"}>
                     {column.render(row)}
                   </TableCell>
                 ))}
                 {hasRowActions && (
-                  <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                  <TableCell
+                    align="right"
+                    sx={{ whiteSpace: "nowrap" }}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                       {rowActions!.map((action) => (
                         <Button
@@ -133,14 +195,26 @@ export function MeridianTable<T>({
           </TableBody>
         </Table>
       </TableContainer>
+      {footer && (
+        <Box sx={{ px: 2, py: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {footer}
+          </Typography>
+        </Box>
+      )}
       {pagination && (
         <TablePagination
           component="div"
           count={pagination.count}
           page={pagination.page}
           rowsPerPage={pagination.pageSize}
-          rowsPerPageOptions={[pagination.pageSize]}
+          rowsPerPageOptions={pageSizeOptions}
           onPageChange={(_event, next) => pagination.onPageChange(next)}
+          onRowsPerPageChange={
+            showPageSizeSelector
+              ? (event) => pagination.onPageSizeChange!(Number(event.target.value))
+              : undefined
+          }
         />
       )}
     </>
