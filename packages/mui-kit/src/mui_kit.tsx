@@ -135,8 +135,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   const paged = usePagedRows(panel, invoker);
   const client = paged.mode === PaginationMode.CLIENT;
   const [clientPage, setClientPage] = useState(0);
-  // Renderer-local page-size override (CLIENT only) — 0 ⇒ use the panel's page size.
-  const [clientPageSize, setClientPageSize] = useState(0);
   // Host-controlled column sort. CLIENT sorts the full fetched set (parity with the
   // old DataTableView); server modes sort the current page in place.
   const [sort, setSort] = useState<{ columnId?: string; direction: "asc" | "desc" }>({ direction: "asc" });
@@ -201,7 +199,9 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         : { columnId, direction: "asc" },
     );
 
-  const pageSize = (client && clientPageSize) || paged.pageSize;
+  // Effective page size lives in usePagedRows now (the page-size selector calls
+  // paged.setPageSize — CLIENT re-slices, CURSOR/OFFSET refetch at the new size).
+  const pageSize = paged.pageSize;
   let rows: Row[];
   let page: number;
   let count: number;
@@ -308,13 +308,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
             count,
             pageSize,
             onPageChange,
-            pageSizeOptions: client ? TABLE_PAGE_SIZE_OPTIONS : undefined,
-            onPageSizeChange: client
-              ? (size) => {
-                  setClientPageSize(size);
-                  setClientPage(0);
-                }
-              : undefined,
+            // The page-size selector works in every mode now: usePagedRows.setPageSize
+            // re-slices (CLIENT) or refetches at the new size (CURSOR/OFFSET).
+            pageSizeOptions: TABLE_PAGE_SIZE_OPTIONS,
+            onPageSizeChange: (size) => {
+              paged.setPageSize(size);
+              setClientPage(0);
+            },
           }}
           rowActions={perRowActions.length > 0 ? perRowActions : undefined}
           onRowClick={onRowClick}
