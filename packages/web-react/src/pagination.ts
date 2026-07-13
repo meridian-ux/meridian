@@ -84,13 +84,18 @@ export function resolvePagination(panel: TablePanel): {
 /** Build the `populate` request for a page. CLIENT ⇒ {}. Pure. */
 export function buildPageRequest(
   pagination: Pagination | undefined,
-  opts: { page?: number; cursor?: string },
+  opts: { page?: number; cursor?: string; pageSize?: number },
 ): Row {
   const request: Row = {};
   if (!pagination) return request;
+  const pageSize =
+    opts.pageSize && opts.pageSize > 0
+      ? opts.pageSize
+      : pagination.pageSize > 0
+        ? pagination.pageSize
+        : DEFAULT_PAGE_SIZE;
   if (pagination.mode === PaginationMode.OFFSET) {
     const page = opts.page ?? 0;
-    const pageSize = pagination.pageSize > 0 ? pagination.pageSize : DEFAULT_PAGE_SIZE;
     if (pagination.offsetRequestField)
       setNested(request, pagination.offsetRequestField, page * pageSize);
     if (pagination.limitRequestField)
@@ -98,6 +103,11 @@ export function buildPageRequest(
   } else if (pagination.mode === PaginationMode.CURSOR) {
     if (pagination.cursorRequestField && opts.cursor)
       setNested(request, pagination.cursorRequestField, opts.cursor);
+    // Send the requested page size so the server pages at that size (else it uses
+    // its own default — and a page-size selector would be inert). The projection
+    // points `limitRequestField` at the op's page-size input (aion list: "pageSize").
+    if (pagination.limitRequestField)
+      setNested(request, pagination.limitRequestField, pageSize);
   }
   return request;
 }
@@ -138,6 +148,9 @@ export interface PagedTable {
   goNext: () => void;
   /** Jump to a page (OFFSET only; no-op otherwise). */
   setPage: (page: number) => void;
+  /** Change the page size (page-size selector): resets to page 0 and refetches
+   *  CURSOR/OFFSET at the new size; CLIENT re-slices locally. */
+  setPageSize: (size: number) => void;
   /** True when the populate RPC rejected — so the kit shows an error, not "no data". */
   error: boolean;
 }
@@ -147,7 +160,10 @@ export interface PagedTable {
  * (the kit's table paginates locally); OFFSET / CURSOR fetch one page at a time.
  */
 export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable {
-  const { pagination, mode, pageSize } = resolvePagination(panel);
+  const { pagination, mode, pageSize: resolvedPageSize } = resolvePagination(panel);
+  // Renderer-changeable page size (drives the page-size selector). Init from the
+  // panel; changing it resets to page 0 and refetches (CURSOR/OFFSET).
+  const [pageSize, setPageSizeState] = useState(resolvedPageSize);
   // SSR seed for this table's populate call, if the host provided one.
   const initialData = useContext(MeridianInitialDataContext);
   const seed =
@@ -174,7 +190,8 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   useEffect(() => {
     setPageState(0);
     setCursorStack([""]);
-  }, [panel]);
+    setPageSizeState(resolvedPageSize);
+  }, [panel, resolvedPageSize]);
 
   useEffect(() => {
     if (!panel.populate) {
@@ -194,7 +211,7 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     const request =
       mode === PaginationMode.CLIENT
         ? {}
-        : buildPageRequest(pagination, { page, cursor });
+        : buildPageRequest(pagination, { page, cursor, pageSize });
     invoker
       .invoke(panel.populate.service, panel.populate.method, request)
       .then((response) => {
@@ -219,9 +236,10 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
       cancelled = true;
     };
     // cursorStack is intentionally omitted: goNext updates it together with page,
-    // so the page change drives the refetch.
+    // so the page change drives the refetch. pageSize is included so a page-size
+    // change refetches CURSOR/OFFSET at the new size.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panel, invoker, page, mode]);
+  }, [panel, invoker, page, mode, pageSize]);
 
   const hasPrev = page > 0;
   const hasNext =
@@ -248,6 +266,14 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   const setPage = (target: number) => {
     if (mode === PaginationMode.OFFSET) setPageState(Math.max(0, target));
   };
+  // Change the page size: reset to page 0 + clear the cursor stack so the next
+  // fetch pages at the new size (CURSOR/OFFSET refetch; CLIENT just re-slices).
+  const setPageSize = (size: number) => {
+    if (!Number.isFinite(size) || size <= 0 || size === pageSize) return;
+    setPageSizeState(size);
+    setPageState(0);
+    setCursorStack([""]);
+  };
 
-  return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage };
+  return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage, setPageSize };
 }
