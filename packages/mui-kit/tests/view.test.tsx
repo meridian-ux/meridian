@@ -387,10 +387,12 @@ describe("aionMuiKit host action/nav seam (no-call actions → onAction)", () =>
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
     );
-    // rows populate → one "View Details" button per row
-    const buttons = await screen.findAllByRole("button", { name: "View Details" });
-    expect(buttons.length).toBe(2);
-    fireEvent.click(buttons[0]);
+    // rows populate → one ⋮ "Row actions" kebab per row; "View Details" is inside it
+    const kebabs = await screen.findAllByRole("button", { name: "Row actions" });
+    expect(kebabs.length).toBe(2);
+    fireEvent.click(kebabs[0]);
+    const viewDetails = await screen.findByRole("menuitem", { name: "View Details" });
+    fireEvent.click(viewDetails);
     expect(calls).toContainEqual(["view_details", "organizations", "org-1"]);
   });
 });
