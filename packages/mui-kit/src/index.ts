@@ -17,6 +17,8 @@ export {
 } from "./theme.js";
 export { MeridianTable, type MeridianColumn, type MeridianTableProps } from "./components/table.js";
 export { MeridianForm, type MeridianFormField, type MeridianFormProps } from "./components/form.js";
+export { MeridianDetailHeader } from "./components/detail_header.js";
+export { MeridianRecordCard } from "./components/record_card.js";
 export {
   ChoiceView,
   SnippetView,

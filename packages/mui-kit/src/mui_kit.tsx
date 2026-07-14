@@ -31,8 +31,10 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
   FormMode,
+  type DetailHeaderPanel,
   type FormPanel,
   type PanelDescriptor,
+  type RecordCardPanel,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
@@ -65,6 +67,8 @@ import {
 } from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
 import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
+import { MeridianDetailHeader } from "./components/detail_header.js";
+import { MeridianRecordCard } from "./components/record_card.js";
 
 type Row = Record<string, unknown>;
 
@@ -570,6 +574,13 @@ export const muiKit: ComponentKit = {
   ),
   Form: ({ panel, invoker }: ShapeProps<FormPanel>) => (
     <FormShape panel={panel} invoker={invoker} />
+  ),
+  // ── detail-view shapes (MUI) ────────────────────────────────────────────────
+  DetailHeader: ({ panel, invoker }: ShapeProps<DetailHeaderPanel>) => (
+    <MeridianDetailHeader panel={panel} invoker={invoker} />
+  ),
+  RecordCard: ({ panel, invoker }: ShapeProps<RecordCardPanel>) => (
+    <MeridianRecordCard panel={panel} invoker={invoker} />
   ),
   // ── content shapes (MUI) ────────────────────────────────────────────────────
   Choice: ({ panel }: ShapeProps<ChoicePanel>) => <ChoiceView panel={panel} />,
