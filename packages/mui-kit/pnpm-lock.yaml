@@ -21,14 +21,14 @@ importers:
         specifier: ^7.3.7
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@savvifi/meridian-proto-ts':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.10.0
+        version: 0.10.0
       '@savvifi/meridian-schemas':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.10.0
+        version: 0.10.0
       '@savvifi/meridian-web-react':
-        specifier: ^0.7.0
-        version: 0.7.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.8.0
+        version: 0.8.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1
@@ -554,17 +554,17 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@savvifi/meridian-proto-ts@0.10.0':
+    resolution: {integrity: sha512-W0CkLcAC3oT9MZEiWUF8+PlPVQuenC9ztKB0i8PCz6sDf9aQE++6X0MEkJign+ims78hntATegpT/M4y/uhRSw==}
+
   '@savvifi/meridian-proto-ts@0.5.0':
     resolution: {integrity: sha512-a+ColQrl31+1lxALGw2mcCfSaQ3XHym1ichDRDTIRAqC4eh3Q8+5n80ESBeMkKnv4bkj0HY0JaN5PJTCCvz/RA==}
 
-  '@savvifi/meridian-proto-ts@0.9.0':
-    resolution: {integrity: sha512-BAhj7NzTG/yi5W0VbpEb27F8T33lknwfJfHTE8t6BkGUYjKTpfDwxYQutSKXrzRRnxwjdxgyZFwc6k6noNnrzw==}
+  '@savvifi/meridian-schemas@0.10.0':
+    resolution: {integrity: sha512-X3gKWAaXt0K2TvnJpsgNTJ89oMZZ4iXq+4kk9R1t4wWpKyeWBW37ukuUp5nvDSZpcJBw6G2o9cxmmFTtKx20lA==}
 
-  '@savvifi/meridian-schemas@0.9.0':
-    resolution: {integrity: sha512-zeIEjtEabCRb+CoOFDz9vsfzNaQFX5Vfrecg8el0hfgrJOMTF4zfhoCSO2h8JXpHKRS0aZ8R4UweEnQgjI/dug==}
-
-  '@savvifi/meridian-web-react@0.7.0':
-    resolution: {integrity: sha512-dqeY3aQz2PXagkGaLtmodftrWV4Hyj+9Tp8nKC5LUvgLiH5/+wTDtHLYIojU5TtnffuT5JWcRoyVOeF9RnYBPg==}
+  '@savvifi/meridian-web-react@0.8.0':
+    resolution: {integrity: sha512-BmGg/M9fpfN0YOsRjwIe61rsqRfbNmPn7RjTVJsSs3OWbP/+IxHWHfo4Ep0390RBxjKwCk1RdcI6iaJM4UpbvQ==}
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -1632,23 +1632,23 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
+  '@savvifi/meridian-proto-ts@0.10.0':
+    dependencies:
+      '@bufbuild/protobuf': 2.12.1
+
   '@savvifi/meridian-proto-ts@0.5.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 
-  '@savvifi/meridian-proto-ts@0.9.0':
-    dependencies:
-      '@bufbuild/protobuf': 2.12.1
-
-  '@savvifi/meridian-schemas@0.9.0':
+  '@savvifi/meridian-schemas@0.10.0':
     dependencies:
       '@savvifi/meridian-proto-ts': 0.5.0
 
-  '@savvifi/meridian-web-react@0.7.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@savvifi/meridian-web-react@0.8.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
-      '@savvifi/meridian-proto-ts': 0.9.0
-      '@savvifi/meridian-schemas': 0.9.0
+      '@savvifi/meridian-proto-ts': 0.10.0
+      '@savvifi/meridian-schemas': 0.10.0
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
 
