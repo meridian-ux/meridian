@@ -6,7 +6,7 @@
 // Actions via the invoker. The layout STRUCTURE is kit-agnostic; the panels and
 // the action affordances come from the active ComponentKit.
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -84,10 +84,13 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
 // each wrapped in MeridianRecordContext so its no-populate panels bind to the row.
 function RepeatedSubView({ slot }: { slot: Slot }): ReactNode {
   const { invoker } = useMeridian();
-  const paged = usePagedRows(
-    { populate: slot.subViewPopulate, rowsField: slot.subViewRowsField } as unknown as TablePanel,
-    invoker,
+  // MUST be a stable object — usePagedRows keys its fetch effect on `panel`
+  // identity, so an inline literal would refetch every render (→ setState → loop).
+  const listPanel = useMemo(
+    () => ({ populate: slot.subViewPopulate, rowsField: slot.subViewRowsField }) as unknown as TablePanel,
+    [slot.subViewPopulate, slot.subViewRowsField],
   );
+  const paged = usePagedRows(listPanel, invoker);
   const sub = slot.subView;
   if (!sub) return null;
   if (paged.error) return <div className="mer-slot-subview-error">Failed to load.</div>;
