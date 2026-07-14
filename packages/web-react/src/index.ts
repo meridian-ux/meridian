@@ -14,6 +14,8 @@ export type {
   GalleryPanelProps,
   LlmPromptPanelProps,
   FormPanelProps,
+  DetailHeaderPanelProps,
+  RecordCardPanelProps,
   ChoicePanelProps,
   SnippetPanelProps,
   ActionPanelProps,
@@ -51,12 +53,15 @@ export {
 } from "./view_renderer.js";
 export {
   usePagedRows,
+  useRecord,
+  resolvePath,
   resolvePagination,
   buildPageRequest,
   readPage,
   PaginationMode,
   MeridianInitialDataContext,
   type PagedTable,
+  type RecordState,
   type MeridianPageSeed,
   type MeridianInitialData,
 } from "./pagination.js";

@@ -20,6 +20,7 @@ import {
   type Pagination,
   type TablePanel,
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 export { PaginationMode } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
@@ -276,4 +277,86 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   };
 
   return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage, setPageSize };
+}
+
+/**
+ * Follow a dotted path into a record (e.g. "data.sponsor" → record.data.sponsor).
+ * Public helper so a kit's detail panels resolve `*_source_path` / field ids the
+ * same way the table resolves cell paths. Empty path ⇒ undefined.
+ */
+export function resolvePath(source: unknown, path: string): unknown {
+  return getNested(source, path);
+}
+
+/** The single record backing a detail panel (detail_header / record_card). */
+export interface RecordState {
+  /** The fetched record, or undefined until it resolves. */
+  record: Row | undefined;
+  /** True while the populate RPC is in flight. */
+  loading: boolean;
+  /** True when the populate RPC rejected. */
+  error: boolean;
+}
+
+/**
+ * Fetch the single record a detail panel binds to. The counterpart of
+ * `usePagedRows` for a one-record view: it invokes `populate` once with the
+ * request field named by `idField` (default "id") set to `subjectId`
+ * (ViewDescriptor.subject_id), and — like the table — consumes an SSR seed from
+ * `MeridianInitialDataContext` (a record is stored as a one-row page, so the seed
+ * key is `${service}.${method}` and the record is `seed.rows[0]`) so the server
+ * paint carries real values and the client hydrates without an immediate refetch.
+ * No `populate` ⇒ inert (undefined record, not loading).
+ */
+export function useRecord(
+  populate: RpcCall | undefined,
+  idField: string,
+  subjectId: string | undefined,
+  invoker: RpcInvoker,
+): RecordState {
+  const initialData = useContext(MeridianInitialDataContext);
+  const seed =
+    populate && initialData
+      ? initialData[`${populate.service}.${populate.method}`]
+      : undefined;
+  const seededRecord = seed?.rows?.[0];
+
+  const [record, setRecord] = useState<Row | undefined>(seededRecord);
+  const [loading, setLoading] = useState<boolean>(Boolean(populate) && !seededRecord);
+  const [error, setError] = useState<boolean>(false);
+  // When SSR-seeded, the record is already in state — skip the first client fetch.
+  const seedPendingRef = useRef<boolean>(Boolean(seededRecord));
+
+  useEffect(() => {
+    if (!populate) {
+      setLoading(false);
+      return;
+    }
+    if (seedPendingRef.current) {
+      seedPendingRef.current = false;
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    const request: Row = {};
+    if (subjectId != null && subjectId !== "") request[idField || "id"] = subjectId;
+    invoker
+      .invoke(populate.service, populate.method, request)
+      .then((response) => {
+        if (!cancelled) setRecord(response as Row);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [populate, invoker, idField, subjectId]);
+
+  return { record, loading, error };
 }

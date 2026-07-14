@@ -35,7 +35,7 @@ export const MeridianRowActionsContext = createContext<Action[]>([]);
  * entity type). The active kit reads this so a no-call action can tell the host's
  * onAction handler *which* entity the affordance is about. Empty on non-entity views.
  */
-export const MeridianViewContext = createContext<{ subjectKind?: string }>({});
+export const MeridianViewContext = createContext<{ subjectKind?: string; subjectId?: string }>({});
 
 // Fire an action. Actions carrying an RpcCall go through the invoker; no-call
 // actions (host-resolved keys — nav/custom) fall to the host's onAction handler
@@ -124,9 +124,11 @@ export function ViewRenderer({
     case "stacked":
     default:
       // list + stacked both render slots in order; a list view is just a
-      // single-content-slot stack.
+      // single-content-slot stack. Structural gap (kit-neutral) so stacked detail
+      // panels (header / sections / related tables) don't butt together — parity
+      // with the inline-styled twoColumn / tabbed branches.
       body = (
-        <div className="mer-stack">
+        <div className="mer-stack" style={{ display: "grid", gap: 24 }}>
           {slots.map((s) => (
             <SlotView key={s.id} slot={s} />
           ))}
@@ -152,7 +154,7 @@ export function ViewRenderer({
   // actions can reach the host's onAction with the entity type), and the SSR seed
   // to the table hooks (no-op when undefined).
   const withRowActions = (
-    <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind }}>
+    <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind, subjectId: view.subjectId }}>
       <MeridianRowActionsContext.Provider value={rowActions}>
         {rendered}
       </MeridianRowActionsContext.Provider>
