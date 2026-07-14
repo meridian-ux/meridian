@@ -12,8 +12,8 @@ importers:
         specifier: 2.12.1
         version: 2.12.1
       '@savvifi/meridian-proto-ts':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@savvifi/meridian-schemas':
         specifier: ^0.5.0
         version: 0.5.0
@@ -310,6 +310,9 @@ packages:
 
   '@savvifi/meridian-proto-ts@0.5.0':
     resolution: {integrity: sha512-a+ColQrl31+1lxALGw2mcCfSaQ3XHym1ichDRDTIRAqC4eh3Q8+5n80ESBeMkKnv4bkj0HY0JaN5PJTCCvz/RA==}
+
+  '@savvifi/meridian-proto-ts@0.8.0':
+    resolution: {integrity: sha512-SZbeunjaiWMaYm7CXdZBIu2e+Un8eV/b5JIAD4Zx1b65mqB05Zta5SlX8LSnkvVVMx756lp2JC3bFMa8qpIdgw==}
 
   '@savvifi/meridian-schemas@0.5.0':
     resolution: {integrity: sha512-twdI3aw6kqmI68MNfRLUy1g1W7i7mpIILPmNugMEth+sZGWGVQC9mgVxf2mMwL+jA6ivor6PV/d6gtXelreN/Q==}
@@ -704,6 +707,10 @@ snapshots:
     optional: true
 
   '@savvifi/meridian-proto-ts@0.5.0':
+    dependencies:
+      '@bufbuild/protobuf': 2.12.1
+
+  '@savvifi/meridian-proto-ts@0.8.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 
