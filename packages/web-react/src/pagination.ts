@@ -44,6 +44,17 @@ export type MeridianInitialData = Record<string, MeridianPageSeed>;
  */
 export const MeridianInitialDataContext = createContext<MeridianInitialData | undefined>(undefined);
 
+/**
+ * The ambient RECORD for a repeated sub_view item (a Slot with sub_view +
+ * sub_view_populate renders sub_view once per row, each wrapped in this context
+ * with the row as the record). Panels inside a repeated sub_view that have NO
+ * `populate` of their own read from it: `useRecord` returns it (FormPanel /
+ * DetailHeaderPanel bind their fields to the row), and `usePagedRows` takes its
+ * rows from the row's `rows_field` (a nested TablePanel over `record.<field>`).
+ * Undefined outside a repeater — panels then behave exactly as before (fetch).
+ */
+export const MeridianRecordContext = createContext<Row | undefined>(undefined);
+
 /** Follow a dotted path (e.g. "page.offset") into a value. */
 function getNested(source: unknown, path: string): unknown {
   if (!path) return undefined;
@@ -172,12 +183,18 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
       ? initialData[`${panel.populate.service}.${panel.populate.method}`]
       : undefined;
 
+  // Record-scoped rows: a TablePanel with NO populate inside a repeated sub_view
+  // takes its rows from the ambient record's `rows_field` (no fetch, CLIENT-paged).
+  const ambientRecord = useContext(MeridianRecordContext);
+  const recordRows: Row[] | undefined =
+    !panel.populate && ambientRecord ? ((resolvePath(ambientRecord, panel.rowsField) as Row[]) ?? []) : undefined;
+
   const [page, setPageState] = useState(0);
   // Cursor visited for each page index (CURSOR mode); index 0 = "" (first page).
   const [cursorStack, setCursorStack] = useState<string[]>([""]);
-  const [rows, setRows] = useState<Row[]>(seed?.rows ?? []);
+  const [rows, setRows] = useState<Row[]>(seed?.rows ?? recordRows ?? []);
   const [total, setTotal] = useState<number | undefined>(
-    seed ? (mode === PaginationMode.CLIENT ? seed.rows.length : seed.total) : undefined,
+    seed ? (mode === PaginationMode.CLIENT ? seed.rows.length : seed.total) : recordRows?.length,
   );
   const [nextCursor, setNextCursor] = useState<string | undefined>(seed?.nextCursor);
   const [loading, setLoading] = useState<boolean>(Boolean(panel.populate) && !seed);
@@ -196,6 +213,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
 
   useEffect(() => {
     if (!panel.populate) {
+      // Record-scoped: rows come from the ambient record (no fetch). Kept in sync
+      // in case the record changes for this instance.
+      if (recordRows) {
+        setRows(recordRows);
+        setTotal(recordRows.length);
+      }
       setLoading(false);
       return;
     }
@@ -315,6 +338,9 @@ export function useRecord(
   invoker: RpcInvoker,
 ): RecordState {
   const initialData = useContext(MeridianInitialDataContext);
+  // Record-scoped: a detail panel with NO populate inside a repeated sub_view binds
+  // to the ambient record (the repeater's row) instead of fetching.
+  const ambientRecord = useContext(MeridianRecordContext);
   const seed =
     populate && initialData
       ? initialData[`${populate.service}.${populate.method}`]
@@ -358,5 +384,6 @@ export function useRecord(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [populate, invoker, idField, subjectId]);
 
+  if (!populate && ambientRecord) return { record: ambientRecord, loading: false, error: false };
   return { record, loading, error };
 }

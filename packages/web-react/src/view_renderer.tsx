@@ -10,6 +10,7 @@ import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type {
   Action,
@@ -21,7 +22,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
 import type { MeridianActionHandler } from "./provider.js";
-import { MeridianInitialDataContext, type MeridianInitialData } from "./pagination.js";
+import { MeridianInitialDataContext, MeridianRecordContext, usePagedRows, type MeridianInitialData } from "./pagination.js";
 
 /**
  * Row-scoped actions (ActionPlacement.ROW), provided by ViewRenderer for the
@@ -78,15 +79,41 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
   );
 }
 
-// One slot: an optional title, then EITHER a nested view (composition — rendered
-// recursively via ViewRenderer, so every kit gets layout-in-a-layout for free) OR a
-// panel, plus any slot (row) actions.
+// A REPEATED sub_view: fetch the row list (sub_view_populate → sub_view_rows_field,
+// via usePagedRows in CLIENT mode) and render the sub_view template once per row,
+// each wrapped in MeridianRecordContext so its no-populate panels bind to the row.
+function RepeatedSubView({ slot }: { slot: Slot }): ReactNode {
+  const { invoker } = useMeridian();
+  const paged = usePagedRows(
+    { populate: slot.subViewPopulate, rowsField: slot.subViewRowsField } as unknown as TablePanel,
+    invoker,
+  );
+  const sub = slot.subView;
+  if (!sub) return null;
+  if (paged.error) return <div className="mer-slot-subview-error">Failed to load.</div>;
+  return (
+    <>
+      {paged.rows.map((row, i) => (
+        <MeridianRecordContext.Provider key={i} value={row as Record<string, unknown>}>
+          <div className="mer-subview-item" data-subview-item={i}>
+            <ViewRenderer view={sub} />
+          </div>
+        </MeridianRecordContext.Provider>
+      ))}
+    </>
+  );
+}
+
+// One slot: an optional title, then EITHER a nested view — repeated per row when
+// `sub_view_populate` is set (a dynamic list of sub-views), else a single static
+// sub-view (both recursed via ViewRenderer, so every kit gets composition for free)
+// — OR a panel, plus any slot (row) actions.
 function SlotView({ slot }: { slot: Slot }): ReactNode {
   if (slot.subView) {
     return (
       <section className="mer-slot mer-slot-subview" data-slot={slot.id} data-role={slot.role}>
         {slot.title ? <h3 className="mer-slot-title">{slot.title}</h3> : null}
-        <ViewRenderer view={slot.subView} />
+        {slot.subViewPopulate ? <RepeatedSubView slot={slot} /> : <ViewRenderer view={slot.subView} />}
         <ActionsView actions={slot.actions} />
       </section>
     );

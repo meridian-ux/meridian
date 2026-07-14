@@ -220,4 +220,57 @@ describe("ViewRenderer over the real studio views (htmlKit + shadcnKit)", () => 
       expect(html).not.toContain("unsupported panel shape");
     }
   });
+
+  // Repeater: a slot with sub_view + sub_view_populate renders the sub_view once
+  // PER ROW. Seeded via initialData so SSR is synchronous (effects don't run under
+  // renderToStaticMarkup). The record-bound CONTENT of each item is proven in the
+  // mui-kit round (html/shadcn Table/DetailHeader are stubs).
+  it("repeats sub_view once per row (dynamic composition)", () => {
+    const flowTemplate = create(ViewDescriptorSchema, {
+      id: "flow",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "list", value: {} } },
+      slots: [
+        {
+          id: "steps",
+          role: "content",
+          position: 0,
+          panel: create(PanelDescriptorSchema, {
+            panelId: "steps",
+            body: {
+              case: "table",
+              // no populate → record-scoped (rows from the row's `steps`)
+              value: create(TablePanelSchema, { rowsField: "steps", placeholder: "STEP", columns: [{ header: "Step" }] }),
+            },
+          }),
+        },
+      ],
+    });
+    const plan = create(ViewDescriptorSchema, {
+      id: "plan",
+      title: "Plan",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "stacked", value: {} } },
+      slots: [
+        {
+          id: "flows",
+          role: "content",
+          position: 0,
+          subView: flowTemplate,
+          subViewPopulate: create(RpcCallSchema, { service: "plan", method: "get" }),
+          subViewRowsField: "flows",
+        },
+      ],
+    });
+    const initialData = { "plan.get": { rows: [{ title: "A" }, { title: "B" }, { title: "C" }] } };
+    const html = renderToStaticMarkup(
+      createElement(
+        MeridianProvider,
+        { invoker, kit: htmlKit, adhoc },
+        createElement(ViewRenderer, { view: plan, initialData }),
+      ),
+    );
+    // one repeated item per seeded flow row
+    expect((html.match(/mer-subview-item/g) || []).length).toBe(3);
+  });
 });
