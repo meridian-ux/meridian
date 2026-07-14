@@ -78,8 +78,19 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
   );
 }
 
-// One slot: an optional title, the panel, and any slot (row) actions.
+// One slot: an optional title, then EITHER a nested view (composition — rendered
+// recursively via ViewRenderer, so every kit gets layout-in-a-layout for free) OR a
+// panel, plus any slot (row) actions.
 function SlotView({ slot }: { slot: Slot }): ReactNode {
+  if (slot.subView) {
+    return (
+      <section className="mer-slot mer-slot-subview" data-slot={slot.id} data-role={slot.role}>
+        {slot.title ? <h3 className="mer-slot-title">{slot.title}</h3> : null}
+        <ViewRenderer view={slot.subView} />
+        <ActionsView actions={slot.actions} />
+      </section>
+    );
+  }
   const panel = slot.panel as PanelDescriptor | undefined;
   if (!panel) return null;
   const title = slot.title || panel.title;

@@ -173,4 +173,51 @@ describe("ViewRenderer over the real studio views (htmlKit + shadcnKit)", () => 
       html.indexOf('data-slot="configuration"'),
     );
   });
+
+  // Composition: a slot may embed a whole ViewDescriptor (`sub_view`), rendered
+  // recursively by ViewRenderer — kit-agnostic, so both kits nest without any
+  // kit-specific code.
+  it("renders a nested sub_view recursively (layout-in-a-layout)", () => {
+    const nested = create(ViewDescriptorSchema, {
+      id: "nested-section",
+      title: "Nested Section",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "list", value: {} } },
+      slots: [
+        {
+          id: "inner",
+          role: "content",
+          position: 0,
+          panel: create(PanelDescriptorSchema, {
+            panelId: "inner-table",
+            title: "Inner",
+            body: {
+              case: "table",
+              value: create(TablePanelSchema, {
+                rowsField: "x",
+                placeholder: "INNER-PLACEHOLDER",
+                columns: [{ header: "C" }],
+                populate: create(RpcCallSchema, { service: "s", method: "m" }),
+              }),
+            },
+          }),
+        },
+      ],
+    });
+    const outer = create(ViewDescriptorSchema, {
+      id: "outer",
+      title: "Outer",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "stacked", value: {} } },
+      slots: [{ id: "sub", role: "content", position: 0, subView: nested }],
+    });
+    for (const kit of [htmlKit, shadcnKit]) {
+      const html = renderView(kit, outer);
+      expect(html).toContain("Outer"); // outer view title
+      expect(html).toContain("mer-slot-subview"); // the nested-view slot
+      expect(html).toContain("Nested Section"); // the nested view's own header (recursion)
+      expect(html).toContain("INNER-PLACEHOLDER"); // the nested panel actually rendered
+      expect(html).not.toContain("unsupported panel shape");
+    }
+  });
 });
