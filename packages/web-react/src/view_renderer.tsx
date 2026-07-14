@@ -142,8 +142,16 @@ export function ViewRenderer({
 
   const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}>
-      <header className="mer-view-header">
-        <h2 className="mer-view-title">{view.title}</h2>
+      {/* Lay the header out as a row (title left, actions/kebab right) — kit-neutral
+          inline style, matching the two-column/tabbed branches, so consumers don't
+          have to style `mer-view-header` themselves (else title + actions stack). */}
+      <header
+        className="mer-view-header"
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 16 }}
+      >
+        <h2 className="mer-view-title" style={{ margin: 0 }}>
+          {view.title}
+        </h2>
         <ActionsView actions={headerActions} />
       </header>
       {body}

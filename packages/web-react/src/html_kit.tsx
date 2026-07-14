@@ -72,6 +72,15 @@ export const htmlKit: ComponentKit = {
       </tbody>
     </table>
   ),
+  // Gallery — the image/media card grid. Like Table, htmlKit is the minimal
+  // reference kit (no fetch), so it paints the semantic scaffold + placeholder;
+  // mui-kit renders the fetched image cards / lightbox. `card.image_field` is the
+  // image src slot (distinct from the icon glyph).
+  Gallery: ({ panel }) => (
+    <div className="mer-gallery" role="list" data-rows-field={panel.rowsField} data-image-field={panel.card?.imageField}>
+      <p className="mer-empty">{panel.placeholder || "(load to populate)"}</p>
+    </div>
+  ),
   Prompt: ({ panel }) => (
     <form className="mer-prompt">
       {panel.fields.map((field) => (

@@ -94,6 +94,13 @@ export const shadcnKit: ComponentKit = {
       </table>
     </div>
   ),
+  // Gallery — image/media card grid. Reference kit (no fetch): the scaffold +
+  // placeholder; mui-kit renders the fetched image cards / lightbox.
+  Gallery: ({ panel }) => (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="list" data-rows-field={panel.rowsField} data-image-field={panel.card?.imageField}>
+      <p className="col-span-full text-sm text-muted-foreground">{panel.placeholder || "(load to populate)"}</p>
+    </div>
+  ),
   Prompt: ({ panel }) => (
     <form className="grid gap-4">
       {panel.fields.map((field) => (
