@@ -27,6 +27,7 @@ import type {
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import { MeridianAssetContext, type MeridianAssetResolver } from "./asset_context.js";
 import { muiKit } from "./mui_kit.js";
 import { themeProtoToCssVars, themeProtoToMuiTheme } from "./theme.js";
 
@@ -53,6 +54,9 @@ export interface MeridianMuiProviderProps {
   /** Host resolver for a table cell's link destination (ColumnLink). Absent ⇒
    *  link cells render as plain text. */
   resolveHref?: MeridianHrefResolver;
+  /** Host resolver for asset (image) URLs a panel renders — e.g. prefix a mount
+   *  base or swap a CDN host. Used by the Gallery's images. Absent ⇒ src verbatim. */
+  resolveAssetSrc?: MeridianAssetResolver;
   children?: ReactNode;
 }
 
@@ -65,6 +69,7 @@ export function MeridianMuiProvider({
   renderIcon,
   renderGrammar,
   resolveHref,
+  resolveAssetSrc,
   children,
 }: MeridianMuiProviderProps): ReactNode {
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
@@ -85,7 +90,7 @@ export function MeridianMuiProvider({
           renderGrammar={renderGrammar}
           resolveHref={resolveHref}
         >
-          {children}
+          <MeridianAssetContext.Provider value={resolveAssetSrc}>{children}</MeridianAssetContext.Provider>
         </MeridianProvider>
       </div>
     </ThemeProvider>

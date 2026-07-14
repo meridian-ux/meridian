@@ -28,6 +28,7 @@ import {
   usePagedRows,
 } from "@savvifi/meridian-web-react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
   FormMode,
@@ -68,6 +69,7 @@ import {
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
 import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
 import { MeridianDetailHeader } from "./components/detail_header.js";
+import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
 
 type Row = Record<string, unknown>;
@@ -581,6 +583,11 @@ export const muiKit: ComponentKit = {
   ),
   RecordCard: ({ panel, invoker }: ShapeProps<RecordCardPanel>) => (
     <MeridianRecordCard panel={panel} invoker={invoker} />
+  ),
+  // Image/media gallery — lightbox (stage + filmstrip) when the CardSpec has an
+  // image_field, else a responsive card grid. See components/gallery.tsx.
+  Gallery: ({ panel, invoker }: ShapeProps<GalleryPanel>) => (
+    <MeridianGallery panel={panel} invoker={invoker} />
   ),
   // ── content shapes (MUI) ────────────────────────────────────────────────────
   Choice: ({ panel }: ShapeProps<ChoicePanel>) => <ChoiceView panel={panel} />,
