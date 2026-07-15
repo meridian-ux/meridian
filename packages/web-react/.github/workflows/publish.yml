@@ -14,7 +14,12 @@ name: publish
 # (npm has no "pending publisher" flow, so the first version is seeded once with a
 # token, then every subsequent publish flows through here tokenlessly.)
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag. Blank ⇒ derived from the version (prerelease → its identifier, e.g. 0.9.2-rc.1 → rc; else latest)."
+        required: false
+        default: ""
   push:
     tags:
       - "v*"
@@ -48,8 +53,30 @@ jobs:
       # bazel-bin is a read-only symlink tree → copy to a writable dir. `npm
       # publish` auto-detects OIDC (id-token: write + configured trusted publisher)
       # and attaches a provenance attestation.
+      #
+      # The dist-tag is passed EXPLICITLY. npm defaults to `latest` regardless of
+      # the version string — it does NOT infer a tag from a prerelease — so a bare
+      # `npm publish` of 0.9.2-rc.1 would point `latest` at a release candidate.
+      # Derive it from the version unless the dispatch overrides it, so a tag push
+      # is safe too (not just the manual path).
       - name: Publish @savvifi/meridian-web-react
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
         run: |
           rm -rf "$RUNNER_TEMP/pkg"
           cp -RL bazel-bin/pkg "$RUNNER_TEMP/pkg"
-          cd "$RUNNER_TEMP/pkg" && npm publish
+          cd "$RUNNER_TEMP/pkg"
+
+          VERSION="$(node -p 'require("./package.json").version')"
+          TAG="$TAG_INPUT"
+          if [ -z "$TAG" ]; then
+            PRERELEASE="${VERSION#*-}"
+            if [ "$PRERELEASE" = "$VERSION" ]; then
+              TAG="latest"
+            else
+              TAG="${PRERELEASE%%.*}"
+            fi
+          fi
+
+          echo "publishing $VERSION with dist-tag '$TAG'"
+          npm publish --tag "$TAG"
