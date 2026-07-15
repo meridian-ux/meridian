@@ -274,3 +274,187 @@ describe("ViewRenderer over the real studio views (htmlKit + shadcnKit)", () => 
     expect((html.match(/mer-subview-item/g) || []).length).toBe(3);
   });
 });
+
+// sponsor/views/detail-view.aion → TabbedLayout. The REAL projected shape: a header
+// card and a plan-year selector that are NOT tabs (no tab_label; the selector sets
+// placement.header_row), plus four genuinely tabbed slots.
+//
+// There was no tabbed coverage at all, which is why the drop-next rewrite shipped a
+// TabbedSlots that turned every slot into a tab — the header card ended up behind a
+// tab labeled "header" and the page rendered with no header.
+const sponsorsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
+  id: "sponsors-detail-view",
+  title: "Sponsor Details",
+  route: "/entities/sponsors/id/:entityId",
+  subjectKind: "sponsors",
+  kind: ViewKind.DETAIL,
+  layout: { mode: { case: "tabbed", value: {} } },
+  actions: [
+    {
+      id: "delete",
+      label: "Delete",
+      placement: ActionPlacement.HEADER,
+      call: create(RpcCallSchema, { service: "savvi.studio.sponsor", method: "delete" }),
+    },
+  ],
+  slots: [
+    {
+      id: "header",
+      role: "header",
+      position: 10,
+      panel: create(PanelDescriptorSchema, {
+        panelId: "header-adhoc",
+        title: "",
+        body: { case: "adhoc", value: { handlerId: "entity-detail-header" } },
+      }),
+    },
+    {
+      id: "plan-year-selector",
+      role: "configuration",
+      position: 15,
+      placement: { headerRow: true },
+      panel: create(PanelDescriptorSchema, {
+        panelId: "plan-year-selector-adhoc",
+        title: "",
+        body: { case: "adhoc", value: { handlerId: "plan-year-selector" } },
+      }),
+    },
+    {
+      id: "summary",
+      role: "configuration",
+      position: 20,
+      placement: { tabLabel: "Overview", tabPosition: 1 },
+      panel: create(PanelDescriptorSchema, {
+        panelId: "summary-adhoc",
+        title: "",
+        body: { case: "adhoc", value: { handlerId: "entity-detail-section" } },
+      }),
+    },
+    {
+      id: "tab-tasks",
+      role: "tab-tasks",
+      position: 30,
+      placement: { tabLabel: "Tasks", tabPosition: 2 },
+      panel: create(PanelDescriptorSchema, {
+        panelId: "tab-tasks-table",
+        title: "Tasks",
+        body: {
+          case: "table",
+          value: create(TablePanelSchema, {
+            itemNoun: "task",
+            rowsField: "items",
+            placeholder: "No tasks.",
+            columns: [{ header: "Title" }],
+            populate: create(RpcCallSchema, { service: "savvi.studio.task", method: "list" }),
+          }),
+        },
+      }),
+    },
+    {
+      id: "tab-products",
+      role: "tab-products",
+      position: 40,
+      placement: { tabLabel: "Products", tabPosition: 3 },
+      panel: create(PanelDescriptorSchema, {
+        panelId: "tab-products-table",
+        title: "Products",
+        body: {
+          case: "table",
+          value: create(TablePanelSchema, {
+            itemNoun: "product",
+            rowsField: "items",
+            placeholder: "No products.",
+            columns: [{ header: "Name" }],
+            populate: create(RpcCallSchema, {
+              service: "savvi.studio.product",
+              method: "list-products",
+            }),
+          }),
+        },
+      }),
+    },
+  ],
+});
+
+describe("ViewRenderer — TabbedLayout partitions tabs from regions", () => {
+  const tabLabels = (html: string): string[] =>
+    [...html.matchAll(/role="tab"[^>]*>([^<]*)</g)].map((m) => m[1]);
+
+  for (const kit of [htmlKit, shadcnKit]) {
+    it(`makes ONLY tab_label slots into tabs via ${kit.id}`, () => {
+      const labels = tabLabels(renderView(kit, sponsorsDetailView));
+      // Exactly the labeled slots, in tab_position order.
+      expect(labels).toEqual(["Overview", "Tasks", "Products"]);
+      // The regression: unlabeled slots fell through to `|| s.id` and became tabs.
+      expect(labels).not.toContain("header");
+      expect(labels).not.toContain("plan-year-selector");
+    });
+  }
+
+  it("renders the header card as a region ABOVE the tab strip, not behind a tab", () => {
+    const html = renderView(htmlKit, sponsorsDetailView);
+    expect(html).toContain('data-slot="header"');
+    expect(html.indexOf('data-slot="header"')).toBeLessThan(html.indexOf('role="tablist"'));
+  });
+
+  it("pins a header_row slot INTO the view header, out of the body", () => {
+    const html = renderView(htmlKit, sponsorsDetailView);
+    // It rides the header row (before the tab strip), not the tab strip itself.
+    expect(html).toContain("mer-view-header-slots");
+    expect(html.indexOf('data-slot="plan-year-selector"')).toBeLessThan(
+      html.indexOf('role="tablist"'),
+    );
+  });
+
+  it("selects the FIRST TAB by default, not the header", () => {
+    const html = renderView(htmlKit, sponsorsDetailView);
+    // Previously `active = 0` pointed at the header slot, so the initial body was
+    // the header panel and no real content showed.
+    expect(html).toContain('aria-selected="true"');
+    const firstSelected = /role="tab"[^>]*aria-selected="true"[^>]*>([^<]*)</.exec(html);
+    expect(firstSelected?.[1]).toBe("Overview");
+  });
+
+  it("renders every non-tab region, not just the active tab's panel", () => {
+    const html = renderView(htmlKit, sponsorsDetailView);
+    expect(html).toContain('data-slot="header"');
+    expect(html).toContain('data-slot="plan-year-selector"');
+    // ...and the inactive tabs' bodies stay unmounted.
+    expect(html).not.toContain('data-slot="tab-products"');
+  });
+
+  it("degrades a tabbed view with no tab_labels to a plain stack (no empty tablist)", () => {
+    const noTabs = create(ViewDescriptorSchema, {
+      id: "no-tabs-view",
+      title: "No Tabs",
+      kind: ViewKind.DETAIL,
+      layout: { mode: { case: "tabbed", value: {} } },
+      slots: [
+        {
+          id: "header",
+          role: "header",
+          position: 10,
+          panel: create(PanelDescriptorSchema, {
+            panelId: "header-adhoc",
+            title: "",
+            body: { case: "adhoc", value: { handlerId: "entity-detail-header" } },
+          }),
+        },
+      ],
+    });
+    const html = renderView(htmlKit, noTabs);
+    // No content is lost...
+    expect(html).toContain('data-slot="header"');
+    // ...and we don't emit a tablist with zero tabs (an a11y defect).
+    expect(html).not.toContain('role="tablist"');
+  });
+
+  it("leaves non-tabbed layouts alone (no header_row ⇒ byte-identical body)", () => {
+    // products detail is StackedLayout with no header_row slot — the partition
+    // must be a no-op there.
+    const html = renderView(htmlKit, productsDetailView);
+    expect(html).not.toContain("mer-view-header-slots");
+    expect(html).toContain('data-slot="header"');
+    expect(html).toContain('data-slot="configuration"');
+  });
+});

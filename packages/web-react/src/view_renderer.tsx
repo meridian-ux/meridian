@@ -137,6 +137,34 @@ function byPosition(a: Slot, b: Slot): number {
   return (a.position || 0) - (b.position || 0);
 }
 
+function byTabPosition(a: Slot, b: Slot): number {
+  return (a.placement?.tabPosition || 0) - (b.placement?.tabPosition || 0);
+}
+
+/**
+ * A slot pinned INTO the view's header row (Placement.header_row) instead of
+ * rendering as its own section — e.g. a scope selector that reads as part of the
+ * page's identity. Partitioned in ViewRenderer rather than inside a layout branch,
+ * so "inline in the header row" holds under EVERY layout mode.
+ */
+function isHeaderRow(slot: Slot): boolean {
+  return Boolean(slot.placement?.headerRow);
+}
+
+/**
+ * A slot that becomes a TAB under TabbedLayout. `tab_label` is the predicate: the
+ * proto points TabbedLayout at Placement.tab_label / tab_position, and `role` is
+ * advisory by contract. A tabbed view's OTHER slots (the header card, a summary)
+ * are REGIONS — sections above the strip, not tabs.
+ *
+ * No "everything is a tab when nothing is labeled" fallback: that rule would be
+ * discontinuous (label 5 of 6 slots ⇒ 1 tab + 5 regions), and the degrade without
+ * it — a plain stack — loses no content and is obvious to debug.
+ */
+function isTab(slot: Slot): boolean {
+  return Boolean(slot.placement?.tabLabel);
+}
+
 /**
  * Renders a ViewDescriptor. The layout mode selects the arrangement of slots.
  * `initialData` (optional) is a server-computed page-0 seed keyed by each table
@@ -150,7 +178,13 @@ export function ViewRenderer({
   view: ViewDescriptor;
   initialData?: MeridianInitialData;
 }): ReactNode {
-  const slots = [...view.slots].sort(byPosition);
+  const sorted = [...view.slots].sort(byPosition);
+  // Split the header-row slots out BEFORE the layout branch. `header_row` means
+  // "render inline in the header row rather than as its own section" — the header
+  // row is built right here, so this is the only place the split can hold for
+  // tabbed AND twoColumn AND list/stacked alike.
+  const headerRowSlots = sorted.filter(isHeaderRow);
+  const slots = sorted.filter((s) => !isHeaderRow(s));
   const layout = view.layout?.mode;
 
   let body: ReactNode;
@@ -183,9 +217,10 @@ export function ViewRenderer({
 
   const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}>
-      {/* Lay the header out as a row (title left, actions/kebab right) — kit-neutral
-          inline style, matching the two-column/tabbed branches, so consumers don't
-          have to style `mer-view-header` themselves (else title + actions stack). */}
+      {/* Lay the header out as a row (title left, header-row slots + actions/kebab
+          right) — kit-neutral inline style, matching the two-column/tabbed branches,
+          so consumers don't have to style `mer-view-header` themselves (else title
+          + actions stack). */}
       <header
         className="mer-view-header"
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 16 }}
@@ -193,6 +228,21 @@ export function ViewRenderer({
         <h2 className="mer-view-title" style={{ margin: 0 }}>
           {view.title}
         </h2>
+        {/* Placement.header_row slots ride the header row between the title and the
+            actions. Rendered through SlotView like any other slot, so panel dispatch,
+            data-slot/data-role and slot actions behave identically — only the
+            position differs. `margin-left: auto` keeps them grouped with the actions
+            on the right when the header wraps. */}
+        {headerRowSlots.length > 0 ? (
+          <div
+            className="mer-view-header-slots"
+            style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginLeft: "auto" }}
+          >
+            {headerRowSlots.map((s) => (
+              <SlotView key={s.id} slot={s} />
+            ))}
+          </div>
+        ) : null}
         <ActionsView actions={headerActions} />
       </header>
       {body}
@@ -220,56 +270,84 @@ export function ViewRenderer({
 
 function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
   const [active, setActive] = useState(0);
-  const ordered = [...slots].sort(
-    (a, b) => (a.placement?.tabPosition || 0) - (b.placement?.tabPosition || 0),
-  );
+  // Partition: ONLY slots carrying a `tab_label` are tabs. Everything else is a
+  // REGION — a normal section rendered ABOVE the strip in `position` order, which
+  // is where a detail view's header and summary cards belong. Without this split
+  // every slot became a tab, so the header card sat behind a tab labeled "header"
+  // and the page had no header at all.
+  //
+  // `slots` arrives position-sorted and Array#sort is stable, so tabs sharing a
+  // tab_position keep their relative position order.
+  const tabs = [...slots].filter(isTab).sort(byTabPosition);
+  const regions = slots.filter((s) => !isTab(s));
+  // Clamp: the tab set is descriptor-derived and can shrink under the retained
+  // `active` index (a descriptor swap), which would otherwise render an empty
+  // body. -1 ⇒ no tabs at all (regions still render; the strip does not).
+  const activeIndex = tabs.length > 0 ? Math.min(active, tabs.length - 1) : -1;
+
   return (
     <div className="mer-tabs">
-      <div
-        className="mer-tabstrip"
-        role="tablist"
-        // Structural + affordance styling (kit-neutral). Colors read the --mer-*
-        // theme vars a kit exposes (MeridianMuiProvider / htmlKit set these),
-        // falling back to sensible defaults so tabs look like tabs in any kit.
-        style={{
-          display: "flex",
-          gap: 4,
-          borderBottom: "1px solid var(--mer-border, #e0e0e0)",
-          marginBottom: 16,
-        }}
-      >
-        {ordered.map((s, i) => {
-          const isActive = i === active;
-          return (
-            <button
-              key={s.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={isActive ? "mer-tab active" : "mer-tab"}
-              onClick={() => setActive(i)}
-              style={{
-                appearance: "none",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "8px 14px",
-                fontSize: 14,
-                fontFamily: "inherit",
-                color: isActive ? "var(--mer-accent, #1976d2)" : "var(--mer-fg, inherit)",
-                fontWeight: isActive ? 600 : 400,
-                borderBottom: isActive
-                  ? "2px solid var(--mer-accent, #1976d2)"
-                  : "2px solid transparent",
-                marginBottom: "-1px",
-              }}
-            >
-              {s.placement?.tabLabel || s.title || s.id}
-            </button>
-          );
-        })}
-      </div>
-      {ordered[active] ? <SlotView slot={ordered[active]} /> : null}
+      {regions.length > 0 ? (
+        // Same kit-neutral structural gap as the `.mer-stack` branch — regions are
+        // a stack that happens to sit above a tab strip.
+        <div className="mer-tab-regions" style={{ display: "grid", gap: 24, marginBottom: 24 }}>
+          {regions.map((s) => (
+            <SlotView key={s.id} slot={s} />
+          ))}
+        </div>
+      ) : null}
+      {tabs.length > 0 ? (
+        <>
+          <div
+            className="mer-tabstrip"
+            role="tablist"
+            // Structural + affordance styling (kit-neutral). Colors read the --mer-*
+            // theme vars a kit exposes (MeridianMuiProvider / htmlKit set these),
+            // falling back to sensible defaults so tabs look like tabs in any kit.
+            style={{
+              display: "flex",
+              gap: 4,
+              borderBottom: "1px solid var(--mer-border, #e0e0e0)",
+              marginBottom: 16,
+            }}
+          >
+            {tabs.map((s, i) => {
+              const isActive = i === activeIndex;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={isActive ? "mer-tab active" : "mer-tab"}
+                  onClick={() => setActive(i)}
+                  style={{
+                    appearance: "none",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "8px 14px",
+                    fontSize: 14,
+                    fontFamily: "inherit",
+                    color: isActive ? "var(--mer-accent, #1976d2)" : "var(--mer-fg, inherit)",
+                    fontWeight: isActive ? 600 : 400,
+                    borderBottom: isActive
+                      ? "2px solid var(--mer-accent, #1976d2)"
+                      : "2px solid transparent",
+                    marginBottom: "-1px",
+                  }}
+                >
+                  {/* isTab guarantees a non-empty tab_label — no title/id fallback.
+                      Falling back to `id` is what rendered tabs literally labeled
+                      "header" and "plan-year-selector". */}
+                  {s.placement?.tabLabel}
+                </button>
+              );
+            })}
+          </div>
+          {tabs[activeIndex] ? <SlotView slot={tabs[activeIndex]} /> : null}
+        </>
+      ) : null}
     </div>
   );
 }
