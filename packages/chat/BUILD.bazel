@@ -1,0 +1,96 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages(name = "node_modules")
+
+# @savvifi/meridian-chat — the conversation renderer. Compiles the shared core
+# (wire + model + render_html), the vanilla <m-assistant-panel>, and the React
+# <Conversation>. The wire types are structural (no protobuf-es runtime); react is
+# a peer used only by the React tier.
+ts_project(
+    name = "chat",
+    srcs = glob([
+        "src/**/*.ts",
+        "src/**/*.tsx",
+    ]),
+    declaration = True,
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@types/react",
+        ":node_modules/@types/react-dom",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_library(
+    name = "chat_lib",
+    srcs = [":chat"],
+)
+
+# The publishable @savvifi/meridian-chat npm package.
+npm_package(
+    name = "pkg",
+    srcs = [
+        "package.json",
+        ":chat",
+    ],
+    package = "@savvifi/meridian-chat",
+    visibility = ["//visibility:public"],
+)
+
+# Self-contained browser ESM (the VANILLA web component) for bundler-free hosts
+# (botnoc's static frontend). Bundles the compiled src/browser.js entry; it pulls
+# in no framework (no react, no protobuf-es), so the output stays tiny.
+esbuild(
+    name = "browser_bundle",
+    srcs = [":chat"],
+    entry_point = "src/browser.js",
+    bundle = True,
+    format = "esm",
+    minify = True,
+    output = "meridian_chat.bundle.js",
+    platform = "browser",
+    sourcemap = "external",
+    target = "es2022",
+)
+
+# The renderer-neutral streaming model: dedup by seq, upsert blocks by blockId,
+# status. Fed real toJson(ConversationEventSchema) frames (proto conformance).
+vitest_test(
+    name = "model",
+    srcs = [
+        "tests/model.test.ts",
+        "tests/fixtures.ts",
+    ],
+    deps = [
+        ":chat_lib",
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/vitest",
+    ],
+)
+
+# The renderers: renderBlockInner (HTML string) + <Conversation> (react-dom/server).
+vitest_test(
+    name = "render",
+    srcs = [
+        "tests/render.test.tsx",
+        "tests/fixtures.ts",
+    ],
+    deps = [
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        ":chat_lib",
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/vitest",
+    ],
+)

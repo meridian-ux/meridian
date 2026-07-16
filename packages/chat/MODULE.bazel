@@ -1,0 +1,45 @@
+module(
+    name = "meridian_chat",
+    version = "0.1.0",
+)
+
+# @savvifi/meridian-chat — the conversation / agent-chat renderer of the meridian
+# renderer family. It renders a meridian.ui.v1 Conversation stream
+# (conversation.proto — the neutral promotion of botnoc's chat.v1): a turn-based
+# transcript of composable blocks + a transient status, over SSE + POST. Two
+# renderer tiers in one repo:
+#   - the vanilla <m-assistant-panel> web component (zero framework deps) →
+#     esbuild //src:browser_bundle, the bundle botnoc serves.
+#   - a React <Conversation> (react is an OPTIONAL peer).
+# The wire types are structural (proto3-JSON of ConversationEvent), so the runtime
+# has NO protobuf-es dependency; @savvifi/meridian-proto-ts is a dev-only dep that
+# the tests use to prove the structural types match the canonical proto.
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# esbuild bundles //src:browser_bundle — a single self-contained browser ESM
+# (no bare imports) for bundler-free hosts (botnoc's static frontend).
+bazel_dep(name = "aspect_rules_esbuild", version = "0.26.0")
+
+# rules_vite is dev-only: it wires the vitest_test targets. Lives in the
+# tomato-bazel registry (see .bazelrc), not BCR.
+bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
+
+# node + npm + rules_ts are NON-dev: hosts (e.g. botnoc) consume //src:core as a
+# Bazel ts_project and build it from source, so they need this module's node
+# toolchain + @npm link tree visible.
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.11.0")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version = "5.6.3")
+use_repo(rules_ts_ext, "npm_typescript")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
