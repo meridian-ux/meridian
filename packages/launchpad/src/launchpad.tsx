@@ -43,6 +43,16 @@ export interface LaunchpadProps {
   onOpenView?: (viewId: string) => void;
   /** Notified for every command run (telemetry / recents), after dispatch. */
   onRun?: (command: Command) => void;
+  /**
+   * AI-launchpad seam: hand a non-empty query to a host-provided agent resolver
+   * (debounced ~250ms) that returns runnable Commands, surfaced under the agent
+   * group. This is how a natural-language query ("show me failing builds") becomes
+   * a command — the host wires it to its agent/LLM (e.g. the meridian-chat MCP
+   * host). Memoize it (useCallback) so it doesn't re-run every keystroke's render.
+   */
+  onResolveQuery?: (query: string) => Promise<Command[]>;
+  /** Heading for the agent-resolved commands group. Default "Ask the agent". */
+  agentGroupTitle?: string;
 }
 
 const overlayStyle: CSSProperties = {
@@ -134,6 +144,8 @@ export function Launchpad({
   onNavigate,
   onOpenView,
   onRun,
+  onResolveQuery,
+  agentGroupTitle = "Ask the agent",
 }: LaunchpadProps): ReactNode {
   const invoker = useRpcInvoker();
   const actionHandler = useActionHandler();
@@ -141,9 +153,20 @@ export function Launchpad({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedPanel, setFocusedPanel] = useState<PanelDescriptor | undefined>(undefined);
+  const [agentCommands, setAgentCommands] = useState<Command[]>([]);
+  const [agentPending, setAgentPending] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const groups = useMemo(() => filterLaunchpad(descriptor, query), [descriptor, query]);
+  const localGroups = useMemo(() => filterLaunchpad(descriptor, query), [descriptor, query]);
+  // Merge agent-resolved commands (the AI-launchpad seam) as a trailing group, so
+  // they share keyboard nav + dispatch with the local commands.
+  const groups = useMemo(
+    () =>
+      agentCommands.length > 0
+        ? [...localGroups, { id: "__agent__", title: agentGroupTitle, commands: agentCommands }]
+        : localGroups,
+    [localGroups, agentCommands, agentGroupTitle],
+  );
   const flat = useMemo(() => flatten(groups), [groups]);
   const indexOf = useMemo(() => {
     const m = new Map<Command, number>();
@@ -165,6 +188,37 @@ export function Launchpad({
   useEffect(() => {
     setActiveIndex((i) => (flat.length === 0 ? 0 : Math.min(i, flat.length - 1)));
   }, [flat.length]);
+
+  // AI-launchpad seam: debounce-hand a non-empty query to the host's agent
+  // resolver and surface the returned commands. Stale results are dropped.
+  useEffect(() => {
+    if (!onResolveQuery) return;
+    const q = query.trim();
+    if (!q) {
+      setAgentCommands([]);
+      setAgentPending(false);
+      return;
+    }
+    let cancelled = false;
+    setAgentPending(true);
+    const timer = setTimeout(() => {
+      onResolveQuery(q)
+        .then((commands) => {
+          if (cancelled) return;
+          setAgentCommands(commands);
+          setAgentPending(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setAgentCommands([]);
+          setAgentPending(false);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, onResolveQuery]);
 
   const finish = useCallback(() => {
     setFocusedPanel(undefined);
@@ -281,7 +335,7 @@ export function Launchpad({
             <div className="mlp-list" role="listbox" style={{ overflowY: "auto", padding: "6px 0" }}>
               {flat.length === 0 ? (
                 <div className="mlp-empty" style={{ padding: "16px", color: "var(--muted, #9ca3af)" }}>
-                  No matching commands
+                  {agentPending ? "Asking the agent…" : "No matching commands"}
                 </div>
               ) : (
                 groups.map((g) => (
@@ -315,6 +369,14 @@ export function Launchpad({
                   </div>
                 ))
               )}
+              {agentPending && flat.length > 0 ? (
+                <div
+                  className="mlp-agent-pending"
+                  style={{ padding: "8px 14px", fontSize: "0.85em", color: "var(--muted, #9ca3af)" }}
+                >
+                  Asking the agent…
+                </div>
+              ) : null}
             </div>
           </>
         )}
