@@ -37,7 +37,11 @@ rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
 rules_ts_ext.deps(ts_version = "5.6.3")
 use_repo(rules_ts_ext, "npm_typescript")
 
-npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+# isolate = True so a host that ALSO consumes another JS meridian module from
+# source (botnoc pulls meridian_web too) doesn't collide on shared npm repos
+# (e.g. npm__at_bufbuild_protobuf__2.12.1). Mirrors meridian_uiview_core isolating
+# its crate_universe to coexist with botnoc's crates.
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", isolate = True)
 npm.npm_translate_lock(
     name = "npm",
     pnpm_lock = "//:pnpm-lock.yaml",
