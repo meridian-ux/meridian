@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -40,7 +41,9 @@ describe("renderBlockInner (vanilla HTML)", () => {
 
 describe("<Conversation> (react)", () => {
   it("renders the wrapper, empty state, and composer", () => {
-    const html = renderToStaticMarkup(<Conversation />);
+    // createElement (not JSX) so the test runs under both the pnpm (automatic
+    // JSX runtime) and Bazel/rules_vite (classic runtime) harnesses.
+    const html = renderToStaticMarkup(createElement(Conversation));
     expect(html).toContain("meridian-conversation");
     expect(html).toContain("asst-input");
     expect(html).toContain("connected tools");

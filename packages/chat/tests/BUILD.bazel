@@ -1,0 +1,41 @@
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# The tests + their dev-only @rules_vite load live here (NOT in the root package)
+# so a bazel_dep consumer of @meridian_chat//:browser_bundle (botnoc) can evaluate
+# the root package without seeing rules_vite. Test files import the compiled
+# surface via ../src/*.js (the //:chat_lib outputs).
+
+# The renderer-neutral streaming model: dedup by seq, upsert blocks by blockId,
+# status. Fed real toJson(ConversationEventSchema) frames (proto conformance).
+vitest_test(
+    name = "model",
+    srcs = [
+        "model.test.ts",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:chat_lib",
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/vitest",
+    ],
+)
+
+# The renderers: renderBlockInner (HTML string) + <Conversation> (react-dom/server).
+vitest_test(
+    name = "render",
+    srcs = [
+        "render.test.tsx",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:node_modules/react",
+        "//:node_modules/react-dom",
+        "//:chat_lib",
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/vitest",
+    ],
+)
