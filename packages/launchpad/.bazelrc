@@ -1,0 +1,10 @@
+common --enable_bzlmod
+
+# rules_vite (the vitest launcher) lives in the public tomato-bazel registry;
+# everything else resolves from BCR.
+common --registry=https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/
+common --registry=https://bcr.bazel.build
+
+build --announce_rc
+build --keep_going
+test --test_output=errors

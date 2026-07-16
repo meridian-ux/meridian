@@ -1,0 +1,43 @@
+module(
+    name = "meridian_launchpad",
+    version = "0.1.0",
+)
+
+# @savvifi/meridian-launchpad — the command-palette / "launchpad" renderer tier of
+# the meridian renderer family. It renders a meridian.ui.v1 Launchpad descriptor
+# (command_palette.proto) as a ⌘K command palette, on top of the kit-agnostic
+# React renderer (@savvifi/meridian-web-react): a Command's action is dispatched
+# through the same RpcInvoker / PanelRenderer seam every panel uses, and an
+# OpenPanel command renders its focused step (a create/edit FormPanel) through the
+# host's ComponentKit. Like the rest of the family it consumes the design language
+# purely as npm packages (no bazel_dep on meridian-schemas); react is its own dep.
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# rules_vite is dev-only: it wires the vitest_test targets (the conformance gate).
+# It lives in the tomato-bazel registry (see .bazelrc), not BCR.
+bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
+
+node = use_extension(
+    "@rules_nodejs//nodejs:extensions.bzl",
+    "node",
+    dev_dependency = True,
+)
+node.toolchain(node_version = "22.11.0")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version = "5.6.3")
+use_repo(rules_ts_ext, "npm_typescript")
+
+npm = use_extension(
+    "@aspect_rules_js//npm:extensions.bzl",
+    "npm",
+    dev_dependency = True,
+)
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
