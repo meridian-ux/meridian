@@ -7,7 +7,12 @@ name: publish
 # (mui-kit builds its dist with tsc via `pnpm build`, then `npm publish`; the Bazel
 # targets in this repo are the browser test + the visual catalog, not the package.)
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag. Blank ⇒ derived from the version (prerelease → its identifier, e.g. 0.8.0-rc.1 → rc; else latest)."
+        required: false
+        default: ""
   push:
     tags:
       - "v*"
@@ -31,4 +36,18 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - name: Publish (OIDC provenance)
-        run: npm publish --access public
+        # Pass an explicit dist-tag. npm defaults to `latest` regardless of the
+        # version string — it does NOT infer a tag from a prerelease — so a bare
+        # publish of 0.8.0-rc.1 would point `latest` at a release candidate. Derive
+        # it from the version unless the dispatch overrides it (keeps tag pushes safe).
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          VERSION="$(node -p 'require("./package.json").version')"
+          TAG="$TAG_INPUT"
+          if [ -z "$TAG" ]; then
+            PRERELEASE="${VERSION#*-}"
+            if [ "$PRERELEASE" = "$VERSION" ]; then TAG="latest"; else TAG="${PRERELEASE%%.*}"; fi
+          fi
+          echo "publishing $VERSION with dist-tag '$TAG'"
+          npm publish --access public --tag "$TAG"
