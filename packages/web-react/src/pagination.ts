@@ -55,6 +55,104 @@ export const MeridianInitialDataContext = createContext<MeridianInitialData | un
  */
 export const MeridianRecordContext = createContext<Row | undefined>(undefined);
 
+/**
+ * A view-scoped SELECTION bag: a flat `key → value` map that one panel publishes
+ * into and SIBLING panels read. This is meridian's cross-panel channel — the only
+ * state that flows sideways rather than down. It exists for one shape: a scope
+ * picker ("which plan year is this page about?") that re-parameterizes other
+ * panels' `populate` calls (FieldBinding.selection_key) and gates whole slots
+ * (Slot.depends_on_selection_key).
+ *
+ * Values are STRINGS (ids): a key names a scope, an unset scope is exactly
+ * `!value`, and a string is what a request field and a URL both want. A producer
+ * that also wants a display label just writes a second key (e.g.
+ * `selectedPlanYearIdLabel`) — the bag is flat on purpose.
+ */
+export interface MeridianSelection {
+  values: Record<string, string>;
+  /** Publish a key. `undefined` / "" clears it (and closes any gate on it). */
+  set: (key: string, value: string | undefined) => void;
+}
+
+/**
+ * The context default: an inert bag. ViewRenderer compares the inherited context
+ * value against THIS identity to tell "no enclosing view" from "a real parent
+ * scope" (a nested sub_view shares its parent's bag; a top-level view owns state).
+ */
+export const EMPTY_SELECTION: MeridianSelection = { values: {}, set: () => {} };
+
+/**
+ * The ambient selection bag. ViewRenderer always provides one, so the hooks read
+ * it without a null dance; the default is inert for kits/tests that render a panel
+ * outside any ViewRenderer.
+ */
+export const MeridianSelectionContext = createContext<MeridianSelection>(EMPTY_SELECTION);
+
+export function useMeridianSelection(): MeridianSelection {
+  return useContext(MeridianSelectionContext);
+}
+
+/**
+ * Resolve a call's FieldBindings into request fields. Only two sources are
+ * meaningful for a `populate`:
+ *   - `literal`      — an authored (or projection-constant-folded) scalar.
+ *   - `selectionKey` — the CURRENT value of a view selection key: the only binding
+ *     source that reads live client state.
+ * The other sources (context / row_field / form_field / signal / nested) belong to
+ * the action / LRO / grammar tiers — a populate has no row, form or signal — and
+ * are skipped here.
+ *
+ * A selection key that is unset contributes NOTHING: the field is OMITTED, never
+ * sent as undefined/null/"". An unset scope must not silently widen the query. Pure.
+ */
+export function buildBindingRequest(
+  call: RpcCall | undefined,
+  selection: Record<string, string>,
+): Row {
+  const request: Row = {};
+  for (const binding of call?.bindings ?? []) {
+    let value: unknown;
+    if (binding.source.case === "literal") {
+      value = binding.source.value;
+    } else if (binding.source.case === "selectionKey") {
+      value = selection[binding.source.value];
+    } else {
+      continue;
+    }
+    if (value === undefined || value === null || value === "") continue;
+    setNested(request, binding.requestField, value);
+  }
+  return request;
+}
+
+/**
+ * The refetch key for a call's selection dependencies: a stable STRING over just
+ * the keys it binds and their current values.
+ *
+ * This is the whole anti-loop design. The bag is a fresh object on every publish;
+ * keying an effect on it would refetch every panel on every pick — the identity
+ * trap that made RepeatedSubView loop. A derived string means a panel with NO
+ * selection bindings gets "" forever and never refetches, so every descriptor
+ * shipped before selection is bit-for-bit unaffected. Pure.
+ */
+export function selectionDeps(
+  call: RpcCall | undefined,
+  selection: Record<string, string>,
+): string {
+  let key = "";
+  for (const binding of call?.bindings ?? []) {
+    if (binding.source.case !== "selectionKey") continue;
+    key += `${binding.source.value}=${selection[binding.source.value] ?? ""};`;
+  }
+  return key;
+}
+
+/** True when a call reads live selection state — so it can never consume an SSR
+ *  seed (the server cannot know a client-picked scope). */
+export function hasSelectionBindings(call: RpcCall | undefined): boolean {
+  return (call?.bindings ?? []).some((b) => b.source.case === "selectionKey");
+}
+
 /** Follow a dotted path (e.g. "page.offset") into a value. */
 function getNested(source: unknown, path: string): unknown {
   if (!path) return undefined;
@@ -176,12 +274,19 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   // Renderer-changeable page size (drives the page-size selector). Init from the
   // panel; changing it resets to page 0 and refetches (CURSOR/OFFSET).
   const [pageSize, setPageSizeState] = useState(resolvedPageSize);
-  // SSR seed for this table's populate call, if the host provided one.
+  // SSR seed for this table's populate call, if the host provided one. A populate
+  // that binds live selection is NOT seedable — the server pre-fetches before any
+  // client scope exists, so its seed would be garbage under a key the client trusts.
   const initialData = useContext(MeridianInitialDataContext);
   const seed =
-    panel.populate && initialData
+    panel.populate && initialData && !hasSelectionBindings(panel.populate)
       ? initialData[`${panel.populate.service}.${panel.populate.method}`]
       : undefined;
+
+  // The view selection bag. `selectionKey` is a derived string over just the keys
+  // this populate binds — a panel with none gets "" and never refetches on a pick.
+  const selection = useMeridianSelection();
+  const selectionKey = selectionDeps(panel.populate, selection.values);
 
   // Record-scoped rows: a TablePanel with NO populate inside a repeated sub_view
   // takes its rows from the ambient record's `rows_field` (no fetch, CLIENT-paged).
@@ -204,12 +309,13 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   // Consumed once; later page changes fetch normally.
   const seedPendingRef = useRef<boolean>(Boolean(seed));
 
-  // Reset paging when the panel identity changes.
+  // Reset paging when the panel identity OR the bound selection changes — a cursor
+  // is meaningless under a new scope.
   useEffect(() => {
     setPageState(0);
     setCursorStack([""]);
     setPageSizeState(resolvedPageSize);
-  }, [panel, resolvedPageSize]);
+  }, [panel, resolvedPageSize, selectionKey]);
 
   useEffect(() => {
     if (!panel.populate) {
@@ -232,10 +338,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     setLoading(true);
     setError(false);
     const cursor = mode === PaginationMode.CURSOR ? cursorStack[page] ?? "" : undefined;
-    const request =
-      mode === PaginationMode.CLIENT
+    const request = {
+      ...buildBindingRequest(panel.populate, selection.values),
+      ...(mode === PaginationMode.CLIENT
         ? {}
-        : buildPageRequest(pagination, { page, cursor, pageSize });
+        : buildPageRequest(pagination, { page, cursor, pageSize })),
+    };
     invoker
       .invoke(panel.populate.service, panel.populate.method, request)
       .then((response) => {
@@ -261,9 +369,10 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     };
     // cursorStack is intentionally omitted: goNext updates it together with page,
     // so the page change drives the refetch. pageSize is included so a page-size
-    // change refetches CURSOR/OFFSET at the new size.
+    // change refetches CURSOR/OFFSET at the new size. selectionKey refetches when a
+    // bound selection value changes (and is "" — stable — for unbound panels).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panel, invoker, page, mode, pageSize]);
+  }, [panel, invoker, page, mode, pageSize, selectionKey]);
 
   const hasPrev = page > 0;
   const hasNext =
@@ -341,11 +450,15 @@ export function useRecord(
   // Record-scoped: a detail panel with NO populate inside a repeated sub_view binds
   // to the ambient record (the repeater's row) instead of fetching.
   const ambientRecord = useContext(MeridianRecordContext);
+  // A populate that binds live selection is not seedable (same reason as the table).
   const seed =
-    populate && initialData
+    populate && initialData && !hasSelectionBindings(populate)
       ? initialData[`${populate.service}.${populate.method}`]
       : undefined;
   const seededRecord = seed?.rows?.[0];
+
+  const selection = useMeridianSelection();
+  const selectionKey = selectionDeps(populate, selection.values);
 
   const [record, setRecord] = useState<Row | undefined>(seededRecord);
   const [loading, setLoading] = useState<boolean>(Boolean(populate) && !seededRecord);
@@ -367,6 +480,10 @@ export function useRecord(
     setError(false);
     const request: Row = {};
     if (subjectId != null && subjectId !== "") request[idField || "id"] = subjectId;
+    // Selection bindings OVERRIDE the subject-id default. This is the documented
+    // 500: the sponsor Overview card fetches `plan-year.get`, and without the
+    // override `id` would stay the SPONSOR's id and the op would 500.
+    Object.assign(request, buildBindingRequest(populate, selection.values));
     invoker
       .invoke(populate.service, populate.method, request)
       .then((response) => {
@@ -381,8 +498,9 @@ export function useRecord(
     return () => {
       cancelled = true;
     };
+    // selectionKey refetches when a bound selection value changes ("" for unbound).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [populate, invoker, idField, subjectId]);
+  }, [populate, invoker, idField, subjectId, selectionKey]);
 
   if (!populate && ambientRecord) return { record: ambientRecord, loading: false, error: false };
   return { record, loading, error };

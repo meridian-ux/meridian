@@ -22,7 +22,16 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
 import type { MeridianActionHandler } from "./provider.js";
-import { MeridianInitialDataContext, MeridianRecordContext, usePagedRows, type MeridianInitialData } from "./pagination.js";
+import {
+  EMPTY_SELECTION,
+  MeridianInitialDataContext,
+  MeridianRecordContext,
+  MeridianSelectionContext,
+  useMeridianSelection,
+  usePagedRows,
+  type MeridianInitialData,
+  type MeridianSelection,
+} from "./pagination.js";
 
 /**
  * Row-scoped actions (ActionPlacement.ROW), provided by ViewRenderer for the
@@ -112,6 +121,39 @@ function RepeatedSubView({ slot }: { slot: Slot }): ReactNode {
 // sub-view (both recursed via ViewRenderer, so every kit gets composition for free)
 // — OR a panel, plus any slot (row) actions.
 function SlotView({ slot }: { slot: Slot }): ReactNode {
+  const selection = useMeridianSelection();
+  // Gated on a selection key with no value yet: draw the placeholder INSTEAD of the
+  // panel, so its populate never fires scope-less (it would fall back to the view's
+  // subject id and fetch the wrong record). The subtree never mounts, so no hook
+  // runs. The test is TRUTHINESS, not `!== undefined`: the original gate compared
+  // `=== undefined`, so clearing the selection to null RE-OPENED it and fired the
+  // very scope-less query it existed to prevent.
+  const gate = slot.dependsOnSelectionKey;
+  if (gate && !selection.values[gate]) {
+    return (
+      <section
+        className="mer-slot mer-slot-gated"
+        data-slot={slot.id}
+        data-role={slot.role}
+        data-awaiting-selection={gate}
+      >
+        {slot.title ? <h3 className="mer-slot-title">{slot.title}</h3> : null}
+        <div
+          className="mer-slot-placeholder"
+          style={{
+            border: "1px solid var(--mer-border, #e0e0e0)",
+            borderRadius: 8,
+            padding: "16px 20px",
+            fontSize: 13,
+            opacity: 0.7,
+            color: "var(--mer-fg, inherit)",
+          }}
+        >
+          {slot.dependsOnPlaceholder || "Make a selection to view this section."}
+        </div>
+      </section>
+    );
+  }
   if (slot.subView) {
     return (
       <section className="mer-slot mer-slot-subview" data-slot={slot.id} data-role={slot.role}>
@@ -174,10 +216,43 @@ function isTab(slot: Slot): boolean {
 export function ViewRenderer({
   view,
   initialData,
+  selection,
 }: {
   view: ViewDescriptor;
   initialData?: MeridianInitialData;
+  /**
+   * Host-owned selection bag. Supply it when the host wants to OWN the scope —
+   * URL-sync it (`?planYear=123`, shareable + back/forward), persist it, or SEED
+   * it server-side so scope-bound panels can SSR at all. Absent ⇒ the view keeps
+   * its own state, so kits, tests and the CRD path work standalone.
+   */
+  selection?: MeridianSelection;
 }): ReactNode {
+  // The view's selection scope. Precedence: host-prop > an enclosing view's scope >
+  // this view's own state. The MIDDLE arm is what makes `sub_view` work — a nested
+  // ViewRenderer must SHARE the page's bag, not shadow it with a fresh one (selection
+  // is per PAGE). Own-state is the fallback for a standalone/top-level view.
+  const inherited = useContext(MeridianSelectionContext);
+  const [ownValues, setOwnValues] = useState<Record<string, string>>({});
+  const own = useMemo<MeridianSelection>(
+    () => ({
+      values: ownValues,
+      set: (key, value) =>
+        setOwnValues((current) => {
+          const next = value === undefined || value === "" ? undefined : value;
+          if (current[key] === next) return current; // no-op publish ⇒ no rerender
+          const merged = { ...current };
+          if (next === undefined) delete merged[key];
+          else merged[key] = next;
+          return merged;
+        }),
+    }),
+    [ownValues],
+  );
+  // `inherited === EMPTY_SELECTION` (the context default) means "no enclosing view",
+  // so fall through to own state; a real inherited bag (nested view) wins over own.
+  const scope = selection ?? (inherited !== EMPTY_SELECTION ? inherited : own);
+
   const sorted = [...view.slots].sort(byPosition);
   // Split the header-row slots out BEFORE the layout branch. `header_row` means
   // "render inline in the header row rather than as its own section" — the header
@@ -253,11 +328,13 @@ export function ViewRenderer({
   // actions can reach the host's onAction with the entity type), and the SSR seed
   // to the table hooks (no-op when undefined).
   const withRowActions = (
-    <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind, subjectId: view.subjectId }}>
-      <MeridianRowActionsContext.Provider value={rowActions}>
-        {rendered}
-      </MeridianRowActionsContext.Provider>
-    </MeridianViewContext.Provider>
+    <MeridianSelectionContext.Provider value={scope}>
+      <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind, subjectId: view.subjectId }}>
+        <MeridianRowActionsContext.Provider value={rowActions}>
+          {rendered}
+        </MeridianRowActionsContext.Provider>
+      </MeridianViewContext.Provider>
+    </MeridianSelectionContext.Provider>
   );
   return initialData ? (
     <MeridianInitialDataContext.Provider value={initialData}>

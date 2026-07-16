@@ -58,12 +58,18 @@ export {
   resolvePagination,
   buildPageRequest,
   readPage,
+  buildBindingRequest,
+  selectionDeps,
+  hasSelectionBindings,
   PaginationMode,
   MeridianInitialDataContext,
+  MeridianSelectionContext,
+  useMeridianSelection,
   type PagedTable,
   type RecordState,
   type MeridianPageSeed,
   type MeridianInitialData,
+  type MeridianSelection,
 } from "./pagination.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { htmlKit } from "./html_kit.js";
