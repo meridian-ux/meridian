@@ -12,8 +12,8 @@ importers:
         specifier: 2.12.1
         version: 2.12.1
       '@savvifi/meridian-proto-ts':
-        specifier: ^0.12.0
-        version: 0.12.0
+        specifier: ^0.13.0
+        version: 0.13.0
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
@@ -304,8 +304,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@savvifi/meridian-proto-ts@0.12.0':
-    resolution: {integrity: sha512-QN1vIZEkdyikG+Jupw/QPq2WaMpF/zpWHiSi3wjJCmChSIvxHcgpbbCm3At6LcEMooOSuRjOan+JPgo2Ud4WOg==}
+  '@savvifi/meridian-proto-ts@0.13.0':
+    resolution: {integrity: sha512-yixbN4E7oyAtYR3EmWgB7F8T7glA851ASJ18ml0bD0CyGL4+vMuTcuRq1XKSoRRt5MVhiavIrmNaeXE3GPczHg==}
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
@@ -696,7 +696,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@savvifi/meridian-proto-ts@0.12.0':
+  '@savvifi/meridian-proto-ts@0.13.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 
