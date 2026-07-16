@@ -12,8 +12,8 @@ importers:
         specifier: 2.12.1
         version: 2.12.1
       '@savvifi/meridian-proto-ts':
-        specifier: ^0.12.0
-        version: 0.12.0
+        specifier: ^0.13.0
+        version: 0.13.0
       '@savvifi/meridian-web-react':
         specifier: ^0.9.1
         version: 0.9.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -311,8 +311,8 @@ packages:
   '@savvifi/meridian-proto-ts@0.11.0':
     resolution: {integrity: sha512-g+aUVXQpnsa5JstDGBDhFa/l6JVqhiFMDogAJWoj15JcMFye08BwJ2leN7e/QCvFoCkzTwLh7WhO+rND9eWbHQ==}
 
-  '@savvifi/meridian-proto-ts@0.12.0':
-    resolution: {integrity: sha512-QN1vIZEkdyikG+Jupw/QPq2WaMpF/zpWHiSi3wjJCmChSIvxHcgpbbCm3At6LcEMooOSuRjOan+JPgo2Ud4WOg==}
+  '@savvifi/meridian-proto-ts@0.13.0':
+    resolution: {integrity: sha512-yixbN4E7oyAtYR3EmWgB7F8T7glA851ASJ18ml0bD0CyGL4+vMuTcuRq1XKSoRRt5MVhiavIrmNaeXE3GPczHg==}
 
   '@savvifi/meridian-proto-ts@0.5.0':
     resolution: {integrity: sha512-a+ColQrl31+1lxALGw2mcCfSaQ3XHym1ichDRDTIRAqC4eh3Q8+5n80ESBeMkKnv4bkj0HY0JaN5PJTCCvz/RA==}
@@ -719,7 +719,7 @@ snapshots:
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 
-  '@savvifi/meridian-proto-ts@0.12.0':
+  '@savvifi/meridian-proto-ts@0.13.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 

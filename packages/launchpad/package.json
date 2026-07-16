@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@savvifi/meridian-web-react": "^0.9.1",
-    "@savvifi/meridian-proto-ts": "^0.12.0",
+    "@savvifi/meridian-proto-ts": "^0.13.0",
     "@bufbuild/protobuf": "2.12.1"
   },
   "peerDependencies": {
