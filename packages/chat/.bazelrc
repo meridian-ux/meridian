@@ -1,5 +1,13 @@
 common --enable_bzlmod
 
+# MODULE.bazel declares the npm extension with isolate = True (so a host that
+# also consumes another JS meridian module can coexist without the two npm
+# extensions colliding). Isolated extension usages are still behind an
+# experimental flag, so it must be enabled here or `bazelisk build //:pkg`
+# fails at MODULE parse ("parameter 'isolate' is experimental"). A consumer that
+# pulls meridian_chat from source (e.g. botnoc) sets the same flag in its rc.
+common --experimental_isolated_extension_usages
+
 # rules_vite (the vitest launcher) lives in the public tomato-bazel registry;
 # everything else resolves from BCR.
 common --registry=https://raw.githubusercontent.com/tomato-bazel/bazel-registry/main/
