@@ -20,8 +20,8 @@ use crossterm::{
     execute, terminal,
 };
 use meridian_uiview::proto::{
-    form_field::Kind, EnumSelection, FormField, IntegerSpinner, MaskedInput, PromptPanel,
-    TextInput,
+    form_field::Kind, BooleanToggle, EnumSelection, FormField, IntegerSpinner, MaskedInput,
+    NumberInput, PromptPanel, TextInput,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -55,6 +55,11 @@ pub enum FieldValue {
     /// Plaintext value of a masked input. Caller is responsible for
     /// scrubbing it from memory once consumed.
     Masked(String),
+    /// BooleanToggle — a checkbox.
+    Boolean(bool),
+    /// NumberInput — a decimal. Distinct from `Integer` so a caller
+    /// marshaling to JSON emits 1.5 rather than truncating to 1.
+    Number(f64),
 }
 
 impl FieldValue {
@@ -64,6 +69,8 @@ impl FieldValue {
         match self {
             FieldValue::Text(s) | FieldValue::Selection(s) | FieldValue::Masked(s) => s.clone(),
             FieldValue::Integer(n) => n.to_string(),
+            FieldValue::Boolean(b) => b.to_string(),
+            FieldValue::Number(n) => n.to_string(),
         }
     }
 }
@@ -76,6 +83,12 @@ pub enum PromptError {
     EmptyPrompt,
     #[error("field {field_id}: unsupported kind (missing FormField.kind oneof)")]
     UnsupportedKind { field_id: String },
+    /// `NestedFields` describes a sub-object, but `PromptResponse::Submitted` is
+    /// flat (keyed by `field_id`), so there is nowhere to put the children's
+    /// values. Rejected up front rather than rendered as a form that silently
+    /// drops a whole branch of the request.
+    #[error("field {field_id}: nested sub-forms are not supported by the one-shot prompt renderer")]
+    NestedUnsupported { field_id: String },
 }
 
 /// Render `panel` in raw mode and return the user's response.
@@ -98,10 +111,18 @@ pub fn render_prompt(
     // so we fail fast before entering raw mode (where errors are
     // harder to surface cleanly).
     for f in &panel.fields {
-        if f.kind.is_none() {
-            return Err(PromptError::UnsupportedKind {
-                field_id: f.field_id.clone(),
-            });
+        match f.kind.as_ref() {
+            None => {
+                return Err(PromptError::UnsupportedKind {
+                    field_id: f.field_id.clone(),
+                })
+            }
+            Some(Kind::Nested(_)) => {
+                return Err(PromptError::NestedUnsupported {
+                    field_id: f.field_id.clone(),
+                })
+            }
+            Some(_) => {}
         }
     }
 
@@ -218,6 +239,10 @@ struct FieldState {
     text: String,
     /// Integer buffer (IntegerSpinner).
     integer: i64,
+    /// Decimal buffer (NumberInput).
+    number: f64,
+    /// Checked state (BooleanToggle).
+    boolean: bool,
     /// Selected index into EnumSelection.allowed_values.
     selection_index: usize,
     /// Last validation error, displayed under the field.
@@ -270,39 +295,56 @@ fn run_form<B: ratatui::backend::Backend>(
 }
 
 fn initial_state(f: &FormField) -> FieldState {
-    let (text, integer, selection_index) = match f.kind.as_ref() {
-        Some(Kind::Text(TextInput { default_value, .. })) => (default_value.clone(), 0, 0),
-        Some(Kind::Masked(MaskedInput { default_value, .. })) => (default_value.clone(), 0, 0),
-        Some(Kind::Integer(IntegerSpinner { default_value, .. })) => (String::new(), *default_value as i64, 0),
+    let mut state = FieldState {
+        field: f.clone(),
+        text: String::new(),
+        integer: 0,
+        number: 0.0,
+        boolean: false,
+        selection_index: 0,
+        error: None,
+    };
+    match f.kind.as_ref() {
+        Some(Kind::Text(TextInput { default_value, .. }))
+        | Some(Kind::Masked(MaskedInput { default_value, .. })) => {
+            state.text = default_value.clone();
+        }
+        Some(Kind::Integer(IntegerSpinner { default_value, .. })) => {
+            state.integer = *default_value as i64;
+        }
+        Some(Kind::Number(NumberInput { default_value, .. })) => {
+            state.number = *default_value;
+        }
+        Some(Kind::Boolean(BooleanToggle { default_value })) => {
+            state.boolean = *default_value;
+        }
         Some(Kind::EnumSelection(EnumSelection {
             allowed_values,
             default_value,
             ..
         })) => {
-            let idx = allowed_values
+            state.selection_index = allowed_values
                 .iter()
                 .position(|v| v == default_value)
                 .unwrap_or(0);
-            (String::new(), 0, idx)
         }
-        None => (String::new(), 0, 0),
-    };
-    FieldState {
-        field: f.clone(),
-        text,
-        integer,
-        selection_index,
-        error: None,
+        // Nested is rejected in render_prompt before any state is built.
+        Some(Kind::Nested(_)) | None => {}
     }
+    state
 }
 
 /// True for fields whose left/right/up/down keys edit them rather
 /// than navigate. EnumSelection wants Up/Down to change the choice;
-/// IntegerSpinner wants Up/Down to increment.
+/// IntegerSpinner / NumberInput want Up/Down to increment; BooleanToggle
+/// wants Up/Down to flip.
 fn is_editing_field(s: &FieldState) -> bool {
     matches!(
         s.field.kind.as_ref(),
-        Some(Kind::EnumSelection(_)) | Some(Kind::Integer(_))
+        Some(Kind::EnumSelection(_))
+            | Some(Kind::Integer(_))
+            | Some(Kind::Number(_))
+            | Some(Kind::Boolean(_))
     )
 }
 
@@ -333,6 +375,31 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
+        Some(Kind::Number(NumberInput { min, max, step, .. })) => {
+            // step == 0 means "renderer default" (proto3 omits a zero scalar).
+            let step_v = if *step == 0.0 { 1.0 } else { *step };
+            match code {
+                KeyCode::Up => {
+                    s.number += step_v;
+                    if *max != 0.0 && s.number > *max {
+                        s.number = *max;
+                    }
+                }
+                KeyCode::Down => {
+                    s.number -= step_v;
+                    if *min != 0.0 && s.number < *min {
+                        s.number = *min;
+                    }
+                }
+                _ => {}
+            }
+        }
+        Some(Kind::Boolean(_)) => match code {
+            KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::Char(' ') => {
+                s.boolean = !s.boolean;
+            }
+            _ => {}
+        },
         Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
             if allowed_values.is_empty() {
                 return;
@@ -348,7 +415,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        None => {}
+        Some(Kind::Nested(_)) | None => {}
     }
 }
 
@@ -390,7 +457,19 @@ fn validate_one(s: &FieldState) -> Option<String> {
                 None
             }
         }
-        Some(Kind::EnumSelection(_)) | None => None,
+        Some(Kind::Number(NumberInput { min, max, .. })) => {
+            if *max != 0.0 && s.number > *max {
+                Some(format!("value must be ≤ {max}"))
+            } else if *min != 0.0 && s.number < *min {
+                Some(format!("value must be ≥ {min}"))
+            } else {
+                None
+            }
+        }
+        Some(Kind::Boolean(_))
+        | Some(Kind::EnumSelection(_))
+        | Some(Kind::Nested(_))
+        | None => None,
     }
 }
 
@@ -440,13 +519,15 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
             Some(Kind::Text(_)) => FieldValue::Text(s.text.clone()),
             Some(Kind::Masked(_)) => FieldValue::Masked(s.text.clone()),
             Some(Kind::Integer(_)) => FieldValue::Integer(s.integer),
+            Some(Kind::Number(_)) => FieldValue::Number(s.number),
+            Some(Kind::Boolean(_)) => FieldValue::Boolean(s.boolean),
             Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => FieldValue::Selection(
                 allowed_values
                     .get(s.selection_index)
                     .cloned()
                     .unwrap_or_default(),
             ),
-            None => FieldValue::Text(String::new()),
+            Some(Kind::Nested(_)) | None => FieldValue::Text(String::new()),
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -569,6 +650,10 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
         Some(Kind::Text(_)) => s.text.clone(),
         Some(Kind::Masked(_)) => "*".repeat(s.text.chars().count()),
         Some(Kind::Integer(_)) => format!("{}  (↑ / ↓)", s.integer),
+        Some(Kind::Number(_)) => format!("{}  (↑ / ↓)", s.number),
+        Some(Kind::Boolean(_)) => {
+            format!("[{}]  (space)", if s.boolean { "x" } else { " " })
+        }
         Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
             let current = allowed_values
                 .get(s.selection_index)
@@ -576,7 +661,7 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
                 .unwrap_or_default();
             format!("{current}    [{}/{}]", s.selection_index + 1, allowed_values.len())
         }
-        None => String::new(),
+        Some(Kind::Nested(_)) | None => String::new(),
     };
 
     let mut lines = vec![

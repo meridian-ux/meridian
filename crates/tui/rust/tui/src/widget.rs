@@ -202,6 +202,21 @@ impl PanelView {
                 chunks[2],
                 "Form panels (entity detail sections): not yet supported in the TUI renderer.",
             ),
+            // The DETAIL view's two record-bound bodies. Both need the same
+            // fetch-one-record-then-read-dotted-paths tier the FormPanel above
+            // is waiting on, so they land together with it rather than half here.
+            Some(Body::DetailHeader(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Detail-header panels (entity detail views): not yet supported in the TUI renderer.",
+            ),
+            Some(Body::RecordCard(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Record-card panels (entity detail views): not yet supported in the TUI renderer.",
+            ),
             // ── content shapes ────────────────────────────────────────────────
             Some(Body::Choice(panel)) => {
                 self.content_len = panel.options.len();
