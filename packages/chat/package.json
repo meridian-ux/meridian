@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-chat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream (conversation.proto — the neutral promotion of botnoc chat.v1) over SSE + POST. Ships the vanilla <m-assistant-panel> web component (zero deps) and a React <Conversation>.",
   "publishConfig": {
