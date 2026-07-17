@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-launchpad",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "The command-palette / launchpad renderer of the meridian renderer family: renders a meridian.ui.v1 Launchpad descriptor (command_palette.proto) as a ⌘K palette, dispatching each Command's action through the meridian-web-react ComponentKit / RpcInvoker seam. Modality-neutral contract; React renderer tier.",
   "publishConfig": {
