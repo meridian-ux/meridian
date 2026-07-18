@@ -1,0 +1,34 @@
+# fastverk.site.v1.Feature — meridian_uiview_core (the portable Rust/wasm core).
+slug: "wasm"
+name: "meridian_uiview_core"
+status: AVAILABLE
+category: PLATFORM
+tagline: "The portable core — Rust compiled to wasm (uiview), shipping the shared interaction logic the web and TUI renderers both drive."
+order: 40
+hero {
+  eyebrow: "the portable core"
+  headline: "One core, every language."
+  accent_span: "every language."
+  subhead: "meridian_uiview_core is the Rust heart of meridian — compiled to wasm. It holds the interaction logic (filter, model, validation) as the single source of truth the renderers drive, so behavior can't fork between surfaces."
+}
+meta {
+  title: "meridian_uiview_core — the portable Rust/wasm core | meridian-ux"
+  description: "meridian_uiview_core is the portable Rust core of meridian-ux, compiled to wasm (uiview): the shared interaction logic — filter, model, validation — the web and TUI renderers both drive, so behavior agrees by construction."
+  keywords: "rust wasm"
+  keywords: "shared core"
+  keywords: "cross-platform ui logic"
+  og_generate: false
+}
+highlights: "Rust cores: launchpad filter · conversation model · form validation"
+highlights: "Compiles to wasm for the web and links into the TUI"
+highlights: "Rust ⇄ TypeScript twins agree by construction"
+highlights: "seq==0 = unsequenced (proto3 zero-scalar semantics)"
+
+sections {
+  eyebrow: "why a core"
+  title: "Renderers draw. They don't decide."
+  subtitle: "Ranking, validation, upsert, and dedupe live once — the behavior a user feels, shared across every surface."
+  callout {
+    text: "A renderer only turns state into pixels. Because the decisions live in one wasm-shared core, adding a fifth surface means writing a renderer, not re-deriving how a launchpad ranks or a form validates."
+  }
+}

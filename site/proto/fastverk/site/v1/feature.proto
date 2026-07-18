@@ -1,0 +1,209 @@
+syntax = "proto3";
+
+// The feature-as-code contract. Every fastverk plugin/feature repo carries one
+// fastverk.site.v1.Feature at marketing/feature.textproto; the fastverk/site
+// build harvests them into a FeatureCatalog and renders:
+//   - /features            (index of every feature)
+//   - /features/<slug>     (one page per feature: its own hero + full metadata)
+//
+// This crosses a repo boundary (plugin-* -> site), so it is a proto, not YAML.
+// "Has a valid feature.textproto" is a RepoReadiness criterion, so the marketing
+// site cannot drift from what the plugins actually ship.
+package fastverk.site.v1;
+
+option go_package = "github.com/fastverk/site/gen/fastverk/site/v1;sitev1";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  AVAILABLE = 1;
+  PREVIEW = 2;
+  PLANNED = 3;
+}
+
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  BUILD = 1;        // RBE, cache, registry, builds
+  CODE = 2;         // polyglot, depot, modgraph
+  AGENTS = 3;       // fleet, chat, agent-coord
+  FORGE = 4;        // forge, org, planning
+  WORKSPACES = 5;   // workspaces, ws-proxy
+  COMPLIANCE = 6;   // compliance, audit
+  PLATFORM = 7;     // cross-cutting substrate
+}
+
+// The per-feature hero — its own headline in the site's voice.
+message FeatureHero {
+  string eyebrow = 1;       // e.g. "code intelligence"
+  string headline = 2;      // e.g. "Search every repo like one codebase."
+  string accent_span = 3;   // substring of headline to render in the amber gradient
+  string subhead = 4;
+}
+
+// Everything a feature page's <head> needs. Nothing renders without full metadata.
+message FeatureMeta {
+  string title = 1;             // <title> + og:title
+  string description = 2;       // <meta description> + og:description
+  string canonical = 3;         // absolute canonical URL (default https://fastverk.com/features/<slug>)
+  repeated string keywords = 4;
+  string og_image = 5;          // path under /assets/og/; generated if og_generate
+  bool og_generate = 6;         // render a per-feature OG card from hero + name
+}
+
+message Cta {
+  string label = 1;
+  string href = 2;
+  bool primary = 3;
+}
+
+message Media {
+  string src = 1;               // path under /assets/ (screenshot / panel capture)
+  string alt = 2;
+  string caption = 3;
+}
+
+// Structured page body. A oneof of typed blocks — no raw HTML across the boundary;
+// each block maps to an Astro component.
+message FeatureBlock {
+  message Prose  { string markdown = 1; }
+  message Bullets { string title = 1; repeated string items = 2; }
+  message Code   { string language = 1; string source = 2; string caption = 3; }
+  message Panel  { string title = 1; string meta = 2; repeated string rows = 3; }  // meridian-style
+  message Steps  { string title = 1; repeated string steps = 2; }
+  oneof block {
+    Prose prose = 1;
+    Bullets bullets = 2;
+    Code code = 3;
+    Panel panel = 4;
+    Steps steps = 5;
+  }
+}
+
+// ── Rich marketing sections (showcase feature pages, e.g. compliance) ─────────
+// Beyond the simple `body` blocks: typed sections that render as meridian-style
+// mockups — stat tiles, status tables, coverage matrices, evidence streams,
+// comparison tables. Marketing-only; the real console UI lands in the plugin later.
+
+enum CellStatus {
+  CELL_STATUS_UNSPECIFIED = 0;
+  OK = 1;       // green
+  WARN = 2;     // amber
+  FAIL = 3;     // red
+  INFO = 4;     // neutral
+  PENDING = 5;  // in-progress
+  NA = 6;       // not applicable
+}
+
+message Stat {
+  string value = 1;   // "17", "0", "SOC 2"
+  string label = 2;   // "controls covered"
+  string note = 3;    // optional sub-note
+}
+message StatRow { repeated Stat stats = 1; }
+
+message BulletList {
+  string title = 1;
+  repeated string items = 2;
+}
+
+message PanelCell {
+  string text = 1;
+  CellStatus status = 2;  // renders a status pill when set
+  bool mono = 3;
+}
+message PanelRow { repeated PanelCell cells = 1; }
+
+// A meridian-style panel mockup: header + columns + rows of typed cells + footer.
+message RichPanel {
+  string title = 1;             // meridian-uiview-header
+  string meta = 2;              // sub-meta line
+  string badge = 3;             // optional top-right badge ("live", "WORM", …)
+  repeated string columns = 4;  // header row
+  repeated PanelRow rows = 5;
+  repeated Stat footer = 6;     // footer stat chips
+}
+
+message CoverageItem {
+  string label = 1;
+  int32 covered = 2;
+  int32 total = 3;
+  CellStatus status = 4;
+  string note = 5;
+}
+message Coverage { repeated CoverageItem items = 1; }
+
+// An evidence/activity timeline (content-addressed events).
+message StreamEvent {
+  string source = 1;  // "hermetic RBE build", "merge gate", "token broker"
+  string text = 2;
+  string hash = 3;    // content hash (BLAKE3 …)
+  string time = 4;
+  CellStatus status = 5;
+}
+message Stream { repeated StreamEvent events = 1; }
+
+message Step {
+  string title = 1;
+  string text = 2;
+}
+message Steps { repeated Step steps = 1; }
+
+// A comparison table (fastverk vs the incumbent).
+message CompareRow {
+  string label = 1;
+  string ours = 2;
+  string theirs = 3;
+  bool ours_good = 4;  // check vs cross styling
+}
+message Compare {
+  string ours_label = 1;
+  string theirs_label = 2;
+  repeated CompareRow rows = 3;
+}
+
+message Callout {
+  string text = 1;
+  string cite = 2;
+}
+
+message FeatureSection {
+  string eyebrow = 1;
+  string title = 2;
+  string subtitle = 3;
+  oneof body {
+    string prose = 4;      // markdown
+    StatRow stats = 5;
+    RichPanel panel = 6;
+    Coverage coverage = 7;
+    Stream stream = 8;
+    Steps steps = 9;
+    Compare compare = 10;
+    Callout callout = 11;
+    BulletList bullets = 12;
+  }
+}
+
+message Feature {
+  string slug = 1;              // url + filename key, e.g. "polyglot"
+  string name = 2;             // display name, e.g. "Polyglot"
+  Status status = 3;
+  Category category = 4;
+  string tagline = 5;          // one line for the /features index card
+
+  FeatureHero hero = 6;
+  FeatureMeta meta = 7;
+  repeated FeatureBlock body = 8;
+  repeated Cta ctas = 9;
+  repeated Media media = 10;
+
+  string plugin_repo = 11;      // github.com/fastverk/plugin-<name>
+  repeated string mcp_tools = 12; // agent-callable tools this feature exposes
+  repeated string highlights = 13; // 3-5 bullets for the index card + hero rail
+  int32 order = 14;            // sort weight on the index
+  repeated FeatureSection sections = 15; // rich marketing sections (showcase pages)
+}
+
+// The aggregated artifact the site build consumes (tools/collect_features.py).
+message FeatureCatalog {
+  repeated Feature features = 1;
+  string generated_from = 2;   // provenance: the lockfile / commit set harvested
+}

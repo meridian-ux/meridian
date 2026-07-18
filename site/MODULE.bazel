@@ -1,0 +1,24 @@
+"""meridian-ux/site — the meridian-ux.dev marketing site, built hermetically on Bazel (9.x) via rules_astro."""
+module(name = "meridian_ux_site", version = "0.1.0")
+
+# Built on Bazel 9 (.bazelversion). rules_astro 0.0.1 pins aspect_rules_js 2.1.3 /
+# rules_nodejs 6.3.0 / an older aspect_bazel_lib, which predate Bazel 9; we raise
+# the whole aspect line to the workspace-standard, Bazel-9-compatible versions
+# (bzlmod highest-version-wins overrides rules_astro's transitive pins). In
+# particular the old aspect_bazel_lib used a rule() kwarg Bazel 9 removed.
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+bazel_dep(name = "rules_astro", version = "0.0.1")  # from registry.tbzl.dev (.bazelrc)
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "20.11.1")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    npmrc = "//:.npmrc",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+use_repo(npm, "npm")

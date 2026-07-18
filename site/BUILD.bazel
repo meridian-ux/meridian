@@ -1,0 +1,39 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//:astro/package_json.bzl", astro_bin = "bin")
+load("@rules_astro//astro:defs.bzl", "astro_dev", "astro_site")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "package.json",
+    "package-lock.json",
+    ".npmrc",
+    ".bazelignore",
+])
+
+npm_link_all_packages(name = "node_modules")
+
+# The astro CLI as a hermetic js_binary tool.
+astro_bin.astro_binary(name = "astro_tool")
+
+# bazel build //:build  ->  bazel-bin/build/ (the static dist tree)
+astro_site(
+    name = "build",
+    srcs = glob(
+        ["src/**", "public/**"],
+        exclude = ["**/.DS_Store"],
+    ) + [
+        "package.json",
+        "tsconfig.json",
+    ],
+    astro_bin = ":astro_tool",
+    node_modules = ":node_modules",
+)
+
+# bazel run //:dev  ->  local Astro dev server
+astro_dev(
+    name = "dev",
+    srcs = glob(["src/**", "public/**"]) + ["package.json", "tsconfig.json"],
+    astro_bin = ":astro_tool",
+    node_modules = ":node_modules",
+)

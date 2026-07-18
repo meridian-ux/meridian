@@ -1,0 +1,15 @@
+---
+const { events = [] } = Astro.props;
+---
+<div class="stream">
+  {events.map((e) => (
+    <div class={`sevent ${e.status === "OK" ? "ok" : ""}`}>
+      <div class="src">{e.source}</div>
+      <div class="st">{e.text}</div>
+      <div class="sm">
+        {e.hash && <span class="h">{e.hash}</span>}
+        {e.time && <span>{e.time}</span>}
+      </div>
+    </div>
+  ))}
+</div>

@@ -1,0 +1,31 @@
+---
+import Base from "../../layouts/Base.astro";
+import catalog from "../../content/features.json";
+
+const title = "Products — the tomato-bazel source & build layer";
+const description = "Truss, modgraph, the tbzl CLI, buildbarn RBE, the module registry, and tap — every piece of the tbzl.dev source & build layer, each with its own page.";
+const features = catalog.features;
+---
+<Base title={title} description={description}>
+  <section class="feature-hero">
+    <span class="eyebrow">the console</span>
+    <h1>Every capability is a <span class="grad-text">plugin.</span></h1>
+    <p class="sub">One console aggregates {features.length} narrowly-scoped services — build, code, agents, workspaces, compliance. Each is discovered at runtime, and each has its own page.</p>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="feature-grid">
+      {features.map((f) => (
+        <a class="fcard" href={`/features/${f.slug}`}>
+          <div class="top">
+            <span class="fname">{f.name}</span>
+            <span class={`pill ${(f.status || "available").toLowerCase()}`}>{(f.status || "available").toLowerCase()}</span>
+          </div>
+          <span class="cat">{f.category?.toLowerCase()}</span>
+          <p class="ftag">{f.tagline}</p>
+          <span class="more">Learn more →</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>
