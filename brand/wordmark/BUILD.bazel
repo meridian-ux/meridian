@@ -1,0 +1,29 @@
+load("@brando//:defs.bzl", "brand_wordmark")
+
+package(default_visibility = ["//visibility:public"])
+
+# "meridian" wordmark + mark/wordmark lockups, in Space Grotesk, via brando's
+# generic wordmark tool. The composite mark is pre-rendered by //gen (SVG) +
+# //icons (PNG) and composited into the lockups.
+brand_wordmark(
+    name = "wordmark_set",
+    config = "wordmark.json",
+    mark_png = "//icons:meridian_mark_512.png",
+    mark_svg = "//gen:meridian_mark.svg",
+    medium_ttf = "//fonts:SpaceGrotesk-Medium.ttf",
+    outs = [
+        "wordmark_dark.svg",
+        "wordmark_dark.png",
+        "wordmark_light.svg",
+        "wordmark_light.png",
+        "lockup_dark.svg",
+        "lockup_dark.png",
+        "lockup_light.svg",
+        "lockup_light.png",
+        "lockup_tag_dark.svg",
+        "lockup_tag_dark.png",
+        "lockup_tag_light.svg",
+        "lockup_tag_light.png",
+    ],
+    semibold_ttf = "//fonts:SpaceGrotesk-SemiBold.ttf",
+)

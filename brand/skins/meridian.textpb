@@ -1,0 +1,69 @@
+# The meridian-ux brand identity as a meridian.theme.v1.Theme.
+#
+# This is the canonical meridian *skin*: one Theme, authored once, that drives
+# every meridian renderer identically — the web console (applyTheme), the macOS
+# SwiftUI app, the iOS console, and the ratatui TUI. meridian itself stays
+# brand-neutral; the brand lives here. Because meridian-ux *is* the framework
+# that renders themes, its own identity is a first-class Theme, not a bolt-on.
+#
+# Tokens mirror the canonical meridian palette (gen/gen_mark.py + the sites):
+#   ink #131419 · surface #191B22 · paper #E9EAF3 · azure #6E8BFF ·
+#   violet #9A7CF0 · cyan #3ED9E0 · muted #8F91A6 · font Space Grotesk.
+# The signature is the cool azure→violet — distinct from fastverk's warm amber
+# and tomato-bazel's tomato, yet a band of the same refraction spectrum.
+#
+# Validated against @meridian//proto:theme.proto by //skins (protoc --encode);
+# compiled to meridian.binpb and meridian.json.
+
+id: "meridian"
+display_name: "meridian"
+
+# Dark is the canonical meridian look (cool ink ground, cool paper ink, azure
+# accent stepping to violet).
+dark {
+  bg: "#131419"            # ink
+  surface: "#191B22"       # raised surface (panels / cards)
+  fg: "#E9EAF3"            # cool paper
+  muted: "#8F91A6"         # cool grey meta text
+  border: "#262A34"        # hairline
+  accent: "#6E8BFF"        # meridian azure (links, selection, primary action)
+  accent_strong: "#9A7CF0" # violet (gradient end / pressed)
+  on_accent: "#0B0D1A"     # ink text on an azure fill
+  danger: "#F0654A"
+  success: "#57D98B"
+  code_bg: "#191B22"
+  code_fg: "#B9C4FF"       # azure-tinted code
+}
+
+# Light variant: cool paper ground, ink ink. Azure deepens so it carries
+# contrast on the light field; on_accent flips to white.
+light {
+  bg: "#EDEFF6"            # cool paper
+  surface: "#FFFFFF"       # raised white
+  fg: "#191B22"            # ink
+  muted: "#6B6E82"         # muted ink
+  border: "#DADCE8"
+  accent: "#5A6FE0"        # deepened azure reads on paper
+  accent_strong: "#191B22"
+  on_accent: "#FFFFFF"     # white text on the accent fill
+  danger: "#CF4030"
+  success: "#2E9E63"
+  code_bg: "#F3F4FA"
+  code_fg: "#3A2E7A"       # deep violet code
+}
+
+typography {
+  # Space Grotesk is the brand face; fall back through a system sans stack so
+  # surfaces without the font bundled still read on-brand-ish.
+  sans: "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+  mono: "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace"
+  base_size_px: 14
+  heading_weight: 600     # Space Grotesk SemiBold (the brand wordmark weight)
+  body_weight: 400
+  heading_tracking: "-0.015"
+}
+
+metrics {
+  radius_px: 8
+  unit_px: 4
+}

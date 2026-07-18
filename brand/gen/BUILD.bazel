@@ -1,0 +1,49 @@
+load("@meridian_brand_pip//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# The canonical meridian mark construction (shapely beam segments). EMISSION goes
+# through @brando//marklib (the reusable layered-SVG / rounded-tile convention).
+py_library(
+    name = "gen_mark_lib",
+    srcs = ["gen_mark.py"],
+    imports = ["."],
+    deps = [
+        "@brando//marklib",
+        requirement("shapely"),
+    ],
+)
+
+py_binary(
+    name = "gen_mark",
+    srcs = ["gen_mark.py"],
+    imports = ["."],
+    deps = [
+        "@brando//marklib",
+        requirement("shapely"),
+    ],
+)
+
+# Hermetic rasterizer (brando's Pillow helpers draw the beam polygons).
+py_binary(
+    name = "raster",
+    srcs = ["raster.py"],
+    imports = ["."],
+    deps = [
+        ":gen_mark_lib",
+        "@brando//marklib:raster",
+        requirement("pillow"),
+    ],
+)
+
+# Canonical composite mark SVGs (dark + light). Keep in sync with gen_mark.py.
+genrule(
+    name = "svgs",
+    outs = [
+        "meridian_mark.svg",
+        "meridian_light_mark.svg",
+    ],
+    cmd = "$(execpath :gen_mark) $(RULEDIR)",
+    tools = [":gen_mark"],
+)

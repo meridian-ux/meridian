@@ -1,0 +1,48 @@
+# meridian-brand — the meridian-ux visual identity: meridian CONTENT (the
+# refracted-light "M" mark geometry, palette, wordmark text, and the
+# meridian.theme.v1 skin) consuming the reusable brand pipeline from @brando.
+# brando holds the machinery; this repo holds only what is meridian-ux.
+#
+# meridian-ux is the declarative, cross-modal console UI framework. Its own skin
+# is a `meridian.theme.v1.Theme` — the very contract the framework renders — so
+# the brand ships as a first-class artifact, not just a logo.
+#
+# Hermetic: the mark generator runs in-build as a py_binary (rules_python + a pip
+# lock pulling shapely/pillow wheels) importing @brando//marklib, so
+# `bazel build //...` regenerates every SVG, raster, icon, and the wordmark from
+# one source. The skin textproto is validated against meridian's theme.proto.
+module(
+    name = "meridian_brand",
+    version = "0.0.1",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_python", version = "1.7.0")
+
+# brando — the reusable brand pipeline (marklib + brand_skin/brand_svgs/
+# brand_icons/brand_wordmark). Resolved from the fastverk registry
+# (mattmarshall/brando).
+bazel_dep(name = "brando", version = "0.0.1")
+
+# meridian — depended on ONLY for the theme SCHEMA (@meridian//proto:theme.proto):
+# //skins compiles meridian.textpb against it via brando's brand_skin
+# (protoc --encode). protobuf provides protoc for the encode + validation gate.
+bazel_dep(name = "meridian", version = "0.2.3")
+bazel_dep(name = "protobuf", version = "33.4")
+
+# ─── hermetic Python (the mark generator + rasterizer) ──────────────
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.12",
+)
+use_repo(python, "python_3_12")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "meridian_brand_pip",
+    python_version = "3.12",
+    requirements_lock = "//:requirements.txt",
+)
+use_repo(pip, "meridian_brand_pip")

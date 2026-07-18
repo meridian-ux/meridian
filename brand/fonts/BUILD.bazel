@@ -1,0 +1,7 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "SpaceGrotesk-Medium.ttf",
+    "SpaceGrotesk-SemiBold.ttf",
+    "OFL.txt",
+])

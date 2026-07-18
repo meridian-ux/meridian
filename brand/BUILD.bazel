@@ -1,0 +1,26 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["requirements.txt"])
+
+# Canonical mark SVGs (dark + light).
+filegroup(
+    name = "svgs",
+    srcs = ["//gen:svgs"],
+)
+
+# Org-avatar / app-icon raster set (PNG + .icns/.ico, dark + light).
+filegroup(
+    name = "icons",
+    srcs = ["//icons:icon_set"],
+)
+
+# Everything: the skin (binpb + json), vectors, icons, and the wordmark lockups.
+filegroup(
+    name = "all",
+    srcs = [
+        ":icons",
+        ":svgs",
+        "//skins:meridian",
+        "//wordmark:wordmark_set",
+    ],
+)

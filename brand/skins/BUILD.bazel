@@ -1,0 +1,23 @@
+"""meridian skin for meridian — the brand identity as a meridian.theme.v1.Theme.
+
+`skins/meridian.textpb` authors the meridian look ONCE as a Theme textproto
+(validated against meridian's schema). brando's brand_skin compiles it to the two
+wire forms every meridian renderer consumes:
+
+  * `//skins:meridian_binpb` -> meridian.binpb : canonical binary Theme (native
+    decoders: TUI Palette::from_theme, Swift, JavaFX), or a plugin resource.
+  * `//skins:meridian_json`  -> meridian.json  : proto3-JSON twin for the web
+    binding — `import meridian from ".../meridian.json"; applyTheme(meridian)`.
+
+meridian stays brand-neutral; the brand (this textproto) lives here. The schema
+contract is `@meridian//proto:theme.proto`; the pipeline is @brando//skins.
+"""
+
+load("@brando//:defs.bzl", "brand_skin")
+
+package(default_visibility = ["//visibility:public"])
+
+brand_skin(
+    name = "meridian",
+    textpb = "meridian.textpb",
+)
