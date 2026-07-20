@@ -1,0 +1,1044 @@
+{
+  "entries": [
+    {
+      "group": "Resources",
+      "kind": "list",
+      "label": "layouts — list",
+      "name": "layout.list",
+      "view": {
+        "id": "layout-list",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "route": "/layouts",
+        "slots": [
+          {
+            "id": "content",
+            "panel": {
+              "panelId": "layout-list",
+              "table": {
+                "columns": [
+                  {
+                    "fieldPath": "name",
+                    "format": "STRING",
+                    "header": "Name"
+                  },
+                  {
+                    "fieldPath": "view",
+                    "format": "ENUM_NAME",
+                    "header": "View"
+                  },
+                  {
+                    "fieldPath": "resource_id",
+                    "format": "STRING",
+                    "header": "Resource Id"
+                  },
+                  {
+                    "fieldPath": "service",
+                    "format": "STRING",
+                    "header": "Service"
+                  },
+                  {
+                    "fieldPath": "method",
+                    "format": "STRING",
+                    "header": "Method"
+                  },
+                  {
+                    "fieldPath": "layout_hash",
+                    "format": "STRING",
+                    "header": "Layout Hash"
+                  }
+                ],
+                "itemNoun": "layout",
+                "pagination": {
+                  "cursorRequestField": "page_token",
+                  "limitRequestField": "page_size",
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "nextCursorField": "next_page_token",
+                  "pageSize": 50
+                },
+                "placeholder": "No layouts yet.",
+                "populate": {
+                  "method": "ListLayouts",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "rowsField": "layouts"
+              }
+            }
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Layout",
+        "title": "Layouts"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "detail",
+      "label": "layout — detail",
+      "name": "layout.detail",
+      "view": {
+        "id": "layout-detail",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/layouts/{id}",
+        "slots": [
+          {
+            "id": "header",
+            "panel": {
+              "detailHeader": {
+                "idField": "name",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetLayout",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "statusSourcePath": "view",
+                "titleSourcePath": "name"
+              },
+              "panelId": "layout-header"
+            }
+          },
+          {
+            "id": "details",
+            "panel": {
+              "panelId": "layout-card",
+              "recordCard": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "requestField": "name",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "enumSelection": {
+                      "allowedValues": [
+                        "LAYOUT_VIEW_LIST",
+                        "LAYOUT_VIEW_DETAIL",
+                        "LAYOUT_VIEW_CREATE",
+                        "LAYOUT_VIEW_EDIT",
+                        "LAYOUT_VIEW_INVOKE",
+                        "LAYOUT_VIEW_SERVICE_OVERVIEW"
+                      ]
+                    },
+                    "fieldId": "view",
+                    "label": "View",
+                    "requestField": "view"
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "resource_id",
+                    "label": "Resource Id",
+                    "requestField": "resource_id",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "service",
+                    "label": "Service",
+                    "requestField": "service",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "method",
+                    "label": "Method",
+                    "requestField": "method",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "layout_hash",
+                    "label": "Layout Hash",
+                    "requestField": "layout_hash",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "source",
+                    "label": "Source",
+                    "requestField": "source",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "model_id",
+                    "label": "Model Id",
+                    "requestField": "model_id",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "projector_version",
+                    "label": "Projector Version",
+                    "requestField": "projector_version",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "view_descriptor",
+                    "label": "View Descriptor",
+                    "nested": {
+                      "fields": [
+                        {
+                          "fieldId": "view_descriptor.id",
+                          "label": "Id *",
+                          "requestField": "view_descriptor.id",
+                          "text": {}
+                        },
+                        {
+                          "fieldId": "view_descriptor.title",
+                          "label": "Title *",
+                          "requestField": "view_descriptor.title",
+                          "text": {}
+                        },
+                        {
+                          "fieldId": "view_descriptor.route",
+                          "label": "Route",
+                          "requestField": "view_descriptor.route",
+                          "text": {}
+                        },
+                        {
+                          "fieldId": "view_descriptor.subject_kind",
+                          "label": "Subject Kind",
+                          "requestField": "view_descriptor.subject_kind",
+                          "text": {}
+                        },
+                        {
+                          "enumSelection": {
+                            "allowedValues": [
+                              "VIEW_KIND_LIST",
+                              "VIEW_KIND_DETAIL"
+                            ]
+                          },
+                          "fieldId": "view_descriptor.kind",
+                          "label": "Kind",
+                          "requestField": "view_descriptor.kind"
+                        },
+                        {
+                          "fieldId": "view_descriptor.layout",
+                          "label": "Layout *",
+                          "nested": {},
+                          "requestField": "view_descriptor.layout"
+                        },
+                        {
+                          "fieldId": "view_descriptor.subject_id",
+                          "label": "Subject Id",
+                          "requestField": "view_descriptor.subject_id",
+                          "text": {}
+                        }
+                      ]
+                    },
+                    "requestField": "view_descriptor"
+                  }
+                ],
+                "idField": "name",
+                "itemNoun": "layout",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetLayout",
+                  "service": "meridian.proto.v1.ProjectionService"
+                }
+              },
+              "title": "Details"
+            },
+            "position": 1
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Layout",
+        "title": "Layout"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "list",
+      "label": "resources — list",
+      "name": "resource.list",
+      "view": {
+        "id": "resource-list",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "route": "/resources",
+        "slots": [
+          {
+            "id": "content",
+            "panel": {
+              "panelId": "resource-list",
+              "table": {
+                "columns": [
+                  {
+                    "fieldPath": "name",
+                    "format": "STRING",
+                    "header": "Name"
+                  },
+                  {
+                    "fieldPath": "confidence",
+                    "format": "ENUM_NAME",
+                    "header": "Confidence"
+                  },
+                  {
+                    "fieldPath": "id",
+                    "format": "STRING",
+                    "header": "Id"
+                  },
+                  {
+                    "fieldPath": "resource_type",
+                    "format": "STRING",
+                    "header": "Resource Type"
+                  },
+                  {
+                    "fieldPath": "message_type",
+                    "format": "STRING",
+                    "header": "Message Type"
+                  },
+                  {
+                    "fieldPath": "singular",
+                    "format": "STRING",
+                    "header": "Singular"
+                  }
+                ],
+                "itemNoun": "resource",
+                "pagination": {
+                  "cursorRequestField": "page_token",
+                  "limitRequestField": "page_size",
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "nextCursorField": "next_page_token",
+                  "pageSize": 50
+                },
+                "placeholder": "No resources yet.",
+                "populate": {
+                  "method": "ListResources",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "rowsField": "resources"
+              }
+            }
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Resource",
+        "title": "Resources"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "detail",
+      "label": "resource — detail",
+      "name": "resource.detail",
+      "view": {
+        "id": "resource-detail",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/resources/{id}",
+        "slots": [
+          {
+            "id": "header",
+            "panel": {
+              "detailHeader": {
+                "idField": "name",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetResource",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "statusSourcePath": "confidence",
+                "subtitleSourcePath": "description",
+                "titleSourcePath": "name"
+              },
+              "panelId": "resource-header"
+            }
+          },
+          {
+            "id": "details",
+            "panel": {
+              "panelId": "resource-card",
+              "recordCard": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "requestField": "name",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "id",
+                    "label": "Id",
+                    "requestField": "id",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "resource_type",
+                    "label": "Resource Type",
+                    "requestField": "resource_type",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "message_type",
+                    "label": "Message Type",
+                    "requestField": "message_type",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "singular",
+                    "label": "Singular",
+                    "requestField": "singular",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "plural",
+                    "label": "Plural",
+                    "requestField": "plural",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "patterns",
+                    "label": "Patterns",
+                    "requestField": "patterns",
+                    "text": {
+                      "patternErrorMsg": "comma-separated values"
+                    }
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "parent",
+                    "label": "Parent",
+                    "requestField": "parent",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "identity_field",
+                    "label": "Identity Field",
+                    "requestField": "identity_field",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "list_method",
+                    "label": "List Method",
+                    "nested": {},
+                    "requestField": "list_method"
+                  },
+                  {
+                    "fieldId": "get_method",
+                    "label": "Get Method",
+                    "nested": {},
+                    "requestField": "get_method"
+                  },
+                  {
+                    "fieldId": "create_method",
+                    "label": "Create Method",
+                    "nested": {},
+                    "requestField": "create_method"
+                  },
+                  {
+                    "fieldId": "update_method",
+                    "label": "Update Method",
+                    "nested": {},
+                    "requestField": "update_method"
+                  },
+                  {
+                    "fieldId": "delete_method",
+                    "label": "Delete Method",
+                    "nested": {},
+                    "requestField": "delete_method"
+                  },
+                  {
+                    "description": "set by the server",
+                    "enumSelection": {
+                      "allowedValues": [
+                        "CONFIDENCE_ANNOTATED",
+                        "CONFIDENCE_INFERRED",
+                        "CONFIDENCE_WEAK"
+                      ]
+                    },
+                    "fieldId": "confidence",
+                    "label": "Confidence",
+                    "requestField": "confidence"
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "struct_hash",
+                    "label": "Struct Hash",
+                    "requestField": "struct_hash",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "doc_hash",
+                    "label": "Doc Hash",
+                    "requestField": "doc_hash",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "description",
+                    "label": "Description",
+                    "requestField": "description",
+                    "text": {}
+                  }
+                ],
+                "idField": "name",
+                "itemNoun": "resource",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetResource",
+                  "service": "meridian.proto.v1.ProjectionService"
+                }
+              },
+              "title": "Details"
+            },
+            "position": 1
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Resource",
+        "title": "Resource"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "list",
+      "label": "services — list",
+      "name": "service.list",
+      "view": {
+        "id": "service-list",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "route": "/services",
+        "slots": [
+          {
+            "id": "content",
+            "panel": {
+              "panelId": "service-list",
+              "table": {
+                "columns": [
+                  {
+                    "fieldPath": "name",
+                    "format": "STRING",
+                    "header": "Name"
+                  },
+                  {
+                    "fieldPath": "service_id",
+                    "format": "STRING",
+                    "header": "Service Id"
+                  },
+                  {
+                    "fieldPath": "file",
+                    "format": "STRING",
+                    "header": "File"
+                  },
+                  {
+                    "fieldPath": "proto_package",
+                    "format": "STRING",
+                    "header": "Proto Package"
+                  },
+                  {
+                    "fieldPath": "description",
+                    "format": "STRING",
+                    "header": "Description"
+                  }
+                ],
+                "itemNoun": "service",
+                "pagination": {
+                  "cursorRequestField": "page_token",
+                  "limitRequestField": "page_size",
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "nextCursorField": "next_page_token",
+                  "pageSize": 50
+                },
+                "placeholder": "No services yet.",
+                "populate": {
+                  "method": "ListServices",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "rowsField": "services"
+              }
+            }
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Service",
+        "title": "Services"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "detail",
+      "label": "service — detail",
+      "name": "service.detail",
+      "view": {
+        "id": "service-detail",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/services/{id}",
+        "slots": [
+          {
+            "id": "header",
+            "panel": {
+              "detailHeader": {
+                "idField": "name",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetService",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "subtitleSourcePath": "description",
+                "titleSourcePath": "name"
+              },
+              "panelId": "service-header"
+            }
+          },
+          {
+            "id": "details",
+            "panel": {
+              "panelId": "service-card",
+              "recordCard": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "requestField": "name",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "service_id",
+                    "label": "Service Id",
+                    "requestField": "service_id",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "file",
+                    "label": "File",
+                    "requestField": "file",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "proto_package",
+                    "label": "Proto Package",
+                    "requestField": "proto_package",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "description",
+                    "label": "Description",
+                    "requestField": "description",
+                    "text": {}
+                  }
+                ],
+                "idField": "name",
+                "itemNoun": "service",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetService",
+                  "service": "meridian.proto.v1.ProjectionService"
+                }
+              },
+              "title": "Details"
+            },
+            "position": 1
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Service",
+        "title": "Service"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "list",
+      "label": "targets — list",
+      "name": "target.list",
+      "view": {
+        "id": "target-list",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "route": "/targets",
+        "slots": [
+          {
+            "id": "content",
+            "panel": {
+              "panelId": "target-list",
+              "table": {
+                "actions": [
+                  {
+                    "label": "Refresh Target",
+                    "refreshOnSuccess": true,
+                    "rpc": {
+                      "bindings": [
+                        {
+                          "requestField": "name",
+                          "rowField": "name"
+                        }
+                      ],
+                      "method": "RefreshTarget",
+                      "service": "meridian.proto.v1.ProjectionService"
+                    }
+                  }
+                ],
+                "columns": [
+                  {
+                    "fieldPath": "name",
+                    "format": "STRING",
+                    "header": "Name"
+                  },
+                  {
+                    "fieldPath": "source",
+                    "format": "ENUM_NAME",
+                    "header": "Source"
+                  },
+                  {
+                    "fieldPath": "state",
+                    "format": "ENUM_NAME",
+                    "header": "State"
+                  },
+                  {
+                    "fieldPath": "endpoint",
+                    "format": "STRING",
+                    "header": "Endpoint"
+                  },
+                  {
+                    "fieldPath": "error",
+                    "format": "STRING",
+                    "header": "Error"
+                  },
+                  {
+                    "fieldPath": "struct_hash",
+                    "format": "STRING",
+                    "header": "Struct Hash"
+                  }
+                ],
+                "itemNoun": "target",
+                "pagination": {
+                  "cursorRequestField": "page_token",
+                  "limitRequestField": "page_size",
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "nextCursorField": "next_page_token",
+                  "pageSize": 50
+                },
+                "placeholder": "No targets yet.",
+                "populate": {
+                  "method": "ListTargets",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "rowsField": "targets"
+              }
+            }
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Target",
+        "title": "Targets"
+      }
+    },
+    {
+      "group": "Resources",
+      "kind": "detail",
+      "label": "target — detail",
+      "name": "target.detail",
+      "view": {
+        "actions": [
+          {
+            "id": "target-RefreshTarget",
+            "label": "Refresh Target",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          }
+        ],
+        "id": "target-detail",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/targets/{id}",
+        "slots": [
+          {
+            "id": "header",
+            "panel": {
+              "detailHeader": {
+                "idField": "name",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetTarget",
+                  "service": "meridian.proto.v1.ProjectionService"
+                },
+                "statusSourcePath": "source",
+                "titleSourcePath": "name"
+              },
+              "panelId": "target-header"
+            }
+          },
+          {
+            "id": "details",
+            "panel": {
+              "panelId": "target-card",
+              "recordCard": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "requestField": "name",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "endpoint",
+                    "label": "Endpoint",
+                    "requestField": "endpoint",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "enumSelection": {
+                      "allowedValues": [
+                        "DESCRIPTOR_SOURCE_REFLECTION_V1",
+                        "DESCRIPTOR_SOURCE_REFLECTION_V1ALPHA",
+                        "DESCRIPTOR_SOURCE_FILE_DESCRIPTOR_SET"
+                      ]
+                    },
+                    "fieldId": "source",
+                    "label": "Source",
+                    "requestField": "source"
+                  },
+                  {
+                    "description": "set by the server",
+                    "enumSelection": {
+                      "allowedValues": [
+                        "TARGET_STATE_READY",
+                        "TARGET_STATE_UNREACHABLE",
+                        "TARGET_STATE_INVALID"
+                      ]
+                    },
+                    "fieldId": "state",
+                    "label": "State",
+                    "requestField": "state"
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "error",
+                    "label": "Error",
+                    "requestField": "error",
+                    "text": {}
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "struct_hash",
+                    "label": "Struct Hash",
+                    "requestField": "struct_hash",
+                    "text": {}
+                  },
+                  {
+                    "boolean": {},
+                    "description": "set by the server",
+                    "fieldId": "has_source_info",
+                    "label": "Has Source Info",
+                    "requestField": "has_source_info"
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "services",
+                    "label": "Services",
+                    "requestField": "services",
+                    "text": {
+                      "patternErrorMsg": "comma-separated values"
+                    }
+                  },
+                  {
+                    "description": "set by the server",
+                    "fieldId": "refresh_time",
+                    "label": "Refresh Time",
+                    "requestField": "refresh_time",
+                    "text": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$",
+                      "patternErrorMsg": "RFC 3339, e.g. 2026-07-20T09:00:00Z"
+                    }
+                  },
+                  {
+                    "boolean": {},
+                    "description": "set by the server",
+                    "fieldId": "has_annotations",
+                    "label": "Has Annotations",
+                    "requestField": "has_annotations"
+                  }
+                ],
+                "idField": "name",
+                "itemNoun": "target",
+                "populate": {
+                  "bindings": [
+                    {
+                      "literal": "{id}",
+                      "requestField": "name"
+                    }
+                  ],
+                  "method": "GetTarget",
+                  "service": "meridian.proto.v1.ProjectionService"
+                }
+              },
+              "title": "Details"
+            },
+            "position": 1
+          }
+        ],
+        "subjectKind": "meridian.savvifi.dev/Target",
+        "title": "Target"
+      }
+    },
+    {
+      "group": "Operations",
+      "kind": "invoke",
+      "label": "ResolveCommands — invoke",
+      "name": "invoke.ResolveCommands",
+      "view": {
+        "id": "invoke-ResolveCommands",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/methods/ResolveCommands",
+        "slots": [
+          {
+            "id": "request",
+            "panel": {
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "query",
+                    "label": "Query *",
+                    "requestField": "query",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "context",
+                    "label": "Context",
+                    "nested": {
+                      "fields": [
+                        {
+                          "fieldId": "context.surface",
+                          "label": "Surface",
+                          "requestField": "context.surface",
+                          "text": {}
+                        },
+                        {
+                          "fieldId": "context.locale",
+                          "label": "Locale",
+                          "requestField": "context.locale",
+                          "text": {}
+                        },
+                        {
+                          "fieldId": "context.attributes",
+                          "label": "Attributes",
+                          "nested": {},
+                          "requestField": "context.attributes"
+                        }
+                      ]
+                    },
+                    "requestField": "context"
+                  }
+                ],
+                "itemNoun": "Resolve Commands",
+                "mode": "FORM_MODE_EDIT",
+                "submit": {
+                  "bindings": [
+                    {
+                      "formField": "query",
+                      "requestField": "query"
+                    },
+                    {
+                      "formField": "context",
+                      "requestField": "context"
+                    }
+                  ],
+                  "method": "ResolveCommands",
+                  "service": "meridian.ui.v1.LayoutService"
+                }
+              },
+              "panelId": "invoke-ResolveCommands",
+              "title": "Resolve Commands"
+            }
+          }
+        ],
+        "title": "Resolve Commands"
+      }
+    },
+    {
+      "group": "Services",
+      "kind": "service_overview",
+      "label": "ProjectionService — overview",
+      "name": "service.meridian.proto.v1.ProjectionService",
+      "view": {
+        "id": "service-meridian.proto.v1.ProjectionService",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/services/meridian.proto.v1.ProjectionService",
+        "slots": [
+          {
+            "id": "graph",
+            "panel": {
+              "grammar": {
+                "alt": "4 resources, no references between them.",
+                "language": "GRAMMAR_LANGUAGE_MERMAID",
+                "source": "graph LR\n  layout[\"layout\"]\n  resource[\"resource\"]\n  service[\"service\"]\n  target[\"target\"]\n"
+              },
+              "panelId": "dependency-graph",
+              "title": "Resource graph"
+            }
+          }
+        ],
+        "title": "ProjectionService"
+      }
+    }
+  ],
+  "generatedFrom": "meridian-proto: own contract via the FileDescriptorSet path"
+}

@@ -1,5 +1,16 @@
 common --enable_bzlmod
 
+# ─── Module registries ────────────────────────────────────────────────────────
+# Declared HERE rather than inherited from a developer's ~/.bazelrc. rules_chrome
+# and rules_tectonic live in the tomato registry, and relying on a global config to
+# find them made this repo unbuildable on any machine that did not happen to have
+# the right registry list — which is exactly what happened after the workspace reorg
+# moved the fastverk registry path a global rc still pointed at. Every other meridian
+# repo declares its own registries; this one had not.
+common --registry=https://registry.tbzl.dev/
+common --registry=https://registry.fastverk.com/
+common --registry=https://bcr.bazel.build/
+
 # Registries (fastverk for rules_chrome / rules_tectonic, BCR for the rest) +
 # the GitHub credential helper for hermetic binary fetches are provided by the
 # machine/CI ~/.bazelrc (same setup the meridian repos build under).
