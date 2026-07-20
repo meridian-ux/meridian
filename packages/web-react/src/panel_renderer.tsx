@@ -131,6 +131,20 @@ export function PanelRenderer({
         <kit.Fallback descriptor={descriptor} />
       );
       break;
+    case "steps":
+      inner = kit.Steps ? (
+        <kit.Steps panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "media":
+      inner = kit.Media ? (
+        <kit.Media panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
     case "adhoc": {
       const Adhoc = adhoc[body.value.handlerId];
       inner = Adhoc ? (

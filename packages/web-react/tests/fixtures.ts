@@ -16,6 +16,8 @@ import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -279,6 +281,64 @@ export const FIXTURES: Fixture[] = [
           previous: 1180,
           series: [1180, 1200, 1220, 1240],
           higherIsBetter: true,
+        }),
+      },
+    }),
+  },
+  {
+    name: "steps",
+    shape: "steps",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "create_sponsor",
+      title: "Create a sponsor",
+      body: {
+        case: "steps",
+        value: create(StepsPanelSchema, {
+          intro: "Add an employer and confirm a colleague can see it.",
+          steps: [
+            {
+              label: "Open the Sponsors page",
+              detail: "The list of every employer your organization administers.",
+              actor: "Admin",
+              mediaUri: "/evidence/sponsors.png",
+              mediaAlt: "The sponsors list",
+            },
+            {
+              label: "Add a new sponsor",
+              detail: "Name it, then set Status to Active and Kind to Customer.",
+              actor: "Admin",
+            },
+            {
+              label: "Confirm a colleague sees it",
+              detail: "Everyone in your organization shares one sponsor list.",
+              actor: "Manager",
+            },
+          ],
+          outro: "The sponsor is now visible to your whole team.",
+        }),
+      },
+    }),
+  },
+  {
+    name: "media",
+    shape: "media",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "walkthrough_video",
+      title: "Walkthrough",
+      body: {
+        case: "media",
+        value: create(MediaPanelSchema, {
+          kind: MediaKind.VIDEO,
+          srcUri: "/evidence/golden-path.mp4",
+          posterUri: "/evidence/golden-path.png",
+          captionsUri: "/evidence/golden-path.vtt",
+          alt: "A four-minute walkthrough of creating a sponsor.",
+          durationMs: 252000,
+          caption: "Narrated from a live run.",
+          chapters: [
+            { startMs: 0, label: "Open the page" },
+            { startMs: 65000, label: "Add the sponsor" },
+          ],
         }),
       },
     }),
