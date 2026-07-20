@@ -33,4 +33,6 @@ export {
   ConnectFlowView,
   GrammarView,
   StatView,
+  StepsView,
+  MediaView,
 } from "./components/content.js";

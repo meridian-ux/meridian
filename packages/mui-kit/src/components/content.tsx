@@ -13,7 +13,7 @@
 // Copy uses navigator.clipboard (guarded); selection + reveal are real React
 // state (this is a client kit, jsdom-tested). Look comes from the MUI theme.
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 
 import {
@@ -21,6 +21,7 @@ import {
   Button,
   Card,
   CardContent,
+  Avatar,
   Chip,
   IconButton,
   Link,
@@ -53,6 +54,10 @@ import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { MeridianAssetContext } from "../asset_context.js";
 
 function copyText(text: string): void {
   try {
@@ -428,5 +433,228 @@ export function StatView({ panel }: { panel: StatPanel }): ReactNode {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// ── StepsPanel (ordered walkthrough) — MUI ────────────────────────────────────
+// The step NUMBER comes from POSITION, never from the descriptor: StepsPanel has
+// no ordinal field, precisely so a reordered or inserted step cannot leave stale
+// hand-written numbering behind. Same principle as StatPanel's computed delta.
+//
+// `actor` is a free label; the badge colour is DERIVED from it (a stable hash
+// into the MUI palette) rather than carried on the descriptor, which keeps the
+// shape brand-neutral — the skin still owns the palette.
+const ACTOR_COLORS = ["primary", "secondary", "success", "warning", "info"] as const;
+
+/** Stable palette slot for an actor label, so the same person keeps one colour. */
+function actorColor(actor: string): (typeof ACTOR_COLORS)[number] {
+  let h = 0;
+  for (let i = 0; i < actor.length; i += 1) h = (h * 31 + actor.charCodeAt(i)) >>> 0;
+  return ACTOR_COLORS[h % ACTOR_COLORS.length]!;
+}
+
+export function StepsView({ panel }: { panel: StepsPanel }): ReactNode {
+  const resolveAsset = useContext(MeridianAssetContext);
+  const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
+  const steps = panel.steps ?? [];
+  return (
+    <Box className="mer-steps">
+      {panel.intro && (
+        <Typography variant="body1" className="mer-steps-intro" sx={{ mb: 3 }}>
+          {panel.intro}
+        </Typography>
+      )}
+      <Stack component="ol" spacing={4} sx={{ listStyle: "none", m: 0, p: 0 }}>
+        {steps.map((step, index) => (
+          <Box
+            component="li"
+            key={`${index}-${step.label}`}
+            className="mer-step"
+            data-actor={step.actor || undefined}
+            sx={{ display: "grid", gridTemplateColumns: "32px minmax(0, 1fr)", gap: 2 }}
+          >
+            <Avatar
+              className="mer-step-number"
+              sx={{ width: 32, height: 32, fontSize: 15, bgcolor: "primary.main" }}
+            >
+              {/* position + 1 — see the note above */}
+              {index + 1}
+            </Avatar>
+            <Box sx={{ minWidth: 0 }}>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+                <Typography variant="subtitle1" className="mer-step-label">
+                  {step.label}
+                </Typography>
+                {step.actor && (
+                  <Chip
+                    size="small"
+                    label={step.actor}
+                    color={actorColor(step.actor)}
+                    variant="outlined"
+                    className="mer-step-actor"
+                  />
+                )}
+              </Stack>
+              {step.detail && (
+                <Typography variant="body2" color="text.secondary" className="mer-step-detail">
+                  {step.detail}
+                </Typography>
+              )}
+              {step.mediaUri && (
+                <Box
+                  component="img"
+                  className="mer-step-media"
+                  src={withAsset(step.mediaUri)}
+                  // media_alt is the accessible description AND the degradation
+                  // content; empty alt would silently hide a missing description.
+                  alt={step.mediaAlt || step.label}
+                  loading="lazy"
+                  sx={{
+                    display: "block",
+                    mt: 1.5,
+                    maxWidth: "100%",
+                    height: "auto",
+                    borderRadius: 1,
+                    border: 1,
+                    borderColor: "divider",
+                  }}
+                />
+              )}
+              {step.action && (
+                <Box sx={{ mt: 1.5 }}>
+                  <AffordanceButton affordance={step.action} />
+                </Box>
+              )}
+            </Box>
+          </Box>
+        ))}
+      </Stack>
+      {panel.outro && (
+        <Typography variant="body1" className="mer-steps-outro" sx={{ mt: 3 }}>
+          {panel.outro}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+// ── MediaPanel (video / audio / image) — MUI ──────────────────────────────────
+// A SPECIALIZED visual panel, not a content shape: a moving picture is not
+// displayable as text. Realizes the ladder media.proto documents —
+//   1. player (this kit, for a surface that can play it)
+//   2. poster still + title/duration, source offered as a link
+//   3. `alt` text + the source as a link
+// — degrading rather than blanking. Steps 2/3 are what a kit without media
+// support falls back to; here they are the no-`src` and image cases.
+//
+// No autoplay/loop/muted is read, because the descriptor deliberately carries
+// none: playback policy is the surface's call, and autoplay is an accessibility
+// failure. `controls` is always on.
+function formatDuration(ms: number): string {
+  if (!ms || ms <= 0) return "";
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
+  const resolveAsset = useContext(MeridianAssetContext);
+  const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
+  const src = withAsset(panel.srcUri);
+  const poster = withAsset(panel.posterUri);
+  const duration = formatDuration(panel.durationMs);
+
+  // Ladder step 3: nothing to play. Say what it was and offer the source, rather
+  // than rendering an empty box.
+  if (!src) {
+    return (
+      <Box className="mer-media" data-media-kind="none">
+        <Typography variant="body2" color="text.secondary">
+          {panel.alt || "No media available."}
+        </Typography>
+      </Box>
+    );
+  }
+
+  const isImage = panel.kind === MediaKind.IMAGE;
+  const isAudio = panel.kind === MediaKind.AUDIO;
+  const common = {
+    className: "mer-media-player",
+    controls: true,
+    preload: "metadata" as const,
+    style: { display: "block", maxWidth: "100%", borderRadius: 8 },
+  };
+
+  return (
+    <Box className="mer-media" data-media-kind={MediaKind[panel.kind] ?? "UNSPECIFIED"}>
+      {isImage ? (
+        <Box
+          component="img"
+          className="mer-media-image"
+          src={src}
+          // `alt` is required for an image; falling back to "" would hide a
+          // missing description from every audit rather than surfacing it.
+          alt={panel.alt || panel.caption || "image"}
+          loading="lazy"
+          sx={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 1 }}
+        />
+      ) : (
+        <Box
+          component={isAudio ? "audio" : "video"}
+          src={src}
+          poster={!isAudio && poster ? poster : undefined}
+          {...common}
+        >
+          {/* Captions are the accessible path for anything with speech, and the
+              only way the content is searchable. Rendered as a real <track>. */}
+          {panel.captionsUri && (
+            <track kind="captions" src={withAsset(panel.captionsUri)} default />
+          )}
+          {panel.alt}
+        </Box>
+      )}
+      {(panel.caption || duration) && (
+        <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 1 }}>
+          {panel.caption && (
+            <Typography variant="caption" color="text.secondary" className="mer-media-caption">
+              {panel.caption}
+            </Typography>
+          )}
+          {duration && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              className="mer-media-duration"
+              sx={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {duration}
+            </Typography>
+          )}
+        </Stack>
+      )}
+      {panel.chapters.length > 0 && (
+        <Stack
+          component="ol"
+          className="mer-media-chapters"
+          spacing={0.5}
+          sx={{ listStyle: "none", m: 0, mt: 1, p: 0 }}
+        >
+          {/* A surface that cannot seek still gets a readable contents. */}
+          {panel.chapters.map((chapter, index) => (
+            <Box component="li" key={`${index}-${chapter.startMs}`} sx={{ display: "flex", gap: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ fontVariantNumeric: "tabular-nums", minWidth: 40 }}
+              >
+                {formatDuration(chapter.startMs) || "0:00"}
+              </Typography>
+              <Typography variant="caption">{chapter.label}</Typography>
+            </Box>
+          ))}
+        </Stack>
+      )}
+    </Box>
   );
 }

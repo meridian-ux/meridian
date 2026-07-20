@@ -54,6 +54,8 @@ import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import {
@@ -65,6 +67,8 @@ import {
   GrammarView,
   SnippetView,
   StatView,
+  StepsView,
+  MediaView,
 } from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
 import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
@@ -602,6 +606,8 @@ export const muiKit: ComponentKit = {
   Catalog: ({ panel }: ShapeProps<CatalogPanel>) => <CatalogView panel={panel} />,
   Grammar: ({ panel }: ShapeProps<GrammarPanel>) => <GrammarView panel={panel} />,
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
+  Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
+  Media: ({ panel }: ShapeProps<MediaPanel>) => <MediaView panel={panel} />,
   Fallback,
   ActionBar,
 };

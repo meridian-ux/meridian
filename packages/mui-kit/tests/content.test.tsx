@@ -14,6 +14,8 @@ import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelRenderer } from "@savvifi/meridian-web-react";
 import { createElement } from "react";
@@ -263,5 +265,169 @@ describe("muiKit StatPanel", () => {
     // churn up (higher_is_better=false) → bad
     expect(document.querySelector('.mer-stat-delta[data-semantics="bad"]')).toBeTruthy();
     expect(document.querySelector("polyline")).toBeTruthy(); // hand-drawn sparkline
+  });
+});
+
+describe("muiKit renders StepsPanel", () => {
+  it("numbers steps from POSITION, so a descriptor cannot carry stale ordinals", async () => {
+    renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "walkthrough",
+        title: "Create a sponsor",
+        body: {
+          case: "steps",
+          value: create(StepsPanelSchema, {
+            intro: "You will add one and confirm a colleague sees it.",
+            steps: [
+              { label: "Open the Sponsors page" },
+              { label: "Add a new sponsor" },
+              { label: "Save it" },
+            ],
+            outro: "Done.",
+          }),
+        },
+      }),
+    );
+    const items = await screen.findAllByRole("listitem");
+    expect(items.length).toBe(3);
+    // The numbers are rendered, in order, and come from the array index — there
+    // is no ordinal field on Step to disagree with them.
+    expect(items.map((li) => li.textContent?.trim().charAt(0))).toEqual(["1", "2", "3"]);
+    await screen.findByText("You will add one and confirm a colleague sees it.");
+    await screen.findByText("Done.");
+  });
+
+  it("badges the actor and gives the same actor the same colour", async () => {
+    renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "multi",
+        title: "Multi-actor",
+        body: {
+          case: "steps",
+          value: create(StepsPanelSchema, {
+            steps: [
+              { label: "admin seeds a team", actor: "Admin" },
+              { label: "manager opens the list", actor: "Manager" },
+              { label: "admin seeds a sponsor", actor: "Admin" },
+            ],
+          }),
+        },
+      }),
+    );
+    const items = await screen.findAllByRole("listitem");
+    const cls = (i: number) =>
+      items[i]!.querySelector(".mer-step-actor")?.className.match(/MuiChip-color\w+/)?.[0];
+    expect(cls(0)).toBeTruthy();
+    expect(cls(0)).toBe(cls(2)); // same actor, same colour
+    expect(cls(0)).not.toBe(cls(1)); // different actor, different colour
+  });
+
+  it("uses media_alt for the frame, falling back to the label rather than empty alt", async () => {
+    renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "shots",
+        title: "Shots",
+        body: {
+          case: "steps",
+          value: create(StepsPanelSchema, {
+            steps: [
+              { label: "Described", mediaUri: "/a.png", mediaAlt: "The sponsors list" },
+              { label: "Undescribed", mediaUri: "/b.png" },
+            ],
+          }),
+        },
+      }),
+    );
+    await screen.findByAltText("The sponsors list");
+    // No media_alt ⇒ the label, never "" (which would hide the omission).
+    await screen.findByAltText("Undescribed");
+  });
+});
+
+describe("muiKit renders MediaPanel", () => {
+  it("renders a captions track — the accessible path, not an optional extra", async () => {
+    const { container } = renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "vid",
+        title: "Walkthrough",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "/golden-path.mp4",
+            posterUri: "/poster.png",
+            captionsUri: "/golden-path.vtt",
+            durationMs: 252000,
+            caption: "The whole walkthrough",
+          }),
+        },
+      }),
+    );
+    const video = container.querySelector("video");
+    expect(video).toBeTruthy();
+    expect(video?.getAttribute("poster")).toBe("/poster.png");
+    expect(video?.querySelector("track")?.getAttribute("src")).toBe("/golden-path.vtt");
+    // controls always on; autoplay is deliberately not expressible
+    expect(video?.hasAttribute("controls")).toBe(true);
+    expect(video?.hasAttribute("autoplay")).toBe(false);
+    await screen.findByText("4:12"); // 252000ms
+  });
+
+  it("degrades to alt text when there is no source, rather than an empty box", async () => {
+    renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "gone",
+        title: "Missing",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            alt: "A four-minute walkthrough of creating a sponsor.",
+          }),
+        },
+      }),
+    );
+    await screen.findByText("A four-minute walkthrough of creating a sponsor.");
+  });
+
+  it("renders IMAGE as an img with alt, not a player", async () => {
+    const { container } = renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "img",
+        title: "Diagram",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.IMAGE,
+            srcUri: "/diagram.png",
+            alt: "Sponsor status flow",
+          }),
+        },
+      }),
+    );
+    expect(container.querySelector("video")).toBeNull();
+    await screen.findByAltText("Sponsor status flow");
+  });
+
+  it("lists chapters as a readable contents", async () => {
+    renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "chaptered",
+        title: "Chaptered",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "/v.mp4",
+            chapters: [
+              { startMs: 0, label: "Open the page" },
+              { startMs: 65000, label: "Add the sponsor" },
+            ],
+          }),
+        },
+      }),
+    );
+    await screen.findByText("Add the sponsor");
+    await screen.findByText("1:05");
   });
 });
