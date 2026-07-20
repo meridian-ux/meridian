@@ -12,8 +12,13 @@ export {
   themeProtoToThemeConfig,
   themeProtoToMuiTheme,
   themeProtoToCssVars,
+  themeProtoToFontFaceCss,
+  themeFontSources,
+  missingThemeFonts,
+  primaryFamily,
   createMuiThemeFromConfig,
   type ThemeConfig,
+  type FontSourceView,
 } from "./theme.js";
 export { MeridianTable, type MeridianColumn, type MeridianTableProps } from "./components/table.js";
 export { MeridianForm, type MeridianFormField, type MeridianFormProps } from "./components/form.js";
