@@ -10,10 +10,10 @@
 //     <ViewRenderer view={viewDescriptor} />
 //   </MeridianMuiProvider>
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, GlobalStyles } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
 import { MeridianProvider } from "@savvifi/meridian-web-react";
@@ -29,7 +29,12 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianAssetContext, type MeridianAssetResolver } from "./asset_context.js";
 import { muiKit } from "./mui_kit.js";
-import { themeProtoToCssVars, themeProtoToMuiTheme } from "./theme.js";
+import {
+  missingThemeFonts,
+  themeProtoToCssVars,
+  themeProtoToFontFaceCss,
+  themeProtoToMuiTheme,
+} from "./theme.js";
 
 export interface MeridianMuiProviderProps {
   invoker: RpcInvoker;
@@ -74,9 +79,40 @@ export function MeridianMuiProvider({
 }: MeridianMuiProviderProps): ReactNode {
   const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
   const cssVars = useMemo(() => themeProtoToCssVars(theme, mode), [theme, mode]);
+  const fontFaceCss = useMemo(() => themeProtoToFontFaceCss(theme), [theme]);
+
+  // A skin naming a face the browser cannot resolve renders in a fallback with
+  // no error — the brand silently does not apply, and nobody finds out. Say so
+  // once, in development, rather than letting it pass unnoticed. Never throws
+  // and never runs in production.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const report = (): void => {
+      const missing = missingThemeFonts(theme);
+      if (missing.length === 0) return;
+      console.warn(
+        `[meridian-mui-kit] The active skin asks for ${missing
+          .map((f) => `"${f}"`)
+          .join(", ")}, which the browser cannot resolve — text is rendering in a ` +
+          `fallback face and the brand is not being applied. Either declare the ` +
+          `source on the skin (meridian.theme.v1.Typography.fonts) or load the ` +
+          `face in the host page.`,
+      );
+    };
+    // Wait for in-flight webfonts before judging, so a face that simply hadn't
+    // finished loading is not reported as missing.
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    if (fonts?.ready) void fonts.ready.then(report).catch(() => report());
+    else report();
+  }, [theme]);
+
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
+      {/* The skin's own @font-face rules, so a face it names is actually
+          available rather than assumed to be loaded by the host. Empty for
+          skins that declare no sources. */}
+      {fontFaceCss ? <GlobalStyles styles={fontFaceCss} /> : null}
       {/* Expose the skin as --mer-* vars so ViewRenderer's kit-neutral layout
           chrome (tab strip, etc.) picks up the active theme. */}
       <div style={cssVars}>

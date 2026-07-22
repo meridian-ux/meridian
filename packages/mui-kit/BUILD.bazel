@@ -133,6 +133,78 @@ tectonic_pdf(
 # ── Studio catalog: render the REAL studio views (projected to ViewDescriptors) ──
 # Names must match harness/studio-viewdescriptors.json entries (from studio-api's
 # meridian-catalog-export).
+# ── meridian-proto catalog ───────────────────────────────────────────────────
+#
+# The third producer this kit renders, and the one with the least human input: these
+# views were derived from PROTOBUF DESCRIPTORS alone. Nobody authored them — a
+# resource model was recovered from google.api.* annotations and projected.
+#
+# The bundle is meridian-proto's own `render-bundle` golden, so what is drawn here is
+# byte-identical to what its test suite pins.
+
+# Names must match the `name` of each entry in harness/proto-viewdescriptors.json;
+# the capture tool writes one PNG per view and tectonic_pdf needs them declared.
+PROTO_VIEWS = [
+    "layout.list",
+    "layout.detail",
+    "resource.list",
+    "resource.detail",
+    "service.list",
+    "service.detail",
+    "target.list",
+    "target.detail",
+    "invoke.ResolveCommands",
+    "service.meridian.proto.v1.ProjectionService",
+]
+
+esbuild(
+    name = "proto_harness_bundle",
+    srcs = glob(
+        ["harness/**/*.tsx", "harness/**/*.ts", "src/**/*.tsx", "src/**/*.ts"],
+        allow_empty = True,
+    ) + ["harness/proto-viewdescriptors.json"],
+    bundle = True,
+    entry_point = "harness/proto-entry.tsx",
+    format = "iife",
+    output = "proto_harness.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_run_binary(
+    name = "proto_catalog_figures",
+    srcs = [
+        ":proto_harness.bundle.js",
+        "@chrome//:chrome",
+    ],
+    args = [
+        "$(execpath @chrome//:chrome)",
+        "$(execpath :proto_harness.bundle.js)",
+        "proto-figures",
+    ],
+    outs = ["proto-figures/%s.png" % f for f in PROTO_VIEWS] + ["proto-figures/figures.tex"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    tool = ":capture_bin",
+)
+
+tectonic_pdf(
+    name = "proto_catalog",
+    srcs = [":proto_catalog_figures"],
+    main = "catalog/proto-catalog.tex",
+)
+
 STUDIO_VIEWS = [
     "documents-list", "products-list", "tasks-list", "plan-years-list",
     "environments-list", "environment-mappings-list", "platforms-list",
