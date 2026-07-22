@@ -20,6 +20,7 @@ import {
   StatContent,
   classesFor,
 } from "./content_shapes.js";
+import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -99,14 +100,12 @@ export const htmlKit: ComponentKit = {
     // FORM_MODE_EDIT = 2; anything else renders read-only.
     <form className="mer-form" data-mode={panel.mode}>
       {panel.fields.map((field) => (
-        <label key={field.fieldId} className="mer-field">
-          <span className="mer-field-label">{field.label}</span>
-          {panel.mode === 2 ? (
-            <input className="mer-field-input" name={field.fieldId} />
-          ) : (
-            <span className="mer-field-value" data-field={field.fieldId} />
-          )}
-        </label>
+        <FormFieldRow
+          key={field.fieldId}
+          c={HTML_FORM_CLASSES}
+          field={field}
+          mode={panel.mode}
+        />
       ))}
     </form>
   ),

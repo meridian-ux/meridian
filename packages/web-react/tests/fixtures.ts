@@ -14,7 +14,12 @@ import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import {
+  FormFieldSchema,
+  NestedFormSchema,
+  RepeatedFieldSchema,
+  TextInputSchema,
+} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
@@ -23,6 +28,8 @@ import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import {
   AdhocPanelSchema,
+  FormMode,
+  FormPanelSchema,
   PanelDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
@@ -77,6 +84,73 @@ export const FIXTURES: Fixture[] = [
       body: {
         case: "lro",
         value: create(LroPanelSchema, { runButtonLabel: "Run reindex" }),
+      },
+    }),
+  },
+  {
+    // Acceptance-criterion fixture: RepeatedField{object{label, kinds:RepeatedField{scalar}}}
+    // Models nav.groups editing: add a section (object row with label + nested kinds array).
+    name: "form",
+    shape: "form",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "nav-config",
+      title: "Navigation",
+      body: {
+        case: "form",
+        value: create(FormPanelSchema, {
+          mode: FormMode.EDIT,
+          fields: [
+            create(FormFieldSchema, {
+              fieldId: "groups",
+              label: "Navigation groups",
+              requestField: "nav.groups",
+              kind: {
+                case: "repeated",
+                value: create(RepeatedFieldSchema, {
+                  element: {
+                    case: "object",
+                    value: create(NestedFormSchema, {
+                      fields: [
+                        create(FormFieldSchema, {
+                          fieldId: "label",
+                          label: "Label",
+                          requestField: "label",
+                          kind: {
+                            case: "text",
+                            value: create(TextInputSchema, {}),
+                          },
+                        }),
+                        create(FormFieldSchema, {
+                          fieldId: "kinds",
+                          label: "Kinds",
+                          requestField: "kinds",
+                          kind: {
+                            case: "repeated",
+                            value: create(RepeatedFieldSchema, {
+                              element: {
+                                case: "scalar",
+                                value: create(FormFieldSchema, {
+                                  fieldId: "kind",
+                                  requestField: "kind",
+                                  kind: {
+                                    case: "text",
+                                    value: create(TextInputSchema, {}),
+                                  },
+                                }),
+                              },
+                              addLabel: "Add kind",
+                            }),
+                          },
+                        }),
+                      ],
+                    }),
+                  },
+                  addLabel: "Add section",
+                }),
+              },
+            }),
+          ],
+        }),
       },
     }),
   },

@@ -46,6 +46,7 @@ const HTMLKIT_IMPLEMENTS = new Set([
   "table",
   "prompt",
   "lro",
+  "form",
   "choice",
   "snippet",
   "action",

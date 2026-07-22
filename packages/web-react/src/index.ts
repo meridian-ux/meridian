@@ -77,3 +77,14 @@ export { shadcnKit } from "./shadcn_kit.js";
 // Shared grammar helpers (reused by other kits, e.g. mui): one markdown impl +
 // the GrammarLanguage → token map for the degradation ladder.
 export { renderMarkdown, grammarLanguageName } from "./content_shapes.js";
+// Shared form-field rendering (FormFieldRow, NestedFormFields, RepeatedFieldControl)
+// and class tables for htmlKit/shadcnKit — kits that extend the reference form
+// rendering import from here.
+export {
+  FormFieldRow,
+  NestedFormFields,
+  RepeatedFieldControl,
+  HTML_FORM_CLASSES,
+  SHADCN_FORM_CLASSES,
+  type FormFieldClasses,
+} from "./form_fields.js";

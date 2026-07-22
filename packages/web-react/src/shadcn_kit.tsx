@@ -24,6 +24,7 @@ import {
   StatContent,
   classesFor,
 } from "./content_shapes.js";
+import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -124,17 +125,12 @@ export const shadcnKit: ComponentKit = {
     // FORM_MODE_EDIT = 2; anything else renders read-only.
     <form className="grid gap-4" data-mode={panel.mode}>
       {panel.fields.map((field) => (
-        <div key={field.fieldId} className="grid gap-2">
-          <label className="text-sm font-medium leading-none">{field.label}</label>
-          {panel.mode === 2 ? (
-            <input
-              name={field.fieldId}
-              className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
-            />
-          ) : (
-            <span className="text-sm text-muted-foreground" data-field={field.fieldId} />
-          )}
-        </div>
+        <FormFieldRow
+          key={field.fieldId}
+          c={SHADCN_FORM_CLASSES}
+          field={field}
+          mode={panel.mode}
+        />
       ))}
     </form>
   ),
