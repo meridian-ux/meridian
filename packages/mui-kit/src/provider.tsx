@@ -36,6 +36,15 @@ import {
   themeProtoToMuiTheme,
 } from "./theme.js";
 
+// Dev-only guards read NODE_ENV without pulling @types/node into this browser
+// library (tsconfig keeps `types: []`): a minimal ambient + defensive access.
+// Bundlers inline `process.env.NODE_ENV`; a bare browser without the define
+// simply skips the check rather than throwing a ReferenceError.
+declare const process: { env?: { NODE_ENV?: string } } | undefined;
+function isProduction(): boolean {
+  return typeof process !== "undefined" && process?.env?.NODE_ENV === "production";
+}
+
 export interface MeridianMuiProviderProps {
   invoker: RpcInvoker;
   /** The meridian skin. Optional — falls back to neutral MUI defaults. */
@@ -86,7 +95,7 @@ export function MeridianMuiProvider({
   // once, in development, rather than letting it pass unnoticed. Never throws
   // and never runs in production.
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    if (isProduction()) return;
     const report = (): void => {
       const missing = missingThemeFonts(theme);
       if (missing.length === 0) return;
