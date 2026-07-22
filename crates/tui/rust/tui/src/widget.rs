@@ -264,6 +264,41 @@ impl PanelView {
                 chunks[2],
                 "Terminal panels are web-specific (xterm.js) — not rendered in the TUI.",
             ),
+            // ── FULL-PARITY shapes still owed a terminal renderer ──────────────
+            // Steps and Stream are both declared full-parity in their protos: an
+            // ordered list of labeled text, and a list of log lines, are text and
+            // therefore displayable HERE at full fidelity. Placeholders are a
+            // stopgap, not the intended end state — tracked in
+            // meridian-ux/meridian-uiview-core#3. They are spelled out rather than
+            // swept into a `_ =>` wildcard so the next shape added upstream keeps
+            // failing this build loudly instead of silently rendering nothing.
+            Some(Body::Steps(panel)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                &format!(
+                    "Steps panels ({} steps): a numbered list is full-parity text — TUI renderer owed (uiview-core#3).",
+                    panel.steps.len()
+                ),
+            ),
+            Some(Body::Stream(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Stream panels (log tail): full-parity text — TUI renderer owed (uiview-core#3).",
+            ),
+            // Media is legitimately degraded here: a moving picture is not text,
+            // so the terminal is outside its Accept set by construction.
+            Some(Body::Media(panel)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                if panel.alt.is_empty() {
+                    "Media panels need a raster surface — not displayable in a terminal."
+                } else {
+                    &panel.alt
+                },
+            ),
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }
     }
