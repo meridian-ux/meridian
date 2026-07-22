@@ -123,3 +123,64 @@
   color: var(--_on-accent);
   font-weight: 600;
 }
+
+/* Table RowAction bar. Styled off `--mer-*` directly (not the `--_*` locals),
+ * because the bar sits beside the table on the panel root rather than inside a
+ * `.meridian-uiview-body`, so the local token block does not reach it. */
+.meridian-uiview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mer-unit, 4px);
+  margin: 0 0 calc(var(--mer-unit, 4px) * 2) 0;
+}
+.meridian-uiview-actions button {
+  font: inherit;
+  cursor: pointer;
+  padding: calc(var(--mer-unit, 4px) * 1.5) calc(var(--mer-unit, 4px) * 3);
+  border: 1px solid var(--mer-border, #2c2f37);
+  border-radius: var(--mer-radius, 8px);
+  background: var(--mer-surface, #1c1e24);
+  color: var(--mer-fg, #ece7da);
+}
+/* Disabled is the RESTING state of a row action — nothing is selected yet — so
+ * it must read as "pick a row", not as broken. */
+.meridian-uiview-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Selected row. Selection only appears on tables that declare RowActions. */
+.meridian-uiview-table tbody tr[data-row] {
+  cursor: default;
+}
+.meridian-uiview-table tbody tr[tabindex] {
+  cursor: pointer;
+}
+.meridian-uiview-table tbody tr.selected,
+.meridian-uiview-table tbody tr.selected:nth-child(even) {
+  background: color-mix(in srgb, var(--mer-accent, #6aa0f2) 18%, transparent);
+}
+.meridian-uiview-table tbody tr:focus-visible {
+  outline: 2px solid var(--mer-accent, #6aa0f2);
+  outline-offset: -2px;
+}
+
+/* StreamPanel — the following log pane. Monospace and scroll-bounded; the
+ * renderer caps retention (`max_lines`) so the DOM cannot grow without limit. */
+.meridian-uiview-stream {
+  font-family: var(--_mono);
+  font-size: 0.875em;
+  line-height: 1.45;
+  background: var(--_code-bg);
+  color: var(--_code-fg);
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  max-height: var(--mer-stream-height, 22rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.meridian-uiview-stream-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

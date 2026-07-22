@@ -30,9 +30,15 @@ import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { Snippet, SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { FollowMode } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type {
+  RenderContext,
+  RpcInvoker,
+  StreamInvoker,
+} from "@savvifi/meridian-schemas/uiview";
 import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
 import { renderTerminalPanel } from "../terminal_panel.js";
@@ -65,6 +71,12 @@ export interface RenderPanelOptions {
   descriptor: PanelDescriptor;
   /** Host transport for the populate / action RPCs. */
   invoker: RpcInvoker;
+  /**
+   * Host transport for SERVER-STREAMING methods — what a StreamPanel subscribes
+   * through. Optional: streaming is a surface capability, not a given, and a
+   * host without it degrades the panel to its placeholder (stream.proto).
+   */
+  streamInvoker?: StreamInvoker;
   /** Runtime context (active resource path, identity, form values). */
   context: RenderContext;
   /** Optional registry of adhoc handlers keyed by handler_id. */
@@ -80,6 +92,18 @@ export interface RenderPanelOptions {
    */
   renderIcon?: (key: string) => HTMLElement | undefined;
   /**
+   * Host route resolver for a `ColumnLink` cell — the link peer of renderIcon /
+   * renderGrammar. Meridian never builds a URL: it hands the host the target
+   * kind, the cell's value (the entity id) and the raw row, and the host maps
+   * that to its own route. Absent, or returning nothing ⇒ plain text, never a
+   * dead link.
+   */
+  resolveHref?: (opts: {
+    targetKind: string;
+    id: string;
+    row?: object;
+  }) => string | null | undefined;
+  /**
    * Host renderer for a GrammarPanel — a declarative grammar (markdown / mermaid
    * / plantuml / vega). The descriptor names the `language` + `source`; the host
    * wires the actual library (mermaid.render, vega-embed, a markdown parser) and
@@ -93,6 +117,47 @@ export interface RenderPanelOptions {
   }) => HTMLElement | undefined;
 }
 
+// ---------------------------------------------------------------------------
+// Panel teardown.
+//
+// Most shapes are inert DOM: clearing the container is a complete teardown. Two
+// are NOT — TerminalPanel holds a WebSocket and StreamPanel holds a
+// subscription — and a live connection is not released by dropping the element
+// that displays it. Before this, re-rendering a container over a terminal
+// leaked its socket (the TerminalHandle's disposer was returned and discarded).
+//
+// So a panel that acquires a resource registers a disposer against its
+// container; `renderPanel` runs them before drawing anything new, and the seam's
+// `unmount` runs them via `disposePanel`. Idempotent by construction: the list
+// is cleared as it runs.
+// ---------------------------------------------------------------------------
+
+const DISPOSERS = new WeakMap<HTMLElement, Array<() => void>>();
+
+function onDispose(root: HTMLElement, dispose: () => void): void {
+  const list = DISPOSERS.get(root);
+  if (list) list.push(dispose);
+  else DISPOSERS.set(root, [dispose]);
+}
+
+/**
+ * Release any live resources a panel rendered into `root` holds (a terminal's
+ * socket, a stream's subscription), without touching the DOM. Called by
+ * `renderPanel` before a re-render and by the seam's `unmount`.
+ */
+export function disposePanel(root: HTMLElement): void {
+  const list = DISPOSERS.get(root);
+  if (!list) return;
+  DISPOSERS.delete(root);
+  for (const dispose of list) {
+    try {
+      dispose();
+    } catch {
+      // A failing disposer must not strand the others.
+    }
+  }
+}
+
 /**
  * Renders one panel into `root`. Async because the populate RPC has to complete
  * before we can draw the table; callers `await` to know when the panel is
@@ -100,6 +165,7 @@ export interface RenderPanelOptions {
  */
 export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   const { root, descriptor } = opts;
+  disposePanel(root);
   root.innerHTML = "";
   const header = document.createElement("div");
   header.className = "meridian-uiview-header";
@@ -147,12 +213,14 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     const slot = document.createElement("div");
     slot.className = "meridian-uiview-body";
     root.appendChild(slot);
-    renderTerminalPanel(slot, {
+    const handle = renderTerminalPanel(slot, {
       url: fillTemplate(spec.url, opts.context),
       tool: spec.tool,
       cols: spec.cols,
       rows: spec.rows,
     });
+    // The handle owns a live WebSocket; without this it outlived the panel.
+    onDispose(root, () => handle.dispose());
     return;
   }
   // GrammarPanel — a declarative grammar (markdown / mermaid / plantuml / vega).
@@ -170,6 +238,12 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     meta.textContent = "";
     root.appendChild(buildStat(body.value));
     return;
+  }
+  // StreamPanel — an append-only line stream (a build log, a deploy log, an
+  // agent transcript). The host supplies the transport via `streamInvoker`;
+  // absent, we degrade to the placeholder rather than blanking. See stream.proto.
+  if (body.case === "stream") {
+    return renderStreamPanel(opts, body.value, meta);
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -631,6 +705,25 @@ function buildForm(panel: FormPanel): HTMLElement {
   return form;
 }
 
+// ---------------------------------------------------------------------------
+// Table panel.
+//
+// Three things a TablePanel has always DESCRIBED but this renderer never drew,
+// which together made every table in a web-components host inert:
+//
+//   • row selection — `FieldBinding.row_field` is documented as "pull a field
+//     from the selected row", and `RenderContext.selectedRow` exists to carry
+//     it, but nothing ever selected a row.
+//   • `TablePanel.actions` — the RowActions. Descriptors in the wild declare
+//     them (fastverk's builds table has three) and they simply never appeared.
+//   • `TableColumn.link` — ColumnLink, whose own comment specifies the
+//     `resolveHref` host seam. That seam did not exist until schemas 0.18.0.
+//
+// The populate → draw cycle is a closure here rather than a one-shot so a row
+// action can re-fetch in place (`refresh_on_success`) without the host
+// re-mounting the panel.
+// ---------------------------------------------------------------------------
+
 async function renderTablePanel(
   opts: RenderPanelOptions,
   table: TablePanel,
@@ -643,20 +736,131 @@ async function renderTablePanel(
     return;
   }
   const descriptorBytes = toBinary(PanelDescriptorSchema, descriptor);
-  let response: object;
-  try {
-    const request = wasm.buildPopulateRequest(descriptorBytes, opts.context);
-    response = await invoker.invoke(populate.service, populate.method, request);
-  } catch (err) {
-    metaEl.textContent = `Failed: ${(err as Error).message}`;
-    return;
+
+  // Selection is panel-local state: the RAW row (what bindings read) plus its
+  // index (what the DOM highlights). Held here so `refresh` can try to keep the
+  // reader's place across a re-fetch.
+  let selectedIndex = -1;
+  let rows: RenderedRow[] = [];
+
+  const actionsBar = table.actions.length
+    ? document.createElement("div")
+    : null;
+  if (actionsBar) {
+    actionsBar.className = "meridian-uiview-actions";
+    root.appendChild(actionsBar);
   }
-  const rows = wasm.renderTable(descriptorBytes, response);
-  metaEl.textContent = `${rows.length} ${table.itemNoun || "items"}`;
-  root.appendChild(buildTable(table, rows));
+  const host = document.createElement("div");
+  host.className = "meridian-uiview-body";
+  root.appendChild(host);
+
+  const selectedRow = (): Record<string, unknown> | null =>
+    selectedIndex >= 0 && selectedIndex < rows.length
+      ? rows[selectedIndex].raw
+      : null;
+
+  // A RowAction is enabled only when a row is selected AND `enabled_when`
+  // matches it. The predicate compares against the RENDERED form of the field
+  // (RowFilter's own wording), which is what `readPath` over the raw row gives.
+  const actionEnabled = (action: TablePanel["actions"][number]): boolean => {
+    const row = selectedRow();
+    if (!row) return false;
+    const filter = action.enabledWhen;
+    if (!filter) return true;
+    const actual = wasm.readPath(row, filter.fieldPath);
+    return actual != null && String(actual) === filter.equals;
+  };
+
+  const buttons: Array<{ el: HTMLButtonElement; action: TablePanel["actions"][number] }> = [];
+  const syncButtons = () => {
+    for (const { el, action } of buttons) el.disabled = !actionEnabled(action);
+  };
+
+  const draw = () => {
+    host.replaceChildren(
+      buildTable(opts, table, rows, selectedIndex, (i) => {
+        selectedIndex = i;
+        drawSelection();
+        syncButtons();
+      }),
+    );
+  };
+
+  // Repaint only the selection highlight — a full redraw on every click would
+  // drop scroll position and any focus inside the table.
+  const drawSelection = () => {
+    const trs = host.querySelectorAll<HTMLTableRowElement>("tbody tr[data-row]");
+    trs.forEach((tr, i) => {
+      const on = i === selectedIndex;
+      tr.classList.toggle("selected", on);
+      tr.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  };
+
+  const refresh = async (): Promise<void> => {
+    let response: object;
+    try {
+      const request = wasm.buildPopulateRequest(descriptorBytes, opts.context);
+      response = await invoker.invoke(populate.service, populate.method, request);
+    } catch (err) {
+      metaEl.textContent = `Failed: ${(err as Error).message}`;
+      return;
+    }
+    rows = wasm.renderTable(descriptorBytes, response);
+    // A re-fetch can shrink the list out from under the selection; clamp rather
+    // than silently pointing at a different record than the one highlighted.
+    if (selectedIndex >= rows.length) selectedIndex = -1;
+    metaEl.textContent = `${rows.length} ${table.itemNoun || "items"}`;
+    draw();
+    syncButtons();
+  };
+
+  for (const action of table.actions) {
+    if (!actionsBar) break;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = action.label;
+    btn.disabled = true;
+    btn.addEventListener("click", async () => {
+      const row = selectedRow();
+      if (!row || !action.rpc) return;
+      btn.disabled = true;
+      try {
+        const request = wasm.buildRequest(toBinary(RpcCallSchema, action.rpc), {
+          ...opts.context,
+          selectedRow: row,
+        });
+        await invoker.invoke(action.rpc.service, action.rpc.method, request);
+        // `RowAction.refresh_on_success` documents a default of TRUE, which a
+        // non-presence proto3 bool cannot express (absent == false). We follow
+        // the documented contract and always re-fetch; a descriptor that must
+        // NOT refresh needs the field made `optional` upstream first.
+        await refresh();
+      } catch (err) {
+        metaEl.textContent = `${action.label} failed: ${(err as Error).message}`;
+      } finally {
+        syncButtons();
+      }
+    });
+    buttons.push({ el: btn, action });
+    actionsBar.appendChild(btn);
+  }
+
+  await refresh();
 }
 
-function buildTable(table: TablePanel, rows: RenderedRow[]): HTMLElement {
+/**
+ * Draw the table. `onSelect` null ⇒ rows are NOT selectable — used by the LRO
+ * result table, which has no actions bar, so making its rows focusable and
+ * clickable would advertise an interaction that does nothing.
+ */
+function buildTable(
+  opts: RenderPanelOptions,
+  table: TablePanel,
+  rows: RenderedRow[],
+  selectedIndex: number,
+  onSelect: ((index: number) => void) | null,
+): HTMLElement {
   const tableEl = document.createElement("table");
   tableEl.className = "meridian-uiview-table";
   const thead = document.createElement("thead");
@@ -680,18 +884,186 @@ function buildTable(table: TablePanel, rows: RenderedRow[]): HTMLElement {
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
-    for (const row of rows) {
+    const selectable = onSelect !== null && table.actions.length > 0;
+    rows.forEach((row, i) => {
       const tr = document.createElement("tr");
-      for (const cell of row.cells) {
-        const td = document.createElement("td");
-        td.textContent = cell;
-        tr.appendChild(td);
+      tr.dataset.row = String(i);
+      if (selectable) {
+        tr.tabIndex = 0;
+        tr.setAttribute("role", "row");
+        tr.setAttribute("aria-selected", i === selectedIndex ? "true" : "false");
+        if (i === selectedIndex) tr.classList.add("selected");
+        tr.addEventListener("click", () => onSelect(i));
+        tr.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(i);
+          }
+        });
       }
+      row.cells.forEach((cell, c) => {
+        const td = document.createElement("td");
+        td.appendChild(buildCell(opts, table, c, cell, row));
+        tr.appendChild(td);
+      });
       tbody.appendChild(tr);
-    }
+    });
   }
   tableEl.appendChild(tbody);
   return tableEl;
+}
+
+/**
+ * One cell. A column carrying a `ColumnLink` asks the HOST for the destination
+ * (`resolveHref`) — meridian never builds a URL. The host gets the target kind,
+ * the cell's value (the entity id, per ColumnLink's contract) and the raw row,
+ * so a host whose route needs a different field than the one displayed can read
+ * it. No resolver, or a resolver that declines, ⇒ plain text: never a dead link.
+ */
+function buildCell(
+  opts: RenderPanelOptions,
+  table: TablePanel,
+  columnIndex: number,
+  cell: string,
+  row: RenderedRow,
+): Node {
+  const link = table.columns[columnIndex]?.link;
+  if (link && opts.resolveHref) {
+    const href = opts.resolveHref({
+      targetKind: link.targetKind,
+      id: cell,
+      row: row.raw,
+    });
+    if (href) {
+      const a = document.createElement("a");
+      a.href = href;
+      a.textContent = cell;
+      // A link inside a selectable row must not also toggle the selection.
+      a.addEventListener("click", (e) => e.stopPropagation());
+      return a;
+    }
+  }
+  return document.createTextNode(cell);
+}
+
+// ---------------------------------------------------------------------------
+// Stream panel.
+//
+// An append-only line stream rendered as a following pane. The host owns the
+// transport (`streamInvoker`); this draws lines, bounds retention, and follows
+// the tail. Per stream.proto, FOLLOW means "pinned to the newest line ONLY while
+// the reader is at the bottom" — someone who has scrolled up is reading, and
+// yanking them back down is the classic log-viewer bug.
+//
+// Degradation (stream.proto's ladder): no `streamInvoker` ⇒ the placeholder,
+// with the reason surfaced in the meta line. Never blank, never a crash.
+// ---------------------------------------------------------------------------
+
+const STREAM_DEFAULT_MAX_LINES = 2000;
+/** Distance from the bottom, in px, still counted as "at the bottom". */
+const STREAM_FOLLOW_SLACK_PX = 40;
+
+function renderStreamPanel(
+  opts: RenderPanelOptions,
+  panel: StreamPanel,
+  metaEl: HTMLElement,
+): void {
+  const { root, wasm } = opts;
+  const noun = panel.itemNoun || "lines";
+
+  // Wrapped in a body slot (like terminal / adhoc) so the `--mer-*` design
+  // tokens resolve for the pane's own surface + mono font.
+  const slot = document.createElement("div");
+  slot.className = "meridian-uiview-body";
+  root.appendChild(slot);
+
+  const pane = document.createElement("div");
+  pane.className = "meridian-uiview-stream";
+  pane.setAttribute("role", "log");
+  pane.setAttribute("aria-live", "polite");
+  slot.appendChild(pane);
+
+  const placeholder = document.createElement("div");
+  placeholder.className = "meridian-uiview-placeholder";
+  placeholder.textContent = panel.placeholder || "Waiting for output…";
+  pane.appendChild(placeholder);
+
+  const subscribe = panel.subscribe;
+  if (!subscribe) {
+    metaEl.textContent = "(stream has no subscribe RPC)";
+    return;
+  }
+  if (!opts.streamInvoker) {
+    // The documented ladder: this surface has no stream transport, so the panel
+    // shows its empty state and says why rather than pretending to be live.
+    metaEl.textContent = "not live on this surface";
+    return;
+  }
+
+  const follow = panel.followMode !== FollowMode.MANUAL; // UNSPECIFIED ⇒ FOLLOW
+  const maxLines = panel.maxLines || STREAM_DEFAULT_MAX_LINES;
+  let count = 0;
+
+  const atBottom = () =>
+    pane.scrollHeight - pane.clientHeight - pane.scrollTop < STREAM_FOLLOW_SLACK_PX;
+
+  const append = (text: string) => {
+    if (count === 0) placeholder.remove();
+    // Read the scroll position BEFORE mutating — appending changes scrollHeight.
+    const pinned = follow && atBottom();
+    const line = document.createElement("div");
+    line.className = "meridian-uiview-stream-line";
+    line.textContent = text;
+    pane.appendChild(line);
+    count += 1;
+    // A stream is unbounded; the pane must not be. Drop from the front.
+    while (pane.childElementCount > maxLines) {
+      pane.removeChild(pane.firstElementChild as Element);
+    }
+    metaEl.textContent = `${count} ${noun}`;
+    if (pinned) pane.scrollTop = pane.scrollHeight;
+  };
+
+  // A frame is either bare text or a structured envelope; `line_field` selects
+  // the human-readable text out of the latter (stream.proto). An object with no
+  // `line_field`, or a path that resolves to nothing, is shown as JSON rather
+  // than as "[object Object]" — a frame we can't interpret is still evidence.
+  const textOf = (frame: string | object): string => {
+    if (typeof frame === "string") return frame;
+    if (panel.lineField) {
+      const value = wasm.readPath(frame as object, panel.lineField);
+      if (value != null) return String(value);
+    }
+    try {
+      return JSON.stringify(frame);
+    } catch {
+      return String(frame);
+    }
+  };
+
+  let request: object = {};
+  try {
+    request = wasm.buildRequest(toBinary(RpcCallSchema, subscribe), opts.context);
+  } catch {
+    // A binding that can't be resolved yet (no selected row, no subject) is not
+    // fatal — subscribe with what we have and let the server decide.
+  }
+
+  const sub = opts.streamInvoker.subscribe(
+    subscribe.service,
+    subscribe.method,
+    request,
+    {
+      onFrame: (frame) => append(textOf(frame)),
+      onError: (err) => {
+        metaEl.textContent = `${count} ${noun} — stream failed: ${err.message}`;
+      },
+      onClose: () => {
+        metaEl.textContent = `${count} ${noun} — ended`;
+      },
+    },
+  );
+  onDispose(root, () => sub.close());
 }
 
 // ---------------------------------------------------------------------------
@@ -1003,7 +1375,9 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
   const rows = wasm.renderTablePanel(toBinary(TablePanelSchema, result), source);
   metaEl.textContent = `Done · ${rows.length} ${result.itemNoun || "rows"}`;
   resultArea.innerHTML = "";
-  resultArea.appendChild(buildTable(result, rows));
+  // A static render of the operation's result — no selection, no actions bar
+  // (unchanged behavior; the LRO shape drives its own lifecycle).
+  resultArea.appendChild(buildTable(opts, result, rows, -1, null));
 }
 
 // JsonFormat with a TypeRegistry expands Anys as

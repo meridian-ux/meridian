@@ -178,3 +178,56 @@ export const statFixture: PanelDescriptor = create(PanelDescriptorSchema, {
     value: { label: "Churn rate", value: 5.2, format: 2, previous: 4.0, series: [4, 4.5, 5, 5.2], higherIsBetter: false },
   },
 });
+
+// A table with everything the shape has always DESCRIBED but the renderer used
+// to drop: RowActions (one unconditional, one gated by `enabled_when`) and a
+// ColumnLink whose destination only the host can resolve.
+export const tableWithActionsFixture: PanelDescriptor = create(PanelDescriptorSchema, {
+  panelId: "builds",
+  title: "Builds",
+  body: {
+    case: "table",
+    value: {
+      populate: { service: "acme.Builds", method: "ListBuilds" },
+      rowsField: "builds",
+      itemNoun: "builds",
+      columns: [
+        { header: "Repo", fieldPath: "repo", link: { targetKind: "acme.Build" } },
+        { header: "Phase", fieldPath: "phase" },
+      ],
+      actions: [
+        {
+          label: "Targets",
+          rpc: {
+            service: "acme.Builds",
+            method: "ListBuildTargets",
+            bindings: [{ requestField: "name", source: { case: "rowField", value: "name" } }],
+          },
+        },
+        {
+          // Only meaningful on a finished build — the `enabled_when` predicate.
+          label: "Artifacts",
+          rpc: { service: "acme.Builds", method: "ListBuildArtifacts" },
+          enabledWhen: { fieldPath: "phase", equals: "Succeeded" },
+        },
+      ],
+    },
+  },
+});
+
+// StreamPanel: a build log. `line_field` selects the text out of a structured
+// frame; `max_lines` bounds retention.
+export const streamFixture: PanelDescriptor = create(PanelDescriptorSchema, {
+  panelId: "build_log",
+  title: "Build log",
+  body: {
+    case: "stream",
+    value: {
+      subscribe: { service: "acme.Builds", method: "StreamBuildLog" },
+      lineField: "line",
+      maxLines: 3,
+      itemNoun: "lines",
+      placeholder: "Waiting for the build to start…",
+    },
+  },
+});

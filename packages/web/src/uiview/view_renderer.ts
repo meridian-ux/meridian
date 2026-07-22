@@ -5,34 +5,36 @@
 // The imperative-DOM counterpart of meridian-web-react's ViewRenderer: the
 // layout is renderer-owned; the panels come from renderPanel.
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type {
   Action,
   Slot,
   ViewDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { renderPanel } from "./renderer.js";
-import type { UiviewWasm } from "./renderer.js";
+import type { RenderPanelOptions } from "./renderer.js";
 
-export interface RenderViewOptions {
-  /** Initialized wasm bindings (the host calls `init()` first). */
-  wasm: UiviewWasm;
+/**
+ * Options for {@link renderView}.
+ *
+ * Derived from `RenderPanelOptions` minus the per-panel fields (`root`,
+ * `descriptor`) rather than re-declared, so EVERY host seam a panel can take is
+ * carried here and forwarded to every slot. That is load-bearing: this used to
+ * list a subset, so `renderSlot` called `renderPanel` without `renderGrammar` /
+ * `renderIcon` and a chart inside a view silently degraded to alt text — which
+ * is most dashboards (PRIMITIVES-NEXT §2b). Adding a seam to a panel now reaches
+ * views for free instead of needing a second edit here.
+ */
+export type RenderViewOptions = Omit<
+  RenderPanelOptions,
+  "root" | "descriptor"
+> & {
   /** Where to draw the view. The renderer replaces the element's content. */
   root: HTMLElement;
   /** The view to render (canonical meridian.ui.v1.ViewDescriptor). */
   view: ViewDescriptor;
-  /** Host transport for the panels' populate / action RPCs. */
-  invoker: RpcInvoker;
-  /** Runtime context passed through to each panel. */
-  context: RenderContext;
-  /** Optional adhoc-handler registry passed through to each panel. */
-  adhocFactories?: Record<
-    string,
-    (root: HTMLElement, descriptor: PanelDescriptor) => void
-  >;
-}
+};
 
 /** Renders a ViewDescriptor. The layout mode selects the arrangement of slots. */
 export async function renderView(opts: RenderViewOptions): Promise<void> {
@@ -114,14 +116,10 @@ async function renderSlot(
   if (panel) {
     const panelRoot = document.createElement("div");
     section.appendChild(panelRoot);
-    await renderPanel({
-      wasm: opts.wasm,
-      root: panelRoot,
-      descriptor: panel,
-      invoker: opts.invoker,
-      context: opts.context,
-      adhocFactories: opts.adhocFactories,
-    });
+    // Forward EVERY host seam (`view` is not a panel field, so it is dropped);
+    // see the RenderViewOptions note on why this is a spread and not a list.
+    const { view: _view, ...panelOpts } = opts;
+    await renderPanel({ ...panelOpts, root: panelRoot, descriptor: panel });
   }
 
   if (slot.actions && slot.actions.length > 0) {

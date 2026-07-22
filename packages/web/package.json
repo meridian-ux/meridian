@@ -1,13 +1,13 @@
 {
   "name": "meridian-web-workspace",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Workspace root for meridian-web — the web-components renderer of the meridian design language. Consumed by hosts via Bazel (//src:core) + the //bazel:panel_bundle.bzl rule. The TS surface depends on the design language via npm (@savvifi/meridian-schemas + @savvifi/meridian-proto-ts).",
   "type": "module",
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@savvifi/meridian-proto-ts": "^0.5.0",
-    "@savvifi/meridian-schemas": "^0.5.0",
+    "@savvifi/meridian-proto-ts": "^0.18.0",
+    "@savvifi/meridian-schemas": "^0.18.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0"
   },

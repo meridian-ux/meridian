@@ -94,3 +94,23 @@ vitest_test(
         ":src_lib",
     ],
 )
+
+# TablePanel interactions (row selection, RowActions + enabled_when, ColumnLink
+# via the resolveHref seam) and StreamPanel (line_field, max_lines retention,
+# the no-transport ladder, and subscription disposal). Regression cover for the
+# class of bug where a descriptor field is authored, shipped, and never drawn.
+vitest_test(
+    name = "table_stream",
+    srcs = [
+        "fixtures.ts",
+        "table_stream.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)

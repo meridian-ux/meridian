@@ -13,7 +13,7 @@ import type {
   WebRenderer,
 } from "@savvifi/meridian-schemas/uiview";
 
-import { renderPanel } from "./renderer.js";
+import { disposePanel, renderPanel } from "./renderer.js";
 import type { UiviewWasm } from "./renderer.js";
 
 const EMPTY_CONTEXT: RenderContext = {
@@ -49,15 +49,21 @@ export function webComponentsRenderer(wasm: UiviewWasm): WebRenderer {
         | ((o: { language: string; source: string; data?: unknown }) => HTMLElement | undefined)
         | undefined;
 
+      const resolveHref = opts.resolveHref as
+        | ((o: { targetKind: string; id: string; row?: object }) => string | null | undefined)
+        | undefined;
+
       const render = (descriptor: PanelDescriptor) =>
         renderPanel({
           wasm,
           root: opts.container,
           descriptor,
           invoker: opts.invoker,
+          streamInvoker: opts.streamInvoker,
           context,
           adhocFactories,
           renderIcon,
+          resolveHref,
           renderGrammar,
         });
 
@@ -65,6 +71,10 @@ export function webComponentsRenderer(wasm: UiviewWasm): WebRenderer {
       return {
         update: (descriptor: PanelDescriptor) => render(descriptor),
         unmount: () => {
+          // Release live resources (a terminal's socket, a stream's
+          // subscription) BEFORE dropping the DOM — clearing innerHTML alone
+          // left them running.
+          disposePanel(opts.container);
           opts.container.innerHTML = "";
         },
       };
