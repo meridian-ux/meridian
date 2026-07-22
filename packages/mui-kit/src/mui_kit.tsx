@@ -331,65 +331,175 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
 // ── Forms (Form / Prompt / Lro all render a field form) ──────────────────────
 
-function initValues(fields: FormField[]): Record<string, string | number> {
-  const values: Record<string, string | number> = {};
-  for (const field of fields) {
-    switch (field.kind.case) {
-      case "integer":
-        values[field.fieldId] = field.kind.value.defaultValue ?? 0;
-        break;
-      case "enumSelection":
-        values[field.fieldId] = field.kind.value.defaultValue ?? "";
-        break;
-      case "text":
-      case "masked":
-        values[field.fieldId] = field.kind.value.defaultValue ?? "";
-        break;
-      default:
-        values[field.fieldId] = "";
+// The form value model is a recursive tree: scalars at the leaves, a keyed object
+// for a `nested` sub-form, and an ordered array for a `repeated_field` list. It is
+// submitted verbatim as the RPC request body (nested → nested object, repeated →
+// array under the parent field's key), so it mirrors the request message shape.
+type FormValue = string | number | boolean | FormObject | FormValue[];
+interface FormObject {
+  [fieldId: string]: FormValue;
+}
+
+type SetAt = (path: (string | number)[], value: FormValue) => void;
+
+/** The initial value for one field (recurses into nested / repeated). */
+function initField(field: FormField): FormValue {
+  switch (field.kind.case) {
+    case "integer":
+    case "number":
+      return field.kind.value.defaultValue ?? 0;
+    case "boolean":
+      return field.kind.value.defaultValue ?? false;
+    case "enumSelection":
+    case "text":
+    case "masked":
+      return field.kind.value.defaultValue ?? "";
+    case "nested":
+      return initValues(field.kind.value.fields);
+    case "repeatedField": {
+      const { item, minItems } = field.kind.value;
+      if (!item) return [];
+      // Seed min_items elements so the form opens already satisfying the minimum.
+      return Array.from({ length: minItems }, () => initField(item));
     }
+    default:
+      return "";
   }
+}
+
+function initValues(fields: FormField[]): FormObject {
+  const values: FormObject = {};
+  for (const field of fields) values[field.fieldId] = initField(field);
   return values;
+}
+
+/** Read the value at a path (string keys index objects, number keys index arrays). */
+function valueAt(root: FormValue | undefined, path: readonly (string | number)[]): FormValue | undefined {
+  return path.reduce<FormValue | undefined>((acc, key) => {
+    if (acc == null) return undefined;
+    if (typeof key === "number") return Array.isArray(acc) ? acc[key] : undefined;
+    return typeof acc === "object" && !Array.isArray(acc) ? (acc as FormObject)[key] : undefined;
+  }, root);
+}
+
+/** Immutably set the value at a path, cloning each node along the way. */
+function updateAt(node: FormValue | undefined, path: readonly (string | number)[], value: FormValue): FormValue {
+  const [head, ...rest] = path;
+  if (typeof head === "number") {
+    const arr = Array.isArray(node) ? [...node] : [];
+    arr[head] = rest.length === 0 ? value : updateAt(arr[head], rest, value);
+    return arr;
+  }
+  const obj: FormObject =
+    node && typeof node === "object" && !Array.isArray(node) ? { ...(node as FormObject) } : {};
+  obj[head] = rest.length === 0 ? value : updateAt(obj[head], rest, value);
+  return obj;
+}
+
+/** Build one field descriptor at `path` (its full path into the value tree). */
+function buildField(
+  field: FormField,
+  values: FormObject,
+  setAt: SetAt,
+  disabled: boolean,
+  path: (string | number)[],
+): MeridianFormField {
+  const base = {
+    key: path.join("."),
+    label: field.label,
+    helperText: field.description || undefined,
+    disabled,
+  };
+  const current = valueAt(values, path);
+  switch (field.kind.case) {
+    case "integer": {
+      const spec = field.kind.value;
+      return {
+        ...base,
+        type: "number",
+        value: typeof current === "number" ? current : 0,
+        min: spec.min || undefined,
+        max: spec.max || undefined,
+        step: spec.step || undefined,
+        onChange: (value: number) => setAt(path, value),
+      };
+    }
+    case "number": {
+      const spec = field.kind.value;
+      return {
+        ...base,
+        type: "decimal",
+        value: typeof current === "number" ? current : 0,
+        min: spec.min || undefined,
+        max: spec.max || undefined,
+        step: spec.step || undefined,
+        onChange: (value: number) => setAt(path, value),
+      };
+    }
+    case "boolean":
+      return {
+        ...base,
+        type: "boolean",
+        value: typeof current === "boolean" ? current : false,
+        onChange: (value: boolean) => setAt(path, value),
+      };
+    case "enumSelection":
+      return {
+        ...base,
+        type: "select",
+        value: typeof current === "string" ? current : "",
+        onChange: (value: string) => setAt(path, value),
+        options: field.kind.value.allowedValues.map((value) => ({ value, label: value })),
+      };
+    case "nested":
+      return {
+        ...base,
+        type: "group",
+        fields: buildFields(field.kind.value.fields, values, setAt, disabled, path),
+      };
+    case "repeatedField": {
+      const spec = field.kind.value;
+      const item = spec.item;
+      const arr = Array.isArray(current) ? current : [];
+      // A repeated element has position, not a name: item.field_id is ignored, so
+      // each element's path segment is its array index.
+      const items = item
+        ? arr.map((_, index) => buildField(item, values, setAt, disabled, [...path, index]))
+        : [];
+      return {
+        ...base,
+        type: "list",
+        items,
+        addLabel: spec.addLabel || "Add",
+        // max_items 0 = unbounded; min_items 0 = no minimum.
+        canAdd: item != null && (spec.maxItems === 0 || arr.length < spec.maxItems),
+        canRemove: arr.length > spec.minItems,
+        onAdd: () => {
+          if (item) setAt(path, [...arr, initField(item)]);
+        },
+        onRemove: (index: number) => setAt(path, arr.filter((_, i) => i !== index)),
+      };
+    }
+    case "text":
+    case "masked":
+    default:
+      return {
+        ...base,
+        type: "text",
+        value: typeof current === "string" ? current : "",
+        onChange: (value: string) => setAt(path, value),
+      };
+  }
 }
 
 function buildFields(
   fields: FormField[],
-  values: Record<string, string | number>,
-  set: (id: string, value: string | number) => void,
+  values: FormObject,
+  setAt: SetAt,
   disabled: boolean,
+  prefix: (string | number)[] = [],
 ): MeridianFormField[] {
-  return fields.map((field): MeridianFormField => {
-    const base = {
-      key: field.fieldId,
-      label: field.label,
-      helperText: field.description || undefined,
-      disabled,
-    };
-    switch (field.kind.case) {
-      case "integer":
-        return {
-          ...base,
-          type: "number",
-          value: Number(values[field.fieldId] ?? 0),
-          onChange: (value: number) => set(field.fieldId, value),
-        };
-      case "enumSelection":
-        return {
-          ...base,
-          type: "select",
-          value: String(values[field.fieldId] ?? ""),
-          onChange: (value: string) => set(field.fieldId, value),
-          options: field.kind.value.allowedValues.map((value) => ({ value, label: value })),
-        };
-      default:
-        return {
-          ...base,
-          type: "text",
-          value: String(values[field.fieldId] ?? ""),
-          onChange: (value: string) => set(field.fieldId, value),
-        };
-    }
-  });
+  return fields.map((field) => buildField(field, values, setAt, disabled, [...prefix, field.fieldId]));
 }
 
 function FieldForm({
@@ -405,16 +515,14 @@ function FieldForm({
   description?: string;
   submitLabel: string;
   submitDisabled?: boolean;
-  onSubmit?: (values: Record<string, string | number>) => void;
+  onSubmit?: (values: FormObject) => void;
 }): ReactNode {
-  const [values, setValues] = useState<Record<string, string | number>>(() =>
-    initValues(fields),
-  );
-  const set = (id: string, value: string | number) =>
-    setValues((prev) => ({ ...prev, [id]: value }));
+  const [values, setValues] = useState<FormObject>(() => initValues(fields));
+  const setAt: SetAt = (path, value) =>
+    setValues((prev) => updateAt(prev, path, value) as FormObject);
   return (
     <MeridianForm
-      fields={buildFields(fields, values, set, disabled)}
+      fields={buildFields(fields, values, setAt, disabled)}
       description={description || undefined}
       submit={{ label: submitLabel, disabled: submitDisabled, onSubmit: () => onSubmit?.(values) }}
     />

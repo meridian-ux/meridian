@@ -106,6 +106,69 @@ async function main() {
       if ((await input.inputValue()) !== "physical") throw new Error("input not editable");
     });
 
+    // ── Form · typed fields (the full 0.16 vocabulary) ──
+    await check("form-typed-edit: every field kind renders", async () => {
+      await render("form-typed-edit");
+      await seen("Quantity"); // integer spinner
+      await seen("Unit price"); // decimal number
+      await seen("Active"); // boolean toggle
+      await seen("Tier"); // enum select
+      await seen("SKU"); // text
+      await seen("Dimensions"); // nested group legend
+      await seen("Width (cm)"); // nested child
+      await seen("Tags"); // repeated list
+      await seen("Save");
+    });
+    await check("form-typed-edit: boolean is a checked, toggleable switch", async () => {
+      const sw = page.getByRole("switch").first();
+      if (!(await sw.isChecked())) throw new Error("Active should default checked");
+      await sw.click();
+      if (await sw.isChecked()) throw new Error("switch did not toggle off");
+    });
+    await check("form-typed-edit: repeated list adds + removes rows", async () => {
+      const removeBtns = page.getByRole("button", { name: /remove item/i });
+      const before = await removeBtns.count(); // seeded min_items = 1
+      if (before !== 1) throw new Error(`expected 1 seeded tag, got ${before}`);
+      await page.getByRole("button", { name: "Add tag" }).click();
+      await page.waitForTimeout(50);
+      if ((await removeBtns.count()) !== 2) throw new Error("Add tag did not append a row");
+      await removeBtns.first().click();
+      await page.waitForTimeout(50);
+      if ((await removeBtns.count()) !== 1) throw new Error("remove did not drop a row");
+    });
+    await check("form-typed-edit: decimal input accepts a fractional value", async () => {
+      const price = page.getByLabel("Unit price");
+      await price.fill("12.5");
+      if ((await price.inputValue()) !== "12.5") throw new Error("decimal not editable");
+    });
+
+    // ── Form · typed fields, read-only (controls hidden, inputs disabled) ──
+    await check("form-typed-readonly: fields render; add/remove hidden", async () => {
+      await render("form-typed-readonly");
+      await seen("Quantity");
+      await seen("Tags");
+      await absent("Add tag");
+    });
+    await check("form-typed-readonly: boolean switch is disabled", async () => {
+      const sw = page.getByRole("switch").first();
+      if (!(await sw.isDisabled())) throw new Error("read-only switch should be disabled");
+    });
+
+    // ── Form · repeated list of sub-forms (recursion: list → nested) ──
+    await check("form-repeated-nested: list of sub-forms renders + grows", async () => {
+      await render("form-repeated-nested");
+      await seen("Variants");
+      await seen("Color"); // nested child of a repeated element
+      await seen("In stock"); // nested boolean inside a repeated element
+      const removeBtns = page.getByRole("button", { name: /remove item/i });
+      const before = await removeBtns.count(); // min_items 1 → one variant
+      await page.getByRole("button", { name: "Add variant" }).click();
+      await page.waitForTimeout(50);
+      if ((await removeBtns.count()) !== before + 1) {
+        throw new Error("Add variant did not add a sub-form");
+      }
+    });
+
     // ── Prompt ──
     await check("prompt: description + field + accept label", async () => {
       await render("prompt");
@@ -172,6 +235,12 @@ async function main() {
       await render("dark-table");
       await seen("Widget");
       await seen("Status");
+    });
+    await check("dark-form-typed: typed form renders in dark mode", async () => {
+      await render("dark-form-typed");
+      await seen("Quantity");
+      await seen("Active");
+      await seen("Tags");
     });
     await check("skin-indigo: renders with the 2nd skin", async () => {
       await render("skin-indigo");

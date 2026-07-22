@@ -27,8 +27,8 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^7.3.7",
-    "@savvifi/meridian-proto-ts": "^0.13.0",
-    "@savvifi/meridian-schemas": "^0.13.0",
+    "@savvifi/meridian-proto-ts": "^0.16.0",
+    "@savvifi/meridian-schemas": "^0.16.0",
     "@savvifi/meridian-web-react": "^0.10.0-rc.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -38,8 +38,8 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.7",
-    "@savvifi/meridian-proto-ts": "^0.13.0",
-    "@savvifi/meridian-schemas": "^0.13.0",
+    "@savvifi/meridian-proto-ts": "^0.16.0",
+    "@savvifi/meridian-schemas": "^0.16.0",
     "@savvifi/meridian-web-react": "^0.10.0-rc.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
@@ -55,7 +55,11 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "@savvifi/meridian-proto-ts": "0.16.0",
+      "@savvifi/meridian-schemas": "0.16.0"
+    }
   },
   "publishConfig": {
     "access": "public"

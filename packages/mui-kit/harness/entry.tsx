@@ -16,7 +16,18 @@ import { create } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import {
+  BooleanToggleSchema,
+  EnumSelectionSchema,
+  type FormField,
+  FormFieldSchema,
+  IntegerSpinnerSchema,
+  MaskedInputSchema,
+  NestedFormSchema,
+  NumberInputSchema,
+  RepeatedFieldSchema,
+  TextInputSchema,
+} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import {
   FormMode,
   FormPanelSchema,
@@ -183,6 +194,166 @@ const configForm = (mode: FormMode) =>
     },
   });
 
+// Typed form fields — one per FormField.kind, so the browser test + catalog cover
+// the full 0.16 vocabulary (integer / number / boolean / enum / masked + nested +
+// repeated). The plain `configForm` above sets no kind (everything renders as text).
+function typedFields(): FormField[] {
+  return [
+    create(FormFieldSchema, {
+      fieldId: "quantity",
+      label: "Quantity",
+      description: "Whole units",
+      kind: { case: "integer", value: create(IntegerSpinnerSchema, { min: 0, max: 100, defaultValue: 3, step: 1 }) },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "price",
+      label: "Unit price",
+      description: "USD",
+      kind: { case: "number", value: create(NumberInputSchema, { min: 0, max: 9999, defaultValue: 9.99, step: 0.01 }) },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "active",
+      label: "Active",
+      description: "Visible in the catalog",
+      kind: { case: "boolean", value: create(BooleanToggleSchema, { defaultValue: true }) },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "tier",
+      label: "Tier",
+      kind: {
+        case: "enumSelection",
+        value: create(EnumSelectionSchema, { allowedValues: ["bronze", "silver", "gold"], defaultValue: "silver" }),
+      },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "sku",
+      label: "SKU",
+      kind: { case: "text", value: create(TextInputSchema, { defaultValue: "WID-001" }) },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "apiKey",
+      label: "API key",
+      kind: { case: "masked", value: create(MaskedInputSchema, {}) },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "dimensions",
+      label: "Dimensions",
+      description: "Nested object",
+      kind: {
+        case: "nested",
+        value: create(NestedFormSchema, {
+          fields: [
+            create(FormFieldSchema, {
+              fieldId: "width",
+              label: "Width (cm)",
+              kind: { case: "number", value: create(NumberInputSchema, { defaultValue: 10, step: 0.5 }) },
+            }),
+            create(FormFieldSchema, {
+              fieldId: "height",
+              label: "Height (cm)",
+              kind: { case: "number", value: create(NumberInputSchema, { defaultValue: 5, step: 0.5 }) },
+            }),
+          ],
+        }),
+      },
+    }),
+    create(FormFieldSchema, {
+      fieldId: "tags",
+      label: "Tags",
+      requestField: "tags",
+      kind: {
+        case: "repeatedField",
+        value: create(RepeatedFieldSchema, {
+          item: create(FormFieldSchema, { fieldId: "tag", label: "Tag", kind: { case: "text", value: create(TextInputSchema, {}) } }),
+          minItems: 1,
+          maxItems: 5,
+          addLabel: "Add tag",
+        }),
+      },
+    }),
+  ];
+}
+
+function typedFormPanel(mode: FormMode) {
+  return create(PanelDescriptorSchema, {
+    panelId: "typed",
+    title: "Typed Fields",
+    body: {
+      case: "form",
+      value: create(FormPanelSchema, {
+        mode,
+        itemNoun: "product",
+        submit: create(RpcCallSchema, { service: "savvi.studio.product", method: "save" }),
+        fields: typedFields(),
+      }),
+    },
+  });
+}
+
+// A repeated field whose element is itself a nested sub-form — proves the renderer
+// recurses (a list of sub-forms, each with its own fields incl. a boolean).
+function repeatedNestedPanel(mode: FormMode) {
+  return create(PanelDescriptorSchema, {
+    panelId: "variants",
+    title: "Variants",
+    body: {
+      case: "form",
+      value: create(FormPanelSchema, {
+        mode,
+        itemNoun: "product",
+        submit: create(RpcCallSchema, { service: "savvi.studio.product", method: "save" }),
+        fields: [
+          create(FormFieldSchema, {
+            fieldId: "variants",
+            label: "Variants",
+            requestField: "variants",
+            kind: {
+              case: "repeatedField",
+              value: create(RepeatedFieldSchema, {
+                addLabel: "Add variant",
+                minItems: 1,
+                maxItems: 3,
+                item: create(FormFieldSchema, {
+                  fieldId: "variant",
+                  label: "Variant",
+                  kind: {
+                    case: "nested",
+                    value: create(NestedFormSchema, {
+                      fields: [
+                        create(FormFieldSchema, {
+                          fieldId: "color",
+                          label: "Color",
+                          kind: { case: "text", value: create(TextInputSchema, { defaultValue: "" }) },
+                        }),
+                        create(FormFieldSchema, {
+                          fieldId: "inStock",
+                          label: "In stock",
+                          kind: { case: "boolean", value: create(BooleanToggleSchema, { defaultValue: true }) },
+                        }),
+                      ],
+                    }),
+                  },
+                }),
+              }),
+            },
+          }),
+        ],
+      }),
+    },
+  });
+}
+
+// A DETAIL view wrapping one form panel (mirrors the form-readonly / form-edit shape).
+function formView(id: string, title: string, panel: ReturnType<typeof typedFormPanel>): ViewDescriptor {
+  return create(ViewDescriptorSchema, {
+    id,
+    title,
+    kind: ViewKind.DETAIL,
+    layout: { mode: { case: "stacked", value: {} } },
+    slots: [{ id: "typed", role: "configuration", position: 10, title, panel }],
+  });
+}
+
 const headerSlot = {
   id: "header",
   role: "header",
@@ -279,6 +450,27 @@ const fixtures: Fixture[] = [
       layout: { mode: { case: "stacked", value: {} } },
       slots: [{ id: "config", role: "configuration", position: 10, title: "Edit", panel: configForm(FormMode.EDIT) }],
     }),
+  },
+  {
+    name: "form-typed-edit",
+    label: "Form · typed fields (all kinds)",
+    group: "Primitives",
+    invoker: noopInvoker,
+    view: formView("form-typed-edit", "Typed Fields", typedFormPanel(FormMode.EDIT)),
+  },
+  {
+    name: "form-typed-readonly",
+    label: "Form · typed fields, read-only",
+    group: "Primitives",
+    invoker: noopInvoker,
+    view: formView("form-typed-readonly", "Typed Fields", typedFormPanel(FormMode.READONLY)),
+  },
+  {
+    name: "form-repeated-nested",
+    label: "Form · repeated list of sub-forms",
+    group: "Primitives",
+    invoker: noopInvoker,
+    view: formView("form-repeated-nested", "Variants", repeatedNestedPanel(FormMode.EDIT)),
   },
   {
     name: "prompt",
@@ -508,6 +700,14 @@ const fixtures: Fixture[] = [
     }),
   },
   {
+    name: "dark-form-typed",
+    label: "Dark · typed fields",
+    group: "Theming",
+    invoker: noopInvoker,
+    mode: "dark",
+    view: formView("dark-form-typed", "Typed Fields", typedFormPanel(FormMode.EDIT)),
+  },
+  {
     name: "skin-indigo",
     label: "Skin · indigo (2nd theme)",
     group: "Theming",
@@ -539,10 +739,13 @@ async function render(name: string): Promise<void> {
   // Paint the page background for the active mode so dark fixtures read correctly.
   const palette = (fixture.mode === "dark" ? (fixture.theme ?? skin).dark : (fixture.theme ?? skin).light);
   container.style.background = palette?.bg ?? "#ffffff";
+  // Key by fixture name so switching fixtures fully remounts the subtree — each
+  // fixture renders with fresh component state (e.g. a form's seeded initial
+  // values), never inheriting the previous fixture's state at the same position.
   root.render(
     createElement(
       MeridianMuiProvider,
-      { invoker: fixture.invoker, theme: fixture.theme ?? skin, mode: fixture.mode ?? "light", adhoc },
+      { key: name, invoker: fixture.invoker, theme: fixture.theme ?? skin, mode: fixture.mode ?? "light", adhoc },
       createElement(ViewRenderer, { view: fixture.view }),
     ),
   );

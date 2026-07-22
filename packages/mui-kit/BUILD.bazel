@@ -85,6 +85,9 @@ FIXTURES = [
     "table-cursor",
     "form-readonly",
     "form-edit",
+    "form-typed-edit",
+    "form-typed-readonly",
+    "form-repeated-nested",
     "prompt",
     "lro",
     "fallback",
@@ -97,6 +100,7 @@ FIXTURES = [
     "dark-table",
     "dark-detail",
     "dark-tabbed",
+    "dark-form-typed",
     "skin-indigo",
 ]
 
