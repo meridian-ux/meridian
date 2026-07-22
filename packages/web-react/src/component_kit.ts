@@ -27,6 +27,8 @@ import type {
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
@@ -60,6 +62,8 @@ export type CatalogPanelProps = ShapeProps<CatalogPanel>;
 export type GrammarPanelProps = ShapeProps<GrammarPanel>;
 // Full-parity KPI tile.
 export type StatPanelProps = ShapeProps<StatPanel>;
+export type StepsPanelProps = ShapeProps<StepsPanel>;
+export type MediaPanelProps = ShapeProps<MediaPanel>;
 
 /** Props for a kit's action bar: the actions to render + transport to fire them. */
 export interface ActionBarProps {
@@ -116,6 +120,19 @@ export interface ComponentKit {
   Grammar?: ComponentType<GrammarPanelProps>;
   /** KPI tile — a labeled number with a COMPUTED delta/trend + sparkline. */
   Stat?: ComponentType<StatPanelProps>;
+  /**
+   * Ordered walkthrough — steps a reader performs, each with an optional
+   * narration, frame and actor. The step NUMBER comes from POSITION; Step
+   * carries no ordinal, so a kit must never render an authored one.
+   */
+  Steps?: ComponentType<StepsPanelProps>;
+  /**
+   * Video / audio / image with a poster, captions and chapters. Specialized:
+   * a moving picture is not displayable as text, so a kit that cannot play it
+   * degrades to the poster, then to `alt`. PanelRenderer falls back when a kit
+   * omits it entirely.
+   */
+  Media?: ComponentType<MediaPanelProps>;
   /** Rendered for unknown / unset / unsupported shapes. */
   Fallback: ComponentType<{ descriptor: PanelDescriptor }>;
   /**
