@@ -169,6 +169,66 @@ async function main() {
       }
     });
 
+    // ── Form · nav.groups (add/remove/reorder sections + kinds) ──
+    await check("form-nav-groups: renders add-section and up/down reorder buttons", async () => {
+      await render("form-nav-groups");
+      await seen("Groups");
+      // add first section and wait for the reorder buttons to appear
+      await page.getByRole("button", { name: "Add section" }).click();
+      await page.getByRole("button", { name: /move item up/i }).first().waitFor({ state: "visible" });
+      // add second section and wait for a second move-up button
+      await page.getByRole("button", { name: "Add section" }).click();
+      await page.waitForFunction(() =>
+        document.querySelectorAll('[aria-label="move item up"]').length >= 2,
+      );
+      const upBtns = page.getByRole("button", { name: /move item up/i });
+      const downBtns = page.getByRole("button", { name: /move item down/i });
+      if ((await upBtns.count()) < 2) throw new Error("expected ≥2 move-up buttons for 2 sections");
+      if ((await downBtns.count()) < 2) throw new Error("expected ≥2 move-down buttons for 2 sections");
+    });
+    await check("form-nav-groups: first up disabled; last down disabled", async () => {
+      // still on form-nav-groups with 2 sections from the previous check
+      const upBtns = page.getByRole("button", { name: /move item up/i });
+      const downBtns = page.getByRole("button", { name: /move item down/i });
+      // section-level up/down (outermost repeated field buttons come first)
+      const firstUp = upBtns.first();
+      const lastDown = downBtns.last();
+      if (!(await firstUp.isDisabled())) throw new Error("first section up should be disabled");
+      if (!(await lastDown.isDisabled())) throw new Error("last section down should be disabled");
+    });
+    await check("form-nav-groups: add kind inside a section + reorder sections", async () => {
+      await render("form-nav-groups");
+      await seen("Groups");
+      // add two sections and wait for both reorder buttons
+      await page.getByRole("button", { name: "Add section" }).click();
+      await page.getByRole("button", { name: /move item up/i }).first().waitFor({ state: "visible" });
+      await page.getByRole("button", { name: "Add section" }).click();
+      await page.waitForFunction(() =>
+        document.querySelectorAll('[aria-label="move item up"]').length >= 2,
+      );
+      // fill labels
+      const labelInputs = page.getByRole("textbox", { name: /label/i });
+      await labelInputs.nth(0).fill("Alpha");
+      await labelInputs.nth(1).fill("Beta");
+      // add a kind to the first section and wait for the kind input
+      await page.getByRole("button", { name: "Add kind" }).first().click();
+      await page.getByRole("textbox", { name: /kind/i }).first().waitFor({ state: "visible" });
+      await page.getByRole("textbox", { name: /kind/i }).first().fill("products");
+      // reorder: move first section down and wait for the input values to swap
+      await page.getByRole("button", { name: /move item down/i }).first().click();
+      await page.waitForFunction(() => {
+        const inputs = document.querySelectorAll('input[aria-label^="Label"], input[placeholder^="Label"]');
+        // check the first visible label-type textbox has "Beta"
+        const labelInputsList = Array.from(document.querySelectorAll("input[type='text']")).filter(
+          (el) => el.closest('[class*="MuiFormControl"]')?.querySelector("label")?.textContent?.trim() === "Label",
+        );
+        return labelInputsList.length >= 2 && (labelInputsList[0] ).value === "Beta";
+      });
+      const labelsAfter = page.getByRole("textbox", { name: /label/i });
+      const firstLabel = await labelsAfter.nth(0).inputValue();
+      if (firstLabel !== "Beta") throw new Error(`expected first label to be Beta after reorder, got "${firstLabel}"`);
+    });
+
     // ── Prompt ──
     await check("prompt: description + field + accept label", async () => {
       await render("prompt");

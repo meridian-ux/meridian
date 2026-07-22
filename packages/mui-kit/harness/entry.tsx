@@ -262,9 +262,12 @@ function typedFields(): FormField[] {
       label: "Tags",
       requestField: "tags",
       kind: {
-        case: "repeatedField",
+        case: "repeated",
         value: create(RepeatedFieldSchema, {
-          item: create(FormFieldSchema, { fieldId: "tag", label: "Tag", kind: { case: "text", value: create(TextInputSchema, {}) } }),
+          element: {
+            case: "scalar",
+            value: create(FormFieldSchema, { fieldId: "tag", label: "Tag", kind: { case: "text", value: create(TextInputSchema, {}) } }),
+          },
           minItems: 1,
           maxItems: 5,
           addLabel: "Add tag",
@@ -308,32 +311,94 @@ function repeatedNestedPanel(mode: FormMode) {
             label: "Variants",
             requestField: "variants",
             kind: {
-              case: "repeatedField",
+              case: "repeated",
               value: create(RepeatedFieldSchema, {
                 addLabel: "Add variant",
                 minItems: 1,
                 maxItems: 3,
-                item: create(FormFieldSchema, {
-                  fieldId: "variant",
-                  label: "Variant",
-                  kind: {
-                    case: "nested",
-                    value: create(NestedFormSchema, {
-                      fields: [
-                        create(FormFieldSchema, {
-                          fieldId: "color",
-                          label: "Color",
-                          kind: { case: "text", value: create(TextInputSchema, { defaultValue: "" }) },
-                        }),
-                        create(FormFieldSchema, {
-                          fieldId: "inStock",
-                          label: "In stock",
-                          kind: { case: "boolean", value: create(BooleanToggleSchema, { defaultValue: true }) },
-                        }),
-                      ],
-                    }),
-                  },
-                }),
+                element: {
+                  case: "object",
+                  value: create(NestedFormSchema, {
+                    fields: [
+                      create(FormFieldSchema, {
+                        fieldId: "color",
+                        label: "Color",
+                        kind: { case: "text", value: create(TextInputSchema, { defaultValue: "" }) },
+                      }),
+                      create(FormFieldSchema, {
+                        fieldId: "inStock",
+                        label: "In stock",
+                        kind: { case: "boolean", value: create(BooleanToggleSchema, { defaultValue: true }) },
+                      }),
+                    ],
+                  }),
+                },
+              }),
+            },
+          }),
+        ],
+      }),
+    },
+  });
+}
+
+// nav.groups shape: RepeatedField{object{label, kinds:RepeatedField{scalar}}}.
+// Proves add/remove/reorder on a list of nested sub-forms where each row contains
+// its own child repeated field — the exact shape a MeridianSite nav descriptor uses.
+function navGroupsPanel(): ReturnType<typeof typedFormPanel> {
+  return create(PanelDescriptorSchema, {
+    panelId: "nav-groups",
+    title: "Navigation Groups",
+    body: {
+      case: "form",
+      value: create(FormPanelSchema, {
+        mode: FormMode.EDIT,
+        itemNoun: "site",
+        submit: create(RpcCallSchema, { service: "savvi.studio.site", method: "save" }),
+        fields: [
+          create(FormFieldSchema, {
+            fieldId: "groups",
+            label: "Groups",
+            requestField: "groups",
+            kind: {
+              case: "repeated",
+              value: create(RepeatedFieldSchema, {
+                addLabel: "Add section",
+                minItems: 0,
+                maxItems: 0,
+                element: {
+                  case: "object",
+                  value: create(NestedFormSchema, {
+                    fields: [
+                      create(FormFieldSchema, {
+                        fieldId: "label",
+                        label: "Label",
+                        kind: { case: "text", value: create(TextInputSchema, { defaultValue: "" }) },
+                      }),
+                      create(FormFieldSchema, {
+                        fieldId: "kinds",
+                        label: "Kinds",
+                        requestField: "kinds",
+                        kind: {
+                          case: "repeated",
+                          value: create(RepeatedFieldSchema, {
+                            addLabel: "Add kind",
+                            minItems: 0,
+                            maxItems: 0,
+                            element: {
+                              case: "scalar",
+                              value: create(FormFieldSchema, {
+                                fieldId: "kind",
+                                label: "Kind",
+                                kind: { case: "text", value: create(TextInputSchema, { defaultValue: "" }) },
+                              }),
+                            },
+                          }),
+                        },
+                      }),
+                    ],
+                  }),
+                },
               }),
             },
           }),
@@ -471,6 +536,13 @@ const fixtures: Fixture[] = [
     group: "Primitives",
     invoker: noopInvoker,
     view: formView("form-repeated-nested", "Variants", repeatedNestedPanel(FormMode.EDIT)),
+  },
+  {
+    name: "form-nav-groups",
+    label: "Form · nav.groups (add/remove/reorder sections + kinds)",
+    group: "Primitives",
+    invoker: noopInvoker,
+    view: formView("form-nav-groups", "Navigation Groups", navGroupsPanel()),
   },
   {
     name: "prompt",

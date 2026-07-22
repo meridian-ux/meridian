@@ -336,7 +336,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 // ── Forms (Form / Prompt / Lro all render a field form) ──────────────────────
 
 // The form value model is a recursive tree: scalars at the leaves, a keyed object
-// for a `nested` sub-form, and an ordered array for a `repeated_field` list. It is
+// for a `nested` sub-form, and an ordered array for a `repeated` list. It is
 // submitted verbatim as the RPC request body (nested → nested object, repeated →
 // array under the parent field's key), so it mirrors the request message shape.
 type FormValue = string | number | boolean | FormObject | FormValue[];
@@ -360,11 +360,16 @@ function initField(field: FormField): FormValue {
       return field.kind.value.defaultValue ?? "";
     case "nested":
       return initValues(field.kind.value.fields);
-    case "repeatedField": {
-      const { item, minItems } = field.kind.value;
-      if (!item) return [];
-      // Seed min_items elements so the form opens already satisfying the minimum.
-      return Array.from({ length: minItems }, () => initField(item));
+    case "repeated": {
+      const { element, minItems } = field.kind.value;
+      if (element.case === "scalar") {
+        // Seed min_items scalar rows.
+        return Array.from({ length: minItems }, () => initField(element.value));
+      } else if (element.case === "object") {
+        // Seed min_items object (NestedForm) rows.
+        return Array.from({ length: minItems }, () => initValues(element.value.fields));
+      }
+      return [];
     }
     default:
       return "";
@@ -461,27 +466,57 @@ function buildField(
         type: "group",
         fields: buildFields(field.kind.value.fields, values, setAt, disabled, path),
       };
-    case "repeatedField": {
+    case "repeated": {
       const spec = field.kind.value;
-      const item = spec.item;
       const arr = Array.isArray(current) ? current : [];
-      // A repeated element has position, not a name: item.field_id is ignored, so
-      // each element's path segment is its array index.
-      const items = item
-        ? arr.map((_, index) => buildField(item, values, setAt, disabled, [...path, index]))
-        : [];
+      // Build the per-row field descriptors based on the element type.
+      let items: MeridianFormField[];
+      if (spec.element.case === "scalar") {
+        // scalar: each row is one inner FormField (position-keyed, field_id ignored).
+        const scalar = spec.element.value;
+        items = arr.map((_, index) => buildField(scalar, values, setAt, disabled, [...path, index]));
+      } else if (spec.element.case === "object") {
+        // object: each row is an anonymous NestedForm rendered as a group.
+        const nested = spec.element.value;
+        items = arr.map((_, index) => ({
+          key: [...path, index].join("."),
+          label: "",
+          type: "group" as const,
+          disabled,
+          fields: buildFields(nested.fields, values, setAt, disabled, [...path, index]),
+        }));
+      } else {
+        items = [];
+      }
       return {
         ...base,
         type: "list",
         items,
         addLabel: spec.addLabel || "Add",
         // max_items 0 = unbounded; min_items 0 = no minimum.
-        canAdd: item != null && (spec.maxItems === 0 || arr.length < spec.maxItems),
+        canAdd: spec.element.case !== undefined && (spec.maxItems === 0 || arr.length < spec.maxItems),
         canRemove: arr.length > spec.minItems,
         onAdd: () => {
-          if (item) setAt(path, [...arr, initField(item)]);
+          if (spec.element.case === "scalar") setAt(path, [...arr, initField(spec.element.value)]);
+          else if (spec.element.case === "object") setAt(path, [...arr, initValues(spec.element.value.fields)]);
         },
         onRemove: (index: number) => setAt(path, arr.filter((_, i) => i !== index)),
+        onMoveUp: (index: number) => {
+          if (index <= 0) return;
+          const newArr = [...arr];
+          const tmp = newArr[index - 1];
+          newArr[index - 1] = newArr[index];
+          newArr[index] = tmp;
+          setAt(path, newArr);
+        },
+        onMoveDown: (index: number) => {
+          if (index >= arr.length - 1) return;
+          const newArr = [...arr];
+          const tmp = newArr[index + 1];
+          newArr[index + 1] = newArr[index];
+          newArr[index] = tmp;
+          setAt(path, newArr);
+        },
       };
     }
     case "text":

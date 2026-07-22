@@ -48,7 +48,7 @@ export type MeridianFormField =
     })
   // A nested object → a titled sub-group of fields (NestedForm).
   | (BaseField & { type: "group"; fields: MeridianFormField[] })
-  // A repeated field → an add/remove list, each element rendered from RepeatedField.item.
+  // A repeated field → an add/remove/reorder list, each element rendered from RepeatedField.item.
   | (BaseField & {
       type: "list";
       items: MeridianFormField[];
@@ -57,6 +57,8 @@ export type MeridianFormField =
       canRemove: boolean;
       onAdd: () => void;
       onRemove: (index: number) => void;
+      onMoveUp: (index: number) => void;
+      onMoveDown: (index: number) => void;
     });
 
 export interface MeridianFormSubmit {
@@ -136,6 +138,30 @@ function renderField(field: MeridianFormField): ReactNode {
           {field.items.map((item, index) => (
             <Stack key={item.key} direction="row" spacing={1} alignItems="flex-start">
               <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item)}</Box>
+              {showControls ? (
+                <Stack direction="column" spacing={0} sx={{ mt: 0.5 }}>
+                  <IconButton
+                    aria-label="move item up"
+                    size="small"
+                    disabled={index === 0}
+                    onClick={() => field.onMoveUp(index)}
+                  >
+                    <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>
+                      &#8593;
+                    </Box>
+                  </IconButton>
+                  <IconButton
+                    aria-label="move item down"
+                    size="small"
+                    disabled={index === field.items.length - 1}
+                    onClick={() => field.onMoveDown(index)}
+                  >
+                    <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>
+                      &#8595;
+                    </Box>
+                  </IconButton>
+                </Stack>
+              ) : null}
               {showControls ? (
                 <IconButton
                   aria-label="remove item"
