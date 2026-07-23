@@ -71,8 +71,37 @@ export interface RenderedRow {
  * directly by hosts.
  */
 function plainRow(raw: unknown): Record<string, unknown> {
-  if (raw instanceof Map) return Object.fromEntries(raw);
-  return (raw ?? {}) as Record<string, unknown>;
+  return plainValue(raw) as Record<string, unknown>;
+}
+
+/**
+ * Deeply convert serde-wasm-bindgen's Maps to plain objects.
+ *
+ * Everything the wasm returns as a `serde_json::Value::Object` arrives as a JS
+ * `Map` — not just table rows, but the REQUESTS built by `buildRequest` /
+ * `buildPopulateRequest`. That is the more damaging case, because a request is
+ * handed straight to the host's `RpcInvoker` and hosts do the obvious things
+ * with it:
+ *
+ *     JSON.stringify(new Map([["name", "x"]]))  === "{}"
+ *     Object.entries(new Map([["name", "x"]]))  === []
+ *
+ * So every binding-populated request silently serialized to NOTHING — a bound
+ * GET sent no query params and a bound POST sent an empty body. Observed in the
+ * fastverk console: a build's log stream subscribed to `?` with no build name,
+ * and every per-build table came back empty because the id never left the page.
+ *
+ * Deep, not shallow: `NestedBinding` builds sub-objects, so an un-normalized
+ * nested Map would break the same way one level down.
+ */
+function plainValue(v: unknown): unknown {
+  if (v instanceof Map) {
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of v) out[String(k)] = plainValue(val);
+    return out;
+  }
+  if (Array.isArray(v)) return v.map(plainValue);
+  return v ?? {};
 }
 
 /** Type-narrowed interface for the wasm bindings the renderer needs. Imported by
@@ -836,8 +865,8 @@ async function renderTablePanel(
   const refresh = async (): Promise<void> => {
     let response: object;
     try {
-      const request = wasm.buildPopulateRequest(descriptorBytes, opts.context);
-      response = await invoker.invoke(populate.service, populate.method, request);
+      const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
+      response = await invoker.invoke(populate.service, populate.method, request as object);
     } catch (err) {
       metaEl.textContent = `Failed: ${(err as Error).message}`;
       return;
@@ -862,11 +891,13 @@ async function renderTablePanel(
       if (!row || !action.rpc) return;
       btn.disabled = true;
       try {
-        const request = wasm.buildRequest(toBinary(RpcCallSchema, action.rpc), {
-          ...opts.context,
-          selectedRow: row,
-        });
-        await invoker.invoke(action.rpc.service, action.rpc.method, request);
+        const request = plainValue(
+          wasm.buildRequest(toBinary(RpcCallSchema, action.rpc), {
+            ...opts.context,
+            selectedRow: row,
+          }),
+        );
+        await invoker.invoke(action.rpc.service, action.rpc.method, request as object);
         // `RowAction.refresh_on_success` documents a default of TRUE, which a
         // non-presence proto3 bool cannot express (absent == false). We follow
         // the documented contract and always re-fetch; a descriptor that must
@@ -1195,7 +1226,9 @@ function renderStreamPanel(
 
   let request: object = {};
   try {
-    request = wasm.buildRequest(toBinary(RpcCallSchema, subscribe), opts.context);
+    request = plainValue(
+      wasm.buildRequest(toBinary(RpcCallSchema, subscribe), opts.context),
+    ) as object;
   } catch {
     // A binding that can't be resolved yet (no selected row, no subject) is not
     // fatal — subscribe with what we have and let the server decide.
@@ -1458,7 +1491,7 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
 
   metaEl.textContent = "Submitting…";
   const startCtx: RenderContext = { ...context, formValues };
-  const startRequest = wasm.buildRequest(bytesForRpc(start), startCtx);
+  const startRequest = plainValue(wasm.buildRequest(bytesForRpc(start), startCtx)) as object;
   let op: Operation;
   try {
     op = (await invoker.invoke(
@@ -1506,7 +1539,7 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
       selectedRow: lroResponse,
       formValues,
     };
-    const finalizeRequest = wasm.buildRequest(bytesForRpc(finalize), finalizeCtx);
+    const finalizeRequest = plainValue(wasm.buildRequest(bytesForRpc(finalize), finalizeCtx)) as object;
     try {
       source = (await invoker.invoke(
         finalize.service,

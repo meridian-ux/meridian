@@ -264,6 +264,64 @@ describe("wasm `raw` arrives as a Map (serde-wasm-bindgen's default)", () => {
   });
 });
 
+describe("wasm-built REQUESTS must reach the host as plain objects", () => {
+  // The damaging half of the Map problem. A request goes straight to the host's
+  // RpcInvoker, and hosts do the obvious things with it:
+  //   JSON.stringify(new Map([["name","x"]]))  === "{}"
+  //   Object.entries(new Map([["name","x"]]))  === []
+  // So every binding-populated request silently serialized to NOTHING. Observed
+  // live: a build's log stream subscribed with no build name, and every
+  // per-build table came back empty because the id never left the page.
+  const mapRequest = () =>
+    new Map([
+      ["name", "botnoc-abc"],
+      ["page", new Map([["limit", 50]])], // NestedBinding ⇒ nested Map
+    ]) as unknown as object;
+
+  it("normalizes a table's populate request, deeply", async () => {
+    const root = document.createElement("div");
+    let seen: unknown;
+    await renderPanel({
+      wasm: { ...wasmWith(ROWS), buildPopulateRequest: mapRequest },
+      root,
+      descriptor: tableWithActionsFixture,
+      invoker: {
+        invoke: async (_s, _m, request) => {
+          seen = request;
+          return { builds: [] };
+        },
+      },
+      context: CTX,
+    });
+    expect(seen instanceof Map).toBe(false);
+    expect(seen).toEqual({ name: "botnoc-abc", page: { limit: 50 } });
+    // The failure this guards: a Map stringifies to "{}" and enumerates to [].
+    expect(JSON.stringify(seen)).toContain("botnoc-abc");
+    expect(Object.entries(seen as object).length).toBe(2);
+  });
+
+  it("normalizes a StreamPanel's subscribe request", async () => {
+    let seenRequest: unknown;
+    const invoker: StreamInvoker = {
+      subscribe: (_s, _m, request) => {
+        seenRequest = request;
+        return { close: () => {} };
+      },
+    };
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: { ...wasmWith([]), buildRequest: mapRequest },
+      root,
+      descriptor: streamFixture,
+      invoker: { invoke: async () => ({}) },
+      streamInvoker: invoker,
+      context: CTX,
+    });
+    expect(seenRequest instanceof Map).toBe(false);
+    expect((seenRequest as { name?: string }).name).toBe("botnoc-abc");
+  });
+});
+
 describe("DetailHeaderPanel", () => {
   const headerFixture = create(PanelDescriptorSchema, {
     panelId: "build_header",
