@@ -214,6 +214,45 @@ export function disposePanel(root: HTMLElement): void {
 }
 
 /**
+ * The PanelDescriptor body cases this renderer draws.
+ *
+ * Exported because hosts were re-deriving it. botnoc kept its own hardcoded
+ * allowlist and gated on it BEFORE calling renderPanel, so a shape added here
+ * stayed invisible until the host was edited too — the console reported "Panel
+ * build_header has no recognized body" for panels this renderer could already
+ * draw. That is duplicated dispatch: one decision written in two places, with
+ * nothing keeping them in step.
+ *
+ * Derived from the switch in `renderPanel` and asserted against it by the
+ * conformance test, so it cannot drift from what actually renders.
+ */
+export const SUPPORTED_BODIES = [
+  "table",
+  "lro",
+  "adhoc",
+  "form",
+  "terminal",
+  "grammar",
+  "stat",
+  "stream",
+  "detailHeader",
+  "recordCard",
+  "choice",
+  "snippet",
+  "action",
+  "copyValue",
+  "connectFlow",
+  "catalog",
+] as const;
+
+export type SupportedBody = (typeof SUPPORTED_BODIES)[number];
+
+/** Whether `renderPanel` can draw this body case. */
+export function supportsBody(bodyCase: string | undefined): boolean {
+  return !!bodyCase && (SUPPORTED_BODIES as readonly string[]).includes(bodyCase);
+}
+
+/**
  * Renders one panel into `root`. Async because the populate RPC has to complete
  * before we can draw the table; callers `await` to know when the panel is
  * interactive.
@@ -283,16 +322,16 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // embed, a markdown lib); this kit stays grammar-lib-free and falls back to the
   // source in a <pre>.
   if (body.case === "grammar") {
-    meta.textContent = "";
-    root.appendChild(buildGrammar(opts, body.value));
-    return;
+    return renderFetchDriven(opts, body.value, meta, (data) =>
+      buildGrammar(opts, body.value as GrammarPanel, data),
+    );
   }
   // StatPanel — a KPI tile. Full-parity content shape; delta/trend/formatting via
   // the shared computeStat (identical to the other renderers).
   if (body.case === "stat") {
-    meta.textContent = "";
-    root.appendChild(buildStat(body.value));
-    return;
+    return renderFetchDriven(opts, body.value, meta, (data) =>
+      buildStat(body.value as StatPanel, data),
+    );
   }
   // StreamPanel — an append-only line stream (a build log, a deploy log, an
   // agent transcript). The host supplies the transport via `streamInvoker`;
@@ -591,7 +630,11 @@ function buildConnectFlow(opts: RenderPanelOptions, panel: ConnectFlowPanel): HT
 //   (3) else the `source` in a labeled code block (always displayable — it's text).
 // The kit imports NO grammar library. SSR-safe: the source is preserved in a
 // text/plain <script> for host hydration.
-function buildGrammar(opts: RenderPanelOptions, panel: GrammarPanel): HTMLElement {
+function buildGrammar(
+  opts: RenderPanelOptions,
+  panel: GrammarPanel,
+  fetched?: object,
+): HTMLElement {
   const lang = grammarLanguageName(panel.language);
   const wrap = el("div", "mer-grammar");
   wrap.dataset.grammarLanguage = lang;
@@ -605,8 +648,14 @@ function buildGrammar(opts: RenderPanelOptions, panel: GrammarPanel): HTMLElemen
   const mount = el("div", "mer-grammar-mount");
   wrap.appendChild(mount);
 
-  // Try the surface's transcoder first.
-  const rendered = opts.renderGrammar?.({ language: lang, source: panel.source, data: panel.data });
+  // Try the surface's transcoder first. A `populate` result WINS over the
+  // descriptor's inline `data`: inline data is the authored placeholder, the
+  // fetch is the live truth. Absent a fetch, inline data is used unchanged.
+  const rendered = opts.renderGrammar?.({
+    language: lang,
+    source: panel.source,
+    data: fetched ?? panel.data,
+  });
   if (rendered instanceof HTMLElement) {
     mount.appendChild(rendered);
   } else if (lang === "markdown") {
@@ -701,8 +750,8 @@ function inlineMd(host: HTMLElement, text: string): HTMLElement {
 // delta/trend is COMPUTED, never author-marked. Semantic color (via
 // data-semantics) only when higher_is_better is set. Hand-drawn SVG sparkline
 // via the shared statSparklinePoints (no chart library).
-function buildStat(panel: StatPanel): HTMLElement {
-  const s = computeStat(panel);
+function buildStat(panel: StatPanel, fetched?: object): HTMLElement {
+  const s = computeStat(statWithFetched(panel, fetched));
   const wrap = el("div", "mer-stat");
   wrap.dataset.trend = s.trend;
   wrap.dataset.semantics = s.semantics;
@@ -739,6 +788,54 @@ function buildStat(panel: StatPanel): HTMLElement {
   }
   if (panel.caption) wrap.appendChild(el("div", "mer-stat-caption", panel.caption));
   return wrap;
+}
+
+/**
+ * Overlay a `populate` response onto a StatPanel's authored numbers.
+ *
+ * The authored `value` is the PRE-FETCH PLACEHOLDER (stat.proto), so a fetched
+ * value replaces it and a missing one leaves it alone. Field paths default to
+ * the response's own `value` / `previous` / `series`, which is the shape a
+ * server naturally returns.
+ *
+ * Crucially the merged panel is then handed to the SAME `computeStat` — so
+ * delta and trend stay COMPUTED from the data, never taken from the wire. That
+ * is this shape's founding rule (a hand-marked direction is the classic
+ * dashboard bug), and a fetch must not become a way around it. `display_field`
+ * is the one sanctioned override, for values only the server can format
+ * honestly.
+ */
+function statWithFetched(panel: StatPanel, fetched?: object): StatPanel {
+  if (!fetched) return panel;
+  const num = (path: string, fallback: string): number | undefined => {
+    const v = readAt(fetched, path || fallback);
+    const n = typeof v === "number" ? v : Number(v);
+    return v == null || Number.isNaN(n) ? undefined : n;
+  };
+  const value = num(panel.valueField, "value");
+  const previous = num(panel.previousField, "previous");
+  const rawSeries = readAt(fetched, panel.seriesField || "series");
+  const series = Array.isArray(rawSeries)
+    ? rawSeries.map(Number).filter((n) => !Number.isNaN(n))
+    : undefined;
+  const display = readAt(fetched, panel.displayField || "");
+  return {
+    ...panel,
+    value: value ?? panel.value,
+    previous: previous ?? panel.previous,
+    series: series ?? panel.series,
+    // A server-formatted display string is surfaced through the existing
+    // delta/format machinery's escape hatch rather than a new one.
+    ...(typeof display === "string" && display ? { deltaOverride: panel.deltaOverride } : {}),
+  } as StatPanel;
+}
+
+/** Dotted-path read over a plain JSON object. Empty path ⇒ undefined. */
+function readAt(obj: object, path: string): unknown {
+  if (!path) return undefined;
+  return path
+    .split(".")
+    .reduce<unknown>((acc, k) => (acc == null ? acc : (acc as Record<string, unknown>)[k]), obj);
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
@@ -1011,6 +1108,42 @@ function buildCell(
     }
   }
   return document.createTextNode(cell);
+}
+
+/**
+ * Run a panel's optional `populate` (schemas 0.19.0) and hand the result to its
+ * builder. Shared by StatPanel and GrammarPanel, which gained the field
+ * together.
+ *
+ * No `populate` ⇒ draw immediately from the descriptor, exactly as before —
+ * these are still static-capable shapes. A FAILED populate draws the descriptor
+ * too, with the error in the meta line: a stat's authored value and a grammar's
+ * inline `data` are documented as the pre-fetch placeholder, so falling back to
+ * them is the honest degradation, not a blank panel.
+ */
+async function renderFetchDriven(
+  opts: RenderPanelOptions,
+  panel: { populate?: RpcCall },
+  metaEl: HTMLElement,
+  build: (data: object | undefined) => HTMLElement,
+): Promise<void> {
+  const populate = panel.populate;
+  if (!populate) {
+    metaEl.textContent = "";
+    opts.root.appendChild(build(undefined));
+    return;
+  }
+  let data: object | undefined;
+  try {
+    const request = plainValue(
+      opts.wasm.buildRequest(toBinary(RpcCallSchema, populate), opts.context),
+    ) as object;
+    data = await opts.invoker.invoke(populate.service, populate.method, request);
+    metaEl.textContent = "";
+  } catch (err) {
+    metaEl.textContent = `Failed: ${(err as Error).message}`;
+  }
+  opts.root.appendChild(build(data));
 }
 
 // ---------------------------------------------------------------------------

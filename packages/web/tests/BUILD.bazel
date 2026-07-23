@@ -114,3 +114,58 @@ vitest_test(
         ":src_lib",
     ],
 )
+
+# CONFORMANCE ACROSS THE REAL FFI BOUNDARY.
+#
+# Every other test here uses a MOCK UiviewWasm, which cannot check the one thing
+# that actually broke: `UiviewWasm` DECLARES the shapes the wasm returns, and
+# TypeScript cannot verify a declaration across an FFI boundary. Those
+# declarations were false — serde-wasm-bindgen returned JS Maps — and two silent
+# production bugs followed. This loads the real compiled wasm and asserts what it
+# genuinely returns.
+# Vite only loads modules under its own root, so the wasm artifacts are copied
+# into this package rather than referenced across the runfiles tree.
+genrule(
+    name = "wasm_artifacts",
+    srcs = ["@meridian_uiview_core//rust/uiview:uiview_wasm"],
+    outs = [
+        "meridian_uiview.js",
+        "meridian_uiview_bg.wasm",
+    ],
+    cmd = """
+for f in $(SRCS); do
+  case $$f in
+    *meridian_uiview.js) cp $$f $(location meridian_uiview.js) ;;
+    *meridian_uiview_bg.wasm) cp $$f $(location meridian_uiview_bg.wasm) ;;
+  esac
+done
+""",
+)
+
+vitest_test(
+    name = "conformance_wasm",
+    srcs = ["conformance_wasm.test.ts"],
+    data = [":wasm_artifacts"],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# SUPPORTED_BODIES is exported so hosts stop re-deriving the dispatch. An
+# exported list is only useful if it cannot drift from what actually renders, so
+# this pins it in both directions.
+vitest_test(
+    name = "supported_bodies",
+    srcs = ["supported_bodies.test.ts"],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)

@@ -1,6 +1,6 @@
 module(
     name = "meridian_web",
-    version = "0.8.0",
+    version = "0.9.0",
 )
 
 # meridian-web — the web-components renderer of the meridian design language: the
@@ -36,6 +36,20 @@ bazel_dep(name = "protobuf", version = "33.4")
 # rules_vite is dev-only: it wires the vitest_test targets. Lives in the
 # tomato-bazel registry (see .bazelrc), not BCR.
 bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
+
+# meridian_uiview_core is DEV-ONLY, and only for //tests:conformance_wasm.
+#
+# This module deliberately does not depend on the core at runtime — the wasm is
+# host-wired, which is why the note at the top of this file says there is no
+# bazel_dep on the other meridian modules. But `UiviewWasm` DECLARES the shapes
+# that boundary returns, and TypeScript cannot check across an FFI boundary, so
+# for as long as the only tests were mocks the declarations were unverified —
+# and were in fact FALSE. Two silent production bugs came out of that gap.
+#
+# A mock that restates the assumption is not a test of the assumption. So the
+# conformance test loads the REAL compiled wasm and asserts what it actually
+# returns. Dev-only, so no consumer inherits it.
+bazel_dep(name = "meridian_uiview_core", version = "0.6.0", dev_dependency = True)
 
 # node + npm + rules_ts are NON-dev: hosts (e.g. botnoc) consume //src:core as a
 # Bazel ts_project and build it from source, so they need this module's node

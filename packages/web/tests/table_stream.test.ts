@@ -273,9 +273,9 @@ describe("wasm-built REQUESTS must reach the host as plain objects", () => {
   // live: a build's log stream subscribed with no build name, and every
   // per-build table came back empty because the id never left the page.
   const mapRequest = () =>
-    new Map([
+    new Map<string, unknown>([
       ["name", "botnoc-abc"],
-      ["page", new Map([["limit", 50]])], // NestedBinding ⇒ nested Map
+      ["page", new Map<string, unknown>([["limit", 50]])], // NestedBinding ⇒ nested Map
     ]) as unknown as object;
 
   it("normalizes a table's populate request, deeply", async () => {
@@ -507,5 +507,111 @@ describe("StreamPanel", () => {
     // Disposal is idempotent.
     disposePanel(root);
     expect(stream.closedCount()).toBe(2);
+  });
+});
+
+describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
+  // Before this, a StatPanel's value was frozen when the descriptor was authored
+  // — for a compiled bundle, at IMAGE-BUILD TIME. Producers worked around it by
+  // drawing KPI strips as Vega text-marks over a data.url, trading a full-parity
+  // shape for a web-only chart pretending to be text.
+  const statPanel = create(PanelDescriptorSchema, {
+    panelId: "targets",
+    title: "Targets",
+    body: {
+      case: "stat",
+      value: {
+        label: "Targets done",
+        value: 0, // the pre-fetch placeholder
+        populate: { service: "acme.Builds", method: "BuildKpis" },
+        valueField: "done",
+        previousField: "prior",
+        seriesField: "history",
+      },
+    },
+  });
+
+  it("fills value/previous/series from the fetch, and still COMPUTES the delta", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: statPanel,
+      invoker: { invoke: async () => ({ done: 42, prior: 30, history: [10, 20, 30, 42] }) },
+      context: CTX,
+    });
+    expect(root.querySelector(".mer-stat-value")?.textContent).toContain("42");
+    // 42 − 30 = 12, computed from the DATA. The whole point of this shape is
+    // that direction is never taken from the wire, and a fetch must not become
+    // a way around that.
+    expect(root.querySelector(".mer-stat-delta")?.textContent).toContain("12");
+    expect(root.querySelector<HTMLElement>(".mer-stat")?.dataset.trend).toBe("up");
+    expect(root.querySelector(".mer-stat-spark")).not.toBeNull();
+  });
+
+  it("falls back to the authored value when populate fails, and says so", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: statPanel,
+      invoker: { invoke: async () => { throw new Error("upstream down"); } },
+      context: CTX,
+    });
+    // The authored value is documented as the pre-fetch placeholder, so falling
+    // back to it beats blanking the tile — but the failure must be visible.
+    expect(root.querySelector(".mer-stat-value")?.textContent).toContain("0");
+    expect(root.querySelector(".meridian-uiview-meta")?.textContent).toContain("upstream down");
+  });
+
+  it("gives a grammar's transcoder the FETCHED data, preferring it over inline", async () => {
+    const grammarPanel = create(PanelDescriptorSchema, {
+      panelId: "graph",
+      title: "Graph",
+      body: {
+        case: "grammar",
+        value: {
+          language: 4, // graphviz
+          source: "digraph { a -> b }",
+          populate: { service: "acme.Builds", method: "BuildTargets" },
+        },
+      },
+    });
+    const root = document.createElement("div");
+    let seenData: unknown;
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: grammarPanel,
+      invoker: { invoke: async () => ({ targets: [{ label: "//a" }] }) },
+      context: CTX,
+      renderGrammar: ({ data }) => {
+        seenData = data;
+        const d = document.createElement("div");
+        d.className = "rendered";
+        return d;
+      },
+    });
+    expect(seenData).toEqual({ targets: [{ label: "//a" }] });
+    expect(root.querySelector(".rendered")).not.toBeNull();
+  });
+
+  it("renders a populate-less panel exactly as before", async () => {
+    const staticStat = create(PanelDescriptorSchema, {
+      panelId: "s",
+      title: "S",
+      body: { case: "stat", value: { label: "Churn", value: 5 } },
+    });
+    const root = document.createElement("div");
+    let called = false;
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: staticStat,
+      invoker: { invoke: async () => { called = true; return {}; } },
+      context: CTX,
+    });
+    expect(called).toBe(false); // no fetch at all
+    expect(root.querySelector(".mer-stat-value")?.textContent).toContain("5");
   });
 });

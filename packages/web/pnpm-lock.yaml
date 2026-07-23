@@ -12,11 +12,11 @@ importers:
         specifier: 2.12.1
         version: 2.12.1
       '@savvifi/meridian-proto-ts':
-        specifier: ^0.18.0
-        version: 0.18.0
+        specifier: ^0.19.0
+        version: 0.19.0
       '@savvifi/meridian-schemas':
-        specifier: ^0.18.0
-        version: 0.18.0
+        specifier: ^0.19.0
+        version: 0.19.0
       '@xterm/addon-fit':
         specifier: ^0.11.0
         version: 0.11.0
@@ -336,11 +336,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@savvifi/meridian-proto-ts@0.18.0':
-    resolution: {integrity: sha512-uyJHCPaB2MLH24UCMLBJrMDE8gi5IJndEm1R5kQLYGOc6O5jWcUCCCfuX43atIjaSN2XA6JwiSsYhdnvfwzCzg==}
+  '@savvifi/meridian-proto-ts@0.19.0':
+    resolution: {integrity: sha512-PeCz2gmQpJwu5tQoNxVan0JFCVSXhg3T70iStF9Cwx777HlF97TN670TwPJKZV5KC9NAknR+5W9OL2KFrlceLA==}
 
-  '@savvifi/meridian-schemas@0.18.0':
-    resolution: {integrity: sha512-Us+s/ZSydR29BOnZQp/UxBEi+w7PIADyoERQPMqkjoolBYcU7AutH5LW0LDULz4gZQDM/J8uAs/VNaEmrxjTlA==}
+  '@savvifi/meridian-schemas@0.19.0':
+    resolution: {integrity: sha512-KnyXxhjbqJCh7G6cROwQ8af3TuEJClbV22WSTGr5l2Yl1PLCaHQBCSpG791nSjXC9yhCeu1+l3IbsBvfYvfPhg==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -954,13 +954,13 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.60.4':
     optional: true
 
-  '@savvifi/meridian-proto-ts@0.18.0':
+  '@savvifi/meridian-proto-ts@0.19.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.1
 
-  '@savvifi/meridian-schemas@0.18.0':
+  '@savvifi/meridian-schemas@0.19.0':
     dependencies:
-      '@savvifi/meridian-proto-ts': 0.18.0
+      '@savvifi/meridian-proto-ts': 0.19.0
 
   '@types/estree@1.0.8': {}
 
