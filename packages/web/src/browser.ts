@@ -31,7 +31,13 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 
 // The PanelDescriptor renderer (table / lro / adhoc / form) + its host-facing types.
-export { renderPanel } from "./uiview/renderer.js";
+export {
+  SUPPORTED_BODIES,
+  disposePanel,
+  renderPanel,
+  supportsBody,
+} from "./uiview/renderer.js";
+export type { SupportedBody } from "./uiview/renderer.js";
 export { webComponentsRenderer } from "./uiview/web_components_renderer.js";
 export type {
   RenderedRow,

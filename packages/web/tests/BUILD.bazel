@@ -169,3 +169,16 @@ vitest_test(
         ":src_lib",
     ],
 )
+
+# The browser bundle is the entire surface a bundler-free host can reach. A
+# symbol exported from renderer.ts but not re-exported here does not exist for
+# them — which shipped once already (`supportsBody`).
+vitest_test(
+    name = "browser_exports",
+    srcs = ["browser_exports.test.ts"],
+    deps = [
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
