@@ -10,7 +10,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
@@ -41,6 +41,22 @@ function wasmWith(rows: RenderedRow[]): UiviewWasm {
 }
 
 const CTX = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+
+// xterm needs browser APIs jsdom does not implement. Installed once, at module
+// scope, so the StreamPanel tests exercise the TERMINAL path a browser takes
+// rather than the fallback.
+if (typeof window.matchMedia !== "function") {
+  (window as unknown as Record<string, unknown>).matchMedia = (query: string) => ({
+    matches: false, media: query, onchange: null,
+    addEventListener: () => {}, removeEventListener: () => {},
+    addListener: () => {}, removeListener: () => {}, dispatchEvent: () => false,
+  });
+}
+if (!("ResizeObserver" in globalThis)) {
+  (globalThis as Record<string, unknown>).ResizeObserver = class {
+    observe() {} unobserve() {} disconnect() {}
+  };
+}
 
 describe("TablePanel row selection + actions", () => {
   it("renders a button per RowAction, all disabled until a row is selected", async () => {
@@ -390,7 +406,97 @@ describe("DetailHeaderPanel", () => {
   });
 });
 
-describe("StreamPanel", () => {
+describe("StreamPanel renders as a read-only terminal when it can", () => {
+  // xterm reads browser APIs off the element's OWNER WINDOW, so the host element
+  // must actually be in the document — a detached div is why an earlier version
+  // of this test saw the fallback. Polyfills are installed at module scope
+  // (jsdom implements neither fully) and the root is attached, which is also the
+  // shape a real panel has.
+  function attachedRoot(): HTMLElement {
+    const root = document.createElement("div");
+    document.body.appendChild(root);
+    return root;
+  }
+
+  function fakeStream() {
+    let handlers: Parameters<StreamInvoker["subscribe"]>[3] | null = null;
+    return {
+      invoker: {
+        subscribe: (_s: string, _m: string, _r: object, h: typeof handlers) => {
+          handlers = h;
+          return { close: () => {} };
+        },
+      } as unknown as StreamInvoker,
+      emit: (frame: string | object) => handlers?.onFrame(frame),
+    };
+  }
+
+  it("mounts a terminal on the first line, not before", async () => {
+    const stream = fakeStream();
+    const root = attachedRoot();
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: streamFixture,
+      invoker: { invoke: async () => ({}) },
+      streamInvoker: stream.invoker,
+      context: CTX,
+    });
+    // Idle stream: the placeholder alone. An idle build should look idle, not
+    // show a placeholder sitting above an empty terminal.
+    expect(root.querySelector(".meridian-uiview-placeholder")).not.toBeNull();
+    expect(root.querySelector(".meridian-uiview-log-terminal")).toBeNull();
+
+    stream.emit({ line: "INFO: Analyzed 2 targets" });
+    expect(root.querySelector(".meridian-uiview-placeholder")).toBeNull();
+    expect(root.querySelector(".meridian-uiview-log-terminal")).not.toBeNull();
+    // The outer pane must stop scrolling once the terminal owns scrolling, or
+    // there are two nested scrollbars and the tail fights the wrapper.
+    expect(
+      root.querySelector(".meridian-uiview-stream")?.classList.contains(
+        "meridian-uiview-stream-term",
+      ),
+    ).toBe(true);
+    // Read-only: the plain per-line DOM is NOT used, and no session input path
+    // was created — stdin is disabled in renderLogTerminal by construction.
+    expect(root.querySelector(".meridian-uiview-stream-line")).toBeNull();
+    root.remove();
+  });
+
+  it("closes the terminal on dispose", async () => {
+    const stream = fakeStream();
+    const root = attachedRoot();
+    const opts = {
+      wasm: wasmWith([]),
+      root,
+      descriptor: streamFixture,
+      invoker: { invoke: async () => ({}) },
+      streamInvoker: stream.invoker,
+      context: CTX,
+    };
+    await renderPanel(opts);
+    stream.emit({ line: "one" });
+    expect(root.querySelector(".meridian-uiview-log-terminal")).not.toBeNull();
+    // Re-rendering the same container must not strand the terminal's observers.
+    await renderPanel(opts);
+    expect(root.querySelectorAll(".meridian-uiview-log-terminal").length).toBe(0);
+    root.remove();
+  });
+});
+
+// These assert the FALLBACK pane — the path a surface without xterm's browser
+// APIs takes. It still ships and still has to be correct, so it is tested
+// deliberately rather than left as whatever jsdom happens to do: matchMedia is
+// removed for this block and restored after.
+describe("StreamPanel (plain-pane fallback)", () => {
+  const saved = window.matchMedia;
+  beforeAll(() => {
+    delete (window as unknown as Record<string, unknown>).matchMedia;
+  });
+  afterAll(() => {
+    (window as unknown as Record<string, unknown>).matchMedia = saved;
+  });
+
   function fakeStream() {
     let handlers: Parameters<StreamInvoker["subscribe"]>[3] | null = null;
     let closed = 0;

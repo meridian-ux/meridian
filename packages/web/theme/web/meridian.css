@@ -184,6 +184,13 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+/* When the stream renders as a terminal, the TERMINAL scrolls — the outer pane
+   must not, or there are two nested scrollbars and the tail fights the wrapper. */
+.meridian-uiview-stream.meridian-uiview-stream-term {
+  overflow: hidden;
+  max-height: none;
+  padding: 0;
+}
 
 /* DetailHeaderPanel / RecordCardPanel — the record-bound bodies of a detail view. */
 .meridian-uiview-record-title {

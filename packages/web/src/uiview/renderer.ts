@@ -43,7 +43,8 @@ import type {
 } from "@savvifi/meridian-schemas/uiview";
 import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
-import { renderTerminalPanel } from "../terminal_panel.js";
+import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
+import type { LogTerminalHandle } from "../terminal_panel.js";
 
 /** One rendered row as returned by the wasm `renderTable` call. */
 export interface RenderedRow {
@@ -1320,23 +1321,61 @@ function renderStreamPanel(
   const maxLines = panel.maxLines || STREAM_DEFAULT_MAX_LINES;
   let count = 0;
 
+  // Prefer a real terminal: it virtualizes rendering and keeps a scrollback
+  // buffer, so `max_lines` becomes genuine history instead of a DOM budget (the
+  // plain pane creates one node per line, and a single build emits thousands).
+  // It is READ-ONLY by construction — see renderLogTerminal.
+  //
+  // The plain pane stays as the fallback, because xterm needs browser APIs that
+  // are not universally present (matchMedia, ResizeObserver, a laid-out
+  // container). A surface without them still gets its log; this is the same
+  // degradation principle the shape's ladder states, applied one level down.
+  // Mounted LAZILY on the first line, so a stream that has produced nothing
+  // shows its placeholder alone rather than a placeholder above an empty
+  // terminal — an idle build should look idle, not broken.
+  let termHandle: LogTerminalHandle | undefined;
+  let termTried = false;
+  const ensureTerm = (): LogTerminalHandle | undefined => {
+    if (termTried) return termHandle;
+    termTried = true;
+    try {
+      termHandle = renderLogTerminal(pane, { scrollback: maxLines, follow });
+      pane.classList.add("meridian-uiview-stream-term");
+      onDispose(root, () => termHandle?.dispose());
+    } catch (err) {
+      // Not silent: a surface that CAN run xterm but fails to should say why,
+      // or a fallback masquerades as a design choice.
+      // eslint-disable-next-line no-console
+      console.warn("meridian: log terminal unavailable, using the plain pane", err);
+      termHandle = undefined;
+    }
+    return termHandle;
+  };
+
   const atBottom = () =>
     pane.scrollHeight - pane.clientHeight - pane.scrollTop < STREAM_FOLLOW_SLACK_PX;
 
   const append = (text: string) => {
-    if (count === 0) placeholder.remove();
+    const first = count === 0;
+    if (first) placeholder.remove();
+    count += 1;
+    metaEl.textContent = `${count} ${noun}`;
+    const term = first ? ensureTerm() : termHandle;
+    if (term) {
+      // The terminal owns retention (scrollback) and tailing.
+      term.write(text);
+      return;
+    }
     // Read the scroll position BEFORE mutating — appending changes scrollHeight.
     const pinned = follow && atBottom();
     const line = document.createElement("div");
     line.className = "meridian-uiview-stream-line";
     line.textContent = text;
     pane.appendChild(line);
-    count += 1;
     // A stream is unbounded; the pane must not be. Drop from the front.
     while (pane.childElementCount > maxLines) {
       pane.removeChild(pane.firstElementChild as Element);
     }
-    metaEl.textContent = `${count} ${noun}`;
     if (pinned) pane.scrollTop = pane.scrollHeight;
   };
 

@@ -7,6 +7,10 @@
 // rounded, fills its slot) so a TerminalPanel looks at home in the console
 // without host CSS. xterm paints the `.xterm` viewport inside it.
 export const TERMINAL_PANEL_CSS = `
+/* A read-only log terminal (StreamPanel's web realization). Sized by its slot
+   rather than by pty rows: a log has no negotiated geometry. */
+.meridian-uiview-log-terminal { height: 22rem; width: 100%; }
+
 /**
  * Copyright (c) 2014 The xterm.js authors. All rights reserved.
  * Copyright (c) 2012-2013, Christopher Jeffrey (MIT License)

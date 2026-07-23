@@ -198,3 +198,111 @@ export function renderTerminalPanel(
     },
   };
 }
+
+/** A read-only log terminal: write lines in, no input path out. */
+export interface LogTerminalHandle {
+  /** Append one line. Tails only when the reader is already at the bottom. */
+  write(line: string): void;
+  /** Free the terminal and its observers. */
+  dispose(): void;
+}
+
+/**
+ * Mount a READ-ONLY terminal for an append-only line stream (a StreamPanel).
+ *
+ * Deliberately NOT `renderTerminalPanel` with the socket removed. That function
+ * splices an interactive pty: it owns a WebSocket, forwards keystrokes, and
+ * sends resize control frames. A log is one-way, so none of that applies — and
+ * a shape that *looks* interactive but silently discards input is worse than
+ * one that never offered it. Here stdin is disabled and no `onData` handler is
+ * ever attached, so read-only is structural rather than a promise.
+ *
+ * Why a terminal at all, when the lines are plain text: scrollback. The plain
+ * pane creates one DOM node per line and must cap hard (a single fastverk build
+ * emits thousands); xterm virtualizes rendering and keeps a real scrollback
+ * buffer, so `max_lines` becomes a genuine history rather than a DOM budget. It
+ * also gets column fidelity for progress output and correct ANSI handling if the
+ * producer ever runs on a TTY.
+ *
+ * TAILING follows the same rule the plain pane uses and stream.proto states:
+ * stick to the newest line ONLY while the reader is at the bottom. Someone who
+ * scrolled up is reading, and yanking them back down is the classic log-viewer
+ * bug — so the decision is made BEFORE the write, since writing moves the base.
+ */
+export function renderLogTerminal(
+  root: HTMLElement,
+  opts: { scrollback?: number; follow?: boolean } = {},
+): LogTerminalHandle {
+  injectTerminalCss(root.ownerDocument ?? document);
+
+  const screen = document.createElement("div");
+  screen.className = "meridian-uiview-terminal meridian-uiview-log-terminal";
+  // Attached before `open` because xterm measures its container, then REMOVED
+  // again if anything below throws. A partial mount that leaves its DOM behind
+  // is worse than no mount: the caller's fallback then renders into a pane that
+  // already contains an orphaned, dead terminal.
+  root.appendChild(screen);
+  try {
+    return mountLogTerminal(screen, opts);
+  } catch (err) {
+    screen.remove();
+    throw err;
+  }
+}
+
+function mountLogTerminal(
+  screen: HTMLElement,
+  opts: { scrollback?: number; follow?: boolean },
+): LogTerminalHandle {
+  const term = new Terminal({
+    // No cursor and no stdin: this is a viewport, not a session.
+    disableStdin: true,
+    cursorBlink: false,
+    cursorStyle: "bar",
+    convertEol: true, // the stream yields lines, not CRLF-terminated pty output
+    scrollback: opts.scrollback && opts.scrollback > 0 ? opts.scrollback : 5000,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+    fontSize: 12,
+    theme: { background: "#0b0c0f", foreground: "#ECE7DA" },
+  });
+  const fit = new FitAddon();
+  term.loadAddon(fit);
+  term.open(screen);
+
+  const safeFit = () => {
+    try {
+      fit.fit();
+    } catch {
+      /* not laid out yet; a later observer tick fits. */
+    }
+  };
+  safeFit();
+
+  let observer: ResizeObserver | undefined;
+  if (typeof ResizeObserver !== "undefined") {
+    observer = new ResizeObserver(() => safeFit());
+    observer.observe(screen);
+  }
+
+  const follow = opts.follow !== false;
+  let disposed = false;
+
+  return {
+    write(line: string) {
+      if (disposed) return;
+      // Sample the position BEFORE writing — a write moves baseY, so asking
+      // afterwards always reports "at the bottom" and would defeat the check.
+      const buf = term.buffer.active;
+      const atBottom = buf.viewportY >= buf.baseY;
+      term.writeln(line);
+      if (follow && atBottom) term.scrollToBottom();
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      observer?.disconnect();
+      term.dispose();
+    },
+  };
+}
