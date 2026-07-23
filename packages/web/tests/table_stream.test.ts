@@ -205,6 +205,133 @@ describe("TableColumn.link (the resolveHref seam)", () => {
   });
 });
 
+describe("wasm `raw` arrives as a Map (serde-wasm-bindgen's default)", () => {
+  // This is not hypothetical. serde-wasm-bindgen maps a serde_json Object to a JS
+  // **Map** unless `serialize_maps_as_objects` is set, so `raw.name` is undefined
+  // while `raw.get("name")` works — silently. It shipped: every build link in the
+  // fastverk console pointed at a repo name instead of a build id, because
+  // resolveHref read `row[idField]`, got undefined, and fell back to the cell.
+  const mapRows: RenderedRow[] = [
+    {
+      raw: new Map([["name", "botnoc-abc"], ["repo", "fastverk/botnoc"], ["phase", "Succeeded"]]) as unknown as Record<string, unknown>,
+      cells: ["fastverk/botnoc", "Succeeded"],
+    },
+  ];
+
+  it("hands resolveHref a PLAIN object, so row[idField] resolves", async () => {
+    const root = document.createElement("div");
+    let seenRow: Record<string, unknown> | undefined;
+    await renderPanel({
+      wasm: wasmWith(mapRows),
+      root,
+      descriptor: tableWithActionsFixture,
+      invoker: { invoke: async () => ({ builds: [] }) },
+      context: CTX,
+      resolveHref: (o) => {
+        seenRow = o.row as Record<string, unknown>;
+        return `#/builds/${(o.row as { name?: string }).name}`;
+      },
+    });
+    expect(seenRow instanceof Map).toBe(false);
+    expect(seenRow?.name).toBe("botnoc-abc");
+    // The regression itself: the href must key on the row id, not the cell text.
+    expect(root.querySelector("tbody a")?.getAttribute("href")).toBe("#/builds/botnoc-abc");
+  });
+
+  it("hands the action's context a PLAIN selected row", async () => {
+    const root = document.createElement("div");
+    let seenSelected: unknown;
+    await renderPanel({
+      wasm: {
+        ...wasmWith(mapRows),
+        buildRequest: (_rpc, context) => {
+          seenSelected = context.selectedRow;
+          return {};
+        },
+      },
+      root,
+      descriptor: tableWithActionsFixture,
+      invoker: { invoke: async () => ({ builds: [] }) },
+      context: CTX,
+    });
+    root.querySelector<HTMLTableRowElement>("tbody tr[data-row]")
+      ?.dispatchEvent(new Event("click", { bubbles: true }));
+    root.querySelector<HTMLButtonElement>(".meridian-uiview-actions button")
+      ?.dispatchEvent(new Event("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(seenSelected instanceof Map).toBe(false);
+    expect((seenSelected as { name?: string })?.name).toBe("botnoc-abc");
+  });
+});
+
+describe("DetailHeaderPanel", () => {
+  const headerFixture = create(PanelDescriptorSchema, {
+    panelId: "build_header",
+    title: "Build",
+    body: {
+      case: "detailHeader",
+      value: {
+        titleSourcePath: "repo",
+        subtitleSourcePath: "message",
+        statusSourcePath: "phase",
+        descriptorRows: [
+          { label: "Ref", sourcePath: "ref" },
+          { label: "Team", sourcePath: "team" },
+        ],
+        populate: { service: "acme.Builds", method: "GetBuild" },
+        idField: "name",
+      },
+    },
+  });
+
+  it("fetches one record with the SUBJECT bound into id_field, and renders it", async () => {
+    const root = document.createElement("div");
+    let seenRequest: object | undefined;
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: headerFixture,
+      invoker: {
+        invoke: async (_s, _m, request) => {
+          seenRequest = request;
+          return { repo: "fastverk/botnoc", phase: "Succeeded", message: "build ok", ref: "main", team: "" };
+        },
+      },
+      // The host's detail subject travels as currentResourcePath.
+      context: { ...CTX, currentResourcePath: "botnoc-abc" },
+    });
+    expect(seenRequest).toEqual({ name: "botnoc-abc" });
+    expect(root.querySelector(".meridian-uiview-record-title")?.textContent).toBe("fastverk/botnoc");
+    expect(root.querySelector(".meridian-uiview-record-status")?.textContent).toBe("Succeeded");
+    expect(root.querySelector<HTMLElement>(".meridian-uiview-record-status")?.dataset.status).toBe("succeeded");
+    expect(root.querySelector(".meridian-uiview-record-subtitle")?.textContent).toBe("build ok");
+    const rows = [...root.querySelectorAll(".meridian-uiview-record-rows > *")].map((n) => n.textContent);
+    // An empty value keeps its label and shows an em dash — "nobody set a team"
+    // is information; a missing row reads as a schema that never had the field.
+    expect(rows).toEqual(["Ref", "main", "Team", "—"]);
+  });
+
+  it("does not blank authored copy when the title path resolves to nothing", async () => {
+    const withLiteral = create(PanelDescriptorSchema, {
+      panelId: "h",
+      title: "Build",
+      body: {
+        case: "detailHeader",
+        value: { title: "Untitled build", titleSourcePath: "repo", populate: { service: "acme.Builds", method: "GetBuild" } },
+      },
+    });
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: wasmWith([]),
+      root,
+      descriptor: withLiteral,
+      invoker: { invoke: async () => ({}) },
+      context: CTX,
+    });
+    expect(root.querySelector(".meridian-uiview-record-title")?.textContent).toBe("Untitled build");
+  });
+});
+
 describe("StreamPanel", () => {
   function fakeStream() {
     let handlers: Parameters<StreamInvoker["subscribe"]>[3] | null = null;

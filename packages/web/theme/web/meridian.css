@@ -184,3 +184,45 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* DetailHeaderPanel / RecordCardPanel — the record-bound bodies of a detail view. */
+.meridian-uiview-record-title {
+  font-family: var(--_sans);
+  font-weight: var(--mer-heading-weight, 600);
+  letter-spacing: var(--mer-heading-tracking, -0.01em);
+  margin: 0 0 calc(var(--_unit) * 1) 0;
+}
+/* The status chip carries `data-status` so a skin can color a "failed" build
+ * differently from a "succeeded" one WITHOUT the renderer hardcoding either
+ * vocabulary — status values are the host's domain, not meridian's. */
+.meridian-uiview-record-status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--_border);
+  background: var(--_surface);
+  color: var(--_muted);
+  font-size: 0.8125em;
+}
+.meridian-uiview-record-subtitle {
+  color: var(--_muted);
+  margin: calc(var(--_unit) * 2) 0 0 0;
+}
+.meridian-uiview-record-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: calc(var(--_unit) * 1) calc(var(--_unit) * 4);
+  margin: calc(var(--_unit) * 3) 0 0 0;
+}
+.meridian-uiview-record-rows dt {
+  color: var(--_muted);
+  font-size: 0.875em;
+}
+.meridian-uiview-record-rows dd {
+  margin: 0;
+  font-family: var(--_mono);
+  font-size: 0.875em;
+}
+.meridian-uiview-record-rows dd.empty {
+  color: var(--_muted);
+}

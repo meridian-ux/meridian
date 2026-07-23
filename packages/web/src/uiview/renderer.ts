@@ -22,8 +22,10 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type {
+  DetailHeaderPanel,
   FormPanel,
   PanelDescriptor,
+  RecordCardPanel,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
@@ -47,6 +49,30 @@ import { renderTerminalPanel } from "../terminal_panel.js";
 export interface RenderedRow {
   raw: Record<string, unknown>;
   cells: string[];
+}
+
+/**
+ * Normalize a row's `raw` to a plain object.
+ *
+ * The wasm core serializes `raw` with serde-wasm-bindgen, whose DEFAULT maps a
+ * `serde_json::Value::Object` to a JS **Map**, not an object. So `raw.name` is
+ * `undefined` while `raw.get("name")` works — silently, with no error anywhere.
+ * That shipped a real bug: `ColumnLink`'s `resolveHref` read `row[idField]`, got
+ * undefined, fell back to the displayed cell value, and every build link in the
+ * fastverk console pointed at a repo name instead of a build id.
+ *
+ * Normalizing HERE rather than upstream is deliberate: this renderer has to work
+ * against a range of core versions, so it must accept either shape regardless of
+ * what the core does next. (The upstream cleanup — `serialize_maps_as_objects` —
+ * is still worth doing; this stops depending on it.)
+ *
+ * Shallow by design: `field_path` resolution goes through the wasm's `readPath`,
+ * which takes the value back across the boundary. Only the top level is read
+ * directly by hosts.
+ */
+function plainRow(raw: unknown): Record<string, unknown> {
+  if (raw instanceof Map) return Object.fromEntries(raw);
+  return (raw ?? {}) as Record<string, unknown>;
 }
 
 /** Type-narrowed interface for the wasm bindings the renderer needs. Imported by
@@ -244,6 +270,16 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // absent, we degrade to the placeholder rather than blanking. See stream.proto.
   if (body.case === "stream") {
     return renderStreamPanel(opts, body.value, meta);
+  }
+  // DetailHeaderPanel / RecordCardPanel — the two RECORD-BOUND bodies of a detail
+  // view. Both fetch ONE record via `populate`, binding the view's subject into
+  // `id_field`, then read dotted paths out of it. They share that tier, so they
+  // share an implementation here. See panel.proto.
+  if (body.case === "detailHeader") {
+    return renderRecordPanel(opts, body.value, meta, "header");
+  }
+  if (body.case === "recordCard") {
+    return renderRecordPanel(opts, body.value, meta, "card");
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -756,7 +792,7 @@ async function renderTablePanel(
 
   const selectedRow = (): Record<string, unknown> | null =>
     selectedIndex >= 0 && selectedIndex < rows.length
-      ? rows[selectedIndex].raw
+      ? plainRow(rows[selectedIndex].raw)
       : null;
 
   // A RowAction is enabled only when a row is selected AND `enabled_when`
@@ -932,7 +968,7 @@ function buildCell(
     const href = opts.resolveHref({
       targetKind: link.targetKind,
       id: cell,
-      row: row.raw,
+      row: plainRow(row.raw),
     });
     if (href) {
       const a = document.createElement("a");
@@ -944,6 +980,122 @@ function buildCell(
     }
   }
   return document.createTextNode(cell);
+}
+
+// ---------------------------------------------------------------------------
+// Record-bound panels: DetailHeaderPanel + RecordCardPanel.
+//
+// The two bodies of a DETAIL view. Both fetch ONE record through `populate` with
+// the view's subject bound into `id_field` (default "id"), then read dotted paths
+// out of the result — a header renders title/subtitle/status + descriptor rows, a
+// card renders a labeled-value grid. Same tier, so one implementation.
+//
+// WHERE THE SUBJECT COMES FROM. `ViewDescriptor.subject_id` is the canonical
+// carrier, but `renderPanel` receives a PanelDescriptor, not a view — a panel can
+// be mounted standalone. So the subject is taken from the RenderContext's
+// `currentResourcePath`, which rpc.proto defines as host-assigned ("a URI, an
+// opaque resource id") and which a host driving a detail view sets to the record
+// it is displaying. A host that sets neither gets a fetch with no id, which is
+// the server's call to reject — not something to fail silently over here.
+// ---------------------------------------------------------------------------
+
+async function renderRecordPanel(
+  opts: RenderPanelOptions,
+  panel: DetailHeaderPanel | RecordCardPanel,
+  metaEl: HTMLElement,
+  mode: "header" | "card",
+): Promise<void> {
+  const { root, invoker, wasm } = opts;
+  const populate = panel.populate;
+  if (!populate) {
+    metaEl.textContent = "(no populate RPC)";
+    return;
+  }
+  const idField = panel.idField || "id";
+  const subject = opts.context.currentResourcePath;
+  let record: object;
+  try {
+    const request: Record<string, unknown> = {};
+    if (subject) request[idField] = subject;
+    record = await invoker.invoke(populate.service, populate.method, request);
+  } catch (err) {
+    metaEl.textContent = `Failed: ${(err as Error).message}`;
+    return;
+  }
+  metaEl.textContent = "";
+
+  const read = (path: string): string => {
+    if (!path) return "";
+    const v = wasm.readPath(record, path);
+    return v == null ? "" : String(v);
+  };
+
+  const box = document.createElement("div");
+  box.className = "meridian-uiview-body";
+
+  if (mode === "header") {
+    const p = panel as DetailHeaderPanel;
+    // A resolved path WINS over the literal `title` — but only when it resolves
+    // to something. An empty path must not blank out authored copy.
+    const resolved = read(p.titleSourcePath);
+    const title = resolved || p.title;
+    if (title) {
+      const h = document.createElement("h2");
+      h.className = "meridian-uiview-record-title";
+      h.textContent = title;
+      box.appendChild(h);
+    }
+    const status = read(p.statusSourcePath);
+    if (status) {
+      const chip = document.createElement("span");
+      chip.className = "meridian-uiview-record-status";
+      // A status drives styling in every kit; expose it as data so a skin can
+      // color "Failed" differently from "Succeeded" without the renderer
+      // hardcoding either vocabulary.
+      chip.dataset.status = status.toLowerCase();
+      chip.textContent = status;
+      box.appendChild(chip);
+    }
+    const subtitle = read(p.subtitleSourcePath);
+    if (subtitle) {
+      const s = document.createElement("p");
+      s.className = "meridian-uiview-record-subtitle";
+      s.textContent = subtitle;
+      box.appendChild(s);
+    }
+    box.appendChild(
+      buildDescriptorRows(
+        p.descriptorRows.map((r) => ({ label: r.label, value: read(r.sourcePath) })),
+      ),
+    );
+  } else {
+    const p = panel as RecordCardPanel;
+    box.appendChild(
+      buildDescriptorRows(
+        p.fields.map((f) => ({ label: f.label || f.fieldId, value: read(f.fieldId) })),
+      ),
+    );
+  }
+  root.appendChild(box);
+}
+
+/** A labeled-value grid — read-only values, NOT disabled inputs. */
+function buildDescriptorRows(rows: Array<{ label: string; value: string }>): HTMLElement {
+  const grid = document.createElement("dl");
+  grid.className = "meridian-uiview-record-rows";
+  for (const { label, value } of rows) {
+    // An empty value still renders its label: on a detail view "Team: —" is
+    // information (nobody set one), whereas a missing row reads as a schema that
+    // never had the field.
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = value || "—";
+    if (!value) dd.classList.add("empty");
+    grid.appendChild(dt);
+    grid.appendChild(dd);
+  }
+  return grid;
 }
 
 // ---------------------------------------------------------------------------
