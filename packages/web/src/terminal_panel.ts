@@ -45,6 +45,72 @@ export function injectTerminalCss(doc: Document = document): void {
   doc.head.appendChild(style);
 }
 
+/** A mounted xterm: the terminal, a safe re-fit, and teardown. */
+interface XtermMount {
+  term: Terminal;
+  /** Re-fit to the container. Safe before layout — see the note inside. */
+  fit(): void;
+  dispose(): void;
+}
+
+/**
+ * Construct + open an xterm in `screen`, fitted and resize-observed.
+ *
+ * The ONE place a terminal is created. Both realizations meridian draws — the
+ * interactive TerminalPanel pty and the read-only StreamPanel log — need exactly
+ * this much and differ only in what they do with the result, so the construction,
+ * the brand defaults, the "container not laid out yet" guard and the
+ * ResizeObserver live here rather than in each.
+ *
+ * `onFit` lets a caller react to a re-fit; the pty uses it to send a resize
+ * control frame, and the log has nothing to send.
+ */
+function mountXterm(
+  screen: HTMLElement,
+  options: ConstructorParameters<typeof Terminal>[0],
+  onFit?: () => void,
+): XtermMount {
+  const term = new Terminal({
+    fontFamily:
+      'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+    theme: { background: "#0b0c0f", foreground: "#ECE7DA" },
+    ...options,
+  });
+  const fitAddon = new FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(screen);
+
+  const fit = () => {
+    try {
+      fitAddon.fit();
+    } catch {
+      // The container has no layout yet (display:none, not attached, a slot that
+      // has not been sized). A later observer tick fits it; throwing here would
+      // take down the whole panel for a transient condition.
+      return;
+    }
+    onFit?.();
+  };
+  fit();
+
+  // Guarded: jsdom and other non-browser surfaces have no ResizeObserver, and a
+  // terminal that cannot observe resize is still a working terminal.
+  let ro: ResizeObserver | undefined;
+  if (typeof ResizeObserver !== "undefined") {
+    ro = new ResizeObserver(() => fit());
+    ro.observe(screen);
+  }
+
+  return {
+    term,
+    fit,
+    dispose() {
+      ro?.disconnect();
+      term.dispose();
+    },
+  };
+}
+
 /**
  * Mount an interactive terminal into `root` and connect it to `spec.url`.
  *
@@ -77,22 +143,23 @@ export function renderTerminalPanel(
 
   root.append(status, screen);
 
-  const term = new Terminal({
-    cols: spec.cols || 80,
-    rows: spec.rows || 24,
-    cursorBlink: true,
-    convertEol: false,
-    fontFamily:
-      'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-    fontSize: 13,
-    theme: { background: "#0b0c0f", foreground: "#ECE7DA" },
-  });
-  const fit = new FitAddon();
-  term.loadAddon(fit);
-  term.open(screen);
-  safeFit();
-
+  // Declared BEFORE the mount: mountXterm fits on construction, which fires
+  // `onFit` -> sendResize, which reads `ws`. With the declaration below the
+  // mount that is a temporal-dead-zone throw on every terminal open.
   let ws: WebSocket | null = null;
+
+  const mount = mountXterm(
+    screen,
+    {
+      cols: spec.cols || 80,
+      rows: spec.rows || 24,
+      cursorBlink: true,
+      convertEol: false,
+      fontSize: 13,
+    },
+    () => sendResize(),
+  );
+  const term = mount.term;
   let disposed = false;
 
   const setStatus = (text: string, state: "" | "connected" | "closed") => {
@@ -100,24 +167,11 @@ export function renderTerminalPanel(
     status.className = `meridian-uiview-terminal-status${state ? " " + state : ""}`;
   };
 
-  function safeFit(): void {
-    try {
-      fit.fit();
-    } catch {
-      /* container not laid out yet; a later ResizeObserver tick will fit. */
-    }
-  }
-
   function sendResize(): void {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
     }
   }
-
-  const ro = new ResizeObserver(() => {
-    safeFit();
-  });
-  ro.observe(screen);
 
   const onData = term.onData((data: string) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -143,7 +197,7 @@ export function renderTerminalPanel(
 
     sock.onopen = () => {
       setStatus("connected", "connected");
-      safeFit();
+      mount.fit();
       sendResize();
       term.focus();
     };
@@ -182,7 +236,6 @@ export function renderTerminalPanel(
   return {
     dispose(): void {
       disposed = true;
-      ro.disconnect();
       onData.dispose();
       onResize.dispose();
       if (ws) {
@@ -193,7 +246,9 @@ export function renderTerminalPanel(
         }
         ws = null;
       }
-      term.dispose();
+      // Disposes the terminal AND its resize observer (the shared mount owns
+      // both) — the observer used to be freed separately and is now covered.
+      mount.dispose();
       root.replaceChildren();
     },
   };
@@ -254,36 +309,16 @@ function mountLogTerminal(
   screen: HTMLElement,
   opts: { scrollback?: number; follow?: boolean },
 ): LogTerminalHandle {
-  const term = new Terminal({
+  const mount = mountXterm(screen, {
     // No cursor and no stdin: this is a viewport, not a session.
     disableStdin: true,
     cursorBlink: false,
     cursorStyle: "bar",
     convertEol: true, // the stream yields lines, not CRLF-terminated pty output
     scrollback: opts.scrollback && opts.scrollback > 0 ? opts.scrollback : 5000,
-    fontFamily:
-      'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
     fontSize: 12,
-    theme: { background: "#0b0c0f", foreground: "#ECE7DA" },
   });
-  const fit = new FitAddon();
-  term.loadAddon(fit);
-  term.open(screen);
-
-  const safeFit = () => {
-    try {
-      fit.fit();
-    } catch {
-      /* not laid out yet; a later observer tick fits. */
-    }
-  };
-  safeFit();
-
-  let observer: ResizeObserver | undefined;
-  if (typeof ResizeObserver !== "undefined") {
-    observer = new ResizeObserver(() => safeFit());
-    observer.observe(screen);
-  }
+  const term = mount.term;
 
   const follow = opts.follow !== false;
   let disposed = false;
@@ -301,8 +336,7 @@ function mountLogTerminal(
     dispose() {
       if (disposed) return;
       disposed = true;
-      observer?.disconnect();
-      term.dispose();
+      mount.dispose();
     },
   };
 }
