@@ -3,3 +3,16 @@ node_modules/
 .DS_Store
 *.tsbuildinfo
 dist/
+
+# tsc emits alongside the sources (no outDir), so a local `npm run build` drops
+# .js/.d.ts next to every .ts. Committing those breaks the Bazel build outright:
+# BUILD.bazel globs src/**/*.ts, so a checked-in .d.ts becomes BOTH an input and a
+# declaration output of ts_project, and the rule fails to even load —
+#   Error in ts_project: rule 'chat' has file 'src/assistant_panel.d.ts'
+#   as both an input and an output
+# which surfaces confusingly as `no such target '//:pkg'`, because the failed BUILD
+# file never declares it. That took out the v0.1.2 publish.
+src/**/*.js
+src/**/*.d.ts
+src/**/*.js.map
+src/**/*.d.ts.map
