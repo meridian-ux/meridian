@@ -3,7 +3,6 @@
 // (same inner class names: .md / .tool / .list / .fields / .asst-input / …). Kept
 // framework-free (no HTMLElement reference) so both tiers can import it, including
 // under SSR.
-
 // ── Theming contract ────────────────────────────────────────────────────────
 // Four base tokens (--text, --accent, --surface, --muted) plus the DERIVED tokens
 // below. Every derived value defaults to exactly the expression it replaced, so a
@@ -98,9 +97,5 @@ export const ASSISTANT_PANEL_CSS = `
   m-assistant-panel button.asst-send { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent, #6366f1); color: #fff; font: inherit; cursor: pointer; }
   m-assistant-panel button.asst-send:disabled { opacity: .5; cursor: default; }
 `;
-
 /** The same styles, re-scoped for the React <Conversation> wrapper. */
-export const CONVERSATION_CSS = ASSISTANT_PANEL_CSS.replace(
-  /m-assistant-panel/g,
-  ".meridian-conversation",
-);
+export const CONVERSATION_CSS = ASSISTANT_PANEL_CSS.replace(/m-assistant-panel/g, ".meridian-conversation");

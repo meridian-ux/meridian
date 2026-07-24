@@ -1,8 +1,8 @@
 {
   "name": "@savvifi/meridian-chat",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
-  "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream (conversation.proto — the neutral promotion of botnoc chat.v1) over SSE + POST. Ships the vanilla <m-assistant-panel> web component (zero deps) and a React <Conversation>.",
+  "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream (conversation.proto \u2014 the neutral promotion of botnoc chat.v1) over SSE + POST. Ships the vanilla <m-assistant-panel> web component (zero deps) and a React <Conversation>.",
   "publishConfig": {
     "access": "public"
   },
@@ -35,8 +35,12 @@
     "react-dom": "^19.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@savvifi/meridian-proto-ts": "^0.13.0",
