@@ -5,7 +5,7 @@
 // steps. This is the real proof of record-scoping (html/shadcn are stubs).
 
 import { create } from "@bufbuild/protobuf";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
 import { DetailHeaderPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
