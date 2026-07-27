@@ -1,4 +1,4 @@
-"""meridian-ux/site — the meridian-ux.dev marketing site, built hermetically on Bazel (9.x) via rules_astro."""
+"""meridian-ux.github.io — the meridian-ux marketing site, built hermetically on Bazel (9.x) via rules_astro."""
 module(name = "meridian_ux_site", version = "0.1.0")
 
 # Built on Bazel 9 (.bazelversion). rules_astro 0.0.1 pins aspect_rules_js 2.1.3 /

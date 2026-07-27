@@ -1,4 +1,4 @@
-# meridian-ux/site
+# meridian-ux.github.io
 
 The marketing / main site for **meridian-ux** — *the declarative, cross-modal
 console UI framework*. One descriptor proto (a form, a table, a command palette,
@@ -11,7 +11,7 @@ Astro (static), built hermetically on **Bazel 9** via
 meridian identity (cool azure → violet; the refracted-light **M** mark from
 [`meridian-ux/brand`](https://github.com/meridian-ux/brand)).
 
-🌐 **Live on GitHub Pages:** https://meridian-ux.github.io/site/
+🌐 **Live on GitHub Pages:** https://meridian-ux.github.io
 
 ## Feature-as-code
 
@@ -30,11 +30,11 @@ features/*.textproto  ──tools/collect_features.py──▶  src/content/feat
 ## Develop
 
 ```bash
-npm install
+pnpm install
 # regenerate the catalog (needs protobuf on the interpreter):
 FEATURE_PB2_DIR="$PWD/tools/gen/fastverk/site/v1" python3 tools/collect_features.py
-npm run dev        # local preview at /site/
-npm run build      # -> dist/
+pnpm dev           # local preview at /
+pnpm build         # -> dist/
 bazel build //:build   # hermetic build via rules_astro (Bazel 9)
 ```
 
@@ -51,11 +51,20 @@ design system re-skins by swapping the accent tokens in `src/styles/global.css`.
 
 ## Deploy — GitHub Pages
 
-Served as a **project site** at `https://meridian-ux.github.io/site/`, so
-`astro.config.mjs` sets `base: "/site"` and internal links/assets carry that
-prefix. Every push to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
-(`withastro/action` → `actions/deploy-pages`); enable Pages with **Source =
-GitHub Actions**.
+Served as the **organization site** at `https://meridian-ux.github.io`. That only
+works because the repo is named `<org>.github.io` — under any other name GitHub
+Pages serves a *project* site at `/<repo>/` and the bare domain 404s, which is
+exactly what it did until 2026-07-27. There is therefore **no `base`**, and links
+and assets are plain absolute paths.
 
-For a custom domain later, set `base: "/"` + `site: "https://<domain>"` in
-`astro.config.mjs`, drop the `/site/` link prefixes, and add a `public/CNAME`.
+Every push to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+(`withastro/action` → `actions/deploy-pages`); enable Pages with **Source =
+GitHub Actions**. The workflow deliberately passes no `package-manager:` input —
+`package.json` `packageManager` is the single pnpm declaration, and supplying both
+makes `pnpm/action-setup` hard-error on the duplicate.
+
+For a custom domain, set `site: "https://<domain>"` in `astro.config.mjs` and add
+a `public/CNAME`. If you ever reintroduce a `base`, note that
+`src/styles/global.css` references fonts by absolute `url()` and cannot read
+`import.meta.env.BASE_URL` — the prefix has to be threaded through the CSS by
+hand, which is why the old `/site` prefix was hardcoded in 28 places.
