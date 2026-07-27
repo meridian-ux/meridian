@@ -16,7 +16,7 @@ const features = catalog.features;
   <section style="padding-top:0">
     <div class="feature-grid">
       {features.map((f) => (
-        <a class="fcard" href={`/features/${f.slug}`}>
+        <a class="fcard" href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/features/${f.slug}`}>
           <div class="top">
             <span class="fname">{f.name}</span>
             <span class={`pill ${(f.status || "available").toLowerCase()}`}>{(f.status || "available").toLowerCase()}</span>

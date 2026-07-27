@@ -1,5 +1,6 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//:astro/package_json.bzl", astro_bin = "bin")
+load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("@rules_astro//astro:defs.bzl", "astro_dev", "astro_site")
 
 package(default_visibility = ["//visibility:public"])
@@ -26,6 +27,12 @@ astro_site(
         "tsconfig.json",
     ],
     astro_bin = ":astro_tool",
+    # @astrojs/telemetry writes a config file under $HOME on first run. The RBE
+    # workers set HOME=/nonexistent, so `astro build` dies with
+    # `EACCES: permission denied, mkdir '/nonexistent/.config/astro'` -- remotely
+    # only; a local darwin build has a writable HOME and passes. Telemetry is
+    # also a network call, which a hermetic action has no business making.
+    env = {"ASTRO_TELEMETRY_DISABLED": "1"},
     node_modules = ":node_modules",
 )
 
@@ -35,4 +42,25 @@ astro_dev(
     srcs = glob(["src/**", "public/**"]) + ["package.json", "tsconfig.json"],
     astro_bin = ":astro_tool",
     node_modules = ":node_modules",
+)
+
+# bazel test //:smoke_test  ->  assert the built site publishes every route the
+# feature catalog implies, and that its internal links resolve.
+#
+# Load-bearing mechanically as much as substantively: the build runner sends
+# TEST_TARGETS=//... and `bazel test` exits 4 ("no test targets were found, yet
+# testing was requested") on a repo with none.
+#
+# js_test, not sh_test: sh_test pulls in @bazel_tools//tools/cpp:current_cc_toolchain
+# and the CI image sets BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1, so an sh_test analyses
+# fine on darwin and fails on linux with "Unable to find a CC toolchain". Node is
+# already this repo's toolchain, through a module dep we already have.
+js_test(
+    name = "smoke_test",
+    data = [
+        ":build",
+        "astro.config.mjs",
+        "src/content/features.json",
+    ],
+    entry_point = "tools/smoke_test.mjs",
 )
