@@ -19,10 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No `package-manager:` input on purpose. With it set, the action passes a
+      # version to pnpm/action-setup while package.json also declares
+      # `packageManager`, and action-setup hard-errors on the duplicate
+      # ("Multiple versions of pnpm specified"). Left unset, the action detects
+      # pnpm-lock.yaml, leaves VERSION empty, and action-setup reads the pinned
+      # version out of packageManager -- one declaration, used by CI and locally.
       - name: Build Astro site
         uses: withastro/action@v3
-        with:
-          package-manager: pnpm@9
 
   deploy:
     needs: build
