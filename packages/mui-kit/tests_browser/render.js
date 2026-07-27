@@ -190,7 +190,9 @@ async function main() {
       // still on form-nav-groups with 2 sections from the previous check
       const upBtns = page.getByRole("button", { name: /move item up/i });
       const downBtns = page.getByRole("button", { name: /move item down/i });
-      // section-level up/down (outermost repeated field buttons come first)
+      // Section-level up/down. Valid here only because neither section has any
+      // kind rows yet — a nested list contributes identically labelled buttons
+      // ahead of its parent's (see the reorder check below).
       const firstUp = upBtns.first();
       const lastDown = downBtns.last();
       if (!(await firstUp.isDisabled())) throw new Error("first section up should be disabled");
@@ -214,10 +216,24 @@ async function main() {
       await page.getByRole("button", { name: "Add kind" }).first().click();
       await page.getByRole("textbox", { name: /kind/i }).first().waitFor({ state: "visible" });
       await page.getByRole("textbox", { name: /kind/i }).first().fill("products");
-      // reorder: move first section down and wait for the input values to swap
-      await page.getByRole("button", { name: /move item down/i }).first().click();
+      // reorder: move the FIRST SECTION down and wait for the input values to swap.
+      // Every list draws its row content before that row's controls, so a section's
+      // own kind rows — which live inside the section fieldset — contribute
+      // identically labelled move buttons EARLIER in the DOM than the section-level
+      // pair. Once a kind exists, `.first()` resolves to that kind row's (disabled,
+      // single-row) move-down button, not the section's. Scope to the buttons that
+      // are outside any fieldset: those are the outer Groups list's.
+      // (The harness keys the mount by fixture name, so re-rendering the same
+      // fixture keeps the sections added by the checks above — hence ">= 2".)
+      const sectionDown = page.locator('button[aria-label="move item down"]:not(fieldset button)');
+      if ((await sectionDown.count()) < 2) {
+        throw new Error(`expected ≥2 section-level move-down buttons, got ${await sectionDown.count()}`);
+      }
+      if (await sectionDown.first().isDisabled()) {
+        throw new Error("the first section's move-down should be enabled (a kind row's was picked)");
+      }
+      await sectionDown.first().click();
       await page.waitForFunction(() => {
-        const inputs = document.querySelectorAll('input[aria-label^="Label"], input[placeholder^="Label"]');
         // check the first visible label-type textbox has "Beta"
         const labelInputsList = Array.from(document.querySelectorAll("input[type='text']")).filter(
           (el) => el.closest('[class*="MuiFormControl"]')?.querySelector("label")?.textContent?.trim() === "Label",
@@ -227,6 +243,14 @@ async function main() {
       const labelsAfter = page.getByRole("textbox", { name: /label/i });
       const firstLabel = await labelsAfter.nth(0).inputValue();
       if (firstLabel !== "Beta") throw new Error(`expected first label to be Beta after reorder, got "${firstLabel}"`);
+      if ((await labelsAfter.nth(1).inputValue()) !== "Alpha") {
+        throw new Error("expected the moved section (Alpha) to land second");
+      }
+      // the section's own child rows must travel with it
+      const kindAfter = await page.getByRole("textbox", { name: /kind/i }).first().inputValue();
+      if (kindAfter !== "products") {
+        throw new Error(`expected Alpha's kind to survive the reorder, got "${kindAfter}"`);
+      }
     });
 
     // ── Prompt ──

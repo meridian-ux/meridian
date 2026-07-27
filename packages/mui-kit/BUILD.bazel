@@ -79,6 +79,11 @@ js_binary(
 
 # The fixtures captured — must match window.meridianHarness.list() in the harness.
 # (tectonic_pdf stages individual files, not TreeArtifacts, so we declare each.)
+# capture.js emits a figures.tex entry for EVERY fixture in list(), so a fixture
+# missing here is an UNDECLARED output: the PNG still lands in bazel-out, and the
+# unsandboxed process-wrapper strategy lets tectonic read it anyway — until the
+# capture action is served from cache, which restores only the declared outputs and
+# then \includegraphics halts on the missing file. Keep this list in sync.
 FIXTURES = [
     "table-client",
     "table-offset",
@@ -88,6 +93,7 @@ FIXTURES = [
     "form-typed-edit",
     "form-typed-readonly",
     "form-repeated-nested",
+    "form-nav-groups",
     "prompt",
     "lro",
     "fallback",

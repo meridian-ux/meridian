@@ -26,6 +26,14 @@ jobs:
       - name: Chrome system dependencies
         run: npx --yes playwright@1.59.0 install-deps chromium
 
+      # pnpm-lock.yaml is the ONLY dependency tree Bazel sees (MODULE.bazel's
+      # npm_translate_lock reads it). package.json is not consulted, so a bump that
+      # edits package.json without regenerating the lock leaves the browser bundle
+      # silently linked against the OLD packages — which is exactly how the 0.17
+      # RepeatedField rename shipped a red main. Fail fast and loudly instead.
+      - name: pnpm-lock.yaml is in sync with package.json
+        run: npx --yes pnpm@10 install --frozen-lockfile --lockfile-only
+
       # rules_chrome / rules_tectonic resolve from the fastverk registry; the rest
       # from BCR. (The repo .bazelrc leaves registries to the environment.)
       # bazelisk is preinstalled on GitHub-hosted runners as `bazel`.
