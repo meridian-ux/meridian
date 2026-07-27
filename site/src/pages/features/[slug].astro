@@ -20,7 +20,7 @@ if (hero.accent_span && hero.headline && hero.headline.includes(hero.accent_span
 }
 const statusClass = (f.status || "available").toLowerCase();
 const canonical = meta.canonical || new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = meta.og_image || (meta.og_generate ? `/site/assets/og/.png` : "/site/assets/og/default.png");
+const ogImage = meta.og_image || (meta.og_generate ? `/assets/og/${f.slug}.png` : "/assets/og/default.png");
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -32,7 +32,7 @@ const jsonLd = {
 };
 ---
 <Base title={meta.title} description={meta.description} canonical={canonical} ogImage={ogImage} jsonLd={jsonLd}>
-  <div class="breadcrumb"><a href="/site/features">Products</a> / {f.name}</div>
+  <div class="breadcrumb"><a href="/features">Products</a> / {f.name}</div>
 
   <section class="feature-hero">
     <span class="eyebrow">{hero.eyebrow || f.category?.toLowerCase()}</span>
@@ -90,9 +90,9 @@ const jsonLd = {
     <h2>One graph, from source to build.</h2>
     <p>{f.name} is one of {catalog.features.length} services in the tbzl.dev source &amp; build layer — open at the edges, yours at the core.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="/site/#start">Get started</a>
+      <a class="btn btn-primary" href="/#start">Get started</a>
       <a class="btn btn-ghost" href="https://docs.tbzl.dev">Read the docs ↗</a>
-      <a class="btn btn-plain" href="/site/features">All products →</a>
+      <a class="btn btn-plain" href="/features">All products →</a>
     </div>
   </section>
 </Base>

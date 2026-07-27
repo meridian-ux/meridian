@@ -4,11 +4,11 @@
    calyx leaf green. Single committed dark world. */
 @font-face {
   font-family: "Space Grotesk"; font-weight: 600; font-display: swap;
-  src: url("/site/assets/fonts/SpaceGrotesk-SemiBold.ttf") format("truetype");
+  src: url("/assets/fonts/SpaceGrotesk-SemiBold.ttf") format("truetype");
 }
 @font-face {
   font-family: "Space Grotesk"; font-weight: 500; font-display: swap;
-  src: url("/site/assets/fonts/SpaceGrotesk-Medium.ttf") format("truetype");
+  src: url("/assets/fonts/SpaceGrotesk-Medium.ttf") format("truetype");
 }
 
 :root {

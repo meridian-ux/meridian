@@ -7,7 +7,7 @@ const {
   title,
   description,
   canonical = new URL(Astro.url.pathname, Astro.site).href,
-  ogImage = "/site/assets/og/default.png",
+  ogImage = "/assets/og/default.png",
   jsonLd,
 } = Astro.props;
 const ogUrl = new URL(ogImage, Astro.site).href;
@@ -21,7 +21,7 @@ const ogUrl = new URL(ogImage, Astro.site).href;
   <title>{title}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
-  <link rel="icon" type="image/png" href="/site/assets/meridian-mark.png" />
+  <link rel="icon" type="image/png" href="/assets/meridian-mark.png" />
 
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
