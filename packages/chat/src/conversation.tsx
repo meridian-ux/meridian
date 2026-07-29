@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { ConversationModel } from "./model.js";
-import { BlockView } from "./render_react.js";
+import { BlockView, type ViewRenderer } from "./render_react.js";
 import { isActiveStatus, type ConversationEvent } from "./wire.js";
 
 export interface ConversationProps {
@@ -28,6 +28,16 @@ export interface ConversationProps {
    * reassigning `input.placeholder`, which is what aion/web actually did.
    */
   placeholder?: string;
+  /**
+   * Draw a `view` block — composed UI an agent emitted as a ViewDescriptor.
+   *
+   * Optional, and omitting it is safe: a view block then renders as nothing,
+   * exactly as any unrecognized block kind already does. A host that wants these
+   * wires a meridian panel renderer up here (see the README) — this package will
+   * not pull one in, because a chat transcript should not drag a component
+   * library into a host that only wants text.
+   */
+  renderView?: ViewRenderer;
 }
 
 export function Conversation({
@@ -36,6 +46,7 @@ export function Conversation({
   className,
   emptyState,
   placeholder = "Send a message…",
+  renderView,
 }: ConversationProps): ReactNode {
   const modelRef = useRef<ConversationModel | null>(null);
   const model = (modelRef.current ??= new ConversationModel());
@@ -106,7 +117,7 @@ export function Conversation({
         ) : (
           blocks.map((b, i) => (
             <div className={"asst-row " + (b.role === "user" ? "user" : "assistant")} key={b.blockId || i}>
-              <BlockView block={b} />
+              <BlockView block={b} renderView={renderView} />
             </div>
           ))
         )}

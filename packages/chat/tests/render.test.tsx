@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { renderBlockInner } from "../src/render_html.js";
-import { Conversation } from "../src/index.js";
+import { BlockView, Conversation } from "../src/index.js";
 import type { Block } from "../src/wire.js";
 
 describe("renderBlockInner (vanilla HTML)", () => {
@@ -47,5 +47,47 @@ describe("<Conversation> (react)", () => {
     expect(html).toContain("meridian-conversation");
     expect(html).toContain("asst-input");
     expect(html).toContain("connected tools");
+  });
+});
+
+describe("view blocks", () => {
+  const descriptor = { id: "demo", title: "Demo", layout: { stacked: {} }, slots: [] };
+  const viewBlock: Block = { blockId: "b1", role: "assistant", view: descriptor };
+
+  // createElement (not JSX), matching the rest of this file — see the note above.
+  it("delegates a view block to the host renderer, with the block alongside", () => {
+    const seen: unknown[] = [];
+    const html = renderToStaticMarkup(
+      createElement(BlockView, {
+        block: viewBlock,
+        renderView: (view, block) => {
+          seen.push([view, block.blockId]);
+          return createElement("div", { className: "host-view" }, "drawn");
+        },
+      }),
+    );
+    expect(html).toContain("host-view");
+    expect(seen).toEqual([[descriptor, "b1"]]);
+  });
+
+  // The point of the seam: a host that has NOT opted in is unaffected by an agent
+  // emitting a view. It renders as nothing, exactly like any unknown block kind —
+  // so shipping this arm cannot break an existing consumer.
+  it("renders nothing when the host supplies no renderer", () => {
+    expect(renderToStaticMarkup(createElement(BlockView, { block: viewBlock }))).toBe("");
+  });
+
+  it("does not call the host renderer for non-view blocks", () => {
+    let called = false;
+    renderToStaticMarkup(
+      createElement(BlockView, {
+        block: { blockId: "b1", role: "assistant", markdown: { text: "hi" } },
+        renderView: () => {
+          called = true;
+          return null;
+        },
+      }),
+    );
+    expect(called).toBe(false);
   });
 });

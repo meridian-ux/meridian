@@ -60,6 +60,22 @@ export interface TableBlock {
 }
 
 /** One rendered unit. `blockId` is stable: re-sending updates the shown block. */
+/**
+ * A composed-UI block: `meridian.ui.v1.ViewDescriptor` as proto3-JSON.
+ *
+ * Deliberately OPAQUE. Typing this as the generated `ViewDescriptor` would put
+ * `@savvifi/meridian-proto-ts` in this package's public `.d.ts`, turning a
+ * dev-only dependency into a real one — and this package's whole point is that a
+ * host can drop it in with no protobuf runtime. Worse, protobuf-es types are
+ * NOMINAL, so a host resolving a different proto-ts minor than this package
+ * declared would find two mutually unassignable `ViewDescriptor`s and nothing
+ * would typecheck. That has shipped here before.
+ *
+ * So the descriptor passes through untyped and the HOST decodes it, against
+ * whichever single proto-ts copy it actually resolves — see `renderView`.
+ */
+export type ViewBlock = Record<string, unknown>;
+
 export interface Block {
   blockId?: string;
   role?: Role;
@@ -71,6 +87,7 @@ export interface Block {
   code?: Code;
   divider?: Record<string, never>;
   table?: TableBlock;
+  view?: ViewBlock;
 }
 
 export interface Status {

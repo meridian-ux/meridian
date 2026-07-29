@@ -7,7 +7,7 @@
 // dependency), and the bundler-free browser bundle is the Bazel //src:browser_bundle.
 
 export { Conversation, type ConversationProps } from "./conversation.js";
-export { BlockView } from "./render_react.js";
+export { BlockView, type ViewRenderer } from "./render_react.js";
 export { ConversationModel } from "./model.js";
 export { CONVERSATION_CSS } from "./styles.js";
 export * from "./wire.js";

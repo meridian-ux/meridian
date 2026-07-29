@@ -5,9 +5,26 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 
 import { mdInline } from "./dom.js";
-import type { Block } from "./wire.js";
+import type { Block, ViewBlock } from "./wire.js";
 
-export function BlockView({ block }: { block: Block }): ReactNode {
+/**
+ * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
+ * one needs a full panel renderer (`@savvifi/meridian-web-react` + a ComponentKit)
+ * and this package stays dependency-free — a chat transcript should not drag a
+ * component library into a host that only wants text.
+ *
+ * The descriptor arrives as opaque proto3-JSON; the host decodes it against its
+ * own single copy of the generated types. See `ViewBlock`.
+ */
+export type ViewRenderer = (view: ViewBlock, block: Block) => ReactNode;
+
+export function BlockView({
+  block,
+  renderView,
+}: {
+  block: Block;
+  renderView?: ViewRenderer;
+}): ReactNode {
   if (block.markdown) {
     // mdInline escapes the text first, then adds a small safe tag set.
     return <div className="md" dangerouslySetInnerHTML={{ __html: mdInline(block.markdown.text || "") }} />;
@@ -89,5 +106,9 @@ export function BlockView({ block }: { block: Block }): ReactNode {
     );
   }
   if (block.divider) return <hr className="div" />;
+  // No host renderer ⇒ nothing, which is this component's existing contract for
+  // a block kind it cannot draw. A view block is then inert rather than broken,
+  // so a host that has not opted in is unaffected by an agent emitting one.
+  if (block.view) return renderView ? renderView(block.view, block) : null;
   return null;
 }
