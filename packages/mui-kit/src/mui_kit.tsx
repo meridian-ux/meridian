@@ -27,7 +27,7 @@ import {
   useHrefResolver,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
@@ -458,7 +458,7 @@ function buildField(
         type: "select",
         value: typeof current === "string" ? current : "",
         onChange: (value: string) => setAt(path, value),
-        options: field.kind.value.allowedValues.map((value) => ({ value, label: value })),
+        options: enumOptions(field.kind.value),
       };
     case "nested":
       return {
@@ -529,6 +529,32 @@ function buildField(
         onChange: (value: string) => setAt(path, value),
       };
   }
+}
+
+/**
+ * The options for an `EnumSelection`, honouring the precedence form.proto states.
+ *
+ * `allowed_values` carries the stored token ONLY, so an option drawn from it can
+ * show nothing but its raw id. `options` (schemas 0.21.0) adds the producer's
+ * localized label — the producer being the only party that knows the viewer's
+ * locale — and a display tone.
+ *
+ * form.proto is explicit that "when both are set, `options` wins and
+ * `allowed_values` is ignored, so a producer can populate both during a migration
+ * without renderers double-listing". Reading `allowed_values` first would
+ * therefore be wrong twice: it loses the labels AND it disagrees with the
+ * contract during exactly the migration the field was designed to support.
+ *
+ * This shipped as a live bug: a producer sent `options`, this kit read only
+ * `allowedValues`, and the dropdown rendered EMPTY with no error anywhere.
+ */
+export function enumOptions(sel: EnumSelection): Array<{ value: string; label: string }> {
+  if (sel.options.length > 0) {
+    // label is OPTIONAL and "falls back to `value` when empty" — a blank entry is
+    // worse than a raw token, since it cannot be picked out of a list.
+    return sel.options.map((o) => ({ value: o.value, label: o.label || o.value }));
+  }
+  return sel.allowedValues.map((value) => ({ value, label: value }));
 }
 
 function buildFields(
