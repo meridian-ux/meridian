@@ -20,11 +20,13 @@ import type {
   ShapeProps,
 } from "@savvifi/meridian-web-react";
 import {
+  buildBindingRequest,
   MeridianRowActionsContext,
   MeridianViewContext,
   PaginationMode,
   useActionHandler,
   useHrefResolver,
+  useMeridianSelection,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
 import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
@@ -102,9 +104,14 @@ function formatCell(value: unknown, format: ColumnFormat): ReactNode {
   }
 }
 
-/** Fire an RpcCall through the invoker (fire-and-forget; result handling TBD). */
-function invoke(invoker: RpcInvoker, call: RpcCall | undefined, req: Row = {}): void {
-  if (call) void invoker.invoke(call.service, call.method, req);
+/**
+ * Fire an RpcCall through the invoker. Returns the in-flight promise (undefined
+ * when there is no call) so a caller that needs to know the write LANDED can
+ * await it — a composer clearing itself only once the post succeeds. Callers that
+ * don't care simply ignore the return, exactly as before.
+ */
+function invoke(invoker: RpcInvoker, call: RpcCall | undefined, req: Row = {}): Promise<unknown> | undefined {
+  return call ? invoker.invoke(call.service, call.method, req) : undefined;
 }
 
 // ── Table ───────────────────────────────────────────────────────────────────
@@ -574,35 +581,90 @@ function FieldForm({
   submitLabel,
   submitDisabled,
   onSubmit,
+  resetOnSubmit,
 }: {
   fields: FormField[];
   disabled: boolean;
   description?: string;
   submitLabel: string;
   submitDisabled?: boolean;
-  onSubmit?: (values: FormObject) => void;
+  onSubmit?: (values: FormObject) => void | Promise<unknown>;
+  /** Clear back to the initial values once a submit RESOLVES. For a form that
+   *  CREATES (a comment composer, a quick-create dialog), the values are one
+   *  submission, and leaving them behind reads as "that didn't go through" — the
+   *  text you just posted is still sitting in the box beside its own new entry.
+   *  Off by default: an EDIT form over an existing record must keep showing it. */
+  resetOnSubmit?: boolean;
 }): ReactNode {
   const [values, setValues] = useState<FormObject>(() => initValues(fields));
   const setAt: SetAt = (path, value) =>
     setValues((prev) => updateAt(prev, path, value) as FormObject);
+  // Reset only on RESOLVE, never optimistically: clearing first and failing after
+  // destroys what the user wrote, and the write is the thing we cannot redo for
+  // them. A rejected submit keeps the text so it can be retried.
+  const handleSubmit = () => {
+    const result = onSubmit?.(values);
+    if (!resetOnSubmit) return;
+    void Promise.resolve(result).then(
+      () => setValues(initValues(fields)),
+      () => {},
+    );
+  };
   return (
     <MeridianForm
       fields={buildFields(fields, values, setAt, disabled)}
       description={description || undefined}
-      submit={{ label: submitLabel, disabled: submitDisabled, onSubmit: () => onSubmit?.(values) }}
+      submit={{ label: submitLabel, disabled: submitDisabled, onSubmit: handleSubmit }}
     />
   );
 }
 
+/** True when every leaf of a form's INITIAL values is empty. */
+function startsBlank(value: unknown): boolean {
+  if (value === undefined || value === null || value === "") return true;
+  if (Array.isArray(value)) return value.every(startsBlank);
+  if (typeof value === "object") return Object.values(value as object).every(startsBlank);
+  return false;
+}
+
 function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
   const edit = panel.mode === FormMode.EDIT;
+  // Does this form CREATE something, or edit something that already exists? The
+  // descriptor doesn't say, so read it off the fields: a form that opens blank is
+  // composing a new thing (a comment, a quick-create), and should clear once the
+  // submit lands. A form pre-filled from a record is editing it, and clearing
+  // would wipe the record from view. Deriving it beats assuming — every
+  // FormPanel(EDIT) the projection emits today is a create surface (an existing
+  // record renders as a RecordCardPanel), and this keeps holding when that stops
+  // being true.
+  const createLike = edit && startsBlank(initValues(panel.fields));
+  const selection = useMeridianSelection();
+  // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
+  // request is not only what the user typed: an op scoped to the record it hangs
+  // off (post a comment on THIS task → `resourceId`) gets that field from a
+  // binding, because it is context, not input — there is no form control for it
+  // and there should not be. Previously submit sent the form values alone, so a
+  // bound op could never be satisfied: the scope field simply never arrived, and
+  // the only workarounds were a fake editable input or a bespoke panel.
+  //
+  // Field values WIN over bindings on a key collision — the binding supplies the
+  // context the form cannot, never overrides what the user actually entered.
   return (
     <FieldForm
       fields={panel.fields}
       disabled={!edit}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
       submitDisabled={!edit}
-      onSubmit={edit ? (values) => invoke(invoker, panel.submit, values as Row) : undefined}
+      onSubmit={
+        edit
+          ? (values) =>
+              invoke(invoker, panel.submit, {
+                ...buildBindingRequest(panel.submit, selection.values),
+                ...(values as Row),
+              })
+          : undefined
+      }
+      resetOnSubmit={createLike}
     />
   );
 }

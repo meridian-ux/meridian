@@ -13,6 +13,7 @@ import { useContext, type ReactNode } from "react";
 import { Box, Card, CardContent, Chip, Skeleton, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
+import { formatDisplayValue } from "../display_format.js";
 import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -47,9 +48,18 @@ export function MeridianDetailHeader({
     (panel.titleSourcePath ? asText(resolvePath(record, panel.titleSourcePath)) : "") || panel.title;
   const subtitle = panel.subtitleSourcePath ? asText(resolvePath(record, panel.subtitleSourcePath)) : "";
   const status = panel.statusSourcePath ? asText(resolvePath(record, panel.statusSourcePath)) : "";
+  // Descriptor rows are labeled VALUES — the same thing a record card renders, so
+  // they get the same formatting: a due date reads "Mar 29, 2026", not
+  // "2026-03-29T00:00:00.000Z". `asText` above stays for the title / subtitle /
+  // status, which are identity, not data: `formatDisplayValue` maps empty to an em
+  // dash, which would defeat the `|| panel.title` fallback and paint a "—" chip.
+  //
+  // The empty filter tests the RAW value, since a formatted empty is that em dash
+  // — filtering on the formatted text would keep every blank row.
   const rows = panel.descriptorRows
-    .map((row) => ({ label: row.label, value: asText(resolvePath(record, row.sourcePath)) }))
-    .filter((row) => row.value !== "");
+    .map((row) => ({ label: row.label, raw: resolvePath(record, row.sourcePath) }))
+    .filter((row) => asText(row.raw) !== "")
+    .map((row) => ({ label: row.label, value: formatDisplayValue(row.raw) }));
 
   return (
     <Card variant="outlined" className="mer-detail-header">
