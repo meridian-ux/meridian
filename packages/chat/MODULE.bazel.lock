@@ -564,7 +564,7 @@
     "@@aspect_rules_ts+//ts:extensions.bzl%ext": {
       "general": {
         "bzlTransitiveDigest": "axls+7DzE6tzeppZH+xWR9lJ/k6OusXMYmf7L7yH0eU=",
-        "usagesDigest": "X7UGBzdEDlyxdjVSJ2g073I10htYOm5hQ9P05H6dafg=",
+        "usagesDigest": "IGJO5E+B3gFJDxkUO31jJ74JT3+KQRMZAz52M95WdV4=",
         "recordedInputs": [
           "REPO_MAPPING:aspect_rules_ts+,aspect_rules_ts aspect_rules_ts+",
           "REPO_MAPPING:aspect_rules_ts+,bazel_tools bazel_tools"
@@ -666,7 +666,7 @@
     "@@rules_nodejs+//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "oZFClfRhTTwsYzpxVPkOpOt/r0+OzEfEV37au0jFZ0s=",
-        "usagesDigest": "xN/u+Htinqjpj24O83+lxTFAvlN7pwIQXj5ABGagEzo=",
+        "usagesDigest": "0jbXyjSbEtr4mFzq+vc7fZe+Q4K+ubUbE+9BTeEQVyE=",
         "recordedInputs": [],
         "generatedRepoSpecs": {
           "nodejs_linux_amd64": {

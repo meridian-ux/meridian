@@ -25,7 +25,7 @@ bazel_dep(name = "aspect_rules_esbuild", version = "0.26.0")
 
 # rules_vite is dev-only: it wires the vitest_test targets. Lives in the
 # tomato-bazel registry (see .bazelrc), not BCR.
-bazel_dep(name = "rules_vite", version = "0.2.0", dev_dependency = True)
+bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
 
 # node + npm + rules_ts are NON-dev: hosts (e.g. botnoc) consume //src:core as a
 # Bazel ts_project and build it from source, so they need this module's node

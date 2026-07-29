@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ConversationModel } from "../src/model.js";
 import type { ConversationEvent } from "../src/wire.js";
-import { conformanceMarkdownEvent } from "./fixtures.js";
+import { conformanceMarkdownEvent, conformanceViewEvent } from "./fixtures.js";
 
 describe("ConversationModel", () => {
   it("ingests a canonical proto3-JSON event (conformance)", () => {
@@ -58,5 +58,36 @@ describe("ConversationModel", () => {
     const m = new ConversationModel();
     m.ingest({ seq: "7", block: { blockId: "a", markdown: { text: "x" } } });
     expect(m.ingest({ seq: "7", block: { blockId: "a", markdown: { text: "y" } } })).toBe(false);
+  });
+});
+
+describe("conformance: the view arm (schemas 0.21.0)", () => {
+  it("a real proto view block decodes into the structural wire type", () => {
+    const ev = conformanceViewEvent();
+    const model = new ConversationModel();
+    expect(model.ingest(ev)).toBe(true);
+
+    const [block] = model.blocks;
+    expect(block?.blockId).toBe("v1");
+    // The descriptor must arrive INTACT — meridian-chat forwards it opaquely, so
+    // anything it silently reshaped here would reach the host renderer wrong.
+    const view = block?.view as Record<string, unknown> | undefined;
+    expect(view?.id).toBe("demo");
+    expect(view?.title).toBe("Demo");
+
+    // proto3-JSON flattens both oneofs: the layout mode and the panel body arm
+    // sit as sibling keys, never nested under `mode` / `body`. Getting this wrong
+    // is what makes a renderer draw nothing, so pin it here against the REAL
+    // generated encoder rather than against our own assumption.
+    const layout = view?.layout as Record<string, unknown>;
+    expect(layout).toHaveProperty("stacked");
+    expect(layout).not.toHaveProperty("mode");
+
+    const slots = view?.slots as Array<Record<string, unknown>>;
+    const panel = slots[0]!.panel as Record<string, unknown>;
+    expect(panel).toHaveProperty("stat");
+    expect(panel).not.toHaveProperty("body");
+    // A double stays a number through proto3-JSON — the StatPanel.value trap.
+    expect((panel.stat as Record<string, unknown>).value).toBe(42);
   });
 });

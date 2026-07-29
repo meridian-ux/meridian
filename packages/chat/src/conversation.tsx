@@ -38,6 +38,15 @@ export interface ConversationProps {
    * library into a host that only wants text.
    */
   renderView?: ViewRenderer;
+  /**
+   * Send this message once, on mount, as if the user had typed it.
+   *
+   * Lets a host deep-link a conversation (`?q=…`) so a demo or a bug report is a
+   * URL rather than a sentence to retype — and so a headless browser can drive a
+   * whole turn. Sent once per mount; changing it later does not re-send, because
+   * a prop change should not silently spend a turn.
+   */
+  initialMessage?: string;
 }
 
 export function Conversation({
@@ -47,6 +56,7 @@ export function Conversation({
   emptyState,
   placeholder = "Send a message…",
   renderView,
+  initialMessage,
 }: ConversationProps): ReactNode {
   const modelRef = useRef<ConversationModel | null>(null);
   const model = (modelRef.current ??= new ConversationModel());
@@ -102,6 +112,15 @@ export function Conversation({
     },
     [turnUrl],
   );
+
+  // Fire `initialMessage` once. The ref (not a dep on the value) is what keeps a
+  // re-render or a StrictMode double-mount from spending a second turn.
+  const sentInitial = useRef(false);
+  useEffect(() => {
+    if (sentInitial.current || !initialMessage) return;
+    sentInitial.current = true;
+    void send(initialMessage);
+  }, [initialMessage, send]);
 
   const blocks = model.blocks;
   const status = model.status_;
