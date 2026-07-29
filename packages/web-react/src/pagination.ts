@@ -228,7 +228,14 @@ export function readPage(
   response: unknown,
   rowsField: string,
 ): { rows: Row[]; total?: number; nextCursor?: string } {
-  const list = getNested(response, rowsField);
+  // A BARE ARRAY response is itself the page. Not every backend wraps its rows in
+  // an envelope: an op that declares "my output is a list" answers with the list,
+  // so `rows_field` names nothing and resolves to undefined — which silently read
+  // as an EMPTY page, indistinguishable from "no rows". Falling back to the
+  // response only when the named field misses keeps the envelope shape (`items`,
+  // `data.rows`, …) authoritative wherever one exists.
+  const named = getNested(response, rowsField);
+  const list = named === undefined && Array.isArray(response) ? response : named;
   const rows = Array.isArray(list) ? (list as Row[]) : [];
   let total: number | undefined;
   let nextCursor: string | undefined;

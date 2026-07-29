@@ -90,4 +90,15 @@ describe("readPage", () => {
     const { rows } = readPage(undefined, {}, "nope");
     expect(rows).toEqual([]);
   });
+
+  it("bare-array response IS the page when the rows field misses", () => {
+    const { rows } = readPage(undefined, [{ id: 1 }, { id: 2 }], "items");
+    expect(rows).toHaveLength(2);
+  });
+
+  it("an envelope still wins over the bare-array fallback", () => {
+    const response = { items: [{ id: 1 }] };
+    const { rows } = readPage(undefined, response, "items");
+    expect(rows).toEqual([{ id: 1 }]);
+  });
 });
