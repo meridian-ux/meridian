@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
     "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json — it",
@@ -14,7 +14,7 @@
     "and verify the build still resolves a single proto-ts."
   ],
   "packageManager": "pnpm@10.25.0",
-  "description": "The MUI ComponentKit for the meridian React renderer \u2014 paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone \u2014 no @aion/ui dependency.",
+  "description": "The MUI ComponentKit for the meridian React renderer — paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone — no @aion/ui dependency.",
   "type": "module",
   "license": "UNLICENSED",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "^0.21.0",
     "@savvifi/meridian-schemas": "^0.21.0",
-    "@savvifi/meridian-web-react": ">=0.11.0 <0.13.0",
+    "@savvifi/meridian-web-react": ">=0.11.0 <0.14.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -53,7 +53,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "0.21.0",
     "@savvifi/meridian-schemas": "0.21.0",
-    "@savvifi/meridian-web-react": "0.12.0",
+    "@savvifi/meridian-web-react": "0.13.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
     "@types/react": "^19.2.0",
