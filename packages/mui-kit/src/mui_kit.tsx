@@ -19,6 +19,10 @@ import type {
   ComponentKit,
   ShapeProps,
 } from "@savvifi/meridian-web-react";
+import { formatByDisplay } from "./display_format.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { useDisplayNow } from "./use_display_now.js";
 import {
   buildBindingRequest,
   MeridianRowActionsContext,
@@ -91,8 +95,30 @@ function getNested(source: unknown, path: string): unknown {
   }, source);
 }
 
-/** Format a cell value per the column's ColumnFormat. */
-function formatCell(value: unknown, format: ColumnFormat): ReactNode {
+/**
+ * Format a cell value. A column's `value_display` WINS when set; `ColumnFormat` is
+ * the fallback.
+ *
+ * That precedence is the whole point of the additive migration: ValueDisplay is the
+ * shared spec a card field and a table cell both speak, and ColumnFormat is the
+ * table's older six-case vocabulary for the same question. Preferring the new one
+ * lets a producer move a single column without a coordinated rewrite, while every
+ * column that has not moved renders byte-identically.
+ *
+ * `nowMs` threads through for a temporal column that asked to read relatively —
+ * undefined before mount, which keeps SSR and hydration in agreement (see
+ * use_display_now.ts).
+ */
+function formatCell(
+  value: unknown,
+  format: ColumnFormat,
+  display?: ValueDisplay,
+  nowMs?: number,
+): ReactNode {
+  if (display && display.type !== ValueType.UNSPECIFIED) {
+    const shown = formatByDisplay(value, display, nowMs);
+    return shown.title ? <span title={shown.title}>{shown.text}</span> : shown.text;
+  }
   if (value === null || value === undefined) return "";
   switch (format) {
     case ColumnFormat.FLOAT_2DP:
@@ -160,6 +186,9 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // A ColumnLink cell renders its value as a host-resolved link (resolveHref);
   // target_kind empty ⇒ the view's own subject. Absent resolver ⇒ plain text.
   const resolveHref = useHrefResolver();
+  // undefined until mounted, so a relative cell renders absolute in the SSR pass
+  // and both sides of hydration agree — see use_display_now.ts.
+  const nowMs = useDisplayNow();
   const { subjectKind } = useContext(MeridianViewContext);
   const onAction = useActionHandler();
 
@@ -174,7 +203,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           sortable: true,
           render: (row: Row) => {
             const raw = getNested(row, col.fieldPath);
-            const text = formatCell(raw, col.format);
+            const text = formatCell(raw, col.format, col.valueDisplay, nowMs);
             // target_kind empty ⇒ the view's own subject (a self/detail link).
             const targetKind = col.link ? col.link.targetKind || subjectKind : undefined;
             if (targetKind && resolveHref && raw != null && raw !== "") {
@@ -190,7 +219,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           },
         };
       }),
-    [panel.columns, resolveHref, subjectKind],
+    [panel.columns, resolveHref, subjectKind, nowMs],
   );
 
   // Resolve the sort column's field_path (columns are keyed by field_path||header).

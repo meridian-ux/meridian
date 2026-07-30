@@ -13,7 +13,8 @@ import { useContext, type ReactNode } from "react";
 import { Box, Card, CardContent, Chip, Skeleton, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import { formatDisplayValue } from "../display_format.js";
+import { formatByDisplay } from "../display_format.js";
+import { useDisplayNow } from "../use_display_now.js";
 import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -43,6 +44,9 @@ export function MeridianDetailHeader({
 }): ReactNode {
   const { subjectId } = useContext(MeridianViewContext);
   const { record, loading } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+  // undefined until mounted, so a relative row renders absolute during SSR and both
+  // sides of hydration agree — see use_display_now.ts.
+  const now = useDisplayNow();
 
   const resolvedTitle =
     (panel.titleSourcePath ? asText(resolvePath(record, panel.titleSourcePath)) : "") || panel.title;
@@ -56,10 +60,12 @@ export function MeridianDetailHeader({
   //
   // The empty filter tests the RAW value, since a formatted empty is that em dash
   // — filtering on the formatted text would keep every blank row.
+  // A row's DECLARED display wins (schemas 0.23.0 gave these rows a say at last);
+  // with none, formatByDisplay defers to the inference that was already here.
   const rows = panel.descriptorRows
-    .map((row) => ({ label: row.label, raw: resolvePath(record, row.sourcePath) }))
+    .map((row) => ({ label: row.label, raw: resolvePath(record, row.sourcePath), display: row.display }))
     .filter((row) => asText(row.raw) !== "")
-    .map((row) => ({ label: row.label, value: formatDisplayValue(row.raw) }));
+    .map((row) => ({ label: row.label, ...formatByDisplay(row.raw, row.display, now) }));
 
   return (
     <Card variant="outlined" className="mer-detail-header">
@@ -95,7 +101,7 @@ export function MeridianDetailHeader({
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   {row.label}
                 </Typography>
-                <Typography variant="body2">{row.value}</Typography>
+                <Typography variant="body2" title={row.title}>{row.text}</Typography>
               </Box>
             ))}
           </Box>
