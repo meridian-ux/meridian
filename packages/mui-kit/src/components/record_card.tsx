@@ -13,7 +13,8 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RecordCardPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
-import { EMPTY_DISPLAY, displayValueList, formatDisplayValue } from "../display_format.js";
+import { EMPTY_DISPLAY, displayValueList, formatByDisplay } from "../display_format.js";
+import { useDisplayNow } from "../use_display_now.js";
 
 /**
  * A value-set reference renders as a chip, not as bare text.
@@ -43,6 +44,9 @@ export function MeridianRecordCard({
 }): ReactNode {
   const { subjectId } = useContext(MeridianViewContext);
   const { record, loading, error } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+  // undefined until mounted, which keeps a relative label out of the SSR output —
+  // see use_display_now.ts. Absolute renders on both sides; relative swaps in after.
+  const now = useDisplayNow();
 
   if (panel.fields.length === 0) {
     return null;
@@ -62,6 +66,9 @@ export function MeridianRecordCard({
           {panel.fields.map((field) => {
             const value = loading && !record ? undefined : resolvePath(record, field.fieldId);
             const chips = isValueSetRef(field) && !error ? displayValueList(value) : [];
+            // The field's DECLARED display wins; with none, formatByDisplay defers
+            // to the inference this card has always used.
+            const shown = formatByDisplay(value, field.display, now);
             return (
               <Box key={field.fieldId}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
@@ -77,8 +84,12 @@ export function MeridianRecordCard({
                     ))}
                   </Stack>
                 ) : (
-                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
-                    {error ? EMPTY_DISPLAY : formatDisplayValue(value)}
+                  <Typography
+                    variant="body2"
+                    sx={{ wordBreak: "break-word" }}
+                    title={shown.title}
+                  >
+                    {error ? EMPTY_DISPLAY : shown.text}
                   </Typography>
                 )}
               </Box>

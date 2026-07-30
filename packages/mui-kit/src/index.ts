@@ -29,9 +29,15 @@ export { MeridianRecordCard } from "./components/record_card.js";
 export {
   EMPTY_DISPLAY,
   displayValueList,
+  formatByDisplay,
   formatDisplayValue,
+  formatRelativeTime,
   formatTimestamp,
+  type DisplayedValue,
 } from "./display_format.js";
+// The instant relative labels measure against — undefined until mounted, which is
+// what keeps an SSR render and its hydration byte-identical.
+export { useDisplayNow } from "./use_display_now.js";
 export {
   ChoiceView,
   SnippetView,
