@@ -24,8 +24,8 @@
   ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@savvifi/meridian-proto-ts": "^0.17.0",
-    "@savvifi/meridian-schemas": "^0.17.0"
+    "@savvifi/meridian-proto-ts": "^0.21.0",
+    "@savvifi/meridian-schemas": "^0.21.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -44,8 +44,8 @@
       "esbuild"
     ],
     "overrides": {
-      "@savvifi/meridian-proto-ts": "0.17.0",
-      "@savvifi/meridian-schemas": "0.17.0"
+      "@savvifi/meridian-proto-ts": "0.21.0",
+      "@savvifi/meridian-schemas": "0.21.0"
     }
   }
 }
