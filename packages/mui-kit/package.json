@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
     "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json — it",
@@ -42,7 +42,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "^0.21.0",
     "@savvifi/meridian-schemas": "^0.21.0",
-    "@savvifi/meridian-web-react": ">=0.11.0 <0.14.0",
+    "@savvifi/meridian-web-react": ">=0.11.0 <0.15.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -53,7 +53,7 @@
     "@mui/material": "^7.3.7",
     "@savvifi/meridian-proto-ts": "0.21.0",
     "@savvifi/meridian-schemas": "0.21.0",
-    "@savvifi/meridian-web-react": "0.13.0",
+    "@savvifi/meridian-web-react": "0.14.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
     "@types/react": "^19.2.0",
