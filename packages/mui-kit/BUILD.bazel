@@ -108,6 +108,13 @@ FIXTURES = [
     "dark-tabbed",
     "dark-form-typed",
     "skin-indigo",
+    # The frame. Layout is the one thing a unit test cannot judge — whether the rail
+    # reserves its width, whether the dock reflows the content rather than covering it,
+    # whether the app bar sits above the drawer.
+    "shell-full",
+    "shell-restricted",
+    "shell-chat",
+    "shell-dark",
 ]
 
 # Build action: run the capturer to produce a labeled PNG per fixture + a

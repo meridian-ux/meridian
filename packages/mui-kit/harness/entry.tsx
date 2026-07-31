@@ -13,7 +13,7 @@
 // what the kit actually renders.
 
 import { create } from "@bufbuild/protobuf";
-import { createElement } from "react";
+import { createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import {
@@ -53,6 +53,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { ViewRenderer } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
+import { SHELL_FIXTURES } from "./shell-fixtures.js";
 
 // ── sample skins, so the catalog shows themed MUI (light + dark + a 2nd skin) ──
 const skin = create(ThemeSchema, {
@@ -435,7 +436,16 @@ interface Fixture {
   name: string;
   label: string;
   group: string;
-  view: ViewDescriptor;
+  /**
+   * A ViewDescriptor to render — the shape every primitive fixture uses.
+   *
+   * Optional because the app SHELL is not a ViewDescriptor: it is an `AppShell`, rendered by
+   * `AppShellView`, and it wraps content rather than being content. A fixture supplies
+   * exactly one of `view` or `element`.
+   */
+  view?: ViewDescriptor;
+  /** A pre-built element, for fixtures that are not a ViewDescriptor. */
+  element?: () => ReactNode;
   invoker: RpcInvoker;
   /** Skin override (defaults to `skin`). */
   theme?: Theme;
@@ -798,6 +808,18 @@ const adhoc = {
     ),
 };
 
+// The frame fixtures. They carry `element` rather than `view` (the shell is not a
+// ViewDescriptor) and a refusing invoker — none of them fires an RPC, and a stub that
+// resolved would hide a fixture that started to.
+const noRpc: RpcInvoker = {
+  invoke: async () => {
+    throw new Error("shell fixtures make no RPCs");
+  },
+};
+for (const fixture of SHELL_FIXTURES) {
+  fixtures.push({ ...fixture, invoker: noRpc });
+}
+
 // ── harness API ─────────────────────────────────────────────────────────────
 const byName = new Map(fixtures.map((f) => [f.name, f]));
 let root: Root | undefined;
@@ -818,7 +840,9 @@ async function render(name: string): Promise<void> {
     createElement(
       MeridianMuiProvider,
       { key: name, invoker: fixture.invoker, theme: fixture.theme ?? skin, mode: fixture.mode ?? "light", adhoc },
-      createElement(ViewRenderer, { view: fixture.view }),
+      fixture.element
+        ? fixture.element()
+        : createElement(ViewRenderer, { view: fixture.view! }),
     ),
   );
   // let effects (populate RPCs) + a paint settle.

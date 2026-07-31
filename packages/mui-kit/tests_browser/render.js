@@ -330,6 +330,97 @@ async function main() {
       await render("skin-indigo");
       await seen("Widget");
     });
+
+    // ── The app shell ──────────────────────────────────────────────────────
+    //
+    // Everything below is LAYOUT or INTERACTION, which is the whole reason these live in a
+    // browser: `isActive` and the launchpad ranking are pure and already pinned in tests/.
+    // What cannot be unit-tested is whether the rail reserves width, whether the dock
+    // reflows rather than covers, and whether ⌘K is actually bound.
+
+    await check("shell-full: brand, rail, scope and content all render", async () => {
+      await render("shell-full");
+      await seen("savvi Studio");
+      await seen("Dashboard");
+      await seen("Plan years");
+      await seen("Organization");
+      await seen("A frame with everything.");
+    });
+
+    await check("shell-full: an unresolvable leaf is inert, not a dead link", async () => {
+      // ⛔ A `panelId` leaf the host cannot resolve must not become <a href="#">.
+      await seen("Unresolvable panel");
+      const anchors = await page.locator('a:has-text("Unresolvable panel")').count();
+      if (anchors > 0) throw new Error("an unresolvable leaf rendered as a link");
+    });
+
+    await check("shell-full: the active route is marked, and only it", async () => {
+      // usePathname() is "/sponsors" in the fixture.
+      const current = await page.locator('[aria-current="page"]').allTextContents();
+      if (current.length !== 1) throw new Error(`expected 1 aria-current, got ${current.length}`);
+      if (!current[0].includes("Sponsors")) throw new Error(`marked "${current[0]}", not Sponsors`);
+    });
+
+    await check("shell-full: ⌘K opens the launchpad and ranks across groups", async () => {
+      await page.keyboard.press("Control+k");
+      // ⛔ getByPlaceholder, NOT getByText: a placeholder is an ATTRIBUTE, and asserting it
+      // as text passes vacuously for as long as the dialog is missing.
+      await page.getByPlaceholder("Search or jump to").waitFor({ state: "visible", timeout: 8000 });
+      await page.keyboard.type("team");
+      await page.waitForTimeout(300);
+      // The regression the unit test found, re-checked where it would actually bite: row one
+      // must be "Teams", not "Create team" — otherwise ↵ creates instead of navigating.
+      const rows = await page.locator('[role="dialog"] .MuiListItemButton-root').allTextContents();
+      const first = (rows.find((r) => r.trim().length > 0) || "").trim();
+      if (!first.includes("Teams") || first.includes("Create")) {
+        throw new Error(`launchpad row one was "${first}", expected Teams`);
+      }
+      await page.keyboard.press("Escape");
+    });
+
+    // ⛔ LAST among the shell-full checks, and deliberately so. The harness keys its mount by
+    // fixture NAME, so re-rendering the same fixture RECONCILES rather than remounts — this
+    // collapse would otherwise persist into every check after it, and two of them failed
+    // exactly that way before being reordered.
+    await check("shell-full: a group collapses and hides its children", async () => {
+      await seen("Teams");
+      await page.getByText("Administration", { exact: false }).first().click();
+      await page.waitForTimeout(400);
+      await absent("Platforms");
+    });
+
+    await check("shell-restricted: NO rail, and no width reserved for one", async () => {
+      await render("shell-restricted");
+      await seen("savvi Studio");
+      await absent("Dashboard");
+      // ⛔ The point of the fixture. If the shell merely HID the drawer while still
+      // reserving its width, every unit test would pass and the page would have a 280px
+      // hole. So assert the content actually starts near the left edge.
+      const box = await page.locator("main").boundingBox();
+      if (!box) throw new Error("no main element");
+      if (box.x > 40) throw new Error(`content starts at x=${box.x}; a hidden rail is still reserving space`);
+    });
+
+    await check("shell-chat: the dock reserves width and does not cover the content", async () => {
+      await render("shell-chat");
+      await seen("The host's conversation renders here.");
+      const main = await page.locator("main").boundingBox();
+      const viewport = page.viewportSize();
+      if (!main || !viewport) throw new Error("no geometry");
+      // ⛔ A persistent drawer takes width from the flex row. If the dock were `temporary`
+      // it would overlay, `main` would still span the full width, and the conversation would
+      // sit on top of the content — which is exactly what aion gets today by mounting the
+      // dock outside the shell.
+      if (main.x + main.width > viewport.width - 200) {
+        throw new Error(`main runs to ${main.x + main.width} of ${viewport.width}; the dock is overlaying, not reflowing`);
+      }
+    });
+
+    await check("shell-dark: the frame renders in dark mode", async () => {
+      await render("shell-dark");
+      await seen("The same frame, dark.");
+      await seen("Dashboard");
+    });
   } finally {
     await browser.close();
   }
