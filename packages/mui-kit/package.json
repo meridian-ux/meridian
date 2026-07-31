@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
     "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json — it",
