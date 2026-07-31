@@ -114,6 +114,7 @@ FIXTURES = [
     "shell-full",
     "shell-restricted",
     "shell-chat",
+    "shell-page-header",
     "shell-dark",
 ]
 

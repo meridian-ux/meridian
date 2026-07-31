@@ -16,7 +16,14 @@ export { SidebarView, resolveSidebarSx } from "./views/SidebarView.js";
 export { LaunchpadView } from "./views/LaunchpadView.js";
 export { AppHeaderView } from "./views/AppHeaderView.js";
 
-export { ShellProvider, useShell, usePageActions, type ShellContextValue, type TogglePanel } from "./context.js";
+export {
+  ShellProvider,
+  useShell,
+  usePageActions,
+  useIsApplePlatform,
+  type ShellContextValue,
+  type TogglePanel,
+} from "./context.js";
 
 export {
   brandOf,

@@ -11,13 +11,14 @@ import * as React from "react";
 
 import { displayKeys, isHotkeyEnabled, SHELL_HOTKEYS } from "../chrome.js";
 import type { AppShellProps } from "../config.js";
-import { ShellProvider, useShell } from "../context.js";
+import { ShellProvider, useIsApplePlatform, useShell } from "../context.js";
 import { AppHeaderView } from "./AppHeaderView.js";
 import { LaunchpadView } from "./LaunchpadView.js";
 import { SidebarView } from "./SidebarView.js";
 
 function HotkeyHelpDialog() {
   const { hotkeyHelp, capabilities } = useShell();
+  const apple = useIsApplePlatform();
   const bindings = SHELL_HOTKEYS.filter((hotkey) => isHotkeyEnabled(hotkey.id, capabilities));
   return (
     <Dialog open={hotkeyHelp.isOpen} onClose={hotkeyHelp.close} maxWidth="xs" fullWidth>
@@ -28,7 +29,7 @@ function HotkeyHelpDialog() {
             <Stack key={hotkey.id} direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="body2">{hotkey.description}</Typography>
               <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
-                {displayKeys(hotkey).join(" ")}
+                {displayKeys(hotkey, apple).join(" ")}
               </Typography>
             </Stack>
           ))}
@@ -71,6 +72,45 @@ function ChatDock() {
   );
 }
 
+/**
+ * The row between the app bar and the page: host chrome on the left, the page's own actions
+ * on the right.
+ *
+ * ⛔ THIS EXISTS BECAUSE `usePageActions` WAS A DEAD WIRE. The hook stored its node in context
+ * and no view ever read it, so a page publishing a "Create sponsor" button got a silent no-op
+ * — the worst kind of API, because the call site looks correct and the button simply is not
+ * there. `pageActions` and `pageChrome` share one row deliberately: a breadcrumb trail and the
+ * primary action for the record it names belong on the same line, and giving each its own bar
+ * costs two rows of vertical space on every page to say one thing.
+ *
+ * Renders NOTHING when the host supplies neither — no empty bar, no stray divider, no
+ * reserved height. A shell used as a plain frame should look like one.
+ */
+function PageHeader() {
+  const { seams, pageActions } = useShell();
+  if (!seams.pageChrome && !pageActions) return null;
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 2,
+        px: 3,
+        py: 1,
+        minWidth: 0,
+        borderBottom: 1,
+        borderColor: "divider",
+      }}
+    >
+      <Box sx={{ minWidth: 0, flexGrow: 1 }}>{seams.pageChrome}</Box>
+      {pageActions ? (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>{pageActions}</Box>
+      ) : null}
+    </Box>
+  );
+}
+
 function Frame({ children }: { children?: React.ReactNode }) {
   const { sidebar, capabilities } = useShell();
   // `noSsr` is deliberate: the server cannot evaluate a media query, and letting this render
@@ -94,6 +134,7 @@ function Frame({ children }: { children?: React.ReactNode }) {
       {capabilities.sidebar ? <SidebarView variant={wide ? "persistent" : "temporary"} /> : null}
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <Box sx={{ minHeight: (theme: Theme) => theme.mixins.toolbar.minHeight }} />
+        <PageHeader />
         {children}
       </Box>
       <ChatDock />

@@ -416,6 +416,51 @@ async function main() {
       }
     });
 
+    await check("shell-page-header: breadcrumbs and the page's action share ONE row", async () => {
+      await render("shell-page-header");
+      await seen("Sponsors / Acme Benefits");
+      // ⛔ That this renders at all is the regression. `usePageActions` used to store the node
+      // in context with no view reading it, so a page published a button and got silence.
+      await seen("Create sponsor");
+
+      const crumbs = await page.locator("text=Sponsors / Acme Benefits").boundingBox();
+      const action = await page.getByRole("button", { name: "Create sponsor" }).boundingBox();
+      if (!crumbs || !action) throw new Error("no geometry for the page-header row");
+
+      // One row, not two stacked bars: their vertical centres line up.
+      const crumbMid = crumbs.y + crumbs.height / 2;
+      const actionMid = action.y + action.height / 2;
+      if (Math.abs(crumbMid - actionMid) > 12) {
+        throw new Error(`breadcrumbs at y=${crumbMid} and action at y=${actionMid} are on different rows`);
+      }
+      // And the action is to the RIGHT of the trail, not stacked under it.
+      if (action.x <= crumbs.x + crumbs.width) {
+        throw new Error("the page action is not right-aligned against the breadcrumbs");
+      }
+    });
+
+    await check("shell-page-header: host header chrome renders in the app bar", async () => {
+      const dark = await page.getByRole("button", { name: "Dark" }).boundingBox();
+      const crumbs = await page.locator("text=Sponsors / Acme Benefits").boundingBox();
+      if (!dark || !crumbs) throw new Error("no geometry");
+      // Above the page-header row ⇒ it is in the toolbar, not the page.
+      if (dark.y >= crumbs.y) throw new Error("headerActions did not render in the app bar");
+    });
+
+    await check("shell-full: no page-header row when the host supplies neither", async () => {
+      // ⛔ The other half of the claim. A shell used as a plain frame must not reserve height
+      // or draw a divider for a row with nothing in it — which is invisible to a unit test
+      // and obvious in geometry.
+      await render("shell-full");
+      await seen("A frame with everything.");
+      const heading = await page.locator("main h2").boundingBox();
+      if (!heading) throw new Error("no page heading");
+      // 64px toolbar + the fixture's own 24px padding. An empty row would push this well down.
+      if (heading.y > 130) {
+        throw new Error(`page content starts at y=${heading.y}; an empty page-header row is reserving space`);
+      }
+    });
+
     await check("shell-dark: the frame renders in dark mode", async () => {
       await render("shell-dark");
       await seen("The same frame, dark.");

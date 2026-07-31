@@ -25,7 +25,7 @@ import {
   ScopeSelectorSchema,
 } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
 
-import { AppShellView } from "../src/shell/index.js";
+import { AppShellView, usePageActions } from "../src/shell/index.js";
 import type { AppShellSeams } from "../src/shell/index.js";
 
 function leaf(id: string, label: string, route: string, icon = "", badge = "") {
@@ -164,6 +164,25 @@ function body(text: string): ReactNode {
   );
 }
 
+/**
+ * A page that publishes its own toolbar action, exactly as a real list page does — with an
+ * INLINE, unmemoized element.
+ *
+ * ⛔ The unmemoized part is the point. Publishing used to re-render the publisher, which made
+ * a fresh element, which re-published: a loop that ends in "Maximum update depth exceeded".
+ * A fixture that memoized would render correctly and prove nothing.
+ */
+function SponsorsPage() {
+  usePageActions(
+    createElement(
+      "button",
+      { type: "button", style: { padding: "4px 10px" } },
+      "Create sponsor",
+    ),
+  );
+  return body("The action above sits in the page-header row, beside the breadcrumbs.");
+}
+
 export interface ShellFixture {
   name: string;
   label: string;
@@ -210,6 +229,32 @@ export const SHELL_FIXTURES: ShellFixture[] = [
           },
         },
         body("The dock reserves width; it does not cover this."),
+      ),
+  },
+  {
+    name: "shell-page-header",
+    label: "App shell · breadcrumbs, page actions, header chrome",
+    group: "Shell",
+    element: () =>
+      createElement(
+        AppShellView,
+        {
+          shell: FULL,
+          seams: {
+            ...seams,
+            pageChrome: createElement(
+              "nav",
+              { style: { fontSize: 13, opacity: 0.75 } },
+              "Sponsors / Acme Benefits",
+            ),
+            headerActions: createElement(
+              "button",
+              { type: "button", style: { padding: "2px 8px", marginRight: 8 } },
+              "Dark",
+            ),
+          },
+        },
+        createElement(SponsorsPage),
       ),
   },
   {

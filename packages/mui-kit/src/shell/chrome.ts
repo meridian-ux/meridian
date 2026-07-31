@@ -97,17 +97,16 @@ export function isHotkeyEnabled(id: ShellHotkeyId, capabilities: ShellCapabiliti
 /**
  * The glyphs to draw for a binding.
  *
- * ⛔ Takes the platform as an argument, defaulting to a value that is EMPTY on the server.
- * `navigator.platform` is deprecated and absent during SSR, so reading it at module scope
- * throws in node and — worse — produces a different string on the server than in the
- * browser, which is a hydration mismatch on a chip in the header. An empty platform falls
- * back to "Ctrl": one wrong glyph, rather than a render that does not reconcile.
+ * ⛔ TAKES THE ANSWER, AND READS NOTHING ITSELF. This used to default the platform to
+ * `typeof navigator === "undefined" ? "" : navigator.platform`, with a comment claiming that
+ * avoided a hydration mismatch. It caused one: a default argument is evaluated at every CALL,
+ * so the server (no `navigator`) rendered "Ctrl" while the browser's very first render — the
+ * hydrating one — rendered "⌘", and React threw away the tree over a chip in the header.
+ *
+ * The platform is a client-only fact, so it has to be resolved after mount. `useIsApplePlatform`
+ * (context.tsx) does that; this stays pure and testable.
  */
-export function displayKeys(
-  hotkey: ShellHotkey,
-  platform = typeof navigator === "undefined" ? "" : navigator.platform,
-): string[] {
-  const apple = /Mac|iPhone|iPad|iPod/i.test(platform);
+export function displayKeys(hotkey: ShellHotkey, apple = false): string[] {
   return hotkey.displayKeys.map((key) => {
     if (key === "$mod") return apple ? "⌘" : "Ctrl";
     if (key === "Shift") return apple ? "⇧" : "Shift";

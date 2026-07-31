@@ -1,6 +1,6 @@
 "use client";
 // Chrome state: the sidebar, the launchpad, the shortcuts sheet, the chat dock, and the slot
-// a page uses to put its own actions in the breadcrumb bar.
+// a page uses to put its own actions in the page-header row.
 //
 // Collapses what aion spreads across `hooks/useAppContext.ts`,
 // `components/providers/AppContextProvider.tsx` and the `useHotkeys` wiring in `AppProvider`
@@ -30,12 +30,33 @@ export interface ShellContextValue {
   launchpad: TogglePanel;
   hotkeyHelp: TogglePanel;
   chat: TogglePanel;
-  /** A page's own toolbar actions, rendered in the breadcrumb bar. */
+  /** A page's own toolbar actions, rendered in the page-header row beside `seams.pageChrome`. */
   pageActions: React.ReactNode | null;
   setPageActions: (actions: React.ReactNode | null) => void;
 }
 
 const ShellContext = React.createContext<ShellContextValue | null>(null);
+
+/**
+ * The page-actions SETTER, on its own context.
+ *
+ * ⛔ THIS SPLIT IS LOAD-BEARING, and it is not a micro-optimization.
+ *
+ * `pageActions` lives in the shell context value, so publishing it re-renders every context
+ * consumer. If `usePageActions` read the setter through `useShell()`, the publishing PAGE
+ * would be one of those consumers: it re-renders, its `<Button/>` argument is a brand-new
+ * element, the effect's `[actions]` dependency has therefore changed, the effect publishes
+ * again — and that is a render loop that terminates only in React's "Maximum update depth
+ * exceeded". The obvious workaround is to make every caller wrap its actions in `useMemo`,
+ * which is a rule no signature announces and every new page forgets once.
+ *
+ * A setter from `useState` is referentially stable for the lifetime of the component, so this
+ * context's value never changes and subscribing to it never causes a render. The publisher
+ * is no longer a subscriber, and the cycle cannot form.
+ */
+const SetPageActionsContext = React.createContext<((actions: React.ReactNode | null) => void) | null>(
+  null,
+);
 
 function usePanel(initialOpen: boolean): TogglePanel {
   const [isOpen, setIsOpen] = React.useState(initialOpen);
@@ -99,7 +120,11 @@ export function ShellProvider({
     [shell, seams, capabilities, sidebar, launchpad, hotkeyHelp, chat, pageActions],
   );
 
-  return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
+  return (
+    <SetPageActionsContext.Provider value={setPageActions}>
+      <ShellContext.Provider value={value}>{children}</ShellContext.Provider>
+    </SetPageActionsContext.Provider>
+  );
 }
 
 export function useShell(): ShellContextValue {
@@ -109,16 +134,40 @@ export function useShell(): ShellContextValue {
 }
 
 /**
- * Publish this page's toolbar actions into the breadcrumb bar, and take them down on unmount.
+ * Publish this page's toolbar actions into the page-header row, and take them down on unmount.
+ *
+ * Callers need not memoize the node — see `SetPageActionsContext` for why that is a property
+ * of the design rather than an accident.
  *
  * ⛔ The teardown is the point. Without it, navigating from Sponsors to Plan Years leaves a
  * "Create sponsor" button sitting above the plan-year list, wired to the wrong flow — a
  * button that is not merely stale but actively wrong about what it will do.
  */
 export function usePageActions(actions: React.ReactNode): void {
-  const { setPageActions } = useShell();
+  // ⛔ NOT `useShell()` — see the note on `SetPageActionsContext`. Reading the setter from the
+  // shell value would subscribe the publisher to its own publication.
+  const setPageActions = React.useContext(SetPageActionsContext);
+  if (!setPageActions) throw new Error("usePageActions must be used inside <AppShellView>");
   React.useEffect(() => {
     setPageActions(actions);
     return () => setPageActions(null);
   }, [actions, setPageActions]);
+}
+
+/**
+ * Whether the viewer is on an Apple platform, for `⌘` vs `Ctrl`.
+ *
+ * ⛔ Returns `false` on the server AND on the first client render, then corrects itself in an
+ * effect. Reading `navigator.platform` during render is a hydration mismatch, not a nicety:
+ * the server has no `navigator` and renders "Ctrl", the browser's first render says "⌘", and
+ * React discards the hydrated tree over a two-character chip in the header. `displayKeys`
+ * takes the platform as an argument precisely so the decision can be deferred to here.
+ */
+export function useIsApplePlatform(): boolean {
+  const [apple, setApple] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    setApple(/Mac|iPhone|iPad|iPod/i.test(navigator.platform || ""));
+  }, []);
+  return apple;
 }

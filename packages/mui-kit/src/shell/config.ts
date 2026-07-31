@@ -44,6 +44,16 @@ export type ShellLinkComponent = React.ComponentType<{
 export interface ShellRouting {
   Link: ShellLinkComponent;
   usePathname: () => string;
+  /**
+   * Navigate imperatively — what the launchpad runs when a command is chosen.
+   *
+   * ⛔ Optional only for compatibility, and a host that has a router should always pass it.
+   * Without it the launchpad falls back to `window.location.assign`, which is a FULL DOCUMENT
+   * LOAD: the app re-boots, client state is lost, and ⌘K — the fastest thing in the app —
+   * becomes the slowest. A shell handed a `Link` already knows the host has a router; the
+   * fallback exists for the host that genuinely has none, not as the normal path.
+   */
+  navigate?: (route: string) => void;
 }
 
 /** The subset of `NavNode` a resolver is handed. Structural, so tests need no proto. */
@@ -76,6 +86,31 @@ export interface AppShellSeams {
 
   /** Rendered at the header start. Absent ⇒ `brand_text`, then `title`. */
   brandLogo?: React.ReactNode;
+
+  /**
+   * Host chrome rendered in the app bar, just before the identity menu.
+   *
+   * For the controls that are NOT navigation and therefore cannot be a `NavNode`: a theme
+   * switch, an environment badge, a notifications bell. `NavNode` is a label and a target —
+   * a three-way light/auto/dark toggle is neither, and encoding it as one would mean
+   * inventing a pseudo-route whose only job is to be intercepted.
+   *
+   * Also the home for links that are deliberately OFF-ROUTER — an admin console on another
+   * origin, a logout that must hit the IdP rather than a client route. The descriptor's
+   * `user_menu` is for destinations inside the app; these are not.
+   */
+  headerActions?: React.ReactNode;
+
+  /**
+   * Host chrome rendered in the page-header row, above the page content.
+   *
+   * Normally breadcrumbs. Deliberately a NODE rather than descriptor data: a breadcrumb trail
+   * is derived from the host's route table and its loaded record ("Teams / Acme / Members"),
+   * which the shell cannot see and which changes on every navigation. The shell owns the ROW
+   * — its placement, its divider, and the fact that `pageActions` shares it — and the host
+   * owns what the trail says.
+   */
+  pageChrome?: React.ReactNode;
 
   /**
    * Called when the scope selector changes.

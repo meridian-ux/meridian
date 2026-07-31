@@ -64,6 +64,23 @@ export function LaunchpadView() {
     setStep(null);
   }, [launchpad]);
 
+  // ⛔ THROUGH THE HOST'S ROUTER. This used to call `window.location.assign` for every arm,
+  // which meant the launchpad — the fastest way to move around the app — was the only
+  // navigation in the shell that re-booted the document, discarding client state and any
+  // in-flight request. The shell is handed a router precisely so it does not have to do that;
+  // ignoring it for the ⌘K path while honouring it for every rail link was incoherent.
+  //
+  // `window.location.assign` survives as the fallback for a host that supplied no `navigate`,
+  // and as the ONLY path for a deep link, which may point off-origin.
+  const go = React.useCallback(
+    (route: string) => {
+      const navigate = seams.routing.navigate;
+      if (navigate) navigate(route);
+      else window.location.assign(route);
+    },
+    [seams],
+  );
+
   const run = React.useCallback(
     (command: Command) => {
       // A deep link wins over the action: a host that encodes palette state in the URL wants
@@ -76,12 +93,12 @@ export function LaunchpadView() {
       const action = command.action;
       switch (action.case) {
         case "navigate":
-          window.location.assign(action.value.route);
+          go(action.value.route);
           close();
           return;
         case "openViewId": {
           const href = seams.hrefFor?.({ id: action.value, label: command.title });
-          if (href) window.location.assign(href);
+          if (href) go(href);
           close();
           return;
         }
@@ -102,7 +119,7 @@ export function LaunchpadView() {
           close();
       }
     },
-    [close, invoker, seams],
+    [close, go, invoker, seams],
   );
 
   const onKeyDown = (event: React.KeyboardEvent) => {

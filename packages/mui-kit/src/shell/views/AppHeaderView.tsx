@@ -19,7 +19,7 @@ import type { NavNode } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
 
 import { displayKeys, SHELL_HOTKEYS } from "../chrome.js";
 import { brandOf } from "../config.js";
-import { useShell } from "../context.js";
+import { useIsApplePlatform, useShell } from "../context.js";
 import { hrefForNode } from "../nav.js";
 import { MenuGlyph, SearchGlyph } from "./glyphs.js";
 
@@ -72,7 +72,8 @@ function UserMenu() {
 export function AppHeaderView() {
   const { shell, seams, sidebar, launchpad, capabilities } = useShell();
   const brand = brandOf(shell, seams);
-  const paletteKeys = displayKeys(SHELL_HOTKEYS.find((h) => h.id === "launchpad")!).join("");
+  const apple = useIsApplePlatform();
+  const paletteKeys = displayKeys(SHELL_HOTKEYS.find((h) => h.id === "launchpad")!, apple).join("");
 
   return (
     <AppBar position="fixed" color="default" elevation={0} sx={{ zIndex: (t) => t.zIndex.drawer + 1, borderBottom: 1, borderColor: "divider" }}>
@@ -104,6 +105,9 @@ export function AppHeaderView() {
             </IconButton>
           </Tooltip>
         ) : null}
+        {/* Host chrome — a theme switch, an env badge, off-router links. Before the avatar,
+            so the identity menu stays the last thing in the bar on every surface. */}
+        {seams.headerActions}
         <UserMenu />
       </Toolbar>
     </AppBar>
