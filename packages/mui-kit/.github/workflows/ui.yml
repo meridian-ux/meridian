@@ -34,6 +34,23 @@ jobs:
       - name: pnpm-lock.yaml is in sync with package.json
         run: npx --yes pnpm@10 install --frozen-lockfile --lockfile-only
 
+      # ⛔ THIS STEP DID NOT EXIST, and `tests/` HAS NEVER GATED A MERGE.
+      #
+      # The browser test below is the loud gate and it is a good one, but it renders — it
+      # cannot say whether `matchCommands` ranks a subsequence match correctly, whether
+      # `activeNodeId` picks the LONGEST route match rather than the first, or whether a
+      # skin's tokens survive `themeProtoToMuiTheme`. Those are the pure functions, they are
+      # where the subtle wrongness lives, and 124 tests covering them ran only on whichever
+      # laptop last typed `pnpm test`.
+      #
+      # ⛔ pnpm 10.25.0 EXACTLY — pnpm 11 silently ignores `pnpm.overrides`, which is what
+      # holds the single-copy invariant that makes protobuf-es's nominal types work at all.
+      - name: Typecheck and unit tests
+        run: |
+          npx --yes pnpm@10.25.0 install --frozen-lockfile
+          npx --yes pnpm@10.25.0 typecheck
+          npx --yes pnpm@10.25.0 test
+
       # rules_chrome / rules_tectonic resolve from the fastverk registry; the rest
       # from BCR. (The repo .bazelrc leaves registries to the environment.)
       # bazelisk is preinstalled on GitHub-hosted runners as `bazel`.

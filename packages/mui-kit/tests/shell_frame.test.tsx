@@ -26,6 +26,7 @@ import { AppShellView, usePageActions, displayKeys, SHELL_HOTKEYS } from "../src
 import type { AppShellSeams } from "../src/shell/index.js";
 
 afterEach(cleanup);
+afterEach(resetRenderBudget);
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
@@ -51,6 +52,38 @@ function shellWith(overrides: Parameters<typeof create<typeof AppShellSchema>>[1
   });
 }
 
+/**
+ * A page that publishes a toolbar action, with a RENDER BUDGET.
+ *
+ * ⛔ The budget is shared by every page in this file, and that is the point. Publishing page
+ * actions is a render loop if the setter is read through `useShell()` — and it is not the
+ * tidy kind: React's "Maximum update depth exceeded" guard counts nested updates inside one
+ * commit, while this loop is effect-driven ACROSS commits, so it spins forever instead.
+ *
+ * Verified by mutation, twice. The first attempt guarded only the test that names the loop,
+ * and the suite still hung — because the FIRST test in the file publishes actions too, and
+ * hung before the guarded one ran. A bound that only some call sites carry is not a bound.
+ * A hanging suite burns a CI runner and reads as "stuck" rather than "broken".
+ */
+let renderBudget = 0;
+function resetRenderBudget() {
+  renderBudget = 0;
+}
+function publishingPage(label = "Create sponsor") {
+  return function Page() {
+    renderBudget += 1;
+    if (renderBudget > 20) {
+      throw new Error(`render loop: ${renderBudget} renders while publishing page actions`);
+    }
+    usePageActions(
+      <button type="button" key={label}>
+        {label}
+      </button>,
+    );
+    return <p>page body</p>;
+  };
+}
+
 function mount(seams: Partial<AppShellSeams>, children?: React.ReactNode, shell = shellWith()) {
   return render(
     <MeridianMuiProvider invoker={invoker}>
@@ -63,10 +96,7 @@ function mount(seams: Partial<AppShellSeams>, children?: React.ReactNode, shell 
 
 describe("the page-header row", () => {
   it("renders a page's published actions", () => {
-    function Page() {
-      usePageActions(<button type="button">Create sponsor</button>);
-      return <p>page body</p>;
-    }
+    const Page = publishingPage();
     mount({}, <Page />);
     expect(screen.getByText("Create sponsor")).toBeTruthy();
   });
@@ -86,29 +116,23 @@ describe("the page-header row", () => {
   });
 
   it("⛔ does not loop when the published node is not memoized", () => {
-    // This is the regression that matters. With the setter read through `useShell()`, setting
-    // `pageActions` re-renders the publisher, whose inline JSX is a new element every render,
-    // which re-fires the effect — React aborts with "Maximum update depth exceeded". An
-    // unmemoized inline node is what every real call site writes, so the hook has to survive
-    // it rather than document its way out.
-    let renders = 0;
-    function Page() {
-      renders += 1;
-      usePageActions(<button type="button">Create sponsor</button>);
-      return <p>page body</p>;
-    }
+    // The regression that matters. With the setter read through `useShell()`, publishing
+    // re-renders the publisher, whose inline JSX is a new element every render, which
+    // re-fires the effect. An unmemoized inline node is what every real call site writes, so
+    // the hook has to survive it rather than document its way out.
+    //
+    // The budget in `publishingPage` is what turns that into a named failure — see the note
+    // there for why React's own guard does not catch it.
+    const Page = publishingPage();
     expect(() => mount({}, <Page />)).not.toThrow();
     expect(screen.getByText("Create sponsor")).toBeTruthy();
-    expect(renders).toBeLessThan(5);
+    expect(renderBudget).toBeLessThan(5);
   });
 
   it("takes the actions down when the page unmounts", () => {
     // Without the teardown, navigating from Sponsors to Plan Years leaves a "Create sponsor"
     // button above the plan-year list, wired to the wrong flow.
-    function Page() {
-      usePageActions(<button type="button">Create sponsor</button>);
-      return <p>page body</p>;
-    }
+    const Page = publishingPage();
     function Host({ show }: { show: boolean }) {
       return (
         <MeridianMuiProvider invoker={invoker}>
