@@ -379,6 +379,8 @@
     "https://registry.tbzl.dev/modules/bazel_skylib/1.8.1/MODULE.bazel": "not found",
     "https://registry.tbzl.dev/modules/bazel_skylib/1.8.2/MODULE.bazel": "not found",
     "https://registry.tbzl.dev/modules/bazel_skylib/1.9.0/MODULE.bazel": "not found",
+    "https://registry.tbzl.dev/modules/brando/0.2.0/MODULE.bazel": "c812cb4ceb8137927f645de813e40bcb5cc0ee38672574c0b253d340091ba05f",
+    "https://registry.tbzl.dev/modules/brando/0.2.0/source.json": "8b64a7fe6b988b2ada16826dccfcf5e216e2ff608c548dd6b17ad7d0195f9c41",
     "https://registry.tbzl.dev/modules/buildozer/8.5.1/MODULE.bazel": "not found",
     "https://registry.tbzl.dev/modules/gawk/5.3.2.bcr.1/MODULE.bazel": "not found",
     "https://registry.tbzl.dev/modules/gawk/5.3.2.bcr.3/MODULE.bazel": "not found",
@@ -975,7 +977,7 @@
     "@@rules_tectonic+//tectonic:extensions.bzl%tectonic": {
       "general": {
         "bzlTransitiveDigest": "ZktTb0mbZEO39u1qfCMF+pZxTkQVnvMIb/wsDagEzYA=",
-        "usagesDigest": "xPsGbmjrGiPhcheW4Y1DKEiDB39SGxKb++4nmpmWrEs=",
+        "usagesDigest": "OJa+MSys9nkM2NY8V4fCkv8AYS8eaSWvq3qdJr1CZAc=",
         "recordedInputs": [
           "REPO_MAPPING:rules_tectonic+,rules_github rules_github+"
         ],
