@@ -23,7 +23,7 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 # brando — the reusable brand pipeline (marklib + brand_skin/brand_svgs/
 # brand_icons/brand_wordmark). Resolved from the fastverk registry
 # (mattmarshall/brando).
-bazel_dep(name = "brando", version = "0.0.1")
+bazel_dep(name = "brando", version = "0.2.0")
 
 # meridian — depended on ONLY for the theme SCHEMA (@meridian//proto:theme.proto):
 # //skins compiles meridian.textpb against it via brando's brand_skin
