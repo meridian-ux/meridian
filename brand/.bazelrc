@@ -1,4 +1,4 @@
-# meridian-brand — build config. Deps are public (BCR + the fastverk registry
+# meridian-brand — build config. Deps are public (BCR + the tbzl registry
 # for brando / meridian) + PyPI wheels (shapely/pillow), so no credential helper
 # is needed to build this repo.
 
