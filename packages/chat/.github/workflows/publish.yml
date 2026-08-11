@@ -1,0 +1,71 @@
+name: publish
+
+# OIDC trusted publishing to npmjs — no long-lived tokens, automatic provenance.
+#
+# Builds the package with Bazel (//:pkg) then `npm publish` exchanges the GitHub
+# Actions OIDC token for a short-lived npm credential. Requires a TRUSTED
+# PUBLISHER on @savvifi/meridian-chat at npmjs.com (Settings → Trusted Publisher):
+#   Provider:   GitHub Actions
+#   Owner:      meridian-ux
+#   Repository: meridian-chat
+#   Workflow:   publish.yml
+#   Allowed:    npm publish
+# (npm has no "pending publisher" flow, so the first version is seeded once with a
+# token, then every subsequent publish flows through here tokenlessly.)
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag. Blank ⇒ derived from the version (prerelease → its identifier; else latest)."
+        required: false
+        default: ""
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Upgrade npm + install bazelisk
+        run: |
+          npm install -g npm@latest @bazel/bazelisk
+          npm --version
+          bazelisk version
+
+      - name: Build the package
+        run: bazelisk build //:pkg
+
+      - name: Publish @savvifi/meridian-chat
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          rm -rf "$RUNNER_TEMP/pkg"
+          cp -RL bazel-bin/pkg "$RUNNER_TEMP/pkg"
+          cd "$RUNNER_TEMP/pkg"
+
+          VERSION="$(node -p 'require("./package.json").version')"
+          TAG="$TAG_INPUT"
+          if [ -z "$TAG" ]; then
+            PRERELEASE="${VERSION#*-}"
+            if [ "$PRERELEASE" = "$VERSION" ]; then
+              TAG="latest"
+            else
+              TAG="${PRERELEASE%%.*}"
+            fi
+          fi
+
+          echo "publishing $VERSION with dist-tag '$TAG'"
+          npm publish --tag "$TAG"
