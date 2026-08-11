@@ -1,0 +1,4 @@
+package(default_visibility = ["//visibility:public"])
+
+# meridian-uiview-core is a pure-Rust module; the targets live under //rust.
+# This root package exists only to anchor the module.

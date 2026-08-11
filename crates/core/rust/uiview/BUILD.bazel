@@ -1,0 +1,104 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_test")
+load("@rules_rust_prost//:defs.bzl", "rust_prost_library")
+load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+# Cargo.toml exposed for crate_universe to read manifests.
+exports_files(["Cargo.toml"])
+
+# Rust types for meridian.ui.v1 via prost, generated from the meridian-schemas
+# proto_library (the cross-repo Bazel contract). No serde transform: the wasm
+# boundary uses protobuf BINARY (prost decode), not serde_wasm_bindgen JSON, so
+# the prost types need no serde derives and meridian-schemas stays rust-free.
+rust_prost_library(
+    name = "uiview_proto",
+    proto = "@meridian_schemas//proto:uiview_proto",
+)
+
+# meridian.theme.v1 types via prost. SEPARATE crate (semantics ⊥ style),
+# consumed by the TUI's theme binding (-> ratatui Style palette).
+rust_prost_library(
+    name = "theme_proto",
+    proto = "@meridian_schemas//proto:theme_proto",
+)
+
+rust_library(
+    name = "uiview",
+    srcs = [
+        "src/conversation.rs",
+        "src/launchpad.rs",
+        "src/lib.rs",
+        "src/paths.rs",
+        "src/render.rs",
+        "src/request.rs",
+        "src/stat.rs",
+    ],
+    crate_name = "meridian_uiview",
+    edition = "2021",
+    # Selects the Bazel codegen path in src/lib.rs: the `:uiview_proto`
+    # rust_prost_library, rather than build.rs + the committed descriptor set
+    # that the cargo path uses. Bazel never runs build.rs.
+    rustc_flags = ["--cfg=bazel_proto"],
+    deps = [
+        ":uiview_proto",
+        "@crates//:prost",
+        "@crates//:prost-types",
+        "@crates//:serde",
+        "@crates//:serde_json",
+        "@crates//:thiserror",
+    ],
+)
+
+rust_test(
+    name = "uiview_test",
+    crate = ":uiview",
+    edition = "2021",
+)
+
+# Wasm cdylib variant — same sources as `:uiview`; the wasm_api module is
+# #[cfg(target_arch = "wasm32")]-gated and built for wasm32-unknown-unknown via
+# the transition in rust_wasm_bindgen.
+rust_shared_library(
+    name = "uiview_wasm_lib",
+    srcs = [
+        "src/conversation.rs",
+        "src/launchpad.rs",
+        "src/lib.rs",
+        "src/paths.rs",
+        "src/render.rs",
+        "src/request.rs",
+        "src/stat.rs",
+        "src/wasm_api.rs",
+    ],
+    crate_name = "meridian_uiview",
+    edition = "2021",
+    # Same cfg as `:uiview` — this target compiles the sources independently, so
+    # it does not inherit the library's flags. Without it the wasm build would
+    # take src/lib.rs's cargo branch and look for an OUT_DIR that Bazel never
+    # writes.
+    rustc_flags = ["--cfg=bazel_proto"],
+    deps = [
+        ":uiview_proto",
+        "@crates//:js-sys",
+        "@crates//:prost",
+        "@crates//:prost-types",
+        "@crates//:serde",
+        "@crates//:serde_json",
+        "@crates//:serde-wasm-bindgen",
+        "@crates//:thiserror",
+        "@crates//:wasm-bindgen",
+    ],
+)
+
+# wasm-bindgen-processed artifact. Emits:
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm.js
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm_bg.wasm
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm.d.ts (TS bindings)
+# `target_output = "web"` matches the host pattern wasm-pack used.
+rust_wasm_bindgen(
+    name = "uiview_wasm",
+    out_name = "meridian_uiview",
+    target = "web",
+    wasm_file = ":uiview_wasm_lib",
+)
