@@ -3,6 +3,7 @@
   "version": "0.25.0",
   "type": "module",
   "description": "Canonical protobuf-es TypeScript types for meridian.ui.v1 (PanelDescriptor) + meridian.theme.v1 (Theme). Generated from schemas/proto — the single source the web renderers and aion consume.",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },

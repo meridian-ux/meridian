@@ -3,6 +3,7 @@
   "version": "0.25.0",
   "type": "module",
   "description": "React adapter for the meridian WebRenderer seam: a kit-agnostic core (MeridianProvider, PanelRenderer, ComponentKit, reactWebRenderer) that renders meridian.ui.v1 PanelDescriptors through a swappable ComponentKit (MUI, shadcn, \u2026). The premium web renderer tier of the meridian renderer family.",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },

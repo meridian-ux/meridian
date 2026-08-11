@@ -3,6 +3,7 @@
   "version": "0.25.0",
   "type": "module",
   "description": "The command-palette / launchpad renderer of the meridian renderer family: renders a meridian.ui.v1 Launchpad descriptor (command_palette.proto) as a ⌘K palette, dispatching each Command's action through the meridian-web-react ComponentKit / RpcInvoker seam. Modality-neutral contract; React renderer tier.",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
