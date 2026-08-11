@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.17.0",
+  "version": "0.25.0",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
     "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json — it",
@@ -44,9 +44,9 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^7.3.7",
-    "@savvifi/meridian-proto-ts": "^0.24.0",
-    "@savvifi/meridian-schemas": "^0.24.0",
-    "@savvifi/meridian-web-react": ">=0.11.0 <0.16.0",
+    "@savvifi/meridian-proto-ts": "^0.25.0",
+    "@savvifi/meridian-schemas": "^0.25.0",
+    "@savvifi/meridian-web-react": "^0.25.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -55,9 +55,9 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.7",
-    "@savvifi/meridian-proto-ts": "^0.24.0",
-    "@savvifi/meridian-schemas": "^0.24.0",
-    "@savvifi/meridian-web-react": "0.15.0",
+    "@savvifi/meridian-proto-ts": "workspace:*",
+    "@savvifi/meridian-schemas": "workspace:*",
+    "@savvifi/meridian-web-react": "workspace:*",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
     "@types/react": "^19.2.0",
@@ -72,15 +72,6 @@
   "overrides": {
     "@savvifi/meridian-web-react": {
       "@savvifi/meridian-proto-ts": "0.21.0"
-    }
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ],
-    "overrides": {
-      "@savvifi/meridian-proto-ts": "0.24.0",
-      "@savvifi/meridian-schemas": "0.24.0"
     }
   },
   "publishConfig": {

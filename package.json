@@ -1,0 +1,22 @@
+{
+  "name": "meridian",
+  "version": "0.25.0",
+  "private": true,
+  "type": "module",
+  "description": "Workspace root for the Meridian monorepo. Publishable packages live under packages/; this manifest carries only the shared toolchain.",
+  "scripts": {
+    "codegen": "buf generate",
+    "prepare": "pnpm codegen"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "1.72.0",
+    "@bufbuild/protoc-gen-es": "2.12.1",
+    "@types/node": "22.10.2",
+    "typescript": "5.6.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

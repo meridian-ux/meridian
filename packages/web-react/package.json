@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-web-react",
-  "version": "0.15.0",
+  "version": "0.25.0",
   "type": "module",
   "description": "React adapter for the meridian WebRenderer seam: a kit-agnostic core (MeridianProvider, PanelRenderer, ComponentKit, reactWebRenderer) that renders meridian.ui.v1 PanelDescriptors through a swappable ComponentKit (MUI, shadcn, …). The premium web renderer tier of the meridian renderer family.",
   "publishConfig": {
@@ -24,8 +24,8 @@
   ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@savvifi/meridian-proto-ts": "^0.23.0",
-    "@savvifi/meridian-schemas": "^0.23.0"
+    "@savvifi/meridian-proto-ts": "workspace:*",
+    "@savvifi/meridian-schemas": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -38,14 +38,5 @@
     "react-dom": "19.2.7",
     "typescript": "5.6.2",
     "vitest": "2.1.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ],
-    "overrides": {
-      "@savvifi/meridian-proto-ts": "0.23.0",
-      "@savvifi/meridian-schemas": "0.23.0"
-    }
   }
 }

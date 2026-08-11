@@ -1,20 +1,32 @@
 {
-  "name": "meridian-schemas-workspace",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Workspace root for meridian-schemas. The published npm packages have their own manifests: proto/proto-ts.package.json (@savvifi/meridian-proto-ts) and schemas.package.json (@savvifi/meridian-schemas). This manifest only carries the build/codegen toolchain (protobuf-es + tsc).",
+  "name": "@savvifi/meridian-schemas",
+  "version": "0.25.0",
   "type": "module",
+  "description": "The framework- and brand-neutral root of the meridian design language: the WebRenderer seam (mount/update/unmount + transport contracts) over the canonical meridian.ui.v1 PanelDescriptor + meridian.theme.v1 Theme. Renderers implement the seam; emitters (aion) produce descriptors.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "schemas"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/uiview/index.d.ts",
+      "import": "./src/uiview/index.js"
+    },
+    "./uiview": {
+      "types": "./src/uiview/index.d.ts",
+      "import": "./src/uiview/index.js"
+    }
+  },
+  "files": [
+    "src/uiview/**/*.js",
+    "src/uiview/**/*.d.ts"
+  ],
   "dependencies": {
+    "@savvifi/meridian-proto-ts": "workspace:*",
     "@bufbuild/protobuf": "2.12.1"
-  },
-  "devDependencies": {
-    "@bufbuild/protoc-gen-es": "2.12.1",
-    "@types/node": "22.10.2",
-    "typescript": "5.6.2"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
