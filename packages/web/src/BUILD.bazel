@@ -1,0 +1,69 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+
+package(default_visibility = ["//visibility:public"])
+
+# Raw source files (TS, schema). Consumers that bundle meridian into a
+# server-side JAR or other resource container depend on this filegroup.
+filegroup(
+    name = "resources",
+    srcs = glob(
+        ["**/*"],
+        exclude = [
+            "BUILD.bazel",
+            "tsconfig.json",
+        ],
+    ),
+)
+
+# Just the worker-command JSON schema for consumers that only want
+# the contract definition (e.g., proto/schema validators).
+filegroup(
+    name = "worker_command_schema",
+    srcs = ["worker-command.schema.json"],
+)
+
+# Compiled TS surface: emits .js + .d.ts alongside sources.
+ts_project(
+    name = "core",
+    srcs = glob([
+        "**/*.ts",
+        "**/*.d.ts",
+    ]),
+    declaration = True,
+    out_dir = ".",
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/@xterm/addon-fit",
+        "//:node_modules/@xterm/xterm",
+    ],
+)
+
+# Self-contained browser ESM for bundler-free hosts (botnoc's static frontend).
+# Bundles the compiled browser.js entry (//src:core) + inlines its npm deps
+# (protobuf-es + @savvifi/meridian-proto-ts) so the output has NO bare imports.
+# Hosts serve this one file (e.g. at /meridian/bundle.js) and `import { renderPanel,
+# decodeBundle, encodeGalleryPanel, registerChatPanel } from "..."`.
+esbuild(
+    name = "browser_bundle",
+    srcs = [":core"],
+    entry_point = "browser.js",
+    bundle = True,
+    format = "esm",
+    minify = True,
+    output = "meridian_web.bundle.js",
+    platform = "browser",
+    sourcemap = "external",
+    target = "es2022",
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/@xterm/addon-fit",
+        "//:node_modules/@xterm/xterm",
+    ],
+)

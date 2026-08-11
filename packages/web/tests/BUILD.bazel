@@ -1,0 +1,184 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "src_lib",
+    srcs = [
+        "//src:core",
+    ],
+)
+
+vitest_test(
+    name = "unit",
+    srcs = [
+        "dom.test.ts",
+        "patch.test.ts",
+        "proto_json.test.ts",
+        "workers.test.ts",
+    ],
+    deps = [
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# Render conformance + the binary-boundary guard for the B1 canonical/binpb
+# rewrite: each shape fixture renders through renderPanel into jsdom, with a mock
+# wasm that fromBinary-validates every Uint8Array the renderer emits.
+vitest_test(
+    name = "conformance",
+    srcs = [
+        "conformance.test.ts",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# The six brand-neutral content shapes (choice / snippet / action / connect_flow /
+# copy_value / catalog) rendered through renderPanel into jsdom — field-complete
+# (icon seam, descriptions, snippet language, secret reveal, placeholder).
+vitest_test(
+    name = "content",
+    srcs = [
+        "content.test.ts",
+        "fixtures.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# GrammarPanel — content negotiation + the degradation ladder (native markdown /
+# host renderer / alt / source), rendered through renderPanel into jsdom.
+vitest_test(
+    name = "grammar",
+    srcs = [
+        "fixtures.ts",
+        "grammar.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# StatPanel — the KPI tile (computed delta/trend via the shared computeStat + an
+# SVG sparkline).
+vitest_test(
+    name = "stat",
+    srcs = [
+        "fixtures.ts",
+        "stat.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# TablePanel interactions (row selection, RowActions + enabled_when, ColumnLink
+# via the resolveHref seam) and StreamPanel (line_field, max_lines retention,
+# the no-transport ladder, and subscription disposal). Regression cover for the
+# class of bug where a descriptor field is authored, shipped, and never drawn.
+vitest_test(
+    name = "table_stream",
+    srcs = [
+        "fixtures.ts",
+        "table_stream.test.ts",
+    ],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/@savvifi/meridian-schemas",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# CONFORMANCE ACROSS THE REAL FFI BOUNDARY.
+#
+# Every other test here uses a MOCK UiviewWasm, which cannot check the one thing
+# that actually broke: `UiviewWasm` DECLARES the shapes the wasm returns, and
+# TypeScript cannot verify a declaration across an FFI boundary. Those
+# declarations were false — serde-wasm-bindgen returned JS Maps — and two silent
+# production bugs followed. This loads the real compiled wasm and asserts what it
+# genuinely returns.
+# Vite only loads modules under its own root, so the wasm artifacts are copied
+# into this package rather than referenced across the runfiles tree.
+genrule(
+    name = "wasm_artifacts",
+    srcs = ["@meridian_uiview_core//rust/uiview:uiview_wasm"],
+    outs = [
+        "meridian_uiview.js",
+        "meridian_uiview_bg.wasm",
+    ],
+    cmd = """
+for f in $(SRCS); do
+  case $$f in
+    *meridian_uiview.js) cp $$f $(location meridian_uiview.js) ;;
+    *meridian_uiview_bg.wasm) cp $$f $(location meridian_uiview_bg.wasm) ;;
+  esac
+done
+""",
+)
+
+vitest_test(
+    name = "conformance_wasm",
+    srcs = ["conformance_wasm.test.ts"],
+    data = [":wasm_artifacts"],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# SUPPORTED_BODIES is exported so hosts stop re-deriving the dispatch. An
+# exported list is only useful if it cannot drift from what actually renders, so
+# this pins it in both directions.
+vitest_test(
+    name = "supported_bodies",
+    srcs = ["supported_bodies.test.ts"],
+    deps = [
+        "//:node_modules/@bufbuild/protobuf",
+        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+# The browser bundle is the entire surface a bundler-free host can reach. A
+# symbol exported from renderer.ts but not re-exported here does not exist for
+# them — which shipped once already (`supportsBody`).
+vitest_test(
+    name = "browser_exports",
+    srcs = ["browser_exports.test.ts"],
+    deps = [
+        "//:node_modules/jsdom",
+        "//:node_modules/vitest",
+        ":src_lib",
+    ],
+)
