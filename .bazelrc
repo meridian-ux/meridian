@@ -1,0 +1,54 @@
+common --enable_bzlmod
+
+# Isolated extension usages. Nothing in THIS module isolates any more — the two
+# usages that did (meridian-chat's npm, meridian-uiview-core's and meridian-tui's
+# crate_universe) existed only because those were separate modules whose
+# same-named extensions collided, and one module has no collision to avoid.
+#
+# The flag stays because @brando's graph may still carry an isolated usage, and
+# because its absence is a failure with no useful message: every bazel command
+# dies at MODULE parse with "parameter 'isolate' is experimental". Three repos in
+# this estate — web, tui and uiview-core — were entirely unbuildable for exactly
+# that reason, for months, and nobody knew because none of the three had CI.
+common --experimental_isolated_extension_usages
+
+# Toolchain-resolved (prebuilt) protoc rather than one compiled from source: the
+# CLT-only dev host cannot build protoc, and CI should not have to.
+common --incompatible_enable_proto_toolchain_resolution
+common --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
+
+# ─── Module registries ────────────────────────────────────────────────────────
+# tbzl.dev first, then BCR. registry.fastverk.com is RETIRED and the
+# raw.githubusercontent.com/tomato-bazel path is superseded; lockfile evidence
+# across the estate showed fastverk serving 208 modules, every one of which
+# tbzl.dev also serves, and zero that only it served.
+#
+# A private registry is MANDATORY, not a convenience: brando, rules_chrome,
+# rules_tectonic, rules_astro and rules_vite have no BCR entry, so this repo
+# cannot build from BCR alone.
+#
+# Note the trailing slashes. Bazel treats https://bcr.bazel.build and
+# https://bcr.bazel.build/ as DIFFERENT cache keys, and the absorbed repos were
+# split 7/5 on which they wrote.
+common --registry=https://registry.tbzl.dev/
+common --registry=https://bcr.bazel.build/
+
+# ⚠ These two arrived from single repos and are now GLOBAL. Both were verified as
+# intentional rather than dropped, but they change behaviour for targets that
+# never asked for them:
+#   --nolegacy_external_runfiles came from //site alone and changes the runfiles
+#     layout for EVERY JS target in the repo.
+#   --action_env=HOME came from //brand alone and enters every action's cache key.
+# If either turns out to be site- or brand-specific rather than repo-wide, the fix
+# is a --config, not silence.
+build --nolegacy_external_runfiles
+common --action_env=HOME
+
+build --java_runtime_version=remotejdk_17
+build --announce_rc
+build --keep_going
+
+test --test_output=errors
+test --test_summary=terse
+
+try-import %workspace%/user.bazelrc
