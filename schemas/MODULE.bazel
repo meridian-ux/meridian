@@ -1,0 +1,62 @@
+module(
+    name = "meridian_schemas",
+    version = "0.24.0",
+    compatibility_level = 1,
+)
+
+# meridian-schemas is the framework- and brand-neutral root of the meridian
+# design language: the proto contracts (meridian.ui.v1.PanelDescriptor +
+# meridian.theme.v1.Theme), their canonical TypeScript surface (@savvifi/meridian-proto-ts,
+# protobuf-es codegen) and the framework-neutral WebRenderer seam
+# (@savvifi/meridian-schemas). Every renderer (meridian-web, meridian-web-react,
+# meridian-tui, …) and every emitter (aion) depends on this module; it depends on
+# none of them. No Java/Rust/Swift here — those bindings live with each renderer.
+#
+# 0.6.0 adds the NavTree navigation primitive (nav_tree.proto) and the OPTIONAL
+# server-driven delivery tier: meridian.ui.v1.LayoutService (layout_service.proto)
+# — the first gRPC service in meridian, the proto analogue of the RpcInvoker host-
+# transport contract. It is additive (new messages + one optional service); the
+# static descriptor path is unchanged. protobuf-es 2.x emits the service
+# descriptor into the TS surface; other language grpc stubs are generated per
+# renderer/host repo.
+
+# TypeScript surface.
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# Proto contracts. googleapis provides google/api/field_behavior.proto, imported
+# by the uiview descriptors as a field annotation.
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "protobuf", version = "33.4")
+bazel_dep(name = "googleapis", version = "0.0.0-20260422-20ac242a")
+
+# Prebuilt protoc for the protobuf-es codegen (//bazel:proto_es.bzl), so codegen
+# never compiles protoc from source. Exposes @meridian_protoc//:protoc; ONLY
+# proto_es uses it. (The repo .bazelrc enables proto-toolchain resolution +
+# prefer_prebuilt_protoc, so proto_library descriptor generation is also prebuilt.)
+protoc_prebuilt = use_extension("//bazel:protoc_prebuilt.bzl", "protoc_prebuilt")
+use_repo(protoc_prebuilt, "meridian_protoc")
+
+node = use_extension(
+    "@rules_nodejs//nodejs:extensions.bzl",
+    "node",
+    dev_dependency = True,
+)
+node.toolchain(node_version = "22.11.0")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version = "5.6.3")
+use_repo(rules_ts_ext, "npm_typescript")
+
+npm = use_extension(
+    "@aspect_rules_js//npm:extensions.bzl",
+    "npm",
+    dev_dependency = True,
+)
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")

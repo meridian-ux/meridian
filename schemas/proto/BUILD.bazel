@@ -1,0 +1,127 @@
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//bazel:proto_es.bzl", "proto_es")
+
+package(default_visibility = ["//visibility:public"])
+
+# TypeScript (protobuf-es) for meridian.ui.v1 — the PanelDescriptor contract,
+# the canonical web types. One <name>_pb.ts per source (panel_pb.ts, table_pb.ts, …).
+proto_es(
+    name = "uiview_es",
+    # field_behavior is imported by every uiview file (as a field annotation)
+    # and protobuf-es emits a load-bearing import to it, so generate it too.
+    also_generate = ["google/api/field_behavior.proto"],
+    proto = ":uiview_proto",
+)
+
+# TypeScript (protobuf-es) for meridian.theme.v1 — the Theme contract.
+proto_es(
+    name = "theme_es",
+    proto = ":theme_proto",
+)
+
+# Compile the generated protobuf-es TypeScript into .js + .d.ts — the
+# @savvifi/meridian-proto-ts surface (PanelDescriptor, Theme, …) the renderers and aion
+# consume. root_dir = "es" (the proto_es out tree) ≠ out_dir = "lib" so the emit
+# mirrors the imports (proto/*_pb.js, google/api/field_behavior_pb.js).
+ts_project(
+    name = "proto_ts",
+    srcs = [
+        ":theme_es",
+        ":uiview_es",
+    ],
+    declaration = True,
+    out_dir = "lib",
+    root_dir = "es",
+    transpiler = "tsc",
+    tsconfig = "tsconfig.es.json",
+    deps = ["//:node_modules/@bufbuild/protobuf"],
+)
+
+# Assemble the compiled types as the @savvifi/meridian-proto-ts npm package: package.json
+# at the root, then proto/*_pb.{js,d.ts} + google/api/*_pb.{js,d.ts}. Linked into
+# the workspace node_modules (see //:BUILD.bazel) so first-party code can
+# `import … from "@savvifi/meridian-proto-ts/proto/panel_pb.js"`.
+npm_package(
+    name = "proto_ts_pkg",
+    srcs = [
+        "proto-ts.package.json",
+        ":proto_ts",
+    ],
+    package = "@savvifi/meridian-proto-ts",
+    replace_prefixes = {"proto-ts.package.json": "package.json"},
+    root_paths = [
+        "proto/lib",
+        "proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# The raw schema sources. Exported so skin modules (e.g. @brand) can run
+# `protoc --encode=meridian.theme.v1.Theme theme.proto` over a Theme textproto
+# to emit a fastverk.binpb / fastverk.json artifact, without a Bazel codegen
+# dep on the renderers. theme.proto has no imports, so it stands alone.
+exports_files(
+    ["theme.proto"],
+    visibility = ["//visibility:public"],
+)
+
+# Meridian's platform-neutral UI view descriptors.
+#
+# A PanelDescriptor captures everything a renderer needs to host one right-pane
+# view: which RPC to call, how to map the response into rows, what columns to
+# display, what actions to expose, what type conversions to apply. Every
+# renderer (meridian-web, meridian-web-react, meridian-tui, meridian-javafx,
+# meridian-swiftui) consumes the same protos; the language bindings live with
+# each renderer repo. Bespoke layouts route through the AdhocPanel oneof variant
+# which names a host-side handler.
+proto_library(
+    name = "uiview_proto",
+    # Split into one file per concept for clarity. The compiled output is
+    # identical (single `meridian.ui.v1` package); intra-package imports use
+    # `proto/<name>.proto` form to match Bazel's workspace-relative resolution.
+    srcs = [
+        "affordance.proto",
+        "catalog.proto",
+        "choice.proto",
+        "command_palette.proto",
+        "connect_flow.proto",
+        "conversation.proto",
+        "copy_value.proto",
+        "form.proto",
+        "gallery.proto",
+        "grammar.proto",
+        "layout_service.proto",
+        "llm_prompt.proto",
+        "lro.proto",
+        "media.proto",
+        "nav_tree.proto",
+        "panel.proto",
+        "prompt.proto",
+        "rpc.proto",
+        "shell.proto",
+        "snippet.proto",
+        "stat.proto",
+        "steps.proto",
+        "stream.proto",
+        "table.proto",
+        "terminal.proto",
+        "value.proto",
+        "view.proto",
+    ],
+    deps = [
+        "@googleapis//google/api:field_behavior_proto",
+        # google.protobuf.Struct — GrammarPanel.data carries a JSON object.
+        "@protobuf//:struct_proto",
+    ],
+)
+
+# Meridian's renderer-agnostic style layer (meridian.theme.v1). A SEPARATE
+# proto_library from uiview_proto on purpose: semantics and style are
+# orthogonal, so a renderer (or a skin module like @brand) can depend on the
+# Theme contract without pulling the panel descriptors, and vice versa.
+proto_library(
+    name = "theme_proto",
+    srcs = ["theme.proto"],
+)
