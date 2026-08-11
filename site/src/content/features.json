@@ -1,0 +1,174 @@
+{
+  "features": [
+    {
+      "slug": "web",
+      "name": "meridian_web",
+      "status": "AVAILABLE",
+      "category": "PLATFORM",
+      "tagline": "The browser renderer — a ComponentKit of vanilla + React components that draws meridian descriptors as native DOM, bundled to the CDN.",
+      "hero": {
+        "eyebrow": "the web renderer",
+        "headline": "Descriptors, drawn in the browser.",
+        "accent_span": "the browser.",
+        "subhead": "meridian_web turns a PanelDescriptor into real DOM — forms, tables, launchpad, conversation — via a ComponentKit shared with meridian-mui-kit. The console's panels are all descriptors; nothing is a bespoke page."
+      },
+      "meta": {
+        "title": "meridian_web — the browser renderer | meridian-ux",
+        "description": "meridian_web is the browser renderer for meridian-ux: a ComponentKit of vanilla + React components that draws meridian.ui.v1 descriptors as native DOM, re-skinned via meridian.theme.v1 and bundled to the CDN.",
+        "keywords": [
+          "server-driven ui",
+          "design system",
+          "react components"
+        ]
+      },
+      "highlights": [
+        "Vanilla + React ComponentKit (meridian-web-react · meridian-mui-kit)",
+        "Renders every meridian.ui.v1 panel shape",
+        "Re-skins from a meridian.theme.v1 Theme (applyTheme)",
+        "Bundled to static.<tenant> by git-sha"
+      ],
+      "order": 10,
+      "sections": [
+        {
+          "eyebrow": "how it renders",
+          "title": "One descriptor in, native DOM out.",
+          "subtitle": "The renderer routes on the panel body oneof and drives the shared interaction core.",
+          "steps": {
+            "steps": [
+              {
+                "title": "Route",
+                "text": "A PanelDescriptor arrives; the renderer routes on its body oneof (form / table / launchpad / conversation / …) to a ComponentKit component."
+              },
+              {
+                "title": "Bind",
+                "text": "RpcInvoker maps the descriptor's RPCs to the host transport; FieldBindings wire inputs to the request."
+              },
+              {
+                "title": "Skin",
+                "text": "applyTheme(meridian.json) sets the CSS custom properties — the same Theme every other renderer reads."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "swiftui",
+      "name": "meridian-swift",
+      "status": "PREVIEW",
+      "category": "PLATFORM",
+      "tagline": "The native renderer — the macOS dashboard and iOS console draw the same descriptors as first-class SwiftUI views.",
+      "hero": {
+        "eyebrow": "the native renderer",
+        "headline": "The same descriptors, natively Apple.",
+        "accent_span": "natively Apple.",
+        "subhead": "meridian-swift renders meridian.ui.v1 as real SwiftUI — grouped inset forms, native tables, native navigation, native toggles. No web view, no bridge: a form is a Form, a table is a List."
+      },
+      "meta": {
+        "title": "meridian-swift — the native macOS + iOS renderer | meridian-ux",
+        "description": "meridian-swift is the native renderer for meridian-ux: the macOS dashboard and iOS console draw meridian.ui.v1 descriptors as first-class SwiftUI views, re-skinned via meridian.theme.v1 — no web view, no bridge.",
+        "keywords": [
+          "swiftui",
+          "native ios",
+          "server-driven native ui"
+        ]
+      },
+      "highlights": [
+        "Grouped inset forms, native tables + navigation",
+        "Drives the same shared interaction core as web + TUI",
+        "Decodes the meridian.theme.v1 binpb for palette + metrics",
+        "Ships in the macOS dashboard + the iOS console (TestFlight)"
+      ],
+      "order": 20,
+      "sections": [
+        {
+          "eyebrow": "the payoff",
+          "title": "Native fidelity, zero re-authoring.",
+          "subtitle": "A descriptor authored for the web console renders as a proper Settings-style screen on iOS with no new UI code.",
+          "callout": {
+            "text": "A BooleanToggle is a native UISwitch; an EnumSelection is a native disclosure row; a nested form is a native sub-screen — all decoded from the same proto the browser reads."
+          }
+        }
+      ]
+    },
+    {
+      "slug": "tui",
+      "name": "meridian_tui",
+      "status": "AVAILABLE",
+      "category": "PLATFORM",
+      "tagline": "The terminal renderer — forms, tables, launchpad, and conversation in the shell, from the same protos, keyboard-native, over SSH.",
+      "hero": {
+        "eyebrow": "the terminal renderer",
+        "headline": "The whole console, in the terminal.",
+        "accent_span": "in the terminal.",
+        "subhead": "meridian_tui renders meridian.ui.v1 with ratatui — box-drawn forms with checkbox toggles and enum spinners, colored-glyph status tables, a ⌘K launchpad, and block-kit conversation. Keyboard-native, SSH-friendly, same descriptors."
+      },
+      "meta": {
+        "title": "meridian_tui — the terminal renderer | meridian-ux",
+        "description": "meridian_tui is the terminal renderer for meridian-ux: forms, tables, launchpad, and conversation drawn with ratatui from the same meridian.ui.v1 descriptors — keyboard-native, over SSH, re-skinned via meridian.theme.v1.",
+        "keywords": [
+          "ratatui",
+          "terminal ui",
+          "tui"
+        ]
+      },
+      "highlights": [
+        "Box-drawn forms: checkbox toggles, f64 spinners, enum pickers",
+        "Status tables with skin-colored glyphs",
+        "⌘K launchpad + block-kit conversation",
+        "Drives the uiview-core shared cores (filter · model)"
+      ],
+      "order": 30,
+      "sections": [
+        {
+          "eyebrow": "shared by construction",
+          "title": "The terminal filters the same as the browser.",
+          "subtitle": "The TUI drives the same Rust cores the wasm renderer ships, so ranking and dedupe agree across modalities.",
+          "callout": {
+            "text": "filter_launchpad and the ConversationModel are the Rust twins of the web's filter.ts and model.ts — the TUI renders, it doesn't re-implement, so a launchpad ranks identically in the shell and in the browser."
+          }
+        }
+      ]
+    },
+    {
+      "slug": "wasm",
+      "name": "meridian_uiview_core",
+      "status": "AVAILABLE",
+      "category": "PLATFORM",
+      "tagline": "The portable core — Rust compiled to wasm (uiview), shipping the shared interaction logic the web and TUI renderers both drive.",
+      "hero": {
+        "eyebrow": "the portable core",
+        "headline": "One core, every language.",
+        "accent_span": "every language.",
+        "subhead": "meridian_uiview_core is the Rust heart of meridian — compiled to wasm. It holds the interaction logic (filter, model, validation) as the single source of truth the renderers drive, so behavior can't fork between surfaces."
+      },
+      "meta": {
+        "title": "meridian_uiview_core — the portable Rust/wasm core | meridian-ux",
+        "description": "meridian_uiview_core is the portable Rust core of meridian-ux, compiled to wasm (uiview): the shared interaction logic — filter, model, validation — the web and TUI renderers both drive, so behavior agrees by construction.",
+        "keywords": [
+          "rust wasm",
+          "shared core",
+          "cross-platform ui logic"
+        ]
+      },
+      "highlights": [
+        "Rust cores: launchpad filter · conversation model · form validation",
+        "Compiles to wasm for the web and links into the TUI",
+        "Rust ⇄ TypeScript twins agree by construction",
+        "seq==0 = unsequenced (proto3 zero-scalar semantics)"
+      ],
+      "order": 40,
+      "sections": [
+        {
+          "eyebrow": "why a core",
+          "title": "Renderers draw. They don't decide.",
+          "subtitle": "Ranking, validation, upsert, and dedupe live once — the behavior a user feels, shared across every surface.",
+          "callout": {
+            "text": "A renderer only turns state into pixels. Because the decisions live in one wasm-shared core, adding a fifth surface means writing a renderer, not re-deriving how a launchpad ranks or a form validates."
+          }
+        }
+      ]
+    }
+  ],
+  "generated_from": "4 features/*.textproto"
+}

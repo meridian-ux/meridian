@@ -1,0 +1,210 @@
+---
+import Base from "../layouts/Base.astro";
+
+const title = "meridian-ux — author the descriptor, render every surface";
+const description =
+  "meridian-ux is the declarative, cross-modal console UI framework: one descriptor proto (a form, a table, a command palette, a conversation) renders natively in the browser, in a SwiftUI app, in the terminal, and in wasm — re-skinned per tenant via meridian.theme.v1.";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "meridian-ux",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web, macOS, iOS, Linux",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  description,
+};
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section class="hero">
+    <div>
+      <span class="eyebrow">the declarative UI layer · meridian-ux</span>
+      <h1>Author the descriptor. <br /><span class="grad-text">Render every surface.</span></h1>
+      <p class="sub">meridian is a UI framework where the interface is a <b>proto, not a frontend</b>. One <b>PanelDescriptor</b> — a form, a table, a command palette, a conversation — renders natively in the browser, in a SwiftUI app, in the terminal, and in wasm. <b>Author it once; the surface is a rendering, not a rewrite.</b></p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/#start">Get started ↓</a>
+        <a class="btn btn-ghost" href="/features">Explore the renderers →</a>
+        <a class="btn btn-plain" href="/#thesis">Read the thesis <span class="arr">↴</span></a>
+      </div>
+      <div class="hcli"><span class="cli"><span class="p">bazel</span> add meridian_web meridian_tui <span style="color:var(--slate)">@registry</span><span class="copy">⧉</span></span></div>
+    </div>
+
+    <div class="panel-shell" aria-label="One descriptor rendered on four surfaces">
+      <div class="panel-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="title">PanelDescriptor · form.proto → 4 renderers</span>
+        <span class="live"><i></i> one contract</span>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <pre style="margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--muted);white-space:pre;overflow-x:auto"><span style="color:var(--slate)"># meridian.ui.v1.PanelDescriptor</span>
+<span style="color:var(--amber)">form</span> &#123;
+  <span style="color:var(--amber)">title</span>: <span style="color:var(--ok)">"New connection"</span>
+  <span style="color:var(--amber)">field</span> &#123; <span style="color:var(--amber)">text</span> &#123; <span style="color:var(--amber)">label</span>: <span style="color:var(--ok)">"Host"</span> &#125; &#125;
+  <span style="color:var(--amber)">field</span> &#123; <span style="color:var(--amber)">boolean</span> &#123; <span style="color:var(--amber)">label</span>: <span style="color:var(--ok)">"TLS"</span> &#125; &#125;
+  <span style="color:var(--amber)">field</span> &#123; <span style="color:var(--amber)">enum_selection</span> &#123; <span style="color:var(--amber)">label</span>: <span style="color:var(--ok)">"Region"</span> &#125; &#125;
+&#125;</pre>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)">
+          <div style="background:var(--ink-2);padding:12px 12px 14px"><div style="font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#3ED9E0;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:2px;background:#3ED9E0"></i>web</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">Host [____]<br/>◱ TLS · Region ▾</div></div>
+          <div style="background:var(--ink-2);padding:12px 12px 14px"><div style="font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#6E8BFF;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:2px;background:#6E8BFF"></i>swiftui</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">Host db.internal <br/>TLS ⃝→ · Region ›</div></div>
+          <div style="background:var(--ink-2);padding:12px 12px 14px"><div style="font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#57D98B;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:2px;background:#57D98B"></i>tui</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">Host: [____]<br/>[x] TLS  &lt;Region&gt;</div></div>
+          <div style="background:var(--ink-2);padding:12px 12px 14px"><div style="font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#9A7CF0;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:2px;background:#9A7CF0"></i>wasm</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">Host [____]<br/>▢ TLS · Region ▿</div></div>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <span class="k">meridian.ui.v1</span><span class="sep">·</span>
+        <span>one contract</span><span class="sep">·</span>
+        <span>4 surfaces, <b style="color:var(--amber)">0 rewrites</b></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="thesis" id="thesis">
+    <div class="band-head"><span class="eyebrow">the thesis</span></div>
+    <p class="big">The UI is a <span class="grad-text">fact</span>, <span class="dim">not a frontend.</span></p>
+    <div class="split">
+      <div class="lineage">
+        <h3>from design systems</h3>
+        <p class="got">The vocabulary you think in — a form, a table, a nav tree, a command palette. Named, composable, consistent.</p>
+        <p class="not">What they get wrong: a component library is <b>welded to one framework and one surface</b>. Rebuild it for native, for the terminal, for the next runtime — and drift begins.</p>
+      </div>
+      <div class="lineage">
+        <h3>from server-driven UI</h3>
+        <p class="got">The operational shape — the screen arrives as data over the wire, so the server owns the layout and the client stays thin.</p>
+        <p class="not">What it gets wrong: the payload is a <b>JSON blob with no schema and no native fidelity</b> — it renders one generic web view, and behavior is re-implemented per client.</p>
+      </div>
+    </div>
+    <p class="note">meridian takes the half each got right: descriptors are <b>typed protos</b> (<em style="color:var(--amber);font-style:normal">meridian.ui.v1</em>, schema-checked, versioned), every surface has a <b>real native renderer</b>, and interaction logic lives in <b>one shared core</b> the renderers drive — so a form ranks, validates, and dedupes the same in Rust, TypeScript, and Swift by construction.</p>
+  </section>
+
+  <section id="pipeline">
+    <div class="band-head">
+      <span class="eyebrow">how it works</span>
+      <h2>One descriptor, five stops from schema to surface.</h2>
+      <p>A screen is defined once as data. Nothing between the schema and the pixels is guessed from a framework — each stop reads the same typed contract.</p>
+    </div>
+    <div class="chain">
+      <div class="link"><div class="n">01</div><div class="name">Schema</div><div class="prod">meridian_schemas</div><p>The primitives as protos — Form, Table, NavTree, Launchpad, Conversation. Versioned, published, schema-checked.</p></div>
+      <div class="link"><div class="n">02</div><div class="name">Descriptor</div><div class="prod">LayoutService</div><p>A host emits or serves a concrete descriptor — a textproto bundle or a live gRPC stream (GetView · WatchNavTree).</p></div>
+      <div class="link"><div class="n">03</div><div class="name">Renderer</div><div class="prod">web · tui · uiview</div><p>A per-surface renderer turns the descriptor into native output, driving the shared interaction core.</p></div>
+      <div class="link"><div class="n">04</div><div class="name">Skin</div><div class="prod">meridian.theme.v1</div><p>One Theme — palette, type, metrics — re-colors every renderer identically. The brand lives here, not in the code.</p></div>
+      <div class="link"><div class="n">05</div><div class="name">Surface</div><div class="prod">web · macOS · iOS · TUI</div><p>The same panel, native everywhere. A new surface is a new renderer, never a re-authored UI.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="band-head">
+      <span class="eyebrow">receipts</span>
+      <h2>Mechanisms, not marketing.</h2>
+      <p>Each of these is a property of how meridian is built — true by construction rather than by promise.</p>
+    </div>
+    <div class="receipts">
+      <div class="receipt">
+        <div class="stat" style="font-family:var(--mono)">4 → 1</div>
+        <div class="lede">Four surfaces, one contract.</div>
+        <p>Web, SwiftUI, TUI, and wasm all render meridian.ui.v1 — there is no per-client UI to re-author, so the surfaces can't disagree about what a screen is.</p>
+        <div class="src">meridian.ui.v1 · descriptors</div>
+      </div>
+      <div class="receipt">
+        <div class="stat" style="font-family:var(--mono)">shared <br />core</div>
+        <div class="lede">Behavior can't drift.</div>
+        <p>Ranking, validation, upsert, dedupe live in one shared core per primitive — Rust ⇄ TypeScript twins the renderers drive — so a launchpad filters the same in the terminal and the browser.</p>
+        <div class="src">filter.rs ⇄ filter.ts · wasm-shared</div>
+      </div>
+      <div class="receipt">
+        <div class="stat" style="font-family:var(--mono)">one <br />theme</div>
+        <div class="lede">The brand is a fact.</div>
+        <p>A tenant's whole look is one meridian.theme.v1 Theme — light + dark palette, type, metrics — compiled and applied identically across every renderer. Swap three tokens; the system re-skins.</p>
+        <div class="src">meridian.theme.v1 · binpb + json</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="renderers">
+    <div class="band-head">
+      <span class="eyebrow">the renderers</span>
+      <h2>Four surfaces today. The contract makes the fifth cheap.</h2>
+      <p>Each renderer is its own Bazel module, published to the registry, consumed independently. Add a surface without touching a descriptor.</p>
+    </div>
+    <div class="feature-grid">
+      <a class="fcard" href="/features/web"><div class="top"><span class="fname mono">meridian_web</span><span class="pill available">live</span></div><p class="psub">the web renderer</p><p class="ftag">The browser renderer — a ComponentKit of vanilla + React components that draws descriptors as native DOM. The console's panels, forms, and tables. Bundled to the CDN.</p><span class="more">Read more →</span></a>
+      <a class="fcard" href="/features/swiftui"><div class="top"><span class="fname mono">meridian-swift</span><span class="pill preview">built</span></div><p class="psub">macOS + iOS</p><p class="ftag">The native renderer — the macOS dashboard and the iOS console draw the same descriptors as first-class SwiftUI views: grouped forms, native tables, native navigation.</p><span class="more">Read more →</span></a>
+      <a class="fcard" href="/features/tui"><div class="top"><span class="fname mono">meridian_tui</span><span class="pill available">live</span></div><p class="psub">ratatui · the terminal</p><p class="ftag">The terminal renderer — forms, tables, launchpad, and conversation in the shell. Same protos, keyboard-native, over SSH.</p><span class="more">Read more →</span></a>
+      <a class="fcard" href="/features/wasm"><div class="top"><span class="fname mono">meridian_uiview_core</span><span class="pill available">live</span></div><p class="psub">Rust · wasm</p><p class="ftag">The portable core — Rust compiled to wasm (uiview). Ships the shared interaction logic the web and TUI renderers both drive, so behavior agrees by construction.</p><span class="more">Read more →</span></a>
+    </div>
+  </section>
+
+  <section id="primitives">
+    <div class="band-head">
+      <span class="eyebrow">the primitives</span>
+      <h2>A small, typed vocabulary of screens.</h2>
+      <p>Every meridian screen is composed from these. Each is one proto in <span style="color:var(--amber-2);font-family:var(--mono)">meridian.ui.v1</span> — and each renders on all four surfaces.</p>
+    </div>
+    <div class="constell">
+      <div class="cap"><b>The primitives</b> — published in meridian_schemas, resolvable from any Bazel workspace, one typed contract per screen shape.</div>
+      <div class="chips">
+        <span class="chip"><span class="g">▤</span> FormPanel</span>
+        <span class="chip"><span class="g">▦</span> TablePanel</span>
+        <span class="chip"><span class="g">▪</span> StatPanel</span>
+        <span class="chip"><span class="g">⌘</span> Launchpad</span>
+        <span class="chip"><span class="g">◗</span> Conversation</span>
+        <span class="chip"><span class="g">⊞</span> NavTree</span>
+        <span class="chip"><span class="g">▭</span> ViewDescriptor</span>
+        <span class="chip"><span class="g">◐</span> LroPanel</span>
+        <span class="chip">…18 shapes on <span class="g">meridian.ui.v1</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="skins">
+    <div class="band-head">
+      <span class="eyebrow">one theme, every renderer</span>
+      <h2>A brand is a skin, and a skin is a fact.</h2>
+      <p>meridian ships brand-neutral. A tenant's identity is one <span style="color:var(--amber-2);font-family:var(--mono)">meridian.theme.v1</span> Theme, applied across every renderer at once — <span style="color:var(--cream)">swap three accent tokens and the whole system re-skins</span>.</p>
+    </div>
+    <div class="planes">
+      <div class="plane"><div class="host" style="color:var(--amber)">meridian</div><div class="crd">ink / <b>azure</b> / violet</div><p>The framework's own skin — the cool azure→violet signature, a band of the refraction spectrum.</p></div>
+      <div class="plane"><div class="host" style="color:#F0B85A">fastverk</div><div class="crd">midnight / <b>amber</b></div><p>The intelligence-assurance platform's warm midnight look — the same Theme contract, a different band.</p></div>
+      <div class="plane"><div class="host" style="color:#E64A33">tomato-bazel</div><div class="crd">soil / <b>tomato</b> / vine</div><p>The source &amp; build layer's tomato-and-vine identity — rendered by the very framework it skins.</p></div>
+      <div class="plane"><div class="host" style="color:#2FB6C4">aion</div><div class="crd">deep / <b>teal</b></div><p>A tenant skin — proof the same descriptors carry any brand without a code change.</p></div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="band-head">
+      <span class="eyebrow">get started</span>
+      <h2>Add a renderer. Author a descriptor. Ship the surface.</h2>
+      <p>meridian resolves from the Bazel registry and npm. Pull the schema, pick your renderers, emit a panel. Each renderer documents its own install and API in its repo, on <a class="docs-link" href="https://github.com/meridian-ux"><b style="color:var(--cream)">github.com/meridian-ux</b> <span class="arr">↗</span></a>.</p>
+    </div>
+    <div class="start">
+      <div class="steps">
+        <div class="sstep">
+          <div class="sn">01 · DEPEND</div>
+          <h4>Pull the schema + renderers</h4>
+          <p>Bazel modules from the registry; TS types from npm.</p>
+          <code class="code"><span class="c"># MODULE.bazel</span><br />bazel_dep(<span class="s">"meridian_web"</span>)<br />bazel_dep(<span class="s">"meridian_tui"</span>)</code>
+        </div>
+        <div class="sstep">
+          <div class="sn">02 · AUTHOR</div>
+          <h4>Write the descriptor</h4>
+          <p>A textproto — or serve one live from LayoutService.</p>
+          <code class="code"><span class="p">form</span> &#123;<br />&nbsp;&nbsp;title: <span class="s">"New connection"</span><br />&nbsp;&nbsp;field &#123; text &#123;…&#125; &#125;<br />&#125;</code>
+        </div>
+        <div class="sstep">
+          <div class="sn">03 · RENDER</div>
+          <h4>Draw it anywhere</h4>
+          <p>The same panel, native on every surface + skin.</p>
+          <code class="code"><span class="p">meridian</span>.render(panel)<br /><span class="c"># web · swiftui · tui · wasm</span></code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="close">
+    <h2>Design once. Render everywhere.</h2>
+    <p>Stop rebuilding the same form for the fourth surface. Author the fact; let meridian draw it — on every screen, in every skin.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/#start">Get started ↓</a>
+      <a class="btn btn-ghost" href="https://github.com/meridian-ux">github.com/meridian-ux ↗</a>
+      <a class="btn btn-plain" href="/features">Browse the renderers <span class="arr">→</span></a>
+    </div>
+  </section>
+</Base>

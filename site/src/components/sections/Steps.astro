@@ -1,0 +1,12 @@
+---
+const { steps = [] } = Astro.props;
+---
+<div class="psteps">
+  {steps.map((s, i) => (
+    <div class="pstep">
+      <div class="pn">{String(i + 1).padStart(2, "0")}</div>
+      <h4>{s.title}</h4>
+      <p>{s.text}</p>
+    </div>
+  ))}
+</div>

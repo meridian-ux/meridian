@@ -1,0 +1,12 @@
+---
+const { stats = [] } = Astro.props;
+---
+<div class="stat-tiles">
+  {stats.map((s) => (
+    <div class="stat-tile">
+      <div class="v">{s.value}</div>
+      <div class="l">{s.label}</div>
+      {s.note && <div class="n">{s.note}</div>}
+    </div>
+  ))}
+</div>

@@ -1,0 +1,22 @@
+---
+const path = Astro.url.pathname;
+const is = (p) => (path === p || (p !== "/" && path.startsWith(p)) ? "page" : undefined);
+---
+<header class="nav">
+  <a class="brand" href="/" aria-label="meridian-ux home">
+    <img src="/assets/meridian-mark.png" alt="" width="32" height="32" />
+    <span class="word">meridian<b style="color:var(--amber)">·</b><i style="font-style:normal;color:var(--muted)">ux</i></span>
+  </a>
+
+  <input type="checkbox" id="navtoggle" class="navtoggle" hidden />
+  <label class="hamburger" for="navtoggle" aria-label="Menu"><span></span><span></span><span></span></label>
+
+  <nav class="links">
+    <a href="/features" aria-current={is("/features")}>Renderers</a>
+    <a href="/#primitives">Primitives</a>
+    <a href="/#thesis">Thesis</a>
+    <a href="https://github.com/meridian-ux">GitHub</a>
+    <span class="sysdot"><i></i> schemas 0.14.0</span>
+    <a class="nav-cta" href="/#start">Get started</a>
+  </nav>
+</header>

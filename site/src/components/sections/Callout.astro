@@ -1,0 +1,7 @@
+---
+const { callout } = Astro.props;
+---
+<div class="callout">
+  <p>{callout.text}</p>
+  {callout.cite && <div class="cite">{callout.cite}</div>}
+</div>

@@ -1,0 +1,18 @@
+---
+const { compare } = Astro.props;
+const rows = compare.rows || [];
+---
+<div class="cmp">
+  <div class="cmp-row cmp-head">
+    <div class="feat"></div>
+    <div class="ours">{compare.ours_label || "tomato-bazel"}</div>
+    <div class="theirs">{compare.theirs_label || "the alternative"}</div>
+  </div>
+  {rows.map((r) => (
+    <div class="cmp-row">
+      <div class="feat">{r.label}</div>
+      <div class="ours">{r.ours_good && <b>✓ </b>}{r.ours}</div>
+      <div class="theirs">{r.theirs}</div>
+    </div>
+  ))}
+</div>

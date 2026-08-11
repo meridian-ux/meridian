@@ -1,0 +1,9 @@
+# aspect_rules_js recommended
+build --nolegacy_external_runfiles
+common --enable_bzlmod
+
+# Registries: the tomato-bazel registry (rules_astro) first, then the BCR for the
+# rest (aspect_rules_js, rules_nodejs, …). Specifying --registry replaces the
+# default, so the BCR is listed explicitly.
+common --registry=https://registry.tbzl.dev/
+common --registry=https://bcr.bazel.build/

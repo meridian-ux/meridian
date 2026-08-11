@@ -1,0 +1,36 @@
+---
+import StatRow from "./StatRow.astro";
+import RichPanel from "./RichPanel.astro";
+import Coverage from "./Coverage.astro";
+import Stream from "./Stream.astro";
+import Steps from "./Steps.astro";
+import Compare from "./Compare.astro";
+import Callout from "./Callout.astro";
+import { inlineMd } from "../../lib/md.js";
+
+const { s } = Astro.props;
+---
+<section class="fsection">
+  {(s.eyebrow || s.title || s.subtitle) && (
+    <div class="shead">
+      {s.eyebrow && <span class="eyebrow">{s.eyebrow}</span>}
+      {s.title && <h2>{s.title}</h2>}
+      {s.subtitle && <p>{s.subtitle}</p>}
+    </div>
+  )}
+
+  {s.prose && <div class="sprose" set:html={inlineMd(s.prose)} />}
+  {s.stats && <StatRow stats={s.stats.stats} />}
+  {s.panel && <RichPanel panel={s.panel} />}
+  {s.coverage && <Coverage items={s.coverage.items} />}
+  {s.stream && <Stream events={s.stream.events} />}
+  {s.steps && <Steps steps={s.steps.steps} />}
+  {s.compare && <Compare compare={s.compare} />}
+  {s.callout && <Callout callout={s.callout} />}
+  {s.bullets && (
+    <div class="bl" style="margin-top:26px; max-width:66ch">
+      {s.bullets.title && <h3>{s.bullets.title}</h3>}
+      <ul>{(s.bullets.items || []).map((it) => <li>{it}</li>)}</ul>
+    </div>
+  )}
+</section>
