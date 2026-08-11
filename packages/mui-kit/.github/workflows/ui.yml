@@ -51,21 +51,28 @@ jobs:
           npx --yes pnpm@10.25.0 typecheck
           npx --yes pnpm@10.25.0 test
 
-      # rules_chrome / rules_tectonic resolve from the fastverk registry; the rest
-      # from BCR. (The repo .bazelrc leaves registries to the environment.)
+      # Registries come from the checked-in .bazelrc (tbzl.dev, then BCR) — NOT
+      # from flags here.
+      #
+      # These two steps used to pass `--registry=https://registry.fastverk.com/
+      # --registry=https://bcr.bazel.build/`, which was wrong twice over: it named
+      # a retired registry, and it OMITTED tbzl.dev — the only registry ever
+      # observed serving rules_chrome and rules_tectonic, which is exactly what
+      # these steps build. It passed only because MODULE.bazel.lock short-circuits
+      # resolution; any lockfile invalidation would have failed to find them.
+      #
+      # The .bazelrc exists precisely to stop this: "relying on a global config to
+      # find them made this repo unbuildable on any machine that did not happen to
+      # have the right registry list." Overriding it on the command line
+      # reintroduced the bug it was written to fix.
+      #
       # bazelisk is preinstalled on GitHub-hosted runners as `bazel`.
       - name: Real-browser UI test (hermetic Chrome)
-        run: |
-          bazel test //:browser_test \
-            --registry=https://registry.fastverk.com/ \
-            --registry=https://bcr.bazel.build/ \
-            --test_output=errors
+        run: bazel test //:browser_test --test_output=errors
 
       - name: Build the visual catalog
         run: |
-          bazel build //:catalog \
-            --registry=https://registry.fastverk.com/ \
-            --registry=https://bcr.bazel.build/
+          bazel build //:catalog
           cp -L bazel-bin/catalog.pdf meridian-mui-kit-catalog.pdf
 
       - name: Upload catalog artifact
