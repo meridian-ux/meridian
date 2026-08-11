@@ -1,0 +1,41 @@
+{
+  "name": "@savvifi/meridian-chat",
+  "version": "0.25.0",
+  "type": "module",
+  "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream (conversation.proto \u2014 the neutral promotion of botnoc chat.v1) over SSE + POST. Ships the vanilla <m-assistant-panel> web component (zero deps) and a React <Conversation>.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian-chat.git"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./web": {
+      "types": "./src/web.d.ts",
+      "import": "./src/web.js"
+    }
+  },
+  "files": [
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ],
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  }
+}

@@ -45,9 +45,14 @@ js_library(
 npm_package(
     name = "pkg",
     srcs = [
-        "package.json",
+        # NOT the development package.json — that one carries `workspace:*`, which
+        # `npm publish` cannot resolve from the detached $RUNNER_TEMP copy the
+        # release job publishes from. This is the generated manifest with real
+        # versions (tools/publish_manifests.py), mapped onto package.json below.
+        "launchpad.package.json",
         ":launchpad",
     ],
+    replace_prefixes = {"launchpad.package.json": "package.json"},
     package = "@savvifi/meridian-launchpad",
     visibility = ["//visibility:public"],
 )

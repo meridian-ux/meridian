@@ -1,0 +1,56 @@
+{
+  "name": "@savvifi/meridian-mui-kit",
+  "version": "0.25.0",
+  "//packageManager": [
+    "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
+    "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json \u2014 it",
+    "warns that `pnpm.overrides` were ignored and carries on. Those overrides are",
+    "what keeps ONE copy of @savvifi/meridian-proto-ts in this tree; protobuf-es",
+    "types are nominal, so two copies make two PanelDescriptors mutually",
+    "unassignable and nothing typechecks. A drifting toolchain would switch that",
+    "off silently.",
+    "",
+    "MIGRATING TO pnpm 11: move `pnpm.overrides` into pnpm-workspace.yaml FIRST",
+    "and verify the build still resolves a single proto-ts."
+  ],
+  "packageManager": "pnpm@10.25.0",
+  "description": "The MUI ComponentKit for the meridian React renderer \u2014 paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone \u2014 no @aion/ui dependency.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./shell": {
+      "types": "./dist/shell/index.d.ts",
+      "default": "./dist/shell/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "@bufbuild/protobuf": "^2.12.1",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^7.3.7",
+    "@savvifi/meridian-proto-ts": "^0.25.0",
+    "@savvifi/meridian-schemas": "^0.25.0",
+    "@savvifi/meridian-web-react": "^0.25.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "overrides": {
+    "@savvifi/meridian-web-react": {
+      "@savvifi/meridian-proto-ts": "0.21.0"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,14 +1,15 @@
 {
   "name": "@savvifi/meridian-proto-ts",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "type": "module",
-  "description": "Canonical protobuf-es TypeScript types for meridian.ui.v1 (PanelDescriptor) + meridian.theme.v1 (Theme). Generated from proto/ — the single source the web renderers and aion consume.",
+  "description": "Canonical protobuf-es TypeScript types for meridian.ui.v1 (PanelDescriptor) + meridian.theme.v1 (Theme). Generated from schemas/proto \u2014 the single source the web renderers and aion consume.",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meridian-ux/meridian-schemas.git"
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/proto-ts"
   },
   "exports": {
     ".": {
@@ -24,6 +25,12 @@
       "default": "./google/api/*.js"
     }
   },
+  "files": [
+    "proto/**/*.js",
+    "proto/**/*.d.ts",
+    "google/**/*.js",
+    "google/**/*.d.ts"
+  ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1"
   }

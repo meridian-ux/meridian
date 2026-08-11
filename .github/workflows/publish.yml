@@ -1,0 +1,167 @@
+name: publish
+
+# ONE lockstep release, replacing five near-identical tag-triggered workflows.
+#
+# THE FILENAME IS PART OF THE CONTRACT. npm trusted publishing binds a package to
+# owner/repo AND workflow filename, so every one of the six packages must have its
+# trusted publisher pointed at `meridian-ux/meridian` + `publish.yml`. Keeping the
+# name the absorbed repos used means only the repo half changes.
+#
+# Repoint npm BEFORE the first tag. There is no token fallback — OIDC is the only
+# credential here — so a tag pushed ahead of the settings change fails for all six
+# at once. That is the safe way for it to fail, but it is still a wasted tag.
+#
+# WHY LOCKSTEP AND NOT SIX INDEPENDENT RELEASES. @savvifi/meridian-proto-ts
+# resolved to five versions across these packages, and protobuf-es emits NOMINAL
+# types: two copies of PanelDescriptor are mutually unassignable, and a consumer
+# cannot fix it from its own package.json. The monorepo makes that
+# unrepresentable in DEVELOPMENT; releasing as a matched set is what makes it
+# unrepresentable for a CONSUMER. Publishing one package alone would put the
+# skew straight back.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag. Blank ⇒ derived from the version (prerelease → its identifier, e.g. 0.25.0-rc.1 → rc; else latest)."
+        required: false
+        default: ""
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write # OIDC trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+
+      # npm ≥ 11.5.1 is required for OIDC trusted publishing.
+      - name: npm with OIDC support
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Refuse to publish a tag that disagrees with the repo. Everything derives
+      # from MODULE.bazel's module(version): the six npm manifests via
+      # tools/publish_manifests.py, and //:Cargo.toml's [workspace.package]
+      # version. A v0.25.1 tag on a 0.25.0 tree would otherwise publish 0.25.0
+      # under a name nobody can find.
+      - name: The tag, the module and the manifests must agree
+        run: |
+          set -euo pipefail
+          python3 tools/publish_manifests.py --check
+          VERSION="$(python3 -c "
+          import re,pathlib
+          t=pathlib.Path('MODULE.bazel').read_text()
+          print(re.search(r'version = \"([^\"]+)\"', t).group(1))")"
+          echo "module version: $VERSION"
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            TAGV="${GITHUB_REF_NAME#v}"
+            if [ "$TAGV" != "$VERSION" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match MODULE.bazel version $VERSION"
+              exit 1
+            fi
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Resolve the dist-tag
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            case "$VERSION" in
+              *-*) TAG="$(echo "${VERSION#*-}" | cut -d. -f1)" ;;
+              *)   TAG="latest" ;;
+            esac
+          fi
+          echo "dist-tag: $TAG"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Build the packages
+        run: |
+          bazel build \
+            //schemas/proto:proto_ts_pkg \
+            //schemas:schemas_pkg \
+            //packages/web-react:pkg \
+            //packages/chat:pkg \
+            //packages/launchpad:pkg
+          pnpm --filter @savvifi/meridian-mui-kit build
+
+      # Order matters: proto-ts first, then schemas (which depends on it), then
+      # the renderers. npm resolves dependencies at INSTALL time rather than
+      # publish time so a wrong order would not fail here — it would just leave a
+      # window in which `npm install @savvifi/meridian-schemas` is broken for
+      # anyone who tries it.
+      #
+      # Each publishes from a DETACHED copy outside the repo. That copy has no
+      # workspace root, no lockfile and no siblings, which is exactly why the
+      # tarballs must carry generated manifests with real versions rather than
+      # `workspace:*` — see tools/publish_manifests.py.
+      - name: Publish, in dependency order
+        run: |
+          set -euo pipefail
+          publish_bazel() {
+            local out="$1" name="$2"
+            rm -rf "$RUNNER_TEMP/$name"
+            cp -RL "$out" "$RUNNER_TEMP/$name"
+            ( cd "$RUNNER_TEMP/$name"
+              node -e '
+                const p = require("./package.json");
+                const bad = Object.entries({...p.dependencies, ...p.peerDependencies})
+                  .filter(([, v]) => String(v).startsWith("workspace:"));
+                if (bad.length) {
+                  console.error("workspace: protocol reached the tarball:", bad);
+                  process.exit(1);
+                }
+                if (p.version !== process.env.VERSION) {
+                  console.error(`tarball says ${p.version}, expected ${process.env.VERSION}`);
+                  process.exit(1);
+                }
+              '
+              npm publish --tag "$TAG"
+            )
+          }
+
+          publish_bazel bazel-bin/schemas/proto/proto_ts_pkg   proto-ts
+          publish_bazel bazel-bin/schemas/schemas_pkg          schemas
+          publish_bazel bazel-bin/packages/web-react/pkg       web-react
+          publish_bazel bazel-bin/packages/chat/pkg            chat
+          publish_bazel bazel-bin/packages/launchpad/pkg       launchpad
+
+          # mui-kit builds its dist with tsc rather than Bazel, so it publishes
+          # from its own directory — with the generated manifest swapped in, since
+          # its package.json carries workspace:* like every other development one.
+          rm -rf "$RUNNER_TEMP/mui-kit"
+          cp -RL packages/mui-kit "$RUNNER_TEMP/mui-kit"
+          cp packages/mui-kit/mui-kit.package.json "$RUNNER_TEMP/mui-kit/package.json"
+          ( cd "$RUNNER_TEMP/mui-kit" && rm -rf node_modules && npm publish --access public --tag "$TAG" )
+
+      - name: What shipped
+        run: |
+          echo "### Published $VERSION as \`$TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          for p in proto-ts schemas web-react mui-kit chat launchpad; do
+            echo "- @savvifi/meridian-$p@$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          done
