@@ -125,11 +125,16 @@ jobs:
           cargo build --bin meridian-tui
           ./target/debug/meridian-tui --help > /dev/null
           echo "not a proto" > /tmp/junk.bin
-          if ./target/debug/meridian-tui /tmp/junk.bin 2>&1 | grep -q "not a wire-format"; then
-            echo "rejects a non-descriptor cleanly"
-          else
-            echo "::error::meridian-tui did not reject a non-descriptor"; exit 1
-          fi
+          # Captured, not piped. Under `set -o pipefail` a pipeline inherits the
+          # NON-ZERO exit meridian-tui returns *because* it rejected the file, so
+          # `if prog | grep -q ...` reports failure however the grep went. The
+          # first version of this step failed for exactly that reason — the test
+          # was wrong, the binary was right.
+          out="$(./target/debug/meridian-tui /tmp/junk.bin 2>&1 || true)"
+          case "$out" in
+            *"not a wire-format"*) echo "rejects a non-descriptor cleanly" ;;
+            *) echo "::error::expected a wire-format complaint, got: $out"; exit 1 ;;
+          esac
 
       # ⛔ NOT YET GATED: cargo fmt --check and clippy -D warnings both fail today
       # on pre-existing drift inherited from meridian-uiview-core (formatting in
