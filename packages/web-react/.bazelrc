@@ -1,0 +1,12 @@
+common --enable_bzlmod
+
+# rules_vite (the vitest launcher) lives in the tbzl registry; everything else
+# resolves from BCR. registry.tbzl.dev is the estate's single private registry —
+# it serves rules_vite 0.1.0 (MODULE.bazel + source.json), so the older
+# raw.githubusercontent.com/tomato-bazel path is no longer needed here.
+common --registry=https://registry.tbzl.dev/
+common --registry=https://bcr.bazel.build/
+
+build --announce_rc
+build --keep_going
+test --test_output=errors
