@@ -6,19 +6,26 @@ license.workspace = true
 description = "ratatui-based renderer for Meridian PanelDescriptors."
 
 [dependencies]
-# The first-party `meridian_uiview` core + `theme_proto` are supplied cross-repo
-# by Bazel (`@meridian_uiview_core//rust/uiview` + `:theme_proto` in BUILD.bazel),
-# NOT as a cargo path dep — meridian-uiview-core is a separate Bazel module. So
-# standalone `cargo build` of this crate is not wired; Bazel is authoritative.
+# The first-party core, now by PATH. Under Bazel these still come from the BUILD
+# deps (@meridian_uiview_core//rust/uiview and :theme_proto were rewritten to
+# //crates/core/rust/uiview by the merge); under cargo they resolve here. Both
+# land the same crate names, so no source file changes.
+meridian-uiview = { workspace = true }
+theme-proto = { workspace = true }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
 prost = { workspace = true }
 regex = { workspace = true }
-# serde_json is supplied cross-repo by Bazel (`@meridian_uiview_core//rust:serde_json`)
-# so the `serde_json::Value` that crosses the uiview API boundary is one shared
-# crate instance; it is intentionally NOT a cargo dep here.
+# serde_json::Value crosses the uiview API boundary (RpcInvoker / render_table /
+# RenderedRow). Bazel takes it from //crates/core/rust:serde_json so both sides
+# link ONE crate instance — cross-module @crates copies are distinct types even at
+# the same version. Under one cargo workspace that hazard cannot arise: there is
+# exactly one serde_json in the graph.
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 
-# No [build-dependencies]/[features]: the theme prost types come from the Bazel
-# `theme_proto` rust_prost_library (@meridian_uiview_core//rust/uiview:theme_proto)
-# as a normal dep — there is no cargo/prost-build fallback.
+# The TUI is a binary as well as a library. It could not be one before: the crate
+# depended on types only Bazel could generate, so there was nothing to run.
+[[bin]]
+name = "meridian-tui"
+path = "src/main.rs"

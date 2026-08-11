@@ -774,6 +774,10 @@ mod tests {
             source: "graph TD; A-->B".into(),
             data: None,
             alt: "flowchart A to B".into(),
+            // ..Default: this fixture asserts the alt/source ladder, not the
+            // shape of GrammarPanel. Enumerating every field made additive
+            // schema growth (populate, 0.24.0) a test failure.
+            ..Default::default()
         };
         let t: String = grammar_ladder(&with_alt, "mermaid", &palette)
             .iter()
@@ -806,6 +810,10 @@ mod tests {
             trend_override: 0,
             higher_is_better: Some(true),
             caption: String::new(),
+            // ..Default: this asserts the computed down-delta, not StatPanel's
+            // shape. Enumerating every field turned additive growth (populate /
+            // previous_field / display_field) into a test failure.
+            ..Default::default()
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();

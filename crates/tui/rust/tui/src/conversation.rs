@@ -221,6 +221,38 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
             vec![Line::styled("  ────────", palette.border_style())]
         }
         Some(block::Kind::Table(table)) => table_lines(table, palette, base),
+        // ── Block.view: a DECLARED GAP, drawn rather than dropped ─────────────
+        //
+        // `ViewDescriptor view = 11` arrived in schemas 0.21.0 and this renderer
+        // never grew an arm for it. Nothing caught that, because until the
+        // monorepo merge this crate could not be compiled at all: it named
+        // `meridian_uiview` and `theme_proto`, which only Bazel's
+        // rust_prost_library produced. One `cargo build` against the current
+        // schema, and rustc's exhaustivity check found it immediately.
+        //
+        // conversation.proto says a renderer without view support "falls through
+        // to its unknown-kind behaviour (draws nothing), so emitting one is safe
+        // against older clients." Drawing NOTHING is not what this file does with
+        // anything else, and it is the worse choice: a transcript that silently
+        // omits a block reads as a complete transcript. So the slot is occupied
+        // visibly, naming the view, the same way the empty-block arm does.
+        //
+        // Drawing it properly means running the slot/layout tier inside a
+        // conversation block — real work, not a stopgap, and gated on `Layout`
+        // being more than four empty marker messages. Recorded as a gap in
+        // schemas' conformance/coverage.json rather than left implicit here.
+        Some(block::Kind::View(view)) => {
+            let label = if view.title.is_empty() { &view.id } else { &view.title };
+            let mut lines = vec![Line::from(vec![
+                Span::styled("  ▤ ", palette.accent_line()),
+                Span::styled(label.clone(), palette.header()),
+            ])];
+            lines.push(Line::styled(
+                format!("    ({} slot(s) — not drawn in a terminal transcript)", view.slots.len()),
+                palette.meta(),
+            ));
+            lines
+        }
         // A block kind this renderer doesn't know (a newer schema than this
         // build) still occupies its slot — visibly, rather than vanishing.
         None => vec![Line::styled("  (empty block)", palette.meta())],

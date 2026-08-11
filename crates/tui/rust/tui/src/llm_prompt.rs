@@ -163,6 +163,7 @@ mod tests {
                     default_value: default.to_string(),
                     ..Default::default()
                 })),
+                ..Default::default()
             }),
             multi_line: false,
             rows: 0,

@@ -19,3 +19,4 @@ bazel-*
 # committed source of truth.
 packages/proto-ts/proto/
 packages/proto-ts/google/
+target/

@@ -1,0 +1,68 @@
+# ONE Cargo workspace, replacing the two roots the merge absorbed
+# (crates/core/rust and crates/tui/rust, both of which declared their own
+# [workspace] specifically to stop a parent absorbing them — a guard that becomes
+# wrong the moment this file exists, which is the point of the merge).
+#
+# What this unlocks: crates/tui can finally take PATH dependencies on the core.
+# Until now it named `meridian_uiview`, `theme_proto` and `serde_json` as
+# CROSS-REPO BAZEL LABELS (@meridian_uiview_core//rust/uiview and friends), so
+# `cargo build` of the TUI was not merely unwired — it was impossible, because the
+# crates it named had no cargo producer anywhere. That is why meridian-tui has no
+# [[bin]] and cannot be run: there was no way to run one.
+#
+# The two halves that had to land first:
+#   * crates/core/rust/uiview      — build.rs + prost-build over a committed
+#     descriptor set (meridian-uiview-core#6)
+#   * crates/core/rust/theme-proto — the same for meridian.theme.v1, as a separate
+#     crate because Bazel makes it one and crates/tui/src/theme.rs writes
+#     `pub use theme_proto::meridian::theme::v1::*` (meridian-uiview-core#7)
+#
+# Bazel is unaffected and remains the authority: --cfg=bazel_proto selects the
+# rust_prost_library instead, and the BUILD deps still point at the Bazel targets.
+[workspace]
+resolver = "2"
+members = [
+    "crates/core/rust/uiview",
+    "crates/core/rust/theme-proto",
+    "crates/tui/rust/tui",
+]
+
+# One version for the whole repo, matching module(version) and every published
+# package.json. Before the merge these disagreed even INSIDE a single repo —
+# crates/core published Bazel module 0.6.0 from crates pinned at 0.1.0 — because
+# only meridian-schemas ever gated the three version axes against each other.
+[workspace.package]
+version = "0.25.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/meridian-ux/meridian"
+
+[workspace.dependencies]
+# ── first-party, by path. The whole reason this workspace exists. ─────────────
+meridian-uiview = { path = "crates/core/rust/uiview" }
+theme-proto = { path = "crates/core/rust/theme-proto" }
+
+# ── shared third-party ────────────────────────────────────────────────────────
+# The two absorbed workspaces already agreed on everything here. The three splits
+# the review found — thiserror 1.0 vs 2, rust-version 1.95.0 vs unset, and
+# MIT vs "MIT OR Apache-2.0" — were all between core/tui and proto/mcp, and
+# proto/mcp went to meridian-internal. So there is nothing to reconcile: both
+# halves of this workspace were already on thiserror 2, both declared
+# "MIT OR Apache-2.0", and neither pinned rust-version.
+prost = "0.13"
+prost-build = "0.13"
+prost-types = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+ratatui = "0.29"
+crossterm = "0.28"
+regex = "1"
+
+# wasm-bindgen is an EXACT pin and must stay one: it has to match the
+# wasm-bindgen-cli baked into rules_rust_wasm_bindgen's default toolchain, or the
+# IR schema versions diverge and post-processing fails. Carried across the merge
+# verbatim, comment included.
+wasm-bindgen = "=0.2.105"
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
