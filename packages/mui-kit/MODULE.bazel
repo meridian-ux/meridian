@@ -1,0 +1,43 @@
+module(
+    name = "meridian_mui_kit",
+    version = "0.1.0",
+)
+
+# meridian-mui-kit — the MUI ComponentKit for the meridian React renderer.
+# The npm package builds/tests via pnpm + vitest (fast jsdom inner loop). This
+# Bazel module adds the REAL-BROWSER surface: esbuild bundles the fixture harness,
+# rules_chrome drives it through Playwright on hermetic Chrome for Testing
+# (0-tolerance UI tests + screenshot capture), and rules_tectonic compiles the
+# screenshots into a visual catalog PDF of every primitive + layout.
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
+bazel_dep(name = "aspect_rules_esbuild", version = "0.26.0")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# Hermetic Chrome for Testing + the Playwright JS test macro.
+bazel_dep(name = "rules_chrome", version = "0.1.0")
+# LaTeX → PDF via hermetic tectonic (the visual catalog).
+bazel_dep(name = "rules_tectonic", version = "0.2.0")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.11.0")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version = "5.6.3")
+use_repo(rules_ts_ext, "npm_typescript")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
+
+chrome = use_extension("@rules_chrome//chrome:extensions.bzl", "chrome")
+use_repo(chrome, "chrome", "chromedriver")
+register_toolchains("@chrome//:chrome_toolchain_def")
+
+tectonic = use_extension("@rules_tectonic//tectonic:extensions.bzl", "tectonic")
+use_repo(tectonic, "tectonic")
+register_toolchains("@tectonic//:tectonic_toolchain_def")

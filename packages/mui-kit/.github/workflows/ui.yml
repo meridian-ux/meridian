@@ -1,0 +1,89 @@
+name: ui
+
+# Real-browser UI gate + visual catalog. Runs the 0-tolerance browser test in
+# hermetic Chrome for Testing (rules_chrome), then builds the rules_tectonic
+# catalog PDF and publishes it as a downloadable workflow artifact — and attaches
+# it to the GitHub release when a `catalog-*` tag is pushed.
+on:
+  push:
+    branches: [main]
+    tags: ["catalog-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # needed to attach the PDF to a release on catalog-* tags
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # System libraries Chrome for Testing needs on Linux. Playwright knows the
+      # right set per Ubuntu version, so let it install them (chromium deps only).
+      - name: Chrome system dependencies
+        run: npx --yes playwright@1.59.0 install-deps chromium
+
+      # pnpm-lock.yaml is the ONLY dependency tree Bazel sees (MODULE.bazel's
+      # npm_translate_lock reads it). package.json is not consulted, so a bump that
+      # edits package.json without regenerating the lock leaves the browser bundle
+      # silently linked against the OLD packages — which is exactly how the 0.17
+      # RepeatedField rename shipped a red main. Fail fast and loudly instead.
+      - name: pnpm-lock.yaml is in sync with package.json
+        run: npx --yes pnpm@10 install --frozen-lockfile --lockfile-only
+
+      # ⛔ THIS STEP DID NOT EXIST, and `tests/` HAS NEVER GATED A MERGE.
+      #
+      # The browser test below is the loud gate and it is a good one, but it renders — it
+      # cannot say whether `matchCommands` ranks a subsequence match correctly, whether
+      # `activeNodeId` picks the LONGEST route match rather than the first, or whether a
+      # skin's tokens survive `themeProtoToMuiTheme`. Those are the pure functions, they are
+      # where the subtle wrongness lives, and 124 tests covering them ran only on whichever
+      # laptop last typed `pnpm test`.
+      #
+      # ⛔ pnpm 10.25.0 EXACTLY — pnpm 11 silently ignores `pnpm.overrides`, which is what
+      # holds the single-copy invariant that makes protobuf-es's nominal types work at all.
+      - name: Typecheck and unit tests
+        run: |
+          npx --yes pnpm@10.25.0 install --frozen-lockfile
+          npx --yes pnpm@10.25.0 typecheck
+          npx --yes pnpm@10.25.0 test
+
+      # Registries come from the checked-in .bazelrc (tbzl.dev, then BCR) — NOT
+      # from flags here.
+      #
+      # These two steps used to pass `--registry=https://registry.fastverk.com/
+      # --registry=https://bcr.bazel.build/`, which was wrong twice over: it named
+      # a retired registry, and it OMITTED tbzl.dev — the only registry ever
+      # observed serving rules_chrome and rules_tectonic, which is exactly what
+      # these steps build. It passed only because MODULE.bazel.lock short-circuits
+      # resolution; any lockfile invalidation would have failed to find them.
+      #
+      # The .bazelrc exists precisely to stop this: "relying on a global config to
+      # find them made this repo unbuildable on any machine that did not happen to
+      # have the right registry list." Overriding it on the command line
+      # reintroduced the bug it was written to fix.
+      #
+      # bazelisk is preinstalled on GitHub-hosted runners as `bazel`.
+      - name: Real-browser UI test (hermetic Chrome)
+        run: bazel test //:browser_test --test_output=errors
+
+      - name: Build the visual catalog
+        run: |
+          bazel build //:catalog
+          cp -L bazel-bin/catalog.pdf meridian-mui-kit-catalog.pdf
+
+      - name: Upload catalog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meridian-mui-kit-catalog
+          path: meridian-mui-kit-catalog.pdf
+          if-no-files-found: error
+
+      - name: Attach catalog to release (catalog-* tags)
+        if: startsWith(github.ref, 'refs/tags/catalog-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" meridian-mui-kit-catalog.pdf --clobber --repo "${GITHUB_REPOSITORY}"

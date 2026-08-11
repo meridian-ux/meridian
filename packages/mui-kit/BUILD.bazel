@@ -1,0 +1,277 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary", "js_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_tectonic//tectonic:defs.bzl", "tectonic_pdf")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages(name = "node_modules")
+
+# The fixture harness bundled into a single self-contained IIFE (React + MUI +
+# meridian + the kit source all inlined). Real Chrome loads this via setContent;
+# it exposes window.meridianHarness.{list,render}. One bundle drives both the
+# playwright tests and the screenshot catalog.
+esbuild(
+    name = "harness_bundle",
+    srcs = glob(
+        [
+            "harness/**/*.tsx",
+            "harness/**/*.ts",
+            "src/**/*.tsx",
+            "src/**/*.ts",
+        ],
+        allow_empty = True,
+    ),
+    bundle = True,
+    entry_point = "harness/entry.tsx",
+    format = "iife",
+    output = "harness.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+# Real-browser UI test (0 tolerance): renders every fixture in hermetic Chrome
+# for Testing (the @chrome binary from rules_chrome) via Playwright and asserts
+# real rendering + interactions (pagination clicks re-fetch, tabs switch, forms
+# edit, actions render). We drive @chrome directly rather than via rules_chrome's
+# playwright macro, whose submodule BUILD loads dev-only rules not visible to
+# consumers in 0.1.0. arg[0] = @chrome launcher, arg[1] = the harness bundle.
+js_test(
+    name = "browser_test",
+    args = [
+        "$(rootpath @chrome//:chrome)",
+        "$(rootpath :harness.bundle.js)",
+    ],
+    data = [
+        ":harness.bundle.js",
+        ":node_modules/playwright",
+        "@chrome//:chrome",
+    ],
+    entry_point = "tests_browser/render.js",
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = [
+        "PATH",
+        "HOME",
+    ],
+)
+
+# ── Visual catalog: screenshots → rules_tectonic PDF ────────────────────────
+
+# The screenshot capturer (renders every fixture in @chrome, writes a PNG each +
+# a figures.tex fragment).
+js_binary(
+    name = "capture_bin",
+    data = [":node_modules/playwright"],
+    entry_point = "tests_browser/capture.js",
+)
+
+# The fixtures captured — must match window.meridianHarness.list() in the harness.
+# (tectonic_pdf stages individual files, not TreeArtifacts, so we declare each.)
+# capture.js emits a figures.tex entry for EVERY fixture in list(), so a fixture
+# missing here is an UNDECLARED output: the PNG still lands in bazel-out, and the
+# unsandboxed process-wrapper strategy lets tectonic read it anyway — until the
+# capture action is served from cache, which restores only the declared outputs and
+# then \includegraphics halts on the missing file. Keep this list in sync.
+FIXTURES = [
+    "table-client",
+    "table-offset",
+    "table-cursor",
+    "form-readonly",
+    "form-edit",
+    "form-typed-edit",
+    "form-typed-readonly",
+    "form-repeated-nested",
+    "form-nav-groups",
+    "prompt",
+    "lro",
+    "fallback",
+    "layout-stacked",
+    "layout-tabbed",
+    "layout-two-column",
+    "table-empty",
+    "table-loading",
+    "table-error",
+    "dark-table",
+    "dark-detail",
+    "dark-tabbed",
+    "dark-form-typed",
+    "skin-indigo",
+    # The frame. Layout is the one thing a unit test cannot judge — whether the rail
+    # reserves its width, whether the dock reflows the content rather than covering it,
+    # whether the app bar sits above the drawer.
+    "shell-full",
+    "shell-restricted",
+    "shell-chat",
+    "shell-page-header",
+    "shell-dark",
+]
+
+# Build action: run the capturer to produce a labeled PNG per fixture + a
+# figures.tex fragment (the catalog inputs).
+js_run_binary(
+    name = "catalog_figures",
+    srcs = [
+        ":harness.bundle.js",
+        "@chrome//:chrome",
+    ],
+    args = [
+        "$(execpath @chrome//:chrome)",
+        "$(execpath :harness.bundle.js)",
+        "figures",
+    ],
+    outs = ["figures/%s.png" % f for f in FIXTURES] + ["figures/figures.tex"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    tool = ":capture_bin",
+)
+
+# The visual catalog PDF — every meridian primitive + layout, real-Chrome
+# screenshots typeset via hermetic tectonic.
+tectonic_pdf(
+    name = "catalog",
+    srcs = [":catalog_figures"],
+    main = "catalog/catalog.tex",
+)
+
+# ── Studio catalog: render the REAL studio views (projected to ViewDescriptors) ──
+# Names must match harness/studio-viewdescriptors.json entries (from studio-api's
+# meridian-catalog-export).
+# ── meridian-proto catalog ───────────────────────────────────────────────────
+#
+# The third producer this kit renders, and the one with the least human input: these
+# views were derived from PROTOBUF DESCRIPTORS alone. Nobody authored them — a
+# resource model was recovered from google.api.* annotations and projected.
+#
+# The bundle is meridian-proto's own `render-bundle` golden, so what is drawn here is
+# byte-identical to what its test suite pins.
+
+# Names must match the `name` of each entry in harness/proto-viewdescriptors.json;
+# the capture tool writes one PNG per view and tectonic_pdf needs them declared.
+PROTO_VIEWS = [
+    "layout.list",
+    "layout.detail",
+    "resource.list",
+    "resource.detail",
+    "service.list",
+    "service.detail",
+    "target.list",
+    "target.detail",
+    "invoke.ResolveCommands",
+    "service.meridian.proto.v1.ProjectionService",
+]
+
+esbuild(
+    name = "proto_harness_bundle",
+    srcs = glob(
+        ["harness/**/*.tsx", "harness/**/*.ts", "src/**/*.tsx", "src/**/*.ts"],
+        allow_empty = True,
+    ) + ["harness/proto-viewdescriptors.json"],
+    bundle = True,
+    entry_point = "harness/proto-entry.tsx",
+    format = "iife",
+    output = "proto_harness.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_run_binary(
+    name = "proto_catalog_figures",
+    srcs = [
+        ":proto_harness.bundle.js",
+        "@chrome//:chrome",
+    ],
+    args = [
+        "$(execpath @chrome//:chrome)",
+        "$(execpath :proto_harness.bundle.js)",
+        "proto-figures",
+    ],
+    outs = ["proto-figures/%s.png" % f for f in PROTO_VIEWS] + ["proto-figures/figures.tex"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    tool = ":capture_bin",
+)
+
+tectonic_pdf(
+    name = "proto_catalog",
+    srcs = [":proto_catalog_figures"],
+    main = "catalog/proto-catalog.tex",
+)
+
+STUDIO_VIEWS = [
+    "documents-list", "products-list", "tasks-list", "plan-years-list",
+    "environments-list", "environment-mappings-list", "platforms-list",
+    "sponsors-list", "organizations-list", "teams-list", "modules-list",
+    "documents-detail", "products-detail", "tasks-detail", "plan-years-detail",
+    "environments-detail", "environment-mappings-detail", "platforms-detail",
+    "sponsors-detail", "organizations-detail", "teams-detail", "modules-detail",
+]
+
+esbuild(
+    name = "studio_harness_bundle",
+    srcs = glob(
+        ["harness/**/*.tsx", "harness/**/*.ts", "src/**/*.tsx", "src/**/*.ts"],
+        allow_empty = True,
+    ) + ["harness/studio-viewdescriptors.json"],
+    bundle = True,
+    entry_point = "harness/studio-entry.tsx",
+    format = "iife",
+    output = "studio_harness.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_run_binary(
+    name = "studio_catalog_figures",
+    srcs = [
+        ":studio_harness.bundle.js",
+        "@chrome//:chrome",
+    ],
+    args = [
+        "$(execpath @chrome//:chrome)",
+        "$(execpath :studio_harness.bundle.js)",
+        "studio-figures",
+    ],
+    outs = ["studio-figures/%s.png" % f for f in STUDIO_VIEWS] + ["studio-figures/figures.tex"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    tool = ":capture_bin",
+)
+
+tectonic_pdf(
+    name = "studio_catalog",
+    srcs = [":studio_catalog_figures"],
+    main = "catalog/studio-catalog.tex",
+)

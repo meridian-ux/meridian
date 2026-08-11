@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "@savvifi/meridian-proto-ts": ["./node_modules/@savvifi/meridian-proto-ts"],
+      "@savvifi/meridian-proto-ts/*": ["./node_modules/@savvifi/meridian-proto-ts/*"]
+    }
+  },
+  "include": ["src", "tests", "harness"]
+}
