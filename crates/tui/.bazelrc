@@ -1,0 +1,27 @@
+common --enable_bzlmod
+
+# MODULE.bazel declares the crate_universe extension with isolate = True (to
+# namespace this repo's `crates` against meridian-uiview-core's, which is also
+# called `crates`), and meridian_uiview_core isolates its own for the same
+# reason. Isolated extension usages are still behind an experimental flag, so
+# without this line EVERY bazel command here dies at MODULE parse: "parameter
+# 'isolate' is experimental". It was missing — which is a large part of why this
+# repo has no CI and has not been built. meridian-chat already carries the same
+# line, for its npm extension, with the same explanation.
+common --experimental_isolated_extension_usages
+
+# Use the toolchain-resolved (prebuilt) protoc rather than compiling it from
+# source — building meridian-uiview-core's rust_prost_library targets
+# (theme_proto / uiview_proto) cross-repo invokes protoc, and the CLT-only dev
+# host can't build protoc from source (nor should CI).
+common --incompatible_enable_proto_toolchain_resolution
+common --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
+
+# meridian_uiview_core resolves from the tbzl registry; rules_rust,
+# protobuf, googleapis, etc. from BCR.
+common --registry=https://registry.tbzl.dev/
+common --registry=https://bcr.bazel.build/
+
+build --announce_rc
+build --keep_going
+test --test_output=errors

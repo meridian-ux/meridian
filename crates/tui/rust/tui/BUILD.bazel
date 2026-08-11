@@ -1,0 +1,48 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["Cargo.toml"])
+
+rust_library(
+    name = "tui",
+    srcs = [
+        "src/content.rs",
+        "src/conversation.rs",
+        "src/invoker.rs",
+        "src/launchpad.rs",
+        "src/lib.rs",
+        "src/llm_prompt.rs",
+        "src/prompt.rs",
+        "src/state.rs",
+        "src/theme.rs",
+        "src/widget.rs",
+    ],
+    crate_name = "meridian_tui",
+    edition = "2021",
+    # theme.rs re-exports the `theme_proto` rust_prost_library types directly
+    # (the single, Bazel-native codegen path — no cargo/prost-build fallback).
+    deps = [
+        # The shared rust core, consumed cross-repo from meridian-uiview-core:
+        # the native `uiview` lib (PanelDescriptor types via the `proto` module,
+        # render/scoring helpers, RequestBuilder) + the `theme_proto` prost crate.
+        "@meridian_uiview_core//rust/uiview",
+        "@meridian_uiview_core//rust/uiview:theme_proto",
+        # serde_json::Value crosses the uiview API boundary (RpcInvoker / render_table
+        # / RenderedRow), so take it from meridian-uiview-core's alias — NOT our own
+        # @crates — to link the SAME crate instance (cross-module @crates copies are
+        # distinct types even at the same version).
+        "@meridian_uiview_core//rust:serde_json",
+        "@crates//:crossterm",
+        "@crates//:prost",
+        "@crates//:ratatui",
+        "@crates//:regex",
+        "@crates//:thiserror",
+    ],
+)
+
+rust_test(
+    name = "tui_test",
+    crate = ":tui",
+    edition = "2021",
+)
