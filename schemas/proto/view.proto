@@ -8,11 +8,11 @@
 // actions. It is brand- and framework-neutral: renderers lay it out, and a
 // renderer's ComponentKit paints the panels.
 //
-// A ViewDescriptor is pure data. aion's graph is the backend: it stores
+// A ViewDescriptor is pure data. A graph-backed host is the backend: it stores
 // composition instances (as graph resources) and serves the entity data the
-// panels populate from (via the host's RpcInvoker). The projection
-// aion-entity-view -> ViewDescriptor lives in the consumer (meridian-bridge);
-// the descriptor here carries no aion-domain semantics.
+// panels populate from (via the host's RpcInvoker). The projection from a host's
+// own entity-view type to ViewDescriptor lives in the CONSUMER, not here; the
+// descriptor carries no host-domain semantics.
 //
 // Depends on panel.proto (PanelDescriptor) and rpc.proto (RpcCall).
 syntax = "proto3";

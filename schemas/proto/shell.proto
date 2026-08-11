@@ -4,10 +4,10 @@
 // The tier ABOVE NavTree (nav_tree.proto) and Launchpad (command_palette.proto). Those two
 // already declare the rail you browse and the overlay you summon; nothing declared the
 // FRAME that holds them — the header, the identity menu, the tenant selector, the assistant
-// dock — so every host has reinvented it. That is not hypothetical: `@aion/app-shell` is
-// 11,486 lines, and a second application that wanted the same frame could not take it,
-// because the package hardcodes aion's nav source, aion's session query, aion's
-// organization list and aion's router. It vendored 1,735 lines instead.
+// dock — so every host has reinvented it. That is not hypothetical: one production host's
+// app-shell package is 11,486 lines, and a second application that wanted the same frame
+// could not take it, because the package hardcodes that host's nav source, its session
+// query, its organization list and its router. It vendored 1,735 lines instead.
 //
 // Brand- and framework-neutral, like every meridian descriptor: it names the frame's
 // INTENT; each surface transcodes it to whatever it can display.
@@ -116,8 +116,8 @@ message AppShell {
 // A tenant/workspace/organization selector shown in the frame.
 //
 // The options are DATA — resolved by whoever knows them, which differs per host and is
-// exactly why this could not stay host-side: aion lists an organization resource from its
-// graph, while another host may derive the one option a verified session proves. Selecting
+// exactly why this could not stay host-side: a graph-backed host lists an organization
+// resource from its graph, while another may derive the one option a verified session proves. Selecting
 // is a host callback; the descriptor says what may be chosen and what is chosen now.
 message ScopeSelector {
   // Field label (e.g. "Organization", "Workspace", "Tenant").

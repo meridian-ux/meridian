@@ -57,7 +57,7 @@ import { SHELL_FIXTURES } from "./shell-fixtures.js";
 
 // ── sample skins, so the catalog shows themed MUI (light + dark + a 2nd skin) ──
 const skin = create(ThemeSchema, {
-  id: "savvi",
+  id: "demo",
   light: create(PaletteSchema, {
     bg: "#ffffff",
     surface: "#ffffff",
@@ -136,7 +136,7 @@ const productActions = ["edit", "clone", "delete", "export_yaml"].map((id) => ({
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "savvi.studio.product", method: id }),
+  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
 }));
 
 const productColumns = [
@@ -156,7 +156,7 @@ function tablePanel(method: string, rowsField: string, pagination?: unknown) {
         rowsField,
         placeholder: "No products.",
         columns: productColumns,
-        populate: create(RpcCallSchema, { service: "savvi.studio.product", method }),
+        populate: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pagination: pagination as any,
       }),
@@ -185,7 +185,7 @@ const configForm = (mode: FormMode) =>
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "savvi.studio.product", method: "save" }),
+        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
         fields: [
           create(FormFieldSchema, { fieldId: "type", label: "Product Type" }),
           create(FormFieldSchema, { fieldId: "status", label: "Review Status" }),
@@ -287,7 +287,7 @@ function typedFormPanel(mode: FormMode) {
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "savvi.studio.product", method: "save" }),
+        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
         fields: typedFields(),
       }),
     },
@@ -305,7 +305,7 @@ function repeatedNestedPanel(mode: FormMode) {
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "savvi.studio.product", method: "save" }),
+        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
         fields: [
           create(FormFieldSchema, {
             fieldId: "variants",
@@ -355,7 +355,7 @@ function navGroupsPanel(): ReturnType<typeof typedFormPanel> {
       value: create(FormPanelSchema, {
         mode: FormMode.EDIT,
         itemNoun: "site",
-        submit: create(RpcCallSchema, { service: "savvi.studio.site", method: "save" }),
+        submit: create(RpcCallSchema, { service: "demo.catalog.v1.site", method: "save" }),
         fields: [
           create(FormFieldSchema, {
             fieldId: "groups",
@@ -483,7 +483,7 @@ const fixtures: Fixture[] = [
   },
   {
     name: "table-cursor",
-    label: "Table · cursor pagination (aion default)",
+    label: "Table · cursor pagination (host default)",
     group: "Primitives",
     invoker: cursorInvoker,
     view: listView(

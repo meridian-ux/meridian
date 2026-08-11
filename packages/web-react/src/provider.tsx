@@ -16,7 +16,7 @@ import type { ComponentKit } from "./component_kit.js";
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
 /**
- * Host handler for actions that carry no RpcCall. aion's `actions`/`action-set-key`
+ * Host handler for actions that carry no RpcCall. a graph-backed host's `actions`/`action-set-key`
  * (view_details / edit / create …) project as host-resolved *keys* — the renderer
  * draws the affordance, but the meaning (usually a route) is the host's. When such
  * an action fires, the renderer calls this with the action's id + the view's

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { toProtoJsonEnvelope } from '../src/proto_json.js';
 import { validateWorkerMessage } from '../src/workers.js';
 
-const BASE = 'type.googleapis.com/savvifi.hrcrawl.ui.v1';
+const BASE = 'type.googleapis.com/meridian.ui.v1';
 
 describe('validateWorkerMessage', () => {
   it('rejects non-object messages', () => {

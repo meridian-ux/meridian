@@ -80,7 +80,7 @@ export const snippetFixture: PanelDescriptor = create(PanelDescriptorSchema, {
   title: "Cursor config",
   body: {
     case: "snippet",
-    value: { snippet: { content: '{ "aion": {} }', language: "json", path: "~/.cursor/mcp.json" } },
+    value: { snippet: { content: '{ "demo": {} }', language: "json", path: "~/.cursor/mcp.json" } },
   },
 });
 
@@ -118,7 +118,7 @@ export const connectFlowFixture: PanelDescriptor = create(PanelDescriptorSchema,
           name: "Cursor",
           icon: "cursor",
           actions: [{ id: "add", label: "Add to Cursor", description: "opens Cursor", invoke: { case: "uri", value: "cursor://install" } }],
-          configs: [{ content: '{ "aion": {} }', language: "json", path: "~/.cursor/mcp.json" }],
+          configs: [{ content: '{ "demo": {} }', language: "json", path: "~/.cursor/mcp.json" }],
         },
         { id: "zed", label: "Zed", name: "Zed", configs: [{ content: "settings", language: "json", path: "settings.json" }] },
       ],

@@ -180,7 +180,7 @@ test("subset mode ignores a missing field; complete mode reports it", () => {
   // THE REAL CASE, again: a vendored tree frozen before `Slot.sub_view` landed. A
   // producer that sets sub_view gets it dropped as an unknown field — no error, just
   // a slot with no panel. `REQUIRED` does not help: field_behavior is documentation
-  // only in proto3. Measured live in aion/mail's vendored tree, which is 16 fields
+  // only in proto3. Measured live in a consumer's vendored tree, which is 16 fields
   // behind canonical across 7 messages with ZERO disagreements.
   const canonical = fdset({
     Slot: [

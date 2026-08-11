@@ -125,8 +125,8 @@ const seams: AppShellSeams = {
 };
 
 const FULL = create(AppShellSchema, {
-  title: "savvi Studio",
-  brandText: "savvi Studio",
+  title: "Demo Console",
+  brandText: "Demo Console",
   nav: NAV,
   launchpad: LAUNCHPAD,
   scope: SCOPE,
@@ -145,8 +145,8 @@ const FULL = create(AppShellSchema, {
  * 280px hole in it.
  */
 const RESTRICTED = create(AppShellSchema, {
-  title: "savvi Studio",
-  brandText: "savvi Studio",
+  title: "Demo Console",
+  brandText: "Demo Console",
   userMenu: [leaf("logout", "Sign out", "/auth/logout")],
 });
 

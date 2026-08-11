@@ -2,7 +2,7 @@
 //
 // ⛔ CAPABILITIES ARE DERIVED FROM THE DESCRIPTOR, not from a session.
 //
-// aion computes this from roles — `resolveAppChromeMode(session)` returns "full" for a
+// that host computes this from roles — `resolveAppChromeMode(session)` returns "full" for a
 // platform admin and "restricted" for everyone else, and the shell then hides a sidebar it
 // was still handed. hatch inherited the same shape. Both are asking the wrong question: the
 // shell has no business knowing what a role is, and a frame that receives a nav tree it must

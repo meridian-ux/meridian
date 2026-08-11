@@ -45,7 +45,7 @@ function galleryView(withImage: boolean): ViewDescriptor {
           value: create(GalleryPanelSchema, {
             rowsField: "slides",
             placeholder: "No screenshots.",
-            populate: create(RpcCallSchema, { service: "aion.e2e.view.v1.RunService", method: "get-run" }),
+            populate: create(RpcCallSchema, { service: "demo.runs.v1.RunService", method: "get-run" }),
             card: create(CardSpecSchema, {
               titleField: "caption",
               statusField: "status",

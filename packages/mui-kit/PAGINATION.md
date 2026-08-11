@@ -1,6 +1,6 @@
 # Pagination in meridian (design note — next major, 0.3.0)
 
-**Goal:** bring aion/ui's pagination capability up into the meridian *contract* so
+**Goal:** bring that library's pagination capability up into the meridian *contract* so
 every renderer (MUI, web-components, TUI) paginates from one descriptor — not just
 the MUI kit by accident of `DataTableView`. Requested 2026-06-30.
 
@@ -19,7 +19,7 @@ message TablePanel {
 }
 ```
 
-`aionMuiKit` gets **client-side** pagination *for free* because `@aion/ui`'s
+`muiKit` gets **client-side** pagination *for free* because that library's
 `DataTableView` wraps `usePagination` + MUI `TablePagination` over whatever rows it
 is handed. That is real and useful for small lists, but:
 
@@ -65,13 +65,13 @@ enum PaginationMode {
 
 ### Renderer mapping (this kit)
 
-| mode | @aion/ui | behavior |
+| mode | a host's internal MUI component library | behavior |
 | --- | --- | --- |
 | CLIENT | `DataTableView` `paginated` + `pageSize` | today's free client pagination |
 | OFFSET | `DataTableView` + `usePagination`, re-`populate` per page | reads `total_field` for page count; sets `offset`/`limit` request fields |
-| CURSOR | `InfiniteScrollTableView` + `cursorPaginationReducer` | passes `cursor_request_field`, reads `next_cursor_field`; already exists in `@aion/ui-reducers` |
+| CURSOR | `InfiniteScrollTableView` + `cursorPaginationReducer` | passes `cursor_request_field`, reads `next_cursor_field`; already exists in `that host's reducer library` |
 
-Note all three targets already exist in aion/ui (`usePagination`,
+Note all three targets already exist in that library (`usePagination`,
 `cursorPaginationReducer`, `InfiniteScrollTableView`) — so the kit work is mapping,
 not building.
 
@@ -87,5 +87,5 @@ every renderer to switch on. The renderer synthesizes the request fields.
 ## Sequencing
 
 Ship in the coordinated **0.3.0** wave (schemas → all renderers), the same shape as
-the 0.2.0 ViewDescriptor wave. `aionMuiKit` implements CLIENT (already), then OFFSET,
+the 0.2.0 ViewDescriptor wave. `muiKit` implements CLIENT (already), then OFFSET,
 then CURSOR. Until then the kit keeps DataTableView's client pagination as the default.

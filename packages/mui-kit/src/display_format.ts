@@ -18,7 +18,7 @@ const ISO_8601 =
 /**
  * ALWAYS formats in UTC.
  *
- * This runs on both sides of an SSR hydration boundary (aion/web renders the
+ * This runs on both sides of an SSR hydration boundary (a Next.js host renders the
  * view server-side, then hydrates it in the browser). Formatting in local time
  * would render one string on a UTC pod and a different one in a browser on
  * another zone — a hydration mismatch that React reports as a swap of the whole

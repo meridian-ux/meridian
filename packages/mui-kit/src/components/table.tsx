@@ -1,10 +1,10 @@
-// MeridianTable — the kit's own MUI table (lifted from @aion/ui's DataTableView
+// MeridianTable — the kit's own MUI table (lifted from a host's internal MUI component library's DataTableView
 // pattern, generalized + dependency-free). A dumb presenter: it renders the rows
 // it is handed + an optional MUI TablePagination footer. All pagination logic
 // (CLIENT slice / OFFSET / CURSOR fetch) lives in meridian-web-react's
 // usePagedRows; this component just displays a page.
 //
-// Parity target = studio's old @aion/ui DataTableView (a medium-density MUI
+// Parity target = studio's old a host's internal MUI component library DataTableView (a medium-density MUI
 // Table): sortable headers, clickable rows (open the entity), a page-size
 // selector, a "Showing X of Y" footer, and per-row actions as a ⋮ overflow menu.
 

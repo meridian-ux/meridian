@@ -1,8 +1,8 @@
-// aionMuiKit round-trip over the two REAL studio views (products list + detail).
+// muiKit round-trip over the two two representative console views (products list + detail).
 //
 // The same ViewDescriptors proven in meridian-web-react (htmlKit + shadcnKit)
-// are rendered here through ViewRenderer + aionMuiKit — i.e. painted with the
-// actual @aion/ui MUI components (DataTableView, FormView). This is a CLIENT
+// are rendered here through ViewRenderer + muiKit — i.e. painted with the
+// actual a host's internal MUI component library MUI components (DataTableView, FormView). This is a CLIENT
 // render (jsdom): the list view's `populate` RPC is served by the test invoker,
 // so we assert the real path end to end — the MUI table renders its column
 // headers AND the populated row cells; the FormPanel renders its field labels;
@@ -52,7 +52,7 @@ const invoker: RpcInvoker = {
   },
 };
 
-// The entity-detail-header is a bespoke aion widget → an AdhocPanel; the host
+// The entity-detail-header is a bespoke host widget → an AdhocPanel; the host
 // supplies a handler (a minimal stand-in here).
 const adhoc = {
   "entity-detail-header": () => <div className="mer-detail-header">detail header</div>,
@@ -76,10 +76,10 @@ const PRODUCT_ACTIONS = ["edit", "clone", "delete", "export_yaml"].map((id) => (
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "savvi.studio.product", method: id }),
+  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
 }));
 
-// products/views/list-view.aion → ListLayout + one TablePanel content slot.
+// products/views/list-view → ListLayout + one TablePanel content slot.
 const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   id: "products-list-view",
   title: "Products",
@@ -108,7 +108,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
               { header: "Status", fieldPath: "status" },
             ],
             populate: create(RpcCallSchema, {
-              service: "savvi.studio.product",
+              service: "demo.catalog.v1.Product",
               method: "list-products",
             }),
           }),
@@ -118,7 +118,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-// products/views/detail-view.aion → StackedLayout + header + configuration FormPanel.
+// products/views/detail-view → StackedLayout + header + configuration FormPanel.
 const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   id: "products-detail-view",
   title: "Product Details",
@@ -163,7 +163,7 @@ const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("aionMuiKit renders the real studio views via @aion/ui (MUI)", () => {
+describe("muiKit renders the representative console views via a host's internal MUI component library (MUI)", () => {
   it("LIST view: MUI table with headers + populated rows + header actions", async () => {
     renderView(productsListView);
     await expectText("Name"); // column header (renders once rows populate)
@@ -230,7 +230,7 @@ const pagedListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("aionMuiKit OFFSET pagination (server paging via the invoker)", () => {
+describe("muiKit OFFSET pagination (server paging via the invoker)", () => {
   it("fetches page 1, then advances to page 2 via the MUI pager", async () => {
     render(
       <MeridianMuiProvider invoker={pagedInvoker}>
@@ -250,7 +250,7 @@ describe("aionMuiKit OFFSET pagination (server paging via the invoker)", () => {
   });
 });
 
-// CURSOR pagination — aion's PREFERRED paradigm (tRPC infinite-query shape:
+// CURSOR pagination — one host's PREFERRED paradigm (tRPC infinite-query shape:
 // input { cursor }, output { items, nextCursor }). The invoker returns the next
 // page keyed by the opaque cursor; advancing re-invokes populate with it.
 const cursorInvoker: RpcInvoker = {
@@ -295,7 +295,7 @@ const cursorListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("aionMuiKit CURSOR pagination (aion's preferred paradigm)", () => {
+describe("muiKit CURSOR pagination (a graph-backed host's preferred paradigm)", () => {
   it("fetches the first page, then advances via the opaque cursor", async () => {
     render(
       <MeridianMuiProvider invoker={cursorInvoker}>
@@ -314,7 +314,7 @@ describe("aionMuiKit CURSOR pagination (aion's preferred paradigm)", () => {
   });
 });
 
-// The host action/nav seam: aion projects `actions`/`action-set-key` (view_details
+// The host action/nav seam: a graph-backed host projects `actions`/`action-set-key` (view_details
 // / edit …) as NO-CALL actions — the renderer draws the button, the host resolves
 // the meaning (usually a route). A no-call action fires MeridianMuiProvider.onAction
 // with (actionId, subjectKind, entityId?); a call-bearing action still hits the invoker.
@@ -353,7 +353,7 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
             itemNoun: "organization",
             rowsField: "organizations",
             columns: [{ header: "Name", fieldPath: "name" }],
-            populate: create(RpcCallSchema, { service: "savvi.studio.org", method: "list-orgs" }),
+            populate: create(RpcCallSchema, { service: "demo.catalog.v1.Org", method: "list-orgs" }),
           }),
         },
       }),
@@ -361,7 +361,7 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("aionMuiKit host action/nav seam (no-call actions → onAction)", () => {
+describe("muiKit host action/nav seam (no-call actions → onAction)", () => {
   it("fires onAction with (actionId, subjectKind) for a no-call HEADER action", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
     render(

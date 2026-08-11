@@ -3,7 +3,7 @@
 // targets; selecting a target reveals that target's one-click Affordance(s)
 // (optional) and its config Snippet(s). This is the generic shape behind a
 // "connect your agent / client / app to <surface>" page — reusable by any host,
-// not just the aion MCP gateway that motivated it.
+// not just the MCP gateway that motivated it.
 //
 // Composition (all brand-neutral, all defined here or imported):
 //   ConnectFlowPanel

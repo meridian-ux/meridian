@@ -1,7 +1,7 @@
 // htmlKit — a minimal, dependency-free reference ComponentKit. It paints plain
 // semantic HTML (styleable via the kit's CSS classes + the `--mer-*` theme vars)
-// and proves the React renderer end to end without MUI/shadcn. The real savvi
-// `mui-kit` (wrapping @aion/ui) and a future `shadcn-kit` are richer
+// and proves the React renderer end to end without MUI/shadcn. The real
+// `mui-kit` (wrapping a host's internal MUI component library) and a future `shadcn-kit` are richer
 // implementations of the same ComponentKit interface.
 
 import type { CSSProperties } from "react";

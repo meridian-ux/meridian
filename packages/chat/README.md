@@ -11,7 +11,7 @@ Two renderer tiers, one wire:
 | tier | entry | deps | consumer |
 | --- | --- | --- | --- |
 | vanilla `<m-assistant-panel>` | `@savvifi/meridian-chat/web` + the Bazel `//:browser_bundle` | none (framework-free, ~11 KB) | botnoc's static frontend |
-| React `<Conversation>` | `@savvifi/meridian-chat` | `react` (optional peer) | aion/web + React hosts |
+| React `<Conversation>` | `@savvifi/meridian-chat` | `react` (optional peer) | a Next.js host + React hosts |
 
 The wire types (`src/wire.ts`) are **structural** (the proto3-JSON of
 `ConversationEvent`), so the runtime has **no protobuf-es dependency** and the

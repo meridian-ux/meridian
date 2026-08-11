@@ -6,8 +6,8 @@
 // (with CLIENT / OFFSET / CURSOR pagination) instead of plain HTML.
 //
 // The kit owns its components (MeridianTable / MeridianForm, lifted + generalized
-// from the aion @aion/ui patterns) — no @aion/ui dependency — so the MUI table +
-// form patterns are reusable by any meridian host, not just aion/studio.
+// from a graph-backed host's a host's internal MUI component library patterns) — no a host's internal MUI component library dependency — so the MUI table +
+// form patterns are reusable by any meridian host, not just a studio console.
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
@@ -259,7 +259,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   } else {
     // Server modes: paged.rows is already the current page (sort it in place). MUI
     // derives its "X–Y of Z" label + Back/Next from `count` — use the real total
-    // whenever the op returns one (OFFSET, or CURSOR now that the aion op computes
+    // whenever the op returns one (OFFSET, or CURSOR now that a graph-backed host's op computes
     // totalCount); otherwise synthesize from hasNext ("one more page exists").
     rows = sortRows(paged.rows);
     page = paged.page;
@@ -273,7 +273,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   }
 
   // Clicking a row opens the entity — the host resolves `(actionId, subject, id)`
-  // to the detail route (aion rows carry `id`). Only when a subject + handler exist.
+  // to the detail route (graph-backed rows carry `id`). Only when a subject + handler exist.
   const onRowClick =
     onAction && subjectKind
       ? (row: Row) => {
@@ -295,7 +295,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   // Row actions render INSIDE each row as a ⋮ overflow menu (matching the old
   // studio TableActionsView — not a bar above the table). Two sources merge:
-  //  - TablePanel.actions (RowAction[]): fire the RpcCall against THIS row (aion
+  //  - TablePanel.actions (RowAction[]): fire the RpcCall against THIS row (host
   //    rows carry `id`, so `{ id: row.id }`).
   //  - View-level ROW-placement actions (MeridianRowActionsContext): an op action
   //    (with a `call`) invokes against the row; a host-resolved action (no call —
@@ -872,5 +872,3 @@ export const muiKit: ComponentKit = {
   ActionBar,
 };
 
-/** @deprecated Back-compat alias — the kit no longer wraps @aion/ui. Use `muiKit`. */
-export const aionMuiKit = muiKit;

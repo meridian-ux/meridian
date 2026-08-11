@@ -10,7 +10,7 @@
 //   openViewId  → the shell's routing seam, via the host's hrefFor
 //   openPanel   → PanelRenderer, so a create/edit FormPanel renders through MeridianForm
 //
-// aion's palette is the reason `deep_link` exists in the proto ("the aion studio palette
+// a graph-backed host's palette is the reason `deep_link` exists in the proto ("a studio console's palette
 // encodes state as `?cmd=<entityType>/<mode>`"); a host that round-trips palette state
 // through the URL sets it and this navigates there instead of running `action` inline.
 

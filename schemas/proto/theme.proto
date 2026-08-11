@@ -74,7 +74,7 @@ message Typography {
   // existing skin changes appearance by its introduction.
   //
   // A brand whose identity IS the pairing cannot be expressed without it: the
-  // savvi skin, for one, is IBM Plex Serif headings over Outfit body per its
+  // One shipped skin, for instance, is IBM Plex Serif headings over Outfit body per its
   // brand guidelines, and collapses to half its identity when headings fall
   // back to `sans`.
   string display = 7;

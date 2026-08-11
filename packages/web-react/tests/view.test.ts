@@ -1,8 +1,8 @@
-// ViewRenderer round-trip over the two REAL studio views (products list + detail).
+// ViewRenderer round-trip over the two two representative console views (products list + detail).
 //
 // Grounds the ViewDescriptor tier against reality: these fixtures are the
-// meridian projections of savvi.studio.product's list-view.aion (ListLayout + a
-// TablePanel content slot + header actions) and detail-view.aion (StackedLayout +
+// meridian projections of demo.catalog.v1.Product's list-view (ListLayout + a
+// TablePanel content slot + header actions) and detail-view (StackedLayout +
 // a header slot + a configuration FormPanel slot). We assert the layout tier
 // renders through the kits (htmlKit + shadcnKit) via ViewRenderer — the panels,
 // the slots, the form fields, and the actions all appear.
@@ -36,7 +36,7 @@ import { ViewRenderer } from "../src/view_renderer.js";
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
-// The entity-detail-header is a bespoke aion widget → an AdhocPanel in meridian;
+// The entity-detail-header is a bespoke host widget → an AdhocPanel in meridian;
 // the host registers a handler for it (here a minimal stand-in). Without this it
 // would fall back — which is also correct meridian behavior.
 const adhoc = {
@@ -58,10 +58,10 @@ const PRODUCT_ACTIONS = ["edit", "clone", "delete", "export_yaml"].map((id) => (
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "savvi.studio.product", method: id }),
+  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
 }));
 
-// products/views/list-view.aion  →  ListLayout + one TablePanel content slot.
+// products/views/list-view  →  ListLayout + one TablePanel content slot.
 const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   id: "products-list-view",
   title: "Products",
@@ -86,7 +86,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
             placeholder: "No products.",
             columns: [{ header: "Name" }, { header: "Type" }, { header: "Status" }],
             populate: create(RpcCallSchema, {
-              service: "savvi.studio.product",
+              service: "demo.catalog.v1.Product",
               method: "list-products",
             }),
           }),
@@ -96,7 +96,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-// products/views/detail-view.aion  →  StackedLayout + header + configuration FormPanel.
+// products/views/detail-view  →  StackedLayout + header + configuration FormPanel.
 const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   id: "products-detail-view",
   title: "Product Details",
@@ -141,7 +141,7 @@ const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("ViewRenderer over the real studio views (htmlKit + shadcnKit)", () => {
+describe("ViewRenderer over the representative console views (htmlKit + shadcnKit)", () => {
   for (const kit of [htmlKit, shadcnKit]) {
     it(`renders the products LIST view via ${kit.id}`, () => {
       const html = renderView(kit, productsListView);
@@ -275,7 +275,7 @@ describe("ViewRenderer over the real studio views (htmlKit + shadcnKit)", () => 
   });
 });
 
-// sponsor/views/detail-view.aion → TabbedLayout. The REAL projected shape: a header
+// sponsor/views/detail-view → TabbedLayout. The REAL projected shape: a header
 // card and a plan-year selector that are NOT tabs (no tab_label; the selector sets
 // placement.header_row), plus four genuinely tabbed slots.
 //
@@ -294,7 +294,7 @@ const sponsorsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
       id: "delete",
       label: "Delete",
       placement: ActionPlacement.HEADER,
-      call: create(RpcCallSchema, { service: "savvi.studio.sponsor", method: "delete" }),
+      call: create(RpcCallSchema, { service: "demo.catalog.v1.Sponsor", method: "delete" }),
     },
   ],
   slots: [
@@ -345,7 +345,7 @@ const sponsorsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
             rowsField: "items",
             placeholder: "No tasks.",
             columns: [{ header: "Title" }],
-            populate: create(RpcCallSchema, { service: "savvi.studio.task", method: "list" }),
+            populate: create(RpcCallSchema, { service: "demo.catalog.v1.task", method: "list" }),
           }),
         },
       }),
@@ -366,7 +366,7 @@ const sponsorsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
             placeholder: "No products.",
             columns: [{ header: "Name" }],
             populate: create(RpcCallSchema, {
-              service: "savvi.studio.product",
+              service: "demo.catalog.v1.Product",
               method: "list-products",
             }),
           }),

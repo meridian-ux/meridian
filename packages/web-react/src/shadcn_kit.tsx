@@ -3,7 +3,7 @@
 //
 // It exists to prove **Swap B** (swap the kit → same PanelRenderer dispatch,
 // different look) with a real second kit beyond the minimal htmlKit, and to give
-// the savvi `mui-kit` (wrapping @aion/ui) a richer structural template. Like
+// the `mui-kit` (wrapping a host's internal MUI component library) a richer structural template. Like
 // htmlKit it pulls NO component library: a production shadcn-kit (Radix
 // primitives) would be its own package, a peer of mui-kit — this is the
 // in-core reference that keeps web-react kit-agnostic.

@@ -25,7 +25,7 @@ import { MeridianMuiProvider } from "../src/index.js";
 import protoBundle from "./proto-viewdescriptors.json";
 
 const skin = create(ThemeSchema, {
-  id: "savvi",
+  id: "demo",
   light: create(PaletteSchema, {
     bg: "#ffffff",
     surface: "#ffffff",

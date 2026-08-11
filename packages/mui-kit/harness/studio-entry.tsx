@@ -1,4 +1,4 @@
-// Studio catalog harness — renders the REAL studio views (projected to meridian
+// Studio catalog harness — renders the two representative console views (projected to meridian
 // ViewDescriptors by @savvifi/meridian-aion-projection, full-fidelity via the
 // graph install in studio-api) through ViewRenderer + muiKit. Same
 // window.meridianHarness.{list,render} contract as entry.tsx, so the existing
@@ -19,7 +19,7 @@ import { MeridianMuiProvider } from "../src/index.js";
 import studioBundle from "./studio-viewdescriptors.json";
 
 const skin = create(ThemeSchema, {
-  id: "savvi",
+  id: "demo",
   light: create(PaletteSchema, {
     bg: "#ffffff",
     surface: "#ffffff",

@@ -1,7 +1,7 @@
 "use client";
 // The rail: a NavTree, rendered.
 //
-// The one substantively rewritten view. aion assembles its drawer at runtime from graph
+// The one substantively rewritten view. that host assembles its drawer at runtime from graph
 // resources and hatch ships a literal array; both are now producers of the same descriptor,
 // and this renders it without knowing which. Groups expand, leaves link, `badge` is a pill,
 // `icon` resolves through the host's map — the rendering `nav_tree.proto`'s header describes

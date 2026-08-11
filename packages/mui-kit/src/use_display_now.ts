@@ -2,7 +2,7 @@
 // hook rather than a `Date.now()` call at the format site.
 //
 // Relative text is a function of NOW. This kit renders on both sides of an SSR
-// hydration boundary (aion/web server-renders a view, then hydrates it), so a
+// hydration boundary (a Next.js host server-renders a view, then hydrates it), so a
 // server that reads the clock and a client that reads it again produce different
 // strings for the same field, and React reports a mismatch and re-renders the
 // whole subtree. `display_format.ts` already takes the UTC-always position for

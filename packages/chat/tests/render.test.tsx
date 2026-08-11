@@ -31,11 +31,11 @@ describe("renderBlockInner (vanilla HTML)", () => {
       table: {
         title: "Repos",
         columns: [{ key: "name", label: "Name" }],
-        rows: [{ cells: { name: "aion/web" } }],
+        rows: [{ cells: { name: "example/web" } }],
       },
     });
     expect(html).toContain("<th>Name</th>");
-    expect(html).toContain("aion/web");
+    expect(html).toContain("example/web");
   });
 });
 

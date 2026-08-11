@@ -12,7 +12,7 @@ It ships three things:
   other. See [`proto/`](proto/).
 - **`@savvifi/meridian-proto-ts`** — the canonical TypeScript surface, generated from the
   protos via [protobuf-es](https://github.com/bufbuild/protobuf-es)
-  (`//bazel:proto_es.bzl`). The single source the web renderers and the aion
+  (`//bazel:proto_es.bzl`). The single source the web renderers and every emitting
   emitter consume.
 - **`@savvifi/meridian-schemas` (the WebRenderer seam)** — the framework-neutral
   `mount(container, descriptor, theme, invoker) → { update, unmount }` interface
@@ -29,7 +29,7 @@ back on these protos.
 ## Layering
 
 ```
-  aion graph ──emits──▶ PanelDescriptor + Theme  (meridian-schemas)
+  graph ──emits──▶ PanelDescriptor + Theme  (meridian-schemas)
                               │
                    WebRenderer seam (neutral TS)
                     ├── meridian-web        (web-components, reference)

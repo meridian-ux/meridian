@@ -4,7 +4,7 @@
 // descriptor, filtered by the SAME ranking (meridian_uiview::filter_launchpad —
 // the shared core, not a second implementation), painted with ratatui instead of
 // the DOM. This is what "modality-neutral" has to cash out to: a Launchpad
-// projected from aion compositions renders in the terminal with no contract
+// projected from host compositions renders in the terminal with no contract
 // change and no re-ranking.
 //
 // Like the rest of the TUI, EVERY color/modifier comes from the `Palette`, so

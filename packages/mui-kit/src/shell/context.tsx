@@ -2,9 +2,9 @@
 // Chrome state: the sidebar, the launchpad, the shortcuts sheet, the chat dock, and the slot
 // a page uses to put its own actions in the page-header row.
 //
-// Collapses what aion spreads across `hooks/useAppContext.ts`,
+// Collapses what that host spreads across `hooks/useAppContext.ts`,
 // `components/providers/AppContextProvider.tsx` and the `useHotkeys` wiring in `AppProvider`
-// — separate there because the panels are built from `@aion/common-utils` state helpers and
+// — separate there because the panels are built from `that host's state helpers` state helpers and
 // the bindings go through a `react-hotkeys-hook` registry. Both are a few lines each once
 // the packages are gone, and a registry for three bindings is a registry for three bindings.
 

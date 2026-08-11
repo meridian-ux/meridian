@@ -22,7 +22,7 @@ proto_es(
 )
 
 # Compile the generated protobuf-es TypeScript into .js + .d.ts — the
-# @savvifi/meridian-proto-ts surface (PanelDescriptor, Theme, …) the renderers and aion
+# @savvifi/meridian-proto-ts surface (PanelDescriptor, Theme, …) the renderers and every
 # consume. root_dir = "es" (the proto_es out tree) ≠ out_dir = "lib" so the emit
 # mirrors the imports (proto/*_pb.js, google/api/field_behavior_pb.js).
 ts_project(

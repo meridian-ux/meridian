@@ -1,4 +1,4 @@
-// MeridianForm — the kit's own MUI form (lifted from @aion/ui's FormView pattern,
+// MeridianForm — the kit's own MUI form (lifted from a host's internal MUI component library's FormView pattern,
 // generalized + dependency-free). Renders typed field descriptors — scalars
 // (text / number / decimal / boolean / select) plus recursive shapes (group for a
 // NestedForm, list for a RepeatedField with add/remove) — as MUI inputs in a Card,

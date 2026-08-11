@@ -25,7 +25,7 @@ export interface ConversationProps {
    * This used to be hardcoded to one product's wording, which shipped that
    * product's branding verbatim into every host that embedded the component —
    * a host could only correct it by reaching into the DOM after mount and
-   * reassigning `input.placeholder`, which is what aion/web actually did.
+   * reassigning `input.placeholder`, which is what a Next.js host actually did.
    */
   placeholder?: string;
   /**

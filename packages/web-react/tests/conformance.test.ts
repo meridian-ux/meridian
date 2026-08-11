@@ -89,7 +89,7 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
 // ── Swap B: the same fixtures through a SECOND kit (shadcnKit) ──────────────
 // Swapping the ComponentKit changes the look + concrete components, NOT the
 // PanelRenderer dispatch. This is the React-side proof of Swap B, and the
-// structural template the savvi mui-kit (wrapping @aion/ui) follows.
+// structural template the mui-kit (wrapping a host's internal MUI component library) follows.
 function renderWith(
   kit: ComponentKit,
   descriptor: PanelDescriptor,

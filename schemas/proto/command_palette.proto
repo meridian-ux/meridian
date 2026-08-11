@@ -82,7 +82,7 @@ message Command {
   // — the host wires the actual keybinding. Distinct from the launchpad's own
   // open gesture.
   string shortcut = 6 [(google.api.field_behavior) = OPTIONAL];
-  // Optional URL-state hint for hosts whose palette is URL-driven (the aion
+  // Optional URL-state hint for hosts whose palette is URL-driven (a studio
   // studio palette encodes state as `?cmd=<entityType>/<mode>`). Orthogonal to
   // `action`: a host that round-trips palette state through the URL sets the
   // link when the command is chosen; a host that runs `action` directly ignores it.

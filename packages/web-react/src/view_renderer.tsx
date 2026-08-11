@@ -35,7 +35,7 @@ import {
 
 /**
  * Row-scoped actions (ActionPlacement.ROW), provided by ViewRenderer for the
- * active kit's table to render per-row and fire with the row bound (aion rows
+ * active kit's table to render per-row and fire with the row bound (graph-backed rows
  * carry `id`, so the kit invokes `{ id: row.id }`). Empty ⇒ no per-row column.
  */
 export const MeridianRowActionsContext = createContext<Action[]>([]);

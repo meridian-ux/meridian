@@ -1,7 +1,7 @@
-// MeridianMuiProvider — the one-line host integration surface for the aion MUI
+// MeridianMuiProvider — the one-line host integration surface for a graph-backed host's MUI
 // kit. It sets up a single MUI ThemeProvider (bound to the meridian Theme) and
 // a CssBaseline over the whole subtree, then a MeridianProvider wired to
-// aionMuiKit. Because the theme provider sits above everything, view-level and
+// muiKit. Because the theme provider sits above everything, view-level and
 // slot-level Actions (rendered by ViewRenderer outside any panel Chrome) are
 // themed too.
 //
@@ -55,7 +55,7 @@ export interface MeridianMuiProviderProps {
   adhoc?: Record<string, ReactAdhocFactory>;
   /**
    * Host handler for no-call actions (view_details / edit / create … — the
-   * host-resolved keys aion projects without an RpcCall). Absent ⇒ those
+   * host-resolved keys that host projects without an RpcCall). Absent ⇒ those
    * buttons render but no-op; RpcCall actions always route through the invoker.
    */
   onAction?: MeridianActionHandler;

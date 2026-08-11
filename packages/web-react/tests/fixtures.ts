@@ -219,7 +219,7 @@ export const FIXTURES: Fixture[] = [
         case: "snippet",
         value: create(SnippetPanelSchema, {
           snippet: {
-            content: '{ "mcpServers": { "aion": { "url": "https://mcp.example/mcp" } } }',
+            content: '{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }',
             language: "json",
             path: "~/.cursor/mcp.json",
           },
@@ -275,7 +275,7 @@ export const FIXTURES: Fixture[] = [
               ],
               configs: [
                 {
-                  content: '{ "mcpServers": { "aion": { "url": "https://mcp.example/mcp" } } }',
+                  content: '{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }',
                   language: "json",
                   path: "~/.cursor/mcp.json",
                 },
@@ -288,7 +288,7 @@ export const FIXTURES: Fixture[] = [
               description: "Bridge the remote endpoint with mcp-remote.",
               configs: [
                 {
-                  content: '[mcp_servers.aion]\ncommand = "npx"\nargs = ["-y", "mcp-remote", "https://mcp.example/mcp"]',
+                  content: '[mcp_servers.demo]\ncommand = "npx"\nargs = ["-y", "mcp-remote", "https://mcp.example/mcp"]',
                   language: "toml",
                   path: "~/.codex/config.toml",
                 },

@@ -215,7 +215,7 @@ export function buildPageRequest(
       setNested(request, pagination.cursorRequestField, opts.cursor);
     // Send the requested page size so the server pages at that size (else it uses
     // its own default — and a page-size selector would be inert). The projection
-    // points `limitRequestField` at the op's page-size input (aion list: "pageSize").
+    // points `limitRequestField` at the op's page-size input (one host's list: "pageSize").
     if (pagination.limitRequestField)
       setNested(request, pagination.limitRequestField, pageSize);
   }

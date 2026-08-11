@@ -68,7 +68,7 @@
             }
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Layout",
+        "subjectKind": "meridian.example.com/Layout",
         "title": "Layouts"
       }
     },
@@ -259,7 +259,7 @@
             "position": 1
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Layout",
+        "subjectKind": "meridian.example.com/Layout",
         "title": "Layout"
       }
     },
@@ -331,7 +331,7 @@
             }
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Resource",
+        "subjectKind": "meridian.example.com/Resource",
         "title": "Resources"
       }
     },
@@ -523,7 +523,7 @@
             "position": 1
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Resource",
+        "subjectKind": "meridian.example.com/Resource",
         "title": "Resource"
       }
     },
@@ -590,7 +590,7 @@
             }
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Service",
+        "subjectKind": "meridian.example.com/Service",
         "title": "Services"
       }
     },
@@ -687,7 +687,7 @@
             "position": 1
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Service",
+        "subjectKind": "meridian.example.com/Service",
         "title": "Service"
       }
     },
@@ -775,7 +775,7 @@
             }
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Target",
+        "subjectKind": "meridian.example.com/Target",
         "title": "Targets"
       }
     },
@@ -931,7 +931,7 @@
             "position": 1
           }
         ],
-        "subjectKind": "meridian.savvifi.dev/Target",
+        "subjectKind": "meridian.example.com/Target",
         "title": "Target"
       }
     },

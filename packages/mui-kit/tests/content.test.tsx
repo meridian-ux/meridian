@@ -80,7 +80,7 @@ describe("muiKit renders the brand-neutral content shapes", () => {
                     invoke: { case: "uri", value: "cursor://install" },
                   },
                 ],
-                configs: [{ content: '{ "aion": {} }', language: "json", path: "~/.cursor/mcp.json" }],
+                configs: [{ content: '{ "demo": {} }', language: "json", path: "~/.cursor/mcp.json" }],
               },
             ],
           }),

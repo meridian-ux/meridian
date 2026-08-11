@@ -1,6 +1,6 @@
 // Theme binding — maps a meridian.theme.v1.Theme (the neutral skin) onto a MUI
-// theme. Owned by the kit (no @aion/ui dependency): a `ThemeConfig` of design
-// tokens → MUI `createTheme`, carrying the aion look (system-ui type, no-shout
+// theme. Owned by the kit (no a host's internal MUI component library dependency): a `ThemeConfig` of design
+// tokens → MUI `createTheme`, carrying a graph-backed host's look (system-ui type, no-shout
 // buttons, hairline card borders) so one meridian skin drives the MUI look of
 // every panel this kit paints — as it drives the web-components and TUI renderers.
 

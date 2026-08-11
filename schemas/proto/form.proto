@@ -113,7 +113,7 @@ message EnumSelection {
   // Permitted values in display order, WITH their display label and tone.
   //
   // Additive alternative to `allowed_values`, for producers that know more
-  // about a value than its stored token — an aion value-set resource declares a
+  // about a value than its stored token — a value-set resource declares a
   // localized label and a tone, and neither survived the bare string list.
   //
   // PRECEDENCE: when both are set, `options` wins and `allowed_values` is

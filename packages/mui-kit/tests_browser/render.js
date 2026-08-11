@@ -78,7 +78,7 @@ async function main() {
       await seen("Sprocket");
     });
 
-    // ── Table · CURSOR pagination (aion's preferred) ──
+    // ── Table · CURSOR pagination (a graph-backed host's preferred) ──
     await check("table-cursor: first page then advance via opaque cursor", async () => {
       await render("table-cursor");
       await seen("Widget");
@@ -340,7 +340,7 @@ async function main() {
 
     await check("shell-full: brand, rail, scope and content all render", async () => {
       await render("shell-full");
-      await seen("savvi Studio");
+      await seen("Demo Console");
       await seen("Dashboard");
       await seen("Plan years");
       await seen("Organization");
@@ -391,7 +391,7 @@ async function main() {
 
     await check("shell-restricted: NO rail, and no width reserved for one", async () => {
       await render("shell-restricted");
-      await seen("savvi Studio");
+      await seen("Demo Console");
       await absent("Dashboard");
       // ⛔ The point of the fixture. If the shell merely HID the drawer while still
       // reserving its width, every unit test would pass and the page would have a 280px
@@ -409,7 +409,7 @@ async function main() {
       if (!main || !viewport) throw new Error("no geometry");
       // ⛔ A persistent drawer takes width from the flex row. If the dock were `temporary`
       // it would overlay, `main` would still span the full width, and the conversation would
-      // sit on top of the content — which is exactly what aion gets today by mounting the
+      // sit on top of the content — which is exactly what one host gets today by mounting the
       // dock outside the shell.
       if (main.x + main.width > viewport.width - 200) {
         throw new Error(`main runs to ${main.x + main.width} of ${viewport.width}; the dock is overlaying, not reflowing`);

@@ -41,7 +41,7 @@ function composerPanel(bindings: ReturnType<typeof create<typeof FieldBindingSch
         mode: FormMode.EDIT,
         itemNoun: "comment",
         submit: create(RpcCallSchema, {
-          service: "savvi.studio.discussion",
+          service: "demo.catalog.v1.Discussion",
           method: "post-comment",
           bindings,
         }),

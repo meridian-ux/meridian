@@ -4,7 +4,7 @@
 // kit-agnostic: it dispatches a meridian.ui.v1 PanelDescriptor to the kit's
 // per-shape components and binds the theme through the kit. Swapping the kit
 // (e.g. MUI -> shadcn) changes the look and the concrete components, not the
-// dispatch logic. The savvi `mui-kit` (wrapping @aion/ui) and a future
+// dispatch logic. The `mui-kit` (wrapping a host's internal MUI component library) and a future
 // `shadcn-kit` are both implementations of this one interface.
 
 import type { ComponentType, CSSProperties, ReactNode } from "react";

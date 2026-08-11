@@ -54,7 +54,7 @@ enum ValueTone {
 // display it rather than just the stored token.
 //
 // `EnumSelection.allowed_values` (a bare string list) cannot express a display
-// label or a tone, so a producer that HAS both — an aion value-set resource
+// label or a tone, so a producer that HAS both — a value-set resource that
 // declares `localizedLabel` and, now, a tone — lost them at the descriptor
 // boundary and every option rendered as its raw stored id in one flat colour.
 message EnumOption {
@@ -75,8 +75,8 @@ message EnumOption {
 // detail-header row and a form control.
 //
 // The gap this closes is not cosmetic. A producer that knows a value's meaning —
-// aion declares `dueDate` as `type: date, sdo: schema:dueDate` and `assignedTo`
-// as `sdo: schema:agent` — had nowhere to SAY it: `FormField` carries only an
+// a schema-org-annotated host declares `dueDate` as `type: date, sdo: schema:dueDate`
+// and `assignedTo` as `sdo: schema:agent` — had nowhere to SAY it: `FormField` carries only an
 // input kind, and everything that was not a number or an enum arrived as text.
 // The renderer was left to GUESS, which in practice meant a strict ISO-8601
 // regex run against string content in one kit (mui's display_format.ts). That

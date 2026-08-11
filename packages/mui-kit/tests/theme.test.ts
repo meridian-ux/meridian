@@ -18,7 +18,7 @@ import {
   themeProtoToThemeConfig,
 } from "../src/theme.js";
 
-// A two-face brand: a serif display over a geometric sans, the savvi shape.
+// A two-face brand: a serif display over a geometric sans.
 const twoFaceSkin = create(ThemeSchema, {
   id: "test-two-face",
   light: { bg: "#F4F9FC", surface: "#FFFFFF", fg: "#10222F", accent: "#00ADEF" },

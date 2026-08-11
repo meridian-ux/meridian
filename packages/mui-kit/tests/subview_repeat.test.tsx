@@ -73,7 +73,7 @@ const planView: ViewDescriptor = create(ViewDescriptorSchema, {
       role: "content",
       position: 0,
       subView: flowTemplate,
-      subViewPopulate: create(RpcCallSchema, { service: "aion.e2e", method: "get-plan" }),
+      subViewPopulate: create(RpcCallSchema, { service: "demo.runs.v1", method: "get-plan" }),
       subViewRowsField: "flows",
     },
   ],

@@ -68,7 +68,7 @@ message NavNode {
     //
     // NavTree and Launchpad are siblings — the rail you browse and the overlay you
     // summon — and a host that navigates by ROUTE could express that in one of them
-    // and not the other. Both real consumers are route-based (aion studio and
+    // and not the other. Both real consumers are route-based (a studio console and
     // hatch), so without this a rail leaf had to carry its URL out-of-band in a
     // host-side id→href table: a lookup keyed by `id` that the descriptor cannot
     // see, cannot validate, and cannot ship as data. A compiled NavTree should be

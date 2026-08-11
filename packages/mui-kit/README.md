@@ -12,9 +12,9 @@ descriptor shapes to these components, so a single ViewDescriptor renders here a
 MUI instead of plain HTML.
 
 > **Standalone.** The kit owns its components — `MeridianTable` / `MeridianForm`,
-> lifted and generalized from the aion `@aion/ui` patterns (the MUI table +
-> pagination, the typed form fields) — so it has **no `@aion/ui` dependency**. Any
-> meridian host can reuse the patterns, not just aion/studio. Its only runtime
+> lifted and generalized from a graph-backed host's `a host's internal MUI component library` patterns (the MUI table +
+> pagination, the typed form fields) — so it has **no `a host's internal MUI component library` dependency**. Any
+> meridian host can reuse the patterns, not just a studio console. Its only runtime
 > peers are React, MUI, and the meridian packages.
 
 ## How it fits
@@ -59,7 +59,7 @@ const handle = renderer.mount({ container, descriptor, theme, invoker, adhoc });
 
 ## Exports
 
-- `muiKit` — the `ComponentKit` (Table · Form · Prompt · Lro · Fallback · ActionBar · Chrome · themeToStyle). (`aionMuiKit` is a deprecated alias.)
+- `muiKit` — the `ComponentKit` (Table · Form · Prompt · Lro · Fallback · ActionBar · Chrome · themeToStyle).
 - `MeridianMuiProvider` — the one-line host wrapper (theme + provider + kit).
 - `MeridianTable` / `MeridianForm` — the standalone MUI components, reusable directly.
 - `themeProtoToThemeConfig` / `createMuiThemeFromConfig` / `themeProtoToMuiTheme` — bind a meridian `Theme` to MUI.
@@ -82,7 +82,7 @@ meridian-web-react's `usePagedRows`:
 
 - **CLIENT** — fetch once, paginate the rows locally (small lists).
 - **OFFSET** — re-fetch per page via offset/limit request fields + a total count.
-- **CURSOR** — cursor / next-cursor per page. **aion's preferred paradigm** (tRPC
+- **CURSOR** — cursor / next-cursor per page. **a graph-backed host's preferred paradigm** (tRPC
   infinite-query shape: input `{ cursor }`, output `{ items, nextCursor }`).
 
 ## Develop

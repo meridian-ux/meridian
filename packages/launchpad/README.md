@@ -23,7 +23,7 @@ A `Command.action` is one of:
 | `navigate` | `onNavigate(route)` (or `window.location`) |
 
 `Command.deep_link` is an orthogonal hint for hosts whose palette state is
-URL-driven (e.g. the aion studio `?cmd=…`).
+URL-driven (e.g. a studio console `?cmd=…`).
 
 ## Usage
 

@@ -53,7 +53,7 @@ function ChatDock() {
       open={chat.isOpen}
       // ⛔ A persistent drawer reserves its width from the flex row, which is what makes the
       // dock RESIZE the content rather than cover it. That reflow is the reason the dock
-      // belongs to the shell at all — aion mounts `<Conversation>` as a sibling precisely
+      // belongs to the shell at all — that host mounts `<Conversation>` as a sibling precisely
       // because, outside the frame, it can only overlay.
       sx={{
         width: chat.isOpen ? width : 0,

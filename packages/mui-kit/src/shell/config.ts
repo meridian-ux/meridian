@@ -16,11 +16,11 @@
 // carried the rest as plain TS would be a second nav shape competing with the proto meridian
 // already defines. Neither half is optional and neither absorbs the other.
 //
-// ⛔ THE ROUTING SEAM IS WHY THIS PACKAGE CAN EXIST AT ALL. `@aion/app-shell` is 11,486
+// ⛔ THE ROUTING SEAM IS WHY THIS PACKAGE CAN EXIST AT ALL. `one production host's app-shell package` is 11,486
 // lines that exactly one application can use, and the reason is two symbols: it imports
-// `Link` and `usePathname` from `@aion/ui`, which drags in sixteen workspace packages. A
+// `Link` and `usePathname` from `a host's internal MUI component library`, which drags in sixteen workspace packages. A
 // shell that imports a router serves one app. So the router arrives here, and the shell
-// imports none — aion passes its `NavigationProvider` bindings (next/link + next/navigation),
+// imports none — that host passes its `NavigationProvider` bindings (next/link + next/navigation),
 // hatch passes its own router, and neither is visible from inside.
 
 import type { AppShell, ScopeSelector } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
@@ -125,7 +125,7 @@ export interface AppShellSeams {
    *
    * A node, not a chat client. The shell owns the DOCK (width, the reflow of the main
    * column, the toggle); it does not own the transport, and `@savvifi/meridian-chat` stays
-   * an OPTIONAL peer so an app with no chat pays nothing. This is the seam aion's own
+   * an OPTIONAL peer so an app with no chat pays nothing. This is the seam that host's own
    * `chat-dock.tsx` predicted: it mounts `<Conversation>` as a sibling of the shell and says
    * that "if the dock ever needs to reflow the sidebar or share the shell's hotkey registry
    * it should move into the shell's chromeCapabilities."
