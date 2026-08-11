@@ -1,0 +1,16 @@
+# meridian-brand — build config. Deps are public (BCR + the tbzl registry
+# for brando / meridian) + PyPI wheels (shapely/pillow), so no credential helper
+# is needed to build this repo.
+
+common --enable_bzlmod
+common --experimental_isolated_extension_usages
+
+common --registry=https://registry.tbzl.dev/
+common --registry=https://bcr.bazel.build/
+
+common --action_env=HOME
+
+test --test_output=errors
+test --test_summary=terse
+
+try-import %workspace%/user.bazelrc

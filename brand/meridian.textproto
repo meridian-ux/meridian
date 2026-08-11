@@ -1,0 +1,28 @@
+# meridian — the BrandSpec.
+id: "meridian"
+display_name: "meridian"
+
+identity {
+  legal_name: "meridian"
+  positioning:
+    "A design language as proto contracts. PanelDescriptors and Themes are "
+    "declared once and rendered through swappable component kits, so a surface "
+    "is described rather than implemented per framework."
+  story:
+    "Every design system eventually forks into one implementation per framework, "
+    "and the versions drift because nothing holds them to a shared statement. "
+    "meridian makes the statement the artifact: the descriptor is the contract, "
+    "and a renderer is a consumer of it."
+  voice: "Precise about the seam. Say what is contract and what is a renderer's choice."
+  usage_rules:
+    "meridian is brand-NEUTRAL at the root -- the schemas carry no palette. A "
+    "brand arrives as a Theme. Do not let this mark's own colours leak into the "
+    "renderers."
+}
+
+catalog {
+  kinds: ARTIFACT_KIND_THEME_BINPB
+  kinds: ARTIFACT_KIND_THEME_JSON
+  kinds: ARTIFACT_KIND_MARK_SVG
+  kinds: ARTIFACT_KIND_MARK_PNG
+}
