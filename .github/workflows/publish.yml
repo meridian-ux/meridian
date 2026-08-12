@@ -80,10 +80,21 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/publish_manifests.py --check
+          # ANCHORED to line start, and scoped to the module() block. An
+          # unanchored `version = "..."` matches the FIRST such string anywhere
+          # in the file — and MODULE.bazel's own docstring quotes
+          # `bazel_dep(name = "meridian", version = "0.2.3")` while explaining
+          # why the module could not be called `meridian` before. So this read
+          # 0.2.3 and refused the v0.25.0 tag, on the real release, having
+          # passed every rehearsal that used a tag matching the prose.
+          # tools/registry_entry.sh carries this same comment because it was bitten
+          # first; the guard that exists to catch a version mismatch was itself
+          # the only thing that had one.
           VERSION="$(python3 -c "
           import re,pathlib
           t=pathlib.Path('MODULE.bazel').read_text()
-          print(re.search(r'version = \"([^\"]+)\"', t).group(1))")"
+          m=re.search(r'^module\((.*?)^\)', t, re.S|re.M).group(1)
+          print(re.search(r'version\s*=\s*\"([^\"]+)\"', m).group(1))")"
           echo "module version: $VERSION"
           if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             TAGV="${GITHUB_REF_NAME#v}"
