@@ -35,11 +35,11 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/@xterm/addon-fit",
-        "//:node_modules/@xterm/xterm",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@xterm/addon-fit",
+        "//packages/web:node_modules/@xterm/xterm",
     ],
 )
 
@@ -60,10 +60,10 @@ esbuild(
     sourcemap = "external",
     target = "es2022",
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/@xterm/addon-fit",
-        "//:node_modules/@xterm/xterm",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@xterm/addon-fit",
+        "//packages/web:node_modules/@xterm/xterm",
     ],
 )

@@ -6,10 +6,6 @@ package(default_visibility = ["//visibility:public"])
 # Cargo.toml + Cargo.lock are exposed as targets so crate_universe
 # can read them as the dep manifest. crate_universe is configured in
 # MODULE.bazel under the `crate` extension.
-exports_files([
-    "Cargo.toml",
-    "Cargo.lock",
-])
 
 # Re-export serde_json so cross-repo rust consumers (the native renderers, e.g.
 # meridian-tui, and the botnoc cli/tui binary) link the SAME serde_json crate

@@ -36,7 +36,7 @@ ts_project(
     root_dir = "es",
     transpiler = "tsc",
     tsconfig = "tsconfig.es.json",
-    deps = ["//:node_modules/@bufbuild/protobuf"],
+    deps = ["//schemas:node_modules/@bufbuild/protobuf"],
 )
 
 # Assemble the compiled types as the @savvifi/meridian-proto-ts npm package: package.json

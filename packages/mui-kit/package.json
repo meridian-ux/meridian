@@ -13,7 +13,6 @@
     "MIGRATING TO pnpm 11: move `pnpm.overrides` into pnpm-workspace.yaml FIRST",
     "and verify the build still resolves a single proto-ts."
   ],
-  "packageManager": "pnpm@10.25.0",
   "description": "The MUI ComponentKit for the meridian React renderer — paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone — no host-library dependency.",
   "license": "MIT",
   "type": "module",
@@ -68,11 +67,6 @@
     "react-dom": "^19.2.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8"
-  },
-  "overrides": {
-    "@savvifi/meridian-web-react": {
-      "@savvifi/meridian-proto-ts": "0.21.0"
-    }
   },
   "publishConfig": {
     "access": "public"

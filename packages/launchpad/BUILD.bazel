@@ -27,9 +27,9 @@ ts_project(
         ":node_modules/@types/react-dom",
         ":node_modules/react",
         ":node_modules/react-dom",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-web-react",
-        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
     ],
 )
 
@@ -66,9 +66,9 @@ vitest_test(
     ],
     deps = [
         ":launchpad_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/vitest",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/vitest",
     ],
 )
 
@@ -84,9 +84,9 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         ":launchpad_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-web-react",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/vitest",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/vitest",
     ],
 )

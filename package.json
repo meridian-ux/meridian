@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Workspace root for the Meridian monorepo. Publishable packages live under packages/; this manifest carries only the shared toolchain.",
+  "packageManager": "pnpm@10.25.0",
   "scripts": {
     "codegen": "buf generate",
     "prepare": "pnpm codegen"

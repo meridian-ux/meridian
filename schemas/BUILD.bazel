@@ -1,6 +1,14 @@
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
+
+# schemas is a pnpm workspace package with its own dependencies, so it needs its
+# own node_modules tree — //:node_modules can only hold the ROOT package.json's
+# four toolchain packages. Every other workspace package already had this; this
+# one lost it when the npm_link_package calls moved to //:BUILD.bazel, which was
+# a mistake on my part rather than a consequence of the merge.
+npm_link_all_packages(name = "node_modules")
 
 # The npm_link_package calls that used to live here moved to //:BUILD.bazel.
 # They create `node_modules/<pkg>` in the package that DECLARES them, and this
@@ -27,7 +35,5 @@ npm_package(
 
 exports_files([
     "package.json",
-    "pnpm-lock.yaml",
-    "pnpm-workspace.yaml",
     "tsconfig.json",
 ])

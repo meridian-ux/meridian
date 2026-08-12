@@ -19,7 +19,7 @@ vitest_test(
         "workers.test.ts",
     ],
     deps = [
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -34,10 +34,10 @@ vitest_test(
         "fixtures.ts",
     ],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -52,10 +52,10 @@ vitest_test(
         "fixtures.ts",
     ],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -69,10 +69,10 @@ vitest_test(
         "grammar.test.ts",
     ],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -86,11 +86,11 @@ vitest_test(
         "stat.test.ts",
     ],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -106,11 +106,11 @@ vitest_test(
         "table_stream.test.ts",
     ],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -147,10 +147,10 @@ vitest_test(
     srcs = ["conformance_wasm.test.ts"],
     data = [":wasm_artifacts"],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -162,10 +162,10 @@ vitest_test(
     name = "supported_bodies",
     srcs = ["supported_bodies.test.ts"],
     deps = [
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )
@@ -177,8 +177,8 @@ vitest_test(
     name = "browser_exports",
     srcs = ["browser_exports.test.ts"],
     deps = [
-        "//:node_modules/jsdom",
-        "//:node_modules/vitest",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
 )

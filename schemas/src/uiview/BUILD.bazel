@@ -22,6 +22,6 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
     deps = [
-        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//schemas:node_modules/@savvifi/meridian-proto-ts",
     ],
 )

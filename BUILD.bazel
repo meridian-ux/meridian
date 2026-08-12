@@ -68,7 +68,6 @@ exports_files([
     "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
-    "tsconfig.json",
 
     # ── the Rust side ──
     # ONE Cargo workspace, where there were two (and, before the public/internal

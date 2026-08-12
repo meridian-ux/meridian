@@ -26,9 +26,9 @@ ts_project(
         ":node_modules/@types/react-dom",
         ":node_modules/react",
         ":node_modules/react-dom",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@bufbuild/protobuf",
+        "//packages/web-react:node_modules/@savvifi/meridian-schemas",
+        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
     ],
 )
 
@@ -65,9 +65,9 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         ":web_react_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/vitest",
+        "//packages/web-react:node_modules/@bufbuild/protobuf",
+        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/vitest",
     ],
 )
 
@@ -83,9 +83,9 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         ":web_react_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/vitest",
+        "//packages/web-react:node_modules/@bufbuild/protobuf",
+        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/vitest",
     ],
 )
 
@@ -98,9 +98,9 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         ":web_react_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/vitest",
+        "//packages/web-react:node_modules/@bufbuild/protobuf",
+        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/vitest",
     ],
 )
 
@@ -114,9 +114,9 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         ":web_react_lib",
-        "//:node_modules/@bufbuild/protobuf",
-        "//:node_modules/@savvifi/meridian-proto-ts",
-        "//:node_modules/@savvifi/meridian-schemas",
-        "//:node_modules/vitest",
+        "//packages/web-react:node_modules/@bufbuild/protobuf",
+        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@savvifi/meridian-schemas",
+        "//packages/web-react:node_modules/vitest",
     ],
 )

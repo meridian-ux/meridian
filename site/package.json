@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "features": "python3 tools/collect_features.py",
     "dev": "astro dev",

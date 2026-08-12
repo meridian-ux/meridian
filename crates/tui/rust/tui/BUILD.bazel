@@ -1,4 +1,4 @@
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -47,4 +47,43 @@ rust_test(
     name = "tui_test",
     crate = ":tui",
     edition = "2021",
+)
+
+# The executable. src/main.rs has been on disk since the Cargo workspace merge
+# and was in NO Bazel target — //:Cargo.toml declares
+# `[[bin]] name = "meridian-tui"` and the Bazel side never gained the counterpart,
+# so `bazel run` could not do what `cargo run` could.
+#
+# This is the first runnable thing in the estate. Before the merge it could not
+# exist: the crate depended on meridian_uiview and theme_proto, which only Bazel
+# produced, so cargo could not build it — and Bazel had no binary rule, so nothing
+# could run it either.
+rust_binary(
+    name = "meridian_tui",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+        "@crates//:crossterm",
+        "@crates//:prost",
+        "@crates//:ratatui",
+    ],
+)
+
+# tests/render_descriptor.rs drives the same render path main.rs does, through
+# ratatui's TestBackend so it needs no TTY. rust_test(crate = …) compiles UNIT
+# tests only, so an integration test needs its own target or it never runs.
+rust_test(
+    name = "render_descriptor_test",
+    srcs = ["tests/render_descriptor.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+        "@crates//:prost",
+        "@crates//:ratatui",
+    ],
 )

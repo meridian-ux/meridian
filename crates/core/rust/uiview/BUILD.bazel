@@ -18,6 +18,13 @@ rust_prost_library(
 
 # meridian.theme.v1 types via prost. SEPARATE crate (semantics ⊥ style),
 # consumed by the TUI's theme binding (-> ratatui Style palette).
+# NOTE: //crates/core/rust/theme-proto (the cargo crate) has NO BUILD.bazel, on
+# purpose. THIS target is Bazel's producer of the `theme_proto` crate; that
+# directory is cargo's. Giving it a rust_library would put two producers of the
+# same crate name in one graph, which is precisely what its own src/lib.rs warns
+# against — "So the two producers can never both be present in one graph." Its
+# tests/contract.rs therefore runs under cargo only, which is correct: it asserts
+# the CARGO path produces the same module path this rule does.
 rust_prost_library(
     name = "theme_proto",
     proto = "//schemas/proto:theme_proto",
@@ -52,6 +59,16 @@ rust_library(
 
 rust_test(
     name = "uiview_test",
+    # rust_test RECOMPILES the crate's srcs and does NOT inherit rustc_flags from
+    # the rust_library, so without this it takes lib.rs's #[cfg(not(bazel_proto))]
+    # branch — `include!(concat!(env!("OUT_DIR"), …))` — and fails with
+    # "environment variable `OUT_DIR` not defined at compile time", because OUT_DIR
+    # is a CARGO build-script variable that Bazel never sets. The nine
+    # `unresolved import crate::proto::…` errors that follow are all cascades of it.
+    #
+    # Same omission class as :uiview_wasm_lib, which compiles srcs independently
+    # for the same reason and already carries the flag.
+    rustc_flags = ["--cfg=bazel_proto"],
     crate = ":uiview",
     edition = "2021",
 )
@@ -101,4 +118,18 @@ rust_wasm_bindgen(
     out_name = "meridian_uiview",
     target = "web",
     wasm_file = ":uiview_wasm_lib",
+)
+
+# tests/descriptor_set.rs guards the committed descriptor set. rust_test(crate = …)
+# compiles unit tests only, so this integration test had no Bazel target and never
+# ran there — only under cargo.
+rust_test(
+    name = "descriptor_set_test",
+    srcs = ["tests/descriptor_set.rs"],
+    data = ["proto/gen/meridian_ui_v1.binpb"],
+    edition = "2021",
+    deps = [
+        "@crates//:prost",
+        "@crates//:prost-types",
+    ],
 )
