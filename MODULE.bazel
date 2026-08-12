@@ -19,7 +19,7 @@ dep was dead weight carrying a 22-minor-stale theme contract, and it is gone.
 
 module(
     name = "meridian",
-    version = "0.25.0",
+    version = "0.25.1",
 )
 
 # ─── JS / TS ──────────────────────────────────────────────────────────────────

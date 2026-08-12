@@ -27,3 +27,6 @@ target/
 # longer happen. Ignored until a full local build with no --override_module can
 # produce an honest one.
 MODULE.bazel.lock
+
+# tools/registry_entry.sh output — generated from the release tarball, never committed
+.registry-entry/
