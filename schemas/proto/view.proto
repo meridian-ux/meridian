@@ -1,0 +1,177 @@
+// ViewDescriptor — meridian's composition/layout tier: a page/view is a
+// layout arranging slots, each slot rendering a PanelDescriptor.
+//
+// This is the tier ABOVE PanelDescriptor (one panel) and below the Theme.
+// PanelBundle (panel.proto) is a flat list of panels with no arrangement;
+// ViewDescriptor adds the arrangement — which panels, where, and how they're
+// laid out (list / stacked / tabbed / two-column) — plus view- and slot-level
+// actions. It is brand- and framework-neutral: renderers lay it out, and a
+// renderer's ComponentKit paints the panels.
+//
+// A ViewDescriptor is pure data. A graph-backed host is the backend: it stores
+// composition instances (as graph resources) and serves the entity data the
+// panels populate from (via the host's RpcInvoker). The projection from a host's
+// own entity-view type to ViewDescriptor lives in the CONSUMER, not here; the
+// descriptor carries no host-domain semantics.
+//
+// Depends on panel.proto (PanelDescriptor) and rpc.proto (RpcCall).
+syntax = "proto3";
+
+package meridian.ui.v1;
+
+import "google/api/field_behavior.proto";
+import "proto/panel.proto";
+import "proto/rpc.proto";
+
+option java_multiple_files = true;
+option java_package = "meridian.ui.v1";
+option java_outer_classname = "ViewProto";
+
+// A view/page: a layout arranging slots, each slot rendering a panel.
+message ViewDescriptor {
+  // Stable identifier (the view key, e.g. "products-detail-view").
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  // Display title (resolved copy).
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+  // Route path this view is mounted at (optional).
+  string route = 3 [(google.api.field_behavior) = OPTIONAL];
+  // The entity/resource kind this view is about (optional).
+  string subject_kind = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Whether the view is a list or a detail (drives default affordances).
+  ViewKind kind = 5 [(google.api.field_behavior) = OPTIONAL];
+  // The arrangement of the slots.
+  Layout layout = 6 [(google.api.field_behavior) = REQUIRED];
+  // The slots (panels + placement), in `position` order.
+  repeated Slot slots = 7 [(google.api.field_behavior) = REQUIRED];
+  // View-level (header) actions.
+  repeated Action actions = 8 [(google.api.field_behavior) = OPTIONAL];
+  // For a DETAIL view: the id of the record this view is about. Detail panels
+  // (detail_header / record_card) bind it into their `populate` request so the
+  // renderer fetches the right record. Empty on LIST / non-entity views.
+  string subject_id = 9 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The kind of view.
+enum ViewKind {
+  VIEW_KIND_UNSPECIFIED = 0;
+  // A list/collection of the subject kind.
+  VIEW_KIND_LIST = 1;
+  // A detail view of one record.
+  VIEW_KIND_DETAIL = 2;
+}
+
+// The arrangement of a view's slots. A oneof so a renderer switches on the
+// layout mode; each arm is a message so it can carry arm-specific options
+// later without polluting Slot.
+message Layout {
+  oneof mode {
+    // One content slot (a simple list page).
+    ListLayout list = 1;
+    // Slots stacked vertically by `position`.
+    StackedLayout stacked = 2;
+    // Slots rendered as tabs (see Placement.tab_label / tab_position).
+    TabbedLayout tabbed = 3;
+    // Two columns: main + sidebar (see Placement.column).
+    TwoColumnLayout two_column = 4;
+    // grid / master_detail: future, promoted via the corpus/crank ratchet.
+  }
+}
+
+message ListLayout {}
+message StackedLayout {}
+message TabbedLayout {}
+message TwoColumnLayout {}
+
+// One slot in a view: a panel plus where it goes.
+message Slot {
+  // Slot name (e.g. "header", "content", "configuration").
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  // Semantic role hint (header | content | configuration | ...). Advisory;
+  // the layout + placement drive actual positioning.
+  string role = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Order within the layout.
+  int32 position = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Optional slot-title override (else the panel's own title is used).
+  string title = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Arrangement hints, interpreted per the view's Layout mode.
+  Placement placement = 5 [(google.api.field_behavior) = OPTIONAL];
+  // The panel rendered in this slot. Optional now that a slot may instead hold a
+  // nested view (`sub_view`); exactly one of `panel` / `sub_view` is set.
+  PanelDescriptor panel = 6 [(google.api.field_behavior) = OPTIONAL];
+  // Slot-level (row) actions.
+  repeated Action actions = 7 [(google.api.field_behavior) = OPTIONAL];
+  // A NESTED view rendered in this slot instead of a panel — meridian's
+  // composition primitive: a slot may embed a whole ViewDescriptor (its own
+  // layout + slots + panels), which the renderer draws recursively. Each nested
+  // view is self-contained (its panels populate via their own RpcCalls). Enables
+  // dashboards-of-views, entity detail sections, and any layout-in-a-layout. When
+  // set, it takes precedence over `panel`.
+  ViewDescriptor sub_view = 8 [(google.api.field_behavior) = OPTIONAL];
+  // REPEAT the `sub_view` once per row — the composition primitive for a dynamic
+  // list of rich items (a section per entity, a card-deck of detail views, …).
+  // The renderer fetches `sub_view_populate`, resolves `sub_view_rows_field` to a
+  // row list, and renders `sub_view` for EACH row with that row as the ambient
+  // record. Panels inside the repeated sub_view with NO `populate` of their own
+  // read from that record: a FormPanel/DetailHeaderPanel binds its fields to the
+  // row, a TablePanel takes its rows from the row's `rows_field`. When
+  // `sub_view_populate` is empty, `sub_view` renders once (static composition).
+  RpcCall sub_view_populate = 9 [(google.api.field_behavior) = OPTIONAL];
+  // Path within the `sub_view_populate` response to the row list (a `repeated`).
+  string sub_view_rows_field = 10 [(google.api.field_behavior) = OPTIONAL];
+  // Gate this slot on a SELECTION key (see FieldBinding.selection_key): while the
+  // named key is unset in the view's selection bag, the renderer skips this slot's
+  // panel entirely — no `populate` fires — and draws `depends_on_placeholder`
+  // instead. A gated TAB still appears in the strip (its label is how the user
+  // learns the section exists); only its body is replaced. Empty ⇒ ungated.
+  string depends_on_selection_key = 11 [(google.api.field_behavior) = OPTIONAL];
+  // Copy shown while the gate above is closed ("Select a plan year to view this
+  // section."). Empty ⇒ the renderer's neutral default.
+  string depends_on_placeholder = 12 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Where a slot goes within its layout. Fields are interpreted by the active
+// Layout mode (tab_* for TabbedLayout, column for TwoColumnLayout, ...).
+message Placement {
+  // Tab label (TabbedLayout).
+  string tab_label = 1 [(google.api.field_behavior) = OPTIONAL];
+  // Tab order (TabbedLayout).
+  int32 tab_position = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Column (TwoColumnLayout).
+  Column column = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Render inline in the header row rather than as its own section.
+  bool header_row = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// A column in a TwoColumnLayout.
+enum Column {
+  COLUMN_UNSPECIFIED = 0;
+  COLUMN_MAIN = 1;
+  COLUMN_SIDEBAR = 2;
+}
+
+// A neutral action = a labeled RpcCall with a placement. Covers the host's
+// row/header actions (edit / clone / delete / export / ...). The renderer draws
+// the affordance; the host's RpcInvoker performs the call.
+message Action {
+  // Stable identifier (e.g. "edit", "delete").
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  // Display label.
+  string label = 2 [(google.api.field_behavior) = REQUIRED];
+  // The RPC this action fires.
+  RpcCall call = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Where the affordance renders.
+  ActionPlacement placement = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Where an action's affordance renders.
+enum ActionPlacement {
+  ACTION_PLACEMENT_UNSPECIFIED = 0;
+  // A prominent primary button.
+  ACTION_PLACEMENT_PRIMARY = 1;
+  // Per-row action (list rows).
+  ACTION_PLACEMENT_ROW = 2;
+  // In the view/detail header.
+  ACTION_PLACEMENT_HEADER = 3;
+  // Collapsed into an overflow ("kebab") menu.
+  ACTION_PLACEMENT_OVERFLOW = 4;
+}

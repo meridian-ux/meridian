@@ -1,0 +1,31 @@
+[package]
+name = "meridian-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "ratatui-based renderer for Meridian PanelDescriptors."
+
+[dependencies]
+# The first-party core, now by PATH. Under Bazel these still come from the BUILD
+# deps (@meridian_uiview_core//rust/uiview and :theme_proto were rewritten to
+# //crates/core/rust/uiview by the merge); under cargo they resolve here. Both
+# land the same crate names, so no source file changes.
+meridian-uiview = { workspace = true }
+theme-proto = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+prost = { workspace = true }
+regex = { workspace = true }
+# serde_json::Value crosses the uiview API boundary (RpcInvoker / render_table /
+# RenderedRow). Bazel takes it from //crates/core/rust:serde_json so both sides
+# link ONE crate instance — cross-module @crates copies are distinct types even at
+# the same version. Under one cargo workspace that hazard cannot arise: there is
+# exactly one serde_json in the graph.
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+# The TUI is a binary as well as a library. It could not be one before: the crate
+# depended on types only Bazel could generate, so there was nothing to run.
+[[bin]]
+name = "meridian-tui"
+path = "src/main.rs"

@@ -1,0 +1,32 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\graphicspath{{../studio-figures/}}
+
+\title{\textbf{demo console} — meridian catalog}
+\author{Every studio entity view (list + detail), rendered via meridian-mui-kit}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+Every figure is a real \texttt{demo.catalog.v1} entity view. Studio's compiled
+modules were installed into a graph (full fidelity), the live composition loader
+produced each \texttt{EntityListComposition}, \texttt{@savvifi/meridian-aion-projection}
+projected it to a neutral \texttt{meridian.ui.v1.ViewDescriptor}, and
+\texttt{@savvifi/meridian-mui-kit} rendered it in hermetic Chrome for Testing.
+No host UI code renders these — only the neutral meridian tier does.
+
+\vspace{1em}
+\tableofcontents
+\clearpage
+
+\input{../studio-figures/figures.tex}
+
+\end{document}

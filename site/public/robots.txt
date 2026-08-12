@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://fastverk.com/sitemap-index.xml

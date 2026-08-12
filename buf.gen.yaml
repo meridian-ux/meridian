@@ -1,0 +1,26 @@
+# Generate @savvifi/meridian-proto-ts from the protos, without Bazel.
+#
+# `target=js+dts` emits runnable JavaScript and declarations directly, skipping
+# the TS→tsc step the Bazel graph runs (ts_proto_library -> proto_ts). Fewer
+# moving parts for the same output, and it means `pnpm codegen` needs no
+# tsconfig of its own.
+#
+# The output lands at the WORKSPACE PACKAGE, not in a build directory, because
+# that is the entire point: pnpm can only resolve `workspace:*` against a package
+# that exists on disk. Until this existed, @savvifi/meridian-proto-ts had no
+# source directory at all — it was Bazel codegen output plus a hand-maintained
+# manifest kept deliberately outside the pnpm graph — so `workspace:*` had
+# nothing to point at, and every package in the repo resolved proto-ts from the
+# npm registry instead. That is how five different versions of a nominally-typed
+# PanelDescriptor ended up installable at once.
+version: v2
+
+plugins:
+  - local: protoc-gen-es
+    out: packages/proto-ts
+    opt: target=js+dts
+
+# No `managed:` block. protobuf-es does not need one, and the java_package /
+# java_outer_classname options already in the protos are consumed by other
+# generators; rewriting them here would put this file in disagreement with the
+# .proto sources for no gain.

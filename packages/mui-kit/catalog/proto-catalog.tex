@@ -1,0 +1,44 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\graphicspath{{../proto-figures/}}
+
+\title{\textbf{meridian-proto} — descriptors to UI}
+\author{Layouts derived from gRPC service descriptors, rendered via meridian-mui-kit}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+Nobody authored these views. Each one was derived from \emph{protobuf descriptors
+alone}: \texttt{meridian-proto} read a service's \texttt{FileDescriptorSet},
+recovered a resource model from its \texttt{google.api.*} annotations —
+\texttt{resource}, \texttt{field\_behavior}, \texttt{resource\_reference} — and
+projected that into a neutral \texttt{meridian.ui.v1.ViewDescriptor}.
+\texttt{@savvifi/meridian-mui-kit} then rendered it in hermetic Chrome for Testing.
+
+\medskip
+\noindent
+Three things in these figures come from annotations rather than guesswork, and are
+what a schema-derived UI cannot otherwise get right:
+\texttt{field\_behavior} decides which fields appear in which view, so
+\texttt{OUTPUT\_ONLY} values show on a detail card and never in a form;
+column order is ranked with the identifier first and enums high, because a state is
+the highest-signal cell in an operations table; and list pagination is read from the
+AIP-158 request shape rather than assumed.
+
+\medskip
+\noindent
+Cell values are synthesised per column \emph{format} — this is a structure catalog,
+not live data — but every label, column, panel and RPC binding shown is the real
+projected output.
+
+\input{../proto-figures/figures.tex}
+
+\end{document}

@@ -1,0 +1,35 @@
+[package]
+name = "meridian-uiview"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Platform-neutral core for Meridian's proto-driven UI: PanelDescriptor types + field-path accessor + request builder + scoring helpers."
+
+[dependencies]
+prost = { workspace = true }
+prost-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+# wasm-bindgen + JS interop deps. The wasm_api module is gated on
+# `#[cfg(target_arch = "wasm32")]` so these only get used when
+# compiling for the browser; on native builds they're inert deps
+# that compile but don't pull in any JS-specific behavior. The Bazel
+# wasm bundle is built via //rust/uiview:uiview_wasm (rust_wasm_bindgen
+# over a rust_shared_library); under cargo the same crate-type is
+# exposed so wasm-pack / cargo can still target this crate.
+wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }
+serde-wasm-bindgen = { workspace = true }
+
+# Proto codegen has TWO paths (see src/lib.rs):
+#   Bazel -> --cfg=bazel_proto + the rust_prost_library //rust/uiview:uiview_proto
+#   cargo -> build.rs + prost-build over the committed descriptor set
+# The cargo path needs no protoc: prost-build's compile_fds reads bytes.
+[build-dependencies]
+prost-build = { workspace = true }
+prost-types = { workspace = true }
+prost = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]

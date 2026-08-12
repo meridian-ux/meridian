@@ -1,0 +1,31 @@
+load("@brando//:defs.bzl", "brand_icons")
+
+package(default_visibility = ["//visibility:public"])
+
+# Per-platform icon set, rasterized hermetically from the canonical mark via
+# @brando//marklib:raster. Keep sizes in sync with gen/raster.py.
+_PNG_SIZES = [
+    16,
+    32,
+    48,
+    64,
+    128,
+    256,
+    512,
+    1024,
+]
+
+_PNGS = ["meridian_mark_%d.png" % s for s in _PNG_SIZES]
+
+_LIGHT_PNGS = ["meridian_light_mark_%d.png" % s for s in _PNG_SIZES]
+
+_PACKED = [
+    "meridian_mark.icns",
+    "meridian_mark.ico",
+]
+
+brand_icons(
+    name = "icon_set",
+    outs = _PNGS + _LIGHT_PNGS + _PACKED,
+    rasterizer = "//brand/gen:raster",
+)

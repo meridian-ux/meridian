@@ -1,0 +1,157 @@
+// TablePanel and its supporting messages.
+//
+// The most common panel shape: an RPC populates a list, the renderer
+// shows a table over the rows, and `RowAction`s expose buttons that
+// fire follow-up RPCs against the selected row.
+//
+// Depends on rpc.proto for `RpcCall`.
+syntax = "proto3";
+
+package meridian.ui.v1;
+
+import "google/api/field_behavior.proto";
+import "proto/rpc.proto";
+import "proto/value.proto";
+
+option java_multiple_files = true;
+option java_package = "meridian.ui.v1";
+option java_outer_classname = "TableProto";
+
+// "Fetch a list per current document, render a table" shape.
+message TablePanel {
+  // RPC to call when this panel becomes active.
+  RpcCall populate = 1 [(google.api.field_behavior) = REQUIRED];
+  // Path within the response message to the row list. The named
+  // field must be a `repeated` field; ProtoPaths resolves the chain
+  // (e.g. "claims" or "outer.inner.rows").
+  string rows_field = 2 [(google.api.field_behavior) = REQUIRED];
+  // Optional noun for the meta line ("claims", "tickets").
+  string item_noun = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Optional placeholder displayed when the table is empty.
+  string placeholder = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Column definitions in display order.
+  repeated TableColumn columns = 5 [(google.api.field_behavior) = REQUIRED];
+  // Actions exposed on the selected row (typically rendered as
+  // buttons above the table).
+  repeated RowAction actions = 6 [(google.api.field_behavior) = OPTIONAL];
+  // How the table pages. Absent ⇒ CLIENT (paginate the fetched rows in
+  // the renderer) — backward compatible with pre-0.3.0 descriptors.
+  Pagination pagination = 7 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// How a TablePanel paginates. CLIENT paginates the rows `populate` already
+// returned (renderer-local, good for small lists). OFFSET and CURSOR re-invoke
+// `populate` per page with renderer-supplied request fields, so they scale to
+// large collections. Every renderer switches on `mode`; a renderer that can't
+// page (e.g. a fixed-height TUI) may treat all modes as CLIENT.
+message Pagination {
+  // Paging strategy. Absent / UNSPECIFIED ⇒ CLIENT.
+  PaginationMode mode = 1 [(google.api.field_behavior) = OPTIONAL];
+  // Default rows per page. 0 ⇒ the renderer's own default.
+  uint32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // OFFSET mode: request fields the renderer sets on `populate` when paging,
+  // plus the response path to the total row count (for page count / "N of M").
+  // Paths are dotted, like TableColumn.field_path (e.g. "page.offset").
+  string offset_request_field = 3 [(google.api.field_behavior) = OPTIONAL];
+  string limit_request_field = 4 [(google.api.field_behavior) = OPTIONAL];
+  string total_field = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // CURSOR mode (infinite scroll): request field carrying the cursor, plus the
+  // response path to the next cursor (empty in a response ⇒ end of data).
+  string cursor_request_field = 6 [(google.api.field_behavior) = OPTIONAL];
+  string next_cursor_field = 7 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Paging strategy for a Pagination.
+enum PaginationMode {
+  // Default; treated as CLIENT.
+  PAGINATION_MODE_UNSPECIFIED = 0;
+  // Paginate the rows already fetched by `populate`, in the renderer.
+  PAGINATION_MODE_CLIENT = 1;
+  // Server paging via offset/limit request fields + a total-count response.
+  PAGINATION_MODE_OFFSET = 2;
+  // Cursor / infinite scroll via a cursor request field + next-cursor response.
+  PAGINATION_MODE_CURSOR = 3;
+}
+
+// One column in a TablePanel. Display order matches definition order.
+message TableColumn {
+  // Column header text.
+  string header = 1 [(google.api.field_behavior) = REQUIRED];
+  // Path within the row message, e.g. "confidence" or
+  // "subject.claim.claim_text".
+  string field_path = 2 [(google.api.field_behavior) = REQUIRED];
+  // How to format the value for display.
+  ColumnFormat format = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Hint for desktop / web renderers; TUI hosts may ignore.
+  int32 pref_width = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Optional: render the cell as a link to a related entity. Present ⇒ the
+  // renderer draws the value as a link and asks the host to resolve the
+  // destination (meridian stays URL-agnostic — the host owns routes).
+  ColumnLink link = 5 [(google.api.field_behavior) = OPTIONAL];
+  // How the value reads — the shared spec a form field, a record card and a
+  // detail-header row also use, so one value reads the same everywhere.
+  //
+  // ADDITIVE alongside `format` above, deliberately: `ColumnFormat` is the
+  // table's own older six-case vocabulary, and replacing it outright would be a
+  // breaking change for every consumer pinning the current schema. A renderer
+  // PREFERS `value_display` when set and falls back to `format`, so existing
+  // descriptors are byte-for-byte unaffected and tables migrate when convenient.
+  // `ColumnFormat` should retire once they have.
+  ValueDisplay value_display = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Renders a column's cell as a link navigating to a related entity. The
+// renderer never builds a URL itself — it hands the host the target kind + the
+// cell's value (the entity's id) and the host maps that to its own route (the
+// `resolveHref` seam, the link peer of the icon / grammar host resolvers). A
+// renderer with no host resolver draws plain text, never a dead link.
+message ColumnLink {
+  // The kind of entity the cell value identifies, e.g. "identity.user". Empty ⇒
+  // the view's own subject kind (a self/detail link to this row's entity).
+  string target_kind = 1 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// One action button exposed on the row's actions bar.
+message RowAction {
+  // Button label.
+  string label = 1 [(google.api.field_behavior) = REQUIRED];
+  // RPC fired when the button is clicked.
+  RpcCall rpc = 2 [(google.api.field_behavior) = REQUIRED];
+  // Optional: only enable the button when the selected row matches
+  // this predicate (e.g. "only enable Resolve for OPEN tickets").
+  RowFilter enabled_when = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Optional: re-fetch the table once the action completes. Default
+  // true.
+  bool refresh_on_success = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Predicate over a selected row. Today: equality on a single string
+// field. Extensible to more operators later without breaking changes.
+message RowFilter {
+  // Path within the row, e.g. "state".
+  string field_path = 1 [(google.api.field_behavior) = REQUIRED];
+  // Stringified expected value. Compared via the value's renderable
+  // form (enum name, formatted number, etc.).
+  string equals = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// How to format a column value before display. Renderers map each
+// case to their native widget conventions.
+enum ColumnFormat {
+  // Default; render via Object.toString() / proto's default format.
+  COLUMN_FORMAT_UNSPECIFIED = 0;
+  // Plain string.
+  STRING = 1;
+  // Floating-point with two decimal places.
+  FLOAT_2DP = 2;
+  // Integer.
+  INTEGER = 3;
+  // Enum case name (e.g. "OPEN", "RESOLVED").
+  ENUM_NAME = 4;
+  // String list joined by ", ".
+  STRING_LIST = 5;
+  // google.protobuf.Timestamp rendered as ISO-8601.
+  TIMESTAMP = 6;
+}

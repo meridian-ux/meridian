@@ -1,0 +1,98 @@
+---
+import Base from "../../layouts/Base.astro";
+import FeatureSection from "../../components/sections/FeatureSection.astro";
+import catalog from "../../content/features.json";
+
+export function getStaticPaths() {
+  return catalog.features.map((f) => ({ params: { slug: f.slug }, props: { f } }));
+}
+const { f } = Astro.props;
+const hero = f.hero || {};
+const meta = f.meta || {};
+
+// Split the headline so the accent span renders in the amber gradient.
+let pre = hero.headline || f.name, accent = "", post = "";
+if (hero.accent_span && hero.headline && hero.headline.includes(hero.accent_span)) {
+  const i = hero.headline.indexOf(hero.accent_span);
+  pre = hero.headline.slice(0, i);
+  accent = hero.accent_span;
+  post = hero.headline.slice(i + hero.accent_span.length);
+}
+const statusClass = (f.status || "available").toLowerCase();
+const canonical = meta.canonical || new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = meta.og_image || (meta.og_generate ? `/assets/og/${f.slug}.png` : "/assets/og/default.png");
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: f.name,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web, Linux, Kubernetes",
+  description: meta.description,
+  isPartOf: { "@type": "SoftwareApplication", name: "tomato-bazel" },
+};
+---
+<Base title={meta.title} description={meta.description} canonical={canonical} ogImage={ogImage} jsonLd={jsonLd}>
+  <div class="breadcrumb"><a href="/features">Products</a> / {f.name}</div>
+
+  <section class="feature-hero">
+    <span class="eyebrow">{hero.eyebrow || f.category?.toLowerCase()}</span>
+    <h1>{pre}{accent && <span class="grad-text">{accent}</span>}{post}</h1>
+    <p class="sub">{hero.subhead || f.tagline}</p>
+    <div class="cta-row">
+      {(f.ctas || []).map((c) => (
+        <a class={c.primary ? "btn btn-primary" : "btn btn-ghost"} href={c.href}>{c.label}</a>
+      ))}
+      <span class={`pill ${statusClass}`}>{(f.status || "available").toLowerCase()}</span>
+    </div>
+    {f.highlights && (
+      <div class="hl-rail">{f.highlights.map((h) => <span class="hl">{h}</span>)}</div>
+    )}
+  </section>
+
+  {(f.sections || []).map((s) => <FeatureSection s={s} />)}
+
+  {f.body?.length > 0 && (
+    <section style="padding-top:0">
+      <div class="fbody">
+        {f.body.map((b) => (
+          <>
+            {b.prose && <div class="prose"><p>{b.prose.markdown}</p></div>}
+            {b.bullets && (
+              <div class="bl">
+                {b.bullets.title && <h3>{b.bullets.title}</h3>}
+                <ul>{b.bullets.items.map((it) => <li>{it}</li>)}</ul>
+              </div>
+            )}
+            {b.panel && (
+              <div class="panel-shell">
+                <div class="panel-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">{b.panel.title}</span></div>
+                <div class="panel-body">
+                  {b.panel.meta && <div class="meridian-uiview-meta">{b.panel.meta}</div>}
+                  <table class="meridian-uiview-table"><tbody>
+                    {(b.panel.rows || []).map((r) => <tr><td>{r}</td></tr>)}
+                  </tbody></table>
+                </div>
+              </div>
+            )}
+          </>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {f.plugin_repo && (
+    <section style="padding-top:0">
+      <p style="color:var(--muted);font-size:13.5px;font-family:var(--mono)">source · <a href={`https://${f.plugin_repo}`} style="color:var(--amber)">{f.plugin_repo}</a>{f.mcp_tools?.length ? ` · tools: ${f.mcp_tools.join(", ")}` : ""}</p>
+    </section>
+  )}
+
+  <section class="close">
+    <h2>One graph, from source to build.</h2>
+    <p>{f.name} is one of {catalog.features.length} services in the tbzl.dev source &amp; build layer — open at the edges, yours at the core.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/#start">Get started</a>
+      <a class="btn btn-ghost" href="https://docs.tbzl.dev">Read the docs ↗</a>
+      <a class="btn btn-plain" href="/features">All products →</a>
+    </div>
+  </section>
+</Base>

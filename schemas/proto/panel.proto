@@ -1,0 +1,281 @@
+// PanelDescriptor — meridian's top-level descriptor for one
+// right-pane view. Selects between the available panel shapes via
+// the `body` oneof.
+//
+// Renderers route by `panel_id`. The four shapes (table / lro /
+// prompt / adhoc) live in their own files; this file just composes
+// them under one descriptor.
+//
+// Depends on table.proto, lro.proto, prompt.proto, llm_prompt.proto.
+//
+// A second family of body variants — the brand-neutral "content" shapes
+// (choice / snippet / action / connect_flow / copy_value / catalog, plus the
+// full-parity stat / steps) — describes STATIC authored content (no RpcCall, no
+// fetch), for landing / setup / "how to connect" / documentation surfaces. Every
+// modality realizes them at full fidelity. They compose: ConnectFlowPanel is a
+// Choice of targets, each yielding an Affordance + a Snippet.
+//
+// A third family — the SPECIALIZED VISUAL panels (terminal / grammar / media) —
+// cannot meet that parity bar, because a pty, a diagram and a moving picture are
+// not displayable as text. Each therefore documents its own DEGRADATION LADDER
+// down to something text-shaped, so no surface ever blanks.
+syntax = "proto3";
+
+package meridian.ui.v1;
+
+import "google/api/field_behavior.proto";
+import "proto/value.proto";
+import "proto/affordance.proto";
+import "proto/catalog.proto";
+import "proto/choice.proto";
+import "proto/connect_flow.proto";
+import "proto/copy_value.proto";
+import "proto/form.proto";
+import "proto/gallery.proto";
+import "proto/grammar.proto";
+import "proto/llm_prompt.proto";
+import "proto/lro.proto";
+import "proto/media.proto";
+import "proto/prompt.proto";
+import "proto/rpc.proto";
+import "proto/snippet.proto";
+import "proto/stat.proto";
+import "proto/steps.proto";
+import "proto/stream.proto";
+import "proto/table.proto";
+import "proto/terminal.proto";
+
+option java_multiple_files = true;
+option java_package = "meridian.ui.v1";
+option java_outer_classname = "PanelProto";
+
+// PanelDescriptor: a platform-neutral description of one right-pane
+// view. `panel_id` is the routing key; `body` selects which shape
+// (table / lro / prompt / adhoc) the renderer should use.
+//
+// Meridian ships three host renderers consuming the same descriptors:
+//   - JavaFX desktop (meridian.ui.javafx)
+//   - Web via web components (meridian.ui in TypeScript)
+//   - Rust TUI via ratatui (meridian.ui in Rust)
+//
+// Bespoke layouts (SPARQL editors, image viewers, document trees)
+// that don't fit any shape variant stay as hand-coded host classes
+// behind the `adhoc` oneof variant — the framework explicitly
+// accommodates that.
+message PanelDescriptor {
+  // Stable identifier ("claims", "review_tickets", ...). Renderers
+  // use this as the routing key and for telemetry.
+  string panel_id = 1 [(google.api.field_behavior) = REQUIRED];
+  // Display title shown at the top of the panel.
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+  // Shape selector. Each variant has its own renderer.
+  oneof body {
+    // Fetch a list, render a table.
+    TablePanel table = 3;
+    // Long-running operation driver. (Reserved; renderer support
+    // arrives alongside the first LRO migration.)
+    LroPanel lro = 4;
+    // Bespoke host-supplied layout (SPARQL editor, image viewer,
+    // tree, etc.). The host looks up `adhoc.handler_id` in its own
+    // registry and instantiates the corresponding hand-coded view.
+    AdhocPanel adhoc = 5;
+    // Standalone input/confirmation prompt. No RPC side effect;
+    // values are returned to the in-process caller. Used by
+    // CLI-shaped tools (e.g. rules_cloudformation's cfn_console)
+    // that need to collect parameters or gate destructive actions
+    // through meridian's design language.
+    PromptPanel prompt = 6;
+    // Author + parameter-fill UI for a templated LLM prompt
+    // (Anthropic Messages, OpenAI Chat, etc.). Distinct from
+    // PromptPanel: the slots are the inputs and the rendered
+    // prompt is the output. Pair with LroPanel when the consumer
+    // wants the renderer to also drive execution.
+    LlmPromptPanel llm_prompt = 7;
+    // Fetch a list, render a grid of clickable cards (e.g. an
+    // integrations/connections gallery, a plugin catalog, a deck).
+    GalleryPanel gallery = 8;
+    // A form of fields — an entity "detail section". READONLY renders
+    // a read-only card; EDIT renders an editable form. Distinct from
+    // PromptPanel (which collects standalone input with no server
+    // round-trip): FormPanel is the CRUD/detail surface bound to a
+    // record, with a `submit` RPC in EDIT mode.
+    FormPanel form = 9;
+    // ── Content shapes (static, brand-neutral; no RpcCall/fetch) ──
+    // Single-select among labeled options (web = segmented tabs, tui =
+    // arrow-key list, chat = numbered).
+    ChoicePanel choice = 10;
+    // A copyable code artifact (web = <pre> + copy, tui = box + OSC52,
+    // chat = fenced block).
+    SnippetPanel snippet = 11;
+    // An invocable affordance — a deep-link URI or a command (web =
+    // button/link, tui = keybinding, chat = link).
+    ActionPanel action = 12;
+    // Composed "how any caller connects to a surface": a Choice of
+    // targets, each yielding an Affordance + a Snippet.
+    ConnectFlowPanel connect_flow = 13;
+    // A labeled value with a copy affordance (web = pill/chip, tui =
+    // text + copy key, chat = inline code).
+    CopyValuePanel copy_value = 14;
+    // A grid/list of authored items (web = cards, tui = list, chat =
+    // bullets).
+    CatalogPanel catalog = 15;
+    // An interactive terminal over a pty WebSocket. WEB-SPECIFIC: only the
+    // meridian-web renderer realizes it (xterm.js); the tui / web-react /
+    // mui kits do not. Canonicalized here so a panel bundle can carry it.
+    TerminalPanel terminal = 16;
+    // A declarative rendering grammar (markdown / mermaid / plantuml / graphviz
+    // / vega). Rendered per the surface's capabilities (content negotiation),
+    // degrading to `alt` / source text where no transcoder matches. Rich render
+    // is web; other modalities degrade. See grammar.proto.
+    GrammarPanel grammar = 17;
+    // A KPI / metric tile — a labeled number with a COMPUTED delta/trend and an
+    // optional sparkline. A full-parity content shape (every modality). The
+    // delta/trend is computed from `previous`/`series`, never author-marked. See
+    // stat.proto.
+    StatPanel stat = 18;
+    // The header of a DETAIL view: a title + optional subtitle/status resolved
+    // from the record, plus a strip of labeled descriptor rows. Fetches the
+    // single record via `populate` (bound by the view's `subject_id`). Header
+    // actions are carried on ViewDescriptor.actions (HEADER / OVERFLOW), not here.
+    DetailHeaderPanel detail_header = 19;
+    // A read-only key/value card for one record — the entity "detail section"
+    // rendered as a labeled-value grid (NOT disabled inputs). Fetches the record
+    // via `populate` (bound by the view's `subject_id`). This is the READONLY
+    // detail surface; FormPanel(EDIT) remains for editable forms.
+    RecordCardPanel record_card = 20;
+    // An ordered walkthrough — steps a reader performs, each with an optional
+    // narration, frame and actor. A full-parity content shape (every modality).
+    // The step NUMBER is computed from position, never authored. For structured
+    // walkthroughs (generated from a recording or a plan); hand-written prose
+    // stays markdown under `grammar`. See steps.proto.
+    StepsPanel steps = 21;
+    // A video / audio / image with a poster, captions and chapters. A
+    // SPECIALIZED visual panel (like terminal/grammar): a moving picture is not
+    // displayable as text, so it degrades player → poster → `alt`. See
+    // media.proto.
+    MediaPanel media = 22;
+    // An append-only stream of text lines (a build log, a deploy log, an agent
+    // transcript) rendered as a following pane. A full-parity content shape:
+    // only the LIVENESS degrades — a surface with no stream transport shows a
+    // bounded snapshot, never a blank. Distinct from `terminal` (an interactive
+    // pty, web-only) and from `table` (one bounded fetch). See stream.proto.
+    StreamPanel stream = 23;
+  }
+}
+
+// The header of a DETAIL view. Renders the record's title prominently, an
+// optional subtitle + status resolved from the record, and a strip of labeled
+// descriptor rows. The record is fetched once via `populate`, with the detail
+// subject id (ViewDescriptor.subject_id) bound into `id_field` of the request.
+// Header-level actions live on ViewDescriptor.actions (HEADER / OVERFLOW).
+message DetailHeaderPanel {
+  // Resolved display title (static copy). When `title_source_path` is set and
+  // resolves to a non-empty value, that wins over this literal.
+  string title = 1 [(google.api.field_behavior) = OPTIONAL];
+  // Dotted path into the fetched record for the title (e.g. "data.name").
+  // Optional — falls back to `title`.
+  string title_source_path = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Dotted path into the record for a subtitle line (e.g. "data.sponsor").
+  string subtitle_source_path = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Dotted path into the record for a status value, rendered as a chip.
+  string status_source_path = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Labeled descriptor rows shown under the title (label + a dotted source path).
+  repeated DescriptorRow descriptor_rows = 5 [(google.api.field_behavior) = OPTIONAL];
+  // RPC that fetches the single record. The renderer invokes it once with the
+  // request field named by `id_field` set to the view's subject_id.
+  RpcCall populate = 6 [(google.api.field_behavior) = OPTIONAL];
+  // Request field the subject id binds to (default "id").
+  string id_field = 7 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// A read-only key/value card for one record. Each field renders as a labeled
+// value read from the fetched record at the field's `field_id` (dotted path).
+message RecordCardPanel {
+  // Fields to display, in order. Reuses FormField for label/id/kind; the value
+  // is read from the record at `field_id` (dotted path) and rendered read-only.
+  repeated FormField fields = 1 [(google.api.field_behavior) = OPTIONAL];
+  // RPC that fetches the single record (see DetailHeaderPanel.populate).
+  RpcCall populate = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Request field the subject id binds to (default "id").
+  string id_field = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Singular noun for labels / empty states (e.g. "product").
+  string item_noun = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// One labeled descriptor row in a DetailHeaderPanel: a static label and a dotted
+// path into the record for its value.
+message DescriptorRow {
+  // Display label (e.g. "Type", "Status").
+  string label = 1 [(google.api.field_behavior) = REQUIRED];
+  // Dotted path into the record for the value (e.g. "data.type").
+  string source_path = 2 [(google.api.field_behavior) = REQUIRED];
+  // How the value READS — the same shared spec a form field and a table cell use,
+  // so one value reads the same on every surface.
+  //
+  // A header row is a labeled VALUE, which is exactly what ValueDisplay describes,
+  // and it was the last read surface with no way to say so: a card field has
+  // `FormField.display` and a cell has `TableColumn.value_display`, while these rows
+  // could only be inferred from string shape. That is why a task's due date rendered
+  // as a raw `2026-03-29T00:00:00.000Z` in the header while the card beside it read
+  // "Mar 29, 2026" — same value, two code paths, only one of them declared.
+  //
+  // Unset ⇒ the renderer's existing inference, so every header emitted before this
+  // is unaffected.
+  ValueDisplay display = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// A form of fields bound to a record — the entity "detail section" /
+// CRUD surface. In READONLY mode the renderer shows the fields as a
+// read-only card (values come from the slot/panel's fetch); in EDIT
+// mode it renders an editable form whose submit fires `submit`.
+//
+// Reuses the shared FormField input primitives (form.proto). The
+// difference from PromptPanel is intent + binding: PromptPanel is a
+// standalone input collector (no RPC side effect); FormPanel is a
+// record-bound detail/edit view with a save RPC.
+message FormPanel {
+  // Fields to render, in display order.
+  repeated FormField fields = 1 [(google.api.field_behavior) = REQUIRED];
+  // READONLY (detail card) or EDIT (editable form).
+  FormMode mode = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Save RPC fired on submit. Meaningful in EDIT mode; READONLY
+  // panels are populated via the slot/panel fetch and set no submit.
+  RpcCall submit = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Singular noun for labels / empty states (e.g. "product").
+  string item_noun = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Render mode for a FormPanel.
+enum FormMode {
+  FORM_MODE_UNSPECIFIED = 0;
+  // Read-only detail card.
+  FORM_MODE_READONLY = 1;
+  // Editable form with a submit action.
+  FORM_MODE_EDIT = 2;
+}
+
+// A reload-friendly bundle of `PanelDescriptor`s authored as a single
+// textproto, compiled to `.binpb` by the `meridian_panel_bundle`
+// Bazel rule, and loaded by every renderer at startup.
+//
+// The host runtime watches the on-disk `.binpb` (dev workflow: edit
+// textproto, save, see panels refresh) and re-publishes the parsed
+// bundle to its renderer. In prod the same code path is driven by an
+// admin RPC.
+message PanelBundle {
+  // Display version. Renderers log this on reload so changes are
+  // observable in support sessions; the runtime does no semver work.
+  string version = 1 [(google.api.field_behavior) = OPTIONAL];
+  // Panels in display order. Renderers route to one of these by
+  // matching `panel_id`.
+  repeated PanelDescriptor panels = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Host-specific layout. The descriptor only names the handler; the
+// host's adhoc registry supplies the implementation. Use this for
+// bespoke views (code editors, tree views, image viewers) that the
+// table/LRO shapes can't express cleanly.
+message AdhocPanel {
+  // Identifier the host looks up in its adhoc registry.
+  string handler_id = 1 [(google.api.field_behavior) = REQUIRED];
+}

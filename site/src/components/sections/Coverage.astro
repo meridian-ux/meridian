@@ -1,0 +1,19 @@
+---
+const { items = [] } = Astro.props;
+const CC = { OK: "var(--ok)", WARN: "var(--amber)", FAIL: "var(--block)", NA: "var(--muted)" };
+---
+<div class="cov">
+  {items.map((it) => {
+    const total = it.total || 0;
+    const covered = it.covered || 0;
+    const pct = total ? Math.round((covered / total) * 100) : 0;
+    const color = CC[it.status] || "var(--amber)";
+    return (
+      <div class="cov-row">
+        <div class="cl">{it.label}{it.note && <span class="cn">{it.note}</span>}</div>
+        <div class="cov-bar"><i style={`width:${pct}%;background:${color}`}></i></div>
+        <div class="cc"><b>{covered}</b>/{total}</div>
+      </div>
+    );
+  })}
+</div>

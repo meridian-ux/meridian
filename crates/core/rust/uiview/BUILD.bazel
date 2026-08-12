@@ -1,0 +1,141 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_test")
+load("@rules_rust_prost//:defs.bzl", "rust_prost_library")
+load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+# Cargo.toml exposed for crate_universe to read manifests.
+exports_files(["Cargo.toml"])
+
+# Rust types for meridian.ui.v1 via prost, generated from the meridian-schemas
+# proto_library (the cross-repo Bazel contract). No serde transform: the wasm
+# boundary uses protobuf BINARY (prost decode), not serde_wasm_bindgen JSON, so
+# the prost types need no serde derives and meridian-schemas stays rust-free.
+rust_prost_library(
+    name = "uiview_proto",
+    proto = "//schemas/proto:uiview_proto",
+)
+
+# meridian.theme.v1 types via prost. SEPARATE crate (semantics ⊥ style),
+# consumed by the TUI's theme binding (-> ratatui Style palette).
+# NOTE: //crates/core/rust/theme-proto (the cargo crate) has NO BUILD.bazel, on
+# purpose. THIS target is Bazel's producer of the `theme_proto` crate; that
+# directory is cargo's. Giving it a rust_library would put two producers of the
+# same crate name in one graph, which is precisely what its own src/lib.rs warns
+# against — "So the two producers can never both be present in one graph." Its
+# tests/contract.rs therefore runs under cargo only, which is correct: it asserts
+# the CARGO path produces the same module path this rule does.
+rust_prost_library(
+    name = "theme_proto",
+    proto = "//schemas/proto:theme_proto",
+)
+
+rust_library(
+    name = "uiview",
+    srcs = [
+        "src/conversation.rs",
+        "src/launchpad.rs",
+        "src/lib.rs",
+        "src/paths.rs",
+        "src/render.rs",
+        "src/request.rs",
+        "src/stat.rs",
+    ],
+    crate_name = "meridian_uiview",
+    edition = "2021",
+    # Selects the Bazel codegen path in src/lib.rs: the `:uiview_proto`
+    # rust_prost_library, rather than build.rs + the committed descriptor set
+    # that the cargo path uses. Bazel never runs build.rs.
+    rustc_flags = ["--cfg=bazel_proto"],
+    deps = [
+        ":uiview_proto",
+        "@crates//:prost",
+        "@crates//:prost-types",
+        "@crates//:serde",
+        "@crates//:serde_json",
+        "@crates//:thiserror",
+    ],
+)
+
+rust_test(
+    name = "uiview_test",
+    # rust_test RECOMPILES the crate's srcs and does NOT inherit rustc_flags from
+    # the rust_library, so without this it takes lib.rs's #[cfg(not(bazel_proto))]
+    # branch — `include!(concat!(env!("OUT_DIR"), …))` — and fails with
+    # "environment variable `OUT_DIR` not defined at compile time", because OUT_DIR
+    # is a CARGO build-script variable that Bazel never sets. The nine
+    # `unresolved import crate::proto::…` errors that follow are all cascades of it.
+    #
+    # Same omission class as :uiview_wasm_lib, which compiles srcs independently
+    # for the same reason and already carries the flag.
+    rustc_flags = ["--cfg=bazel_proto"],
+    crate = ":uiview",
+    edition = "2021",
+)
+
+# Wasm cdylib variant — same sources as `:uiview`; the wasm_api module is
+# #[cfg(target_arch = "wasm32")]-gated and built for wasm32-unknown-unknown via
+# the transition in rust_wasm_bindgen.
+rust_shared_library(
+    name = "uiview_wasm_lib",
+    srcs = [
+        "src/conversation.rs",
+        "src/launchpad.rs",
+        "src/lib.rs",
+        "src/paths.rs",
+        "src/render.rs",
+        "src/request.rs",
+        "src/stat.rs",
+        "src/wasm_api.rs",
+    ],
+    crate_name = "meridian_uiview",
+    edition = "2021",
+    # Same cfg as `:uiview` — this target compiles the sources independently, so
+    # it does not inherit the library's flags. Without it the wasm build would
+    # take src/lib.rs's cargo branch and look for an OUT_DIR that Bazel never
+    # writes.
+    rustc_flags = ["--cfg=bazel_proto"],
+    deps = [
+        ":uiview_proto",
+        "@crates//:js-sys",
+        "@crates//:prost",
+        "@crates//:prost-types",
+        "@crates//:serde",
+        "@crates//:serde_json",
+        "@crates//:serde-wasm-bindgen",
+        "@crates//:thiserror",
+        "@crates//:wasm-bindgen",
+    ],
+)
+
+# wasm-bindgen-processed artifact. Emits:
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm.js
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm_bg.wasm
+#   bazel-bin/rust/uiview/uiview_wasm/uiview_wasm.d.ts (TS bindings)
+# `target_output = "web"` matches the host pattern wasm-pack used.
+rust_wasm_bindgen(
+    name = "uiview_wasm",
+    out_name = "meridian_uiview",
+    target = "web",
+    wasm_file = ":uiview_wasm_lib",
+)
+
+# tests/descriptor_set.rs guards the committed descriptor set. rust_test(crate = …)
+# compiles unit tests only, so this integration test had no Bazel target and never
+# ran there — only under cargo.
+rust_test(
+    name = "descriptor_set_test",
+    srcs = ["tests/descriptor_set.rs"],
+    # compile_data, not data. The test reads the descriptor set with
+    # include_bytes!, which rustc resolves while COMPILING; `data` puts a file in
+    # runfiles, which the compile action never sees, so rustc reported the file
+    # missing even though it is committed and 42 kB on disk. cargo has no sandbox
+    # and finds it either way, which is why `cargo test --workspace` was green
+    # against a Bazel target that could not build.
+    compile_data = ["proto/gen/meridian_ui_v1.binpb"],
+    edition = "2021",
+    deps = [
+        "@crates//:prost",
+        "@crates//:prost-types",
+    ],
+)

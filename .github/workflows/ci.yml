@@ -1,0 +1,181 @@
+name: ci
+
+# One workflow over the whole repo, replacing the scattering the merge absorbed —
+# and, more to the point, COVERING WHAT NOTHING COVERED. Four of the ten repos
+# folded in here had no CI whatsoever: meridian-web (7,716 lines, the entire
+# web-components renderer), meridian-tui (3,828), meridian-uiview-core (1,911, a
+# Bazel module two other repos depended on) and brand (1,080). About 14,500 lines
+# with nothing gating a merge — which is also why three of them sat unbuildable
+# for months behind a missing --experimental_isolated_extension_usages and nobody
+# knew.
+#
+# The node and cargo jobs need no Bazel, no private registry and no credentials,
+# so they cannot be blocked by a toolchain fetch. Bazel gets its own job because
+# it needs registry.tbzl.dev and is much slower; it is allowed to be the long pole
+# rather than the gate everything waits behind.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # NO `version:` input, on purpose. package.json declares
+      # `packageManager: pnpm@10.25.0`, and pnpm/action-setup HARD-ERRORS when a
+      # version arrives from both places ("Multiple versions of pnpm specified") —
+      # it dies in readTarget before installing anything, in about six seconds.
+      #
+      # This estate already learned this once: b43dd04 "ci: let packageManager be
+      # the only pnpm version declaration". The merge reintroduced it, because
+      # hoisting packageManager to the root (corepack reads only the root) made an
+      # input that was previously correct into a conflict.
+      - uses: pnpm/action-setup@v4
+
+      # `prepare` runs `pnpm codegen`, so this also generates
+      # packages/proto-ts — which is NOT committed, deliberately: Bazel is the
+      # authority for what ships, and a checked-in copy would be a second producer
+      # of the same types with no gate keeping them equal. That is exactly how
+      # meridian-k8s's vendored proto tree drifted from schemas 0.17.0 and lost
+      # Slot.sub_view without anything noticing.
+      - name: Install (runs codegen via prepare)
+        run: pnpm install --frozen-lockfile
+
+      # THE headline check. @savvifi/meridian-proto-ts resolved to FIVE versions
+      # across these packages before the merge (^0.23.0 / ^0.24.0 / 0.21.0 /
+      # ^0.13.0 / ^0.19.0), and caret on 0.x is minor-locked so those ranges are
+      # pairwise DISJOINT — installing web-react and mui-kit together did not risk
+      # two copies of a nominally-typed PanelDescriptor, it guaranteed them.
+      # If a registry copy ever reappears in the store, this fails.
+      - name: Exactly one @savvifi copy
+        run: |
+          set -euo pipefail
+          count=$(find node_modules/.pnpm -maxdepth 1 -name '@savvifi*' | wc -l)
+          if [ "$count" != "0" ]; then
+            echo "::error::$count @savvifi package(s) resolved from the REGISTRY."
+            echo "Every internal dependency must be workspace:* so it links to the"
+            echo "package in this repo. Found:"
+            find node_modules/.pnpm -maxdepth 1 -name '@savvifi*'
+            exit 1
+          fi
+          echo "0 registry copies — all internal deps link to workspace packages."
+
+      # Guards what `npm publish` actually ships. The development manifests carry
+      # workspace:*, which cannot be resolved from the detached $RUNNER_TEMP copy
+      # the release job publishes from; the generated ones carry real versions.
+      # A stale generated manifest is the bug that shipped in 0.14.0 and 0.15.0.
+      - name: Published manifests are current
+        run: python3 tools/publish_manifests.py --check
+
+      # check_versions.py is RETIRED, not moved. It compared
+      # schemas.package.json and proto-ts.package.json against MODULE.bazel's
+      # version and against each other — a detector for drift between manifests
+      # it had no power to fix, written after that drift shipped in 0.14.0 and
+      # 0.15.0. publish_manifests.py GENERATES those manifests from the
+      # development ones, so the drift it existed to catch is now unrepresentable,
+      # and it covers all six packages rather than two.
+
+      - name: Renderer coverage
+        run: node schemas/tools/check_coverage.mjs
+
+      - name: Coverage matrix
+        run: node schemas/tools/check_coverage.mjs --matrix
+
+      - name: Mirror conformance self-test
+        run: node --test "schemas/tools/*.test.mjs"
+
+      - name: Admission gate
+        run: |
+          pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.test.json
+          node --test "schemas/.ts-test/*.test.js"
+
+      - name: Typecheck
+        run: |
+          pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.json --noEmit
+          pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
+
+      # mui-kit 124, chat 14, launchpad 12 — all against workspace-linked
+      # web-react and proto-ts rather than registry copies, which is the first
+      # time that has been true.
+      - name: Tests
+        run: pnpm -r --filter './packages/**' test
+
+  cargo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # 73 tests: 43 tui, 27 core, 3 descriptor-set guards, 3 theme-proto
+      # contract, 3 render. `cargo test --workspace` has never meant anything
+      # before — crates/tui named crates only Bazel could produce, so it could not
+      # be built at all, which is why it had no [[bin]].
+      - name: cargo test
+        run: cargo test --workspace --all-targets
+
+      # The binary exists now. Smoke it: --help must work, and a non-descriptor
+      # must be REJECTED with a readable error rather than a panic.
+      - name: meridian-tui smoke
+        run: |
+          set -euo pipefail
+          cargo build --bin meridian-tui
+          ./target/debug/meridian-tui --help > /dev/null
+          echo "not a proto" > /tmp/junk.bin
+          # Captured, not piped. Under `set -o pipefail` a pipeline inherits the
+          # NON-ZERO exit meridian-tui returns *because* it rejected the file, so
+          # `if prog | grep -q ...` reports failure however the grep went. The
+          # first version of this step failed for exactly that reason — the test
+          # was wrong, the binary was right.
+          out="$(./target/debug/meridian-tui /tmp/junk.bin 2>&1 || true)"
+          case "$out" in
+            *"not a wire-format"*) echo "rejects a non-descriptor cleanly" ;;
+            *) echo "::error::expected a wire-format complaint, got: $out"; exit 1 ;;
+          esac
+
+      # ⛔ NOT YET GATED: cargo fmt --check and clippy -D warnings both fail today
+      # on pre-existing drift inherited from meridian-uiview-core (formatting in
+      # conversation.rs / launchpad.rs, four clippy findings in test code). Adding
+      # a gate red on the commit that introduces it teaches everyone to ignore the
+      # gate — this estate has paid for that lesson once already. They get their
+      # own commit, so the formatting churn does not bury a behaviour change.
+
+  bazel:
+    runs-on: ubuntu-latest
+    # Bazel needs registry.tbzl.dev for brando / rules_chrome / rules_tectonic /
+    # rules_astro / rules_vite, none of which have a BCR entry. Slower and more
+    # dependent than the other two jobs, so it runs alongside rather than in front.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+
+      # Cheapest first, and it needs no Bazel at all. A BUILD file exporting a
+      # file that does not exist makes its whole PACKAGE fail to load, and the
+      # error names the file rather than the damage — in this repo that was two
+      # dead lines in crates/core/rust/BUILD.bazel poisoning :prost_toolchain, and
+      # so every target, for a full CI round.
+      - name: exports_files entries exist
+        run: python3 tools/check_exports.py
+
+      # Resolution first and separately: it is fast, it needs no source archives,
+      # and it is what catches the merge-shaped failures — use_repo collisions,
+      # duplicate extension names, toolchain conflicts.
+      - name: Module graph resolves
+        run: bazel mod deps > /dev/null
+
+      - name: bazel test //...
+        run: bazel test //... --test_output=errors

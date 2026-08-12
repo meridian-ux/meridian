@@ -1,0 +1,36 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+% The catalog figures (PNGs + the generated figures.tex) are produced by
+% //:catalog_figures at the repo-root `figures/` dir; this document lives in
+% `catalog/`, so they sit one level up.
+\graphicspath{{../figures/}}
+
+\title{\textbf{meridian} — MUI kit visual catalog}
+\author{Every primitive + layout, rendered in real Chrome for Testing}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+This catalog is \emph{generated}. Each figure is a screenshot of
+\texttt{@savvifi/meridian-mui-kit} rendering a fixture \texttt{ViewDescriptor}
+through \texttt{ViewRenderer + muiKit} in hermetic Chrome for Testing (via
+\texttt{rules\_chrome}), captured by \texttt{tests\_browser/capture.js} and
+typeset with \texttt{rules\_tectonic}. The same fixtures back the 0-tolerance
+\texttt{//:browser\_test} suite, so the catalog can never drift from what the kit
+actually renders.
+
+\vspace{1em}
+\tableofcontents
+\clearpage
+
+\input{../figures/figures.tex}
+
+\end{document}

@@ -1,0 +1,54 @@
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+# schemas is a pnpm workspace package with its own dependencies, so it needs its
+# own node_modules tree — //:node_modules can only hold the ROOT package.json's
+# four toolchain packages. Every other workspace package already had this; this
+# one lost it when the npm_link_package calls moved to //:BUILD.bazel, which was
+# a mistake on my part rather than a consequence of the merge.
+npm_link_all_packages(name = "node_modules")
+
+# The npm_link_package calls that used to live here moved to //:BUILD.bazel.
+# They create `node_modules/<pkg>` in the package that DECLARES them, and this
+# directory was the workspace root before the merge — so leaving them here linked
+# into schemas/node_modules while every consumer resolves against //:node_modules.
+
+# Assemble @savvifi/meridian-schemas: its GENERATED published manifest
+# (schemas.package.json — written by tools/publish_manifests.py, because the
+# development package.json carries `workspace:*`, which npm publish cannot resolve
+# from the detached copy the release job publishes from) + the compiled seam under
+# src/uiview/. Defined in THIS package rather than at the root so npm_package's
+# default root_paths preserve the src/uiview/ layout the "./uiview" export points
+# at.
+npm_package(
+    name = "schemas_pkg",
+    srcs = [
+        "schemas.package.json",
+        "//schemas/src/uiview:seam",
+    ],
+    package = "@savvifi/meridian-schemas",
+    replace_prefixes = {"schemas.package.json": "package.json"},
+    visibility = ["//visibility:public"],
+)
+
+# `pkg` is a CONVENTION, not a preference. rules_js keeps one package store at
+# the workspace root, and //:BUILD.bazel's npm_link_all_packages resolves every
+# first-party `workspace:*` member to `//<package-dir>:pkg`. This directory is a
+# member, so without this the store entry
+# `//:.aspect_rules_js/node_modules/@savvifi+meridian-schemas@0.0.0` fails
+# analysis with "no such target '//schemas:pkg'".
+#
+# An alias rather than a rename: `schemas_pkg` is named by publish.yml and reads
+# better at a distance than a bare `:pkg`.
+alias(
+    name = "pkg",
+    actual = ":schemas_pkg",
+    visibility = ["//visibility:public"],
+)
+
+exports_files([
+    "package.json",
+    "tsconfig.json",
+])

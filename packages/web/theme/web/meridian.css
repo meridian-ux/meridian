@@ -1,0 +1,235 @@
+/* meridian web base stylesheet — the STYLE layer for the web renderer.
+ *
+ * The renderer (src/uiview) emits semantic, style-free DOM with
+ * `.meridian-uiview-*` classes. This sheet gives those classes their look
+ * ENTIRELY through `--mer-*` custom properties, so a Theme (meridian.theme.v1)
+ * is the single source of style. The fallbacks below are a neutral dark skin
+ * so meridian is presentable with no Theme applied; a skin (e.g. the fastverk
+ * brand identity) overrides them by setting `--mer-*` on `:root` (or any
+ * ancestor) — see theme.ts `applyTheme()` / `themeToCssVars()`.
+ *
+ * Nothing here is brand-specific. Keep it that way: brand lives in a Theme. */
+
+.meridian-uiview-body {
+  --_bg: var(--mer-bg, #15161a);
+  --_surface: var(--mer-surface, #1c1e24);
+  --_fg: var(--mer-fg, #ece7da);
+  --_muted: var(--mer-muted, #9a9488);
+  --_border: var(--mer-border, #2c2f37);
+  --_accent: var(--mer-accent, #6aa0f2);
+  --_accent-strong: var(--mer-accent-strong, var(--_accent));
+  --_on-accent: var(--mer-on-accent, #15161a);
+  --_code-bg: var(--mer-code-bg, #101116);
+  --_code-fg: var(--mer-code-fg, var(--_fg));
+  --_sans: var(--mer-font-sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  --_mono: var(--mer-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --_radius: var(--mer-radius, 8px);
+  --_unit: var(--mer-unit, 4px);
+
+  color: var(--_fg);
+  background: var(--_bg);
+  font-family: var(--_sans);
+  font-size: var(--mer-font-size, 14px);
+  line-height: 1.5;
+}
+
+.meridian-uiview-header {
+  font-family: var(--_sans);
+  font-weight: var(--mer-heading-weight, 600);
+  letter-spacing: var(--mer-heading-tracking, -0.01em);
+  color: var(--_fg);
+  margin: 0 0 calc(var(--_unit) * 1) 0;
+}
+
+.meridian-uiview-meta {
+  color: var(--_muted);
+  font-size: 0.875em;
+  margin: 0 0 calc(var(--_unit) * 3) 0;
+}
+
+.meridian-uiview-placeholder {
+  color: var(--_muted);
+  padding: calc(var(--_unit) * 4);
+  border: 1px dashed var(--_border);
+  border-radius: var(--_radius);
+  text-align: center;
+}
+
+.meridian-uiview-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  overflow: hidden;
+}
+
+.meridian-uiview-table th,
+.meridian-uiview-table td {
+  text-align: left;
+  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  border-bottom: 1px solid var(--_border);
+}
+
+.meridian-uiview-table thead th {
+  background: var(--_surface);
+  color: var(--_muted);
+  font-weight: var(--mer-heading-weight, 600);
+}
+
+.meridian-uiview-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--_surface) 45%, transparent);
+}
+
+.meridian-uiview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.meridian-uiview-body a {
+  color: var(--_accent);
+  text-decoration: none;
+}
+.meridian-uiview-body a:hover {
+  text-decoration: underline;
+}
+
+.meridian-uiview-body code,
+.meridian-uiview-body pre {
+  font-family: var(--_mono);
+  background: var(--_code-bg);
+  color: var(--_code-fg);
+  border-radius: calc(var(--_radius) - 3px);
+}
+.meridian-uiview-body code {
+  padding: 1px 5px;
+}
+.meridian-uiview-body pre {
+  padding: calc(var(--_unit) * 3);
+  overflow: auto;
+}
+
+/* Buttons (e.g. table RowAction) — primary fill from the accent token. */
+.meridian-uiview-body button {
+  font: inherit;
+  cursor: pointer;
+  padding: calc(var(--_unit) * 1.5) calc(var(--_unit) * 3);
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+}
+.meridian-uiview-body button.primary {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--_accent), var(--_accent-strong));
+  color: var(--_on-accent);
+  font-weight: 600;
+}
+
+/* Table RowAction bar. Styled off `--mer-*` directly (not the `--_*` locals),
+ * because the bar sits beside the table on the panel root rather than inside a
+ * `.meridian-uiview-body`, so the local token block does not reach it. */
+.meridian-uiview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mer-unit, 4px);
+  margin: 0 0 calc(var(--mer-unit, 4px) * 2) 0;
+}
+.meridian-uiview-actions button {
+  font: inherit;
+  cursor: pointer;
+  padding: calc(var(--mer-unit, 4px) * 1.5) calc(var(--mer-unit, 4px) * 3);
+  border: 1px solid var(--mer-border, #2c2f37);
+  border-radius: var(--mer-radius, 8px);
+  background: var(--mer-surface, #1c1e24);
+  color: var(--mer-fg, #ece7da);
+}
+/* Disabled is the RESTING state of a row action — nothing is selected yet — so
+ * it must read as "pick a row", not as broken. */
+.meridian-uiview-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Selected row. Selection only appears on tables that declare RowActions. */
+.meridian-uiview-table tbody tr[data-row] {
+  cursor: default;
+}
+.meridian-uiview-table tbody tr[tabindex] {
+  cursor: pointer;
+}
+.meridian-uiview-table tbody tr.selected,
+.meridian-uiview-table tbody tr.selected:nth-child(even) {
+  background: color-mix(in srgb, var(--mer-accent, #6aa0f2) 18%, transparent);
+}
+.meridian-uiview-table tbody tr:focus-visible {
+  outline: 2px solid var(--mer-accent, #6aa0f2);
+  outline-offset: -2px;
+}
+
+/* StreamPanel — the following log pane. Monospace and scroll-bounded; the
+ * renderer caps retention (`max_lines`) so the DOM cannot grow without limit. */
+.meridian-uiview-stream {
+  font-family: var(--_mono);
+  font-size: 0.875em;
+  line-height: 1.45;
+  background: var(--_code-bg);
+  color: var(--_code-fg);
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  max-height: var(--mer-stream-height, 22rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.meridian-uiview-stream-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* When the stream renders as a terminal, the TERMINAL scrolls — the outer pane
+   must not, or there are two nested scrollbars and the tail fights the wrapper. */
+.meridian-uiview-stream.meridian-uiview-stream-term {
+  overflow: hidden;
+  max-height: none;
+  padding: 0;
+}
+
+/* DetailHeaderPanel / RecordCardPanel — the record-bound bodies of a detail view. */
+.meridian-uiview-record-title {
+  font-family: var(--_sans);
+  font-weight: var(--mer-heading-weight, 600);
+  letter-spacing: var(--mer-heading-tracking, -0.01em);
+  margin: 0 0 calc(var(--_unit) * 1) 0;
+}
+/* The status chip carries `data-status` so a skin can color a "failed" build
+ * differently from a "succeeded" one WITHOUT the renderer hardcoding either
+ * vocabulary — status values are the host's domain, not meridian's. */
+.meridian-uiview-record-status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--_border);
+  background: var(--_surface);
+  color: var(--_muted);
+  font-size: 0.8125em;
+}
+.meridian-uiview-record-subtitle {
+  color: var(--_muted);
+  margin: calc(var(--_unit) * 2) 0 0 0;
+}
+.meridian-uiview-record-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: calc(var(--_unit) * 1) calc(var(--_unit) * 4);
+  margin: calc(var(--_unit) * 3) 0 0 0;
+}
+.meridian-uiview-record-rows dt {
+  color: var(--_muted);
+  font-size: 0.875em;
+}
+.meridian-uiview-record-rows dd {
+  margin: 0;
+  font-family: var(--_mono);
+  font-size: 0.875em;
+}
+.meridian-uiview-record-rows dd.empty {
+  color: var(--_muted);
+}

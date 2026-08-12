@@ -1,0 +1,18 @@
+# Bazel reads ONLY the workspace-root .bazelignore. Each absorbed repo had its
+# own, and after the merge every one of them became inert — while their
+# node_modules trees moved INSIDE this package path, where Bazel then tries to
+# treat them as packages.
+node_modules
+schemas/node_modules
+site/node_modules
+packages/web/node_modules
+packages/web-react/node_modules
+packages/chat/node_modules
+packages/launchpad/node_modules
+packages/mui-kit/node_modules
+packages/proto-ts/node_modules
+target
+dist
+.astro
+.ts-test
+.registry-entry

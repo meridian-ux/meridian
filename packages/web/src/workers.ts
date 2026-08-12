@@ -1,6 +1,23 @@
 import { parseProtoJsonEnvelope, toProtoJsonEnvelope } from './proto_json.js';
 
-const WORKER_MSG_BASE = 'type.googleapis.com/savvifi.hrcrawl.ui.v1';
+// The worker channel's message type URLs.
+//
+// These were `savvifi.hrcrawl.ui.v1` — a proto package inherited from hrcrawl,
+// the codebase meridian was originally extracted from, and one that does not
+// exist in this repository or any other.
+//
+// ⚠ Worth knowing: no .proto defines WorkerInit / WorkerAttributeChanged /
+// WorkerEvent / WorkerDispose either. These are a STRING CONVENTION between this
+// controller and whatever worker script the host loads at `url`, not a resolvable
+// protobuf contract — so `meridian.ui.v1` here names a package these four
+// messages are not actually members of. If they are ever given real definitions,
+// `meridian.web.v1` is the honest home for them, since they describe the web
+// renderer's worker transport rather than the cross-modal UI contract.
+//
+// ⚠ BREAKING for any existing worker script: a worker written against the old
+// base will no longer match. That is deliberate and belongs in the 0.25.0
+// breaking release rather than being carried indefinitely.
+const WORKER_MSG_BASE = 'type.googleapis.com/meridian.ui.v1';
 const WORKER_INIT_TYPE = `${WORKER_MSG_BASE}.WorkerInit`;
 const WORKER_ATTRIBUTE_CHANGED_TYPE = `${WORKER_MSG_BASE}.WorkerAttributeChanged`;
 const WORKER_EVENT_TYPE = `${WORKER_MSG_BASE}.WorkerEvent`;

@@ -1,0 +1,2223 @@
+{
+  "generatedFrom": "ALL_BUNDLES",
+  "entries": [
+    {
+      "name": "documents-list",
+      "label": "documents · list",
+      "group": "documents",
+      "kind": "list",
+      "view": {
+        "id": "documents-list-view",
+        "title": "Documents",
+        "route": "/entities/plan-years/:planYearId/documents",
+        "subjectKind": "documents",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "documents-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.document",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "documents",
+                "columns": [
+                  {
+                    "header": "Document Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Type",
+                    "fieldPath": "documentType"
+                  },
+                  {
+                    "header": "File",
+                    "fieldPath": "fileName"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Uploaded",
+                    "fieldPath": "uploadedAt"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "archive",
+            "label": "Archive",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "products-list",
+      "label": "products · list",
+      "group": "products",
+      "kind": "list",
+      "view": {
+        "id": "products-list-view",
+        "title": "Products",
+        "route": "/entities/products",
+        "subjectKind": "products",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "products-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.Product",
+                  "method": "list-products"
+                },
+                "rowsField": "items",
+                "itemNoun": "products",
+                "columns": [
+                  {
+                    "header": "Product Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Product Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "clone",
+            "label": "Clone",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "export_yaml",
+            "label": "Export Yaml",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "tasks-list",
+      "label": "tasks · list",
+      "group": "tasks",
+      "kind": "list",
+      "view": {
+        "id": "tasks-list-view",
+        "title": "My Tasks",
+        "route": "/entities/tasks",
+        "subjectKind": "tasks",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "tasks-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.task",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "tasks",
+                "columns": [
+                  {
+                    "header": "Task Title",
+                    "fieldPath": "title"
+                  },
+                  {
+                    "header": "Task Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Assigned To",
+                    "fieldPath": "assignedTo"
+                  },
+                  {
+                    "header": "Delegated To",
+                    "fieldPath": "delegatedTo"
+                  },
+                  {
+                    "header": "Organization",
+                    "fieldPath": "organization"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Due Date",
+                    "fieldPath": "dueDate"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "delegate",
+            "label": "Delegate",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "plan-years-list",
+      "label": "plan-years · list",
+      "group": "plan-years",
+      "kind": "list",
+      "view": {
+        "id": "plan-years-list-view",
+        "title": "Plan Years",
+        "route": "/entities/plan-years",
+        "subjectKind": "plan-years",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "plan-years-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.plan-year",
+                  "method": "list-plan-years"
+                },
+                "rowsField": "items",
+                "itemNoun": "plan-years",
+                "columns": [
+                  {
+                    "header": "Plan Year Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Sponsor",
+                    "fieldPath": "sponsor"
+                  },
+                  {
+                    "header": "Start Date",
+                    "fieldPath": "startDate"
+                  },
+                  {
+                    "header": "End Date",
+                    "fieldPath": "endDate"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "OE Start",
+                    "fieldPath": "oeStartDate"
+                  },
+                  {
+                    "header": "OE End",
+                    "fieldPath": "oeEndDate"
+                  },
+                  {
+                    "header": "Go Live",
+                    "fieldPath": "goLiveDate"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "view_details",
+            "label": "View Details",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "environments-list",
+      "label": "environments · list",
+      "group": "environments",
+      "kind": "list",
+      "view": {
+        "id": "environments-list-view",
+        "title": "Environments",
+        "route": "/entities/environments",
+        "subjectKind": "environments",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "environments-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.environment",
+                  "method": "list-environments"
+                },
+                "rowsField": "items",
+                "itemNoun": "environments",
+                "columns": [
+                  {
+                    "header": "Environment Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Key",
+                    "fieldPath": "key"
+                  },
+                  {
+                    "header": "Description",
+                    "fieldPath": "description"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          }
+        ]
+      }
+    },
+    {
+      "name": "environment-mappings-list",
+      "label": "environment-mappings · list",
+      "group": "environment-mappings",
+      "kind": "list",
+      "view": {
+        "id": "environment-mappings-list-view",
+        "title": "Environment Mappings",
+        "route": "/entities/environment-mappings",
+        "subjectKind": "environment-mappings",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "environment-mappings-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.environment-mapping",
+                  "method": "list-environment-mappings"
+                },
+                "rowsField": "items",
+                "itemNoun": "environment-mappings",
+                "columns": [
+                  {
+                    "header": "Environment",
+                    "fieldPath": "environment"
+                  },
+                  {
+                    "header": "External Sponsor ID",
+                    "fieldPath": "externalSponsorId"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          }
+        ]
+      }
+    },
+    {
+      "name": "platforms-list",
+      "label": "platforms · list",
+      "group": "platforms",
+      "kind": "list",
+      "view": {
+        "id": "platforms-list-view",
+        "title": "Platforms",
+        "route": "/entities/platforms",
+        "subjectKind": "platforms",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "platforms-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.platform",
+                  "method": "list-platforms"
+                },
+                "rowsField": "items",
+                "itemNoun": "platforms",
+                "columns": [
+                  {
+                    "header": "Platform Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Nickname",
+                    "fieldPath": "nickname"
+                  },
+                  {
+                    "header": "Description",
+                    "fieldPath": "description"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_OVERFLOW"
+          }
+        ]
+      },
+      "sampleRows": [
+        {
+          "id": "1521742607695221796",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.274Z",
+          "updatedOn": "2026-07-01T05:01:50.274Z"
+        },
+        {
+          "id": "1521742607808468005",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.311Z",
+          "updatedOn": "2026-07-01T05:01:50.311Z"
+        },
+        {
+          "id": "1521742607821050918",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:01:50.314Z",
+          "updatedOn": "2026-07-01T05:01:50.314Z"
+        },
+        {
+          "id": "1521742761865254104",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.031Z",
+          "updatedOn": "2026-07-01T05:02:27.031Z"
+        },
+        {
+          "id": "1521742761970111705",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.066Z",
+          "updatedOn": "2026-07-01T05:02:27.066Z"
+        },
+        {
+          "id": "1521742761982694618",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:02:27.069Z",
+          "updatedOn": "2026-07-01T05:02:27.069Z"
+        },
+        {
+          "id": "1521745491694458429",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.873Z",
+          "updatedOn": "2026-07-01T05:13:17.873Z"
+        },
+        {
+          "id": "1521745491820287550",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.913Z",
+          "updatedOn": "2026-07-01T05:13:17.913Z"
+        },
+        {
+          "id": "1521745491841259071",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:13:17.918Z",
+          "updatedOn": "2026-07-01T05:13:17.918Z"
+        },
+        {
+          "id": "1521745672619955846",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.009Z",
+          "updatedOn": "2026-07-01T05:14:01.009Z"
+        },
+        {
+          "id": "1521745672754173575",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.051Z",
+          "updatedOn": "2026-07-01T05:14:01.051Z"
+        },
+        {
+          "id": "1521745672775145096",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:01.056Z",
+          "updatedOn": "2026-07-01T05:14:01.056Z"
+        },
+        {
+          "id": "1521745822998337338",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.861Z",
+          "updatedOn": "2026-07-01T05:14:36.861Z"
+        },
+        {
+          "id": "1521745823124166459",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.902Z",
+          "updatedOn": "2026-07-01T05:14:36.902Z"
+        },
+        {
+          "id": "1521745823140943676",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:14:36.906Z",
+          "updatedOn": "2026-07-01T05:14:36.906Z"
+        },
+        {
+          "id": "1521746200355674094",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.830Z",
+          "updatedOn": "2026-07-01T05:16:06.830Z"
+        },
+        {
+          "id": "1521746200477308911",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.870Z",
+          "updatedOn": "2026-07-01T05:16:06.870Z"
+        },
+        {
+          "id": "1521746200494086128",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-01T05:16:06.874Z",
+          "updatedOn": "2026-07-01T05:16:06.874Z"
+        },
+        {
+          "id": "1524099077074065677",
+          "name": "Alpha Platform",
+          "nickname": "ALPHA",
+          "description": "alpha — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.353Z",
+          "updatedOn": "2026-07-07T17:05:36.353Z"
+        },
+        {
+          "id": "1524099077267003662",
+          "name": "Bravo Platform",
+          "nickname": "BRAVO",
+          "description": "bravo — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.411Z",
+          "updatedOn": "2026-07-07T17:05:36.411Z"
+        },
+        {
+          "id": "1524099077283780879",
+          "name": "Charlie Platform",
+          "nickname": "CHARLIE",
+          "description": "charlie — seeded for the catalog",
+          "createdOn": "2026-07-07T17:05:36.415Z",
+          "updatedOn": "2026-07-07T17:05:36.415Z"
+        }
+      ]
+    },
+    {
+      "name": "sponsors-list",
+      "label": "sponsors · list",
+      "group": "sponsors",
+      "kind": "list",
+      "view": {
+        "id": "sponsors-list-view",
+        "title": "Sponsors",
+        "route": "/entities/sponsors",
+        "subjectKind": "sponsors",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "sponsors-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.Sponsor",
+                  "method": "list-sponsors"
+                },
+                "rowsField": "items",
+                "itemNoun": "sponsors",
+                "columns": [
+                  {
+                    "header": "Sponsor Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Nickname",
+                    "fieldPath": "nickname"
+                  },
+                  {
+                    "header": "Platform",
+                    "fieldPath": "platform"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Kind",
+                    "fieldPath": "kind"
+                  },
+                  {
+                    "header": "Team",
+                    "fieldPath": "team"
+                  },
+                  {
+                    "header": "Current Plan Year Status",
+                    "fieldPath": "currentPlanYearStatus"
+                  },
+                  {
+                    "header": "Next Plan Year Status",
+                    "fieldPath": "nextPlanYearStatus"
+                  },
+                  {
+                    "header": "Next OE",
+                    "fieldPath": "nextOE"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "activate",
+            "label": "Activate",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "deactivate",
+            "label": "Deactivate",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "organizations-list",
+      "label": "organizations · list",
+      "group": "organizations",
+      "kind": "list",
+      "view": {
+        "id": "organizations-list-view",
+        "title": "Organizations",
+        "route": "/entities/organizations",
+        "subjectKind": "organizations",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "organizations-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "core.identity",
+                  "method": "list-organizations"
+                },
+                "rowsField": "items",
+                "itemNoun": "organizations",
+                "columns": [
+                  {
+                    "header": "Organization Name",
+                    "fieldPath": "data.name"
+                  },
+                  {
+                    "header": "External ID",
+                    "fieldPath": "externalId"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "view_details",
+            "label": "View Details",
+            "placement": "ACTION_PLACEMENT_ROW"
+          }
+        ]
+      }
+    },
+    {
+      "name": "teams-list",
+      "label": "teams · list",
+      "group": "teams",
+      "kind": "list",
+      "view": {
+        "id": "teams-list-view",
+        "title": "Teams",
+        "route": "/entities/teams",
+        "subjectKind": "teams",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "teams-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.team",
+                  "method": "list-teams"
+                },
+                "rowsField": "items",
+                "itemNoun": "teams",
+                "columns": [
+                  {
+                    "header": "Team Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Description",
+                    "fieldPath": "description"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "invite_by_email",
+            "label": "Invite By Email",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "modules-list",
+      "label": "modules · list",
+      "group": "modules",
+      "kind": "list",
+      "view": {
+        "id": "modules-list-view",
+        "title": "Modules",
+        "route": "/entities/modules",
+        "subjectKind": "modules",
+        "kind": "VIEW_KIND_LIST",
+        "layout": {
+          "list": {}
+        },
+        "slots": [
+          {
+            "id": "content",
+            "role": "content",
+            "position": 10,
+            "panel": {
+              "panelId": "modules-list-view-table",
+              "table": {
+                "populate": {
+                  "service": "modules",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "modules",
+                "columns": [
+                  {
+                    "header": "Module Name",
+                    "fieldPath": "moduleName"
+                  },
+                  {
+                    "header": "Version",
+                    "fieldPath": "version"
+                  },
+                  {
+                    "header": "Health",
+                    "fieldPath": "health"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "documents-detail",
+      "label": "documents · detail",
+      "group": "documents",
+      "kind": "detail",
+      "view": {
+        "id": "documents-detail-view",
+        "title": "Document Details",
+        "route": "/entities/documents/id/:entityId",
+        "subjectKind": "documents",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "twoColumn": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "summary",
+            "position": 20,
+            "placement": {},
+            "panel": {
+              "panelId": "summary-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-summary"
+              }
+            }
+          },
+          {
+            "id": "file",
+            "role": "file",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "file-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.document",
+                  "method": "get"
+                },
+                "rowsField": "items",
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "products-detail",
+      "label": "products · detail",
+      "group": "products",
+      "kind": "detail",
+      "view": {
+        "id": "products-detail-view",
+        "title": "Product Details",
+        "route": "/entities/products/id/:entityId",
+        "subjectKind": "products",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "configuration",
+            "role": "configuration",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "configuration-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "type",
+                    "label": "Product Type",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Review Status",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "data",
+                    "label": "Attributes",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "tasks-detail",
+      "label": "tasks · detail",
+      "group": "tasks",
+      "kind": "detail",
+      "view": {
+        "id": "tasks-detail-view",
+        "title": "Task Details",
+        "route": "/entities/tasks/id/:entityId",
+        "subjectKind": "tasks",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "twoColumn": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "summary",
+            "position": 20,
+            "placement": {},
+            "panel": {
+              "panelId": "summary-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-summary"
+              }
+            }
+          },
+          {
+            "id": "workflow",
+            "role": "configuration",
+            "position": 30,
+            "title": "Task Details",
+            "placement": {
+              "column": "COLUMN_SIDEBAR"
+            },
+            "panel": {
+              "panelId": "workflow-form",
+              "title": "Task Details",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "type",
+                    "label": "Task Type",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "assignedTo",
+                    "label": "Assigned To",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "delegatedTo",
+                    "label": "Delegated To",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "organization",
+                    "label": "Organization",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Status",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "dueDate",
+                    "label": "Due Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          },
+          {
+            "id": "main-content",
+            "role": "main-content",
+            "position": 40,
+            "title": "Actions",
+            "placement": {
+              "column": "COLUMN_MAIN"
+            },
+            "panel": {
+              "panelId": "main-content-table",
+              "title": "Actions",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.task",
+                  "method": "get"
+                },
+                "rowsField": "items",
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "discussion",
+            "role": "discussion",
+            "position": 50,
+            "placement": {
+              "column": "COLUMN_MAIN"
+            },
+            "panel": {
+              "panelId": "discussion-table",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.task",
+                  "method": "get"
+                },
+                "rowsField": "items",
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "plan-years-detail",
+      "label": "plan-years · detail",
+      "group": "plan-years",
+      "kind": "detail",
+      "view": {
+        "id": "plan-years-detail-view",
+        "title": "Plan Year Details",
+        "route": "/entities/plan-years/id/:entityId",
+        "subjectKind": "plan-years",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "tabbed": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "configuration",
+            "position": 20,
+            "placement": {},
+            "panel": {
+              "panelId": "summary-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Plan Year",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "startDate",
+                    "label": "Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "endDate",
+                    "label": "End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Plan Year Status",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "numberOfEligibles",
+                    "label": "Number of Eligibles",
+                    "integer": {}
+                  },
+                  {
+                    "fieldId": "leadImplementor",
+                    "label": "Lead Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "coImplementor",
+                    "label": "Co-Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "employerContact",
+                    "label": "Sponsor Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "brokerContact",
+                    "label": "Broker Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeStartDate",
+                    "label": "OE Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeEndDate",
+                    "label": "OE End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "uatStartDate",
+                    "label": "UAT Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "goLiveDate",
+                    "label": "Go Live Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          },
+          {
+            "id": "tab-tasks",
+            "role": "tab-tasks",
+            "position": 30,
+            "title": "Tasks",
+            "placement": {
+              "tabLabel": "Tasks",
+              "tabPosition": 1
+            },
+            "panel": {
+              "panelId": "tab-tasks-table",
+              "title": "Tasks",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.task",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "tasks",
+                "columns": [
+                  {
+                    "header": "Task Title",
+                    "fieldPath": "title"
+                  },
+                  {
+                    "header": "Task Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Assigned To",
+                    "fieldPath": "assignedTo"
+                  },
+                  {
+                    "header": "Delegated To",
+                    "fieldPath": "delegatedTo"
+                  },
+                  {
+                    "header": "Organization",
+                    "fieldPath": "organization"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Due Date",
+                    "fieldPath": "dueDate"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "tab-products",
+            "role": "tab-products",
+            "position": 40,
+            "title": "Products",
+            "placement": {
+              "tabLabel": "Products",
+              "tabPosition": 2
+            },
+            "panel": {
+              "panelId": "tab-products-table",
+              "title": "Products",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.Product",
+                  "method": "list-products"
+                },
+                "rowsField": "items",
+                "itemNoun": "products",
+                "columns": [
+                  {
+                    "header": "Product Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Product Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "tab-documents",
+            "role": "tab-documents",
+            "position": 50,
+            "title": "Documents",
+            "placement": {
+              "tabLabel": "Documents",
+              "tabPosition": 3
+            },
+            "panel": {
+              "panelId": "tab-documents-table",
+              "title": "Documents",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.document",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "documents",
+                "columns": [
+                  {
+                    "header": "Document Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Type",
+                    "fieldPath": "documentType"
+                  },
+                  {
+                    "header": "File",
+                    "fieldPath": "fileName"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Uploaded",
+                    "fieldPath": "uploadedAt"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "tab-environments",
+            "role": "tab-environments",
+            "position": 60,
+            "title": "Environments",
+            "placement": {
+              "tabLabel": "Environments",
+              "tabPosition": 4
+            },
+            "panel": {
+              "panelId": "tab-environments-table",
+              "title": "Environments",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.environment-mapping",
+                  "method": "list-environment-mappings"
+                },
+                "rowsField": "items",
+                "itemNoun": "environment-mappings",
+                "columns": [
+                  {
+                    "header": "Environment",
+                    "fieldPath": "environment"
+                  },
+                  {
+                    "header": "External Sponsor ID",
+                    "fieldPath": "externalSponsorId"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "environments-detail",
+      "label": "environments · detail",
+      "group": "environments",
+      "kind": "detail",
+      "view": {
+        "id": "environments-detail-view",
+        "title": "Environment Details",
+        "route": "/entities/environments/id/:entityId",
+        "subjectKind": "environments",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "details",
+            "role": "configuration",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "key",
+                    "label": "Key",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "description",
+                    "label": "Description",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "credentialsRef",
+                    "label": "Credentials Reference",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "environment-mappings-detail",
+      "label": "environment-mappings · detail",
+      "group": "environment-mappings",
+      "kind": "detail",
+      "view": {
+        "id": "environment-mappings-detail-view",
+        "title": "Environment Mapping Details",
+        "route": "/entities/environment-mappings/id/:entityId",
+        "subjectKind": "environment-mappings",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "details",
+            "role": "configuration",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "environment",
+                    "label": "Environment",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "externalSponsorId",
+                    "label": "External Sponsor ID",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "planMappings",
+                    "label": "Plan Mappings (External Plan → Product)",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "externalCoverageIds",
+                    "label": "External Coverage IDs",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "externalData",
+                    "label": "External Data",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "platforms-detail",
+      "label": "platforms · detail",
+      "group": "platforms",
+      "kind": "detail",
+      "view": {
+        "id": "platforms-detail-view",
+        "title": "Platform Details",
+        "route": "/entities/platforms/id/:entityId",
+        "subjectKind": "platforms",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "stacked": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "details",
+            "role": "configuration",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "details-form",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Name",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "nickname",
+                    "label": "Nickname",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "description",
+                    "label": "Description",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "edit",
+            "label": "Edit",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          },
+          {
+            "id": "delete",
+            "label": "Delete",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sponsors-detail",
+      "label": "sponsors · detail",
+      "group": "sponsors",
+      "kind": "detail",
+      "view": {
+        "id": "sponsors-detail-view",
+        "title": "Sponsor Details",
+        "route": "/entities/sponsors/id/:entityId",
+        "subjectKind": "sponsors",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "tabbed": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "plan-year-selector",
+            "role": "configuration",
+            "position": 15,
+            "placement": {
+              "headerRow": true
+            },
+            "panel": {
+              "panelId": "plan-year-selector-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "configuration",
+            "position": 20,
+            "title": "Plan Year Information",
+            "placement": {
+              "tabLabel": "Overview",
+              "tabPosition": 1
+            },
+            "panel": {
+              "panelId": "summary-form",
+              "title": "Plan Year Information",
+              "form": {
+                "fields": [
+                  {
+                    "fieldId": "name",
+                    "label": "Plan Year",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "startDate",
+                    "label": "Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "endDate",
+                    "label": "End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "status",
+                    "label": "Plan Year Status",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "numberOfEligibles",
+                    "label": "Number of Eligibles",
+                    "integer": {}
+                  },
+                  {
+                    "fieldId": "leadImplementor",
+                    "label": "Lead Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "coImplementor",
+                    "label": "Co-Implementor",
+                    "enumSelection": {}
+                  },
+                  {
+                    "fieldId": "employerContact",
+                    "label": "Sponsor Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "brokerContact",
+                    "label": "Broker Contact",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeStartDate",
+                    "label": "OE Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "oeEndDate",
+                    "label": "OE End Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "uatStartDate",
+                    "label": "UAT Start Date",
+                    "text": {}
+                  },
+                  {
+                    "fieldId": "goLiveDate",
+                    "label": "Go Live Date",
+                    "text": {}
+                  }
+                ],
+                "mode": "FORM_MODE_READONLY",
+                "itemNoun": "plan-years"
+              }
+            }
+          },
+          {
+            "id": "tab-tasks",
+            "role": "tab-tasks",
+            "position": 30,
+            "title": "Tasks",
+            "placement": {
+              "tabLabel": "Tasks",
+              "tabPosition": 2
+            },
+            "panel": {
+              "panelId": "tab-tasks-table",
+              "title": "Tasks",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.task",
+                  "method": "list"
+                },
+                "rowsField": "items",
+                "itemNoun": "tasks",
+                "columns": [
+                  {
+                    "header": "Task Title",
+                    "fieldPath": "title"
+                  },
+                  {
+                    "header": "Task Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Assigned To",
+                    "fieldPath": "assignedTo"
+                  },
+                  {
+                    "header": "Delegated To",
+                    "fieldPath": "delegatedTo"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  },
+                  {
+                    "header": "Due Date",
+                    "fieldPath": "dueDate"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "tab-products",
+            "role": "tab-products",
+            "position": 40,
+            "title": "Products",
+            "placement": {
+              "tabLabel": "Products",
+              "tabPosition": 3
+            },
+            "panel": {
+              "panelId": "tab-products-table",
+              "title": "Products",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.Product",
+                  "method": "list-products"
+                },
+                "rowsField": "items",
+                "itemNoun": "products",
+                "columns": [
+                  {
+                    "header": "Product Name",
+                    "fieldPath": "name"
+                  },
+                  {
+                    "header": "Product Type",
+                    "fieldPath": "type"
+                  },
+                  {
+                    "header": "Status",
+                    "fieldPath": "status"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          },
+          {
+            "id": "tab-environments",
+            "role": "tab-environments",
+            "position": 50,
+            "title": "Environments",
+            "placement": {
+              "tabLabel": "Environments",
+              "tabPosition": 4
+            },
+            "panel": {
+              "panelId": "tab-environments-table",
+              "title": "Environments",
+              "table": {
+                "populate": {
+                  "service": "demo.catalog.v1.environment-mapping",
+                  "method": "list-environment-mappings"
+                },
+                "rowsField": "items",
+                "itemNoun": "environment-mappings",
+                "columns": [
+                  {
+                    "header": "Environment",
+                    "fieldPath": "environment"
+                  },
+                  {
+                    "header": "External Sponsor ID",
+                    "fieldPath": "externalSponsorId"
+                  }
+                ],
+                "pagination": {
+                  "mode": "PAGINATION_MODE_CURSOR",
+                  "pageSize": 25,
+                  "cursorRequestField": "cursor",
+                  "nextCursorField": "nextCursor"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "organizations-detail",
+      "label": "organizations · detail",
+      "group": "organizations",
+      "kind": "detail",
+      "view": {
+        "id": "organizations-detail-view",
+        "title": "Organization Details",
+        "route": "/entities/organizations/id/:entityId",
+        "subjectKind": "organizations",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "twoColumn": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "summary",
+            "position": 20,
+            "placement": {},
+            "panel": {
+              "panelId": "summary-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-summary"
+              }
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "view_details",
+            "label": "View Details",
+            "placement": "ACTION_PLACEMENT_HEADER"
+          }
+        ]
+      }
+    },
+    {
+      "name": "teams-detail",
+      "label": "teams · detail",
+      "group": "teams",
+      "kind": "detail",
+      "view": {
+        "id": "teams-detail-view",
+        "title": "Team Details",
+        "route": "/entities/teams/id/:entityId",
+        "subjectKind": "teams",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "twoColumn": {}
+        },
+        "slots": [
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "members",
+            "role": "configuration",
+            "position": 30,
+            "placement": {},
+            "panel": {
+              "panelId": "members-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "modules-detail",
+      "label": "modules · detail",
+      "group": "modules",
+      "kind": "detail",
+      "view": {
+        "id": "modules-detail-view",
+        "title": "Module Details",
+        "route": "/entities/modules/id/:entityId",
+        "subjectKind": "modules",
+        "kind": "VIEW_KIND_DETAIL",
+        "layout": {
+          "tabbed": {}
+        },
+        "slots": [
+          {
+            "id": "tab-workbench",
+            "role": "tab-workbench",
+            "position": 10,
+            "placement": {
+              "tabLabel": "Workbench",
+              "tabPosition": 1
+            },
+            "panel": {
+              "panelId": "tab-workbench-adhoc",
+              "adhoc": {
+                "handlerId": "module-workbench-detail"
+              }
+            }
+          },
+          {
+            "id": "header",
+            "role": "header",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "header-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-header"
+              }
+            }
+          },
+          {
+            "id": "section",
+            "role": "section",
+            "position": 10,
+            "placement": {},
+            "panel": {
+              "panelId": "section-adhoc",
+              "adhoc": {
+                "handlerId": "module-workbench-detail"
+              }
+            }
+          },
+          {
+            "id": "tab-objects",
+            "role": "configuration",
+            "position": 20,
+            "placement": {
+              "tabLabel": "Objects",
+              "tabPosition": 2
+            },
+            "panel": {
+              "panelId": "tab-objects-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          },
+          {
+            "id": "summary",
+            "role": "summary",
+            "position": 20,
+            "placement": {},
+            "panel": {
+              "panelId": "summary-adhoc",
+              "adhoc": {
+                "handlerId": "entity-detail-summary"
+              }
+            }
+          },
+          {
+            "id": "tab-templates",
+            "role": "tab-templates",
+            "position": 30,
+            "title": "Templates",
+            "placement": {
+              "tabLabel": "Templates",
+              "tabPosition": 3
+            },
+            "panel": {
+              "panelId": "tab-templates-adhoc",
+              "title": "Templates",
+              "adhoc": {
+                "handlerId": "tab-placeholder"
+              }
+            }
+          },
+          {
+            "id": "tab-exports",
+            "role": "configuration",
+            "position": 40,
+            "placement": {
+              "tabLabel": "Exports",
+              "tabPosition": 4
+            },
+            "panel": {
+              "panelId": "tab-exports-form",
+              "form": {
+                "mode": "FORM_MODE_READONLY"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

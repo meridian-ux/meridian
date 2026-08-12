@@ -1,0 +1,110 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages(name = "node_modules")
+
+# @savvifi/meridian-launchpad — the command-palette renderer. Compiles the
+# <Launchpad> React component + the pure filter. Resolves the ComponentKit /
+# RpcInvoker / PanelRenderer seam from @savvifi/meridian-web-react and the
+# canonical descriptor types from @savvifi/meridian-proto-ts (both first-party
+# links in //:BUILD.bazel); react is its own.
+ts_project(
+    name = "launchpad",
+    srcs = glob([
+        "src/**/*.ts",
+        "src/**/*.tsx",
+    ]),
+    declaration = True,
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@types/react",
+        ":node_modules/@types/react-dom",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+    ],
+)
+
+# The compiled surface, as a js_library the tests import via ../src/*.js.
+js_library(
+    name = "launchpad_lib",
+    srcs = [":launchpad"],
+)
+
+# The publishable @savvifi/meridian-launchpad npm package: package.json at the
+# root + the compiled src/*.{js,d.ts}. Published to npmjs (OIDC workflow in
+# .github/workflows/publish.yml).
+npm_package(
+    name = "pkg",
+    srcs = [
+        # NOT the development package.json — that one carries `workspace:*`, which
+        # `npm publish` cannot resolve from the detached $RUNNER_TEMP copy the
+        # release job publishes from. This is the generated manifest with real
+        # versions (tools/publish_manifests.py), mapped onto package.json below.
+        "launchpad.package.json",
+        ":launchpad",
+    ],
+    replace_prefixes = {"launchpad.package.json": "package.json"},
+    package = "@savvifi/meridian-launchpad",
+    visibility = ["//visibility:public"],
+)
+
+# Pure filter over the Launchpad descriptor (subsequence match + grouping).
+vitest_test(
+    name = "filter",
+    srcs = [
+        "tests/filter.test.ts",
+        "tests/fixtures.ts",
+    ],
+    deps = [
+        ":launchpad_lib",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/vitest",
+    ],
+)
+
+# vitest.config.ts sets `esbuild: { jsx: "automatic" }`, and until now only
+# `pnpm test` ever read it — its own comment said so: "The Bazel path uses
+# rules_vite's vitest_test; this config is for `pnpm test` during development."
+# So the two runners disagreed about the JSX transform. Under Bazel, vitest saw
+# no config and no tsconfig in the sandbox, fell back to the CLASSIC transform,
+# emitted React.createElement into a file that imports no React (the automatic
+# runtime needs none), and every .tsx test died with `React is not defined`.
+#
+# Pre-existing, and it survived because nothing ran `bazel test` on this
+# package — launchpad is one of the repos whose Bazel targets the merge made
+# reachable for the first time. Passing the config is what makes the two paths
+# the same path.
+js_library(
+    name = "vitest_config",
+    srcs = ["vitest.config.ts"],
+)
+
+# Renders a Launchpad through htmlKit via react-dom/server: the commands appear,
+# and an OpenPanel command renders its focused panel step.
+vitest_test(
+    name = "launchpad_render",
+    srcs = [
+        "tests/launchpad.test.tsx",
+        "tests/fixtures.ts",
+    ],
+    config = ":vitest_config",
+    deps = [
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        ":launchpad_lib",
+        "//packages/launchpad:node_modules/@bufbuild/protobuf",
+        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
+        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/vitest",
+    ],
+)

@@ -1,0 +1,34 @@
+# The proto modules, for the NON-Bazel codegen path.
+#
+# Bazel remains the authority: //schemas/proto:uiview_proto and :theme_proto are
+# what the published artifacts are built from, and adding a proto there still
+# flows through with no list to maintain. This exists so someone who has just
+# cloned the repo can generate the TypeScript with `pnpm codegen` — no Bazel, no
+# private module registry, no credentials, and (because @bufbuild/buf ships its
+# own binary from npm) no protoc either. That is the same trade the Rust side
+# makes in crates/core: one authority, two producers, identical output.
+#
+# `schemas` is the module root rather than `schemas/proto`, because the protos
+# import each other as "proto/value.proto" — the import path has to resolve from
+# the directory ABOVE proto/, and it is also what makes the generated files land
+# at proto/*_pb.js, which is the layout @savvifi/meridian-proto-ts publishes and
+# every consumer's import specifier already assumes.
+version: v2
+
+modules:
+  - path: schemas
+  - path: third_party/googleapis
+
+lint:
+  use:
+    - STANDARD
+  # meridian.ui.v1 lives in proto/*.proto rather than proto/meridian/ui/v1/, which
+  # is the layout the whole estate and every generated import path already assume.
+  # Renaming 28 files to satisfy a lint rule would churn every consumer for no
+  # behavioural gain, so the rule is disabled rather than the files moved.
+  except:
+    - PACKAGE_DIRECTORY_MATCH
+
+breaking:
+  use:
+    - FILE

@@ -1,0 +1,72 @@
+# The repository root as a Bazel package.
+#
+# Not ceremony — two module extensions require it, and say so unhelpfully when it
+# is missing. `crate.from_cargo(cargo_lockfile = "//:Cargo.lock")` calls
+# `module_ctx.watch()` on that label, and `npm_translate_lock` resolves
+# `Label("@@//:all")` to find the source root. Without a BUILD file here both fail
+# with "Unable to load package for //:Cargo.lock: BUILD file not found", which
+# reads like a missing file rather than a missing package.
+#
+# Every absorbed repository had one of these at ITS root. The monorepo needs one
+# at the new root, and that is the whole content of this file.
+
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+# EVERY JS target in this repo depends on `//:node_modules/<pkg>`, and those
+# targets do not exist until this call creates them. Without it, `bazel build
+# //...` fails ANALYSIS on 74 of 88 top-level targets — across schemas, all five
+# JS packages, brand and the Rust crates — which reads like the merge broke
+# everything and is in fact one missing line.
+#
+# Each absorbed repo had this at its own root over its own lockfile. There is one
+# lockfile now, so there is one of these.
+npm_link_all_packages(name = "node_modules")
+
+# THE FIRST-PARTY PACKAGES NEED NO npm_link_package HERE, and the five calls that
+# used to sit at this spot were dead code.
+#
+# I added them believing `workspace:*` needed an explicit link at the root. It
+# does not. rules_js keeps ONE package store, rooted here, and the
+# npm_link_all_packages call above declares a store entry for every first-party
+# workspace package in the lockfile — resolving each by convention to
+# `//<package-dir>:pkg`. What the store could not find was that target:
+#
+#   no such target '//schemas:pkg'          (the package is named schemas_pkg)
+#   no such package 'packages/proto-ts'     (no BUILD file at all)
+#
+# The consumers were never the problem. Not one BUILD target in this repo
+# references `//:node_modules/@savvifi/...`; every one of them uses
+# `//<owner>:node_modules/@savvifi/...`, created by that package's own
+# npm_link_all_packages. So the fix is a `pkg` target in each workspace
+# directory — an alias in schemas/, a new one in packages/proto-ts/ — and these
+# five calls simply go.
+#
+# Only those two need it. mui-kit, packages/web and site are leaves that nothing
+# depends on via `workspace:*`, so the store generates no entry for them, which
+# is why only two of the eight members ever appeared in the error.
+
+exports_files([
+    # ── the npm side ──
+    # ONE pnpm-lock.yaml, where there were seven. That is what makes two copies of
+    # @savvifi/meridian-proto-ts unrepresentable rather than merely discouraged.
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+
+    # ── the Rust side ──
+    # ONE Cargo workspace, where there were two (and, before the public/internal
+    # split, four).
+    "Cargo.toml",
+    "Cargo.lock",
+
+    # ── the proto side ──
+    # buf drives the NON-Bazel codegen path (`pnpm codegen`) so a contributor can
+    # generate the TypeScript with no Bazel, no private registry and no
+    # credentials. Bazel remains the authority for what ships; these are exported
+    # so a Bazel target can assert the two agree rather than trusting them to.
+    "buf.yaml",
+    "buf.gen.yaml",
+])

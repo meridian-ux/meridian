@@ -1,0 +1,36 @@
+# fastverk.site.v1.Feature — meridian_web (the browser renderer).
+slug: "web"
+name: "meridian_web"
+status: AVAILABLE
+category: PLATFORM
+tagline: "The browser renderer — a ComponentKit of vanilla + React components that draws meridian descriptors as native DOM, bundled to the CDN."
+order: 10
+hero {
+  eyebrow: "the web renderer"
+  headline: "Descriptors, drawn in the browser."
+  accent_span: "the browser."
+  subhead: "meridian_web turns a PanelDescriptor into real DOM — forms, tables, launchpad, conversation — via a ComponentKit shared with meridian-mui-kit. The console's panels are all descriptors; nothing is a bespoke page."
+}
+meta {
+  title: "meridian_web — the browser renderer | meridian-ux"
+  description: "meridian_web is the browser renderer for meridian-ux: a ComponentKit of vanilla + React components that draws meridian.ui.v1 descriptors as native DOM, re-skinned via meridian.theme.v1 and bundled to the CDN."
+  keywords: "server-driven ui"
+  keywords: "design system"
+  keywords: "react components"
+  og_generate: false
+}
+highlights: "Vanilla + React ComponentKit (meridian-web-react · meridian-mui-kit)"
+highlights: "Renders every meridian.ui.v1 panel shape"
+highlights: "Re-skins from a meridian.theme.v1 Theme (applyTheme)"
+highlights: "Bundled to static.<tenant> by git-sha"
+
+sections {
+  eyebrow: "how it renders"
+  title: "One descriptor in, native DOM out."
+  subtitle: "The renderer routes on the panel body oneof and drives the shared interaction core."
+  steps {
+    steps { title: "Route" text: "A PanelDescriptor arrives; the renderer routes on its body oneof (form / table / launchpad / conversation / …) to a ComponentKit component." }
+    steps { title: "Bind" text: "RpcInvoker maps the descriptor's RPCs to the host transport; FieldBindings wire inputs to the request." }
+    steps { title: "Skin" text: "applyTheme(meridian.json) sets the CSS custom properties — the same Theme every other renderer reads." }
+  }
+}

@@ -1,0 +1,82 @@
+load("@brando//:version.bzl", BRANDO_VERSION = "VERSION")
+load("@brando//pkg:defs.bzl", "brand_package", "brand_publish_plan")
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["requirements.txt"])
+
+# Canonical mark SVGs (dark + light).
+filegroup(
+    name = "svgs",
+    srcs = ["//brand/gen:svgs"],
+)
+
+# Org-avatar / app-icon raster set (PNG + .icns/.ico, dark + light).
+filegroup(
+    name = "icons",
+    srcs = ["//brand/icons:icon_set"],
+)
+
+# Everything: the skin (binpb + json), vectors, icons, and the wordmark lockups.
+filegroup(
+    name = "all",
+    srcs = [
+        ":icons",
+        ":svgs",
+        "//brand/skins:meridian",
+        "//brand/wordmark:wordmark_set",
+    ],
+)
+
+# ── the .brando package ──────────────────────────────────────────────────────
+#
+# meridian-brand had no bundle at all: four of the six fleet brands did not, and
+# the two that did were hand-assembled zips with no manifest. A .brando carries a
+# protoc-validated manifest, so every artifact has a logical name, a kind and a
+# hash, and `rules_brand` turns that into targets -- which is how the playground
+# and the kits can wear this brand without becoming brand pipelines.
+brand_package(
+    name = "meridian_package",
+    assets = {
+        "theme.binpb": {
+            "kind": "ARTIFACT_KIND_THEME_BINPB",
+            "label": "//brand/skins:meridian_binpb",
+        },
+        "theme.json": {
+            "kind": "ARTIFACT_KIND_THEME_JSON",
+            "label": "//brand/skins:meridian_json",
+        },
+        "mark.svg": {
+            "kind": "ARTIFACT_KIND_MARK_SVG",
+            "label": "//brand/gen:meridian_mark.svg",
+        },
+        "mark-light.svg": {
+            "kind": "ARTIFACT_KIND_MARK_SVG",
+            "label": "//brand/gen:meridian_light_mark.svg",
+            "mode": "light",
+        },
+        "icon-512.png": {
+            "kind": "ARTIFACT_KIND_MARK_PNG",
+            "label": "//brand/icons:meridian_mark_512.png",
+            "size_px": 512,
+        },
+        "icon-1024.png": {
+            "kind": "ARTIFACT_KIND_MARK_PNG",
+            "label": "//brand/icons:meridian_mark_1024.png",
+            "size_px": 1024,
+        },
+    },
+    brando_version = BRANDO_VERSION,
+    source_repo = "meridian-ux/brand",
+    spec = "meridian.textproto",
+)
+
+# Published as a Release asset on this repo. The integrity in the generated
+# snippet is what makes the URL mean one thing, since an asset can be replaced.
+brand_publish_plan(
+    name = "meridian_publish",
+    base_url = "https://github.com/meridian-ux/brand/releases/download/v0.1.0",
+    brand = "meridian",
+    package = ":meridian_package",
+    prefix = "",
+    version = BRANDO_VERSION,
+)

@@ -1,0 +1,176 @@
+"""Meridian — the cross-modal UI description language.
+
+ONE Bazel module, replacing the ten this repository absorbed. The version here is
+the single source of truth for every published artifact: `check_versions.py`
+already compares the npm manifests against `module(version)`, and
+`[workspace.package] version` in //:Cargo.toml matches it. Before the merge those
+axes disagreed even INSIDE one repo — meridian-mui-kit published npm 0.17.0 from
+a module that still said 0.1.0, and meridian-uiview-core published module 0.6.0
+from crates pinned at 0.1.0 — because only meridian-schemas ever gated them.
+
+WHY THE NAME IS `meridian` AND WHY THAT USED TO BE IMPOSSIBLE. brand/MODULE.bazel
+declared `bazel_dep(name = "meridian", version = "0.2.3")` — the retired
+mattmarshall/meridian monolith — for the theme schema alone, so this name was
+taken. It is not any more: @brando 0.5.0 (which brand already pins) moved off the
+monolith onto `Label("@meridian_schemas//proto:theme.proto")`, and the only
+`@meridian//` left anywhere in brando is a comment explaining the migration. The
+dep was dead weight carrying a 22-minor-stale theme contract, and it is gone.
+"""
+
+module(
+    name = "meridian",
+    version = "0.25.0",
+)
+
+# ─── JS / TS ──────────────────────────────────────────────────────────────────
+bazel_dep(name = "aspect_rules_js", version = "3.1.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.9")
+bazel_dep(name = "aspect_rules_esbuild", version = "0.26.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "rules_nodejs", version = "6.7.4")
+
+# ─── proto ────────────────────────────────────────────────────────────────────
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "protobuf", version = "33.4")
+bazel_dep(name = "googleapis", version = "0.0.0-20260422-20ac242a")
+
+# ─── Rust ─────────────────────────────────────────────────────────────────────
+bazel_dep(name = "rules_rust", version = "0.70.0")
+bazel_dep(name = "rules_rust_prost", version = "0.70.0")
+bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.70.0")
+
+# ─── Python (brand's mark generator + rasterizer) ─────────────────────────────
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_python", version = "1.7.0")
+
+# ─── from registry.tbzl.dev, not BCR ──────────────────────────────────────────
+# None of these have a BCR entry, which is why a private registry stays MANDATORY
+# even after the in-repo meridian_* deps disappeared. .bazelrc lists tbzl.dev
+# first, then BCR.
+bazel_dep(name = "brando", version = "0.5.0")  # brand pipeline: marklib + brand_skin
+bazel_dep(name = "rules_chrome", version = "0.1.0")  # hermetic Chrome for the browser test
+bazel_dep(name = "rules_tectonic", version = "0.2.0")  # the catalog PDF
+bazel_dep(name = "rules_astro", version = "0.0.1")  # //site
+bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
+
+# GONE, because they are now in-repo: meridian_schemas, meridian_uiview_core,
+# meridian_tui, meridian_web, meridian_web_react, meridian_mui_kit,
+# meridian_chat, meridian_launchpad, meridian_brand, meridian_ux_site — plus the
+# dead `meridian` 0.2.3 described above. That is the ten-way version skew removed
+# by construction rather than by policy.
+
+# ─── protoc: prebuilt, not built from source ──────────────────────────────────
+# The CLT-only dev host cannot build protoc from source, and CI should not have to.
+# One copy of this extension: schemas and meridian-proto each carried a
+# near-identical //bazel:protoc_prebuilt.bzl (both _VERSION = "33.4"); meridian-proto
+# went to meridian-internal, so this is now unambiguously the only one.
+protoc_prebuilt = use_extension("//bazel:protoc_prebuilt.bzl", "protoc_prebuilt")
+use_repo(protoc_prebuilt, "meridian_protoc")
+
+# ─── Node ─────────────────────────────────────────────────────────────────────
+# 22.11.0 across the board. //site declared 20.11.1 alone; one root means one
+# toolchain, and moving site forward is the safe direction. If Astro turns out to
+# need 20, that is a site-specific finding to solve with a transition rather than
+# by holding the whole repo back.
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.11.0")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+use_repo(rules_ts_ext, "npm_typescript")
+
+# ─── npm: SEVEN extensions become one ─────────────────────────────────────────
+# Every absorbed repo declared `npm_translate_lock(name = "npm", pnpm_lock =
+# "//:pnpm-lock.yaml")` over its OWN root lockfile, and in one module those are a
+# hard collision on the repo name `npm`. They are also the Bazel-side expression
+# of the same problem the pnpm workspace fixed: seven lockfiles resolving
+# @savvifi/meridian-proto-ts to five different versions. One lockfile, one
+# extension, one node_modules tree.
+#
+# meridian-chat isolated its npm extension (`isolate = True`) so a host consuming
+# two JS meridian modules would not collide. That was correct while they were
+# separate modules and is now unnecessary — there is only one npm usage — so the
+# isolation is dropped along with the extra resolution it cost.
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
+
+# ─── Rust toolchain ───────────────────────────────────────────────────────────
+# 1.85.0, which both absorbed Rust modules already declared. The 1.95.0 half of
+# the split lived in meridian-proto and meridian-mcp, and those went to
+# meridian-internal — so there is nothing to reconcile here. 1.85.0 is also the
+# version the wasm32 lane builds on, which is the constrained one.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.85.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+# ⚠ ORDER IS LOAD-BEARING AND SILENT IF WRONG.
+#
+# register_toolchains is first-registered-wins. //crates/core/rust:prost_toolchain
+# is TONIC-FREE, and crates/core's own comment says why: the default "drags
+# tonic/tokio/mio into every rust_prost_library and breaks the wasm32 transition."
+# meridian-proto and meridian-mcp registered @rules_rust_prost//:default_prost_toolchain
+# instead, so in a shared root whichever appeared first won for everybody — with
+# NO error at MODULE-parse or build time, just a broken wasm lane and tonic
+# silently linked into the TUI.
+#
+# Those two went to meridian-internal, so this is no longer a race. It is
+# registered before anything else that could provide a prost toolchain anyway,
+# because the failure mode is invisible and the cost of being explicit is a line.
+register_toolchains("//crates/core/rust:prost_toolchain")
+
+# wasm-bindgen toolchain: a pinned CLI, no host install. The wasm-bindgen crate
+# version in //:Cargo.toml is an EXACT `=0.2.105` and must match the CLI baked in
+# here, or the IR schema versions diverge and post-processing fails.
+register_toolchains("@rules_rust_wasm_bindgen//:default_wasm_bindgen_toolchain")
+
+# ─── crate_universe: two universes become one ─────────────────────────────────
+# Both absorbed Rust modules declared a universe named `crates` — over two
+# different Cargo workspaces (//rust:Cargo.lock each), through two different
+# extension files. One workspace at //:Cargo.toml now, so one universe.
+#
+# `isolate = True` is dropped for the same reason meridian-chat's npm isolation
+# is: it existed because crate_universe rejects two same-named non-isolated
+# universes ACROSS MODULES, and there are no longer two.
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = ["//:Cargo.toml"],
+)
+use_repo(crate, "crates")
+
+# ─── Chrome + Tectonic (//packages/mui-kit's browser test and catalog PDF) ────
+chrome = use_extension("@rules_chrome//chrome:extensions.bzl", "chrome")
+use_repo(chrome, "chrome", "chromedriver")
+
+register_toolchains("@chrome//:chrome_toolchain_def")
+
+tectonic = use_extension("@rules_tectonic//tectonic:extensions.bzl", "tectonic")
+use_repo(tectonic, "tectonic")
+
+register_toolchains("@tectonic//:tectonic_toolchain_def")
+
+# ─── Python (//brand) ─────────────────────────────────────────────────────────
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.12",
+)
+use_repo(python, "python_3_12")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "meridian_brand_pip",
+    python_version = "3.12",
+    requirements_lock = "//brand:requirements.txt",
+)
+use_repo(pip, "meridian_brand_pip")
