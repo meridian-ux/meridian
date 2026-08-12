@@ -91,12 +91,18 @@ use_repo(rules_ts_ext, "npm_typescript")
 # two JS meridian modules would not collide. That was correct while they were
 # separate modules and is now unnecessary — there is only one npm usage — so the
 # isolation is dropped along with the extra resolution it cost.
+# ⚠ THE NAMES ARE NAMESPACED ON PURPOSE — `meridian_npm`, not `npm`.
+# A module extension's repos are SHARED across the whole module graph, so a
+# name chosen here collides with any consumer that chooses the same one. The
+# registry's D3 gate flags exactly this, and only for names a module CHOOSES
+# on a foreign, non-dev extension: `rust_toolchains` is emitted by rules_rust
+# for everyone and is nobody's choice, so it is not a finding.
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
-    name = "npm",
+    name = "meridian_npm",
     pnpm_lock = "//:pnpm-lock.yaml",
 )
-use_repo(npm, "npm")
+use_repo(npm, "meridian_npm")
 
 # ─── Rust toolchain ───────────────────────────────────────────────────────────
 # 1.85.0, which both absorbed Rust modules already declared. The 1.95.0 half of
@@ -110,7 +116,14 @@ rust.toolchain(
 )
 use_repo(rust, "rust_toolchains")
 
-register_toolchains("@rust_toolchains//:all")
+# ⚠ dev_dependency = True ON EVERY REGISTRATION BELOW.
+# A non-dev register_toolchains propagates to every transitive consumer, which
+# is the registry's D2 gate. None of these are meridian's to impose: a consumer
+# of @meridian//schemas/proto:uiview_proto needs a proto toolchain, not our
+# Rust, wasm-bindgen, Chrome or Tectonic ones. dev_dependency keeps them for
+# THIS module's own builds (a dev dependency still applies when the module is
+# the root) and drops them from every consumer's graph.
+register_toolchains("@rust_toolchains//:all", dev_dependency = True)
 
 # ⚠ ORDER IS LOAD-BEARING AND SILENT IF WRONG.
 #
@@ -125,12 +138,12 @@ register_toolchains("@rust_toolchains//:all")
 # Those two went to meridian-internal, so this is no longer a race. It is
 # registered before anything else that could provide a prost toolchain anyway,
 # because the failure mode is invisible and the cost of being explicit is a line.
-register_toolchains("//crates/core/rust:prost_toolchain")
+register_toolchains("//crates/core/rust:prost_toolchain", dev_dependency = True)
 
 # wasm-bindgen toolchain: a pinned CLI, no host install. The wasm-bindgen crate
 # version in //:Cargo.toml is an EXACT `=0.2.105` and must match the CLI baked in
 # here, or the IR schema versions diverge and post-processing fails.
-register_toolchains("@rules_rust_wasm_bindgen//:default_wasm_bindgen_toolchain")
+register_toolchains("@rules_rust_wasm_bindgen//:default_wasm_bindgen_toolchain", dev_dependency = True)
 
 # ─── crate_universe: two universes become one ─────────────────────────────────
 # Both absorbed Rust modules declared a universe named `crates` — over two
@@ -142,22 +155,22 @@ register_toolchains("@rules_rust_wasm_bindgen//:default_wasm_bindgen_toolchain")
 # universes ACROSS MODULES, and there are no longer two.
 crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
 crate.from_cargo(
-    name = "crates",
+    name = "meridian_crates",
     cargo_lockfile = "//:Cargo.lock",
     manifests = ["//:Cargo.toml"],
 )
-use_repo(crate, "crates")
+use_repo(crate, "meridian_crates")
 
 # ─── Chrome + Tectonic (//packages/mui-kit's browser test and catalog PDF) ────
 chrome = use_extension("@rules_chrome//chrome:extensions.bzl", "chrome")
 use_repo(chrome, "chrome", "chromedriver")
 
-register_toolchains("@chrome//:chrome_toolchain_def")
+register_toolchains("@chrome//:chrome_toolchain_def", dev_dependency = True)
 
 tectonic = use_extension("@rules_tectonic//tectonic:extensions.bzl", "tectonic")
 use_repo(tectonic, "tectonic")
 
-register_toolchains("@tectonic//:tectonic_toolchain_def")
+register_toolchains("@tectonic//:tectonic_toolchain_def", dev_dependency = True)
 
 # ─── Python (//brand) ─────────────────────────────────────────────────────────
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")

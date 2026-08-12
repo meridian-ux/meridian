@@ -5,7 +5,7 @@
 # //proto:BUILD.bazel for the proto_library targets, so that file must never load
 # @npm — hence the plugin lives here, in a package only meridian-root references.
 
-load("@npm//:@bufbuild/protoc-gen-es/package_json.bzl", protoc_gen_es_bin = "bin")
+load("@meridian_npm//:@bufbuild/protoc-gen-es/package_json.bzl", protoc_gen_es_bin = "bin")
 
 package(default_visibility = ["//visibility:public"])
 

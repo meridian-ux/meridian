@@ -49,11 +49,11 @@ rust_library(
     rustc_flags = ["--cfg=bazel_proto"],
     deps = [
         ":uiview_proto",
-        "@crates//:prost",
-        "@crates//:prost-types",
-        "@crates//:serde",
-        "@crates//:serde_json",
-        "@crates//:thiserror",
+        "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
+        "@meridian_crates//:serde",
+        "@meridian_crates//:serde_json",
+        "@meridian_crates//:thiserror",
     ],
 )
 
@@ -97,14 +97,14 @@ rust_shared_library(
     rustc_flags = ["--cfg=bazel_proto"],
     deps = [
         ":uiview_proto",
-        "@crates//:js-sys",
-        "@crates//:prost",
-        "@crates//:prost-types",
-        "@crates//:serde",
-        "@crates//:serde_json",
-        "@crates//:serde-wasm-bindgen",
-        "@crates//:thiserror",
-        "@crates//:wasm-bindgen",
+        "@meridian_crates//:js-sys",
+        "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
+        "@meridian_crates//:serde",
+        "@meridian_crates//:serde_json",
+        "@meridian_crates//:serde-wasm-bindgen",
+        "@meridian_crates//:thiserror",
+        "@meridian_crates//:wasm-bindgen",
     ],
 )
 
@@ -135,7 +135,7 @@ rust_test(
     compile_data = ["proto/gen/meridian_ui_v1.binpb"],
     edition = "2021",
     deps = [
-        "@crates//:prost",
-        "@crates//:prost-types",
+        "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
     ],
 )
