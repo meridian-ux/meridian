@@ -45,9 +45,16 @@ jobs:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
+      # NO `version:` input, on purpose. package.json declares
+      # `packageManager: pnpm@10.25.0`, and pnpm/action-setup HARD-ERRORS when a
+      # version arrives from both places ("Multiple versions of pnpm specified") —
+      # it dies in readTarget before installing anything, in about six seconds.
+      #
+      # This estate already learned this once: b43dd04 "ci: let packageManager be
+      # the only pnpm version declaration". The merge reintroduced it, because
+      # hoisting packageManager to the root (corepack reads only the root) made an
+      # input that was previously correct into a conflict.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: bazel-contrib/setup-bazel@0.9.0
         with:

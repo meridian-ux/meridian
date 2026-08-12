@@ -1,5 +1,12 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//:astro/package_json.bzl", astro_bin = "bin")
+
+# @npm//site:… , not @npm//: — astro is a dependency of THIS workspace package,
+# and @npm//: carries only the root package.json's four toolchain packages. The
+# label was correct while site/ was its own repository root. Same class as the
+# ten //:node_modules/X deps repointed in 6349ac9, but a load() rather than a
+# dep, which is why that sweep did not see it — and a bad load() fails the whole
+# package, so it read as "site is broken" rather than "one label moved".
+load("@npm//site:astro/package_json.bzl", astro_bin = "bin")
 load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("@rules_astro//astro:defs.bzl", "astro_dev", "astro_site")
 

@@ -20,3 +20,10 @@ bazel-*
 packages/proto-ts/proto/
 packages/proto-ts/google/
 target/
+
+# Bazel writes this on every resolution. The one that was committed described a
+# pre-merge graph (meridian_schemas@0.24.0, rules_aip, rules_github — none of
+# them deps of this module any more), so it documented a resolution that can no
+# longer happen. Ignored until a full local build with no --override_module can
+# produce an honest one.
+MODULE.bazel.lock

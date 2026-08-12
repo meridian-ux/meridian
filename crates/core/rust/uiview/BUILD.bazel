@@ -126,7 +126,13 @@ rust_wasm_bindgen(
 rust_test(
     name = "descriptor_set_test",
     srcs = ["tests/descriptor_set.rs"],
-    data = ["proto/gen/meridian_ui_v1.binpb"],
+    # compile_data, not data. The test reads the descriptor set with
+    # include_bytes!, which rustc resolves while COMPILING; `data` puts a file in
+    # runfiles, which the compile action never sees, so rustc reported the file
+    # missing even though it is committed and 42 kB on disk. cargo has no sandbox
+    # and finds it either way, which is why `cargo test --workspace` was green
+    # against a Bazel target that could not build.
+    compile_data = ["proto/gen/meridian_ui_v1.binpb"],
     edition = "2021",
     deps = [
         "@crates//:prost",

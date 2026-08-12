@@ -21,19 +21,31 @@
 // BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1, so analysis fails on linux while passing on
 // darwin. Node is already this repo's toolchain and needs no CC toolchain.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 let fails = 0;
 const fail = (m) => { console.error(`FAIL: ${m}`); fails++; };
 const ok = (m) => console.log(`  ok: ${m}`);
 
-// Locate the built tree. Under js_test the cwd is the runfiles root; fall back to a
-// plain `pnpm run build` layout so this is runnable by hand.
+// Locate the built tree.
+//
+// FIRST candidate is relative to THIS FILE, and that is the one that survives a
+// move. astro_site chdirs into its own package and emits `dist` there, so the
+// tree is a sibling of this script's parent: site/tools/ -> site/dist. The
+// cwd-relative candidates below are all `<root>/dist`, which was right only
+// while site/ WAS the repository root — after the merge they resolve to a dist
+// at the monorepo root that nothing writes, and the test failed reporting four
+// paths that were all equally wrong.
+const HERE = dirname(fileURLToPath(import.meta.url));
+
 const candidates = [
+  join(HERE, "..", "dist"),
+  join(process.cwd(), "site", "dist"),
   join(process.cwd(), "dist"),
-  join(process.cwd(), "_main", "dist"),
-  join(process.env.RUNFILES_DIR ?? "", "_main", "dist"),
-  join(process.env.JS_BINARY__RUNFILES ?? "", "_main", "dist"),
+  join(process.cwd(), "_main", "site", "dist"),
+  join(process.env.RUNFILES_DIR ?? "", "_main", "site", "dist"),
+  join(process.env.JS_BINARY__RUNFILES ?? "", "_main", "site", "dist"),
 ];
 const DIST = candidates.find((p) => p && existsSync(p) && statSync(p).isDirectory());
 if (!DIST) {
@@ -62,9 +74,12 @@ if (htmlFiles.length < MIN_PAGES) {
 
 console.log("== routes ==");
 // Derive the feature routes from the catalog the pages render from.
-const catalog = ["src/content/features.json", "_main/src/content/features.json"]
-  .map((p) => join(process.cwd(), p))
-  .find((p) => existsSync(p));
+const catalog = [
+  join(HERE, "..", "src", "content", "features.json"),
+  join(process.cwd(), "site", "src", "content", "features.json"),
+  join(process.cwd(), "src", "content", "features.json"),
+  join(process.cwd(), "_main", "site", "src", "content", "features.json"),
+].find((p) => existsSync(p));
 const features = catalog
   ? JSON.parse(readFileSync(catalog, "utf8")).features ?? []
   : [];
@@ -94,9 +109,12 @@ const present = new Set();
 // while dist/ is written WITHOUT it (dist/features). Read the value rather than
 // hardcoding it, so changing base doesn't quietly turn this check into a
 // rubber stamp that passes on any input.
-const cfg = ["astro.config.mjs", "_main/astro.config.mjs"]
-  .map((p) => join(process.cwd(), p))
-  .find((p) => existsSync(p));
+const cfg = [
+  join(HERE, "..", "astro.config.mjs"),
+  join(process.cwd(), "site", "astro.config.mjs"),
+  join(process.cwd(), "astro.config.mjs"),
+  join(process.cwd(), "_main", "site", "astro.config.mjs"),
+].find((p) => existsSync(p));
 if (!cfg) fail("astro.config.mjs not found — cannot determine the base path");
 // Strip comments before matching: astro.config.mjs documents the alternative as
 // `set base:"/" + a CNAME` in a comment ABOVE the real setting, and a naive regex

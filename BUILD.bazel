@@ -25,41 +25,28 @@ package(default_visibility = ["//visibility:public"])
 # lockfile now, so there is one of these.
 npm_link_all_packages(name = "node_modules")
 
-# FIRST-PARTY packages, linked into the same node_modules tree.
+# THE FIRST-PARTY PACKAGES NEED NO npm_link_package HERE, and the five calls that
+# used to sit at this spot were dead code.
 #
-# These are what `workspace:*` resolves to. npm_link_package creates
-# `node_modules/<pkg>` IN THE PACKAGE IT IS DECLARED IN, and schemas/ declared
-# two of them back when schemas WAS the workspace root — so after the merge they
-# were creating schemas/node_modules/... while every consumer resolves against
-# //:node_modules. The symptom was
-# `//:.aspect_rules_js/node_modules/@savvifi+meridian-schemas@0.0.0/ref` failing
-# analysis: the lockfile's workspace: protocol told npm_translate_lock to expect
-# a link at the root, and nothing declared one there. The `@0.0.0` is the tell —
-# that is a workspace link, not a registry version.
-npm_link_package(
-    name = "node_modules/@savvifi/meridian-proto-ts",
-    src = "//schemas/proto:proto_ts_pkg",
-)
-
-npm_link_package(
-    name = "node_modules/@savvifi/meridian-schemas",
-    src = "//schemas:schemas_pkg",
-)
-
-npm_link_package(
-    name = "node_modules/@savvifi/meridian-web-react",
-    src = "//packages/web-react:pkg",
-)
-
-npm_link_package(
-    name = "node_modules/@savvifi/meridian-chat",
-    src = "//packages/chat:pkg",
-)
-
-npm_link_package(
-    name = "node_modules/@savvifi/meridian-launchpad",
-    src = "//packages/launchpad:pkg",
-)
+# I added them believing `workspace:*` needed an explicit link at the root. It
+# does not. rules_js keeps ONE package store, rooted here, and the
+# npm_link_all_packages call above declares a store entry for every first-party
+# workspace package in the lockfile — resolving each by convention to
+# `//<package-dir>:pkg`. What the store could not find was that target:
+#
+#   no such target '//schemas:pkg'          (the package is named schemas_pkg)
+#   no such package 'packages/proto-ts'     (no BUILD file at all)
+#
+# The consumers were never the problem. Not one BUILD target in this repo
+# references `//:node_modules/@savvifi/...`; every one of them uses
+# `//<owner>:node_modules/@savvifi/...`, created by that package's own
+# npm_link_all_packages. So the fix is a `pkg` target in each workspace
+# directory — an alias in schemas/, a new one in packages/proto-ts/ — and these
+# five calls simply go.
+#
+# Only those two need it. mui-kit, packages/web and site are leaves that nothing
+# depends on via `workspace:*`, so the store generates no entry for them, which
+# is why only two of the eight members ever appeared in the error.
 
 exports_files([
     # ── the npm side ──

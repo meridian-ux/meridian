@@ -23,9 +23,23 @@ function resolveInput(p) {
   throw new Error(`cannot locate input ${p} (tried: ${candidates.join(", ")})`);
 }
 
+// The OUTPUT dir is execroot-relative for the same reason the inputs are, and
+// it used to be resolved against the cwd (BINDIR) instead. That was right only
+// while mui-kit was its own repository root, where BINDIR-relative "figures"
+// and package-relative "figures" are the same directory. After the merge the
+// declared outs are packages/mui-kit/figures/... while this wrote to
+// <bindir>/figures/... inside the sandbox — so the action exited 0, wrote real
+// PNGs, and Bazel then reported all 36 outputs "not created" with NO error
+// message anywhere, because nothing had gone wrong as far as this script knew.
+function resolveOutput(p) {
+  if (path.isAbsolute(p)) return p;
+  const execroot = process.env.JS_BINARY__EXECROOT;
+  return execroot ? path.resolve(execroot, p) : path.resolve(p);
+}
+
 const chromePath = resolveInput(process.argv[2]);
 const bundlePath = resolveInput(process.argv[3]);
-const outDir = path.resolve(process.argv[4]);
+const outDir = resolveOutput(process.argv[4]);
 const bundle = fs.readFileSync(bundlePath, "utf8");
 const html =
   '<!doctype html><html><head><meta charset="utf-8"></head>' +

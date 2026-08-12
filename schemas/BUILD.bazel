@@ -33,6 +33,21 @@ npm_package(
     visibility = ["//visibility:public"],
 )
 
+# `pkg` is a CONVENTION, not a preference. rules_js keeps one package store at
+# the workspace root, and //:BUILD.bazel's npm_link_all_packages resolves every
+# first-party `workspace:*` member to `//<package-dir>:pkg`. This directory is a
+# member, so without this the store entry
+# `//:.aspect_rules_js/node_modules/@savvifi+meridian-schemas@0.0.0` fails
+# analysis with "no such target '//schemas:pkg'".
+#
+# An alias rather than a rename: `schemas_pkg` is named by publish.yml and reads
+# better at a distance than a bare `:pkg`.
+alias(
+    name = "pkg",
+    actual = ":schemas_pkg",
+    visibility = ["//visibility:public"],
+)
+
 exports_files([
     "package.json",
     "tsconfig.json",

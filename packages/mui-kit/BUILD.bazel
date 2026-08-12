@@ -129,7 +129,7 @@ js_run_binary(
     args = [
         "$(execpath @chrome//:chrome)",
         "$(execpath :harness.bundle.js)",
-        "figures",
+        "$(RULEDIR)/figures",
     ],
     outs = ["figures/%s.png" % f for f in FIXTURES] + ["figures/figures.tex"],
     env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
@@ -206,7 +206,7 @@ js_run_binary(
     args = [
         "$(execpath @chrome//:chrome)",
         "$(execpath :proto_harness.bundle.js)",
-        "proto-figures",
+        "$(RULEDIR)/proto-figures",
     ],
     outs = ["proto-figures/%s.png" % f for f in PROTO_VIEWS] + ["proto-figures/figures.tex"],
     env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
@@ -263,7 +263,7 @@ js_run_binary(
     args = [
         "$(execpath @chrome//:chrome)",
         "$(execpath :studio_harness.bundle.js)",
-        "studio-figures",
+        "$(RULEDIR)/studio-figures",
     ],
     outs = ["studio-figures/%s.png" % f for f in STUDIO_VIEWS] + ["studio-figures/figures.tex"],
     env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},

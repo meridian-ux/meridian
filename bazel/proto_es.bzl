@@ -19,6 +19,32 @@ load("@rules_proto//proto:defs.bzl", "ProtoInfo")
 
 _PROTO_SUFFIX = ".proto"
 
+def _import_path(proto_info, f):
+    """The name protoc knows a source by — which is NOT its path in the tree.
+
+    A proto's identity in a descriptor set is its IMPORT path: the string other
+    protos write in `import "..."`, and the key protoc looks it up by under
+    --descriptor_set_in. For a plain proto_library that happens to equal the
+    workspace-relative path, and this rule used `File.short_path` accordingly.
+
+    strip_import_prefix breaks the coincidence. It routes sources through a
+    _virtual_imports tree, so short_path becomes
+
+        schemas/proto/_virtual_imports/uiview_proto/proto/affordance.proto
+
+    while the descriptor still records the stripped `proto/affordance.proto` —
+    and protoc answers `Could not find file in descriptor database`, naming a
+    path that plainly exists, which is a confusing way to be told the two
+    disagree.
+
+    proto_source_root is the root the stripping produced, so removing it
+    recovers the import path in both cases.
+    """
+    root = proto_info.proto_source_root
+    if root and root != "." and f.path.startswith(root + "/"):
+        return f.path[len(root) + 1:]
+    return f.short_path
+
 def _proto_es_impl(ctx):
     proto_info = ctx.attr.proto[ProtoInfo]
     descriptor_sets = proto_info.transitive_descriptor_sets.to_list()
@@ -44,7 +70,7 @@ def _proto_es_impl(ctx):
         gen_paths.append(import_path)
 
     for src in proto_info.direct_sources:
-        _emit(src.short_path)  # e.g. "proto/panel.proto"
+        _emit(_import_path(proto_info, src))  # e.g. "proto/panel.proto"
 
     # protobuf-es emits a *load-bearing* relative import to every non-WKT
     # imported file (it goes in the fileDesc(...) deps array), so those must be

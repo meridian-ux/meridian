@@ -96,6 +96,35 @@ def published(dev: dict, version: str) -> dict:
                 resolved[name] = spec
         out[field] = resolved
 
+    # A DEPENDENCY THAT IS ALSO A PEER IS A WORKSPACE-RESOLUTION DEVICE, and must
+    # not ship as a hard dependency.
+    #
+    # web-react needs react at RUNTIME — its compiled JSX imports
+    # react/jsx-runtime — but pnpm does not create peer-resolved variants for
+    # `workspace:`/`link:` packages, so a peer-only declaration leaves react out
+    # of the rules_js package store. The generated store entry then reads:
+    #
+    #   _npm_local_package_store(
+    #       package_store_name = "@savvifi+meridian-web-react@0.0.0",
+    #       deps = {…protobuf, proto-ts, schemas…},   # and no react
+    #
+    # and every consumer that loads web-react through the link fails —
+    # mui-kit's three esbuild bundles with `Could not resolve "react/jsx-runtime"`,
+    # launchpad's vitest with `Cannot find package 'react'`. Both worked before
+    # the merge only because they took web-react from the REGISTRY, where pnpm
+    # DOES build a peer-resolved variant.
+    #
+    # So react is declared as a real dependency, which is true of the workspace,
+    # and stripped here, which keeps the published contract true of consumers: a
+    # React component library must not bring its own React.
+    peers = out.get("peerDependencies") or {}
+    deps = out.get("dependencies") or {}
+    kept = {n: s for n, s in deps.items() if n not in peers}
+    if kept != deps:
+        out["dependencies"] = kept
+        if not kept:
+            out.pop("dependencies")
+
     # `scripts` that only make sense in the workspace would run on `npm install`
     # for a consumer. Keep only lifecycle hooks a published package legitimately
     # needs; today that is none of them.

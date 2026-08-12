@@ -1,0 +1,29 @@
+# The pnpm workspace member for @savvifi/meridian-proto-ts.
+#
+# This directory holds a package.json and nothing else that is committed: its
+# proto/ and google/ trees are written by `pnpm codegen` (buf + protoc-gen-es)
+# and gitignored, so pnpm has something on disk to resolve `workspace:*` against
+# without Bazel, a private registry or credentials.
+#
+# BAZEL BUILDS THE SAME PACKAGE SOMEWHERE ELSE. //schemas/proto:proto_ts_pkg
+# assembles the published tarball from the proto_library, and that is the
+# authority for what ships — one committed source of truth, with the buf path as
+# a convenience that a CI step can compare against.
+#
+# The two have to meet, because rules_js keeps one package store at the workspace
+# root and //:BUILD.bazel's npm_link_all_packages resolves every first-party
+# member to `//<package-dir>:pkg`. The member directory is here; the producer is
+# there. Without this file the store entry
+# `//:.aspect_rules_js/node_modules/@savvifi+meridian-proto-ts@0.0.0` fails with
+# "no such package 'packages/proto-ts'" — a BUILD file missing from a directory
+# that looks like it has no Bazel content at all, which is why it took a build
+# to find.
+
+package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "pkg",
+    actual = "//schemas/proto:proto_ts_pkg",
+)
+
+exports_files(["package.json"])

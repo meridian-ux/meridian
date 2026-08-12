@@ -51,9 +51,15 @@ npm_package(
     ],
     package = "@savvifi/meridian-proto-ts",
     replace_prefixes = {"proto-ts.package.json": "package.json"},
+    # Workspace-relative, so these moved with the package. They said
+    # "proto/lib" / "proto" while this directory WAS the repository root — the
+    # string half of the same class as the labels repointed in 6349ac9, and
+    # invisible to a sweep that only understood labels. Left stale, the tarball
+    # would carry proto/lib/... instead of proto/... and every published import
+    # specifier would be wrong.
     root_paths = [
-        "proto/lib",
-        "proto",
+        "schemas/proto/lib",
+        "schemas/proto",
     ],
     visibility = ["//visibility:public"],
 )
