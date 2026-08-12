@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-proto-ts",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "type": "module",
   "description": "Canonical protobuf-es TypeScript types for meridian.ui.v1 (PanelDescriptor) + meridian.theme.v1 (Theme). Generated from schemas/proto \u2014 the single source every renderer and emitter consumes.",
   "license": "MIT",

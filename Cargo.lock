@@ -331,7 +331,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "meridian-tui"
-version = "0.25.0"
+version = "0.25.1"
 dependencies = [
  "crossterm",
  "meridian-uiview",
@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "meridian-uiview"
-version = "0.25.0"
+version = "0.25.1"
 dependencies = [
  "js-sys",
  "prost",
@@ -772,7 +772,7 @@ dependencies = [
 
 [[package]]
 name = "theme-proto"
-version = "0.25.0"
+version = "0.25.1"
 dependencies = [
  "prost",
  "prost-build",

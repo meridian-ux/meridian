@@ -9,7 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meridian-ux/meridian-web-react.git"
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/web-react"
   },
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

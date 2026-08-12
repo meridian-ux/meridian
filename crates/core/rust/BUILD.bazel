@@ -11,12 +11,12 @@ package(default_visibility = ["//visibility:public"])
 # meridian-tui, and the botnoc cli/tui binary) link the SAME serde_json crate
 # instance this core was built against. `serde_json::Value` crosses the core's
 # public API (render_table / RenderedRow / RequestBuilder context), and Bazel
-# modules each get their own crate_universe — two `@crates//:serde_json` from
+# modules each get their own crate_universe — two `@meridian_crates//:serde_json` from
 # different modules are DISTINCT types even at the same version. Depending on this
 # alias instead of one's own serde_json keeps the boundary type unified.
 alias(
     name = "serde_json",
-    actual = "@crates//:serde_json",
+    actual = "@meridian_crates//:serde_json",
     visibility = ["//visibility:public"],
 )
 
@@ -32,7 +32,7 @@ alias(
 # wins toolchain resolution over the dep-shipped default.
 rust_library_group(
     name = "prost_runtime",
-    deps = ["@crates//:prost"],
+    deps = ["@meridian_crates//:prost"],
 )
 
 rust_prost_toolchain(
@@ -40,7 +40,7 @@ rust_prost_toolchain(
     prost_plugin = "@rules_rust_prost//private/3rdparty/crates:protoc-gen-prost__protoc-gen-prost",
     prost_plugin_flag = "--plugin=protoc-gen-prost=%s",
     prost_runtime = ":prost_runtime",
-    prost_types = "@crates//:prost-types",
+    prost_types = "@meridian_crates//:prost-types",
     # tonic_plugin_flag has a non-empty default; explicitly clear it so
     # the toolchain's "all-or-nothing tonic attrs" check sees zero tonic
     # attrs set and stays happy.

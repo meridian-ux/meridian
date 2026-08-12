@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-mui-kit",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
     "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json \u2014 it",
@@ -46,5 +46,10 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/mui-kit"
   }
 }

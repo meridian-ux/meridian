@@ -3,7 +3,7 @@
   "version": "0.25.0",
   "//packageManager": [
     "PINNED, and load-bearing. corepack with no pin installs whatever pnpm is",
-    "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json — it",
+    "newest, and pnpm 11 NO LONGER READS the `pnpm` field in package.json \u2014 it",
     "warns that `pnpm.overrides` were ignored and carries on. Those overrides are",
     "what keeps ONE copy of @savvifi/meridian-proto-ts in this tree; protobuf-es",
     "types are nominal, so two copies make two PanelDescriptors mutually",
@@ -13,7 +13,7 @@
     "MIGRATING TO pnpm 11: move `pnpm.overrides` into pnpm-workspace.yaml FIRST",
     "and verify the build still resolves a single proto-ts."
   ],
-  "description": "The MUI ComponentKit for the meridian React renderer — paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone — no host-library dependency.",
+  "description": "The MUI ComponentKit for the meridian React renderer \u2014 paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone \u2014 no host-library dependency.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -70,5 +70,10 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/mui-kit"
   }
 }

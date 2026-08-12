@@ -32,7 +32,7 @@ members = [
 # crates/core published Bazel module 0.6.0 from crates pinned at 0.1.0 — because
 # only meridian-schemas ever gated the three version axes against each other.
 [workspace.package]
-version = "0.25.0"
+version = "0.25.1"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/meridian-ux/meridian"

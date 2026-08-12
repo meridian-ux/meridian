@@ -9,7 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meridian-ux/meridian-launchpad.git"
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/launchpad"
   },
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

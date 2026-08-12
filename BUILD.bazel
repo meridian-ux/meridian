@@ -11,7 +11,7 @@
 # at the new root, and that is the whole content of this file.
 
 load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
-load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
