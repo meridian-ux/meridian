@@ -156,6 +156,14 @@ jobs:
           disk-cache: true
           repository-cache: true
 
+      # Cheapest first, and it needs no Bazel at all. A BUILD file exporting a
+      # file that does not exist makes its whole PACKAGE fail to load, and the
+      # error names the file rather than the damage — in this repo that was two
+      # dead lines in crates/core/rust/BUILD.bazel poisoning :prost_toolchain, and
+      # so every target, for a full CI round.
+      - name: exports_files entries exist
+        run: python3 tools/check_exports.py
+
       # Resolution first and separately: it is fast, it needs no source archives,
       # and it is what catches the merge-shaped failures — use_repo collisions,
       # duplicate extension names, toolchain conflicts.
