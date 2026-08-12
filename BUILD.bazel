@@ -10,7 +10,19 @@
 # Every absorbed repository had one of these at ITS root. The monorepo needs one
 # at the new root, and that is the whole content of this file.
 
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
 package(default_visibility = ["//visibility:public"])
+
+# EVERY JS target in this repo depends on `//:node_modules/<pkg>`, and those
+# targets do not exist until this call creates them. Without it, `bazel build
+# //...` fails ANALYSIS on 74 of 88 top-level targets — across schemas, all five
+# JS packages, brand and the Rust crates — which reads like the merge broke
+# everything and is in fact one missing line.
+#
+# Each absorbed repo had this at its own root over its own lockfile. There is one
+# lockfile now, so there is one of these.
+npm_link_all_packages(name = "node_modules")
 
 exports_files([
     # ── the npm side ──

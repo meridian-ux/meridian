@@ -23,16 +23,18 @@ rust_library(
     # theme.rs re-exports the `theme_proto` rust_prost_library types directly
     # (the single, Bazel-native codegen path — no cargo/prost-build fallback).
     deps = [
-        # The shared rust core, consumed cross-repo from meridian-uiview-core:
-        # the native `uiview` lib (PanelDescriptor types via the `proto` module,
-        # render/scoring helpers, RequestBuilder) + the `theme_proto` prost crate.
-        "@meridian_uiview_core//rust/uiview",
-        "@meridian_uiview_core//rust/uiview:theme_proto",
-        # serde_json::Value crosses the uiview API boundary (RpcInvoker / render_table
-        # / RenderedRow), so take it from meridian-uiview-core's alias — NOT our own
-        # @crates — to link the SAME crate instance (cross-module @crates copies are
-        # distinct types even at the same version).
-        "@meridian_uiview_core//rust:serde_json",
+        # The shared rust core, now in-repo: the native `uiview` lib
+        # (PanelDescriptor types via the `proto` module, render/scoring helpers,
+        # RequestBuilder) + the `theme_proto` prost crate.
+        "//crates/core/rust/uiview",
+        "//crates/core/rust/uiview:theme_proto",
+        # serde_json::Value crosses the uiview API boundary (RpcInvoker /
+        # render_table / RenderedRow). The alias exists because cross-MODULE
+        # @crates copies are distinct types even at the same version, so both
+        # sides had to name one instance. Inside one module that hazard is gone,
+        # but the alias is kept: it is still the single declaration point, and
+        # removing it would be a change with nothing to gain.
+        "//crates/core/rust:serde_json",
         "@crates//:crossterm",
         "@crates//:prost",
         "@crates//:ratatui",

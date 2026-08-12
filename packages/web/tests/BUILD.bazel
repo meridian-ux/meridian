@@ -127,7 +127,7 @@ vitest_test(
 # into this package rather than referenced across the runfiles tree.
 genrule(
     name = "wasm_artifacts",
-    srcs = ["@meridian_uiview_core//rust/uiview:uiview_wasm"],
+    srcs = ["//crates/core/rust/uiview:uiview_wasm"],
     outs = [
         "meridian_uiview.js",
         "meridian_uiview_bg.wasm",

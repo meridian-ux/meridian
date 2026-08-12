@@ -13,14 +13,14 @@ exports_files(["Cargo.toml"])
 # the prost types need no serde derives and meridian-schemas stays rust-free.
 rust_prost_library(
     name = "uiview_proto",
-    proto = "@meridian_schemas//proto:uiview_proto",
+    proto = "//schemas/proto:uiview_proto",
 )
 
 # meridian.theme.v1 types via prost. SEPARATE crate (semantics ⊥ style),
 # consumed by the TUI's theme binding (-> ratatui Style palette).
 rust_prost_library(
     name = "theme_proto",
-    proto = "@meridian_schemas//proto:theme_proto",
+    proto = "//schemas/proto:theme_proto",
 )
 
 rust_library(
