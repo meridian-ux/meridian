@@ -78,6 +78,18 @@ exports_files(
 # which names a host-side handler.
 proto_library(
     name = "uiview_proto",
+    # The protos import each other as "proto/value.proto", and they live at
+    # schemas/proto/ now — so the import root has to be schemas/, not the repo
+    # root. Without this, every import fails with "File not found" and every
+    # downstream target (proto_ts, uiview_es, the Rust prost libraries and
+    # everything they feed) fails analysis.
+    #
+    # Stripping rather than rewriting the import strings is deliberate: those
+    # strings are also what meridian-internal's layout.proto writes
+    # (import "proto/view.proto"), and what every committed descriptor set
+    # records. Changing them would ripple into another repository and invalidate
+    # the descriptor sets; changing the import ROOT costs one attribute.
+    strip_import_prefix = "/schemas",
     # Split into one file per concept for clarity. The compiled output is
     # identical (single `meridian.ui.v1` package); intra-package imports use
     # `proto/<name>.proto` form to match Bazel's workspace-relative resolution.
@@ -123,5 +135,17 @@ proto_library(
 # Theme contract without pulling the panel descriptors, and vice versa.
 proto_library(
     name = "theme_proto",
+    # The protos import each other as "proto/value.proto", and they live at
+    # schemas/proto/ now — so the import root has to be schemas/, not the repo
+    # root. Without this, every import fails with "File not found" and every
+    # downstream target (proto_ts, uiview_es, the Rust prost libraries and
+    # everything they feed) fails analysis.
+    #
+    # Stripping rather than rewriting the import strings is deliberate: those
+    # strings are also what meridian-internal's layout.proto writes
+    # (import "proto/view.proto"), and what every committed descriptor set
+    # records. Changing them would ripple into another repository and invalidate
+    # the descriptor sets; changing the import ROOT costs one attribute.
+    strip_import_prefix = "/schemas",
     srcs = ["theme.proto"],
 )
