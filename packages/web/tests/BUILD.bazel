@@ -6,7 +6,7 @@ package(default_visibility = ["//visibility:public"])
 js_library(
     name = "src_lib",
     srcs = [
-        "//src:core",
+        "//packages/web/src:core",
     ],
 )
 

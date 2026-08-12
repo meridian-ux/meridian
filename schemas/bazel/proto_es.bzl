@@ -100,7 +100,7 @@ proto_es = rule(
         "plugin": attr.label(
             # In //proto/es (a dev-only package) so //proto/BUILD.bazel — which
             # consumers load for the proto_library — never loads @npm.
-            default = "//proto/es:protoc_gen_es",
+            default = "//schemas/proto/es:protoc_gen_es",
             executable = True,
             cfg = "exec",
             doc = "The protoc-gen-es plugin (a js_binary).",

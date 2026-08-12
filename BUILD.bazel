@@ -10,6 +10,7 @@
 # Every absorbed repository had one of these at ITS root. The monorepo needs one
 # at the new root, and that is the whole content of this file.
 
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,6 +24,42 @@ package(default_visibility = ["//visibility:public"])
 # Each absorbed repo had this at its own root over its own lockfile. There is one
 # lockfile now, so there is one of these.
 npm_link_all_packages(name = "node_modules")
+
+# FIRST-PARTY packages, linked into the same node_modules tree.
+#
+# These are what `workspace:*` resolves to. npm_link_package creates
+# `node_modules/<pkg>` IN THE PACKAGE IT IS DECLARED IN, and schemas/ declared
+# two of them back when schemas WAS the workspace root — so after the merge they
+# were creating schemas/node_modules/... while every consumer resolves against
+# //:node_modules. The symptom was
+# `//:.aspect_rules_js/node_modules/@savvifi+meridian-schemas@0.0.0/ref` failing
+# analysis: the lockfile's workspace: protocol told npm_translate_lock to expect
+# a link at the root, and nothing declared one there. The `@0.0.0` is the tell —
+# that is a workspace link, not a registry version.
+npm_link_package(
+    name = "node_modules/@savvifi/meridian-proto-ts",
+    src = "//schemas/proto:proto_ts_pkg",
+)
+
+npm_link_package(
+    name = "node_modules/@savvifi/meridian-schemas",
+    src = "//schemas:schemas_pkg",
+)
+
+npm_link_package(
+    name = "node_modules/@savvifi/meridian-web-react",
+    src = "//packages/web-react:pkg",
+)
+
+npm_link_package(
+    name = "node_modules/@savvifi/meridian-chat",
+    src = "//packages/chat:pkg",
+)
+
+npm_link_package(
+    name = "node_modules/@savvifi/meridian-launchpad",
+    src = "//packages/launchpad:pkg",
+)
 
 exports_files([
     # ── the npm side ──

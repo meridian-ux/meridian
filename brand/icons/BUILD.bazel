@@ -27,5 +27,5 @@ _PACKED = [
 brand_icons(
     name = "icon_set",
     outs = _PNGS + _LIGHT_PNGS + _PACKED,
-    rasterizer = "//gen:raster",
+    rasterizer = "//brand/gen:raster",
 )
