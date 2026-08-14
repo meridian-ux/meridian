@@ -4,7 +4,6 @@
 # treat them as packages.
 node_modules
 schemas/node_modules
-site/node_modules
 packages/web/node_modules
 packages/web-react/node_modules
 packages/chat/node_modules

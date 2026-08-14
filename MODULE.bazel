@@ -51,7 +51,6 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "brando", version = "0.5.0")  # brand pipeline: marklib + brand_skin
 bazel_dep(name = "rules_chrome", version = "0.1.0")  # hermetic Chrome for the browser test
 bazel_dep(name = "rules_tectonic", version = "0.2.0")  # the catalog PDF
-bazel_dep(name = "rules_astro", version = "0.0.1")  # //site
 bazel_dep(name = "rules_vite", version = "0.1.0", dev_dependency = True)
 
 # GONE, because they are now in-repo: meridian_schemas, meridian_uiview_core,
@@ -69,10 +68,9 @@ protoc_prebuilt = use_extension("//bazel:protoc_prebuilt.bzl", "protoc_prebuilt"
 use_repo(protoc_prebuilt, "meridian_protoc")
 
 # ─── Node ─────────────────────────────────────────────────────────────────────
-# 22.11.0 across the board. //site declared 20.11.1 alone; one root means one
-# toolchain, and moving site forward is the safe direction. If Astro turns out to
-# need 20, that is a site-specific finding to solve with a transition rather than
-# by holding the whole repo back.
+# 22.11.0 across the board. It was chosen when //site was still here and declared
+# 20.11.1 alone; site now lives in meridian-ux/meridian-ux.github.io, which is the
+# repo GitHub Pages actually serves, so nothing here asks for 20 any more.
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version = "22.11.0")
 
