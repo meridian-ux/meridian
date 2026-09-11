@@ -144,6 +144,18 @@ as the place parity is *seen* ([#11](https://github.com/meridian-ux/meridian-int
   change that ripple. Every roadmap issue carries `roadmap`; epics carry `epic`.
 - **Types.** Epics are `Feature`; their sub-issues are `Task`. Each epic's sub-issues
   render as a tracked tree on the epic.
+- **Fields.** Every roadmap issue carries the org's four issue fields, so GitHub's own
+  issue views group, sort and filter the roadmap without a board:
+  - `Target date` / `Start date` — the issue's milestone window (M1 2026‑09‑11→10‑31,
+    M2 11‑01→12‑31, M3 2027‑01‑01→02‑28, M4 03‑01→04‑30). Group by `Target date` for
+    the timeline.
+  - `Priority` — dependency order, not sentiment: **Urgent** for the four epics that
+    unblock others (ComponentKit seam, manifest completeness, conformance corpus,
+    orphaned tests); **High** for the rest of M1–M2; **Medium** for M3–M4. Sub-issues
+    inherit their epic's priority.
+  - `Effort` — scope: **High** for seam, widget, corpus, proto-migration and
+    publish-surface work; **Low** for decisions, waiver lifts and docstrings.
+  Filter `label:roadmap` by `Priority:Urgent` to see the critical path (21 issues).
 - **A project board.** GitHub Projects cannot be created from the automation that built
   this roadmap, so the board is a view you bind, not state you maintain:
   *Projects → New project → Board → add items from `meridian` and `meridian-internal`
