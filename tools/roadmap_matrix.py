@@ -39,9 +39,14 @@ if __name__ == "__main__":
         p = ROOT / "ROADMAP.md"; t = p.read_text()
         # The end marker may sit directly under the start marker (an empty block on
         # first run), so nothing between them is required — including a newline.
-        new = re.sub(r"(<!-- matrix:start -->\n).*?(<!-- matrix:end -->)", lambda m: m.group(1) + block + "\n" + m.group(2), t, flags=re.S)
-        if new == t:
+        new, spliced = re.subn(r"(<!-- matrix:start -->\n).*?(<!-- matrix:end -->)", lambda m: m.group(1) + block + "\n" + m.group(2), t, flags=re.S)
+        if not spliced:
             raise SystemExit("ROADMAP.md: matrix markers not found — nothing written")
-        p.write_text(new); print("ROADMAP.md matrix refreshed")
+        # An unchanged file means the matrix already matches the manifest, not a failure:
+        # --write is the drift check, and no drift is the passing case.
+        if new == t:
+            print("ROADMAP.md matrix already current")
+        else:
+            p.write_text(new); print("ROADMAP.md matrix refreshed")
     else:
         print(block)
