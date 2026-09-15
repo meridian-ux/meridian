@@ -156,10 +156,11 @@ as the place parity is *seen* ([#11](https://github.com/meridian-ux/meridian-int
   - `Effort` — scope: **High** for seam, widget, corpus, proto-migration and
     publish-surface work; **Low** for decisions, waiver lifts and docstrings.
   Filter `label:roadmap` by `Priority:Urgent` to see the critical path (21 issues).
-- **A project board.** GitHub Projects cannot be created from the automation that built
-  this roadmap, so the board is a view you bind, not state you maintain:
-  *Projects → New project → Board → add items from `meridian` and `meridian-internal`
-  filtered on `label:roadmap` → group by Milestone.* Everything the board shows is
+- **A project board.** [Meridian roadmap](https://github.com/orgs/meridian-ux/projects/1)
+  carries all 80 roadmap issues from both repos in four views: **Board** grouped by
+  milestone, **Timeline** over the `Start date`→`Target date` window, **Critical path**
+  filtered to `Priority:Urgent` (21 issues), and **By track**. An issue opened in either
+  repo with `label:roadmap` is added to it automatically. Everything the board shows is
   already on the issues, so the board is disposable and the issues are not.
 - **Refreshing this file.** `tools/roadmap_matrix.py --write` regenerates the parity
   table from the manifest. The milestone and epic tables are hand-maintained; when an
