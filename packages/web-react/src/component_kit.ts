@@ -11,6 +11,7 @@ import type { ComponentType, CSSProperties, ReactNode } from "react";
 
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChartPanel } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
@@ -58,6 +59,7 @@ export type ActionPanelProps = ShapeProps<ActionPanel>;
 export type ConnectFlowPanelProps = ShapeProps<ConnectFlowPanel>;
 export type CopyValuePanelProps = ShapeProps<CopyValuePanel>;
 export type CatalogPanelProps = ShapeProps<CatalogPanel>;
+export type ChartPanelProps = ShapeProps<ChartPanel>;
 // Specialized panel (web-specific rich render; degrades per the ladder).
 export type GrammarPanelProps = ShapeProps<GrammarPanel>;
 // Full-parity KPI tile.
@@ -112,6 +114,8 @@ export interface ComponentKit {
   ConnectFlow?: ComponentType<ConnectFlowPanelProps>;
   CopyValue?: ComponentType<CopyValuePanelProps>;
   Catalog?: ComponentType<CatalogPanelProps>;
+  /** Portable chart intent; kits may render natively or degrade to data text. */
+  Chart?: ComponentType<ChartPanelProps>;
   /**
    * GrammarPanel (markdown / mermaid / plantuml / graphviz / vega). Specialized:
    * the rich render is host-wired via renderGrammar; the kit degrades to native
