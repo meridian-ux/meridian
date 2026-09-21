@@ -211,8 +211,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI renders form fields as labeled terminal controls with read-only and editable modes plus defaults."
         }
       }
     },
@@ -361,7 +361,7 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "missing",
+          "status": "structural-gap",
           "reason": "The React ComponentKit seam is open, but no kit currently supplies the web-specific terminal component."
         },
         "mui-kit": {

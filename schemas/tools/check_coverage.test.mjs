@@ -58,6 +58,7 @@ test("an UNWAIVED full-parity gap fails", () => {
   // This is the finding the gate is really for: panel.proto promises these
   // shapes render everywhere, so a silent hole must not be representable.
   const m = realManifest();
+  m.arms.stream.renderers["web-react"].status = "missing";
   delete m.arms.stream.renderers["web-react"].waiver;
   const errors = check(m, realArms());
   assert.ok(
