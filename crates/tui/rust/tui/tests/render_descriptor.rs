@@ -13,13 +13,15 @@
 //! a `Block.view` arm missing since schemas 0.21.0 and three test fixtures
 //! enumerating fields the schema had outgrown.
 
+use crossterm::event::KeyCode;
 use prost::Message as _;
 use ratatui::{backend::TestBackend, Terminal};
 
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
 use meridian_uiview::proto::{
-    panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel, FormField, GalleryPanel,
-    PanelDescriptor, RecordCardPanel, RpcCall, StatPanel,
+    form_field::Kind, panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel,
+    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, PanelDescriptor,
+    RecordCardPanel, RpcCall, StatPanel, TextInput,
 };
 use meridian_uiview::Context;
 
@@ -69,6 +71,26 @@ impl RpcInvoker for RecordData {
             "phase": "Running",
             "metadata": {"region": "us-east"}
         }))
+    }
+}
+
+struct FormData;
+
+impl RpcInvoker for FormData {
+    fn invoke(
+        &self,
+        _service: &str,
+        method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        if method == "Prefill" {
+            Ok(serde_json::json!({"name": "worker", "replicas": 2}))
+        } else {
+            Err(RpcError::UnknownMethod {
+                service: "demo.Deploy".into(),
+                method: method.into(),
+            })
+        }
     }
 }
 
@@ -177,6 +199,52 @@ fn record_card_descriptor() -> PanelDescriptor {
                 ..Default::default()
             }),
             ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn form_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-form".into(),
+        title: "Deployment".into(),
+        body: Some(Body::Form(FormPanel {
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    request_field: "name".into(),
+                    kind: Some(Kind::Text(TextInput {
+                        default_value: "service".into(),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "replicas".into(),
+                    label: "Replicas".into(),
+                    request_field: "replicas".into(),
+                    kind: Some(Kind::Integer(IntegerSpinner {
+                        default_value: 1,
+                        min: 1,
+                        max: 10,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+            ],
+            mode: FormMode::Edit as i32,
+            submit: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Apply".into(),
+                ..Default::default()
+            }),
+            item_noun: "deployment".into(),
+            prefill: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Prefill".into(),
+                ..Default::default()
+            }),
         })),
         ..Default::default()
     }
