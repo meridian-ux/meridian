@@ -19,8 +19,9 @@
 
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
-    ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, ResourceAction,
-    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
+    RecordCardPanel, ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel,
+    StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use meridian_uiview::RenderedCard;
@@ -297,6 +298,83 @@ pub fn render_gallery(
         }
     }
     frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render the record-bound detail header. A terminal has no chip or grid
+/// primitive, so the same descriptor values become a compact labeled block.
+pub fn render_detail_header(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &DetailHeaderPanel,
+    record: Option<&Value>,
+    palette: &Palette,
+) {
+    let record = record.unwrap_or(&Value::Null);
+    let title = if panel.title_source_path.is_empty() {
+        if panel.title.is_empty() {
+            "Details".to_string()
+        } else {
+            panel.title.clone()
+        }
+    } else {
+        let resolved = value_at(record, &panel.title_source_path);
+        if resolved.is_empty() {
+            panel.title.clone()
+        } else {
+            resolved
+        }
+    };
+    let mut lines = vec![Line::from(Span::styled(title, palette.title()))];
+    if !panel.subtitle_source_path.is_empty() {
+        lines.push(Line::from(Span::styled(
+            value_at(record, &panel.subtitle_source_path),
+            palette.meta(),
+        )));
+    }
+    if !panel.status_source_path.is_empty() {
+        lines.push(Line::from(Span::styled(
+            format!("[{}]", value_at(record, &panel.status_source_path)),
+            palette.title(),
+        )));
+    }
+    for row in &panel.descriptor_rows {
+        lines.push(labeled_value(&row.label, &value_at(record, &row.source_path), palette));
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render a read-only record card as a terminal key/value block.
+pub fn render_record_card(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &RecordCardPanel,
+    record: Option<&Value>,
+    palette: &Palette,
+) {
+    let record = record.unwrap_or(&Value::Null);
+    let lines = panel
+        .fields
+        .iter()
+        .map(|field| {
+            labeled_value(
+                if field.label.is_empty() {
+                    &field.field_id
+                } else {
+                    &field.label
+                },
+                &value_at(record, &field.field_id),
+                palette,
+            )
+        })
+        .collect::<Vec<_>>();
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn labeled_value(label: &str, value: &str, palette: &Palette) -> Line<'static> {
+    Line::from(vec![
+        Span::styled(format!("{label}: "), palette.meta()),
+        Span::styled(value.to_string(), palette.text()),
+    ])
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ pub struct PanelView {
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
     cached_gallery: Option<CachedGallery>,
+    cached_record: Option<CachedRecord>,
     cached_resource_cards: Option<CachedResourceCards>,
     table_state: TableState,
     palette: Palette,
@@ -53,6 +54,11 @@ struct CachedGallery {
     error: Option<String>,
 }
 
+struct CachedRecord {
+    record: Option<serde_json::Value>,
+    error: Option<String>,
+}
+
 struct CachedResourceCards {
     rows: Vec<serde_json::Value>,
     error: Option<String>,
@@ -64,6 +70,7 @@ impl PanelView {
             cached: None,
             cached_chart: None,
             cached_gallery: None,
+            cached_record: None,
             cached_resource_cards: None,
             table_state: TableState::default(),
             palette: Palette::default(),
@@ -80,6 +87,7 @@ impl PanelView {
             cached: None,
             cached_chart: None,
             cached_gallery: None,
+            cached_record: None,
             cached_resource_cards: None,
             table_state: TableState::default(),
             palette,
@@ -99,6 +107,7 @@ impl PanelView {
         self.cached = None;
         self.cached_chart = None;
         self.cached_gallery = None;
+        self.cached_record = None;
         self.cached_resource_cards = None;
     }
 
@@ -243,21 +252,36 @@ impl PanelView {
                 chunks[2],
                 "Form panels (entity detail sections): not yet supported in the TUI renderer.",
             ),
-            // The DETAIL view's two record-bound bodies. Both need the same
-            // fetch-one-record-then-read-dotted-paths tier the FormPanel above
-            // is waiting on, so they land together with it rather than half here.
-            Some(Body::DetailHeader(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Detail-header panels (entity detail views): not yet supported in the TUI renderer.",
-            ),
-            Some(Body::RecordCard(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Record-card panels (entity detail views): not yet supported in the TUI renderer.",
-            ),
+            Some(Body::DetailHeader(panel)) => {
+                self.populate_record_if_needed(panel.populate.as_ref(), context, invoker);
+                let cached = self.cached_record.as_ref().unwrap();
+                if let Some(error) = cached.error.as_deref() {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                } else {
+                    content::render_detail_header(
+                        frame,
+                        content_area,
+                        panel,
+                        cached.record.as_ref(),
+                        &self.palette,
+                    );
+                }
+            }
+            Some(Body::RecordCard(panel)) => {
+                self.populate_record_if_needed(panel.populate.as_ref(), context, invoker);
+                let cached = self.cached_record.as_ref().unwrap();
+                if let Some(error) = cached.error.as_deref() {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                } else {
+                    content::render_record_card(
+                        frame,
+                        content_area,
+                        panel,
+                        cached.record.as_ref(),
+                        &self.palette,
+                    );
+                }
+            }
             Some(Body::ResourceCards(panel)) => {
                 self.populate_resource_cards_if_needed(panel, context, invoker);
                 let cached = self.cached_resource_cards.as_ref().unwrap();
@@ -487,6 +511,39 @@ impl PanelView {
                 self.cached_gallery = Some(CachedGallery {
                     cards: vec![],
                     error: Some(format!("Failed to load gallery: {error}")),
+                });
+            }
+        }
+    }
+
+    fn populate_record_if_needed<I: RpcInvoker>(
+        &mut self,
+        populate: Option<&meridian_uiview::proto::RpcCall>,
+        context: &Context,
+        invoker: &I,
+    ) {
+        if self.cached_record.is_some() {
+            return;
+        }
+        let Some(populate) = populate else {
+            self.cached_record = Some(CachedRecord {
+                record: None,
+                error: None,
+            });
+            return;
+        };
+        let request = RequestBuilder::build(populate, context);
+        match invoker.invoke(&populate.service, &populate.method, request) {
+            Ok(record) => {
+                self.cached_record = Some(CachedRecord {
+                    record: Some(record),
+                    error: None,
+                });
+            }
+            Err(error) => {
+                self.cached_record = Some(CachedRecord {
+                    record: None,
+                    error: Some(format!("Failed to load record: {error}")),
                 });
             }
         }
