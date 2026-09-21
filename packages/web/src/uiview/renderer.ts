@@ -15,6 +15,7 @@ import { toBinary } from "@bufbuild/protobuf";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
@@ -175,6 +176,11 @@ export interface RenderPanelOptions {
     language: string;
     source: string;
     data?: unknown;
+  }) => HTMLElement | undefined;
+  /** Host-native transcoder for portable ChartSpec intent. */
+  renderChart?: (opts: {
+    spec: ChartSpec;
+    data?: object;
   }) => HTMLElement | undefined;
 }
 
@@ -358,6 +364,9 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "resourceCards") {
     return renderResourceCards(opts, body.value, meta);
+  }
+  if (body.case === "chart") {
+    return renderChartPanel(opts, body.value, meta);
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -846,6 +855,87 @@ function readAt(obj: object, path: string): unknown {
   return path
     .split(".")
     .reduce<unknown>((acc, k) => (acc == null ? acc : (acc as Record<string, unknown>)[k]), obj);
+}
+
+// ChartPanel — portable chart intent with a host-native rich path and a
+// guaranteed text/table degradation path. ChartSpec stays data-oriented: the
+// renderer never assumes Vega or another chart library.
+async function renderChartPanel(
+  opts: RenderPanelOptions,
+  panel: ChartPanel,
+  metaEl: HTMLElement,
+): Promise<void> {
+  const spec = panel.chart;
+  if (!spec) {
+    metaEl.textContent = "Chart descriptor is empty.";
+    return;
+  }
+  let data: object | undefined;
+  if (spec.populate) {
+    try {
+      const request = plainValue(
+        opts.wasm.buildRequest(toBinary(RpcCallSchema, spec.populate), opts.context),
+      ) as object;
+      data = await opts.invoker.invoke(spec.populate.service, spec.populate.method, request);
+    } catch (err) {
+      metaEl.textContent = `Failed: ${(err as Error).message}`;
+    }
+  }
+  metaEl.textContent = "";
+  const mount = opts.renderChart?.({ spec, data });
+  if (mount) {
+    opts.root.appendChild(mount);
+    return;
+  }
+  opts.root.appendChild(buildChartFallback(spec, data));
+}
+
+function buildChartFallback(spec: ChartSpec, data?: object): HTMLElement {
+  const figure = el("figure", "mer-chart");
+  if (spec.title) figure.appendChild(el("figcaption", "mer-chart-title", spec.title));
+  const summary = el(
+    "p",
+    "mer-chart-summary",
+    `${chartMarkName(spec.mark)} of ${spec.y?.fieldName || "value"} by ${spec.x?.fieldName || "category"}`,
+  );
+  figure.appendChild(summary);
+  const rows = chartRows(data);
+  if (rows.length) {
+    const table = document.createElement("table");
+    table.className = "mer-chart-data";
+    const head = document.createElement("tr");
+    for (const key of [spec.x?.fieldName, spec.y?.fieldName, spec.series?.fieldName].filter(Boolean)) {
+      const th = document.createElement("th");
+      th.textContent = key!;
+      head.appendChild(th);
+    }
+    table.appendChild(head);
+    for (const row of rows.slice(0, 20)) {
+      const tr = document.createElement("tr");
+      for (const key of [spec.x?.fieldName, spec.y?.fieldName, spec.series?.fieldName].filter(Boolean)) {
+        const td = document.createElement("td");
+        td.textContent = String(readAt(row, key!) ?? "");
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    figure.appendChild(table);
+  }
+  return figure;
+}
+
+function chartRows(data?: object): object[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data as object[];
+  for (const path of ["rows", "items", "data"]) {
+    const candidate = readAt(data, path);
+    if (Array.isArray(candidate)) return candidate as object[];
+  }
+  return [];
+}
+
+function chartMarkName(mark: number): string {
+  return ["chart", "line", "area", "bar", "point", "stat"][mark] ?? "chart";
 }
 
 // ResourceCardPanel — fetch-driven resource cards with lifecycle actions. The
