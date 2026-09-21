@@ -85,6 +85,7 @@ import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
 import { MeridianResourceCards } from "./components/resource_cards.js";
 import { MeridianChart } from "./components/chart.js";
+import { MeridianStream } from "./components/stream.js";
 
 type Row = Record<string, unknown>;
 
@@ -972,6 +973,9 @@ export const muiKit: ComponentKit = {
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
   Media: ({ panel }: ShapeProps<MediaPanel>) => <MediaView panel={panel} />,
+  Stream: ({ panel }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/stream_pb.js").StreamPanel>) => (
+    <MeridianStream panel={panel} />
+  ),
   Fallback,
   ActionBar,
 };
