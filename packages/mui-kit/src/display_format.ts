@@ -202,6 +202,16 @@ export function formatByDisplay(
       }
       return { text: absolute };
     }
+    case ValueType.INTEGER:
+    case ValueType.DECIMAL:
+    case ValueType.MONEY:
+    case ValueType.PERCENT: {
+      const options = display?.options.case === "number" ? display.options.value : undefined;
+      if (typeof value === "number" && options?.fractionDigits !== undefined) {
+        return { text: value.toFixed(Math.max(0, options.fractionDigits)) };
+      }
+      return { text: formatDisplayValue(value) };
+    }
     // A person is rendered by the producer's chosen label; the renderer's job is
     // only to not print a raw id where a name belongs, which the projection now
     // prevents upstream by resolving the reference. Nothing to reformat here yet —

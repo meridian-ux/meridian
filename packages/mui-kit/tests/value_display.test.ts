@@ -111,6 +111,14 @@ describe("formatByDisplay — types", () => {
     expect(formatByDisplay("Ruchi Sharma", who).text).toBe("Ruchi Sharma");
   });
 
+  it("honors declared numeric precision", () => {
+    const decimal = create(ValueDisplaySchema, {
+      type: ValueType.DECIMAL,
+      options: { case: "number", value: { fractionDigits: 2 } },
+    });
+    expect(formatByDisplay(1.236, decimal).text).toBe("1.24");
+  });
+
   it("an ABSENT or UNSPECIFIED display defers to the existing inference", () => {
     // The compatibility guarantee: every descriptor emitted before ValueDisplay
     // renders exactly as it did, including the ISO sniff.

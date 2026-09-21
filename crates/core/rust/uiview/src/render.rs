@@ -1,5 +1,8 @@
 use crate::paths::ProtoPaths;
-use crate::proto::{ColumnFormat, GalleryPanel, TableColumn, TablePanel};
+use crate::proto::{
+    value_display, ColumnFormat, GalleryPanel, NumberOptions, TableColumn, TablePanel,
+    ValueDisplay, ValueType,
+};
 use serde_json::Value;
 
 // One rendered row in the table. Each element of `cells` corresponds
@@ -79,8 +82,87 @@ pub fn render_gallery(response: &Value, gallery: &GalleryPanel) -> Vec<RenderedC
 
 /// Formats one JSON value per a TableColumn's format directive.
 pub fn format_cell(value: &Value, column: &TableColumn) -> String {
+    if let Some(display) = column.value_display.as_ref() {
+        return format_display_value(value, display);
+    }
     let format = ColumnFormat::try_from(column.format).unwrap_or(ColumnFormat::Unspecified);
     format_value(value, format)
+}
+
+/// Formats a table cell according to the shared `ValueDisplay` contract.
+///
+/// `ValueDisplay` is additive to the older `ColumnFormat`: callers that do not
+/// declare it retain the legacy formatter byte-for-byte, while the web WASM
+/// path and the native TUI now read the same semantic declaration. Types whose
+/// display is surface-specific (links, rich principals, and localized temporal
+/// labels) retain their wire text here; a renderer can add decoration without
+/// changing the value's meaning.
+pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
+    const EMPTY: &str = "—";
+    if value.is_null() {
+        return EMPTY.to_string();
+    }
+
+    let value_type = ValueType::try_from(display.r#type).unwrap_or(ValueType::Unspecified);
+    match value_type {
+        ValueType::Boolean => value
+            .as_bool()
+            .map(|value| if value { "Yes" } else { "No" }.to_string())
+            .unwrap_or_else(|| format_display_scalar(value)),
+        ValueType::List => match value {
+            Value::Array(items) if items.is_empty() => EMPTY.to_string(),
+            Value::Array(items) => items
+                .iter()
+                .map(format_display_scalar)
+                .collect::<Vec<_>>()
+                .join(", "),
+            _ => format_display_scalar(value),
+        },
+        ValueType::Integer | ValueType::Decimal | ValueType::Money | ValueType::Percent => {
+            let options = match display.options.as_ref() {
+                Some(value_display::Options::Number(options)) => Some(options),
+                _ => None,
+            };
+            format_display_number(value, options)
+        }
+        ValueType::Json => match value {
+            Value::String(value) => value.clone(),
+            _ => serde_json::to_string(value).unwrap_or_else(|_| value.to_string()),
+        },
+        ValueType::Unspecified
+        | ValueType::Text
+        | ValueType::MultilineText
+        | ValueType::Enum
+        | ValueType::Date
+        | ValueType::DateTime
+        | ValueType::Time
+        | ValueType::Duration
+        | ValueType::Principal
+        | ValueType::Email
+        | ValueType::Url
+        | ValueType::Identifier => format_display_scalar(value),
+    }
+}
+
+fn format_display_scalar(value: &Value) -> String {
+    match value {
+        Value::String(value) => value.clone(),
+        Value::Bool(value) => value.to_string(),
+        Value::Null => "—".to_string(),
+        _ => value.to_string(),
+    }
+}
+
+fn format_display_number(value: &Value, options: Option<&NumberOptions>) -> String {
+    let Some(number) = value.as_f64() else {
+        return format_display_scalar(value);
+    };
+    if let Some(fraction_digits) = options.and_then(|options| options.fraction_digits) {
+        if fraction_digits >= 0 {
+            return format!("{:.*}", fraction_digits as usize, number);
+        }
+    }
+    format_display_scalar(value)
 }
 
 /// Standalone formatter — also used by wasm wrappers that want to
@@ -123,6 +205,7 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::proto::value_display;
     use serde_json::json;
 
     #[test]
@@ -136,6 +219,40 @@ mod tests {
             format_value(&json!(["a", "b", "c"]), ColumnFormat::StringList),
             "a, b, c",
         );
+    }
+
+    #[test]
+    fn value_display_overrides_legacy_column_format() {
+        let column = TableColumn {
+            format: ColumnFormat::Float2dp as i32,
+            value_display: Some(ValueDisplay {
+                r#type: ValueType::Boolean as i32,
+                options: None,
+            }),
+            ..Default::default()
+        };
+        assert_eq!(format_cell(&json!(true), &column), "Yes");
+    }
+
+    #[test]
+    fn value_display_formats_lists_and_declared_precision() {
+        let list = ValueDisplay {
+            r#type: ValueType::List as i32,
+            options: None,
+        };
+        assert_eq!(
+            format_display_value(&json!(["one", "two"]), &list),
+            "one, two"
+        );
+
+        let decimal = ValueDisplay {
+            r#type: ValueType::Decimal as i32,
+            options: Some(value_display::Options::Number(NumberOptions {
+                fraction_digits: Some(2),
+                ..Default::default()
+            })),
+        };
+        assert_eq!(format_display_value(&json!(1.236), &decimal), "1.24");
     }
 
     #[test]
