@@ -211,6 +211,16 @@ export const shadcnKit: ComponentKit = {
       </p>
     </section>
   ),
+  Media: ({ panel }) => {
+    const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
+    if (panel.kind === 3) {
+      return <figure className="grid gap-2"><img src={panel.srcUri} alt={panel.alt} /><figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt}{details}</figcaption></figure>;
+    }
+    const player = panel.kind === 2
+      ? <audio controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
+      : <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>{panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}</video>;
+    return <figure className="grid gap-2">{player}<figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>{panel.chapters.length > 0 && <ol className="text-sm">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}</figure>;
+  },
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

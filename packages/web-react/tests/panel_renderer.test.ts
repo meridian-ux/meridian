@@ -130,4 +130,17 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain('src="/demo.vtt"');
     expect(html).toContain("Product demo");
   });
+
+  it("renders shadcn media with captions and poster semantics", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "shadcn-video",
+      body: { case: "media", value: create(MediaPanelSchema, {
+        kind: MediaKind.VIDEO, srcUri: "/demo.mp4", posterUri: "/poster.jpg",
+        captionsUri: "/demo.vtt", alt: "A demo walkthrough", caption: "Product demo",
+      }) },
+    }), shadcnKit);
+    expect(html).toContain('poster="/poster.jpg"');
+    expect(html).toContain('src="/demo.vtt"');
+    expect(html).toContain("Product demo");
+  });
 });
