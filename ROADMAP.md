@@ -102,11 +102,12 @@ arm, a normalizer per renderer, snapshots gated in CI — so `renders` becomes a
 CI checks rather than a word someone typed.
 
 The first cross-kit crank slice is now live: the canonical protobuf fixture corpus
-used by `web-react` is also rendered through `mui-kit`, with a kit-neutral
-`data-panel` normalizer asserting that every declared arm reaches the MUI dispatch.
-The remaining work is to move that corpus to a renderer-neutral home and add the
-web-components/TUI snapshot consumers without weakening their explicit degradation
-ladder.
+lives under `schemas/conformance/fixtures.ts` and is consumed by `web-react`,
+`mui-kit`, and the web-components renderer. The React kits use a kit-neutral
+`data-panel` normalizer, while web-components exercises its real DOM dispatch and
+explicit degradation ladder for every canonical arm. The remaining conformance
+gap is a TUI consumer; it should use the same serialized protobuf fixtures rather
+than growing a fourth fixture vocabulary.
 
 ## Track B — One language
 
