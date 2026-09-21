@@ -171,8 +171,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer fetches rows and renders gallery cards with image, icon, subtitle, status, action, and href fields."
         },
         "web-react": {
           "status": "renders"

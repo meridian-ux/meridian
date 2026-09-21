@@ -39,7 +39,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ● | ● | ○ | ● | ● | ◑ |
-| `gallery` | standard | ○ | ● | ● | ● | ● | ● |
+| `gallery` | standard | ● | ● | ● | ● | ● | ● |
 | `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
 | `snippet` | full | ● | ● | ● | ● | ● | ● |
@@ -58,19 +58,19 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ● | ● | ● | ● | ● | ● |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 125 render, 13 do not.**
+**23 arms × 6 renderers = 138 cells; 126 render, 12 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 4 |
 | – `not-applicable` | 3 |
 | ◐ `placeholder` | 3 |
+| ○ `missing` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 | ✕ `structural-gap` | 1 |
 
 | renderer | gaps |
 |---|---|
-| web-components | 2 |
+| web-components | 1 |
 | web-react | 1 |
 | mui-kit | 3 |
 | html-kit | 1 |

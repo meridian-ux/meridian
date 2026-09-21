@@ -74,6 +74,12 @@ const MINIMAL: Record<string, unknown> = {
     rowsField: "items",
     template: { titleField: "name" },
   },
+  gallery: {
+    populate: { service: "s", method: "m" },
+    rowsField: "items",
+    placeholder: "No integrations",
+    card: { titleField: "name", subtitleField: "description", hrefField: "href" },
+  },
   media: { kind: 3, srcUri: "image.png", alt: "A diagram" },
   steps: { intro: "Do this", steps: [{ label: "Open it", actor: "Admin" }] },
   llmPrompt: { userTemplate: "Hello {{name}}" },
@@ -125,8 +131,7 @@ describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
 
   it("supportsBody agrees with the list, and rejects the unknown", () => {
     for (const c of SUPPORTED_BODIES) expect(supportsBody(c)).toBe(true);
-    // Gallery remains a dedicated host/wasm entrypoint; it must report false.
-    expect(supportsBody("gallery")).toBe(false);
+    expect(supportsBody("gallery")).toBe(true);
     expect(supportsBody("nope")).toBe(false);
     expect(supportsBody(undefined)).toBe(false);
   });

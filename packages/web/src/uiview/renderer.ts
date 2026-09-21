@@ -255,6 +255,7 @@ export const SUPPORTED_BODIES = [
   "detailHeader",
   "recordCard",
   "resourceCards",
+  "gallery",
   "media",
   "steps",
   "llmPrompt",
