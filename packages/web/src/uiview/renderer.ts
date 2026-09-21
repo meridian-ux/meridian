@@ -21,7 +21,11 @@ import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import type { ResourceCardPanel, ResourceAction } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
+import {
+  ActionStyle,
+  type ResourceCardPanel,
+  type ResourceAction,
+} from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
   FormPanel,
@@ -920,7 +924,7 @@ function buildResourceAction(
 ): HTMLElement {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = `mer-resource-action mer-resource-action-${String(action.style).toLowerCase()}`;
+  button.className = `mer-resource-action mer-resource-action-${resourceActionStyle(action.style)}`;
   button.textContent = action.label;
   button.onclick = () => {
     if (!action.invoke) return;
@@ -951,6 +955,17 @@ function buildResourceAction(
     button.parentElement?.appendChild(prompt);
   };
   return button;
+}
+
+function resourceActionStyle(style: ActionStyle): "default" | "primary" | "danger" {
+  switch (style) {
+    case ActionStyle.PRIMARY:
+      return "primary";
+    case ActionStyle.DANGER:
+      return "danger";
+    default:
+      return "default";
+  }
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
