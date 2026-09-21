@@ -20,7 +20,7 @@ use ratatui::{backend::TestBackend, Terminal};
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
 use meridian_uiview::proto::{
     form_field::Kind, panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel,
-    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, PanelDescriptor,
+    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, LroPanel, PanelDescriptor,
     RecordCardPanel, RpcCall, StatPanel, TextInput,
 };
 use meridian_uiview::Context;
@@ -250,6 +250,37 @@ fn form_descriptor() -> PanelDescriptor {
     }
 }
 
+fn lro_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-run".into(),
+        title: "Run deployment".into(),
+        body: Some(Body::Lro(LroPanel {
+            start: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Start".into(),
+                ..Default::default()
+            }),
+            metadata_type: "demo.DeployMetadata".into(),
+            response_type: "demo.DeployResponse".into(),
+            run_button_label: "Deploy".into(),
+            inputs: vec![FormField {
+                field_id: "replicas".into(),
+                label: "Replicas".into(),
+                request_field: "replicas".into(),
+                kind: Some(Kind::Integer(IntegerSpinner {
+                    default_value: 1,
+                    min: 1,
+                    max: 5,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }],
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
 #[test]
 fn wire_bytes_round_trip_into_drawn_cells() {
     // Encode and decode rather than rendering the struct directly: the binary is
@@ -389,6 +420,37 @@ fn form_prefill_renders_and_submit_contains_edited_values() {
     assert_eq!(submission.method, "Apply");
     assert_eq!(submission.request["name"], "workerx");
     assert_eq!(submission.request["replicas"], 2);
+}
+
+#[test]
+fn lro_renders_inputs_and_emits_start_request() {
+    let descriptor = lro_descriptor();
+    let panel = match descriptor.body.as_ref() {
+        Some(Body::Lro(panel)) => panel,
+        _ => panic!("expected lro descriptor"),
+    };
+    let ctx = Context::default();
+    let mut view = PanelView::with_palette(Palette::default());
+    let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &Refuse))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("Deploy"), "run label missing:\n{output}");
+    assert!(output.contains("Replicas: 1"), "input default missing:\n{output}");
+
+    view.handle_lro_key(panel, &ctx, KeyCode::Up);
+    let submission = view
+        .handle_lro_key(panel, &ctx, KeyCode::Enter)
+        .expect("LRO with a start RPC should emit a request");
+    assert_eq!(submission.service, "demo.Deploy");
+    assert_eq!(submission.method, "Start");
+    assert_eq!(submission.request["replicas"], 1);
 }
 
 #[test]
