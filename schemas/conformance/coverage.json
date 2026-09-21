@@ -503,8 +503,8 @@
           "reason": "Not implemented in this renderer."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI does not yet render resource cards; it uses an explicit placeholder for unsupported panel shapes."
+          "status": "renders",
+          "reason": "The TUI renders resource-card rows as selectable numbered text cards with metadata and visible actions."
         }
       }
     },
