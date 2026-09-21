@@ -1,0 +1,80 @@
+{
+  "$schema-note": "The public renderer catalog. Panel renderers are cross-checked against conformance/coverage.json; local entrypoints are checked against this repository. External preview tiers must carry an explicit external source.",
+  "statuses": {
+    "stable": "Supported renderer tier.",
+    "preview": "Publicly advertised but still in preview.",
+    "development": "Tracked implementation work that is not yet a public tier."
+  },
+  "modalities": {
+    "panel": {
+      "schema": "schemas/proto/panel.proto",
+      "coverage": "schemas/conformance/coverage.json"
+    },
+    "conversation": {
+      "schema": "schemas/proto/conversation.proto"
+    },
+    "launchpad": {
+      "schema": "schemas/proto/command_palette.proto"
+    }
+  },
+  "renderers": [
+    {
+      "id": "web-components",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/web", "entrypoint": "src/uiview/renderer.ts" }
+    },
+    {
+      "id": "web-react",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/web-react", "entrypoint": "src/panel_renderer.tsx" }
+    },
+    {
+      "id": "mui-kit",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/mui-kit", "entrypoint": "src/mui_kit.tsx" }
+    },
+    {
+      "id": "html-kit",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/web-react", "entrypoint": "src/html_kit.tsx" }
+    },
+    {
+      "id": "shadcn-kit",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/web-react", "entrypoint": "src/shadcn_kit.tsx" }
+    },
+    {
+      "id": "tui",
+      "modality": "panel",
+      "status": "stable",
+      "source": { "kind": "local", "root": "crates/tui", "entrypoint": "rust/tui/src/widget.rs" }
+    },
+    {
+      "id": "swiftui",
+      "modality": "panel",
+      "status": "preview",
+      "source": {
+        "kind": "external",
+        "repo": "meridian-ui",
+        "note": "The public catalog advertises the SwiftUI renderer as a preview tier; its implementation is maintained outside this repository."
+      }
+    },
+    {
+      "id": "chat",
+      "modality": "conversation",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/chat", "entrypoint": "src/index.ts" }
+    },
+    {
+      "id": "launchpad",
+      "modality": "launchpad",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/launchpad", "entrypoint": "src/index.ts" }
+    }
+  ]
+}
