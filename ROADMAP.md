@@ -40,7 +40,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ○ | ● | ○ | ● | ○ | ◑ |
 | `gallery` | standard | ○ | ● | ● | ● | ● | ● |
-| `form` | standard | ● | ● | ● | ● | ● | ● |
+| `form` | standard | ● | ● | ● | ● | ● | ◐ |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
 | `snippet` | full | ● | ● | ● | ● | ● | ● |
 | `action` | full | ● | ● | ● | ● | ● | ● |
@@ -58,12 +58,12 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 110 render, 28 do not.**
+**23 arms × 6 renderers = 138 cells; 109 render, 29 do not.**
 
 | status | cells |
 |---|---|
 | ○ `missing` | 16 |
-| ◐ `placeholder` | 7 |
+| ◐ `placeholder` | 8 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 
@@ -74,7 +74,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | mui-kit | 3 |
 | html-kit | 4 |
 | shadcn-kit | 6 |
-| tui | 9 |
+| tui | 10 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
