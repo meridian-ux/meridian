@@ -109,9 +109,10 @@ headless `TestBackend` now decodes and renders every arm through its real dispat
 ladder. The React kits use a kit-neutral `data-panel` normalizer, while
 web-components and TUI preserve their explicit degradation behavior. The next
 conformance slice also has a byte-integrity test in the web package, so CI fails
-if the checked-in native fixtures drift from the canonical TypeScript messages.
-The remaining work is snapshot-level normalization across these consumers, not
-another renderer-local fixture vocabulary.
+if the checked-in native fixtures drift from the canonical TypeScript messages;
+the CI corpus gate also rejects missing or stale files against the coverage arm
+set. The remaining work is snapshot-level normalization across these consumers,
+not another renderer-local fixture vocabulary.
 
 ## Track B — One language
 
