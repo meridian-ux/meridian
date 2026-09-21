@@ -135,6 +135,33 @@ export const shadcnKit: ComponentKit = {
       ))}
     </form>
   ),
+  DetailHeader: ({ panel }) => (
+    <header className="grid gap-2" data-title-path={panel.titleSourcePath || undefined}>
+      <h2 className="text-xl font-semibold">{panel.title || "Details"}</h2>
+      {panel.subtitleSourcePath && <p className="text-sm text-muted-foreground">{panel.subtitleSourcePath}</p>}
+      {panel.statusSourcePath && <span className="inline-flex w-fit rounded-full border px-2 py-0.5 text-xs">{panel.statusSourcePath}</span>}
+      {panel.descriptorRows.length > 0 && (
+        <dl className="grid gap-2" aria-label="Record summary">
+          {panel.descriptorRows.map((row) => (
+            <div key={row.sourcePath} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+              <dt className="text-sm text-muted-foreground">{row.label}</dt>
+              <dd className="text-sm">{row.sourcePath}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </header>
+  ),
+  RecordCard: ({ panel }) => (
+    <dl className="grid gap-2" aria-label={panel.itemNoun || "Record details"}>
+      {panel.fields.map((field) => (
+        <div key={field.fieldId} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+          <dt className="text-sm text-muted-foreground">{field.label || field.fieldId}</dt>
+          <dd className="text-sm">{field.fieldId}</dd>
+        </div>
+      ))}
+    </dl>
+  ),
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
@@ -149,7 +176,58 @@ export const shadcnKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  Chart: ({ panel }) => (
+    <figure className="rounded-md border p-4" data-mark={panel.chart?.mark}>
+      {panel.chart?.title && <figcaption className="text-sm font-semibold">{panel.chart.title}</figcaption>}
+      <p className="text-sm text-muted-foreground">
+        {panel.chart?.y?.fieldName || "value"} by {panel.chart?.x?.fieldName || "category"}
+      </p>
+    </figure>
+  ),
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
+  Steps: ({ panel }) => (
+    <section className="grid gap-3" aria-label="Steps">
+      {panel.intro && <p className="text-sm text-muted-foreground">{panel.intro}</p>}
+      <ol className="grid gap-3">
+        {panel.steps.map((step, index) => (
+          <li key={`${index}-${step.label}`} className="rounded-md border p-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-semibold">{index + 1}.</span>
+              <span className="text-sm font-medium">{step.label}</span>
+              {step.actor && <span className="text-xs text-muted-foreground">{step.actor}</span>}
+            </div>
+            {step.detail && <p className="mt-1 text-sm text-muted-foreground">{step.detail}</p>}
+            {!step.detail && step.mediaAlt && <p className="mt-1 text-sm text-muted-foreground">{step.mediaAlt}</p>}
+          </li>
+        ))}
+      </ol>
+      {panel.outro && <p className="text-sm text-muted-foreground">{panel.outro}</p>}
+    </section>
+  ),
+  Stream: ({ panel }) => (
+    <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
+      <p className="text-sm text-muted-foreground">
+        {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
+      </p>
+    </section>
+  ),
+  Media: ({ panel }) => {
+    const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
+    if (panel.kind === 3) {
+      return <figure className="grid gap-2"><img src={panel.srcUri} alt={panel.alt} /><figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt}{details}</figcaption></figure>;
+    }
+    const player = panel.kind === 2
+      ? <audio controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
+      : <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>{panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}</video>;
+    return <figure className="grid gap-2">{player}<figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>{panel.chapters.length > 0 && <ol className="text-sm">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}</figure>;
+  },
+  Terminal: ({ panel }) => (
+    <section className="grid gap-1 rounded-md border p-3 text-sm" aria-label={panel.tool || "Terminal"}>
+      <span className="font-medium">Interactive terminal connection</span>
+      <a href={panel.url} className="underline">{panel.url}</a>
+      {(panel.cols || panel.rows) && <span className="text-muted-foreground">{panel.cols || "auto"} × {panel.rows || "auto"}</span>}
+    </section>
+  ),
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

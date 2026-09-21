@@ -47,8 +47,8 @@ mod widget;
 
 pub use content::{
     glyph, grammar_language_name, osc52, render_action, render_catalog, render_choice,
-    render_connect_flow, render_copy_value, render_grammar, render_snippet, render_stat,
-    selected_affordance,
+    render_connect_flow, render_copy_value, render_gallery, render_grammar, render_media,
+    render_resource_cards, render_snippet, render_stat, resource_action_visible, selected_affordance,
 };
 pub use conversation::{
     block_lines, conversation_lines, render_conversation, status_line,
@@ -61,7 +61,7 @@ pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use theme::{parse_hex, Mode, Palette, Theme};
-pub use widget::PanelView;
+pub use widget::{FormSubmission, LroSubmission, PanelView};
 
 // Re-export the ratatui + crossterm crates so downstream consumers
 // (cli chrome) can render their own widgets against the SAME

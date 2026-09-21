@@ -58,6 +58,7 @@ test("an UNWAIVED full-parity gap fails", () => {
   // This is the finding the gate is really for: panel.proto promises these
   // shapes render everywhere, so a silent hole must not be representable.
   const m = realManifest();
+  m.arms.stream.renderers["web-react"].status = "missing";
   delete m.arms.stream.renderers["web-react"].waiver;
   const errors = check(m, realArms());
   assert.ok(
@@ -69,11 +70,12 @@ test("an UNWAIVED full-parity gap fails", () => {
 test("a specialized shape may have gaps without a waiver", () => {
   // terminal/grammar/media document degradation ladders instead of parity, so
   // the gate must not demand waivers there — otherwise it cries wolf and gets
-  // switched off.
+  // switched off. Terminal's web-react fallback is now rendered, while the
+  // specialized shape remains valid for the remaining degradation statuses.
   const m = realManifest();
   assert.equal(m.arms.terminal.parity, "specialized");
-  assert.equal(m.arms.terminal.renderers["web-react"].status, "structural-gap");
-  assert.ok(!m.arms.terminal.renderers["web-react"].waiver);
+  assert.equal(m.arms.terminal.renderers["web-react"].status, "renders");
+  assert.match(m.arms.terminal.renderers["web-react"].reason, /fallback/);
   assert.deepEqual(check(m, realArms()), []);
 });
 

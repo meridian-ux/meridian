@@ -19,15 +19,644 @@
 
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
-    ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
+    form_field::Kind, FormField, FormMode, FormPanel, LroPanel, MediaPanel, RecordCardPanel,
+    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
-use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
+use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
+use meridian_uiview::RenderedCard;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::Frame;
+use serde_json::Value;
 
 use crate::theme::Palette;
+
+/// Render an ordered walkthrough as text. Images are omitted in the terminal;
+/// media_alt is retained as the accessible degradation.
+pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: &Palette) {
+    let mut lines = Vec::new();
+    if !panel.intro.is_empty() {
+        lines.push(Line::from(Span::styled(
+            panel.intro.clone(),
+            palette.meta(),
+        )));
+        lines.push(Line::from(""));
+    }
+    for (index, step) in panel.steps.iter().enumerate() {
+        let actor = if step.actor.is_empty() {
+            String::new()
+        } else {
+            format!(" [{}]", step.actor)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{}. ", index + 1), palette.title()),
+            Span::styled(step.label.clone(), palette.text()),
+            Span::styled(actor, palette.meta()),
+        ]));
+        if !step.detail.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("   {}", step.detail),
+                palette.meta(),
+            )));
+        } else if !step.media_alt.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("   {}", step.media_alt),
+                palette.meta(),
+            )));
+        }
+    }
+    if !panel.outro.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            panel.outro.clone(),
+            palette.meta(),
+        )));
+    }
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: true }), area);
+}
+
+/// Render the static degradation of a stream when no live stream transport is
+/// available. The panel's authored placeholder remains visible and the noun
+/// makes the waiting state understandable on a terminal surface.
+pub fn render_stream(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &StreamPanel,
+    lines: &[String],
+    palette: &Palette,
+) {
+    let noun = if panel.item_noun.is_empty() {
+        "stream"
+    } else {
+        &panel.item_noun
+    };
+    let text = if !lines.is_empty() {
+        lines.join("\n")
+    } else if panel.placeholder.is_empty() {
+        format!("Waiting for {noun}…")
+    } else {
+        panel.placeholder.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(Line::from(Span::styled(text, palette.meta()))).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(palette.border_style()),
+        ),
+        area,
+    );
+}
+
+/// Render populated resources as selectable terminal cards. The TUI uses a
+/// compact numbered-block degradation rather than a multi-column grid; the
+/// selected row remains available through `PanelView::selected_row`, so hosts
+/// can build an action request with the same `row_field` bindings as web kits.
+pub fn render_resource_cards(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ResourceCardPanel,
+    rows: &[Value],
+    palette: &Palette,
+    selected: usize,
+    error: Option<&str>,
+) {
+    let mut lines: Vec<Line> = Vec::new();
+    if let Some(message) = error {
+        lines.push(Line::from(Span::styled(message.to_string(), palette.meta())));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+    if rows.is_empty() {
+        let noun = if panel.item_noun.is_empty() {
+            "resources"
+        } else {
+            &panel.item_noun
+        };
+        let message = if panel.empty_message.is_empty() {
+            format!("No {noun}.")
+        } else {
+            panel.empty_message.clone()
+        };
+        lines.push(Line::from(Span::styled(message, palette.meta())));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+
+    let Some(template) = panel.template.as_ref() else {
+        lines.push(Line::from(Span::styled(
+            "Invalid resource-card descriptor.",
+            palette.meta(),
+        )));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    };
+
+    let selected = selected % rows.len();
+    for (index, row) in rows.iter().enumerate() {
+        let active = index == selected;
+        let title_style = if active {
+            palette.focused()
+        } else {
+            palette.header()
+        };
+        let marker = if active { "▶ " } else { "  " };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{marker}{}. ", index + 1), title_style),
+            Span::styled(value_at(row, &template.title_field), title_style),
+        ]));
+
+        if !template.subtitle_field.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(value_at(row, &template.subtitle_field), palette.meta()),
+            ]));
+        }
+        if !template.status_field.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    status: "),
+                Span::styled(value_at(row, &template.status_field), palette.title()),
+            ]));
+        }
+        for field in &template.meta {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(format!("{}: ", field.label), palette.meta()),
+                Span::styled(value_at(row, &field.field_path), palette.text()),
+            ]));
+        }
+
+        let actions: Vec<&ResourceAction> = template
+            .actions
+            .as_ref()
+            .map(|set| {
+                set.actions
+                    .iter()
+                    .filter(|action| resource_action_visible(action, row))
+                    .collect()
+            })
+            .unwrap_or_default();
+        if !actions.is_empty() {
+            let labels = actions
+                .iter()
+                .enumerate()
+                .map(|(action_index, action)| format!("[{}] {}", action_index + 1, action.label))
+                .collect::<Vec<_>>()
+                .join("  ");
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(labels, palette.title()),
+            ]));
+        }
+        if index + 1 < rows.len() {
+            lines.push(Line::from(""));
+        }
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn value_at(row: &Value, path: &str) -> String {
+    format_value(
+        ProtoPaths::get(row, path),
+        meridian_uiview::proto::ColumnFormat::Unspecified,
+    )
+}
+
+/// The shared visibility predicate used by the web kits: a deliberately small
+/// equality expression keeps action availability deterministic on every surface.
+pub fn resource_action_visible(action: &ResourceAction, row: &Value) -> bool {
+    if action.visible_when.is_empty() {
+        return true;
+    }
+    let Some((path, expected)) = action.visible_when.split_once("==") else {
+        return false;
+    };
+    value_at(row, path.trim()) == expected.trim()
+}
+
+/// Render a populated gallery as a selectable terminal card list. Image slots
+/// are intentionally omitted on a text surface; the card's text, icon, status,
+/// link, and action label remain visible.
+pub fn render_gallery(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &meridian_uiview::proto::GalleryPanel,
+    cards: &[RenderedCard],
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines: Vec<Line> = Vec::new();
+    if cards.is_empty() {
+        lines.push(Line::from(Span::styled(
+            if panel.placeholder.is_empty() {
+                "No items.".to_string()
+            } else {
+                panel.placeholder.clone()
+            },
+            palette.meta(),
+        )));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+
+    let selected = selected % cards.len();
+    for (index, card) in cards.iter().enumerate() {
+        let active = index == selected;
+        let style = if active {
+            palette.focused()
+        } else {
+            palette.header()
+        };
+        let marker = if active { "▶ " } else { "  " };
+        let mut title = vec![
+            Span::styled(format!("{marker}{}. ", index + 1), style),
+        ];
+        if !card.icon.is_empty() {
+            title.push(Span::styled(format!("{} ", glyph(&card.icon)), palette.meta()));
+        }
+        title.push(Span::styled(card.title.clone(), style));
+        if !card.status.is_empty() {
+            title.push(Span::styled(format!("  [{}]", card.status), palette.title()));
+        }
+        lines.push(Line::from(title));
+        if !card.subtitle.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(card.subtitle.clone(), palette.meta()),
+            ]));
+        }
+        if !card.action_label.is_empty() || !card.href.is_empty() {
+            let label = if card.action_label.is_empty() {
+                "Open"
+            } else {
+                &card.action_label
+            };
+            let mut action = vec![
+                Span::raw("    "),
+                Span::styled(format!("[{}] {}", index + 1, label), palette.title()),
+            ];
+            if !card.href.is_empty() {
+                action.push(Span::styled(format!("  {}", card.href), palette.meta()));
+            }
+            lines.push(Line::from(action));
+        }
+        if index + 1 < cards.len() {
+            lines.push(Line::from(""));
+        }
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render the record-bound detail header. A terminal has no chip or grid
+/// primitive, so the same descriptor values become a compact labeled block.
+pub fn render_detail_header(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &DetailHeaderPanel,
+    record: Option<&Value>,
+    palette: &Palette,
+) {
+    let record = record.unwrap_or(&Value::Null);
+    let title = if panel.title_source_path.is_empty() {
+        if panel.title.is_empty() {
+            "Details".to_string()
+        } else {
+            panel.title.clone()
+        }
+    } else {
+        let resolved = value_at(record, &panel.title_source_path);
+        if resolved.is_empty() {
+            panel.title.clone()
+        } else {
+            resolved
+        }
+    };
+    let mut lines = vec![Line::from(Span::styled(title, palette.title()))];
+    if !panel.subtitle_source_path.is_empty() {
+        lines.push(Line::from(Span::styled(
+            value_at(record, &panel.subtitle_source_path),
+            palette.meta(),
+        )));
+    }
+    if !panel.status_source_path.is_empty() {
+        lines.push(Line::from(Span::styled(
+            format!("[{}]", value_at(record, &panel.status_source_path)),
+            palette.title(),
+        )));
+    }
+    for row in &panel.descriptor_rows {
+        lines.push(labeled_value(&row.label, &value_at(record, &row.source_path), palette));
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render a read-only record card as a terminal key/value block.
+pub fn render_record_card(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &RecordCardPanel,
+    record: Option<&Value>,
+    palette: &Palette,
+) {
+    let record = record.unwrap_or(&Value::Null);
+    let lines = panel
+        .fields
+        .iter()
+        .map(|field| {
+            labeled_value(
+                if field.label.is_empty() {
+                    &field.field_id
+                } else {
+                    &field.label
+                },
+                &value_at(record, &field.field_id),
+                palette,
+            )
+        })
+        .collect::<Vec<_>>();
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn labeled_value(label: &str, value: &str, palette: &Palette) -> Line<'static> {
+    Line::from(vec![
+        Span::styled(format!("{label}: "), palette.meta()),
+        Span::styled(value.to_string(), palette.text()),
+    ])
+}
+
+/// Build the initial values for a FormPanel from its declared field defaults.
+/// The map is keyed by `field_id`, matching `Context.form_values` and the
+/// `form_field` binding source used by submit RPCs.
+pub fn form_defaults(fields: &[FormField]) -> Value {
+    let mut values = serde_json::Map::new();
+    for field in fields {
+        values.insert(field.field_id.clone(), form_field_default(field));
+    }
+    Value::Object(values)
+}
+
+fn form_field_default(field: &FormField) -> Value {
+    match field.kind.as_ref() {
+        Some(Kind::Integer(input)) => Value::from(input.default_value),
+        Some(Kind::Text(input)) => Value::String(input.default_value.clone()),
+        Some(Kind::EnumSelection(input)) => {
+            let value = if !input.default_value.is_empty() {
+                input.default_value.clone()
+            } else if let Some(option) = input.options.first() {
+                option.value.clone()
+            } else {
+                input.allowed_values.first().cloned().unwrap_or_default()
+            };
+            Value::String(value)
+        }
+        Some(Kind::Masked(input)) => Value::String(input.default_value.clone()),
+        Some(Kind::Boolean(input)) => Value::Bool(input.default_value),
+        Some(Kind::Number(input)) => Value::from(input.default_value),
+        Some(Kind::Nested(nested)) => form_defaults(&nested.fields),
+        Some(Kind::Repeated(_)) => Value::Array(Vec::new()),
+        Some(Kind::KeyValueMap(_)) => Value::Object(serde_json::Map::new()),
+        None => Value::Null,
+    }
+}
+
+fn form_value<'a>(values: &'a Value, field_id: &str) -> &'a Value {
+    values
+        .get(field_id)
+        .or_else(|| {
+            if field_id.contains('.') {
+                Some(ProtoPaths::get(values, field_id))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(&Value::Null)
+}
+
+fn form_value_text(field: &FormField, value: &Value) -> String {
+    match field.kind.as_ref() {
+        Some(Kind::Masked(_)) => {
+            if value.as_str().is_some_and(|text| !text.is_empty()) {
+                "••••••".to_string()
+            } else {
+                "(empty)".to_string()
+            }
+        }
+        Some(Kind::Nested(_)) => "(nested object)".to_string(),
+        Some(Kind::Repeated(_)) => match value.as_array() {
+            Some(items) => format!("{} item{}", items.len(), if items.len() == 1 { "" } else { "s" }),
+            None => "(list)".to_string(),
+        },
+        Some(Kind::KeyValueMap(_)) => match value.as_object() {
+            Some(entries) => format!("{} entr{}", entries.len(), if entries.len() == 1 { "y" } else { "ies" }),
+            None => "(map)".to_string(),
+        },
+        _ => {
+            let text = format_value(value, meridian_uiview::proto::ColumnFormat::Unspecified);
+            if text.is_empty() { "—".to_string() } else { text }
+        }
+    }
+}
+
+fn render_form_fields(
+    lines: &mut Vec<Line<'static>>,
+    fields: &[FormField],
+    values: &Value,
+    palette: &Palette,
+    selected: &mut usize,
+    next_index: &mut usize,
+    indent: usize,
+    selectable: bool,
+) {
+    for field in fields {
+        let index = *next_index;
+        if selectable {
+            *next_index += 1;
+        }
+        let active = selectable && index == *selected;
+        let marker = if active { "▶ " } else { "  " };
+        let label = if field.label.is_empty() {
+            field.field_id.as_str()
+        } else {
+            field.label.as_str()
+        };
+        let prefix = " ".repeat(indent);
+        let style = if active { palette.focused() } else { palette.meta() };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{prefix}{marker}{label}: "), style),
+            Span::styled(form_value_text(field, form_value(values, &field.field_id)), palette.text()),
+        ]));
+        if !field.description.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("{prefix}   {}", field.description),
+                palette.meta(),
+            )));
+        }
+        if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
+            let nested_values = form_value(values, &field.field_id);
+            render_form_fields(
+                lines,
+                &nested.fields,
+                nested_values,
+                palette,
+                selected,
+                next_index,
+                indent + 3,
+                false,
+            );
+        }
+    }
+}
+
+/// Render a FormPanel as a selectable terminal form. Scalar defaults are
+/// visible and editable through `PanelView::handle_form_key`; nested, repeated,
+/// and map fields remain visible as honest summaries until their richer row
+/// editors are added to the shared TUI interaction model.
+pub fn render_form(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &FormPanel,
+    values: &Value,
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines = Vec::new();
+    let mode = if panel.mode == FormMode::Edit as i32 {
+        "Edit"
+    } else {
+        "Read-only"
+    };
+    let noun = if panel.item_noun.is_empty() {
+        "item"
+    } else {
+        panel.item_noun.as_str()
+    };
+    lines.push(Line::from(Span::styled(
+        format!("{mode} {noun}"),
+        palette.title(),
+    )));
+    lines.push(Line::from(Span::styled(
+        if panel.mode == FormMode::Edit as i32 {
+            "↑/↓ select · edit scalar · Enter submit"
+        } else {
+            "read-only form"
+        },
+        palette.meta(),
+    )));
+    lines.push(Line::from(""));
+    let mut next_index = 0;
+    let mut selected_index = selected.min(panel.fields.len().saturating_sub(1));
+    render_form_fields(
+        &mut lines,
+        &panel.fields,
+        values,
+        palette,
+        &mut selected_index,
+        &mut next_index,
+        0,
+        true,
+    );
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render the input/run half of an LRO panel. Starting the operation is a
+/// renderer event; polling `google.longrunning.Operation` and rendering the
+/// optional result table remain host transport responsibilities.
+pub fn render_lro(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &LroPanel,
+    values: &Value,
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines = vec![Line::from(Span::styled(
+        if panel.run_button_label.is_empty() { "Run".to_string() } else { panel.run_button_label.clone() },
+        palette.title(),
+    ))];
+    lines.push(Line::from(Span::styled(
+        "↑/↓ select · edit scalar · Enter start operation",
+        palette.meta(),
+    )));
+    if panel.inputs.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "Press Enter to start.",
+            palette.meta(),
+        )));
+    } else {
+        lines.push(Line::from(""));
+        let mut selected_index = selected.min(panel.inputs.len().saturating_sub(1));
+        let mut next_index = 0;
+        render_form_fields(
+            &mut lines,
+            &panel.inputs,
+            values,
+            palette,
+            &mut selected_index,
+            &mut next_index,
+            0,
+            true,
+        );
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render MediaPanel's terminal degradation rung: the authored accessible
+/// description, source URI, duration, captions URI, and chapter contents. A
+/// terminal cannot play or display the medium, but it can preserve the useful
+/// text and the link the host can copy/open.
+pub fn render_media(frame: &mut Frame, area: Rect, panel: &MediaPanel, palette: &Palette) {
+    let mut lines = Vec::new();
+    let heading = if panel.caption.is_empty() {
+        "Media"
+    } else {
+        panel.caption.as_str()
+    };
+    lines.push(Line::from(Span::styled(heading.to_string(), palette.title())));
+    if !panel.alt.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Description: ".to_string(), palette.meta()),
+            Span::styled(panel.alt.clone(), palette.text()),
+        ]));
+    } else {
+        lines.push(Line::from(Span::styled(
+            "No text description was provided.",
+            palette.meta(),
+        )));
+    }
+    if panel.duration_ms > 0 {
+        lines.push(Line::from(Span::styled(
+            format!("Duration: {}", format_duration(panel.duration_ms)),
+            palette.meta(),
+        )));
+    }
+    if !panel.captions_uri.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Captions: ".to_string(), palette.meta()),
+            Span::styled(panel.captions_uri.clone(), palette.text()),
+        ]));
+    }
+    if !panel.src_uri.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Source: ".to_string(), palette.meta()),
+            Span::styled(panel.src_uri.clone(), palette.text()),
+        ]));
+    }
+    for chapter in &panel.chapters {
+        lines.push(Line::from(vec![
+            Span::styled("Chapter: ".to_string(), palette.meta()),
+            Span::styled(format_duration(chapter.start_ms), palette.meta()),
+            Span::raw(" — "),
+            Span::styled(chapter.label.clone(), palette.text()),
+        ]));
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn format_duration(milliseconds: u32) -> String {
+    let total_seconds = milliseconds / 1000;
+    format!("{:02}:{:02}", total_seconds / 60, total_seconds % 60)
+}
 
 // ── shared line builders ─────────────────────────────────────────────────────
 
@@ -701,10 +1330,16 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
     frame.render_widget(bordered(lines, palette), area);
 }
 
-/// Render a portable ChartPanel as a terminal-native summary. The TUI does not
-/// assume a chart library; it exposes the chart intent and leaves populated
-/// values to a future invoker-aware chart widget.
-pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: &Palette) {
+/// Render a portable ChartPanel as a terminal-native summary and bounded data
+/// table. The TUI does not assume a chart library; populated responses use the
+/// descriptor's x/y encodings, while absent data keeps the intent summary.
+pub fn render_chart(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ChartPanel,
+    palette: &Palette,
+    rows: Option<&[(String, String)]>,
+) {
     let Some(chart) = panel.chart.as_ref() else {
         frame.render_widget(
             bordered(vec![Line::from("Empty chart descriptor")], palette),
@@ -727,15 +1362,74 @@ pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: 
         .as_ref()
         .map(|e| e.field_name.as_str())
         .unwrap_or("value");
-    let lines = vec![
+    let mut lines = vec![
         Line::from(Span::styled(title.to_owned(), palette.title())),
         Line::from(Span::styled(format!("{} by {}", y, x), palette.meta())),
-        Line::from(Span::styled(
+    ];
+    match rows {
+        Some(rows) if !rows.is_empty() => {
+            lines.push(Line::from(Span::styled(
+                format!("{x}  |  {y}"),
+                palette.header(),
+            )));
+            for (category, value) in rows {
+                lines.push(Line::from(vec![
+                    Span::styled(category.clone(), palette.text()),
+                    Span::styled("  |  ", palette.meta()),
+                    Span::styled(value.clone(), palette.value()),
+                ]));
+            }
+        }
+        _ => lines.push(Line::from(Span::styled(
             "Chart data is available to an invoker-aware host.",
             palette.meta(),
-        )),
-    ];
+        ))),
+    }
     frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Extract bounded chart rows from a populate response. Chart descriptors keep
+/// the response path explicit so every modality can make the same projection;
+/// an empty path treats the response itself as the row array.
+pub fn chart_rows(
+    response: &Value,
+    rows_field: &str,
+    x_field: &str,
+    y_field: &str,
+) -> Vec<(String, String)> {
+    let mut value = response;
+    for segment in rows_field.split('.').filter(|segment| !segment.is_empty()) {
+        let Some(next) = value.get(segment) else {
+            return Vec::new();
+        };
+        value = next;
+    }
+    let Some(rows) = value.as_array() else {
+        return Vec::new();
+    };
+    rows.iter()
+        .filter_map(|row| {
+            let x = row.get(x_field)?.to_string_value()?;
+            let y = row.get(y_field)?.to_string_value()?;
+            Some((x, y))
+        })
+        .take(256)
+        .collect()
+}
+
+trait JsonDisplayValue {
+    fn to_string_value(&self) -> Option<String>;
+}
+
+impl JsonDisplayValue for Value {
+    fn to_string_value(&self) -> Option<String> {
+        match self {
+            Value::String(value) => Some(value.clone()),
+            Value::Number(value) => Some(value.to_string()),
+            Value::Bool(value) => Some(value.to_string()),
+            _ => None,
+        }
+    }
 }
 
 fn bordered(lines: Vec<Line<'static>>, palette: &Palette) -> Paragraph<'static> {
@@ -1015,7 +1709,7 @@ mod tests {
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_chart(f, f.area(), &panel, &palette))
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, None))
             .unwrap();
         let text: String = term
             .backend()
@@ -1026,6 +1720,346 @@ mod tests {
             .collect();
         assert!(text.contains("Latency"));
         assert!(text.contains("p95 by service"));
+    }
+
+    #[test]
+    fn chart_rows_extracts_nested_response_and_bounds_output() {
+        let response = serde_json::json!({
+            "result": {"points": [
+                {"service": "api", "p95": 42},
+                {"service": "worker", "p95": 7}
+            ]}
+        });
+        assert_eq!(
+            chart_rows(&response, "result.points", "service", "p95"),
+            vec![("api".into(), "42".into()), ("worker".into(), "7".into())]
+        );
+    }
+
+    #[test]
+    fn chart_renders_populated_rows_instead_of_summary_placeholder() {
+        use meridian_uiview::proto::{ChartPanel, ChartSpec, Encoding};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ChartPanel {
+            chart: Some(ChartSpec {
+                title: "Latency".into(),
+                x: Some(Encoding {
+                    field_name: "service".into(),
+                    ..Default::default()
+                }),
+                y: Some(Encoding {
+                    field_name: "p95".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+        };
+        let rows = vec![("api".to_string(), "42".to_string())];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 8)).unwrap();
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, Some(&rows)))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("service  |  p95"));
+        assert!(text.contains("api  |  42"));
+        assert!(!text.contains("invoker-aware"));
+    }
+
+    #[test]
+    fn steps_render_numbered_labels_and_details() {
+        use meridian_uiview::proto::{Step, StepsPanel};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = StepsPanel {
+            intro: "Deploy the service".into(),
+            steps: vec![
+                Step {
+                    label: "Open settings".into(),
+                    detail: "Choose production".into(),
+                    actor: "Admin".into(),
+                    ..Default::default()
+                },
+                Step {
+                    label: "Click deploy".into(),
+                    ..Default::default()
+                },
+            ],
+            outro: "Deployment started".into(),
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 10)).unwrap();
+        term.draw(|f| render_steps(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("1. Open settings [Admin]"));
+        assert!(text.contains("Choose production"));
+        assert!(text.contains("2. Click deploy"));
+        assert!(text.contains("Deployment started"));
+    }
+
+    #[test]
+    fn resource_cards_render_populated_rows_and_visible_actions() {
+        use meridian_uiview::proto::{
+            ActionSet, ActionStyle, MetaField, ResourceAction, ResourceCardPanel,
+            ResourceCardTemplate, RpcCall,
+        };
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ResourceCardPanel {
+            populate: Some(RpcCall {
+                service: "demo.Workspaces".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "workspaces".into(),
+            item_noun: "workspaces".into(),
+            template: Some(ResourceCardTemplate {
+                title_field: "name".into(),
+                subtitle_field: "owner".into(),
+                status_field: "phase".into(),
+                meta: vec![MetaField {
+                    label: "Region".into(),
+                    field_path: "region".into(),
+                }],
+                actions: Some(ActionSet {
+                    actions: vec![
+                        ResourceAction {
+                            id: "launch".into(),
+                            label: "Launch".into(),
+                            style: ActionStyle::Primary as i32,
+                            visible_when: "phase==Stopped".into(),
+                            ..Default::default()
+                        },
+                        ResourceAction {
+                            id: "stop".into(),
+                            label: "Stop".into(),
+                            visible_when: "phase==Running".into(),
+                            ..Default::default()
+                        },
+                    ],
+                }),
+            }),
+            ..Default::default()
+        };
+        let rows = vec![
+            serde_json::json!({"name":"api-prod","owner":"platform","phase":"Running","region":"us-east"}),
+            serde_json::json!({"name":"worker-dev","owner":"infra","phase":"Stopped","region":"us-west"}),
+        ];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(72, 16)).unwrap();
+        term.draw(|f| render_resource_cards(f, f.area(), &panel, &rows, &palette, 0, None))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("api-prod"));
+        assert!(text.contains("status: Running"));
+        assert!(text.contains("Region: us-east"));
+        assert!(text.contains("[1] Stop"));
+        assert!(text.contains("[1] Launch"));
+        assert!(resource_action_visible(
+            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &rows[1]
+        ));
+        assert!(!resource_action_visible(
+            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &rows[0]
+        ));
+    }
+
+    #[test]
+    fn gallery_renders_populated_cards_as_selectable_text() {
+        use meridian_uiview::proto::{CardSpec, GalleryPanel, RpcCall};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = GalleryPanel {
+            populate: Some(RpcCall {
+                service: "demo.Catalog".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "items".into(),
+            placeholder: "No integrations".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                subtitle_field: "description".into(),
+                icon_field: "icon".into(),
+                status_field: "status".into(),
+                href_field: "href".into(),
+                action_label_field: "action".into(),
+                ..Default::default()
+            }),
+        };
+        let response = serde_json::json!({
+            "items": [{
+                "name": "GitHub",
+                "description": "Source control",
+                "icon": "github",
+                "status": "Connected",
+                "href": "https://github.com",
+                "action": "Manage"
+            }]
+        });
+        let cards = meridian_uiview::render_gallery(&response, &panel);
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(72, 9)).unwrap();
+        term.draw(|f| render_gallery(f, f.area(), &panel, &cards, &palette, 0))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("GitHub"));
+        assert!(text.contains("Source control"));
+        assert!(text.contains("[Connected]"));
+        assert!(text.contains("Manage"));
+        assert!(text.contains("https://github.com"));
+    }
+
+    #[test]
+    fn detail_header_and_record_card_render_dotted_record_values() {
+        use meridian_uiview::proto::{
+            DescriptorRow, DetailHeaderPanel, FormField, RecordCardPanel,
+        };
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let record = serde_json::json!({
+            "name": "Build 42",
+            "owner": "Platform",
+            "phase": "Running",
+            "metadata": {"region": "us-east"}
+        });
+        let header = DetailHeaderPanel {
+            title: "Build".into(),
+            title_source_path: "name".into(),
+            subtitle_source_path: "owner".into(),
+            status_source_path: "phase".into(),
+            descriptor_rows: vec![DescriptorRow {
+                label: "Region".into(),
+                source_path: "metadata.region".into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let card = RecordCardPanel {
+            item_noun: "build".into(),
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "metadata.region".into(),
+                    label: "Region".into(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let palette = Palette::default();
+        let mut header_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+        header_term
+            .draw(|f| render_detail_header(f, f.area(), &header, Some(&record), &palette))
+            .unwrap();
+        let header_text: String = header_term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(header_text.contains("Build 42"));
+        assert!(header_text.contains("[Running]"));
+        assert!(header_text.contains("Region: us-east"));
+
+        let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+        card_term
+            .draw(|f| render_record_card(f, f.area(), &card, Some(&record), &palette))
+            .unwrap();
+        let card_text: String = card_term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(card_text.contains("Name: Build 42"));
+        assert!(card_text.contains("Region: us-east"));
+    }
+
+    #[test]
+    fn stream_renders_placeholder_and_default_noun() {
+        use meridian_uiview::proto::StreamPanel;
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = StreamPanel {
+            placeholder: "Waiting for build output".into(),
+            ..Default::default()
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 5)).unwrap();
+        term.draw(|f| render_stream(f, f.area(), &panel, &[], &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("Waiting for build output"));
+
+        let panel = StreamPanel {
+            item_noun: "events".into(),
+            ..Default::default()
+        };
+        let mut term = Terminal::new(TestBackend::new(48, 5)).unwrap();
+        term.draw(|f| render_stream(f, f.area(), &panel, &[], &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("Waiting for events"));
+    }
+
+    #[test]
+    fn stream_renders_host_snapshot_lines() {
+        use meridian_uiview::proto::StreamPanel;
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = StreamPanel::default();
+        let lines = vec!["build started".to_string(), "build complete".to_string()];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
+        term.draw(|f| render_stream(f, f.area(), &panel, &lines, &palette)).unwrap();
+        let text: String = term.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+        assert!(text.contains("build started"));
+        assert!(text.contains("build complete"));
     }
 
     // Concatenate a Line's span contents for assertions.

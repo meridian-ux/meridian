@@ -31,6 +31,8 @@ import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.j
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
@@ -68,6 +70,8 @@ export type GrammarPanelProps = ShapeProps<GrammarPanel>;
 export type StatPanelProps = ShapeProps<StatPanel>;
 export type StepsPanelProps = ShapeProps<StepsPanel>;
 export type MediaPanelProps = ShapeProps<MediaPanel>;
+export type StreamPanelProps = ShapeProps<StreamPanel>;
+export type TerminalPanelProps = ShapeProps<TerminalPanel>;
 
 /** Props for a kit's action bar: the actions to render + transport to fire them. */
 export interface ActionBarProps {
@@ -141,6 +145,10 @@ export interface ComponentKit {
    * omits it entirely.
    */
   Media?: ComponentType<MediaPanelProps>;
+  /** Append-only text stream. Kits may provide a live transport or a snapshot renderer. */
+  Stream?: ComponentType<StreamPanelProps>;
+  /** Optional interactive terminal; specialized to hosts that provide a PTY transport. */
+  Terminal?: ComponentType<TerminalPanelProps>;
   /** Rendered for unknown / unset / unsupported shapes. */
   Fallback: ComponentType<{ descriptor: PanelDescriptor }>;
   /**

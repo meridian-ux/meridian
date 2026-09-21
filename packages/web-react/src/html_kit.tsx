@@ -110,6 +110,23 @@ export const htmlKit: ComponentKit = {
       ))}
     </form>
   ),
+  DetailHeader: ({ panel }) => (
+    <header className="mer-detail-header">
+      <h3>{panel.title || "Details"}</h3>
+      {panel.subtitleSourcePath && <p className="mer-detail-subtitle">{panel.subtitleSourcePath}</p>}
+      {panel.statusSourcePath && <span className="mer-detail-status" role="status">{panel.statusSourcePath}</span>}
+      {panel.descriptorRows.length > 0 && (
+        <dl className="mer-detail-rows">
+          {panel.descriptorRows.map((row) => <div key={row.sourcePath}><dt>{row.label}</dt><dd>{row.sourcePath}</dd></div>)}
+        </dl>
+      )}
+    </header>
+  ),
+  RecordCard: ({ panel }) => (
+    <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
+      {panel.fields.map((field) => <div key={field.fieldId}><dt>{field.label || field.fieldId}</dt><dd>{field.fieldId}</dd></div>)}
+    </dl>
+  ),
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
@@ -131,6 +148,64 @@ export const htmlKit: ComponentKit = {
     </figure>
   ),
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
+  Stream: ({ panel }) => (
+    <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
+      <p className="mer-stream-placeholder">
+        {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
+      </p>
+    </section>
+  ),
+  Media: ({ panel }) => {
+    const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
+    if (panel.kind === 3) {
+      return (
+        <figure className="mer-media mer-media-image">
+          <img src={panel.srcUri} alt={panel.alt} />
+          {(panel.caption || panel.alt) && <figcaption>{panel.caption || panel.alt}{details}</figcaption>}
+        </figure>
+      );
+    }
+    const player = panel.kind === 2 ? (
+      <audio controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
+    ) : (
+      <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>
+        {panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}
+      </video>
+    );
+    return (
+      <figure className="mer-media">
+        {player}
+        <figcaption>{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>
+        {panel.chapters.length > 0 && <ol className="mer-media-chapters">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}
+      </figure>
+    );
+  },
+  Terminal: ({ panel }) => (
+    <section className="mer-terminal" aria-label={panel.tool || "Terminal"}>
+      <p className="mer-terminal-note">Interactive terminal connection</p>
+      <a href={panel.url}>{panel.url}</a>
+      {(panel.cols || panel.rows) && <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>}
+    </section>
+  ),
+  Steps: ({ panel }) => (
+    <section className="mer-steps">
+      {panel.intro && <p className="mer-steps-intro">{panel.intro}</p>}
+      <ol>
+        {panel.steps.map((step, index) => (
+          <li key={index} className="mer-step">
+            <div className="mer-step-label">
+              {step.label}
+              {step.actor && <span className="mer-step-actor"> ({step.actor})</span>}
+            </div>
+            {(step.detail || step.mediaAlt) && (
+              <p className="mer-step-detail">{step.detail || step.mediaAlt}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+      {panel.outro && <p className="mer-steps-outro">{panel.outro}</p>}
+    </section>
+  ),
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

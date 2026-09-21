@@ -36,6 +36,7 @@ describe("the browser bundle exposes the host-facing surface", () => {
 
   it("supportsBody works through the bundle, not just the module", () => {
     expect(browser.supportsBody("stream")).toBe(true);
-    expect(browser.supportsBody("gallery")).toBe(false);
+    expect(browser.supportsBody("gallery")).toBe(true);
+    expect(browser.supportsBody("prompt")).toBe(true);
   });
 });

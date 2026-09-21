@@ -11,6 +11,7 @@ import {
   AffordanceStyle,
 } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import { ChartPanelSchema } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
@@ -25,12 +26,18 @@ import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
+import { ResourceCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
+import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import {
   AdhocPanelSchema,
+  DetailHeaderPanelSchema,
   FormMode,
   FormPanelSchema,
   PanelDescriptorSchema,
+  RecordCardPanelSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import { SnippetPanelSchema } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
@@ -341,6 +348,106 @@ export const FIXTURES: Fixture[] = [
     }),
   },
   {
+    name: "terminal",
+    shape: "terminal",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "shell",
+      title: "Build shell",
+      body: {
+        case: "terminal",
+        value: create(TerminalPanelSchema, {
+          url: "wss://example.test/pty",
+          tool: "bash",
+          cols: 80,
+          rows: 24,
+        }),
+      },
+    }),
+  },
+  {
+    name: "grammar",
+    shape: "grammar",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "readme",
+      title: "Readme",
+      body: {
+        case: "grammar",
+        value: create(GrammarPanelSchema, {
+          language: 1,
+          source: "# Hello\n\nA small rendered document.",
+        }),
+      },
+    }),
+  },
+  {
+    name: "detail header",
+    shape: "detail_header",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "sponsor-header",
+      title: "Sponsor",
+      body: {
+        case: "detailHeader",
+        value: create(DetailHeaderPanelSchema, {
+          title: "Sponsor",
+          subtitleSourcePath: "data.owner",
+          descriptorRows: [{ label: "Type", sourcePath: "data.type" }],
+        }),
+      },
+    }),
+  },
+  {
+    name: "record card",
+    shape: "record_card",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "sponsor-card",
+      title: "Sponsor record",
+      body: {
+        case: "recordCard",
+        value: create(RecordCardPanelSchema, {
+          itemNoun: "sponsor",
+          fields: [{ fieldId: "name", label: "Name" }],
+        }),
+      },
+    }),
+  },
+  {
+    name: "resource cards",
+    shape: "resource_cards",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "services",
+      title: "Services",
+      body: {
+        case: "resourceCards",
+        value: create(ResourceCardPanelSchema, {
+          populate: { service: "demo.Services", method: "List" },
+          rowsField: "services",
+          itemNoun: "services",
+          emptyMessage: "No services",
+          template: { titleField: "name", subtitleField: "description" },
+        }),
+      },
+    }),
+  },
+  {
+    name: "chart",
+    shape: "chart",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "requests",
+      title: "Requests",
+      body: {
+        case: "chart",
+        value: create(ChartPanelSchema, {
+          chart: {
+            mark: 3,
+            title: "Requests by day",
+            x: { fieldName: "day", type: 1 },
+            y: { fieldName: "requests", type: 2 },
+          },
+        }),
+      },
+    }),
+  },
+  {
     name: "stat",
     shape: "stat",
     descriptor: create(PanelDescriptorSchema, {
@@ -413,6 +520,24 @@ export const FIXTURES: Fixture[] = [
             { startMs: 0, label: "Open the page" },
             { startMs: 65000, label: "Add the sponsor" },
           ],
+        }),
+      },
+    }),
+  },
+  {
+    name: "stream",
+    shape: "stream",
+    descriptor: create(PanelDescriptorSchema, {
+      panelId: "build-log",
+      title: "Build log",
+      body: {
+        case: "stream",
+        value: create(StreamPanelSchema, {
+          subscribe: { service: "demo.Builds", method: "Tail" },
+          lineField: "message",
+          maxLines: 100,
+          placeholder: "Waiting for build events...",
+          itemNoun: "events",
         }),
       },
     }),

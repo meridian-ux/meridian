@@ -20,8 +20,12 @@ import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js"
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -39,6 +43,7 @@ import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { Snippet, SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { FollowMode } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
@@ -244,6 +249,7 @@ export const SUPPORTED_BODIES = [
   "lro",
   "adhoc",
   "form",
+  "prompt",
   "terminal",
   "grammar",
   "stat",
@@ -251,6 +257,10 @@ export const SUPPORTED_BODIES = [
   "detailHeader",
   "recordCard",
   "resourceCards",
+  "gallery",
+  "media",
+  "steps",
+  "llmPrompt",
   "choice",
   "snippet",
   "action",
@@ -312,6 +322,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     root.appendChild(buildForm(body.value));
     return;
   }
+  if (body.case === "prompt") {
+    meta.textContent = "";
+    root.appendChild(buildPrompt(body.value));
+    return;
+  }
   // TerminalPanel — an xterm.js terminal over a pty WebSocket. WEB-SPECIFIC.
   // Canonical at schemas 0.5.0 (proto/terminal.proto), so `terminal` is now a
   // first-class oneof case (no cast, no local shape). See terminal_panel.ts.
@@ -365,6 +380,26 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "resourceCards") {
     return renderResourceCards(opts, body.value, meta);
+  }
+  if (body.case === "gallery") {
+    return renderFetchDriven(opts, body.value, meta, (data) =>
+      buildGallery(body.value, data),
+    );
+  }
+  if (body.case === "media") {
+    meta.textContent = "";
+    root.appendChild(buildMedia(body.value));
+    return;
+  }
+  if (body.case === "steps") {
+    meta.textContent = "";
+    root.appendChild(buildSteps(body.value));
+    return;
+  }
+  if (body.case === "llmPrompt") {
+    meta.textContent = "";
+    root.appendChild(buildLlmPrompt(body.value));
+    return;
   }
   if (body.case === "chart") {
     return renderChartPanel(opts, body.value, meta);
@@ -530,6 +565,95 @@ function buildCopyValue(value: CopyValue): HTMLElement {
   }
   if (value.help) wrap.appendChild(el("span", "mer-copyvalue-help", value.help));
   return wrap;
+}
+
+function buildMedia(panel: MediaPanel): HTMLElement {
+  const figure = el("figure", "mer-media");
+  let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement;
+  if (panel.kind === MediaKind.IMAGE) {
+    media = document.createElement("img");
+    media.alt = panel.alt;
+  } else if (panel.kind === MediaKind.AUDIO) {
+    media = document.createElement("audio");
+    media.controls = true;
+    media.setAttribute("aria-label", panel.alt || "Audio");
+  } else {
+    media = document.createElement("video");
+    media.controls = true;
+    media.setAttribute("aria-label", panel.alt || "Video");
+    if (panel.posterUri) (media as HTMLVideoElement).poster = panel.posterUri;
+    if (panel.captionsUri) {
+      const track = document.createElement("track");
+      track.kind = "captions";
+      track.src = panel.captionsUri;
+      media.appendChild(track);
+    }
+  }
+  media.src = panel.srcUri;
+  media.className = `mer-media-${panel.kind === MediaKind.IMAGE ? "image" : panel.kind === MediaKind.AUDIO ? "audio" : "video"}`;
+  figure.appendChild(media);
+  const details = [panel.caption, panel.durationMs ? formatDuration(panel.durationMs) : ""].filter(Boolean).join(" · ");
+  if (details) figure.appendChild(el("figcaption", "mer-media-caption", details));
+  if (panel.chapters.length) {
+    const list = el("ol", "mer-media-chapters");
+    for (const chapter of panel.chapters) list.appendChild(el("li", undefined, chapter.label));
+    figure.appendChild(list);
+  }
+  return figure;
+}
+
+function buildSteps(panel: StepsPanel): HTMLElement {
+  const section = el("section", "mer-steps");
+  if (panel.intro) section.appendChild(el("p", "mer-steps-intro", panel.intro));
+  const list = el("ol");
+  panel.steps.forEach((step) => {
+    const item = el("li", "mer-step");
+    const label = el("div", "mer-step-label", step.label);
+    if (step.actor) label.appendChild(el("span", "mer-step-actor", ` (${step.actor})`));
+    item.appendChild(label);
+    if (step.mediaUri) {
+      const image = document.createElement("img");
+      image.className = "mer-step-media";
+      image.src = step.mediaUri;
+      image.alt = step.mediaAlt;
+      item.appendChild(image);
+    }
+    if (step.detail || step.mediaAlt) item.appendChild(el("p", "mer-step-detail", step.detail || step.mediaAlt));
+    list.appendChild(item);
+  });
+  section.appendChild(list);
+  if (panel.outro) section.appendChild(el("p", "mer-steps-outro", panel.outro));
+  return section;
+}
+
+function buildLlmPrompt(panel: LlmPromptPanel): HTMLElement {
+  const section = el("section", "mer-llm-prompt");
+  if (panel.description) section.appendChild(el("p", "mer-llm-prompt-description", panel.description));
+  if (panel.modelHint?.provider || panel.modelHint?.model) {
+    const model = [panel.modelHint.provider, panel.modelHint.model].filter(Boolean).join(" / ");
+    section.appendChild(el("p", "mer-llm-prompt-model", model));
+  }
+  for (const [label, template] of [["System", panel.systemTemplate], ["User", panel.userTemplate]] as const) {
+    if (!template) continue;
+    const block = el("div", "mer-llm-prompt-template");
+    block.appendChild(el("h3", undefined, label));
+    block.appendChild(el("pre", undefined, template));
+    section.appendChild(block);
+  }
+  if (panel.slots.length) {
+    const fields = el("dl", "mer-llm-prompt-slots");
+    for (const slot of panel.slots) {
+      fields.appendChild(el("dt", undefined, slot.name));
+      fields.appendChild(el("dd", undefined, slot.field?.label || slot.name));
+    }
+    section.appendChild(fields);
+  }
+  return section;
+}
+
+function formatDuration(durationMs: number): string {
+  const seconds = Math.round(durationMs / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 function buildChoice(opts: RenderPanelOptions, panel: ChoicePanel): HTMLElement {
@@ -1170,6 +1294,64 @@ function resourceActionStyle(style: ActionStyle): "default" | "primary" | "dange
   }
 }
 
+// GalleryPanel — a fetch-driven card grid. This is deliberately separate from
+// ResourceCardPanel: galleries have display-only cards and href navigation,
+// while resource cards own row-scoped lifecycle actions and confirmations.
+function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
+  const grid = el("div", "mer-gallery");
+  grid.setAttribute("role", "list");
+  const rawRows = response && panel.rowsField ? readAt(response, panel.rowsField) : [];
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  if (rows.length === 0) {
+    grid.appendChild(el("p", "mer-empty", panel.placeholder || "No items."));
+    return grid;
+  }
+  const card = panel.card;
+  if (!card) {
+    grid.appendChild(el("p", "mer-empty", "Invalid gallery descriptor."));
+    return grid;
+  }
+  for (const raw of rows) {
+    const row = plainRow(raw);
+    const article = el("article", "mer-gallery-card");
+    article.setAttribute("role", "listitem");
+    const title = String(readAt(row, card.titleField) ?? "");
+    if (card.imageField) {
+      const image = document.createElement("img");
+      image.className = "mer-gallery-card-image";
+      image.src = String(readAt(row, card.imageField) ?? "");
+      image.alt = title;
+      article.appendChild(image);
+    }
+    const icon = card.iconField ? readAt(row, card.iconField) : undefined;
+    if (icon) article.appendChild(el("span", "mer-gallery-card-icon", String(icon)));
+    article.appendChild(el("h3", "mer-gallery-card-title", title));
+    const subtitle = card.subtitleField ? readAt(row, card.subtitleField) : undefined;
+    if (subtitle != null && subtitle !== "") {
+      article.appendChild(el("p", "mer-gallery-card-subtitle", String(subtitle)));
+    }
+    const status = card.statusField ? readAt(row, card.statusField) : undefined;
+    if (status != null && status !== "") {
+      article.appendChild(el("span", "mer-gallery-card-status", String(status)));
+    }
+    const href = card.hrefField ? readAt(row, card.hrefField) : undefined;
+    if (href) {
+      const link = document.createElement("a");
+      link.className = "mer-gallery-card-link";
+      link.href = String(href);
+      link.textContent = card.actionLabelField
+        ? String(readAt(row, card.actionLabelField) ?? "Open")
+        : "Open";
+      article.appendChild(link);
+    } else if (card.actionLabelField) {
+      const action = readAt(row, card.actionLabelField);
+      if (action) article.appendChild(el("span", "mer-gallery-card-action", String(action)));
+    }
+    grid.appendChild(article);
+  }
+  return grid;
+}
+
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
 // fields as a read-only card; EDIT draws inputs. Field values (READONLY) + submit
 // wiring (EDIT) are host concerns; this renders the structure. FORM_MODE_EDIT = 2.
@@ -1197,6 +1379,84 @@ function buildForm(panel: FormPanel): HTMLElement {
     form.appendChild(label);
   }
   return form;
+}
+
+// PromptPanel is the web-components peer of the TUI's standalone prompt: it
+// paints the typed controls and leaves response collection to the host caller.
+function buildPrompt(panel: PromptPanel): HTMLElement {
+  const form = document.createElement("form");
+  form.className = "meridian-uiview-prompt";
+  form.addEventListener("submit", (event) => event.preventDefault());
+  if (panel.description) form.appendChild(el("p", "mer-prompt-description", panel.description));
+  if (panel.detail) form.appendChild(el("pre", "mer-prompt-detail", panel.detail));
+  if (panel.isConfirmation) {
+    const actions = el("div", "mer-prompt-actions");
+    const accept = document.createElement("button");
+    accept.type = "submit";
+    accept.textContent = panel.acceptLabel || "Yes";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = panel.cancelLabel || "No";
+    actions.append(accept, cancel);
+    form.appendChild(actions);
+    return form;
+  }
+  for (const field of panel.fields) form.appendChild(buildPromptField(field));
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.textContent = panel.acceptLabel || "Submit";
+  form.appendChild(submit);
+  return form;
+}
+
+function buildPromptField(field: FormField): HTMLElement {
+  const label = document.createElement("label");
+  label.className = "meridian-uiview-field";
+  label.appendChild(el("span", "meridian-uiview-field-label", field.label || field.fieldId));
+  if (field.description) {
+    label.appendChild(el("small", "meridian-uiview-field-description", field.description));
+  }
+  const kind = field.kind;
+  if (kind.case === "boolean") {
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = field.fieldId;
+    input.checked = kind.value.defaultValue;
+    label.appendChild(input);
+  } else if (kind.case === "enumSelection") {
+    const select = document.createElement("select");
+    select.name = field.fieldId;
+    const options = kind.value.options.length
+      ? kind.value.options.map((option) => ({ value: option.value, label: option.label || option.value }))
+      : kind.value.allowedValues.map((value) => ({ value, label: value }));
+    for (const option of options) {
+      const item = document.createElement("option");
+      item.value = option.value;
+      item.textContent = option.label;
+      item.selected = option.value === kind.value.defaultValue;
+      select.appendChild(item);
+    }
+    label.appendChild(select);
+  } else if (kind.case === "integer" || kind.case === "number") {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.name = field.fieldId;
+    input.value = String(kind.value.defaultValue);
+    if (kind.value.min !== 0) input.min = String(kind.value.min);
+    if (kind.value.max !== 0) input.max = String(kind.value.max);
+    if (kind.case === "integer") input.step = String(kind.value.step || 1);
+    else if (kind.value.step !== 0) input.step = String(kind.value.step);
+    label.appendChild(input);
+  } else if (kind.case === "nested" || kind.case === "repeated" || kind.case === "keyValueMap") {
+    label.appendChild(el("span", "meridian-uiview-field-value", "Structured input"));
+  } else {
+    const input = document.createElement("input");
+    input.type = kind.case === "masked" ? "password" : "text";
+    input.name = field.fieldId;
+    if (kind.case === "text" || kind.case === "masked") input.value = kind.value.defaultValue;
+    label.appendChild(input);
+  }
+  return label;
 }
 
 // ---------------------------------------------------------------------------

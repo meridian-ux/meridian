@@ -38,15 +38,25 @@ function isFallback(html: string): boolean {
   return html.includes("unsupported panel shape") || html.includes("empty panel");
 }
 
-// htmlKit (the reference kit) implements these shapes; gallery/llmPrompt fall
-// back by design (a richer kit like mui-kit would implement them). The six
-// content shapes (choice/snippet/action/connectFlow/copyValue/catalog) are
-// implemented by both reference kits.
+// htmlKit (the reference kit) implements every canonical shape except
+// llmPrompt and host-registered adhoc content. Its implementations may still
+// be semantic degradations (for example, Chart and Terminal), but they must
+// not disappear into the generic unsupported-shape fallback.
 const HTMLKIT_IMPLEMENTS = new Set([
   "table",
   "prompt",
   "lro",
   "form",
+  "gallery",
+  "terminal",
+  "grammar",
+  "detail_header",
+  "record_card",
+  "resource_cards",
+  "chart",
+  "steps",
+  "media",
+  "stream",
   "choice",
   "snippet",
   "action",

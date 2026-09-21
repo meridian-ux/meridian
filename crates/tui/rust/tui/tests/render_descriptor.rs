@@ -13,11 +13,16 @@
 //! a `Block.view` arm missing since schemas 0.21.0 and three test fixtures
 //! enumerating fields the schema had outgrown.
 
+use crossterm::event::KeyCode;
 use prost::Message as _;
 use ratatui::{backend::TestBackend, Terminal};
 
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
-use meridian_uiview::proto::{panel_descriptor::Body, PanelDescriptor, StatPanel};
+use meridian_uiview::proto::{
+    form_field::Kind, panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel,
+    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, LroPanel, MediaChapter,
+    MediaPanel, PanelDescriptor, RecordCardPanel, RpcCall, StatPanel, TextInput,
+};
 use meridian_uiview::Context;
 
 /// Refuses everything, loudly — the same posture as the binary's OfflineInvoker.
@@ -28,6 +33,64 @@ struct Refuse;
 impl RpcInvoker for Refuse {
     fn invoke(&self, s: &str, m: &str, _r: serde_json::Value) -> Result<serde_json::Value, RpcError> {
         Err(RpcError::Transport(format!("{s}/{m}: no transport")))
+    }
+}
+
+struct GalleryData;
+
+impl RpcInvoker for GalleryData {
+    fn invoke(
+        &self,
+        _service: &str,
+        _method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({
+            "items": [{
+                "name": "GitHub",
+                "description": "Source control",
+                "status": "Connected",
+                "href": "https://github.com"
+            }]
+        }))
+    }
+}
+
+struct RecordData;
+
+impl RpcInvoker for RecordData {
+    fn invoke(
+        &self,
+        _service: &str,
+        _method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({
+            "name": "Build 42",
+            "owner": "Platform",
+            "phase": "Running",
+            "metadata": {"region": "us-east"}
+        }))
+    }
+}
+
+struct FormData;
+
+impl RpcInvoker for FormData {
+    fn invoke(
+        &self,
+        _service: &str,
+        method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        if method == "Prefill" {
+            Ok(serde_json::json!({"name": "worker", "replicas": 2}))
+        } else {
+            Err(RpcError::UnknownMethod {
+                service: "demo.Deploy".into(),
+                method: method.into(),
+            })
+        }
     }
 }
 
@@ -63,6 +126,181 @@ fn stat_descriptor() -> PanelDescriptor {
     }
 }
 
+fn gallery_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "integrations".into(),
+        title: "Integrations".into(),
+        body: Some(Body::Gallery(GalleryPanel {
+            populate: Some(RpcCall {
+                service: "demo.Catalog".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "items".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                subtitle_field: "description".into(),
+                status_field: "status".into(),
+                href_field: "href".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn detail_header_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "build-header".into(),
+        title: "Build".into(),
+        body: Some(Body::DetailHeader(DetailHeaderPanel {
+            title: "Build".into(),
+            title_source_path: "name".into(),
+            subtitle_source_path: "owner".into(),
+            status_source_path: "phase".into(),
+            descriptor_rows: vec![DescriptorRow {
+                label: "Region".into(),
+                source_path: "metadata.region".into(),
+                ..Default::default()
+            }],
+            populate: Some(RpcCall {
+                service: "demo.Builds".into(),
+                method: "Get".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn record_card_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "build-card".into(),
+        title: "Build details".into(),
+        body: Some(Body::RecordCard(RecordCardPanel {
+            item_noun: "build".into(),
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "metadata.region".into(),
+                    label: "Region".into(),
+                    ..Default::default()
+                },
+            ],
+            populate: Some(RpcCall {
+                service: "demo.Builds".into(),
+                method: "Get".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn form_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-form".into(),
+        title: "Deployment".into(),
+        body: Some(Body::Form(FormPanel {
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    request_field: "name".into(),
+                    kind: Some(Kind::Text(TextInput {
+                        default_value: "service".into(),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "replicas".into(),
+                    label: "Replicas".into(),
+                    request_field: "replicas".into(),
+                    kind: Some(Kind::Integer(IntegerSpinner {
+                        default_value: 1,
+                        min: 1,
+                        max: 10,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+            ],
+            mode: FormMode::Edit as i32,
+            submit: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Apply".into(),
+                ..Default::default()
+            }),
+            item_noun: "deployment".into(),
+            prefill: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Prefill".into(),
+                ..Default::default()
+            }),
+        })),
+        ..Default::default()
+    }
+}
+
+fn lro_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-run".into(),
+        title: "Run deployment".into(),
+        body: Some(Body::Lro(LroPanel {
+            start: Some(RpcCall {
+                service: "demo.Deploy".into(),
+                method: "Start".into(),
+                ..Default::default()
+            }),
+            metadata_type: "demo.DeployMetadata".into(),
+            response_type: "demo.DeployResponse".into(),
+            run_button_label: "Deploy".into(),
+            inputs: vec![FormField {
+                field_id: "replicas".into(),
+                label: "Replicas".into(),
+                request_field: "replicas".into(),
+                kind: Some(Kind::Integer(IntegerSpinner {
+                    default_value: 1,
+                    min: 1,
+                    max: 5,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }],
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn media_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-recording".into(),
+        title: "Deployment recording".into(),
+        body: Some(Body::Media(MediaPanel {
+            src_uri: "https://cdn.example.test/deploy.mp4".into(),
+            alt: "A deployment progressing from build to ready.".into(),
+            captions_uri: "https://cdn.example.test/deploy.vtt".into(),
+            duration_ms: 125_000,
+            caption: "Deployment walkthrough".into(),
+            chapters: vec![MediaChapter {
+                start_ms: 65_000,
+                label: "Ready".into(),
+            }],
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
 #[test]
 fn wire_bytes_round_trip_into_drawn_cells() {
     // Encode and decode rather than rendering the struct directly: the binary is
@@ -88,6 +326,173 @@ fn a_declining_stat_marked_higher_is_better_reads_as_bad() {
         out.contains('↓') || out.contains('-') || out.contains('▾'),
         "no decrease marker for 124 -> 118:\n{out}"
     );
+}
+
+#[test]
+fn gallery_populate_flows_into_the_tui_card_list() {
+    let mut view = PanelView::with_palette(Palette::default());
+    let ctx = Context::default();
+    let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();
+    term.draw(|f| {
+        view.render(
+            f,
+            f.area(),
+            &gallery_descriptor(),
+            &ctx,
+            &GalleryData,
+        )
+    })
+    .unwrap();
+    let out = term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(out.contains("GitHub"), "gallery title missing:\n{out}");
+    assert!(out.contains("Connected"), "gallery status missing:\n{out}");
+    assert!(out.contains("https://github.com"), "gallery href missing:\n{out}");
+}
+
+#[test]
+fn detail_panels_populate_and_render_the_record_dispatch_path() {
+    let ctx = Context::default();
+    let mut header = PanelView::with_palette(Palette::default());
+    let mut header_term = Terminal::new(TestBackend::new(64, 9)).unwrap();
+    header_term
+        .draw(|f| {
+            header.render(
+                f,
+                f.area(),
+                &detail_header_descriptor(),
+                &ctx,
+                &RecordData,
+            )
+        })
+        .unwrap();
+    let header_out = header_term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(header_out.contains("Build 42"));
+    assert!(header_out.contains("[Running]"));
+    assert!(header_out.contains("Region: us-east"));
+
+    let mut card = PanelView::with_palette(Palette::default());
+    let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+    card_term
+        .draw(|f| {
+            card.render(
+                f,
+                f.area(),
+                &record_card_descriptor(),
+                &ctx,
+                &RecordData,
+            )
+        })
+        .unwrap();
+    let card_out = card_term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(card_out.contains("Name: Build 42"));
+    assert!(card_out.contains("Region: us-east"));
+}
+
+#[test]
+fn form_prefill_renders_and_submit_contains_edited_values() {
+    let descriptor = form_descriptor();
+    let form = match descriptor.body.as_ref() {
+        Some(Body::Form(form)) => form,
+        _ => panic!("expected form descriptor"),
+    };
+    let ctx = Context::default();
+    let mut view = PanelView::with_palette(Palette::default());
+    let mut term = Terminal::new(TestBackend::new(64, 12)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &FormData))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("Edit deployment"), "form mode missing:\n{output}");
+    assert!(output.contains("Name: worker"), "prefill missing:\n{output}");
+    assert!(output.contains("Replicas: 2"), "integer prefill missing:\n{output}");
+
+    view.handle_form_key(form, &ctx, KeyCode::Char('x'));
+    let submission = view
+        .handle_form_key(form, &ctx, KeyCode::Enter)
+        .expect("editable form should submit");
+    assert_eq!(submission.service, "demo.Deploy");
+    assert_eq!(submission.method, "Apply");
+    assert_eq!(submission.request["name"], "workerx");
+    assert_eq!(submission.request["replicas"], 2);
+}
+
+#[test]
+fn lro_renders_inputs_and_emits_start_request() {
+    let descriptor = lro_descriptor();
+    let panel = match descriptor.body.as_ref() {
+        Some(Body::Lro(panel)) => panel,
+        _ => panic!("expected lro descriptor"),
+    };
+    let ctx = Context::default();
+    let mut view = PanelView::with_palette(Palette::default());
+    let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &Refuse))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("Deploy"), "run label missing:\n{output}");
+    assert!(output.contains("Replicas: 1"), "input default missing:\n{output}");
+
+    view.handle_lro_key(panel, &ctx, KeyCode::Up);
+    let submission = view
+        .handle_lro_key(panel, &ctx, KeyCode::Enter)
+        .expect("LRO with a start RPC should emit a request");
+    assert_eq!(submission.service, "demo.Deploy");
+    assert_eq!(submission.method, "Start");
+    assert_eq!(submission.request["replicas"], 1);
+}
+
+#[test]
+fn media_uses_the_terminal_accessible_degradation() {
+    let descriptor = media_descriptor();
+    let mut view = PanelView::with_palette(Palette::default());
+    let ctx = Context::default();
+    let mut term = Terminal::new(TestBackend::new(80, 12)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &Refuse))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("A deployment progressing from build to ready."));
+    assert!(output.contains("02:05"));
+    assert!(output.contains("deploy.vtt"));
+    assert!(output.contains("Chapter: 01:05 — Ready"));
+    assert!(output.contains("deploy.mp4"));
 }
 
 #[test]

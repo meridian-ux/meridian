@@ -82,8 +82,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI renders LRO inputs and run affordance text; hosts handle the long-running operation transport."
         }
       }
     },
@@ -118,8 +118,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer paints prompt descriptions, detail, typed controls, and confirmation/form actions."
         },
         "web-react": {
           "status": "renders"
@@ -143,23 +143,23 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer displays prompt templates, model metadata, and declared parameter slots."
         },
         "web-react": {
           "status": "renders"
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The MUI kit renders model metadata, system/user templates, and typed parameter-slot controls in preview mode."
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The dependency-free HTML kit renders title, status, subtitle, and descriptor rows with semantic header markup."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders detail titles, status, descriptor rows, and record fields with semantic markup."
         },
         "tui": {
           "status": "separate-entrypoint",
@@ -171,8 +171,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer fetches rows and renders gallery cards with image, icon, subtitle, status, action, and href fields."
         },
         "web-react": {
           "status": "renders"
@@ -187,8 +187,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI renders populated gallery cards as selectable text, retaining title, subtitle, status, links, and actions."
         }
       }
     },
@@ -211,8 +211,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI renders form fields as labeled terminal controls with read-only and editable modes plus defaults."
         }
       }
     },
@@ -361,24 +361,24 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "renders",
+          "reason": "PanelRenderer provides an accessible connection-metadata fallback when a React kit omits the specialized terminal component."
         },
         "mui-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "renders",
+          "reason": "The MUI kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "html-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "renders",
+          "reason": "The HTML kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "shadcn-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "renders",
+          "reason": "The shadcn kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "tui": {
           "status": "placeholder",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "reason": "The TUI keeps an explanatory placeholder because terminal.proto defines this arm as web-specific."
         }
       }
     },
@@ -441,16 +441,16 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The dependency-free HTML kit renders the record fields as an accessible definition list."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders record fields as an accessible definition list."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI fetches the record once and renders detail titles, descriptor rows, and read-only fields as text."
         }
       }
     },
@@ -467,16 +467,16 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The dependency-free HTML kit renders record fields as an accessible definition list."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders record fields as an accessible definition list."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI fetches the record once and renders read-only fields as labeled text."
         }
       }
     },
@@ -487,24 +487,21 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The React renderer fetches rows and renders metadata, status, visibility-gated actions, and confirmation controls."
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI does not yet render resource cards; it uses an explicit placeholder for unsupported panel shapes."
+          "status": "renders",
+          "reason": "The TUI renders resource-card rows as selectable numbered text cards with metadata and visible actions."
         }
       }
     },
@@ -518,19 +515,19 @@
           "status": "renders"
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "MeridianChart renders portable chart intent and fetched rows as an accessible data table."
         },
         "html-kit": {
           "status": "renders"
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders the portable chart mark, title, and x/y field summary."
         },
         "tui": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The TUI renders portable chart intent and populated rows as a bounded terminal table."
         }
       }
     },
@@ -538,9 +535,8 @@
       "parity": "full",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer.",
-          "waiver": "uiview-core#3 \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The web-components renderer emits an ordered walkthrough with labels, actors, details, and optional frames."
         },
         "web-react": {
           "status": "renders"
@@ -549,19 +545,16 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer.",
-          "waiver": "kit gap \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The HTML kit renders computed numbered steps with labels, actors, details, intro, outro, and media-alt fallback."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer.",
-          "waiver": "kit gap \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The shadcn kit renders computed numbered steps with labels, actors, detail, intro, and outro text."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly.",
-          "waiver": "uiview-core#3 \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The TUI renders ordered labels, actor labels, details, intro/outro, and media-alt degradation as terminal text."
         }
       }
     },
@@ -569,8 +562,8 @@
       "parity": "specialized",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer realizes native image, audio, and video elements with captions, posters, duration, and chapter metadata."
         },
         "web-react": {
           "status": "renders"
@@ -579,16 +572,16 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The HTML kit renders video, audio, and image media with poster, captions, chapters, and alt fallback semantics."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders video, audio, and image media with poster, captions, chapters, and alt fallback semantics."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI realizes MediaPanel's terminal degradation rung with alt text, duration, captions, chapters, and source URI."
         }
       }
     },
@@ -599,29 +592,20 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 adding ComponentKit.Stream is Phase 2 model work."
+          "status": "renders"
         },
         "mui-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "renders"
         },
         "html-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "renders"
         },
         "shadcn-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#3 \u2014 the TUI owes a tailing pane."
+          "status": "renders",
+          "reason": "The TUI renders host-provided bounded stream snapshots and retains the authored placeholder when no lines are available."
         }
       }
     }

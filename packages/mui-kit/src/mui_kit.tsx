@@ -12,7 +12,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
+import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
 
 import type {
   ActionBarProps,
@@ -28,6 +28,7 @@ import {
   MeridianRowActionsContext,
   MeridianViewContext,
   PaginationMode,
+  selectionDeps,
   useActionHandler,
   useHrefResolver,
   useMeridianSelection,
@@ -37,6 +38,8 @@ import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import {
   FormMode,
   type DetailHeaderPanel,
@@ -83,6 +86,8 @@ import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
 import { MeridianResourceCards } from "./components/resource_cards.js";
+import { MeridianChart } from "./components/chart.js";
+import { MeridianStream } from "./components/stream.js";
 
 type Row = Record<string, unknown>;
 
@@ -420,6 +425,29 @@ function initValues(fields: FormField[]): FormObject {
   return values;
 }
 
+function mergeFormValues(fields: FormField[], prefill: FormObject | undefined): FormObject {
+  const defaults = initValues(fields);
+  if (!prefill) return defaults;
+  const merge = (base: FormValue, override: FormValue): FormValue => {
+    if (
+      base &&
+      override &&
+      typeof base === "object" &&
+      !Array.isArray(base) &&
+      typeof override === "object" &&
+      !Array.isArray(override)
+    ) {
+      const merged: FormObject = { ...(base as FormObject) };
+      for (const [key, value] of Object.entries(override as FormObject)) {
+        if (key in merged) merged[key] = merge(merged[key], value);
+      }
+      return merged;
+    }
+    return override;
+  };
+  return merge(defaults, prefill) as FormObject;
+}
+
 /** Read the value at a path (string keys index objects, number keys index arrays). */
 function valueAt(root: FormValue | undefined, path: readonly (string | number)[]): FormValue | undefined {
   return path.reduce<FormValue | undefined>((acc, key) => {
@@ -649,6 +677,7 @@ function FieldForm({
   fields,
   disabled,
   description,
+  initialValues,
   submitLabel,
   submitDisabled,
   onSubmit,
@@ -657,6 +686,7 @@ function FieldForm({
   fields: FormField[];
   disabled: boolean;
   description?: string;
+  initialValues?: FormObject;
   submitLabel: string;
   submitDisabled?: boolean;
   onSubmit?: (values: FormObject) => void | Promise<unknown>;
@@ -667,7 +697,11 @@ function FieldForm({
    *  Off by default: an EDIT form over an existing record must keep showing it. */
   resetOnSubmit?: boolean;
 }): ReactNode {
-  const [values, setValues] = useState<FormObject>(() => initValues(fields));
+  const seed = useMemo(() => mergeFormValues(fields, initialValues), [fields, initialValues]);
+  const [values, setValues] = useState<FormObject>(seed);
+  useEffect(() => {
+    if (initialValues) setValues(seed);
+  }, [initialValues, seed]);
   const setAt: SetAt = (path, value) =>
     setValues((prev) => updateAt(prev, path, value) as FormObject);
   // Reset only on RESOLVE, never optimistically: clearing first and failing after
@@ -677,7 +711,7 @@ function FieldForm({
     const result = onSubmit?.(values);
     if (!resetOnSubmit) return;
     void Promise.resolve(result).then(
-      () => setValues(initValues(fields)),
+      () => setValues(seed),
       () => {},
     );
   };
@@ -710,6 +744,30 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   // being true.
   const createLike = edit && startsBlank(initValues(panel.fields));
   const selection = useMeridianSelection();
+  const [prefillValues, setPrefillValues] = useState<FormObject | undefined>();
+  const prefillSelection = selectionDeps(panel.prefill, selection.values);
+  const prefillRequest = useMemo(
+    () => buildBindingRequest(panel.prefill, selection.values),
+    [panel.prefill, prefillSelection],
+  );
+  useEffect(() => {
+    setPrefillValues(undefined);
+    if (!edit || !panel.prefill?.service || !panel.prefill.method) return;
+    let active = true;
+    void Promise.resolve()
+      .then(() => invoke(invoker, panel.prefill, prefillRequest))
+      .then((response) => {
+        if (active && response && typeof response === "object" && !Array.isArray(response)) {
+          setPrefillValues(response as FormObject);
+        }
+      })
+      .catch(() => {
+        // A failed prefill is non-fatal: retain the descriptor defaults.
+      });
+    return () => {
+      active = false;
+    };
+  }, [edit, invoker, panel.prefill, prefillRequest, prefillSelection]);
   // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
   // request is not only what the user typed: an op scoped to the record it hangs
   // off (post a comment on THIS task → `resourceId`) gets that field from a
@@ -724,6 +782,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
     <FieldForm
       fields={panel.fields}
       disabled={!edit}
+      initialValues={prefillValues}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
       submitDisabled={!edit}
       onSubmit={
@@ -737,6 +796,43 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
       }
       resetOnSubmit={createLike}
     />
+  );
+}
+
+function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
+  const fields = panel.slots
+    .map((slot) => slot.field)
+    .filter((field): field is FormField => field !== undefined);
+  const model = [panel.modelHint?.provider, panel.modelHint?.model].filter(Boolean).join(" / ");
+  return (
+    <Stack spacing={2} className="mer-llm-prompt">
+      {panel.description && <Typography color="text.secondary">{panel.description}</Typography>}
+      {model && <Chip label={model} size="small" />}
+      {panel.systemTemplate && (
+        <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.systemTemplate}</Box>
+      )}
+      <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.userTemplate}</Box>
+      {fields.length > 0 && (
+        <FieldForm
+          fields={fields}
+          disabled={false}
+          submitLabel="Preview"
+          submitDisabled
+        />
+      )}
+    </Stack>
+  );
+}
+
+function TerminalShape({ panel }: { panel: TerminalPanel }): ReactNode {
+  return (
+    <Stack spacing={1} className="mer-terminal" role="region" aria-label={panel.tool || "Terminal"}>
+      <Typography variant="body2" color="text.secondary">Interactive terminal connection</Typography>
+      <Link href={panel.url} target="_blank" rel="noreferrer">{panel.url}</Link>
+      {(panel.cols || panel.rows) ? (
+        <Typography variant="caption">{panel.cols || "auto"} × {panel.rows || "auto"}</Typography>
+      ) : null}
+    </Stack>
   );
 }
 
@@ -877,6 +973,8 @@ export const muiKit: ComponentKit = {
     <TableShape panel={panel} invoker={invoker} />
   ),
   Prompt: ({ panel }: ShapeProps<PromptPanel>) => <PromptShape panel={panel} />,
+  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
+  Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
   Lro: ({ panel, invoker }: ShapeProps<LroPanel>) => (
     <LroShape panel={panel} invoker={invoker} />
   ),
@@ -909,10 +1007,16 @@ export const muiKit: ComponentKit = {
   CopyValue: ({ panel }: ShapeProps<CopyValuePanel>) =>
     panel.value ? <CopyValueView value={panel.value} /> : null,
   Catalog: ({ panel }: ShapeProps<CatalogPanel>) => <CatalogView panel={panel} />,
+  Chart: ({ panel, invoker }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/chart_pb.js").ChartPanel>) => (
+    <MeridianChart panel={panel} invoker={invoker} />
+  ),
   Grammar: ({ panel }: ShapeProps<GrammarPanel>) => <GrammarView panel={panel} />,
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
   Media: ({ panel }: ShapeProps<MediaPanel>) => <MediaView panel={panel} />,
+  Stream: ({ panel }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/stream_pb.js").StreamPanel>) => (
+    <MeridianStream panel={panel} />
+  ),
   Fallback,
   ActionBar,
 };

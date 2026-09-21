@@ -1,9 +1,10 @@
 // TerminalPanel — an interactive terminal spliced to a remote pty over a
 // WebSocket. Unlike the other panel shapes it is WEB-SPECIFIC: only the
-// meridian-web (web-components) renderer realizes it, over xterm.js; the TUI /
-// web-react / mui kits do NOT render it (a terminal-in-a-terminal / terminal-in-
-// a-form-kit is meaningless). It is authored here so the descriptor is canonical
-// and a panel bundle can carry it, but it stays a meridian-web specialization.
+// meridian-web (web-components) renderer realizes it interactively, over xterm.js.
+// The React and MUI kits may provide a semantic connection-metadata fallback;
+// the TUI keeps an explanatory placeholder because a terminal-in-a-terminal is
+// meaningless. It is authored here so the descriptor is canonical and a panel
+// bundle can carry it, but it stays a meridian-web specialization.
 //
 // The wire protocol (browser ↔ pty broker) is the renderer's contract, not the
 // descriptor's: binary frames = raw pty bytes both ways; text frames = JSON

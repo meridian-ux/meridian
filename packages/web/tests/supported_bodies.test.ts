@@ -63,6 +63,7 @@ const MINIMAL: Record<string, unknown> = {
   lro: { start: { service: "s", method: "m" }, metadataType: "M", responseType: "R" },
   adhoc: { handlerId: "h" },
   form: { fields: [] },
+  prompt: { description: "Configure it", fields: [{ fieldId: "name", label: "Name" }] },
   terminal: { url: "wss://example.test/pty" },
   grammar: { language: 1, source: "# hi" },
   stat: { label: "Churn", value: 1 },
@@ -74,6 +75,15 @@ const MINIMAL: Record<string, unknown> = {
     rowsField: "items",
     template: { titleField: "name" },
   },
+  gallery: {
+    populate: { service: "s", method: "m" },
+    rowsField: "items",
+    placeholder: "No integrations",
+    card: { titleField: "name", subtitleField: "description", hrefField: "href" },
+  },
+  media: { kind: 3, srcUri: "image.png", alt: "A diagram" },
+  steps: { intro: "Do this", steps: [{ label: "Open it", actor: "Admin" }] },
+  llmPrompt: { userTemplate: "Hello {{name}}" },
   choice: { options: [{ id: "a", label: "A" }] },
   snippet: { snippet: { text: "x" } },
   action: { action: { label: "Go" } },
@@ -122,12 +132,8 @@ describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
 
   it("supportsBody agrees with the list, and rejects the unknown", () => {
     for (const c of SUPPORTED_BODIES) expect(supportsBody(c)).toBe(true);
-    // `llmPrompt` and `gallery` are real oneof arms that renderPanel does NOT
-    // draw — hosts handle galleries themselves. They must report false, or a
-    // host trusting this would render an empty panel instead of using its own
-    // path.
-    expect(supportsBody("gallery")).toBe(false);
-    expect(supportsBody("llmPrompt")).toBe(false);
+    expect(supportsBody("gallery")).toBe(true);
+    expect(supportsBody("prompt")).toBe(true);
     expect(supportsBody("nope")).toBe(false);
     expect(supportsBody(undefined)).toBe(false);
   });

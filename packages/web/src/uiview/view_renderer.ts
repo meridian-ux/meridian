@@ -98,13 +98,28 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
       button.setAttribute("role", "tab");
       button.setAttribute("aria-controls", section.id);
       button.setAttribute("aria-selected", index === 0 ? "true" : "false");
-      button.onclick = () => {
+      button.tabIndex = index === 0 ? 0 : -1;
+      const activate = (nextIndex: number) => {
         tabSections.forEach((panel, panelIndex) => {
-          const active = panelIndex === index;
+          const active = panelIndex === nextIndex;
           panel.hidden = !active;
           const tab = tabs.children[panelIndex] as HTMLElement | undefined;
           tab?.setAttribute("aria-selected", active ? "true" : "false");
+          if (tab) tab.tabIndex = active ? 0 : -1;
         });
+        (tabs.children[nextIndex] as HTMLButtonElement | undefined)?.focus();
+      };
+      button.onclick = () => activate(index);
+      button.onkeydown = (event) => {
+        if (!tabSections.length) return;
+        let next = index;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % tabSections.length;
+        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + tabSections.length) % tabSections.length;
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = tabSections.length - 1;
+        else return;
+        event.preventDefault();
+        activate(next);
       };
       tabs.appendChild(button);
     }

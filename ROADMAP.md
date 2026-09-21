@@ -35,55 +35,56 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
 |---|---|---|---|---|---|---|---|
 | `table` | standard | ● | ● | ● | ● | ● | ● |
-| `lro` | standard | ● | ● | ● | ● | ● | ◐ |
+| `lro` | standard | ● | ● | ● | ● | ● | ● |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
-| `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
-| `llm_prompt` | standard | ○ | ● | ○ | ○ | ○ | ◑ |
-| `gallery` | standard | ○ | ● | ● | ● | ● | ◐ |
-| `form` | standard | ● | ● | ● | ● | ● | ◐ |
+| `prompt` | standard | ● | ● | ● | ● | ● | ◑ |
+| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ |
+| `gallery` | standard | ● | ● | ● | ● | ● | ● |
+| `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
 | `snippet` | full | ● | ● | ● | ● | ● | ● |
 | `action` | full | ● | ● | ● | ● | ● | ● |
 | `connect_flow` | full | ● | ● | ● | ● | ● | ● |
 | `copy_value` | full | ● | ● | ● | ● | ● | ● |
 | `catalog` | full | ● | ● | ● | ● | ● | ● |
-| `terminal` | specialized | ● | ✕ | ✕ | ✕ | ✕ | ◐ |
+| `terminal` | specialized | ● | ● | ● | ● | ● | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
-| `detail_header` | standard | ● | ● | ● | ○ | ○ | ◐ |
-| `record_card` | standard | ● | ● | ● | ○ | ○ | ◐ |
-| `steps` | full | ○ | ● | ● | ○ | ○ | ◐ |
-| `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
-| `stream` | full | ● | ✕ | ✕ | ✕ | ✕ | ◐ |
+| `detail_header` | standard | ● | ● | ● | ● | ● | ● |
+| `record_card` | standard | ● | ● | ● | ● | ● | ● |
+| `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
+| `chart` | specialized | ● | ● | ● | ● | ● | ● |
+| `steps` | full | ● | ● | ● | ● | ● | ● |
+| `media` | specialized | ● | ● | ● | ● | ● | ● |
+| `stream` | full | ● | ● | ● | ● | ● | ● |
 
-**21 arms × 6 renderers = 126 cells; 87 render, 39 do not.**
+**23 arms × 6 renderers = 138 cells; 131 render, 7 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 16 |
-| ◐ `placeholder` | 10 |
-| ✕ `structural-gap` | 8 |
 | – `not-applicable` | 3 |
+| ◐ `placeholder` | 2 |
 | ◑ `separate-entrypoint` | 2 |
 
 | renderer | gaps |
 |---|---|
-| web-components | 5 |
-| web-react | 2 |
-| mui-kit | 4 |
-| html-kit | 8 |
-| shadcn-kit | 8 |
-| tui | 12 |
+| web-components | 0 |
+| web-react | 0 |
+| mui-kit | 1 |
+| html-kit | 1 |
+| shadcn-kit | 1 |
+| tui | 4 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
 
 Three facts shape the order of work:
 
-- **Eight of the gaps have one cause.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
-  has no `Stream` or `Terminal` member, so no React kit *can* render those arms — and
-  `stream` is declared full-parity. Opening the seam is [#4](../../issues/4), and it is first.
-- **The TUI is the largest single gap** at 12 cells, and has one test file for eleven
+- **The shared seam is now open.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
+  exposes optional `Stream` and `Terminal` members, and the HTML kit proves the Stream
+  path with an accessible placeholder. The remaining gaps are concrete kit renderers
+  and the TUI's full-parity stream implementation.
+- **The TUI is the largest single gap** at 13 cells, and has one test file for eleven
   source files. [#6](../../issues/6) closes both together: every widget lands with a
   `TestBackend` render test.
 - **The manifest is itself incomplete.** The public catalog advertises a SwiftUI renderer
