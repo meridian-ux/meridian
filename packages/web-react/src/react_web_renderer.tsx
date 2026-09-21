@@ -31,6 +31,7 @@ export function reactWebRenderer(
           <MeridianProvider
             theme={opts.theme}
             invoker={opts.invoker}
+            admission={opts.admission}
             kit={kit}
             adhoc={opts.adhoc ?? {}}
             renderIcon={opts.renderIcon as ((key: string) => ReactNode) | undefined}

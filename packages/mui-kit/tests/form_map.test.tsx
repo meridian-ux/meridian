@@ -66,7 +66,7 @@ describe("KeyValueMapField — MUI form round-trip", () => {
       },
     };
     render(
-      <MeridianMuiProvider invoker={invoker}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={invoker}>
         <ViewRenderer view={mapView()} />
       </MeridianMuiProvider>,
     );

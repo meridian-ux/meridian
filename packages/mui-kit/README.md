@@ -47,6 +47,22 @@ import { ViewRenderer } from "@savvifi/meridian-web-react";
 `Theme`) + `CssBaseline` over the subtree, then a `MeridianProvider` wired to
 `muiKit` — so view/slot actions are themed too.
 
+Mutations from descriptor actions, form submits, table row actions, and LRO
+starts are denied by default. Allow only the methods this host expects:
+
+```tsx
+<MeridianMuiProvider
+  invoker={rpcInvoker}
+  admission={{ mutations: ["demo.catalog.v1.Product/DeleteProduct"] }}
+>
+  <ViewRenderer view={viewDescriptor} />
+</MeridianMuiProvider>
+```
+
+Reads remain open by default; `onDenied` can be supplied on the policy for
+logging or host-side feedback. `admission: "unrestricted"` is an explicit
+opt-out for first-party-only descriptor sources.
+
 For a single panel (no layout tier), use the kit as a `WebRenderer`:
 
 ```ts

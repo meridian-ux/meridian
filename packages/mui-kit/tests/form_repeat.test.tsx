@@ -149,7 +149,7 @@ const navGroupsPanel = create(PanelDescriptorSchema, {
 describe("RepeatedField — scalar items (add / remove / reorder)", () => {
   it("seeds min_items rows and renders up/down/remove controls", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -163,7 +163,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
 
   it("Add tag appends a new row", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -175,7 +175,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
 
   it("remove drops the correct row", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -190,7 +190,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
 
   it("first row up is disabled; last row down is disabled", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -208,7 +208,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
   it("move down swaps adjacent rows (round-trips the correct JSON)", async () => {
     const calls: unknown[] = [];
     render(
-      <MeridianMuiProvider invoker={makeInvoker((req) => calls.push(req))}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker((req) => calls.push(req))}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -236,7 +236,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
   it("move up swaps adjacent rows", async () => {
     const calls: unknown[] = [];
     render(
-      <MeridianMuiProvider invoker={makeInvoker((req) => calls.push(req))}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker((req) => calls.push(req))}>
         <ViewRenderer view={formView(scalarPanel)} />
       </MeridianMuiProvider>,
     );
@@ -290,7 +290,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
       },
     });
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(readonlyPanel)} />
       </MeridianMuiProvider>,
     );
@@ -307,7 +307,7 @@ describe("RepeatedField — scalar items (add / remove / reorder)", () => {
 describe("RepeatedField — nav.groups shape (nested object + child RepeatedField)", () => {
   it("renders add-section and add-kind buttons", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker()}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>
         <ViewRenderer view={formView(navGroupsPanel)} />
       </MeridianMuiProvider>,
     );
@@ -320,7 +320,7 @@ describe("RepeatedField — nav.groups shape (nested object + child RepeatedFiel
   it("reorders sections and round-trips to the expected JSON", async () => {
     const calls: unknown[] = [];
     render(
-      <MeridianMuiProvider invoker={makeInvoker((req) => calls.push(req))}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker((req) => calls.push(req))}>
         <ViewRenderer view={formView(navGroupsPanel)} />
       </MeridianMuiProvider>,
     );
@@ -352,7 +352,7 @@ describe("RepeatedField — nav.groups shape (nested object + child RepeatedFiel
   it("adds a kind inside a section and round-trips to the expected JSON", async () => {
     const calls: unknown[] = [];
     render(
-      <MeridianMuiProvider invoker={makeInvoker((req) => calls.push(req))}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker((req) => calls.push(req))}>
         <ViewRenderer view={formView(navGroupsPanel)} />
       </MeridianMuiProvider>,
     );

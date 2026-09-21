@@ -3,12 +3,17 @@
 // chosen ComponentKit, and the adhoc-handler registry. It composes with a host's
 // other providers; it does not replace them.
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { ComponentType, ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import {
+  createAdmissionGate,
+  type AdmissionGate,
+  type AdmissionPolicy,
+  type RpcInvoker,
+} from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 
@@ -67,6 +72,8 @@ export type MeridianGrammarResolver = (opts: {
 export interface MeridianContextValue {
   theme?: Theme;
   invoker: RpcInvoker;
+  /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
+  admission?: AdmissionPolicy;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
   /** Optional host handler for no-call actions (nav/custom). Absent ⇒ no-op. */
@@ -80,9 +87,26 @@ export interface MeridianContextValue {
   resolveHref?: MeridianHrefResolver;
 }
 
-const MeridianContext = createContext<MeridianContextValue | null>(null);
+interface MeridianContextState extends MeridianContextValue {
+  mutationInvoker: RpcInvoker;
+}
 
-export function useMeridian(): MeridianContextValue {
+const MeridianContext = createContext<MeridianContextState | null>(null);
+
+function tieredInvoker(
+  invoker: RpcInvoker,
+  gate: AdmissionGate,
+  tier: "read" | "mutation",
+): RpcInvoker {
+  return {
+    async invoke(service, method, request) {
+      gate.check(tier, service, method);
+      return invoker.invoke(service, method, request);
+    },
+  };
+}
+
+export function useMeridian(): MeridianContextState {
   const value = useContext(MeridianContext);
   if (!value) {
     throw new Error("useMeridian must be used within a <MeridianProvider>");
@@ -92,6 +116,8 @@ export function useMeridian(): MeridianContextValue {
 
 export const useMeridianTheme = (): Theme | undefined => useMeridian().theme;
 export const useRpcInvoker = (): RpcInvoker => useMeridian().invoker;
+/** The mutation-tier transport; descriptor actions and submits use this explicitly. */
+export const useMutationRpcInvoker = (): RpcInvoker => useMeridian().mutationInvoker;
 export const useComponentKit = (): ComponentKit => useMeridian().kit;
 export const useAdhocHandler = (
   handlerId: string,
@@ -128,8 +154,33 @@ export function MeridianProvider({
   children,
   ...value
 }: MeridianProviderProps): ReactNode {
+  const gate = useMemo(() => createAdmissionGate(value.admission), [value.admission]);
+  const readInvoker = useMemo(
+    () => tieredInvoker(value.invoker, gate, "read"),
+    [value.invoker, gate],
+  );
+  const mutationInvoker = useMemo(
+    () => tieredInvoker(value.invoker, gate, "mutation"),
+    [value.invoker, gate],
+  );
+  const contextValue = useMemo<MeridianContextState>(
+    () => ({ ...value, invoker: readInvoker, mutationInvoker }),
+    [
+      value.theme,
+      value.invoker,
+      value.admission,
+      value.kit,
+      value.adhoc,
+      value.onAction,
+      value.renderIcon,
+      value.renderGrammar,
+      value.resolveHref,
+      readInvoker,
+      mutationInvoker,
+    ],
+  );
   return (
-    <MeridianContext.Provider value={value}>
+    <MeridianContext.Provider value={contextValue}>
       {children}
     </MeridianContext.Provider>
   );

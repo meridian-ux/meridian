@@ -31,6 +31,7 @@ import {
   selectionDeps,
   useActionHandler,
   useHrefResolver,
+  useMutationRpcInvoker,
   useMeridianSelection,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
@@ -176,6 +177,7 @@ function compareCellValues(a: unknown, b: unknown): number {
 }
 
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
+  const mutationInvoker = useMutationRpcInvoker();
   // usePagedRows (meridian-web-react) is the kit-agnostic pagination brain:
   // CLIENT returns all fetched rows (we slice locally); OFFSET / CURSOR fetch one
   // page at a time via the invoker. MeridianTable just displays a page + a pager.
@@ -317,7 +319,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.rpc) {
-            void invoker.invoke(action.rpc.service, action.rpc.method, id != null ? { id } : {});
+            void mutationInvoker.invoke(action.rpc.service, action.rpc.method, id != null ? { id } : {}).catch(() => {});
           }
         },
       });
@@ -329,7 +331,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.call) {
-            void invoker.invoke(action.call.service, action.call.method, id != null ? { id } : {});
+            void mutationInvoker.invoke(action.call.service, action.call.method, id != null ? { id } : {}).catch(() => {});
             return;
           }
           onAction?.(action.id, subjectKind, id as string | number | undefined);
@@ -709,7 +711,10 @@ function FieldForm({
   // them. A rejected submit keeps the text so it can be retried.
   const handleSubmit = () => {
     const result = onSubmit?.(values);
-    if (!resetOnSubmit) return;
+    if (!resetOnSubmit) {
+      void Promise.resolve(result).catch(() => {});
+      return;
+    }
     void Promise.resolve(result).then(
       () => setValues(seed),
       () => {},
@@ -733,6 +738,7 @@ function startsBlank(value: unknown): boolean {
 }
 
 function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
+  const mutationInvoker = useMutationRpcInvoker();
   const edit = panel.mode === FormMode.EDIT;
   // Does this form CREATE something, or edit something that already exists? The
   // descriptor doesn't say, so read it off the fields: a form that opens blank is
@@ -788,7 +794,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
       onSubmit={
         edit
           ? (values) =>
-              invoke(invoker, panel.submit, {
+              invoke(mutationInvoker, panel.submit, {
                 ...buildBindingRequest(panel.submit, selection.values),
                 ...(values as Row),
               })
@@ -847,19 +853,20 @@ function PromptShape({ panel }: { panel: PromptPanel }): ReactNode {
   );
 }
 
-function LroShape({ panel, invoker }: { panel: LroPanel; invoker: RpcInvoker }): ReactNode {
+function LroShape({ panel }: { panel: LroPanel }): ReactNode {
+  const mutationInvoker = useMutationRpcInvoker();
   if (panel.inputs.length > 0) {
     return (
       <FieldForm
         fields={panel.inputs}
         disabled={false}
         submitLabel={panel.runButtonLabel || "Run"}
-        onSubmit={(values) => invoke(invoker, panel.start, values as Row)}
+        onSubmit={(values) => invoke(mutationInvoker, panel.start, values as Row)}
       />
     );
   }
   return (
-    <Button variant="contained" onClick={() => invoke(invoker, panel.start)}>
+    <Button variant="contained" onClick={() => void invoke(mutationInvoker, panel.start)?.catch(() => {})}>
       {panel.runButtonLabel || "Run"}
     </Button>
   );
@@ -905,7 +912,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
   // the view subject (no row id at the header level).
   const fire = (action: Action): void => {
     if (action.call) {
-      invoke(invoker, action.call);
+      void invoke(invoker, action.call)?.catch(() => {});
       return;
     }
     onAction?.(action.id, subjectKind);
@@ -975,9 +982,7 @@ export const muiKit: ComponentKit = {
   Prompt: ({ panel }: ShapeProps<PromptPanel>) => <PromptShape panel={panel} />,
   LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
   Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
-  Lro: ({ panel, invoker }: ShapeProps<LroPanel>) => (
-    <LroShape panel={panel} invoker={invoker} />
-  ),
+  Lro: ({ panel }: ShapeProps<LroPanel>) => <LroShape panel={panel} />,
   Form: ({ panel, invoker }: ShapeProps<FormPanel>) => (
     <FormShape panel={panel} invoker={invoker} />
   ),

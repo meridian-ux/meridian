@@ -5,7 +5,7 @@
 // none. Every action arm maps onto a seam `@savvifi/meridian-web-react` already exports, so
 // this file dispatches and renders — it invents no transport:
 //
-//   rpc         → useRpcInvoker
+//   rpc         → useMutationRpcInvoker
 //   navigate    → the shell's routing seam
 //   openViewId  → the shell's routing seam, via the host's hrefFor
 //   openPanel   → PanelRenderer, so a create/edit FormPanel renders through MeridianForm
@@ -30,7 +30,7 @@ import {
 import * as React from "react";
 
 import type { Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { PanelRenderer, useIcon, useRpcInvoker } from "@savvifi/meridian-web-react";
+import { PanelRenderer, useIcon, useMutationRpcInvoker } from "@savvifi/meridian-web-react";
 
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
@@ -44,7 +44,7 @@ function CommandIcon({ iconKey }: { iconKey: string }) {
 
 export function LaunchpadView() {
   const { shell, seams, launchpad, capabilities } = useShell();
-  const invoker = useRpcInvoker();
+  const mutationInvoker = useMutationRpcInvoker();
   const [query, setQuery] = React.useState("");
   const [index, setIndex] = React.useState(0);
   // A command whose action opened a panel — rendered as a focused step of the palette.
@@ -111,7 +111,7 @@ export function LaunchpadView() {
           // and holding the overlay open on a spinner would make ⌘K feel like a form. The
           // host surfaces failure through its own invoker, which is where every other
           // meridian action reports it.
-          void invoker?.invoke(action.value.service, action.value.method, {});
+          void mutationInvoker.invoke(action.value.service, action.value.method, {}).catch(() => {});
           close();
           return;
         }
@@ -119,7 +119,7 @@ export function LaunchpadView() {
           close();
       }
     },
-    [close, go, invoker, seams],
+    [close, go, mutationInvoker, seams],
   );
 
   const onKeyDown = (event: React.KeyboardEvent) => {

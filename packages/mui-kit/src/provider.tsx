@@ -25,7 +25,7 @@ import type {
   ReactAdhocFactory,
 } from "@savvifi/meridian-web-react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { AdmissionPolicy, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianAssetContext, type MeridianAssetResolver } from "./asset_context.js";
 import { muiKit } from "./mui_kit.js";
@@ -47,6 +47,8 @@ function isProduction(): boolean {
 
 export interface MeridianMuiProviderProps {
   invoker: RpcInvoker;
+  /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
+  admission?: AdmissionPolicy;
   /** The meridian skin. Optional — falls back to neutral MUI defaults. */
   theme?: Theme;
   /** light | dark selection into the Theme's palettes. */
@@ -76,6 +78,7 @@ export interface MeridianMuiProviderProps {
 
 export function MeridianMuiProvider({
   invoker,
+  admission,
   theme,
   mode = "light",
   adhoc = {},
@@ -128,6 +131,7 @@ export function MeridianMuiProvider({
         <MeridianProvider
           theme={theme}
           invoker={invoker}
+          admission={admission}
           kit={muiKit}
           adhoc={adhoc}
           onAction={onAction}

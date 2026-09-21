@@ -5,7 +5,7 @@
 // same dispatch. Uses fake timers to drive the ~250ms debounce deterministically.
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createElement } from "react";
 
 import { create } from "@bufbuild/protobuf";
@@ -19,6 +19,7 @@ const invoker = { invoke: async () => ({}) };
 
 afterEach(() => {
   vi.useRealTimers();
+  cleanup();
 });
 
 function renderLaunchpad(props: Record<string, unknown>) {
@@ -69,5 +70,27 @@ describe("<Launchpad> agent seam", () => {
     const onResolveQuery = vi.fn(async () => []);
     renderLaunchpad({ onResolveQuery });
     expect(onResolveQuery).not.toHaveBeenCalled();
+  });
+
+  it("routes rpc commands through the mutation admission boundary", () => {
+    const calls: string[] = [];
+    const denials: Array<{ tier: string; service: string; method: string }> = [];
+    render(
+      createElement(
+        MeridianProvider,
+        {
+          invoker: { invoke: async (_service: string, method: string) => { calls.push(method); return {}; } },
+          admission: { onDenied: (denial) => denials.push(denial) },
+          kit: htmlKit,
+          adhoc: {},
+        },
+        createElement(Launchpad, { descriptor: demoLaunchpad(), open: true, onClose: () => {} }),
+      ),
+    );
+
+    fireEvent.mouseDown(screen.getByText("Export data"));
+
+    expect(calls).toEqual([]);
+    expect(denials).toMatchObject([{ tier: "mutation", service: "acme.v1.Exporter", method: "Export" }]);
   });
 });

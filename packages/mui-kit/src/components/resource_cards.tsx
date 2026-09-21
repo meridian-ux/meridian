@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Alert, Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import type { ResourceAction, ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { resolvePath, useResourceCardRows } from "@savvifi/meridian-web-react";
+import { resolvePath, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
 
 function style(action: ResourceAction): "inherit" | "primary" | "error" {
   return action.style === 3 ? "error" : action.style === 2 ? "primary" : "inherit";
@@ -36,6 +36,7 @@ export function MeridianResourceCards({
   invoker: RpcInvoker;
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
+  const mutationInvoker = useMutationRpcInvoker();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
   if (loading) return <Typography color="text.secondary">Loading…</Typography>;
   if (error) return <Alert severity="error">Failed to load resources.</Alert>;
@@ -44,7 +45,11 @@ export function MeridianResourceCards({
   if (!template) return <Alert severity="error">Invalid resource card descriptor.</Alert>;
   const actions = template.actions?.actions ?? [];
   const invoke = (action: ResourceAction, row: Record<string, unknown>) => {
-    if (action.invoke) void invoker.invoke(action.invoke.service, action.invoke.method, requestFor(action, row));
+    if (action.invoke) {
+      void mutationInvoker
+        .invoke(action.invoke.service, action.invoke.method, requestFor(action, row))
+        .catch(() => {});
+    }
   };
   return (
     <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={2}>

@@ -151,9 +151,10 @@ The reference web-components renderer now enforces the descriptor admission poli
 at every RPC boundary: populate and stream calls are read-tier, while row/resource
 actions and LRO starts are mutation-tier and default closed. Hosts can allow exact
 service/methods through `MountOptions.admission`; denied actions remain visible with
-the policy reason instead of reaching the invoker. React-kit enforcement remains a
-follow-on slice because its action and populate transports are split across kit and
-view composition components.
+the policy reason instead of reaching the invoker. The React kit now applies the
+same boundary through `MeridianProvider`: view/resource/table actions, form submits,
+LRO starts, and Launchpad `rpc` commands use the mutation tier, while automatic
+populate/prefill calls remain read-tier.
 
 ## Working the roadmap
 

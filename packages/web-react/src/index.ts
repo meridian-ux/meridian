@@ -37,6 +37,7 @@ export {
   useMeridian,
   useMeridianTheme,
   useRpcInvoker,
+  useMutationRpcInvoker,
   useComponentKit,
   useAdhocHandler,
   useActionHandler,

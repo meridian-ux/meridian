@@ -45,7 +45,9 @@ import { MeridianProvider } from "@savvifi/meridian-web-react";
 
 The host owns the open gesture — bind ⌘K to toggle `open`. `<Launchpad>` owns
 filtering, keyboard navigation (↑/↓/↵/Esc), and dispatch. It must render inside a
-`<MeridianProvider>`.
+`<MeridianProvider>`. Its `rpc` commands use the provider's mutation-tier
+transport, so they are denied by default unless the host allows their exact
+service/method in `admission.mutations`.
 
 ## Development
 

@@ -2,7 +2,7 @@
 // ⌘K command palette. It reads the transport/kit seam from the surrounding
 // <MeridianProvider> (meridian-web-react), so a Command's action dispatches
 // through the SAME RpcInvoker / PanelRenderer every panel uses:
-//   - rpc          → invoker.invoke(service, method)
+//   - rpc          → the provider's mutation-tier invoker
 //   - open_panel   → a focused step rendering the panel through the host's kit
 //   - open_view_id → onOpenView (or the host action handler)
 //   - navigate     → onNavigate (or window.location)
@@ -23,7 +23,7 @@ import {
   PanelRenderer,
   useActionHandler,
   useIcon,
-  useRpcInvoker,
+  useMutationRpcInvoker,
 } from "@savvifi/meridian-web-react";
 
 import { filterLaunchpad, flatten } from "./filter.js";
@@ -147,7 +147,7 @@ export function Launchpad({
   onResolveQuery,
   agentGroupTitle = "Ask the agent",
 }: LaunchpadProps): ReactNode {
-  const invoker = useRpcInvoker();
+  const mutationInvoker = useMutationRpcInvoker();
   const actionHandler = useActionHandler();
 
   const [query, setQuery] = useState("");
@@ -230,7 +230,7 @@ export function Launchpad({
       const action = command.action;
       switch (action.case) {
         case "rpc":
-          void invoker.invoke(action.value.service, action.value.method, {});
+          void mutationInvoker.invoke(action.value.service, action.value.method, {}).catch(() => {});
           finish();
           break;
         case "openPanel":
@@ -253,7 +253,7 @@ export function Launchpad({
       }
       onRun?.(command);
     },
-    [invoker, actionHandler, onOpenView, onNavigate, onRun, finish],
+    [mutationInvoker, actionHandler, onOpenView, onNavigate, onRun, finish],
   );
 
   // Keyboard model: ↑/↓ move, Enter runs, Escape backs out of a focused panel or

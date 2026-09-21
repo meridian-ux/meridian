@@ -10,6 +10,7 @@ import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { buildBindingRequest, resolvePath, selectionDeps, useMeridianSelection } from "./pagination.js";
+import { useMutationRpcInvoker } from "./provider.js";
 
 type Row = Record<string, unknown>;
 
@@ -103,6 +104,7 @@ export function ResourceCardsView({
   invoker: RpcInvoker;
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
+  const mutationInvoker = useMutationRpcInvoker();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Row } | null>(null);
   if (loading) return <div className="mer-resource-cards"><p className="mer-empty">Loading…</p></div>;
   if (error) return <div className="mer-resource-cards"><p className="mer-empty">Failed to load resources.</p></div>;
@@ -112,7 +114,12 @@ export function ResourceCardsView({
   const actions = template.actions?.actions ?? [];
   const run = (action: ResourceAction, row: Row) => {
     if (!action.invoke) return;
-    void invoker.invoke(action.invoke.service, action.invoke.method, buildActionRequest(action.invoke, row));
+    void mutationInvoker
+      .invoke(action.invoke.service, action.invoke.method, buildActionRequest(action.invoke, row))
+      .catch(() => {
+        // The host admission policy reports the actionable reason through its
+        // onDenied callback; the card remains mounted and retryable.
+      });
   };
   return (
     <div className="mer-resource-cards" role="list">

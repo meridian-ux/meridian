@@ -69,7 +69,7 @@ function view(panel: ReturnType<typeof create<typeof PanelDescriptorSchema>>): V
 function submitWith(panel: ReturnType<typeof create<typeof PanelDescriptorSchema>>, text: string) {
   let request: unknown;
   render(
-    <MeridianMuiProvider invoker={makeInvoker((req) => { request = req; })}>
+    <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker((req) => { request = req; })}>
       <ViewRenderer view={view(panel)} />
     </MeridianMuiProvider>,
   );
@@ -144,7 +144,7 @@ describe("FormPanel(EDIT) prefill", () => {
       },
     };
     render(
-      <MeridianMuiProvider invoker={invoker}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={invoker}>
         <ViewRenderer view={view(panel)} />
       </MeridianMuiProvider>,
     );
@@ -201,7 +201,7 @@ describe("FormPanel(EDIT) prefill", () => {
       },
     };
     render(
-      <MeridianMuiProvider invoker={invoker}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={invoker}>
         <ViewRenderer view={view(panel)} />
       </MeridianMuiProvider>,
     );
@@ -233,7 +233,7 @@ describe("FormPanel(EDIT) prefill", () => {
     });
     const invoker: RpcInvoker = { invoke: async () => { throw new Error("offline"); } };
     render(
-      <MeridianMuiProvider invoker={invoker}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={invoker}>
         <ViewRenderer view={view(panel)} />
       </MeridianMuiProvider>,
     );
@@ -245,7 +245,7 @@ describe("FormPanel(EDIT) prefill", () => {
 describe("FormPanel(EDIT) submit — clearing a composer", () => {
   it("clears the box once the post RESOLVES", async () => {
     render(
-      <MeridianMuiProvider invoker={makeInvoker(() => {})}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker(() => {})}>
         <ViewRenderer view={view(composerPanel([]))} />
       </MeridianMuiProvider>,
     );
@@ -259,7 +259,7 @@ describe("FormPanel(EDIT) submit — clearing a composer", () => {
   it("KEEPS the text when the post rejects, so it can be retried", async () => {
     const failing: RpcInvoker = { invoke: async () => { throw new Error("boom"); } };
     render(
-      <MeridianMuiProvider invoker={failing}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={failing}>
         <ViewRenderer view={view(composerPanel([]))} />
       </MeridianMuiProvider>,
     );
@@ -289,7 +289,7 @@ describe("FormPanel(EDIT) submit — clearing a composer", () => {
       },
     });
     render(
-      <MeridianMuiProvider invoker={makeInvoker(() => {})}>
+      <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker(() => {})}>
         <ViewRenderer view={view(prefilled)} />
       </MeridianMuiProvider>,
     );

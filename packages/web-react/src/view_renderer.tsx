@@ -60,18 +60,18 @@ function fireAction(
   entityId?: string | number,
 ): void {
   if (action.call) {
-    void invoker.invoke(action.call.service, action.call.method, {});
+    void invoker.invoke(action.call.service, action.call.method, {}).catch(() => {});
     return;
   }
   onAction?.(action.id, subjectKind, entityId);
 }
 
 function ActionsView({ actions }: { actions: Action[] }): ReactNode {
-  const { kit, invoker, onAction } = useMeridian();
+  const { kit, mutationInvoker, onAction } = useMeridian();
   const { subjectKind } = useContext(MeridianViewContext);
   if (!actions || actions.length === 0) return null;
   if (kit.ActionBar) {
-    return <kit.ActionBar actions={actions} invoker={invoker} />;
+    return <kit.ActionBar actions={actions} invoker={mutationInvoker} />;
   }
   return (
     <div className="mer-actions">
@@ -79,7 +79,7 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
         <button
           key={a.id}
           type="button"
-          onClick={() => fireAction(invoker, onAction, a, subjectKind)}
+          onClick={() => fireAction(mutationInvoker, onAction, a, subjectKind)}
         >
           {a.label}
         </button>
