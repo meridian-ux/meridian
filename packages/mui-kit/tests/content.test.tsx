@@ -4,7 +4,7 @@
 // of the web-react conformance over these shapes and the TUI content.rs tests.
 
 import { create } from "@bufbuild/protobuf";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
@@ -24,7 +24,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
@@ -159,6 +159,8 @@ describe("muiKit content field-completeness", () => {
   });
 
   it("CopyValue applies declared display while preserving the raw copy source", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
     renderPanel(create(PanelDescriptorSchema, {
       panelId: "typed",
       title: "Typed",
@@ -170,6 +172,30 @@ describe("muiKit content field-completeness", () => {
       },
     }));
     await screen.findByText("Mar 29, 2026");
+    fireEvent.click(screen.getByRole("button", { name: "Mar 29, 2026" }));
+    expect(writeText).toHaveBeenCalledWith("2026-03-29");
+  });
+
+  it("ConnectFlow reveals formatted text but copies the original secret", () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    renderPanel(create(PanelDescriptorSchema, { body: { case: "connectFlow", value: {
+      endpoint: { value: "2026-03-29", secret: true, display: { type: ValueType.DATE } },
+    } } }));
+    expect(screen.queryByText("Mar 29, 2026")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "••••••••" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reveal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mar 29, 2026" }));
+    expect(writeText.mock.calls).toEqual([["2026-03-29"], ["2026-03-29"]]);
+    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+    expect(screen.queryByText("Mar 29, 2026")).toBeNull();
+  });
+
+  it.each([undefined, {}])("retains literal copy text with absent/unspecified display: %j", (display) => {
+    renderPanel(create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+      value: { value: "2026-03-29", display },
+    } } }));
+    expect(screen.getByRole("button", { name: "2026-03-29" })).toBeTruthy();
   });
 
   it("Affordance.description renders nested in a CatalogItem (no ActionPanel wrapper)", async () => {

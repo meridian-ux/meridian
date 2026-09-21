@@ -4,7 +4,7 @@
 // placeholder. These render through the shared content_shapes module, so one
 // assertion set covers htmlKit AND shadcnKit.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -142,9 +142,28 @@ describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
         }),
       },
     });
-    const html = render(htmlKit, typed);
+    const decoded = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, typed));
+    const html = render(kit, decoded);
     expect(html).toContain("Mar 29, 2026");
     expect(html).toContain('data-copy="2026-03-29"');
+  });
+
+  it("formats nested revealed values while unspecified displays keep literal text", () => {
+    const nested = create(PanelDescriptorSchema, { body: { case: "connectFlow", value: {
+      endpoint: { value: "2026-03-29", secret: true, display: { type: ValueType.DATE } },
+    } } });
+    const html = render(kit, nested);
+    expect(html).toContain("••••••••");
+    expect(html).toMatch(/data-plain[^>]*hidden[^>]*>Mar 29, 2026/);
+    expect(html).toContain('data-copy="2026-03-29"');
+    for (const display of [undefined, {}]) {
+      const legacy = create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+        value: { value: "2026-03-29", display },
+      } } });
+      const output = render(kit, legacy);
+      expect(output).not.toContain("Mar 29, 2026");
+      expect(output).toContain('>2026-03-29</code>');
+    }
   });
 
   it("ConnectFlow with no targets renders the placeholder", () => {
