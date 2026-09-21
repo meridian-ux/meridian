@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { PanelRenderer, MeridianProvider } from "@savvifi/meridian-web-react";
 import { muiKit } from "../src/mui_kit.js";
-import { FIXTURES } from "../../web-react/tests/fixtures.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 
 const invoker = { invoke: async () => ({}) };
 
