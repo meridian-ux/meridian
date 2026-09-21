@@ -11,25 +11,11 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, extname, join } from "node:path";
+import { dirname, extname, join, relative } from "node:path";
 
 const SCHEMAS_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPO_ROOT = join(SCHEMAS_ROOT, "..");
 const JAVASCRIPT_TEST_EXTENSIONS = new Set([".js", ".jsx", ".mjs", ".ts", ".tsx"]);
-
-function filesUnder(relativeRoot) {
-  const absoluteRoot = join(REPO_ROOT, relativeRoot);
-  const files = [];
-  const visit = (directory) => {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory()) visit(path);
-      else files.push(path);
-    }
-  };
-  visit(absoluteRoot);
-  return files;
-}
 
 export function countJavaScriptTests(text) {
   // Test declarations begin a line in the supported Vitest/Node test styles.
@@ -44,6 +30,7 @@ export function countRustTests(text) {
 export function countSuite(suite, { repoRoot = REPO_ROOT } = {}) {
   let count = 0;
   const missingRoots = [];
+  const excluded = new Set(suite.exclude ?? []);
   for (const relativeRoot of suite.roots ?? []) {
     const files = (() => {
       try {
@@ -57,6 +44,8 @@ export function countSuite(suite, { repoRoot = REPO_ROOT } = {}) {
       }
     })();
     for (const path of files) {
+      const relativePath = relative(repoRoot, path).replaceAll("\\", "/");
+      if (excluded.has(relativePath)) continue;
       const extension = extname(path);
       const isTestFile = suite.kind === "rust"
         ? extension === ".rs"

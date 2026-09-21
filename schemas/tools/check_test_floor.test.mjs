@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { check, countJavaScriptTests, countRustTests } from "./check_test_floor.mjs";
+import { check, countJavaScriptTests, countRustTests, countSuite } from "./check_test_floor.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const readManifest = () => JSON.parse(readFileSync(join(ROOT, "conformance/test_floor.json"), "utf8"));
@@ -23,6 +23,14 @@ test("missing test roots fail instead of counting zero silently", () => {
   manifest.suites[0].roots = ["packages/does-not-exist/tests"];
   const errors = check(manifest);
   assert.ok(errors.some((error) => /test root does not exist/.test(error)));
+});
+
+test("excluded files mirror CI test-script exclusions", () => {
+  const manifest = readManifest();
+  const web = manifest.suites.find((suite) => suite.id === "web");
+  const all = countSuite({ ...web, exclude: [] }).count;
+  const ciScoped = countSuite(web).count;
+  assert.equal(all - ciScoped, 4);
 });
 
 test("JavaScript declarations count test and it styles but not assertion calls", () => {
