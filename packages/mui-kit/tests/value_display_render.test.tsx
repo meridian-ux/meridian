@@ -6,7 +6,7 @@
 // the wiring, not the arithmetic.
 
 import { create } from "@bufbuild/protobuf";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
@@ -29,11 +29,48 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);
+
+describe.each(["recordCard", "detailHeader"] as const)("%s principal destinations", (shape) => {
+  it.each(["principal", "email", "no-resolver", "declined", "empty-href", "no-kind", "disabled"] as const)("handles %s through the host seam", async (scenario) => {
+    const raw = "Ruchi Sharma <ruchi@example.com>";
+    const display = {
+      type: scenario === "email" ? ValueType.EMAIL : ValueType.PRINCIPAL,
+      options: { case: "principal" as const, value: {
+        display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE,
+        linkToRecord: scenario !== "disabled",
+        targetKind: scenario === "no-kind" ? "" : "identity.user",
+      } },
+    };
+    const populate = { service: "svc", method: "get" };
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "principal",
+      body: shape === "recordCard"
+        ? { case: shape, value: { populate, fields: [{ fieldId: "owner", display }] } }
+        : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "owner", display }] } },
+    });
+    const resolveHref = vi.fn(() => scenario === "declined" ? undefined : scenario === "empty-href" ? "" : "/people/host-selected");
+    render(
+      <MeridianMuiProvider invoker={{ invoke: async () => ({ owner: raw }) }} resolveHref={scenario === "no-resolver" ? undefined : resolveHref}>
+        <PanelRenderer descriptor={descriptor} />
+      </MeridianMuiProvider>,
+    );
+    const label = await screen.findByText("Ruchi Sharma");
+    expect(label.getAttribute("title")).toBe("ruchi@example.com");
+    if (scenario === "principal" || scenario === "email") {
+      const link = screen.getByRole("link", { name: "Ruchi Sharma" });
+      expect(link.getAttribute("href")).toBe("/people/host-selected");
+      expect(link.getAttribute("target")).toBeNull();
+    } else expect(screen.queryByRole("link")).toBeNull();
+    if (["no-resolver", "no-kind", "disabled"].includes(scenario)) {
+      expect(resolveHref).not.toHaveBeenCalled();
+    } else expect(resolveHref).toHaveBeenCalledWith("identity.user", raw);
+  });
+});
 
 const COMMENT = {
   authorName: "Ruchi Sharma <ruchi@example.com>",
@@ -41,6 +78,7 @@ const COMMENT = {
   createdAt: "2026-07-25T09:18:00.000Z",
   dueDate: "2026-03-29T00:00:00.000Z",
   profileUrl: "https://example.com/docs",
+  ownerId: "user_123",
 };
 
 const invoker: RpcInvoker = { invoke: async () => COMMENT as never };
@@ -102,6 +140,17 @@ function cardView(): ViewDescriptor {
                   }),
                 ),
                 field("profileUrl", "Profile", create(ValueDisplaySchema, { type: ValueType.URL })),
+                field(
+                  "ownerId",
+                  "Owner",
+                  create(ValueDisplaySchema, {
+                    type: ValueType.PRINCIPAL,
+                    options: {
+                      case: "principal",
+                      value: { linkToRecord: true, targetKind: "identity.user" },
+                    },
+                  }),
+                ),
               ],
             }),
           },
@@ -114,7 +163,10 @@ function cardView(): ViewDescriptor {
 describe("record card honours a declared ValueDisplay", () => {
   it("renders a relative Posted and an absolute Due Date on the same card", async () => {
     render(
-      <MeridianMuiProvider invoker={invoker}>
+      <MeridianMuiProvider
+        invoker={invoker}
+        resolveHref={(kind, id) => `/directory/${kind}/${id}`}
+      >
         <ViewRenderer view={cardView()} />
       </MeridianMuiProvider>,
     );
@@ -134,6 +186,8 @@ describe("record card honours a declared ValueDisplay", () => {
     expect(screen.getByText("Ruchi Sharma").getAttribute("title")).toBe("ruchi@example.com");
     expect(screen.getByRole("link", { name: "https://example.com/docs" }).getAttribute("href"))
       .toBe("https://example.com/docs");
+    expect(screen.getByRole("link", { name: "user_123" }).getAttribute("href"))
+      .toBe("/directory/identity.user/user_123");
   });
 
   it("leaves an undeclared field on the existing inference", async () => {

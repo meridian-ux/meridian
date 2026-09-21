@@ -134,7 +134,14 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
                 Some(value_display::Options::Principal(options)) => Some(options),
                 _ => None,
             };
-            format_principal_value(value, options)
+            format_principal_value(value, options, PrincipalDisplay::Unspecified)
+        }
+        ValueType::Email => {
+            let options = match display.options.as_ref() {
+                Some(value_display::Options::Principal(options)) => Some(options),
+                _ => None,
+            };
+            format_principal_value(value, options, PrincipalDisplay::Email)
         }
         ValueType::Unspecified
         | ValueType::Text
@@ -144,7 +151,6 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         | ValueType::DateTime
         | ValueType::Time
         | ValueType::Duration
-        | ValueType::Email
         | ValueType::Url
         | ValueType::Identifier => {
             let text = value.as_str();
@@ -175,7 +181,11 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
 /// remains a valid fallback. Native surfaces cannot attach a browser title, so
 /// NAME_WITH_EMAIL_TITLE uses the name as its visible text and preserves the
 /// same readable fallback as NAME.
-fn format_principal_value(value: &Value, options: Option<&PrincipalOptions>) -> String {
+fn format_principal_value(
+    value: &Value,
+    options: Option<&PrincipalOptions>,
+    default_display: PrincipalDisplay,
+) -> String {
     let text = format_display_scalar(value);
     if text.is_empty() {
         return "—".to_string();
@@ -211,7 +221,7 @@ fn format_principal_value(value: &Value, options: Option<&PrincipalOptions>) -> 
 
     let display = options
         .and_then(|value| PrincipalDisplay::try_from(value.display).ok())
-        .unwrap_or(PrincipalDisplay::Unspecified);
+        .unwrap_or(default_display);
     if display == PrincipalDisplay::Email {
         return email.unwrap_or(name);
     }
@@ -457,6 +467,14 @@ mod tests {
         );
         assert_eq!(
             format_display_value(&json!("ruchi@example.com"), &name),
+            "ruchi@example.com"
+        );
+        let address = ValueDisplay {
+            r#type: ValueType::Email as i32,
+            options: None,
+        };
+        assert_eq!(
+            format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &address),
             "ruchi@example.com"
         );
     }

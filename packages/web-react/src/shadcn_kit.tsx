@@ -11,7 +11,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay, isSafeHttpUrl } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -28,6 +28,7 @@ import {
 import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
 import { MeridianViewContext } from "./view_renderer.js";
+import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
@@ -42,9 +43,14 @@ function renderDisplayedValue(
   value: unknown,
   display: Parameters<typeof formatByDisplay>[1],
   shown: { text: string; title?: string },
+  resolveHref: ReturnType<typeof useHrefResolver>,
 ) {
-  return isSafeHttpUrl(value, display)
-    ? <a href={value} rel="noreferrer noopener" target="_blank" title={shown.title}>{shown.text}</a>
+  const principal = resolvePrincipalLink(value, display);
+  const principalHref = principal && resolveHref?.(principal.targetKind, principal.id);
+  return principalHref
+    ? <a href={principalHref} rel="noreferrer noopener" title={shown.title}>{shown.text}</a>
+    : isSafeHttpUrl(value, display)
+      ? <a href={value} rel="noreferrer noopener" target="_blank" title={shown.title}>{shown.text}</a>
     : <span title={shown.title}>{shown.text}</span>;
 }
 
@@ -157,6 +163,7 @@ export const shadcnKit: ComponentKit = {
   ),
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
+    const resolveHref = useHrefResolver();
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
     const now = useDisplayNow();
     const hasRecord = record !== undefined;
@@ -185,7 +192,7 @@ export const shadcnKit: ComponentKit = {
                     const shown = hasRecord
                       ? formatByDisplay(resolvePath(record, row.sourcePath), row.display, now)
                       : { text: row.sourcePath };
-                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown);
+                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown, resolveHref);
                   })()}
                 </dd>
               </div>
@@ -197,6 +204,7 @@ export const shadcnKit: ComponentKit = {
   },
   RecordCard: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
+    const resolveHref = useHrefResolver();
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
     const now = useDisplayNow();
     const hasRecord = record !== undefined;
@@ -210,7 +218,7 @@ export const shadcnKit: ComponentKit = {
                 const shown = hasRecord
                   ? formatByDisplay(resolvePath(record, field.fieldId), field.display, now)
                   : { text: field.fieldId };
-                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown);
+                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown, resolveHref);
               })()}
             </dd>
           </div>

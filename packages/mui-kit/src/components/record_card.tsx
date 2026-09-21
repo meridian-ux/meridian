@@ -8,12 +8,12 @@ import { useContext, type ReactNode } from "react";
 
 import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
+import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RecordCardPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
-import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl } from "../display_format.js";
+import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 
 /**
@@ -44,6 +44,7 @@ export function MeridianRecordCard({
 }): ReactNode {
   const { subjectId } = useContext(MeridianViewContext);
   const { record, loading, error } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+  const resolveHref = useHrefResolver();
   // undefined until mounted, which keeps a relative label out of the SSR output —
   // see use_display_now.ts. Absolute renders on both sides; relative swaps in after.
   const now = useDisplayNow();
@@ -69,6 +70,8 @@ export function MeridianRecordCard({
             // The field's DECLARED display wins; with none, formatByDisplay defers
             // to the inference this card has always used.
             const shown = formatByDisplay(value, field.display, now);
+            const principal = resolvePrincipalLink(value, field.display);
+            const principalHref = principal ? resolveHref?.(principal.targetKind, principal.id) : undefined;
             return (
               <Box key={field.fieldId}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
@@ -83,11 +86,11 @@ export function MeridianRecordCard({
                       <Chip key={chip} label={chip} size="small" variant="outlined" />
                     ))}
                   </Stack>
-                ) : isSafeHttpUrl(value, field.display) ? (
+                ) : principalHref || isSafeHttpUrl(value, field.display) ? (
                   <Link
-                    href={shown.text}
-                    target="_blank"
-                    rel="noreferrer noopener"
+                    href={principalHref ?? shown.text}
+                    target={principalHref ? undefined : "_blank"}
+                    rel={principalHref ? undefined : "noreferrer noopener"}
                     underline="hover"
                     title={shown.title}
                     sx={{ wordBreak: "break-word" }}

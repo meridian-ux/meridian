@@ -15,7 +15,7 @@ import {
   RecordCardPanelSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PrincipalDisplay, TemporalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
@@ -728,6 +728,44 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
   });
 
   describe("record panels and declared ValueDisplay", () => {
+    for (const shape of ["recordCard", "detailHeader"] as const) {
+      it(`${shape} preserves principal labels and requires a host-approved destination`, async () => {
+        for (const scenario of ["principal", "email", "no-resolver", "declined", "empty-href", "no-kind", "disabled"] as const) {
+          const raw = "Ruchi Sharma <ruchi@example.com>";
+          const display = {
+            type: scenario === "email" ? ValueType.EMAIL : ValueType.PRINCIPAL,
+            options: { case: "principal" as const, value: {
+              display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE,
+              linkToRecord: scenario !== "disabled",
+              targetKind: scenario === "no-kind" ? "" : "identity.user",
+            } },
+          };
+          const populate = { service: "acme.Builds", method: "GetBuild" };
+          const descriptor = create(PanelDescriptorSchema, {
+            panelId: "principal",
+            body: shape === "recordCard"
+              ? { case: shape, value: { populate, fields: [{ fieldId: "owner", display }] } }
+              : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "owner", display }] } },
+          });
+          const resolveHref = vi.fn(() => scenario === "declined" ? null : scenario === "empty-href" ? "" : "/people/host-selected");
+          const invoke = vi.fn(async () => ({ owner: raw }));
+          const root = document.createElement("div");
+          await renderPanel({ wasm: wasmWith([]), root, descriptor, invoker: { invoke }, context: CTX,
+            resolveHref: scenario === "no-resolver" ? undefined : resolveHref });
+          expect(root.querySelector("dd")?.getAttribute("title")).toBe("ruchi@example.com");
+          expect(root.querySelector("dd")?.textContent).toBe("Ruchi Sharma");
+          if (scenario === "principal" || scenario === "email") {
+            expect(root.querySelector("a")?.getAttribute("href")).toBe("/people/host-selected");
+            expect(root.querySelector("a")?.getAttribute("target")).toBeNull();
+          } else expect(root.querySelector("a")).toBeNull();
+          if (["no-resolver", "no-kind", "disabled"].includes(scenario)) {
+            expect(resolveHref).not.toHaveBeenCalled();
+          } else expect(resolveHref).toHaveBeenCalledWith({ targetKind: "identity.user", id: raw, row: { owner: raw } });
+          expect(invoke).toHaveBeenCalledTimes(1); // Populate is the only RPC.
+        }
+      });
+    }
+
     it("formats declared boolean and numeric values in the detail header", async () => {
       const descriptor = create(PanelDescriptorSchema, {
         panelId: "build-header",
@@ -821,6 +859,39 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
       const unsafe = await renderValue("javascript:alert(1)");
       expect(unsafe.querySelector("a")).toBeNull();
       expect(unsafe.textContent).toContain("javascript:alert(1)");
+    });
+
+    it("uses the host resolver for declared principal record links", async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "principal-link-card",
+        body: {
+          case: "recordCard",
+          value: create(RecordCardPanelSchema, {
+            populate: { service: "acme.Builds", method: "GetBuild" },
+            fields: [{
+              fieldId: "ownerId",
+              label: "Owner",
+              display: {
+                type: ValueType.PRINCIPAL,
+                options: { case: "principal", value: { linkToRecord: true, targetKind: "identity.user" } },
+              },
+            }],
+          }),
+        },
+      });
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: wasmWith([]),
+        root,
+        descriptor,
+        invoker: { invoke: async () => ({ ownerId: "user_123" }) },
+        context: CTX,
+        resolveHref: ({ targetKind, id }) => `/directory/${targetKind}/${id}`,
+      });
+      const link = root.querySelector<HTMLAnchorElement>("a");
+      expect(link?.textContent).toBe("user_123");
+      expect(link?.getAttribute("href")).toBe("/directory/identity.user/user_123");
+      expect(link?.target).toBe("");
     });
   });
 });

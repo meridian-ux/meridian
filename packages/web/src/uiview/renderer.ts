@@ -62,6 +62,7 @@ import {
   computeStat,
   formatByDisplay,
   isSafeHttpUrl,
+  resolvePrincipalLink,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -173,7 +174,8 @@ export interface RenderPanelOptions {
    */
   renderIcon?: (key: string) => HTMLElement | undefined;
   /**
-   * Host route resolver for a `ColumnLink` cell — the link peer of renderIcon /
+   * Host route resolver for a `ColumnLink` cell or declared principal/email
+   * record link — the link peer of renderIcon /
    * renderGrammar. Meridian never builds a URL: it hands the host the target
    * kind, the cell's value (the entity id) and the raw row, and the host maps
    * that to its own route. Absent, or returning nothing ⇒ plain text, never a
@@ -1894,6 +1896,15 @@ async function renderRecordPanel(
   const readDisplay = (path: string, display: Parameters<typeof formatByDisplay>[1]) =>
     formatByDisplay(readValue(path), display, displayNow);
 
+  const resolveRecordHref = (path: string, display: Parameters<typeof formatByDisplay>[1]) => {
+    const value = readValue(path);
+    const principal = resolvePrincipalLink(value, display);
+    if (principal && opts.resolveHref) {
+      return opts.resolveHref({ targetKind: principal.targetKind, id: principal.id, row: plainValue(record) as object }) ?? undefined;
+    }
+    return isSafeHttpUrl(value, display) ? String(value) : undefined;
+  };
+
   const box = document.createElement("div");
   box.className = "meridian-uiview-body";
 
@@ -1931,9 +1942,8 @@ async function renderRecordPanel(
       buildDescriptorRows(
         p.descriptorRows.map((r) => ({
           label: r.label,
-          href: isSafeHttpUrl(readValue(r.sourcePath), r.display)
-            ? (readValue(r.sourcePath) as string)
-            : undefined,
+          href: resolveRecordHref(r.sourcePath, r.display),
+          external: isSafeHttpUrl(readValue(r.sourcePath), r.display),
           ...readDisplay(r.sourcePath, r.display),
         })),
       ),
@@ -1944,9 +1954,8 @@ async function renderRecordPanel(
       buildDescriptorRows(
         p.fields.map((f) => ({
           label: f.label || f.fieldId,
-          href: isSafeHttpUrl(readValue(f.fieldId), f.display)
-            ? (readValue(f.fieldId) as string)
-            : undefined,
+          href: resolveRecordHref(f.fieldId, f.display),
+          external: isSafeHttpUrl(readValue(f.fieldId), f.display),
           ...readDisplay(f.fieldId, f.display),
         })),
       ),
@@ -1956,10 +1965,10 @@ async function renderRecordPanel(
 }
 
 /** A labeled-value grid — read-only values, NOT disabled inputs. */
-function buildDescriptorRows(rows: Array<{ label: string; text: string; title?: string; href?: string }>): HTMLElement {
+function buildDescriptorRows(rows: Array<{ label: string; text: string; title?: string; href?: string; external?: boolean }>): HTMLElement {
   const grid = document.createElement("dl");
   grid.className = "meridian-uiview-record-rows";
-  for (const { label, text, title, href } of rows) {
+  for (const { label, text, title, href, external } of rows) {
     // An empty value still renders its label: on a detail view "Team: —" is
     // information (nobody set one), whereas a missing row reads as a schema that
     // never had the field.
@@ -1970,8 +1979,10 @@ function buildDescriptorRows(rows: Array<{ label: string; text: string; title?: 
     if (href) {
       const link = document.createElement("a");
       link.href = href;
-      link.target = "_blank";
-      link.rel = "noreferrer noopener";
+      if (external) {
+        link.target = "_blank";
+        link.rel = "noreferrer noopener";
+      }
       link.textContent = text;
       dd.appendChild(link);
     } else {

@@ -45,12 +45,14 @@ export type MeridianActionHandler = (
 export type MeridianIconResolver = (key: string) => ReactNode;
 
 /**
- * Host resolver for a table cell's link destination. A TableColumn with a
+ * Host resolver for a table cell or principal value's link destination. A TableColumn with a
  * `ColumnLink` renders its value as a link; the renderer never builds a URL
  * (meridian is URL-agnostic) — it calls this with the link's target kind + the
  * cell's value (the entity id) and the host returns its own route (or undefined
  * to draw plain text). The link peer of `renderIcon` / `renderGrammar`:
- * renderer draws, host wires. Absent ⇒ link cells render as plain text.
+ * renderer draws, host wires. Declared principal/email record links use the
+ * same seam with their target kind and unformatted raw ID. Absent, or returning
+ * nothing ⇒ values render as plain text.
  */
 export type MeridianHrefResolver = (
   entityType: string,

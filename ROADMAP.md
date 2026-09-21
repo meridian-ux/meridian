@@ -149,8 +149,10 @@ web-components use the current render instant; declared HTTP(S) URL values are
 links across browser surfaces. Declared principal labels now honor name and email
 modes across browser and native read surfaces using the compatible `Name <email>`
 scalar form. Browser read surfaces also preserve email titles; native surfaces
-degrade that mode to the visible name. The remaining migration surface is
-host-resolved principal links and native link decoration.
+degrade that mode to the visible name. Principal record links now use the
+existing host route resolver when a target kind is declared; the remaining
+migration surface is native link decoration and a broader general `ValueLink`
+contract for non-principal values.
 
 ## Track C — Hardening
 

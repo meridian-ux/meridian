@@ -12,8 +12,8 @@ import { useContext, type ReactNode } from "react";
 
 import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import { formatByDisplay, isSafeHttpUrl } from "../display_format.js";
+import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@savvifi/meridian-web-react";
+import { formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
@@ -44,6 +44,7 @@ export function MeridianDetailHeader({
 }): ReactNode {
   const { subjectId } = useContext(MeridianViewContext);
   const { record, loading } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+  const resolveHref = useHrefResolver();
   // undefined until mounted, so a relative row renders absolute during SSR and both
   // sides of hydration agree — see use_display_now.ts.
   const now = useDisplayNow();
@@ -69,6 +70,10 @@ export function MeridianDetailHeader({
       label: row.label,
       raw: row.raw,
       display: row.display,
+      principalHref: (() => {
+        const principal = resolvePrincipalLink(row.raw, row.display);
+        return principal ? resolveHref?.(principal.targetKind, principal.id) : undefined;
+      })(),
       ...formatByDisplay(row.raw, row.display, now),
     }));
 
@@ -106,8 +111,14 @@ export function MeridianDetailHeader({
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   {row.label}
                 </Typography>
-                {isSafeHttpUrl(row.raw, row.display) ? (
-                  <Link href={row.text} target="_blank" rel="noreferrer noopener" underline="hover" title={row.title}>
+                {row.principalHref || isSafeHttpUrl(row.raw, row.display) ? (
+                  <Link
+                    href={row.principalHref ?? row.text}
+                    target={row.principalHref ? undefined : "_blank"}
+                    rel={row.principalHref ? undefined : "noreferrer noopener"}
+                    underline="hover"
+                    title={row.title}
+                  >
                     {row.text}
                   </Link>
                 ) : (

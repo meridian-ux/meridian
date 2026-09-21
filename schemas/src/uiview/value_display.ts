@@ -176,7 +176,8 @@ export function resolvePrincipalLink(
   if (typeof value !== "string" && typeof value !== "number") return undefined;
   if (typeof value === "number" && !Number.isFinite(value)) return undefined;
   const id = String(value);
-  return id.trim() === "" ? undefined : { targetKind: options.targetKind, id };
+  const targetKind = options.targetKind.trim();
+  return id.trim() === "" ? undefined : { targetKind, id };
 }
 
 /** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
@@ -235,7 +236,10 @@ export function formatByDisplay(
       const options = display?.options.case === "principal" ? display.options.value : undefined;
       return formatPrincipalValue(value, options?.display ?? PrincipalDisplay.UNSPECIFIED);
     }
-    case ValueType.EMAIL:
+    case ValueType.EMAIL: {
+      const options = display?.options.case === "principal" ? display.options.value : undefined;
+      return formatPrincipalValue(value, options?.display ?? PrincipalDisplay.EMAIL);
+    }
     case ValueType.URL:
     case ValueType.IDENTIFIER:
       return { text: String(value) };

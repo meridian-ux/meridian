@@ -7,7 +7,7 @@
 import { create } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -42,11 +42,12 @@ function renderWithInitialData(
   descriptor: PanelDescriptor,
   initialData: Record<string, { rows: Array<Record<string, unknown>> }>,
   kit = htmlKit,
+  resolveHref?: (entityType: string, entityId: string) => string | undefined,
 ): string {
   return renderToStaticMarkup(
     createElement(
       MeridianProvider,
-      { invoker, kit, adhoc: {} },
+      { invoker, kit, adhoc: {}, resolveHref },
       createElement(
         MeridianInitialDataContext.Provider,
         { value: initialData },
@@ -212,6 +213,74 @@ describe("meridian-web-react renderer", () => {
       }
     }
   });
+
+  it("uses the host resolver for declared principal record links", () => {
+    const card = create(PanelDescriptorSchema, {
+      panelId: "principal-link",
+      body: {
+        case: "recordCard",
+        value: create(RecordCardPanelSchema, {
+          populate: { service: "acme.Builds", method: "GetBuild" },
+          fields: [{
+            fieldId: "ownerId",
+            label: "Owner",
+            display: {
+              type: ValueType.PRINCIPAL,
+              options: { case: "principal", value: { linkToRecord: true, targetKind: "identity.user" } },
+            },
+          }],
+        }),
+      },
+    });
+    for (const kit of [htmlKit, shadcnKit]) {
+      const html = renderWithInitialData(
+        card,
+        { "acme.Builds.GetBuild": { rows: [{ ownerId: "user_123" }] } },
+        kit,
+        (kind, id) => `/directory/${kind}/${id}`,
+      );
+      expect(html).toContain('href="/directory/identity.user/user_123"');
+      expect(html).toContain(">user_123</a>");
+    }
+  });
+
+  for (const shape of ["recordCard", "detailHeader"] as const) {
+    it(`${shape} preserves principal labels and requires a host-approved destination`, () => {
+      for (const kit of [htmlKit, shadcnKit]) {
+        for (const scenario of ["principal", "email", "no-resolver", "declined", "empty-href", "no-kind", "disabled"] as const) {
+          const raw = "Ruchi Sharma <ruchi@example.com>";
+          const display = {
+            type: scenario === "email" ? ValueType.EMAIL : ValueType.PRINCIPAL,
+            options: { case: "principal" as const, value: {
+              display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE,
+              linkToRecord: scenario !== "disabled",
+              targetKind: scenario === "no-kind" ? "" : "identity.user",
+            } },
+          };
+          const populate = { service: "acme.Builds", method: "GetBuild" };
+          const descriptor = create(PanelDescriptorSchema, {
+            panelId: "principal",
+            body: shape === "recordCard"
+              ? { case: shape, value: { populate, fields: [{ fieldId: "owner", display }] } }
+              : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "owner", display }] } },
+          });
+          const resolveHref = vi.fn(() => scenario === "declined" ? undefined : scenario === "empty-href" ? "" : "/people/host-selected");
+          const html = renderWithInitialData(descriptor, {
+            "acme.Builds.GetBuild": { rows: [{ owner: raw }] },
+          }, kit, scenario === "no-resolver" ? undefined : resolveHref);
+          expect(html).toContain('title="ruchi@example.com"');
+          expect(html).toContain("Ruchi Sharma");
+          if (scenario === "principal" || scenario === "email") {
+            expect(html).toContain('href="/people/host-selected"');
+            expect(html).not.toContain('target="_blank"');
+          } else expect(html).not.toContain("<a ");
+          if (["no-resolver", "no-kind", "disabled"].includes(scenario)) {
+            expect(resolveHref).not.toHaveBeenCalled();
+          } else expect(resolveHref).toHaveBeenCalledWith("identity.user", raw);
+        }
+      }
+    });
+  }
 
   it("renders HTML media with poster, captions, and accessible text", () => {
     const html = render(create(PanelDescriptorSchema, {

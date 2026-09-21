@@ -183,6 +183,13 @@ describe("formatByDisplay — types", () => {
     // A producer that only has the address still gets useful output for every
     // principal display mode; no renderer invents a blank name.
     expect(formatByDisplay("ruchi@example.com", who).text).toBe("ruchi@example.com");
+
+    const address = create(ValueDisplaySchema, {
+      type: ValueType.EMAIL,
+      options: { case: "principal", value: { display: PrincipalDisplay.EMAIL } },
+    });
+    expect(formatByDisplay("Ruchi Sharma <ruchi@example.com>", address).text)
+      .toBe("ruchi@example.com");
   });
 
   it("keeps malformed principal labels and missing values readable in every mode", () => {
