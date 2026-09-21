@@ -88,6 +88,9 @@ jobs:
       - name: Renderer coverage
         run: node schemas/tools/check_coverage.mjs
 
+      - name: Renderer catalog
+        run: node schemas/tools/check_renderer_catalog.mjs
+
       - name: Coverage matrix
         run: node schemas/tools/check_coverage.mjs --matrix
 

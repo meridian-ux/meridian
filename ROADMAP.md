@@ -27,8 +27,10 @@ than a document, and the test floor means parity work lands with proof.
 
 ## Track A — Renderer parity
 
-The source of truth is [`schemas/conformance/coverage.json`](schemas/conformance/coverage.json),
-gated by [`schemas/tools/check_coverage.mjs`](schemas/tools/check_coverage.mjs).
+The source of truth for panel parity is [`schemas/conformance/coverage.json`](schemas/conformance/coverage.json),
+gated by [`schemas/tools/check_coverage.mjs`](schemas/tools/check_coverage.mjs). The wider
+renderer inventory is [`schemas/conformance/renderer_catalog.json`](schemas/conformance/renderer_catalog.json),
+gated by [`schemas/tools/check_renderer_catalog.mjs`](schemas/tools/check_renderer_catalog.mjs).
 The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 
 <!-- matrix:start -->
@@ -89,9 +91,11 @@ Three facts shape the order of work:
   and the TUI stream/terminal transport boundaries documented in their degradation
   ladders. The TUI now has focused `TestBackend` coverage for its rendered content
   and snapshot stream path; new parity work should preserve those tests.
-- **The manifest is itself incomplete.** The public catalog advertises a SwiftUI renderer
-  in preview with no row here, and the chat and launchpad modalities are not modelled.
-  [#5](../../issues/5) makes the gate reject a shipped renderer with no declaration.
+- **The renderer catalog is now complete at the tier level.** The panel matrix remains
+  intentionally scoped to `PanelDescriptor.body`; the catalog separately declares the
+  SwiftUI preview tier and the conversation and launchpad modalities, with local
+  entrypoints checked in CI. [#5](../../issues/5) remains the owner of expanding the
+  catalog into per-modality conformance evidence.
 
 Declared is not proven. [#9](../../issues/9) builds the conformance corpus — fixtures per
 arm, a normalizer per renderer, snapshots gated in CI — so `renders` becomes a property

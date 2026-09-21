@@ -59,7 +59,15 @@ failure they catch has already shipped.
 ```bash
 python3 tools/publish_manifests.py --check  # published manifests match development manifests
 node --test "schemas/tools/*.test.mjs"  # the mirror gate still catches divergence
+node schemas/tools/check_renderer_catalog.mjs # every public renderer is declared
 ```
+
+Panel parity is declared in [`conformance/coverage.json`](conformance/coverage.json)
+and checked against `panel.proto`. The wider public renderer inventory is declared
+in [`conformance/renderer_catalog.json`](conformance/renderer_catalog.json): it
+links each tier to a modality and local entrypoint, or records an explicit
+external preview. This keeps conversation, launchpad, and native tiers visible
+without forcing them into the `PanelDescriptor.body` matrix.
 
 ### Mirroring `meridian.ui.v1`
 
