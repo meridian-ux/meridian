@@ -467,8 +467,8 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The dependency-free HTML kit renders record fields as an accessible definition list."
         },
         "shadcn-kit": {
           "status": "missing",
