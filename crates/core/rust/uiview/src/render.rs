@@ -140,8 +140,59 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         | ValueType::Principal
         | ValueType::Email
         | ValueType::Url
-        | ValueType::Identifier => format_display_scalar(value),
+        | ValueType::Identifier => {
+            if matches!(value_type, ValueType::Date | ValueType::DateTime) {
+                value
+                    .as_str()
+                    .and_then(|text| format_temporal(text, value_type))
+                    .unwrap_or_else(|| format_display_scalar(value))
+            } else {
+                format_display_scalar(value)
+            }
+        }
     }
+}
+
+fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
+    let bytes = text.as_bytes();
+    if bytes.len() < 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes[..4].iter().all(u8::is_ascii_digit)
+        || !bytes[5..7].iter().all(u8::is_ascii_digit)
+        || !bytes[8..10].iter().all(u8::is_ascii_digit)
+    {
+        return None;
+    }
+    let year = text[0..4].parse::<u16>().ok()?;
+    let month = text[5..7].parse::<u8>().ok()?;
+    let day = text[8..10].parse::<u8>().ok()?;
+    if !(1..=12).contains(&month) || day == 0 || day > 31 {
+        return None;
+    }
+    let months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    if value_type == ValueType::Date || text.len() == 10 {
+        return Some(format!("{} {}, {}", months[(month - 1) as usize], day, year));
+    }
+    if text.len() < 16 || !matches!(text.as_bytes().get(10), Some(b'T' | b' ')) {
+        return None;
+    }
+    let hour = text[11..13].parse::<u8>().ok()?;
+    let minute = text[14..16].parse::<u8>().ok()?;
+    if hour > 23 || minute > 59 || text.as_bytes()[13] != b':' {
+        return None;
+    }
+    let suffix = if hour >= 12 { "PM" } else { "AM" };
+    let display_hour = match hour % 12 {
+        0 => 12,
+        value => value,
+    };
+    Some(format!(
+        "{} {}, {}, {}:{:02} {} UTC",
+        months[(month - 1) as usize], day, year, display_hour, minute, suffix
+    ))
 }
 
 fn format_display_scalar(value: &Value) -> String {
@@ -253,6 +304,25 @@ mod tests {
             })),
         };
         assert_eq!(format_display_value(&json!(1.236), &decimal), "1.24");
+    }
+
+    #[test]
+    fn value_display_formats_declared_temporal_values_deterministically() {
+        let date = ValueDisplay {
+            r#type: ValueType::Date as i32,
+            options: None,
+        };
+        assert_eq!(format_display_value(&json!("2026-03-29"), &date), "Mar 29, 2026");
+
+        let date_time = ValueDisplay {
+            r#type: ValueType::DateTime as i32,
+            options: None,
+        };
+        assert_eq!(
+            format_display_value(&json!("2026-03-21T09:14:00Z"), &date_time),
+            "Mar 21, 2026, 9:14 AM UTC"
+        );
+        assert_eq!(format_display_value(&json!("not-a-date"), &date_time), "not-a-date");
     }
 
     #[test]
