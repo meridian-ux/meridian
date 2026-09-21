@@ -218,6 +218,12 @@ impl PanelView {
                 chunks[2],
                 "Record-card panels (entity detail views): not yet supported in the TUI renderer.",
             ),
+            Some(Body::ResourceCards(_)) => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Resource-card panels: not yet supported in the TUI renderer.",
+            ),
             // ── content shapes ────────────────────────────────────────────────
             Some(Body::Choice(panel)) => {
                 self.content_len = panel.options.len();
