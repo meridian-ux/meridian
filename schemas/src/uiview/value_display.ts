@@ -157,6 +157,28 @@ export function formatPrincipalValue(
   return { text: name };
 }
 
+/**
+ * Return the host-routing inputs for a declared principal or email record link.
+ * Empty target kinds deliberately decline to link: a renderer cannot infer an
+ * entity route from a display label, and a plain value is safer than a dead URL.
+ * The ID is the original scalar value, never the formatted name or email. The
+ * host owns lookup, authorization, and route encoding; these inputs grant no RPC
+ * capability and are not themselves a URL.
+ */
+export function resolvePrincipalLink(
+  value: unknown,
+  display: ValueDisplay | undefined,
+): { targetKind: string; id: string } | undefined {
+  if (!display || (display.type !== ValueType.PRINCIPAL && display.type !== ValueType.EMAIL)
+    || display.options.case !== "principal") return undefined;
+  const options = display.options.value;
+  if (!options.linkToRecord || !options.targetKind.trim()) return undefined;
+  if (typeof value !== "string" && typeof value !== "number") return undefined;
+  if (typeof value === "number" && !Number.isFinite(value)) return undefined;
+  const id = String(value);
+  return id.trim() === "" ? undefined : { targetKind: options.targetKind, id };
+}
+
 /** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
 export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined): value is string {
   if (display?.type !== ValueType.URL || typeof value !== "string") return false;

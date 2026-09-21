@@ -4,7 +4,7 @@
 // The pure layer is tested here; the record-card wiring is covered in
 // value_display_render.test.tsx.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -15,7 +15,47 @@ import {
   ValueType,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 
-import { EMPTY_DISPLAY, formatByDisplay, formatRelativeTime } from "../src/display_format.js";
+import { EMPTY_DISPLAY, formatByDisplay, formatRelativeTime, resolvePrincipalLink } from "../src/display_format.js";
+
+describe("principal record routing inputs", () => {
+  const linked = (type = ValueType.PRINCIPAL, targetKind = "identity.user", linkToRecord = true) =>
+    create(ValueDisplaySchema, {
+      type,
+      options: { case: "principal", value: {
+        targetKind, linkToRecord, display: PrincipalDisplay.NAME,
+      } },
+    });
+
+  it("preserves the raw principal value and explicit kind across the protobuf boundary", () => {
+    const display = fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema, linked()));
+    const value = "Ada <ada@example.com>";
+    expect(formatByDisplay(value, display).text).toBe("Ada");
+    expect(resolvePrincipalLink(value, display)).toEqual({ targetKind: "identity.user", id: value });
+    expect(resolvePrincipalLink(0, display)).toEqual({ targetKind: "identity.user", id: "0" });
+    expect(resolvePrincipalLink("a/b ?#", display)).toEqual({ targetKind: "identity.user", id: "a/b ?#" });
+    expect(resolvePrincipalLink("ada@example.com", linked(ValueType.EMAIL)))
+      .toEqual({ targetKind: "identity.user", id: "ada@example.com" });
+  });
+
+  it("declines absent, legacy, disabled, and mismatched declarations", () => {
+    const legacy = create(ValueDisplaySchema, {
+      type: ValueType.PRINCIPAL,
+      options: { case: "principal", value: { linkToRecord: true } },
+    });
+    for (const display of [
+      undefined, legacy, linked(ValueType.PRINCIPAL, "  "),
+      linked(ValueType.PRINCIPAL, "identity.user", false), linked(ValueType.URL),
+      create(ValueDisplaySchema, { type: ValueType.PRINCIPAL }),
+      create(ValueDisplaySchema, { type: ValueType.PRINCIPAL, options: { case: "number", value: {} } }),
+    ]) expect(resolvePrincipalLink("ada", display)).toBeUndefined();
+  });
+
+  it("declines empty and nonscalar values without inventing an entity ID", () => {
+    for (const value of [null, undefined, "", " \t\n", {}, [], true, NaN, Infinity, -Infinity]) {
+      expect(resolvePrincipalLink(value, linked())).toBeUndefined();
+    }
+  });
+});
 
 // 2026-07-30T12:00:00Z, so every expectation below is a fixed offset from it.
 const NOW = Date.parse("2026-07-30T12:00:00.000Z");

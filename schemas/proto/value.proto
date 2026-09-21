@@ -222,8 +222,15 @@ message PrincipalOptions {
   PrincipalDisplay display = 1 [(google.api.field_behavior) = OPTIONAL];
   // Render as a link to the principal's record. The renderer never builds a URL
   // — it hands the host the value and the host owns routes, the same seam
-  // ColumnLink uses. No host resolver ⇒ plain text, never a dead link.
+  // ColumnLink uses. The original scalar value is passed unchanged (numeric
+  // values become strings), never the formatted display name or parsed email.
+  // The host owns lookup, authorization, and URL encoding. No host resolver,
+  // or a resolver that declines the value, ⇒ plain text, never a dead link.
   bool link_to_record = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Entity kind passed to the host route resolver when link_to_record is true
+  // (for example, "identity.user"). Empty ⇒ no principal link is attempted;
+  // the renderer cannot safely infer a route kind from a display label.
+  string target_kind = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // What to show when a producer can supply both a name and an address. The

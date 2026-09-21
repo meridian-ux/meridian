@@ -9,5 +9,6 @@ export {
   formatRelativeTime,
   formatTimestamp,
   isSafeHttpUrl,
+  resolvePrincipalLink,
 } from "@savvifi/meridian-schemas/uiview";
 export type { DisplayedValue } from "@savvifi/meridian-schemas/uiview";
