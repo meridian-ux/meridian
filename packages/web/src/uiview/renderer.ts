@@ -335,6 +335,9 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   const { root, descriptor } = renderOpts;
   disposePanel(root);
   root.innerHTML = "";
+  // Kit-neutral conformance normalizer: hosts and snapshot tests can identify
+  // the descriptor without depending on a shape's concrete DOM realization.
+  root.dataset.panel = descriptor.panelId;
   const header = document.createElement("div");
   header.className = "meridian-uiview-header";
   header.textContent = descriptor.title;
