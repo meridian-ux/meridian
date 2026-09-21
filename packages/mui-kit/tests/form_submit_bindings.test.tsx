@@ -114,6 +114,49 @@ describe("FormPanel(EDIT) submit — RpcCall bindings", () => {
   });
 });
 
+describe("FormPanel(EDIT) prefill", () => {
+  it("seeds editable values from the prefill RPC before submit", async () => {
+    let request: unknown;
+    const panel = create(PanelDescriptorSchema, {
+      panelId: "prefilled-form",
+      title: "Prefilled form",
+      body: {
+        case: "form",
+        value: create(FormPanelSchema, {
+          mode: FormMode.EDIT,
+          prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
+          submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+          fields: [
+            create(FormFieldSchema, {
+              fieldId: "text",
+              label: "Comment",
+              kind: { case: "text", value: create(TextInputSchema, { defaultValue: "fallback" }) },
+            }),
+          ],
+        }),
+      },
+    });
+    const invoker: RpcInvoker = {
+      invoke: async (_service, method, req) => {
+        if (method === "prefill") return { text: "from server" };
+        request = req;
+        return {};
+      },
+    };
+    render(
+      <MeridianMuiProvider invoker={invoker}>
+        <ViewRenderer view={view(panel)} />
+      </MeridianMuiProvider>,
+    );
+
+    await waitFor(() =>
+      expect((screen.getByLabelText("Comment") as HTMLInputElement).value).toBe("from server"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    expect(request).toEqual({ text: "from server" });
+  });
+});
+
 describe("FormPanel(EDIT) submit — clearing a composer", () => {
   it("clears the box once the post RESOLVES", async () => {
     render(

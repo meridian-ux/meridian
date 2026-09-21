@@ -420,6 +420,12 @@ function initValues(fields: FormField[]): FormObject {
   return values;
 }
 
+function mergeFormValues(fields: FormField[], prefill: FormObject | undefined): FormObject {
+  const defaults = initValues(fields);
+  if (!prefill) return defaults;
+  return { ...defaults, ...prefill };
+}
+
 /** Read the value at a path (string keys index objects, number keys index arrays). */
 function valueAt(root: FormValue | undefined, path: readonly (string | number)[]): FormValue | undefined {
   return path.reduce<FormValue | undefined>((acc, key) => {
@@ -649,6 +655,7 @@ function FieldForm({
   fields,
   disabled,
   description,
+  initialValues,
   submitLabel,
   submitDisabled,
   onSubmit,
@@ -657,6 +664,7 @@ function FieldForm({
   fields: FormField[];
   disabled: boolean;
   description?: string;
+  initialValues?: FormObject;
   submitLabel: string;
   submitDisabled?: boolean;
   onSubmit?: (values: FormObject) => void | Promise<unknown>;
@@ -667,7 +675,11 @@ function FieldForm({
    *  Off by default: an EDIT form over an existing record must keep showing it. */
   resetOnSubmit?: boolean;
 }): ReactNode {
-  const [values, setValues] = useState<FormObject>(() => initValues(fields));
+  const seed = useMemo(() => mergeFormValues(fields, initialValues), [fields, initialValues]);
+  const [values, setValues] = useState<FormObject>(seed);
+  useEffect(() => {
+    if (initialValues) setValues(seed);
+  }, [initialValues, seed]);
   const setAt: SetAt = (path, value) =>
     setValues((prev) => updateAt(prev, path, value) as FormObject);
   // Reset only on RESOLVE, never optimistically: clearing first and failing after
@@ -677,7 +689,7 @@ function FieldForm({
     const result = onSubmit?.(values);
     if (!resetOnSubmit) return;
     void Promise.resolve(result).then(
-      () => setValues(initValues(fields)),
+      () => setValues(seed),
       () => {},
     );
   };
@@ -710,6 +722,20 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   // being true.
   const createLike = edit && startsBlank(initValues(panel.fields));
   const selection = useMeridianSelection();
+  const [prefillValues, setPrefillValues] = useState<FormObject | undefined>();
+  useEffect(() => {
+    if (!edit || !panel.prefill?.service || !panel.prefill.method) return;
+    let active = true;
+    const result = invoke(invoker, panel.prefill, buildBindingRequest(panel.prefill, selection.values));
+    void result?.then((response) => {
+      if (active && response && typeof response === "object" && !Array.isArray(response)) {
+        setPrefillValues(response as FormObject);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [edit, invoker, panel.prefill, selection.values]);
   // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
   // request is not only what the user typed: an op scoped to the record it hangs
   // off (post a comment on THIS task → `resourceId`) gets that field from a
@@ -724,6 +750,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
     <FieldForm
       fields={panel.fields}
       disabled={!edit}
+      initialValues={prefillValues}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
       submitDisabled={!edit}
       onSubmit={
