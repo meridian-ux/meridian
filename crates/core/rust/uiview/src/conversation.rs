@@ -50,7 +50,11 @@ impl ConversationModel {
         }
         match &event.event {
             Some(conversation_event::Event::Block(block)) => {
-                if self.by_id.insert(block.block_id.clone(), block.clone()).is_none() {
+                if self
+                    .by_id
+                    .insert(block.block_id.clone(), block.clone())
+                    .is_none()
+                {
                     self.order.push(block.block_id.clone());
                 }
             }
@@ -171,7 +175,10 @@ mod tests {
                 detail: "Calling forge·list_repos".into(),
             }),
         ));
-        assert_eq!(model.status().map(|s| s.detail.as_str()), Some("Calling forge·list_repos"));
+        assert_eq!(
+            model.status().map(|s| s.detail.as_str()),
+            Some("Calling forge·list_repos")
+        );
         model.ingest(&event(
             2,
             conversation_event::Event::Status(Status {

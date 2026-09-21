@@ -18,13 +18,13 @@
 //   * Catalog       → a list, one row per item (name · state — description).
 
 use meridian_uiview::proto::{
-    affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
-    ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
-    form_field::Kind, FormField, FormMode, FormPanel, LroPanel, MediaPanel, RecordCardPanel,
-    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
+    affordance::Invoke, form_field::Kind, Affordance, AffordanceStyle, CatalogPanel, ChartPanel,
+    ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, FormField,
+    FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel, ResourceAction,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
-use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use meridian_uiview::RenderedCard;
+use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
@@ -124,7 +124,10 @@ pub fn render_resource_cards(
 ) {
     let mut lines: Vec<Line> = Vec::new();
     if let Some(message) = error {
-        lines.push(Line::from(Span::styled(message.to_string(), palette.meta())));
+        lines.push(Line::from(Span::styled(
+            message.to_string(),
+            palette.meta(),
+        )));
         frame.render_widget(bordered(lines, palette), area);
         return;
     }
@@ -269,15 +272,19 @@ pub fn render_gallery(
             palette.header()
         };
         let marker = if active { "▶ " } else { "  " };
-        let mut title = vec![
-            Span::styled(format!("{marker}{}. ", index + 1), style),
-        ];
+        let mut title = vec![Span::styled(format!("{marker}{}. ", index + 1), style)];
         if !card.icon.is_empty() {
-            title.push(Span::styled(format!("{} ", glyph(&card.icon)), palette.meta()));
+            title.push(Span::styled(
+                format!("{} ", glyph(&card.icon)),
+                palette.meta(),
+            ));
         }
         title.push(Span::styled(card.title.clone(), style));
         if !card.status.is_empty() {
-            title.push(Span::styled(format!("  [{}]", card.status), palette.title()));
+            title.push(Span::styled(
+                format!("  [{}]", card.status),
+                palette.title(),
+            ));
         }
         lines.push(Line::from(title));
         if !card.subtitle.is_empty() {
@@ -346,7 +353,11 @@ pub fn render_detail_header(
         )));
     }
     for row in &panel.descriptor_rows {
-        lines.push(labeled_value(&row.label, &value_at(record, &row.source_path), palette));
+        lines.push(labeled_value(
+            &row.label,
+            &value_at(record, &row.source_path),
+            palette,
+        ));
     }
     frame.render_widget(bordered(lines, palette), area);
 }
@@ -444,16 +455,28 @@ fn form_value_text(field: &FormField, value: &Value) -> String {
         }
         Some(Kind::Nested(_)) => "(nested object)".to_string(),
         Some(Kind::Repeated(_)) => match value.as_array() {
-            Some(items) => format!("{} item{}", items.len(), if items.len() == 1 { "" } else { "s" }),
+            Some(items) => format!(
+                "{} item{}",
+                items.len(),
+                if items.len() == 1 { "" } else { "s" }
+            ),
             None => "(list)".to_string(),
         },
         Some(Kind::KeyValueMap(_)) => match value.as_object() {
-            Some(entries) => format!("{} entr{}", entries.len(), if entries.len() == 1 { "y" } else { "ies" }),
+            Some(entries) => format!(
+                "{} entr{}",
+                entries.len(),
+                if entries.len() == 1 { "y" } else { "ies" }
+            ),
             None => "(map)".to_string(),
         },
         _ => {
             let text = format_value(value, meridian_uiview::proto::ColumnFormat::Unspecified);
-            if text.is_empty() { "—".to_string() } else { text }
+            if text.is_empty() {
+                "—".to_string()
+            } else {
+                text
+            }
         }
     }
 }
@@ -482,10 +505,17 @@ fn render_form_fields(
             field.label.as_str()
         };
         let prefix = " ".repeat(indent);
-        let style = if active { palette.focused() } else { palette.meta() };
+        let style = if active {
+            palette.focused()
+        } else {
+            palette.meta()
+        };
         lines.push(Line::from(vec![
             Span::styled(format!("{prefix}{marker}{label}: "), style),
-            Span::styled(form_value_text(field, form_value(values, &field.field_id)), palette.text()),
+            Span::styled(
+                form_value_text(field, form_value(values, &field.field_id)),
+                palette.text(),
+            ),
         ]));
         if !field.description.is_empty() {
             lines.push(Line::from(Span::styled(
@@ -572,7 +602,11 @@ pub fn render_lro(
     selected: usize,
 ) {
     let mut lines = vec![Line::from(Span::styled(
-        if panel.run_button_label.is_empty() { "Run".to_string() } else { panel.run_button_label.clone() },
+        if panel.run_button_label.is_empty() {
+            "Run".to_string()
+        } else {
+            panel.run_button_label.clone()
+        },
         palette.title(),
     ))];
     lines.push(Line::from(Span::styled(
@@ -613,7 +647,10 @@ pub fn render_media(frame: &mut Frame, area: Rect, panel: &MediaPanel, palette: 
     } else {
         panel.caption.as_str()
     };
-    lines.push(Line::from(Span::styled(heading.to_string(), palette.title())));
+    lines.push(Line::from(Span::styled(
+        heading.to_string(),
+        palette.title(),
+    )));
     if !panel.alt.is_empty() {
         lines.push(Line::from(vec![
             Span::styled("Description: ".to_string(), palette.meta()),
@@ -1876,11 +1913,25 @@ mod tests {
         assert!(text.contains("[1] Stop"));
         assert!(text.contains("[1] Launch"));
         assert!(resource_action_visible(
-            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &panel
+                .template
+                .as_ref()
+                .unwrap()
+                .actions
+                .as_ref()
+                .unwrap()
+                .actions[0],
             &rows[1]
         ));
         assert!(!resource_action_visible(
-            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &panel
+                .template
+                .as_ref()
+                .unwrap()
+                .actions
+                .as_ref()
+                .unwrap()
+                .actions[0],
             &rows[0]
         ));
     }
@@ -2057,8 +2108,15 @@ mod tests {
         let lines = vec!["build started".to_string(), "build complete".to_string()];
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_stream(f, f.area(), &panel, &lines, &palette)).unwrap();
-        let text: String = term.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+        term.draw(|f| render_stream(f, f.area(), &panel, &lines, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
         assert!(text.contains("build started"));
         assert!(text.contains("build complete"));
     }

@@ -102,7 +102,11 @@ fn the_descriptor_set_is_self_contained_and_is_theme() {
         }
     }
 
-    let pkgs: Vec<&str> = set.file.iter().filter_map(|f| f.package.as_deref()).collect();
+    let pkgs: Vec<&str> = set
+        .file
+        .iter()
+        .filter_map(|f| f.package.as_deref())
+        .collect();
     assert!(
         pkgs.contains(&"meridian.theme.v1"),
         "the set does not declare package meridian.theme.v1 — wrong proto?"

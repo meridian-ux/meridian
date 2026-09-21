@@ -105,9 +105,7 @@ fn substitute(template: &str, values: &HashMap<String, FieldValue>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use meridian_uiview::proto::{
-        form_field::Kind, FormField, ParameterSlot, TextInput,
-    };
+    use meridian_uiview::proto::{form_field::Kind, FormField, ParameterSlot, TextInput};
 
     #[test]
     fn no_slots_returns_templates_verbatim() {

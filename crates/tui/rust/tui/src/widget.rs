@@ -1,10 +1,12 @@
+use crossterm::event::KeyCode;
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
     PanelDescriptor, ResourceCardPanel, TablePanel,
 };
-use meridian_uiview::{render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder};
-use crossterm::event::KeyCode;
+use meridian_uiview::{
+    render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder,
+};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
@@ -134,9 +136,24 @@ impl PanelView {
 
     /// Supply a bounded snapshot for a StreamPanel. Hosts own the live
     /// subscription; the TUI retains only the panel's configured tail.
-    pub fn set_stream_lines(&mut self, panel: &meridian_uiview::proto::StreamPanel, lines: Vec<String>) {
-        let max = if panel.max_lines == 0 { usize::MAX } else { panel.max_lines as usize };
-        self.stream_lines = lines.into_iter().rev().take(max).collect::<Vec<_>>().into_iter().rev().collect();
+    pub fn set_stream_lines(
+        &mut self,
+        panel: &meridian_uiview::proto::StreamPanel,
+        lines: Vec<String>,
+    ) {
+        let max = if panel.max_lines == 0 {
+            usize::MAX
+        } else {
+            panel.max_lines as usize
+        };
+        self.stream_lines = lines
+            .into_iter()
+            .rev()
+            .take(max)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
     }
 
     /// Swap the active palette (e.g. on a runtime theme/mode change).
@@ -633,7 +650,10 @@ impl PanelView {
                 }
             }
         }
-        self.cached_form = Some(CachedForm { values, error: None });
+        self.cached_form = Some(CachedForm {
+            values,
+            error: None,
+        });
     }
 
     /// Handle keyboard input for an inline FormPanel. Hosts may call this
@@ -848,7 +868,12 @@ fn form_values_by_id(
 ) -> std::collections::HashMap<String, serde_json::Value> {
     fields
         .iter()
-        .filter_map(|field| values.get(&field.field_id).cloned().map(|value| (field.field_id.clone(), value)))
+        .filter_map(|field| {
+            values
+                .get(&field.field_id)
+                .cloned()
+                .map(|value| (field.field_id.clone(), value))
+        })
         .collect()
 }
 
@@ -887,26 +912,38 @@ fn set_json_path(root: &mut serde_json::Value, path: &str, value: serde_json::Va
         .insert(segments.last().unwrap().to_string(), value);
 }
 
-fn merge_form_request(root: &mut serde_json::Value, fields: &[FormField], values: &serde_json::Value) {
+fn merge_form_request(
+    root: &mut serde_json::Value,
+    fields: &[FormField],
+    values: &serde_json::Value,
+) {
     for field in fields {
-        let value = values.get(&field.field_id).cloned().unwrap_or(serde_json::Value::Null);
+        let value = values
+            .get(&field.field_id)
+            .cloned()
+            .unwrap_or(serde_json::Value::Null);
         let path = if field.request_field.is_empty() {
             field.field_id.clone()
         } else {
             field.request_field.clone()
         };
         if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
-            let nested_values = values.get(&field.field_id).unwrap_or(&serde_json::Value::Null);
+            let nested_values = values
+                .get(&field.field_id)
+                .unwrap_or(&serde_json::Value::Null);
             for child in &nested.fields {
                 let child_value = nested_values
                     .get(&child.field_id)
                     .cloned()
                     .unwrap_or(serde_json::Value::Null);
-                let child_path = join_form_path(&path, if child.request_field.is_empty() {
-                    &child.field_id
-                } else {
-                    &child.request_field
-                });
+                let child_path = join_form_path(
+                    &path,
+                    if child.request_field.is_empty() {
+                        &child.field_id
+                    } else {
+                        &child.request_field
+                    },
+                );
                 set_json_path(root, &child_path, child_value);
             }
         } else {
@@ -970,12 +1007,21 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             }
             *current = serde_json::Value::from(number);
         }
-        Some(Kind::Boolean(_)) if matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down) => {
+        Some(Kind::Boolean(_))
+            if matches!(
+                key,
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down
+            ) =>
+        {
             *current = serde_json::Value::Bool(!current.as_bool().unwrap_or(false));
         }
         Some(Kind::EnumSelection(input)) => {
             let options: Vec<String> = if !input.options.is_empty() {
-                input.options.iter().map(|option| option.value.clone()).collect()
+                input
+                    .options
+                    .iter()
+                    .map(|option| option.value.clone())
+                    .collect()
             } else {
                 input.allowed_values.clone()
             };

@@ -123,7 +123,11 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
     // `role` drives bubble alignment on the web; a terminal transcript reads top
     // to bottom, so the role becomes a speaker marker instead.
     let is_user = block.role == "user";
-    let base = if is_user { palette.meta() } else { palette.text() };
+    let base = if is_user {
+        palette.meta()
+    } else {
+        palette.text()
+    };
 
     match block.kind.as_ref() {
         Some(block::Kind::Markdown(md)) => {
@@ -137,14 +141,17 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
         Some(block::Kind::Context(ctx)) => {
             let mut spans = vec![Span::styled("  ", palette.meta())];
             if !ctx.icon.is_empty() {
-                spans.push(Span::styled(format!("{} ", glyph(&ctx.icon)), palette.meta()));
+                spans.push(Span::styled(
+                    format!("{} ", glyph(&ctx.icon)),
+                    palette.meta(),
+                ));
             }
             spans.push(Span::styled(ctx.text.clone(), palette.meta()));
             vec![Line::from(spans)]
         }
         Some(block::Kind::Tool(tool)) => {
-            let is_error =
-                block::tool_block::State::try_from(tool.state) == Ok(block::tool_block::State::Error);
+            let is_error = block::tool_block::State::try_from(tool.state)
+                == Ok(block::tool_block::State::Error);
             let marker_style = if is_error {
                 palette.danger_style()
             } else {
@@ -171,7 +178,10 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
             for item in &list.items {
                 let mut spans = vec![Span::styled("   • ", palette.meta())];
                 if !item.icon.is_empty() {
-                    spans.push(Span::styled(format!("{} ", glyph(&item.icon)), palette.meta()));
+                    spans.push(Span::styled(
+                        format!("{} ", glyph(&item.icon)),
+                        palette.meta(),
+                    ));
                 }
                 spans.push(Span::styled(item.title.clone(), base));
                 if !item.subtitle.is_empty() {
@@ -242,13 +252,20 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
         // being more than four empty marker messages. Recorded as a gap in
         // schemas' conformance/coverage.json rather than left implicit here.
         Some(block::Kind::View(view)) => {
-            let label = if view.title.is_empty() { &view.id } else { &view.title };
+            let label = if view.title.is_empty() {
+                &view.id
+            } else {
+                &view.title
+            };
             let mut lines = vec![Line::from(vec![
                 Span::styled("  ▤ ", palette.accent_line()),
                 Span::styled(label.clone(), palette.header()),
             ])];
             lines.push(Line::styled(
-                format!("    ({} slot(s) — not drawn in a terminal transcript)", view.slots.len()),
+                format!(
+                    "    ({} slot(s) — not drawn in a terminal transcript)",
+                    view.slots.len()
+                ),
                 palette.meta(),
             ));
             lines
@@ -285,7 +302,12 @@ fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line
             let cells = table
                 .rows
                 .iter()
-                .map(|r| r.cells.get(&col.key).map(|v| v.chars().count()).unwrap_or(0))
+                .map(|r| {
+                    r.cells
+                        .get(&col.key)
+                        .map(|v| v.chars().count())
+                        .unwrap_or(0)
+                })
                 .max()
                 .unwrap_or(0);
             cells.max(headers[i].chars().count())
@@ -498,8 +520,14 @@ mod tests {
         let b = block_of(block::Kind::Table(block::Table {
             title: String::new(),
             columns: vec![
-                block::Column { key: "a".into(), label: "A".into() },
-                block::Column { key: "b".into(), label: "B".into() },
+                block::Column {
+                    key: "a".into(),
+                    label: "A".into(),
+                },
+                block::Column {
+                    key: "b".into(),
+                    label: "B".into(),
+                },
             ],
             rows: vec![block::Row {
                 cells: std::collections::HashMap::new(),
@@ -517,8 +545,14 @@ mod tests {
     fn fields_align_on_the_widest_key() {
         let b = block_of(block::Kind::Fields(block::Fields {
             fields: vec![
-                block::Field { key: "id".into(), value: "1".into() },
-                block::Field { key: "longer".into(), value: "2".into() },
+                block::Field {
+                    key: "id".into(),
+                    value: "1".into(),
+                },
+                block::Field {
+                    key: "longer".into(),
+                    value: "2".into(),
+                },
             ],
         }));
         let lines = block_lines(&b, &palette());
@@ -531,24 +565,24 @@ mod tests {
         let mut model = ConversationModel::new();
         let running = ConversationEvent {
             seq: 1,
-            event: Some(conversation_event::Event::Block(block_of(block::Kind::Tool(
-                block::ToolBlock {
+            event: Some(conversation_event::Event::Block(block_of(
+                block::Kind::Tool(block::ToolBlock {
                     name: "t".into(),
                     state: block::tool_block::State::Running as i32,
                     ..Default::default()
-                },
-            )))),
+                }),
+            ))),
         };
         model.ingest(&running);
         let done = ConversationEvent {
             seq: 2,
-            event: Some(conversation_event::Event::Block(block_of(block::Kind::Tool(
-                block::ToolBlock {
+            event: Some(conversation_event::Event::Block(block_of(
+                block::Kind::Tool(block::ToolBlock {
                     name: "t".into(),
                     state: block::tool_block::State::Ok as i32,
                     ..Default::default()
-                },
-            )))),
+                }),
+            ))),
         };
         model.ingest(&done);
         // Same block_id ⇒ ONE line, flipped — not two.

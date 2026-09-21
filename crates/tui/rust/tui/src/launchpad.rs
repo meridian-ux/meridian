@@ -179,11 +179,7 @@ impl LaunchpadState {
     ///
     /// The keyboard model mirrors the React renderer: ↑/↓ move (wrapping), Enter
     /// runs, Esc cancels, printable characters type, Backspace deletes.
-    pub fn on_key(
-        &mut self,
-        key: KeyEvent,
-        descriptor: &Launchpad,
-    ) -> Option<LaunchpadResponse> {
+    pub fn on_key(&mut self, key: KeyEvent, descriptor: &Launchpad) -> Option<LaunchpadResponse> {
         // Ignore key-up / repeat echoes on backends that emit them (Windows).
         if key.kind != KeyEventKind::Press {
             return None;
@@ -217,13 +213,7 @@ impl LaunchpadState {
     }
 
     /// Draw the palette into `area`.
-    pub fn draw(
-        &self,
-        frame: &mut Frame,
-        area: Rect,
-        descriptor: &Launchpad,
-        palette: &Palette,
-    ) {
+    pub fn draw(&self, frame: &mut Frame, area: Rect, descriptor: &Launchpad, palette: &Palette) {
         let outer = Block::default()
             .borders(Borders::ALL)
             .border_style(palette.border_style())
@@ -234,15 +224,28 @@ impl LaunchpadState {
 
         let rows = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Length(1), Constraint::Length(1), Constraint::Min(0)])
+            .constraints([
+                Constraint::Length(1),
+                Constraint::Length(1),
+                Constraint::Min(0),
+            ])
             .split(inner);
 
-        frame.render_widget(Paragraph::new(self.query_line(descriptor, palette)), rows[0]);
         frame.render_widget(
-            Paragraph::new(Line::styled("─".repeat(inner.width as usize), palette.border_style())),
+            Paragraph::new(self.query_line(descriptor, palette)),
+            rows[0],
+        );
+        frame.render_widget(
+            Paragraph::new(Line::styled(
+                "─".repeat(inner.width as usize),
+                palette.border_style(),
+            )),
             rows[1],
         );
-        frame.render_widget(Paragraph::new(self.list_lines(descriptor, palette)), rows[2]);
+        frame.render_widget(
+            Paragraph::new(self.list_lines(descriptor, palette)),
+            rows[2],
+        );
     }
 
     /// The query line: the typed text plus a block cursor, or the descriptor's
@@ -455,7 +458,10 @@ mod tests {
 
         match state.on_key(key(KeyCode::Enter), &descriptor) {
             Some(LaunchpadResponse::Run(c)) => {
-                assert_eq!(command_outcome(&c), LaunchpadOutcome::Navigate("/builds?status=failing"));
+                assert_eq!(
+                    command_outcome(&c),
+                    LaunchpadOutcome::Navigate("/builds?status=failing")
+                );
             }
             other => panic!("expected Run, got {other:?}"),
         }
@@ -489,7 +495,10 @@ mod tests {
         let mut c = command("x", "X");
         assert_eq!(command_outcome(&c), LaunchpadOutcome::None);
         c.action = Some(Action::OpenViewId("products".into()));
-        assert_eq!(command_outcome(&c), LaunchpadOutcome::OpenViewId("products"));
+        assert_eq!(
+            command_outcome(&c),
+            LaunchpadOutcome::OpenViewId("products")
+        );
         c.action = Some(Action::Rpc(RpcCall::default()));
         assert!(matches!(command_outcome(&c), LaunchpadOutcome::Rpc(_)));
     }
@@ -501,6 +510,9 @@ mod tests {
         let state = LaunchpadState::new();
         let groups = state.groups(&descriptor);
         assert_eq!(groups[0].id, "__default__");
-        assert_eq!(state.selected(&descriptor).map(|c| c.id.as_str()), Some("products"));
+        assert_eq!(
+            state.selected(&descriptor).map(|c| c.id.as_str()),
+            Some("products")
+        );
     }
 }

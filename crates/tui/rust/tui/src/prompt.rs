@@ -87,7 +87,9 @@ pub enum PromptError {
     /// flat (keyed by `field_id`), so there is nowhere to put the children's
     /// values. Rejected up front rather than rendered as a form that silently
     /// drops a whole branch of the request.
-    #[error("field {field_id}: nested sub-forms are not supported by the one-shot prompt renderer")]
+    #[error(
+        "field {field_id}: nested sub-forms are not supported by the one-shot prompt renderer"
+    )]
     NestedUnsupported { field_id: String },
     /// `RepeatedField` describes a LIST the user adds to and removes from, which
     /// the one-shot renderer has no affordance for, and `PromptResponse::Submitted`
@@ -98,7 +100,9 @@ pub enum PromptError {
     RepeatedUnsupported { field_id: String },
     /// `KeyValueMapField` needs a row editor, which the one-shot prompt does
     /// not yet provide. Reject it explicitly rather than silently dropping it.
-    #[error("field {field_id}: key/value map fields are not supported by the one-shot prompt renderer")]
+    #[error(
+        "field {field_id}: key/value map fields are not supported by the one-shot prompt renderer"
+    )]
     KeyValueMapUnsupported { field_id: String },
 }
 
@@ -194,15 +198,22 @@ fn run_confirmation<B: ratatui::backend::Backend>(
         term.draw(|f| draw_confirmation(f, panel, accept, cancel, palette))?;
 
         if let Event::Key(KeyEvent {
-            code, kind, modifiers, ..
+            code,
+            kind,
+            modifiers,
+            ..
         }) = event::read()?
         {
             if kind != KeyEventKind::Press {
                 continue;
             }
             match code {
-                KeyCode::Char('y') | KeyCode::Char('Y') => return Ok(PromptResponse::Confirmed(true)),
-                KeyCode::Char('n') | KeyCode::Char('N') => return Ok(PromptResponse::Confirmed(false)),
+                KeyCode::Char('y') | KeyCode::Char('Y') => {
+                    return Ok(PromptResponse::Confirmed(true))
+                }
+                KeyCode::Char('n') | KeyCode::Char('N') => {
+                    return Ok(PromptResponse::Confirmed(false))
+                }
                 KeyCode::Enter => return Ok(PromptResponse::Confirmed(false)), // default = No
                 KeyCode::Esc => return Ok(PromptResponse::Cancelled),
                 KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
@@ -281,7 +292,13 @@ fn run_form<B: ratatui::backend::Backend>(
     loop {
         term.draw(|f| draw_form(f, panel, &states, focus, palette))?;
 
-        if let Event::Key(KeyEvent { code, kind, modifiers, .. }) = event::read()? {
+        if let Event::Key(KeyEvent {
+            code,
+            kind,
+            modifiers,
+            ..
+        }) = event::read()?
+        {
             if kind != KeyEventKind::Press {
                 continue;
             }
@@ -468,7 +485,13 @@ fn validate_one(s: &FieldState) -> Option<String> {
             min_length,
             max_length,
             ..
-        })) => length_and_pattern(&s.text, *min_length, *max_length, pattern, pattern_error_msg),
+        })) => length_and_pattern(
+            &s.text,
+            *min_length,
+            *max_length,
+            pattern,
+            pattern_error_msg,
+        ),
         Some(Kind::Integer(IntegerSpinner { min, max, .. })) => {
             if *max != 0 && s.integer > *max as i64 {
                 Some(format!("value must be ≤ {max}"))
@@ -544,16 +567,17 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
             Some(Kind::Integer(_)) => FieldValue::Integer(s.integer),
             Some(Kind::Number(_)) => FieldValue::Number(s.number),
             Some(Kind::Boolean(_)) => FieldValue::Boolean(s.boolean),
-            Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => FieldValue::Selection(
-                allowed_values
-                    .get(s.selection_index)
-                    .cloned()
-                    .unwrap_or_default(),
-            ),
-            Some(Kind::Nested(_))
-            | Some(Kind::Repeated(_))
-            | Some(Kind::KeyValueMap(_))
-            | None => FieldValue::Text(String::new()),
+            Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
+                FieldValue::Selection(
+                    allowed_values
+                        .get(s.selection_index)
+                        .cloned()
+                        .unwrap_or_default(),
+                )
+            }
+            Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {
+                FieldValue::Text(String::new())
+            }
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -600,10 +624,7 @@ fn draw_header(f: &mut Frame, area: Rect, panel: &PromptPanel, palette: &Palette
 }
 
 fn draw_detail(f: &mut Frame, area: Rect, detail: &str) {
-    f.render_widget(
-        Paragraph::new(detail).wrap(Wrap { trim: false }),
-        area,
-    );
+    f.render_widget(Paragraph::new(detail).wrap(Wrap { trim: false }), area);
 }
 
 fn draw_form(
@@ -685,12 +706,15 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
                 .get(s.selection_index)
                 .cloned()
                 .unwrap_or_default();
-            format!("{current}    [{}/{}]", s.selection_index + 1, allowed_values.len())
+            format!(
+                "{current}    [{}/{}]",
+                s.selection_index + 1,
+                allowed_values.len()
+            )
         }
-        Some(Kind::Nested(_))
-        | Some(Kind::Repeated(_))
-        | Some(Kind::KeyValueMap(_))
-        | None => String::new(),
+        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {
+            String::new()
+        }
     };
 
     let mut lines = vec![

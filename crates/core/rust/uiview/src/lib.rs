@@ -60,8 +60,8 @@ pub mod proto {
 mod conversation;
 mod launchpad;
 mod paths;
-mod request;
 mod render;
+mod request;
 mod stat;
 
 pub use conversation::{is_active_status, ConversationModel};

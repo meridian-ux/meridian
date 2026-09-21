@@ -24,8 +24,10 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::execute;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use prost::Message as _;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
@@ -76,7 +78,8 @@ fn parse_args() -> Result<Args, String> {
             "--light" => mode = Mode::Light,
             "--theme" => {
                 theme = Some(PathBuf::from(
-                    it.next().ok_or("--theme needs a path to a meridian.theme.v1.Theme .binpb")?,
+                    it.next()
+                        .ok_or("--theme needs a path to a meridian.theme.v1.Theme .binpb")?,
                 ))
             }
             other if other.starts_with('-') => return Err(format!("unknown flag {other}")),
@@ -145,9 +148,8 @@ fn run(args: Args) -> Result<(), String> {
     let palette = match &args.theme {
         Some(p) => {
             let b = std::fs::read(p).map_err(|e| format!("reading {}: {e}", p.display()))?;
-            let theme = Theme::decode(b.as_slice()).map_err(|e| {
-                format!("{} is not a meridian.theme.v1.Theme: {e}", p.display())
-            })?;
+            let theme = Theme::decode(b.as_slice())
+                .map_err(|e| format!("{} is not a meridian.theme.v1.Theme: {e}", p.display()))?;
             Palette::from_theme(&theme, args.mode)
         }
         // Palette::default() is brand-neutral by design — the fastverk look ships

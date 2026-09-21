@@ -25,10 +25,33 @@ const FDS: &[u8] = include_bytes!("../proto/gen/meridian_ui_v1.binpb");
 /// The 27 files of `//proto:uiview_proto`. Listed so that adding a proto upstream
 /// without regenerating fails here rather than at some renderer months later.
 const EXPECTED: &[&str] = &[
-    "affordance", "catalog", "choice", "command_palette", "connect_flow",
-    "conversation", "copy_value", "form", "gallery", "grammar", "layout_service",
-    "llm_prompt", "lro", "media", "nav_tree", "panel", "prompt", "rpc", "shell",
-    "snippet", "stat", "steps", "stream", "table", "terminal", "value", "view",
+    "affordance",
+    "catalog",
+    "choice",
+    "command_palette",
+    "connect_flow",
+    "conversation",
+    "copy_value",
+    "form",
+    "gallery",
+    "grammar",
+    "layout_service",
+    "llm_prompt",
+    "lro",
+    "media",
+    "nav_tree",
+    "panel",
+    "prompt",
+    "rpc",
+    "shell",
+    "snippet",
+    "stat",
+    "steps",
+    "stream",
+    "table",
+    "terminal",
+    "value",
+    "view",
 ];
 
 fn fds() -> FileDescriptorSet {
@@ -92,7 +115,9 @@ fn carries_the_fields_this_crate_reads() {
     };
 
     assert!(
-        field_names("TableColumn").iter().any(|n| n == "value_display"),
+        field_names("TableColumn")
+            .iter()
+            .any(|n| n == "value_display"),
         "TableColumn.value_display absent — the set predates schemas 0.22.0"
     );
     let stat = field_names("StatPanel");

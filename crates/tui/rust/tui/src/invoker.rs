@@ -7,12 +7,7 @@ use serde_json::Value;
 /// typically tonic + a serde-aware codec, but mocked impls work
 /// equally well for demos / tests.
 pub trait RpcInvoker {
-    fn invoke(
-        &self,
-        service: &str,
-        method: &str,
-        request: Value,
-    ) -> Result<Value, RpcError>;
+    fn invoke(&self, service: &str, method: &str, request: Value) -> Result<Value, RpcError>;
 }
 
 #[derive(Debug, thiserror::Error)]

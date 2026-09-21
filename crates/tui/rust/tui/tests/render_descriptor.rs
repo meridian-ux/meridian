@@ -33,7 +33,12 @@ use meridian_uiview::Context;
 struct Refuse;
 
 impl RpcInvoker for Refuse {
-    fn invoke(&self, s: &str, m: &str, _r: serde_json::Value) -> Result<serde_json::Value, RpcError> {
+    fn invoke(
+        &self,
+        s: &str,
+        m: &str,
+        _r: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
         Err(RpcError::Transport(format!("{s}/{m}: no transport")))
     }
 }
@@ -313,7 +318,10 @@ fn wire_bytes_round_trip_into_drawn_cells() {
     assert_eq!(decoded, stat_descriptor());
 
     let out = draw(&decoded, 48, 8);
-    assert!(out.contains("Fleet health"), "title missing from the drawn buffer:\n{out}");
+    assert!(
+        out.contains("Fleet health"),
+        "title missing from the drawn buffer:\n{out}"
+    );
     assert!(out.contains("Nodes ready"), "stat label missing:\n{out}");
     assert!(out.contains("118"), "stat value missing:\n{out}");
 }
@@ -335,16 +343,8 @@ fn gallery_populate_flows_into_the_tui_card_list() {
     let mut view = PanelView::with_palette(Palette::default());
     let ctx = Context::default();
     let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();
-    term.draw(|f| {
-        view.render(
-            f,
-            f.area(),
-            &gallery_descriptor(),
-            &ctx,
-            &GalleryData,
-        )
-    })
-    .unwrap();
+    term.draw(|f| view.render(f, f.area(), &gallery_descriptor(), &ctx, &GalleryData))
+        .unwrap();
     let out = term
         .backend()
         .buffer()
@@ -355,7 +355,10 @@ fn gallery_populate_flows_into_the_tui_card_list() {
         .concat();
     assert!(out.contains("GitHub"), "gallery title missing:\n{out}");
     assert!(out.contains("Connected"), "gallery status missing:\n{out}");
-    assert!(out.contains("https://github.com"), "gallery href missing:\n{out}");
+    assert!(
+        out.contains("https://github.com"),
+        "gallery href missing:\n{out}"
+    );
 }
 
 #[test]
@@ -364,15 +367,7 @@ fn detail_panels_populate_and_render_the_record_dispatch_path() {
     let mut header = PanelView::with_palette(Palette::default());
     let mut header_term = Terminal::new(TestBackend::new(64, 9)).unwrap();
     header_term
-        .draw(|f| {
-            header.render(
-                f,
-                f.area(),
-                &detail_header_descriptor(),
-                &ctx,
-                &RecordData,
-            )
-        })
+        .draw(|f| header.render(f, f.area(), &detail_header_descriptor(), &ctx, &RecordData))
         .unwrap();
     let header_out = header_term
         .backend()
@@ -389,15 +384,7 @@ fn detail_panels_populate_and_render_the_record_dispatch_path() {
     let mut card = PanelView::with_palette(Palette::default());
     let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
     card_term
-        .draw(|f| {
-            card.render(
-                f,
-                f.area(),
-                &record_card_descriptor(),
-                &ctx,
-                &RecordData,
-            )
-        })
+        .draw(|f| card.render(f, f.area(), &record_card_descriptor(), &ctx, &RecordData))
         .unwrap();
     let card_out = card_term
         .backend()
@@ -430,9 +417,18 @@ fn form_prefill_renders_and_submit_contains_edited_values() {
         .iter()
         .map(|cell| cell.symbol())
         .collect();
-    assert!(output.contains("Edit deployment"), "form mode missing:\n{output}");
-    assert!(output.contains("Name: worker"), "prefill missing:\n{output}");
-    assert!(output.contains("Replicas: 2"), "integer prefill missing:\n{output}");
+    assert!(
+        output.contains("Edit deployment"),
+        "form mode missing:\n{output}"
+    );
+    assert!(
+        output.contains("Name: worker"),
+        "prefill missing:\n{output}"
+    );
+    assert!(
+        output.contains("Replicas: 2"),
+        "integer prefill missing:\n{output}"
+    );
 
     view.handle_form_key(form, &ctx, KeyCode::Char('x'));
     let submission = view
@@ -464,7 +460,10 @@ fn lro_renders_inputs_and_emits_start_request() {
         .map(|cell| cell.symbol())
         .collect();
     assert!(output.contains("Deploy"), "run label missing:\n{output}");
-    assert!(output.contains("Replicas: 1"), "input default missing:\n{output}");
+    assert!(
+        output.contains("Replicas: 1"),
+        "input default missing:\n{output}"
+    );
 
     view.handle_lro_key(panel, &ctx, KeyCode::Up);
     let submission = view

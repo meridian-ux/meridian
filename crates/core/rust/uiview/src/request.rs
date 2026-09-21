@@ -63,11 +63,7 @@ impl RequestBuilder {
                 .as_ref()
                 .map(|r| crate::ProtoPaths::get(r, p).clone())
                 .unwrap_or(Value::Null),
-            Some(Source::FormField(id)) => ctx
-                .form_values
-                .get(id)
-                .cloned()
-                .unwrap_or(Value::Null),
+            Some(Source::FormField(id)) => ctx.form_values.get(id).cloned().unwrap_or(Value::Null),
             Some(Source::Literal(s)) => Value::String(s.clone()),
             Some(Source::Nested(nested)) => Self::build_nested(nested, ctx),
             // A live grammar/panel signal (a Vega selection). Resolves from
@@ -149,8 +145,7 @@ mod tests {
         };
 
         let mut ctx = Context::default();
-        ctx.selections
-            .insert("plan_year".into(), json!(2026));
+        ctx.selections.insert("plan_year".into(), json!(2026));
         assert_eq!(
             RequestBuilder::build(&call, &ctx),
             json!({ "plan_year": 2026, "tenant": "acme" }),

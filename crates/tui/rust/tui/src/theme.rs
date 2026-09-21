@@ -97,7 +97,9 @@ impl Palette {
 
     /// Section / panel titles — accent-colored and bold.
     pub fn title(&self) -> Style {
-        Style::default().fg(self.accent).add_modifier(Modifier::BOLD)
+        Style::default()
+            .fg(self.accent)
+            .add_modifier(Modifier::BOLD)
     }
 
     /// Table header row — strong foreground, bold.

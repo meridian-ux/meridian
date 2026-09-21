@@ -157,7 +157,10 @@ mod tests {
                 CommandGroup {
                     id: "create".into(),
                     title: "Create".into(),
-                    commands: vec![command("new-product", "New product"), command("new-order", "New order")],
+                    commands: vec![
+                        command("new-product", "New product"),
+                        command("new-order", "New order"),
+                    ],
                 },
                 CommandGroup {
                     id: "navigate".into(),

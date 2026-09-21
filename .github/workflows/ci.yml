@@ -150,9 +150,8 @@ jobs:
             *) echo "::error::expected a wire-format complaint, got: $out"; exit 1 ;;
           esac
 
-      # ⛔ NOT YET GATED: cargo fmt --check still reports inherited formatting drift.
-      # Keep that mechanical cleanup separate from behavior changes so the eventual
-      # formatting gate is reviewable and does not hide semantic regressions.
+      - name: Rust formatting
+        run: cargo fmt --all -- --check
 
   bazel:
     runs-on: ubuntu-latest

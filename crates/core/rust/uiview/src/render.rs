@@ -98,12 +98,10 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
             .as_i64()
             .map(|n| n.to_string())
             .unwrap_or_else(|| value.to_string()),
-        ColumnFormat::EnumName | ColumnFormat::String | ColumnFormat::Unspecified => {
-            match value {
-                Value::String(s) => s.clone(),
-                _ => value.to_string(),
-            }
-        }
+        ColumnFormat::EnumName | ColumnFormat::String | ColumnFormat::Unspecified => match value {
+            Value::String(s) => s.clone(),
+            _ => value.to_string(),
+        },
         ColumnFormat::StringList => match value {
             Value::Array(items) => items
                 .iter()
