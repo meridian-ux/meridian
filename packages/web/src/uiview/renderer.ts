@@ -19,6 +19,7 @@ import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/cha
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
@@ -539,10 +540,10 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
 function copyOnClick(button: HTMLElement, text: string): void {
   button.addEventListener("click", () => {
     void navigator?.clipboard?.writeText(text);
-    const prev = button.textContent;
+    const prev = Array.from(button.childNodes);
     button.textContent = "Copied";
     window.setTimeout(() => {
-      button.textContent = prev;
+      button.replaceChildren(...prev);
     }, 1200);
   });
 }
@@ -606,7 +607,8 @@ function buildCopyValue(value: CopyValue): HTMLElement {
   const wrap = el("div", "mer-copyvalue");
   if (value.secret) wrap.dataset.secret = "true";
   if (value.label) wrap.appendChild(el("span", "mer-copyvalue-label", value.label));
-  const displayValue = value.display ? formatByDisplay(value.value, value.display).text : value.value;
+  const displayValue = value.display && value.display.type !== ValueType.UNSPECIFIED
+    ? formatByDisplay(value.value, value.display).text : value.value;
   const btn = el("button", "mer-copy mer-copyvalue-btn");
   (btn as HTMLButtonElement).type = "button";
   const code = el("code", "mer-copyvalue-value", value.secret ? "••••••••" : displayValue);

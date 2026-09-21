@@ -844,6 +844,7 @@ fn copy_value_line(v: &CopyValue, palette: &Palette, revealed: bool) -> Line<'st
     let display_value = v
         .display
         .as_ref()
+        .filter(|display| display.r#type != meridian_uiview::proto::ValueType::Unspecified as i32)
         .map(|display| format_display_value(&Value::String(v.value.clone()), display))
         .unwrap_or_else(|| v.value.clone());
     let shown = if v.secret && !revealed {

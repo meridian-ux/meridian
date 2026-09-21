@@ -24,6 +24,7 @@ import type { CatalogPanel, CatalogItem } from "@savvifi/meridian-proto-ts/proto
 import type { ChoicePanel, ChoiceOption } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel, ConnectTarget } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
@@ -287,7 +288,8 @@ export function SnippetContent({ c, snippet }: { c: ContentClasses; snippet: Sni
 
 // ── CopyValue (realizes secret mask + reveal) ────────────────────────────────
 export function CopyValueContent({ c, value }: { c: ContentClasses; value: CopyValue }): ReactNode {
-  const shown = value.display ? formatByDisplay(value.value, value.display).text : value.value;
+  const shown = value.display && value.display.type !== ValueType.UNSPECIFIED
+    ? formatByDisplay(value.value, value.display).text : value.value;
   return (
     <div className={c.copyValue} data-secret={value.secret || undefined}>
       {value.label && <span className={c.copyValueLabel}>{value.label}</span>}

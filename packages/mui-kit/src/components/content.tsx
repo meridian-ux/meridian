@@ -52,6 +52,7 @@ import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.j
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
@@ -141,7 +142,8 @@ export function SnippetView({ snippet }: { snippet: Snippet }): ReactNode {
 
 export function CopyValueView({ value }: { value: CopyValue }): ReactNode {
   const [revealed, setRevealed] = useState(false);
-  const displayValue = value.display ? formatByDisplay(value.value, value.display).text : value.value;
+  const displayValue = value.display && value.display.type !== ValueType.UNSPECIFIED
+    ? formatByDisplay(value.value, value.display).text : value.value;
   const shown = value.secret && !revealed ? "••••••••" : displayValue;
   return (
     <Stack direction="row" spacing={1} alignItems="center" data-secret={value.secret || undefined}>

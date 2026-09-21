@@ -29,8 +29,10 @@ message CopyValue {
   bool secret = 3 [(google.api.field_behavior) = OPTIONAL];
   // Optional one-liner help shown under the value.
   string help = 4 [(google.api.field_behavior) = OPTIONAL];
-  // Optional semantic display for the visible value. Copy and reveal always
-  // preserve the original `value`; absent or unspecified keeps legacy output.
+  // Optional semantic display for visible and revealed text. Copy always
+  // preserves the original `value`; absent or unspecified keeps legacy output.
+  // This string payload is not coerced into a number or boolean. Link
+  // decoration is not applied because this control's action is copy.
   ValueDisplay display = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
