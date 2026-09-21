@@ -26,6 +26,7 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::Frame;
+use serde_json::Value;
 
 use crate::theme::Palette;
 
@@ -738,6 +739,50 @@ pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: 
     frame.render_widget(bordered(lines, palette), area);
 }
 
+/// Extract bounded chart rows from a populate response. Chart descriptors keep
+/// the response path explicit so every modality can make the same projection;
+/// an empty path treats the response itself as the row array.
+pub fn chart_rows(
+    response: &Value,
+    rows_field: &str,
+    x_field: &str,
+    y_field: &str,
+) -> Vec<(String, String)> {
+    let mut value = response;
+    for segment in rows_field.split('.').filter(|segment| !segment.is_empty()) {
+        let Some(next) = value.get(segment) else {
+            return Vec::new();
+        };
+        value = next;
+    }
+    let Some(rows) = value.as_array() else {
+        return Vec::new();
+    };
+    rows.iter()
+        .filter_map(|row| {
+            let x = row.get(x_field)?.to_string_value()?;
+            let y = row.get(y_field)?.to_string_value()?;
+            Some((x, y))
+        })
+        .take(256)
+        .collect()
+}
+
+trait JsonDisplayValue {
+    fn to_string_value(&self) -> Option<String>;
+}
+
+impl JsonDisplayValue for Value {
+    fn to_string_value(&self) -> Option<String> {
+        match self {
+            Value::String(value) => Some(value.clone()),
+            Value::Number(value) => Some(value.to_string()),
+            Value::Bool(value) => Some(value.to_string()),
+            _ => None,
+        }
+    }
+}
+
 fn bordered(lines: Vec<Line<'static>>, palette: &Palette) -> Paragraph<'static> {
     Paragraph::new(lines)
         .wrap(Wrap { trim: false })
@@ -1026,6 +1071,20 @@ mod tests {
             .collect();
         assert!(text.contains("Latency"));
         assert!(text.contains("p95 by service"));
+    }
+
+    #[test]
+    fn chart_rows_extracts_nested_response_and_bounds_output() {
+        let response = serde_json::json!({
+            "result": {"points": [
+                {"service": "api", "p95": 42},
+                {"service": "worker", "p95": 7}
+            ]}
+        });
+        assert_eq!(
+            chart_rows(&response, "result.points", "service", "p95"),
+            vec![("api".into(), "42".into()), ("worker".into(), "7".into())]
+        );
     }
 
     // Concatenate a Line's span contents for assertions.
