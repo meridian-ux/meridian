@@ -139,7 +139,7 @@ semantic formatter; and the web-components renderer plus all three browser kits
 consume the framework-neutral browser formatter. The dependency-free HTML and
 shadcn kits now fetch and realize populated detail values as well. Descriptors
 without `ValueDisplay` retain their existing output. The remaining migration
-surface is relative/time display, link and richer principal realizations.
+surface is relative temporal display, link, and richer principal realizations.
 
 ## Track C — Hardening
 
