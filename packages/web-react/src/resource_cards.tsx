@@ -104,11 +104,11 @@ export function ResourceCardsView({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Row } | null>(null);
-  if (loading) return <p className="mer-empty">Loading…</p>;
-  if (error) return <p className="mer-empty">Failed to load resources.</p>;
-  if (!rows.length) return <p className="mer-empty">{panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`}</p>;
+  if (loading) return <div className="mer-resource-cards"><p className="mer-empty">Loading…</p></div>;
+  if (error) return <div className="mer-resource-cards"><p className="mer-empty">Failed to load resources.</p></div>;
+  if (!rows.length) return <div className="mer-resource-cards"><p className="mer-empty">{panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`}</p></div>;
   const template = panel.template;
-  if (!template) return <p className="mer-empty">Invalid resource card descriptor.</p>;
+  if (!template) return <div className="mer-resource-cards"><p className="mer-empty">Invalid resource card descriptor.</p></div>;
   const actions = template.actions?.actions ?? [];
   const run = (action: ResourceAction, row: Row) => {
     if (!action.invoke) return;
