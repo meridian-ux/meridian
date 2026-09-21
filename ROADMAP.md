@@ -156,7 +156,10 @@ values across browser read surfaces. TUI tables, detail headers, and record card
 now show declared route intent as escaped, noninteractive record-kind/raw-ID
 metadata. Explicit empty links suppress legacy principal decoration; absent or
 invalid declarations preserve plain values. The TUI does not resolve routes or
-grant navigation capability. Richer non-browser realizations remain open.
+grant navigation capability. `StatPanel.value_display` now shares the bounded
+numeric `ValueDisplay` precision contract for current values and computed deltas;
+legacy `format` remains the fallback for absent or nonnumeric declarations.
+Richer non-browser realizations remain open.
 
 ## Track C — Hardening
 

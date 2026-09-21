@@ -25,6 +25,7 @@ package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
 import "proto/rpc.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -84,6 +85,13 @@ message StatPanel {
   // can render honestly (a currency it knows the locale for, a unit it derived).
   // Everything else stays computed, per this file's opening rule.
   string display_field = 15 [(google.api.field_behavior) = OPTIONAL];
+  // Optional shared semantic formatter for the value and computed delta.
+  // INTEGER, DECIMAL, MONEY, and PERCENT declarations replace `format`, using
+  // the same ValueDisplay behavior as table cells and read-only fields.
+  // Absent, unspecified, unknown, or nonnumeric types retain legacy `format`.
+  // Value/delta text overrides still win. Unit suppression follows the selected
+  // declaration (MONEY/PERCENT), or legacy format when no numeric type applies.
+  ValueDisplay value_display = 16 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // How to render a stat's value + delta. The rendering is deterministic and

@@ -8,7 +8,7 @@
 // (meridian-uiview-core rust/uiview/src/stat.rs). Both languages must produce
 // byte-identical strings/trends — this is the html↔tui divergence guard.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -18,6 +18,7 @@ import {
   type PanelDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { computeStat, formatStatNumber } from "@savvifi/meridian-schemas/uiview";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -44,6 +45,48 @@ describe("formatStatNumber parity vectors (must match the Rust formatter)", () =
 const stat = (v: Parameters<typeof create<typeof StatPanelSchema>>[1]) => create(StatPanelSchema, v);
 
 describe("computeStat — computed delta/trend/semantics (parity with Rust)", () => {
+  it("uses numeric ValueDisplay after wire decode for both value and delta", () => {
+    for (const type of [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT]) {
+      for (const digits of [undefined, 0, 3, 100, -1, -2147483648, 101, 2147483647]) {
+        const p = stat({ value: 12.625, previous: 10.25, format: 3, unit: "items",
+          valueDisplay: { type, options: { case: "number", value: { fractionDigits: digits } } },
+        });
+        const c = computeStat(fromBinary(StatPanelSchema, toBinary(StatPanelSchema, p)));
+        const valid = digits !== undefined && digits >= 0 && digits <= 100;
+        const suffix = type === ValueType.MONEY || type === ValueType.PERCENT ? "" : " items";
+        expect(c.formattedValue).toBe((valid ? (12.625).toFixed(digits) : "12.625") + suffix);
+        expect(c.formattedDelta).toBe("+" + (valid ? (2.375).toFixed(digits) : "2.375"));
+        expect(c.trend).toBe("up");
+      }
+    }
+  });
+
+  it("retains legacy formats for absent, unspecified, unknown, and nonnumeric declarations", () => {
+    for (const type of [undefined, ValueType.UNSPECIFIED, ValueType.TEXT, 999]) {
+      const c = computeStat(stat({ value: 12.5, previous: 10.25, format: 3, unit: "ignored",
+        valueDisplay: type === undefined ? undefined : { type },
+      }));
+      expect(c.formattedValue).toBe("$12.50");
+      expect(c.formattedDelta).toBe("+$2.25");
+    }
+  });
+
+  it("keeps series deltas, overrides, and direction independent of declared formatting", () => {
+    const p = stat({ value: -2.25, format: 2, series: [10.25, 12.5], higherIsBetter: false,
+      valueDisplay: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 3 } } },
+    });
+    expect(computeStat(p)).toMatchObject({ formattedValue: "-2.250", formattedDelta: "+2.250", semantics: "bad" });
+    p.previous = 0;
+    expect(computeStat(p)).toMatchObject({ formattedDelta: "-2.250", trend: "down", semantics: "good" });
+    p.deltaOverride = "pending";
+    expect(computeStat(p).formattedDelta).toBe("pending");
+    p.deltaOverride = "";
+    expect(computeStat(p).formattedDelta).toBe("");
+    p.previous = undefined;
+    p.series = [];
+    p.deltaOverride = undefined;
+    expect(computeStat(p).formattedDelta).toBeNull();
+  });
   it("delta from previous, semantic color when higher_is_better", () => {
     const c = computeStat(stat({ label: "m", value: 120, format: 1, previous: 150, higherIsBetter: true }));
     expect(c.formattedValue).toBe("120");
@@ -64,6 +107,22 @@ describe("computeStat — computed delta/trend/semantics (parity with Rust)", ()
     const c = computeStat(stat({ label: "m", value: 200, format: 1, previous: 150 }));
     expect(c.trend).toBe("up");
     expect(c.semantics).toBe("neutral");
+  });
+
+  it("declared ValueDisplay overrides legacy format for value and delta", () => {
+    const c = computeStat(stat({
+      label: "Revenue",
+      value: 1234.4,
+      format: 2,
+      previous: 1000,
+      unit: "USD",
+      valueDisplay: {
+        type: ValueType.MONEY,
+        options: { case: "number", value: { fractionDigits: 0 } },
+      },
+    }));
+    expect(c.formattedValue).toBe("1234");
+    expect(c.formattedDelta).toBe("+234");
   });
 });
 
@@ -87,6 +146,22 @@ const kits: [string, ComponentKit][] = [
 ];
 
 describe.each(kits)("StatPanel renders as a KPI tile (%s)", (_n, kit) => {
+  it("keeps invalid decimal precision on the declared fallback instead of legacy currency", () => {
+    const html = render(kit, statDesc({ value: 12.5, previous: 10.25, format: 3, unit: "items",
+      valueDisplay: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2147483647 } } },
+    }));
+    expect(html).toContain("12.5 items");
+    expect(html).toContain("+2.25");
+    expect(html).not.toContain("$");
+  });
+  it("renders declared precision over legacy percent and preserves the unit", () => {
+    const html = render(kit, statDesc({ value: 12.5, previous: 10.25, format: 2, unit: "items",
+      valueDisplay: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 3 } } },
+    }));
+    expect(html).toContain("12.500 items");
+    expect(html).toContain("+2.250");
+    expect(html).not.toContain("12.5%");
+  });
   it("value + unit, computed delta with data-semantics, and a hand-drawn sparkline", () => {
     const html = render(
       kit,

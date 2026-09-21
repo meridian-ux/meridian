@@ -9,10 +9,13 @@
 // "up". `trend_override` / `delta_override` are escape hatches only. Semantic
 // good/bad color is applied ONLY when `higher_is_better` is explicitly set.
 //
-// Number formatting is deterministic integer math (no toLocaleString), so it is
-// byte-identical to the Rust formatter.
+// Legacy number formatting uses deterministic integer math (no toLocaleString).
+// Declared numeric ValueDisplay values use the same formatter as read surfaces.
 
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import { formatByDisplay } from "./value_display.js";
 
 export type StatTrend = "up" | "down" | "flat" | "none";
 export type StatSemantics = "good" | "bad" | "neutral";
@@ -102,6 +105,12 @@ export function formatStatNumber(n: number, format: number): string {
   }
 }
 
+/** StatPanel carries doubles; only numeric declarations replace its legacy format. */
+function numericDisplay(display: ValueDisplay | undefined): ValueDisplay | undefined {
+  return display && [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT]
+    .includes(display.type) ? display : undefined;
+}
+
 /** The arrow glyph for a trend (shared so web + tui match). */
 export function trendArrow(trend: StatTrend): string {
   return trend === "up" ? "↑" : trend === "down" ? "↓" : trend === "flat" ? "→" : "";
@@ -132,9 +141,14 @@ function mapTrend(override: number): StatTrend {
 
 /** Compute a StatPanel's value/delta/trend/semantics — the parity-critical core. */
 export function computeStat(panel: StatPanel): StatComputed {
-  const unitSuffix =
-    panel.unit && panel.format !== 2 && panel.format !== 3 ? ` ${panel.unit}` : "";
-  const formattedValue = formatStatNumber(panel.value, panel.format) + unitSuffix;
+  const display = numericDisplay(panel.valueDisplay);
+  const unitSuppressed = display
+    ? display.type === ValueType.PERCENT || display.type === ValueType.MONEY
+    : panel.format === 2 || panel.format === 3;
+  const formatValue = (value: number) =>
+    display ? formatByDisplay(value, display).text : formatStatNumber(value, panel.format);
+  const unitSuffix = panel.unit && !unitSuppressed ? ` ${panel.unit}` : "";
+  const formattedValue = formatValue(panel.value) + unitSuffix;
 
   // Raw delta: value − previous, else last − first of series.
   let raw: number | undefined;
@@ -148,7 +162,7 @@ export function computeStat(panel: StatPanel): StatComputed {
   let formattedDelta: string | null = null;
   if (panel.deltaOverride !== undefined) formattedDelta = panel.deltaOverride;
   else if (raw !== undefined)
-    formattedDelta = (raw >= 0 ? "+" : "-") + formatStatNumber(Math.abs(raw), panel.format);
+    formattedDelta = (raw >= 0 ? "+" : "-") + formatValue(Math.abs(raw));
 
   let semantics: StatSemantics = "neutral";
   if (panel.higherIsBetter !== undefined && (trend === "up" || trend === "down")) {

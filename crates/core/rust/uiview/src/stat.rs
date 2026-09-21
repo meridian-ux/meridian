@@ -6,10 +6,11 @@
 //!
 //! The delta/trend is COMPUTED from the data (previous / series), never trusted
 //! from an author-marked direction. Semantic good/bad color applies ONLY when
-//! `higher_is_better` is explicitly set. Number formatting is deterministic
-//! integer math, byte-identical to the TS formatter.
+//! `higher_is_better` is explicitly set. Legacy number formatting uses
+//! deterministic integer math; numeric ValueDisplay uses the read-surface formatter.
 
-use crate::proto::StatPanel;
+use crate::proto::{value_display, StatPanel, ValueDisplay, ValueType};
+use crate::render::format_display_value;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StatTrend {
@@ -129,18 +130,47 @@ fn map_trend(override_val: i32) -> StatTrend {
     }
 }
 
+fn format_stat_display_value(value: f64, display: &ValueDisplay) -> String {
+    if let Some(value_display::Options::Number(options)) = display.options.as_ref() {
+        if options.fraction_digits == Some(0) {
+            // JavaScript's toFixed(0), used by the browser formatters, rounds
+            // half away from zero; Rust's format! uses ties-to-even.
+            let rounded = if value.is_sign_negative() {
+                (value - 0.5).ceil()
+            } else {
+                (value + 0.5).floor()
+            };
+            return rounded.to_string();
+        }
+    }
+    format_display_value(&serde_json::json!(value), display)
+}
+
 /// Compute a StatPanel's value/delta/trend/semantics — the parity-critical core.
 pub fn compute_stat(panel: &StatPanel) -> StatComputed {
-    let unit_suffix = if !panel.unit.is_empty() && panel.format != 2 && panel.format != 3 {
+    let display = panel.value_display.as_ref().filter(|display| {
+        matches!(
+            ValueType::try_from(display.r#type),
+            Ok(ValueType::Integer | ValueType::Decimal | ValueType::Money | ValueType::Percent)
+        )
+    });
+    let format_value = |value: f64| match display {
+        Some(display) => format_stat_display_value(value, display),
+        None => format_stat_number(value, panel.format),
+    };
+    let unit_suppressed = match display {
+        Some(display) => matches!(
+            ValueType::try_from(display.r#type),
+            Ok(ValueType::Percent | ValueType::Money)
+        ),
+        None => panel.format == 2 || panel.format == 3,
+    };
+    let unit_suffix = if !panel.unit.is_empty() && !unit_suppressed {
         format!(" {}", panel.unit)
     } else {
         String::new()
     };
-    let formatted_value = format!(
-        "{}{}",
-        format_stat_number(panel.value, panel.format),
-        unit_suffix
-    );
+    let formatted_value = format!("{}{}", format_value(panel.value), unit_suffix);
 
     // Raw delta: value − previous, else last − first of series.
     let raw: Option<f64> = if let Some(p) = panel.previous {
@@ -170,7 +200,7 @@ pub fn compute_stat(panel: &StatPanel) -> StatComputed {
             format!(
                 "{}{}",
                 if r >= 0.0 { "+" } else { "-" },
-                format_stat_number(r.abs(), panel.format)
+                format_value(r.abs())
             )
         })
     };
@@ -204,7 +234,8 @@ pub fn compute_stat(panel: &StatPanel) -> StatComputed {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::proto::StatPanel;
+    use crate::proto::{value_display, NumberOptions, StatPanel, ValueDisplay, ValueType};
+    use prost::Message;
 
     fn stat(value: f64, format: i32) -> StatPanel {
         StatPanel {
@@ -267,5 +298,177 @@ mod tests {
         let c = compute_stat(&p);
         assert_eq!(c.trend, StatTrend::Up);
         assert_eq!(c.semantics, StatSemantics::Neutral); // up ≠ good unless declared
+    }
+
+    #[test]
+    fn declared_value_display_overrides_legacy_stat_format() {
+        let panel = StatPanel {
+            label: "Revenue".into(),
+            value: 1234.4,
+            format: 2,
+            unit: "USD".into(),
+            previous: Some(1000.0),
+            value_display: Some(ValueDisplay {
+                r#type: ValueType::Money as i32,
+                options: Some(value_display::Options::Number(NumberOptions {
+                    fraction_digits: Some(0),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let computed = compute_stat(&panel);
+        assert_eq!(computed.formatted_value, "1234");
+        assert_eq!(computed.formatted_delta.as_deref(), Some("+234"));
+    }
+
+    fn numeric_display(kind: ValueType, digits: Option<i32>) -> ValueDisplay {
+        ValueDisplay {
+            r#type: kind as i32,
+            options: Some(value_display::Options::Number(NumberOptions {
+                fraction_digits: digits,
+                ..Default::default()
+            })),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn numeric_display_survives_wire_decode_for_value_and_delta() {
+        // The same vectors as the TypeScript stat suite. Precision validation
+        // belongs to ValueDisplay; invalid precision cannot select legacy USD.
+        for kind in [
+            ValueType::Integer,
+            ValueType::Decimal,
+            ValueType::Money,
+            ValueType::Percent,
+        ] {
+            for digits in [
+                None,
+                Some(0),
+                Some(3),
+                Some(100),
+                Some(-1),
+                Some(i32::MIN),
+                Some(101),
+                Some(i32::MAX),
+            ] {
+                let panel = StatPanel {
+                    value: 12.625,
+                    previous: Some(10.25),
+                    format: 3,
+                    unit: "items".into(),
+                    value_display: Some(numeric_display(kind, digits)),
+                    ..Default::default()
+                };
+                let decoded = StatPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
+                let computed = compute_stat(&decoded);
+                let (value, delta) = match digits {
+                    Some(0) => ("13".into(), "+2".into()),
+                    Some(100) => (
+                        format!("12.625{}", "0".repeat(97)),
+                        format!("+2.375{}", "0".repeat(97)),
+                    ),
+                    _ => ("12.625".into(), "+2.375".into()),
+                };
+                let suffix = if matches!(kind, ValueType::Money | ValueType::Percent) {
+                    ""
+                } else {
+                    " items"
+                };
+                assert_eq!(
+                    computed.formatted_value,
+                    format!("{value}{suffix}"),
+                    "{kind:?}/{digits:?}"
+                );
+                assert_eq!(computed.formatted_delta, Some(delta), "{kind:?}/{digits:?}");
+                assert_eq!(computed.trend, StatTrend::Up);
+            }
+        }
+    }
+
+    #[test]
+    fn invalid_decimal_precision_does_not_restore_legacy_currency() {
+        let panel = StatPanel {
+            value: 12.5,
+            previous: Some(10.25),
+            format: 3,
+            unit: "items".into(),
+            value_display: Some(numeric_display(ValueType::Decimal, Some(i32::MAX))),
+            ..Default::default()
+        };
+        let computed = compute_stat(&panel);
+        assert_eq!(computed.formatted_value, "12.5 items");
+        assert_eq!(computed.formatted_delta.as_deref(), Some("+2.25"));
+    }
+
+    #[test]
+    fn declared_rounding_matches_other_native_read_surfaces() {
+        // StatPanel must not introduce its own rounding policy at tie values.
+        for (value, digits) in [(12.5, 0), (-12.5, 0), (1.125, 2), (-1.125, 2)] {
+            let display = numeric_display(ValueType::Decimal, Some(digits));
+            let expected = format_display_value(&serde_json::json!(value), &display);
+            let panel = StatPanel {
+                value,
+                value_display: Some(display),
+                ..Default::default()
+            };
+            assert_eq!(compute_stat(&panel).formatted_value, expected);
+        }
+    }
+
+    #[test]
+    fn unsupported_display_keeps_legacy_stat_format() {
+        for kind in [
+            None,
+            Some(ValueType::Unspecified as i32),
+            Some(ValueType::Text as i32),
+            Some(999),
+        ] {
+            let panel = StatPanel {
+                value: 12.5,
+                previous: Some(10.25),
+                format: 3,
+                unit: "ignored".into(),
+                value_display: kind.map(|kind| ValueDisplay {
+                    r#type: kind,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+            let computed = compute_stat(&panel);
+            assert_eq!(computed.formatted_value, "$12.50");
+            assert_eq!(computed.formatted_delta.as_deref(), Some("+$2.25"));
+        }
+    }
+
+    #[test]
+    fn declared_display_preserves_series_overrides_and_direction() {
+        let mut panel = StatPanel {
+            value: -2.25,
+            format: 2,
+            series: vec![10.25, 12.5],
+            higher_is_better: Some(false),
+            value_display: Some(numeric_display(ValueType::Decimal, Some(3))),
+            ..Default::default()
+        };
+        let computed = compute_stat(&panel);
+        assert_eq!(computed.formatted_value, "-2.250");
+        assert_eq!(computed.formatted_delta.as_deref(), Some("+2.250"));
+        assert_eq!(computed.semantics, StatSemantics::Bad);
+        panel.previous = Some(0.0);
+        let computed = compute_stat(&panel);
+        assert_eq!(computed.formatted_delta.as_deref(), Some("-2.250"));
+        assert_eq!(computed.trend, StatTrend::Down);
+        assert_eq!(computed.semantics, StatSemantics::Good);
+        for text in ["pending", ""] {
+            panel.delta_override = Some(text.into());
+            assert_eq!(compute_stat(&panel).formatted_delta.as_deref(), Some(text));
+        }
+        panel.previous = None;
+        panel.series.clear();
+        panel.delta_override = None;
+        assert_eq!(compute_stat(&panel).formatted_delta, None);
     }
 }

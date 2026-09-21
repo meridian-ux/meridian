@@ -126,7 +126,12 @@ fn carries_the_fields_this_crate_reads() {
     assert!(field_names("PrincipalOptions")
         .iter()
         .any(|n| n == "target_kind"));
-    for want in ["populate", "previous_field", "display_field"] {
+    for want in [
+        "populate",
+        "previous_field",
+        "display_field",
+        "value_display",
+    ] {
         assert!(stat.iter().any(|n| n == want), "StatPanel.{want} absent");
     }
 }
