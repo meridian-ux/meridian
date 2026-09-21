@@ -9,7 +9,7 @@
 //! `higher_is_better` is explicitly set. Legacy number formatting uses
 //! deterministic integer math; numeric ValueDisplay uses the read-surface formatter.
 
-use crate::proto::{value_display, StatPanel, ValueDisplay, ValueType};
+use crate::proto::{StatPanel, ValueType};
 use crate::render::format_display_value;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -130,22 +130,6 @@ fn map_trend(override_val: i32) -> StatTrend {
     }
 }
 
-fn format_stat_display_value(value: f64, display: &ValueDisplay) -> String {
-    if let Some(value_display::Options::Number(options)) = display.options.as_ref() {
-        if options.fraction_digits == Some(0) {
-            // JavaScript's toFixed(0), used by the browser formatters, rounds
-            // half away from zero; Rust's format! uses ties-to-even.
-            let rounded = if value.is_sign_negative() {
-                (value - 0.5).ceil()
-            } else {
-                (value + 0.5).floor()
-            };
-            return rounded.to_string();
-        }
-    }
-    format_display_value(&serde_json::json!(value), display)
-}
-
 /// Compute a StatPanel's value/delta/trend/semantics — the parity-critical core.
 pub fn compute_stat(panel: &StatPanel) -> StatComputed {
     let display = panel.value_display.as_ref().filter(|display| {
@@ -155,7 +139,7 @@ pub fn compute_stat(panel: &StatPanel) -> StatComputed {
         )
     });
     let format_value = |value: f64| match display {
-        Some(display) => format_stat_display_value(value, display),
+        Some(display) => format_display_value(&serde_json::json!(value), display),
         None => format_stat_number(value, panel.format),
     };
     let unit_suppressed = match display {
