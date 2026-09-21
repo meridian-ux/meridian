@@ -99,6 +99,21 @@ function formatTemporal(text: string, precision: TemporalPrecision): string | un
   return formatTimestamp(text);
 }
 
+function formatTime(text: string, precision: TemporalPrecision): string | undefined {
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text);
+  if (!match) return undefined;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const second = match[3] === undefined ? undefined : Number(match[3]);
+  if (hour > 23 || minute > 59 || (second !== undefined && second > 59)) return undefined;
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  const seconds = precision === TemporalPrecision.SECOND && second !== undefined
+    ? `:${String(second).padStart(2, "0")}`
+    : "";
+  return `${displayHour}:${String(minute).padStart(2, "0")}${seconds} ${suffix} UTC`;
+}
+
 /** A formatted value and its optional absolute title for relative displays. */
 export interface DisplayedValue {
   text: string;
@@ -123,7 +138,9 @@ export function formatByDisplay(
       const options = display?.options.case === "temporal" ? display.options.value : undefined;
       const precision = options?.precision ?? TemporalPrecision.UNSPECIFIED;
       const absolute =
-        formatTemporal(text, type === ValueType.DATE ? TemporalPrecision.DAY : precision) ??
+        (type === ValueType.TIME
+          ? formatTime(text, precision)
+          : formatTemporal(text, type === ValueType.DATE ? TemporalPrecision.DAY : precision)) ??
         formatDisplayValue(value);
       const wants = options?.display ?? TemporalDisplay.UNSPECIFIED;
       const relative = nowMs === undefined ? undefined : formatRelativeTime(text, nowMs);

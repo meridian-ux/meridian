@@ -104,6 +104,19 @@ describe("formatByDisplay — types", () => {
     expect(formatByDisplay("", of(ValueType.PRINCIPAL)).text).toBe(EMPTY_DISPLAY);
   });
 
+  it("formats declared time values with optional seconds", () => {
+    const time = (precision?: TemporalPrecision) =>
+      create(ValueDisplaySchema, {
+        type: ValueType.TIME,
+        options: { case: "temporal", value: { precision } },
+      });
+    expect(formatByDisplay("09:14", time()).text).toBe("9:14 AM UTC");
+    expect(formatByDisplay("21:14:07", time(TemporalPrecision.SECOND)).text).toBe(
+      "9:14:07 PM UTC",
+    );
+    expect(formatByDisplay("not-a-time", time()).text).toBe("not-a-time");
+  });
+
   it("PRINCIPAL passes the producer's label through unchanged", () => {
     // The renderer's job is not to invent a name; the projection resolves the
     // reference upstream, so by here the value already IS the label.
