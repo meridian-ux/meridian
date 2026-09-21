@@ -53,16 +53,16 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `detail_header` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `record_card` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
-| `chart` | specialized | ● | ● | ○ | ● | ○ | ○ |
+| `chart` | specialized | ● | ● | ● | ● | ○ | ○ |
 | `steps` | full | ○ | ● | ● | ○ | ○ | ● |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 104 render, 34 do not.**
+**23 arms × 6 renderers = 138 cells; 105 render, 33 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 20 |
+| ○ `missing` | 19 |
 | ◐ `placeholder` | 9 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
@@ -71,7 +71,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 |---|---|
 | web-components | 5 |
 | web-react | 1 |
-| mui-kit | 4 |
+| mui-kit | 3 |
 | html-kit | 4 |
 | shadcn-kit | 8 |
 | tui | 12 |
