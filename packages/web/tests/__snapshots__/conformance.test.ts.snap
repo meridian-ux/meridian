@@ -1,0 +1,234 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical action fixture > web-components/action 1`] = `
+""Install"
+p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical adhoc fixture > web-components/adhoc 1`] = `""Overview""`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical catalog fixture > web-components/catalog 1`] = `
+""Capabilities"
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads.""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical chart fixture > web-components/chart 1`] = `
+""Requests"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "bar of requests by day""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical choice fixture > web-components/choice 1`] = `
+""Choose your agent"
+div role="tablist"
+  p
+    "Which client?"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical connectFlow fixture > web-components/connect_flow 1`] = `
+""Connect your agent"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical copyValue fixture > web-components/copy_value 1`] = `
+""Endpoint"
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical detail header fixture > web-components/detail_header 1`] = `
+""Sponsor"
+"(no populate RPC)""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical empty fixture > web-components/unset 1`] = `
+""Blank"
+"(no body set)""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical form fixture > web-components/form 1`] = `
+""Navigation"
+form
+  label
+    "Navigation groups"
+    input"
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical gallery fixture > web-components/gallery 1`] = `
+""Assets"
+div role="list"
+  p
+    "no assets""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical grammar fixture > web-components/grammar 1`] = `
+""Readme"
+h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical llmPrompt fixture > web-components/llm_prompt 1`] = `
+""Summarize"
+p
+  "Summarize the document""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical lro fixture > web-components/lro 1`] = `
+""Reindex search"
+"Click the button to run."
+button
+  "Run reindex""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical media fixture > web-components/media 1`] = `
+""Walkthrough"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. · 4:12"
+  ol
+    li
+      "Open the page"
+    li
+      "Add the sponsor""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical prompt fixture > web-components/prompt 1`] = `
+""Confirm deletion"
+form
+  p
+    "Delete this resource?"
+  label
+    "Reason"
+    input type="text"
+  button type="submit"
+    "Submit""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical record card fixture > web-components/record_card 1`] = `
+""Sponsor record"
+"(no populate RPC)""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical resource cards fixture > web-components/resource_cards 1`] = `
+""Services"
+div role="list"
+  p
+    "No services""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical snippet fixture > web-components/snippet 1`] = `
+""Cursor config"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical stat fixture > web-components/stat 1`] = `
+""Headcount"
+"Active employees"
+"1,240"
+"↑ +60"
+svg"
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical steps fixture > web-components/steps 1`] = `
+""Create a sponsor"
+p
+  "Add an employer and confirm a colleague can see it."
+ol
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical stream fixture > web-components/stream 1`] = `
+""Build log"
+"not live on this surface"
+div role="log" aria-live="polite"
+  "Waiting for build events...""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical table fixture > web-components/table 1`] = `
+""Claims"
+"(table has no populate RPC)""
+`;
+
+exports[`renderPanel (web-components, binary boundary) > renders the canonical terminal fixture > web-components/terminal 1`] = `
+""Build shell"
+"bash — connecting…"
+button
+  "Reconnect"
+div role="presentation"
+  textarea aria-label="Terminal input""
+`;

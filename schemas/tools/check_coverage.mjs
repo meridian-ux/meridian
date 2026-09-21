@@ -33,6 +33,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { checkSnapshotFiles } from "./check_conformance_snapshots.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -170,7 +171,7 @@ function main() {
     return;
   }
 
-  const errors = check(manifest, arms);
+  const errors = [...check(manifest, arms), ...checkSnapshotFiles(manifest)];
   if (errors.length === 0) {
     const waived = Object.entries(manifest.arms).flatMap(([n, a]) =>
       Object.entries(a.renderers).filter(([, c]) => c.waiver).map(([r]) => `${n}.${r}`));

@@ -1,0 +1,556 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the action shape and shows its title > shadcn-kit/action 1`] = `
+"h3
+  "Install"
+p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the adhoc shape and shows its title > shadcn-kit/adhoc 1`] = `
+"h3
+  "Overview"
+"unsupported panel shape: adhoc""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the catalog shape and shows its title > shadcn-kit/catalog 1`] = `
+"h3
+  "Capabilities"
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads.""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the chart shape and shows its title > shadcn-kit/chart 1`] = `
+"h3
+  "Requests"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "requests by day""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the choice shape and shows its title > shadcn-kit/choice 1`] = `
+"h3
+  "Choose your agent"
+div role="tablist"
+  p
+    "Which client?"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the connectFlow shape and shows its title > shadcn-kit/connect_flow 1`] = `
+"h3
+  "Connect your agent"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the copyValue shape and shows its title > shadcn-kit/copy_value 1`] = `
+"h3
+  "Endpoint"
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the detail header shape and shows its title > shadcn-kit/detail_header 1`] = `
+"h3
+  "Sponsor"
+h2
+  "Sponsor"
+p
+  "data.owner"
+dl aria-label="Record summary"
+  dt
+    "Type"
+  dd
+    "data.type""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the empty shape and shows its title > shadcn-kit/unset 1`] = `
+"h3
+  "Blank"
+"(empty panel)""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the form shape and shows its title > shadcn-kit/form 1`] = `
+"h3
+  "Navigation"
+form
+  "Navigation groups"
+  ol
+  button aria-label="Add section" type="button"
+    "Add section""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the gallery shape and shows its title > shadcn-kit/gallery 1`] = `
+"h3
+  "Assets"
+div role="list"
+  p
+    "no assets""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the grammar shape and shows its title > shadcn-kit/grammar 1`] = `
+"h3
+  "Readme"
+h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the llmPrompt shape and shows its title > shadcn-kit/llm_prompt 1`] = `
+"h3
+  "Summarize"
+"unsupported panel shape: llmPrompt""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the lro shape and shows its title > shadcn-kit/lro 1`] = `
+"h3
+  "Reindex search"
+button type="button"
+  "Run reindex""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the media shape and shows its title > shadcn-kit/media 1`] = `
+"h3
+  "Walkthrough"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. (252s)"
+  ol
+    li
+      "Open the page"
+    li
+      "Add the sponsor""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the prompt shape and shows its title > shadcn-kit/prompt 1`] = `
+"h3
+  "Confirm deletion"
+form
+  label
+    "Reason""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the record card shape and shows its title > shadcn-kit/record_card 1`] = `
+"h3
+  "Sponsor record"
+dl aria-label="sponsor"
+  dt
+    "Name"
+  dd
+    "name""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the resource cards shape and shows its title > shadcn-kit/resource_cards 1`] = `
+"h3
+  "Services"
+p
+  "Loading…""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the snippet shape and shows its title > shadcn-kit/snippet 1`] = `
+"h3
+  "Cursor config"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the stat shape and shows its title > shadcn-kit/stat 1`] = `
+"h3
+  "Headcount"
+"Active employees"
+"1,240"
+"↑ +60""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the steps shape and shows its title > shadcn-kit/steps 1`] = `
+"h3
+  "Create a sponsor"
+section aria-label="Steps"
+  p
+    "Add an employer and confirm a colleague can see it."
+  ol
+    li
+      "1."
+      "Open the Sponsors page"
+      "Admin"
+      p
+        "The list of every employer your organization administers."
+    li
+      "2."
+      "Add a new sponsor"
+      "Admin"
+      p
+        "Name it, then set Status to Active and Kind to Customer."
+    li
+      "3."
+      "Confirm a colleague sees it"
+      "Manager"
+      p
+        "Everyone in your organization shares one sponsor list."
+  p
+    "The sponsor is now visible to your whole team.""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the stream shape and shows its title > shadcn-kit/stream 1`] = `
+"h3
+  "Build log"
+section aria-live="polite"
+  p
+    "Waiting for build events...""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the table shape and shows its title > shadcn-kit/table 1`] = `
+"h3
+  "Claims"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+  tbody
+    tr
+      td
+        "no claims""
+`;
+
+exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the terminal shape and shows its title > shadcn-kit/terminal 1`] = `
+"h3
+  "Build shell"
+section aria-label="bash"
+  "Interactive terminal connection"
+  a href="wss://example.test/pty"
+    "wss://example.test/pty"
+  "80 × 24""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the action shape without crashing and shows its title > html-kit/action 1`] = `
+"h2
+  "Install"
+p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the adhoc shape without crashing and shows its title > html-kit/adhoc 1`] = `
+"h2
+  "Overview"
+pre
+  "unsupported panel shape: adhoc""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the catalog shape without crashing and shows its title > html-kit/catalog 1`] = `
+"h2
+  "Capabilities"
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads.""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the chart shape without crashing and shows its title > html-kit/chart 1`] = `
+"h2
+  "Requests"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "requests by day""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the choice shape without crashing and shows its title > html-kit/choice 1`] = `
+"h2
+  "Choose your agent"
+div role="tablist"
+  p
+    "Which client?"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the connectFlow shape without crashing and shows its title > html-kit/connect_flow 1`] = `
+"h2
+  "Connect your agent"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the copyValue shape without crashing and shows its title > html-kit/copy_value 1`] = `
+"h2
+  "Endpoint"
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the detail header shape without crashing and shows its title > html-kit/detail_header 1`] = `
+"h2
+  "Sponsor"
+h3
+  "Sponsor"
+p
+  "data.owner"
+dl
+  dt
+    "Type"
+  dd
+    "data.type""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the empty shape without crashing and shows its title > html-kit/unset 1`] = `
+"h2
+  "Blank"
+pre
+  "(empty panel)""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the form shape without crashing and shows its title > html-kit/form 1`] = `
+"h2
+  "Navigation"
+form
+  "Navigation groups"
+  ol
+  button aria-label="Add section" type="button"
+    "Add section""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the gallery shape without crashing and shows its title > html-kit/gallery 1`] = `
+"h2
+  "Assets"
+div role="list"
+  p
+    "no assets""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the grammar shape without crashing and shows its title > html-kit/grammar 1`] = `
+"h2
+  "Readme"
+h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the llmPrompt shape without crashing and shows its title > html-kit/llm_prompt 1`] = `
+"h2
+  "Summarize"
+pre
+  "unsupported panel shape: llmPrompt""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the lro shape without crashing and shows its title > html-kit/lro 1`] = `
+"h2
+  "Reindex search"
+button type="button"
+  "Run reindex""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the media shape without crashing and shows its title > html-kit/media 1`] = `
+"h2
+  "Walkthrough"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. (252s)"
+  ol
+    li
+      "Open the page"
+    li
+      "Add the sponsor""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the prompt shape without crashing and shows its title > html-kit/prompt 1`] = `
+"h2
+  "Confirm deletion"
+form
+  label
+    "Reason""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the record card shape without crashing and shows its title > html-kit/record_card 1`] = `
+"h2
+  "Sponsor record"
+dl aria-label="sponsor"
+  dt
+    "Name"
+  dd
+    "name""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the resource cards shape without crashing and shows its title > html-kit/resource_cards 1`] = `
+"h2
+  "Services"
+p
+  "Loading…""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the snippet shape without crashing and shows its title > html-kit/snippet 1`] = `
+"h2
+  "Cursor config"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the stat shape without crashing and shows its title > html-kit/stat 1`] = `
+"h2
+  "Headcount"
+"Active employees"
+"1,240"
+"↑ +60""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the steps shape without crashing and shows its title > html-kit/steps 1`] = `
+"h2
+  "Create a sponsor"
+p
+  "Add an employer and confirm a colleague can see it."
+ol
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    p
+      "The list of every employer your organization administers."
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the stream shape without crashing and shows its title > html-kit/stream 1`] = `
+"h2
+  "Build log"
+section aria-live="polite"
+  p
+    "Waiting for build events...""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the table shape without crashing and shows its title > html-kit/table 1`] = `
+"h2
+  "Claims"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+  tbody
+    tr
+      td
+        "no claims""
+`;
+
+exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the terminal shape without crashing and shows its title > html-kit/terminal 1`] = `
+"h2
+  "Build shell"
+section aria-label="bash"
+  p
+    "Interactive terminal connection"
+  a href="wss://example.test/pty"
+    "wss://example.test/pty"
+  p
+    "80 × 24""
+`;

@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import { PanelRenderer, MeridianProvider } from "@savvifi/meridian-web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { normalizeMarkup } from "../../../schemas/conformance/normalize_dom.js";
 
 const invoker = { invoke: async () => ({}) };
 
@@ -43,6 +44,8 @@ describe("muiKit canonical panel conformance", () => {
       // so the cross-renderer normalizers are the stable panel and body-arm markers.
       expect(html).toContain(`data-panel="${fixture.descriptor.panelId}"`);
       expect(html).toContain(`data-panel-shape="${fixture.descriptor.body.case || "unset"}"`);
+      const arm = (fixture.descriptor.body.case || "unset").replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+      expect(normalizeMarkup(html)).toMatchSnapshot(`mui-kit/${arm}`);
     });
   }
 });

@@ -1,9 +1,6 @@
-// Cross-shape conformance for the React renderer: every canonical PanelDescriptor
-// fixture must render without crashing, and the reference htmlKit must cover the
-// shapes it claims (table/prompt/lro) while falling back — by design — for the
-// richer shapes it omits (gallery/llmPrompt). This is the React-side seed of the
-// crank multi-renderer conformance gate (COORDINATION §14): the same FIXTURES
-// feed every renderer's conformance test.
+// @vitest-environment jsdom
+// Canonical fixtures through both reference kits. Semantic snapshots catch body
+// regressions, while the coverage manifest determines which arms may fall back.
 
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -19,6 +16,7 @@ import { PanelRenderer } from "../src/panel_renderer.js";
 import { MeridianProvider, type ReactAdhocFactory } from "../src/provider.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { FIXTURES } from "./fixtures.js";
+import { normalizeMarkup } from "../../../schemas/conformance/normalize_dom.js";
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
@@ -39,33 +37,15 @@ function isFallback(html: string): boolean {
   return html.includes("unsupported panel shape") || html.includes("empty panel");
 }
 
-// htmlKit (the reference kit) implements every canonical shape except
-// llmPrompt and host-registered adhoc content. Its implementations may still
-// be semantic degradations (for example, Chart and Terminal), but they must
-// not disappear into the generic unsupported-shape fallback.
-const HTMLKIT_IMPLEMENTS = new Set([
-  "table",
-  "prompt",
-  "lro",
-  "form",
-  "gallery",
-  "terminal",
-  "grammar",
-  "detail_header",
-  "record_card",
-  "resource_cards",
-  "chart",
-  "steps",
-  "media",
-  "stream",
-  "choice",
-  "snippet",
-  "action",
-  "connectFlow",
-  "copyValue",
-  "catalog",
-  "stat",
-]);
+function declaredRendered(kit: "html-kit" | "shadcn-kit"): Set<string> {
+  return new Set(Object.entries(coverageManifest.arms)
+    .filter(([, arm]) => arm.renderers[kit].status === "renders")
+    .map(([name]) => toFixtureShape(name)));
+}
+
+function snapshotArm(descriptor: PanelDescriptor): string {
+  return (descriptor.body.case || "unset").replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
 
 function toFixtureShape(arm: string): string {
   return arm.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
@@ -89,12 +69,13 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
       expect(html).toContain(`data-panel-shape="${fx.descriptor.body.case || "unset"}"`);
+      expect(normalizeMarkup(html)).toMatchSnapshot(`html-kit/${snapshotArm(fx.descriptor)}`);
     });
   }
 
   it("covers every shape htmlKit implements (no fallback for those)", () => {
     for (const fx of FIXTURES) {
-      if (!HTMLKIT_IMPLEMENTS.has(fx.shape)) continue;
+      if (!declaredRendered("html-kit").has(toFixtureShape(fx.shape))) continue;
       expect(isFallback(render(fx.descriptor)), `${fx.name} must render via htmlKit`).toBe(
         false,
       );
@@ -138,13 +119,13 @@ describe("Swap B — shadcnKit renders the same fixtures, different look", () =>
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
       expect(html).toContain(`data-panel-shape="${fx.descriptor.body.case || "unset"}"`);
+      expect(normalizeMarkup(html)).toMatchSnapshot(`shadcn-kit/${snapshotArm(fx.descriptor)}`);
     });
   }
 
-  // shadcnKit implements the same shape set as htmlKit (table/prompt/lro).
   it("covers every shape shadcnKit implements (no fallback for those)", () => {
     for (const fx of FIXTURES) {
-      if (!HTMLKIT_IMPLEMENTS.has(fx.shape)) continue;
+      if (!declaredRendered("shadcn-kit").has(toFixtureShape(fx.shape))) continue;
       expect(
         isFallback(renderWith(shadcnKit, fx.descriptor)),
         `${fx.name} must render via shadcnKit`,

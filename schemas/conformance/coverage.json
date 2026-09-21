@@ -154,12 +154,12 @@
           "reason": "The MUI kit renders model metadata, system/user templates, and typed parameter-slot controls in preview mode."
         },
         "html-kit": {
-          "status": "renders",
-          "reason": "The dependency-free HTML kit renders title, status, subtitle, and descriptor rows with semantic header markup."
+          "status": "missing",
+          "reason": "htmlKit has no LlmPrompt component; PanelRenderer currently renders the unsupported-shape fallback."
         },
         "shadcn-kit": {
-          "status": "renders",
-          "reason": "The shadcn kit renders detail titles, status, descriptor rows, and record fields with semantic markup."
+          "status": "missing",
+          "reason": "shadcnKit has no LlmPrompt component; PanelRenderer currently renders the unsupported-shape fallback."
         },
         "tui": {
           "status": "separate-entrypoint",

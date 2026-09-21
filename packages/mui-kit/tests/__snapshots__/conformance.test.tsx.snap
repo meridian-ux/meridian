@@ -1,0 +1,223 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`muiKit canonical panel conformance > renders the action fixture without crashing > mui-kit/action 1`] = `
+"p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`muiKit canonical panel conformance > renders the adhoc fixture without crashing > mui-kit/adhoc 1`] = `""dashboard""`;
+
+exports[`muiKit canonical panel conformance > renders the catalog fixture without crashing > mui-kit/catalog 1`] = `
+"h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads.""
+`;
+
+exports[`muiKit canonical panel conformance > renders the chart fixture without crashing > mui-kit/chart 1`] = `
+"h6
+  "Requests by day"
+p
+  "bar of requests by day"
+p
+  "No chart data.""
+`;
+
+exports[`muiKit canonical panel conformance > renders the choice fixture without crashing > mui-kit/choice 1`] = `
+"p
+  "Which client?"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`muiKit canonical panel conformance > renders the connectFlow fixture without crashing > mui-kit/connect_flow 1`] = `
+"p
+  "Every agent points at the same endpoint."
+p
+  "Endpoint"
+div role="button"
+  "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h6
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+"~/.cursor/mcp.json (json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`muiKit canonical panel conformance > renders the copyValue fixture without crashing > mui-kit/copy_value 1`] = `
+"p
+  "Endpoint"
+div role="button"
+  "mcp.example.com/mcp""
+`;
+
+exports[`muiKit canonical panel conformance > renders the detail header fixture without crashing > mui-kit/detail_header 1`] = `
+"h1
+  "Sponsor""
+`;
+
+exports[`muiKit canonical panel conformance > renders the empty fixture without crashing > mui-kit/unset 1`] = `
+"div role="alert"
+  "(empty panel)""
+`;
+
+exports[`muiKit canonical panel conformance > renders the form fixture without crashing > mui-kit/form 1`] = `
+"form
+  h6
+    "Navigation groups"
+  p
+    "(none)"
+  button type="button"
+    "Add section"
+  button type="submit"
+    "Save""
+`;
+
+exports[`muiKit canonical panel conformance > renders the gallery fixture without crashing > mui-kit/gallery 1`] = `
+"p
+  "no assets""
+`;
+
+exports[`muiKit canonical panel conformance > renders the grammar fixture without crashing > mui-kit/grammar 1`] = `
+"h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`muiKit canonical panel conformance > renders the llmPrompt fixture without crashing > mui-kit/llm_prompt 1`] = `
+"p
+  "Summarize the document"
+pre"
+`;
+
+exports[`muiKit canonical panel conformance > renders the lro fixture without crashing > mui-kit/lro 1`] = `
+"button type="button"
+  "Run reindex""
+`;
+
+exports[`muiKit canonical panel conformance > renders the media fixture without crashing > mui-kit/media 1`] = `
+"video src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+  track src="/evidence/golden-path.vtt" kind="captions"
+  "A four-minute walkthrough of creating a sponsor."
+"Narrated from a live run."
+"4:12"
+ol
+  li
+    "0:00"
+    "Open the page"
+  li
+    "1:05"
+    "Add the sponsor""
+`;
+
+exports[`muiKit canonical panel conformance > renders the prompt fixture without crashing > mui-kit/prompt 1`] = `
+"form
+  "Delete this resource?"
+  label
+    "Reason"
+  input type="text" value=""
+  button type="submit"
+    "Submit""
+`;
+
+exports[`muiKit canonical panel conformance > renders the record card fixture without crashing > mui-kit/record_card 1`] = `
+""Name"
+p
+  "—""
+`;
+
+exports[`muiKit canonical panel conformance > renders the resource cards fixture without crashing > mui-kit/resource_cards 1`] = `
+"p
+  "Loading…""
+`;
+
+exports[`muiKit canonical panel conformance > renders the snippet fixture without crashing > mui-kit/snippet 1`] = `
+""~/.cursor/mcp.json (json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`muiKit canonical panel conformance > renders the stat fixture without crashing > mui-kit/stat 1`] = `
+""Active employees"
+h5
+  "1,240"
+p
+  "↑ +60""
+`;
+
+exports[`muiKit canonical panel conformance > renders the steps fixture without crashing > mui-kit/steps 1`] = `
+"p
+  "Add an employer and confirm a colleague can see it."
+ol
+  li
+    "1"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+  li
+    "2"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "3"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.""
+`;
+
+exports[`muiKit canonical panel conformance > renders the stream fixture without crashing > mui-kit/stream 1`] = `
+"div aria-live="polite"
+  p
+    "Waiting for build events...""
+`;
+
+exports[`muiKit canonical panel conformance > renders the table fixture without crashing > mui-kit/table 1`] = `
+"p
+  "no claims""
+`;
+
+exports[`muiKit canonical panel conformance > renders the terminal fixture without crashing > mui-kit/terminal 1`] = `
+"div role="region" aria-label="bash"
+  p
+    "Interactive terminal connection"
+  a href="wss://example.test/pty"
+    "wss://example.test/pty"
+  "80 × 24""
+`;

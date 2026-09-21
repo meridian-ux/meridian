@@ -78,6 +78,7 @@ vitest_test(
     srcs = [
         "tests/conformance.test.ts",
         "tests/fixtures.ts",
+        "tests/__snapshots__/conformance.test.ts.snap",
     ],
     deps = [
         ":node_modules/react",
@@ -87,6 +88,7 @@ vitest_test(
         "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web-react:node_modules/vitest",
         "//schemas:conformance_fixtures",
+        ":node_modules/jsdom",
     ],
 )
 

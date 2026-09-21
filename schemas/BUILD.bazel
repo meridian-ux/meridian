@@ -15,7 +15,11 @@ npm_link_all_packages(name = "node_modules")
 # modality. This is test infrastructure, not a published schemas entrypoint.
 js_library(
     name = "conformance_fixtures",
-    srcs = ["conformance/fixtures.ts"],
+    srcs = [
+        "conformance/fixtures.ts",
+        "conformance/normalize_dom.ts",
+        "conformance/coverage.json",
+    ] + glob(["conformance/binpb/*.binpb"]),
     deps = [
         "//schemas:node_modules/@bufbuild/protobuf",
         "//schemas:node_modules/@savvifi/meridian-proto-ts",

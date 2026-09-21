@@ -40,7 +40,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `lro` | standard | ● | ● | ● | ● | ● | ● |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ● | ● | ● | ● | ● | ◑ |
-| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ |
+| `llm_prompt` | standard | ● | ● | ● | ○ | ○ | ◑ |
 | `gallery` | standard | ● | ● | ● | ● | ● | ● |
 | `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
@@ -60,21 +60,22 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ● | ● | ● | ● | ● | ● |
 | `stream` | full | ● | ● | ● | ● | ● | ● |
 
-**23 arms × 6 renderers = 138 cells; 131 render, 7 do not.**
+**23 arms × 6 renderers = 138 cells; 129 render, 9 do not.**
 
 | status | cells |
 |---|---|
 | – `not-applicable` | 3 |
 | ◐ `placeholder` | 2 |
 | ◑ `separate-entrypoint` | 2 |
+| ○ `missing` | 2 |
 
 | renderer | gaps |
 |---|---|
 | web-components | 0 |
 | web-react | 0 |
 | mui-kit | 1 |
-| html-kit | 1 |
-| shadcn-kit | 1 |
+| html-kit | 2 |
+| shadcn-kit | 2 |
 | tui | 4 |
 <!-- matrix:end -->
 
@@ -83,10 +84,10 @@ Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing
 Three facts shape the order of work:
 
 - **The shared seam is now open.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
-  exposes optional `Stream` and `Terminal` members, and the kits plus web-components
-  renderer cover their declared panel arms. The remaining gaps are explicit
-  degradation or dedicated-entrypoint decisions recorded in the coverage manifest.
-- **The remaining parity gaps are intentional and bounded:** two TUI placeholders
+  exposes optional `Stream` and `Terminal` members. Semantic snapshots exposed
+  two inaccurate declarations: HTML and Shadcn still omit `LlmPrompt`, and those
+  cells now honestly read `missing` in the coverage manifest.
+- **The remaining intentional parity gaps are bounded:** two TUI placeholders
   (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
   and the TUI stream/terminal transport boundaries documented in their degradation
   ladders. The TUI now has focused `TestBackend` coverage for its rendered content
@@ -112,9 +113,14 @@ web-components and TUI preserve their explicit degradation behavior. The
 conformance slice also has a byte-integrity test in the web package, so CI fails
 if the checked-in native fixtures drift from the canonical TypeScript messages;
 the CI corpus gate also rejects missing or stale files against the coverage arm
-set. Snapshot-level normalization now covers panel identity and body-arm identity
-across the browser consumers; remaining conformance work is semantic assertion
-depth, not another renderer-local fixture vocabulary.
+set. All four browser realizations now commit semantic DOM snapshots for the
+24 canonical initial-state fixtures, preserving text, controls, link targets,
+media alternatives, and authored accessibility state. `check_coverage` requires
+every browser arm's golden, and the conformance suites verify its contents.
+This is a regression baseline, not proof of field-complete parity: populated,
+overflow, interactive, and every-ValueType cases plus native snapshots and a
+Bazel-aware re-record workflow remain in [#9](../../issues/9). See the
+[conformance guide](schemas/conformance/README.md) for scope and update commands.
 
 ## Track B — One language
 

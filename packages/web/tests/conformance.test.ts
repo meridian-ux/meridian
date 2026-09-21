@@ -17,6 +17,7 @@ import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import { adhocFixture, tableFixture } from "./fixtures.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 
 // A mock wasm that validates the binpb it receives (fromBinary throws on bad
 // bytes) and returns canned data.
@@ -145,6 +146,8 @@ describe("renderPanel (web-components, binary boundary)", () => {
       } else {
         expect(meta).not.toBe("(no body set)");
       }
+      const arm = (fixture.descriptor.body.case || "unset").replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+      expect(normalizeDom(root)).toMatchSnapshot(`web-components/${arm}`);
     });
   }
 });

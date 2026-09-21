@@ -32,6 +32,8 @@ vitest_test(
     srcs = [
         "conformance_binpb.test.ts",
         "conformance.test.ts",
+        "conformance_normalizer.test.ts",
+        "__snapshots__/conformance.test.ts.snap",
         "fixtures.ts",
     ],
     deps = [
