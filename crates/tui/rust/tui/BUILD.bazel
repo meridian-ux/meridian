@@ -83,6 +83,7 @@ rust_test(
         ":tui",
         "//crates/core/rust/uiview",
         "//crates/core/rust:serde_json",
+        "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
         "@meridian_crates//:ratatui",
     ],
