@@ -21,6 +21,7 @@ import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { ResourceCardPanel, ResourceAction } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
   FormPanel,
@@ -238,6 +239,7 @@ export const SUPPORTED_BODIES = [
   "stream",
   "detailHeader",
   "recordCard",
+  "resourceCards",
   "choice",
   "snippet",
   "action",
@@ -349,6 +351,9 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "recordCard") {
     return renderRecordPanel(opts, body.value, meta, "card");
+  }
+  if (body.case === "resourceCards") {
+    return renderResourceCards(opts, body.value, meta);
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -837,6 +842,115 @@ function readAt(obj: object, path: string): unknown {
   return path
     .split(".")
     .reduce<unknown>((acc, k) => (acc == null ? acc : (acc as Record<string, unknown>)[k]), obj);
+}
+
+// ResourceCardPanel — fetch-driven resource cards with lifecycle actions. The
+// action model is descriptor-owned: the renderer only supplies the row as the
+// request context and never invents a route or endpoint. Confirmations are
+// rendered inline so the web-components surface stays usable without a host
+// dialog implementation and destructive actions cannot fire accidentally.
+async function renderResourceCards(
+  opts: RenderPanelOptions,
+  panel: ResourceCardPanel,
+  metaEl: HTMLElement,
+): Promise<void> {
+  let response: object;
+  try {
+    const request = plainValue(
+      opts.wasm.buildRequest(toBinary(RpcCallSchema, panel.populate), opts.context),
+    ) as object;
+    response = await opts.invoker.invoke(panel.populate.service, panel.populate.method, request);
+  } catch (err) {
+    metaEl.textContent = `Failed: ${(err as Error).message}`;
+    return;
+  }
+
+  const rawRows = panel.rowsField ? readAt(response, panel.rowsField) : response;
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  metaEl.textContent = "";
+  const grid = el("div", "mer-resource-cards");
+  grid.setAttribute("role", "list");
+  if (rows.length === 0) {
+    grid.appendChild(el("p", "mer-empty", panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`));
+    opts.root.appendChild(grid);
+    return;
+  }
+
+  for (const raw of rows) {
+    const row = plainRow(raw);
+    const card = el("article", "mer-resource-card");
+    card.setAttribute("role", "listitem");
+    const title = readAt(row, panel.template.titleField);
+    card.appendChild(el("h3", "mer-resource-card-title", String(title ?? "")));
+    const subtitle = readAt(row, panel.template.subtitleField);
+    if (subtitle != null && subtitle !== "") card.appendChild(el("p", "mer-resource-card-subtitle", String(subtitle)));
+    const status = readAt(row, panel.template.statusField);
+    if (status != null && status !== "") card.appendChild(el("span", "mer-resource-card-status", String(status)));
+    if (panel.template.meta.length > 0) {
+      const meta = el("dl", "mer-resource-card-meta");
+      for (const field of panel.template.meta) {
+        meta.appendChild(el("dt", undefined, field.label));
+        meta.appendChild(el("dd", undefined, String(readAt(row, field.fieldPath) ?? "")));
+      }
+      card.appendChild(meta);
+    }
+    if (panel.template.actions?.actions.length) {
+      const actions = el("div", "mer-resource-card-actions");
+      for (const action of panel.template.actions.actions) {
+        if (!resourceActionVisible(action, row)) continue;
+        actions.appendChild(buildResourceAction(opts, action, row));
+      }
+      if (actions.childElementCount) card.appendChild(actions);
+    }
+    grid.appendChild(card);
+  }
+  opts.root.appendChild(grid);
+}
+
+function resourceActionVisible(action: ResourceAction, row: object): boolean {
+  if (!action.visibleWhen) return true;
+  const match = /^([^=]+)==(.*)$/.exec(action.visibleWhen);
+  return !!match && String(readAt(row, match[1].trim()) ?? "") === match[2].trim();
+}
+
+function buildResourceAction(
+  opts: RenderPanelOptions,
+  action: ResourceAction,
+  row: object,
+): HTMLElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `mer-resource-action mer-resource-action-${String(action.style).toLowerCase()}`;
+  button.textContent = action.label;
+  button.onclick = () => {
+    if (!action.invoke) return;
+    const run = () => {
+      const request = opts.wasm.buildRequest(
+        toBinary(RpcCallSchema, action.invoke!),
+        { ...opts.context, selectedRow: row },
+      );
+      void opts.invoker.invoke(action.invoke!.service, action.invoke!.method, request);
+    };
+    if (!action.confirm) {
+      run();
+      return;
+    }
+    const prompt = el("div", "mer-resource-confirm");
+    prompt.setAttribute("role", "alertdialog");
+    prompt.appendChild(el("strong", "mer-resource-confirm-title", action.confirm.title));
+    prompt.appendChild(el("p", "mer-resource-confirm-message", action.confirm.message));
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.textContent = action.confirm.confirmLabel || "Confirm";
+    confirm.onclick = () => { prompt.remove(); run(); };
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Cancel";
+    cancel.onclick = () => prompt.remove();
+    prompt.append(confirm, cancel);
+    button.parentElement?.appendChild(prompt);
+  };
+  return button;
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
