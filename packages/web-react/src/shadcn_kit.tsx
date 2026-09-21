@@ -185,6 +185,25 @@ export const shadcnKit: ComponentKit = {
     </figure>
   ),
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
+  Steps: ({ panel }) => (
+    <section className="grid gap-3" aria-label="Steps">
+      {panel.intro && <p className="text-sm text-muted-foreground">{panel.intro}</p>}
+      <ol className="grid gap-3">
+        {panel.steps.map((step, index) => (
+          <li key={`${index}-${step.label}`} className="rounded-md border p-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-semibold">{index + 1}.</span>
+              <span className="text-sm font-medium">{step.label}</span>
+              {step.actor && <span className="text-xs text-muted-foreground">{step.actor}</span>}
+            </div>
+            {step.detail && <p className="mt-1 text-sm text-muted-foreground">{step.detail}</p>}
+            {!step.detail && step.mediaAlt && <p className="mt-1 text-sm text-muted-foreground">{step.mediaAlt}</p>}
+          </li>
+        ))}
+      </ol>
+      {panel.outro && <p className="text-sm text-muted-foreground">{panel.outro}</p>}
+    </section>
+  ),
   Stream: ({ panel }) => (
     <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
       <p className="text-sm text-muted-foreground">
