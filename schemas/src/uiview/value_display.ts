@@ -5,6 +5,7 @@
 // React kits, and future browser renderers agree without importing one another.
 
 import {
+  PrincipalDisplay,
   TemporalDisplay,
   TemporalPrecision,
   ValueType,
@@ -120,6 +121,32 @@ export interface DisplayedValue {
   title?: string;
 }
 
+/**
+ * Split the wire label used for a principal when its producer has both pieces
+ * of identity available. Plain names and plain email addresses remain valid
+ * inputs; the angle-bracket form is the only structure this formatter infers.
+ */
+function principalParts(value: unknown): { name: string; email?: string } {
+  const text = String(value);
+  const match = /^(.+?)\s*<([^<>\s]+@[^<>\s]+)>$/.exec(text);
+  if (match) return { name: match[1]!.trim(), email: match[2] };
+  return { name: text, email: /^[^<>\s]+@[^<>\s]+$/.test(text) ? text : undefined };
+}
+
+/** Format a principal according to its declared name/email preference. */
+export function formatPrincipalValue(
+  value: unknown,
+  display: PrincipalDisplay = PrincipalDisplay.UNSPECIFIED,
+): DisplayedValue {
+  const parts = principalParts(value);
+  const name = parts.name || parts.email || EMPTY_DISPLAY;
+  if (display === PrincipalDisplay.EMAIL) return { text: parts.email ?? name };
+  if (display === PrincipalDisplay.NAME_WITH_EMAIL_TITLE && parts.email && parts.email !== name) {
+    return { text: name, title: parts.email };
+  }
+  return { text: name };
+}
+
 /** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
 export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined): value is string {
   if (display?.type !== ValueType.URL || typeof value !== "string") return false;
@@ -172,7 +199,10 @@ export function formatByDisplay(
       }
       return { text: formatDisplayValue(value) };
     }
-    case ValueType.PRINCIPAL:
+    case ValueType.PRINCIPAL: {
+      const options = display?.options.case === "principal" ? display.options.value : undefined;
+      return formatPrincipalValue(value, options?.display ?? PrincipalDisplay.UNSPECIFIED);
+    }
     case ValueType.EMAIL:
     case ValueType.URL:
     case ValueType.IDENTIFIER:

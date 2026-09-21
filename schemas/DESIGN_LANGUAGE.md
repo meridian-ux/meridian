@@ -28,7 +28,9 @@ optional precision are producer intent. The compatibility rule is additive:
 an absent display keeps the renderer's existing fallback formatting. Current
 consumers include table columns, descriptor rows, forms, and the MUI formatter;
 new value-bearing messages should adopt the declaration before adding ad hoc
-formatting rules.
+formatting rules. Principal labels may use the compatible `Name <email>` wire
+form; `PrincipalDisplay` then selects the visible name, email, or name with an
+email title where the surface supports titles.
 
 ## Rhythm and layout
 

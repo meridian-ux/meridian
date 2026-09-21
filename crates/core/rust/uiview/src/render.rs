@@ -1,7 +1,7 @@
 use crate::paths::ProtoPaths;
 use crate::proto::{
-    value_display, ColumnFormat, GalleryPanel, NumberOptions, TableColumn, TablePanel,
-    TemporalPrecision, ValueDisplay, ValueType,
+    value_display, ColumnFormat, GalleryPanel, NumberOptions, PrincipalDisplay, PrincipalOptions,
+    TableColumn, TablePanel, TemporalPrecision, ValueDisplay, ValueType,
 };
 use serde_json::Value;
 
@@ -129,6 +129,13 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
             Value::String(value) => value.clone(),
             _ => serde_json::to_string(value).unwrap_or_else(|_| value.to_string()),
         },
+        ValueType::Principal => {
+            let options = match display.options.as_ref() {
+                Some(value_display::Options::Principal(options)) => Some(options),
+                _ => None,
+            };
+            format_principal_value(value, options)
+        }
         ValueType::Unspecified
         | ValueType::Text
         | ValueType::MultilineText
@@ -137,7 +144,6 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         | ValueType::DateTime
         | ValueType::Time
         | ValueType::Duration
-        | ValueType::Principal
         | ValueType::Email
         | ValueType::Url
         | ValueType::Identifier => {
@@ -161,6 +167,44 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
             }
         }
     }
+}
+
+/// Format the scalar principal label shared by native read surfaces.
+///
+/// The wire-compatible rich form is `Name <email>`; a plain name or address
+/// remains a valid fallback. Native surfaces cannot attach a browser title, so
+/// NAME_WITH_EMAIL_TITLE uses the name as its visible text and preserves the
+/// same readable fallback as NAME.
+fn format_principal_value(value: &Value, options: Option<&PrincipalOptions>) -> String {
+    let text = format_display_scalar(value);
+    let (name, email) = if let Some(open) = text.rfind('<') {
+        if text.ends_with('>') && open > 0 {
+            let name = text[..open].trim();
+            let email = text[open + 1..text.len() - 1].trim();
+            if !name.is_empty()
+                && email.contains('@')
+                && !email.chars().any(|character| character.is_whitespace())
+            {
+                (name.to_string(), Some(email.to_string()))
+            } else {
+                (text.clone(), None)
+            }
+        } else {
+            (text.clone(), None)
+        }
+    } else if text.contains('@') && !text.chars().any(|character| character.is_whitespace()) {
+        (text.clone(), Some(text.clone()))
+    } else {
+        (text, None)
+    };
+
+    let display = options
+        .and_then(|value| PrincipalDisplay::try_from(value.display).ok())
+        .unwrap_or(PrincipalDisplay::Unspecified);
+    if display == PrincipalDisplay::Email {
+        return email.unwrap_or(name);
+    }
+    name
 }
 
 fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
@@ -376,6 +420,34 @@ mod tests {
             })),
         };
         assert_eq!(format_display_value(&json!(1.236), &decimal), "1.24");
+    }
+
+    #[test]
+    fn value_display_formats_principal_name_and_email_modes() {
+        let name = ValueDisplay {
+            r#type: ValueType::Principal as i32,
+            options: None,
+        };
+        assert_eq!(
+            format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &name),
+            "Ruchi Sharma"
+        );
+
+        let email = ValueDisplay {
+            r#type: ValueType::Principal as i32,
+            options: Some(value_display::Options::Principal(PrincipalOptions {
+                display: PrincipalDisplay::Email as i32,
+                ..Default::default()
+            })),
+        };
+        assert_eq!(
+            format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &email),
+            "ruchi@example.com"
+        );
+        assert_eq!(
+            format_display_value(&json!("ruchi@example.com"), &name),
+            "ruchi@example.com"
+        );
     }
 
     #[test]

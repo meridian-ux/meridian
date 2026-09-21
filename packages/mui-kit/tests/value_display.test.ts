@@ -8,6 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
 import {
+  PrincipalDisplay,
   TemporalDisplay,
   TemporalPrecision,
   ValueDisplaySchema,
@@ -117,11 +118,31 @@ describe("formatByDisplay — types", () => {
     expect(formatByDisplay("not-a-time", time()).text).toBe("not-a-time");
   });
 
-  it("PRINCIPAL passes the producer's label through unchanged", () => {
-    // The renderer's job is not to invent a name; the projection resolves the
-    // reference upstream, so by here the value already IS the label.
+  it("PRINCIPAL realizes name and email display modes", () => {
     const who = create(ValueDisplaySchema, { type: ValueType.PRINCIPAL });
     expect(formatByDisplay("Ruchi Sharma", who).text).toBe("Ruchi Sharma");
+
+    const email = create(ValueDisplaySchema, {
+      type: ValueType.PRINCIPAL,
+      options: { case: "principal", value: { display: PrincipalDisplay.EMAIL } },
+    });
+    expect(formatByDisplay("Ruchi Sharma <ruchi@example.com>", email).text).toBe("ruchi@example.com");
+
+    const titled = create(ValueDisplaySchema, {
+      type: ValueType.PRINCIPAL,
+      options: {
+        case: "principal",
+        value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE },
+      },
+    });
+    expect(formatByDisplay("Ruchi Sharma <ruchi@example.com>", titled)).toEqual({
+      text: "Ruchi Sharma",
+      title: "ruchi@example.com",
+    });
+
+    // A producer that only has the address still gets useful output for every
+    // principal display mode; no renderer invents a blank name.
+    expect(formatByDisplay("ruchi@example.com", who).text).toBe("ruchi@example.com");
   });
 
   it("honors declared numeric precision", () => {

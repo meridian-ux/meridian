@@ -146,8 +146,10 @@ shadcn kits now fetch and realize populated detail values as well. Descriptors
 without `ValueDisplay` retain their existing output. Browser relative temporal
 labels now share a hydration-safe display instant across React kits, while
 web-components use the current render instant; declared HTTP(S) URL values are
-links across browser surfaces. The remaining migration surface is richer
-principal realizations and native link decoration.
+links across browser surfaces. Declared principal labels now honor name, email,
+and name-with-email-title modes across browser and native read surfaces using
+the compatible `Name <email>` wire form. The remaining migration surface is
+host-resolved principal links and native link decoration.
 
 ## Track C — Hardening
 

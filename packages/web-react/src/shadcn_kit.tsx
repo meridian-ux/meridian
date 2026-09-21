@@ -38,10 +38,14 @@ import { LlmPromptContent } from "./llm_prompt.js";
 // secret-reveal / placeholder). Different classes, identical dispatch: Swap B.
 const c = classesFor("shadcn");
 
-function renderDisplayedValue(value: unknown, display: Parameters<typeof formatByDisplay>[1], text: string) {
+function renderDisplayedValue(
+  value: unknown,
+  display: Parameters<typeof formatByDisplay>[1],
+  shown: { text: string; title?: string },
+) {
   return isSafeHttpUrl(value, display)
-    ? <a href={value} rel="noreferrer noopener" target="_blank">{text}</a>
-    : text;
+    ? <a href={value} rel="noreferrer noopener" target="_blank" title={shown.title}>{shown.text}</a>
+    : <span title={shown.title}>{shown.text}</span>;
 }
 
 // Bind the meridian palette to shadcn/ui's CSS custom properties so shadcn
@@ -181,7 +185,7 @@ export const shadcnKit: ComponentKit = {
                     const shown = hasRecord
                       ? formatByDisplay(resolvePath(record, row.sourcePath), row.display, now)
                       : { text: row.sourcePath };
-                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown.text);
+                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown);
                   })()}
                 </dd>
               </div>
@@ -206,7 +210,7 @@ export const shadcnKit: ComponentKit = {
                 const shown = hasRecord
                   ? formatByDisplay(resolvePath(record, field.fieldId), field.display, now)
                   : { text: field.fieldId };
-                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown.text);
+                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown);
               })()}
             </dd>
           </div>

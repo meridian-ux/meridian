@@ -5,6 +5,7 @@ export {
   displayValueList,
   formatByDisplay,
   formatDisplayValue,
+  formatPrincipalValue,
   formatRelativeTime,
   formatTimestamp,
   isSafeHttpUrl,

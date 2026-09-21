@@ -17,7 +17,7 @@ import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/me
 import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
@@ -156,16 +156,17 @@ describe("meridian-web-react renderer", () => {
         case: "recordCard",
         value: create(RecordCardPanelSchema, {
           populate: { service: "acme.Builds", method: "GetBuild" },
-          fields: [
-            { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
-            { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
-          ],
+            fields: [
+              { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
+              { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+              { fieldId: "owner", label: "Owner", display: { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
+            ],
         }),
       },
     });
     const initialData = {
       "acme.Builds.GetBuild": {
-        rows: [{ name: "Build 42", healthy: true, score: 1.236 }],
+        rows: [{ name: "Build 42", healthy: true, score: 1.236, owner: "Ruchi Sharma <ruchi@example.com>" }],
       },
     };
 
@@ -179,6 +180,8 @@ describe("meridian-web-react renderer", () => {
       expect(cardHtml).toContain("Healthy");
       expect(cardHtml).toContain("Yes");
       expect(cardHtml).toContain("1.24");
+      expect(cardHtml).toContain("Ruchi Sharma");
+      expect(cardHtml).toContain('title="ruchi@example.com"');
     }
   });
 

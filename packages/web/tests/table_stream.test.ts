@@ -14,7 +14,7 @@ import {
   PanelDescriptorSchema,
   RecordCardPanelSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TemporalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { PrincipalDisplay, TemporalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
@@ -740,6 +740,7 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
               { label: "Healthy", sourcePath: "healthy", display: { type: ValueType.BOOLEAN } },
               { label: "Score", sourcePath: "score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
               { label: "Posted", sourcePath: "posted", display: { type: ValueType.DATE_TIME, options: { case: "temporal", value: { display: TemporalDisplay.RELATIVE_WITH_ABSOLUTE_TITLE } } } },
+              { label: "Owner", sourcePath: "owner", display: { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
             ],
           }),
         },
@@ -749,15 +750,20 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
         wasm: wasmWith([]),
         root,
         descriptor,
-        invoker: { invoke: async () => ({ healthy: true, score: 1.236, posted: new Date(Date.now() - 2 * 86_400_000).toISOString() }) },
+        invoker: { invoke: async () => ({ healthy: true, score: 1.236, posted: new Date(Date.now() - 2 * 86_400_000).toISOString(), owner: "Ruchi Sharma <ruchi@example.com>" }) },
         context: CTX,
       });
 
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("HealthyYes");
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("Score1.24");
-      const posted = root.querySelector<HTMLElement>(".meridian-uiview-record-rows dd:last-child");
+      const posted = [...root.querySelectorAll<HTMLElement>(".meridian-uiview-record-rows dd")]
+        .find((dd) => dd.title.includes("UTC"));
       expect(posted?.textContent).toContain("days ago");
       expect(posted?.title).toContain("UTC");
+      const owner = [...root.querySelectorAll<HTMLElement>(".meridian-uiview-record-rows dd")]
+        .find((dd) => dd.title === "ruchi@example.com");
+      expect(owner?.textContent).toContain("Ruchi Sharma");
+      expect(owner?.title).toBe("ruchi@example.com");
     });
 
     it("formats declared values in the record card", async () => {

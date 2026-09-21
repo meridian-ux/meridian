@@ -141,9 +141,11 @@ enum ValueType {
   VALUE_TYPE_TIME = 10;
   // An elapsed span, not a point ("4 min 12 s").
   VALUE_TYPE_DURATION = 11;
-  // A person or agent. The value is their id or handle; the renderer shows a
-  // name. THE case that motivated this file's promotion: without it, a comment's
-  // author renders as a snowflake.
+  // A person or agent. The value is their id, handle, or resolved label. When
+  // both pieces are available, producers may use `Name <email>` so renderers
+  // can honor PrincipalDisplay without inventing a lookup. THE case that
+  // motivated this file's promotion: without it, a comment's author renders as
+  // a snowflake.
   VALUE_TYPE_PRINCIPAL = 12;
   // An email address.
   VALUE_TYPE_EMAIL = 13;
@@ -224,7 +226,9 @@ message PrincipalOptions {
   bool link_to_record = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// What to show when a producer can supply both a name and an address.
+// What to show when a producer can supply both a name and an address. The
+// browser/native formatter recognizes the wire label `Name <email>` and keeps
+// plain names and plain email addresses as compatible fallbacks.
 enum PrincipalDisplay {
   // Renderer default: NAME, falling back to the address when there is no name.
   PRINCIPAL_DISPLAY_UNSPECIFIED = 0;

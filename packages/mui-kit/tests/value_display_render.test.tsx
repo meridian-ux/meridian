@@ -18,6 +18,7 @@ import {
 import { ColumnFormat, TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import {
+  PrincipalDisplay,
   TemporalDisplay,
   ValueDisplaySchema,
   ValueType,
@@ -35,7 +36,7 @@ import { MeridianMuiProvider } from "../src/provider.js";
 afterEach(cleanup);
 
 const COMMENT = {
-  authorName: "Ruchi Sharma",
+  authorName: "Ruchi Sharma <ruchi@example.com>",
   text: "Carrier confirmed the 2026 rates.",
   createdAt: "2026-07-25T09:18:00.000Z",
   dueDate: "2026-03-29T00:00:00.000Z",
@@ -67,7 +68,17 @@ function cardView(): ViewDescriptor {
               populate: create(RpcCallSchema, { service: "svc", method: "get" }),
               idField: "id",
               fields: [
-                field("authorName", "Author", create(ValueDisplaySchema, { type: ValueType.PRINCIPAL })),
+                field(
+                  "authorName",
+                  "Author",
+                  create(ValueDisplaySchema, {
+                    type: ValueType.PRINCIPAL,
+                    options: {
+                      case: "principal",
+                      value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE },
+                    },
+                  }),
+                ),
                 field("text", "Comment"),
                 // Posted: relative, with the absolute available on hover.
                 field(
@@ -120,6 +131,7 @@ describe("record card honours a declared ValueDisplay", () => {
     expect(screen.queryByText("2026-07-25T09:18:00.000Z")).toBeNull();
     const posted = screen.getByText(/ago|just now|Jul 25, 2026/);
     expect(posted).toBeTruthy();
+    expect(screen.getByText("Ruchi Sharma").getAttribute("title")).toBe("ruchi@example.com");
     expect(screen.getByRole("link", { name: "https://example.com/docs" }).getAttribute("href"))
       .toBe("https://example.com/docs");
   });
