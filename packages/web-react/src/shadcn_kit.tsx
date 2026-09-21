@@ -176,6 +176,14 @@ export const shadcnKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  Chart: ({ panel }) => (
+    <figure className="rounded-md border p-4" data-mark={panel.chart?.mark}>
+      {panel.chart?.title && <figcaption className="text-sm font-semibold">{panel.chart.title}</figcaption>}
+      <p className="text-sm text-muted-foreground">
+        {panel.chart?.y?.fieldName || "value"} by {panel.chart?.x?.fieldName || "category"}
+      </p>
+    </figure>
+  ),
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Stream: ({ panel }) => (
     <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>

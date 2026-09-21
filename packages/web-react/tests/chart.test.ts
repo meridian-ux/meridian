@@ -10,6 +10,7 @@ import {
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
+import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 
@@ -40,6 +41,18 @@ describe("ChartPanel (React htmlKit)", () => {
       ),
     );
     expect(html).toContain('class="mer-chart"');
+    expect(html).toContain("Requests by day");
+    expect(html).toContain("requests by day");
+  });
+
+  it("dispatches the portable chart shape through shadcnKit", () => {
+    const html = renderToStaticMarkup(
+      createElement(
+        MeridianProvider,
+        { invoker, kit: shadcnKit, adhoc: {} },
+        createElement(PanelRenderer, { descriptor: chart }),
+      ),
+    );
     expect(html).toContain("Requests by day");
     expect(html).toContain("requests by day");
   });
