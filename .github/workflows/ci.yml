@@ -104,9 +104,10 @@ jobs:
           pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
 
-      # mui-kit 124, chat 14, launchpad 12 — all against workspace-linked
-      # web-react and proto-ts rather than registry copies, which is the first
-      # time that has been true.
+      # Every package that owns a runnable Vitest suite declares a test script;
+      # the private web workspace excludes only its Bazel-produced WASM suite.
+      # All tests run against workspace-linked web-react and proto-ts rather than
+      # registry copies, which is the first time that has been true.
       - name: Tests
         run: pnpm -r --filter './packages/**' test
 
