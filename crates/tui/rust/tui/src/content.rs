@@ -19,7 +19,7 @@
 
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChoicePanel, ConnectFlowPanel,
-    CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
+    CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel, ChartPanel,
 };
 use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -591,6 +591,25 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
     if !panel.caption.is_empty() {
         lines.push(Line::from(Span::styled(panel.caption.clone(), palette.meta())));
     }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render a portable ChartPanel as a terminal-native summary. The TUI does not
+/// assume a chart library; it exposes the chart intent and leaves populated
+/// values to a future invoker-aware chart widget.
+pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: &Palette) {
+    let Some(chart) = panel.chart.as_ref() else {
+        frame.render_widget(bordered(vec![Line::from("Empty chart descriptor")], palette), area);
+        return;
+    };
+    let title = if chart.title.is_empty() { "Chart" } else { &chart.title };
+    let x = chart.x.as_ref().map(|e| e.field_name.as_str()).unwrap_or("category");
+    let y = chart.y.as_ref().map(|e| e.field_name.as_str()).unwrap_or("value");
+    let lines = vec![
+        Line::from(Span::styled(title.to_owned(), palette.title())),
+        Line::from(Span::styled(format!("{} by {}", y, x), palette.meta())),
+        Line::from(Span::styled("Chart data is available to an invoker-aware host.", palette.meta())),
+    ];
     frame.render_widget(bordered(lines, palette), area);
 }
 

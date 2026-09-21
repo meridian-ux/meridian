@@ -258,6 +258,9 @@ impl PanelView {
             Some(Body::Stat(panel)) => {
                 content::render_stat(frame, content_area, panel, &self.palette);
             }
+            Some(Body::Chart(panel)) => {
+                content::render_chart(frame, content_area, panel, &self.palette);
+            }
             Some(Body::Terminal(_)) => self.render_placeholder(
                 frame,
                 chunks[1],
@@ -422,4 +425,3 @@ impl Default for PanelView {
         Self::new()
     }
 }
-
