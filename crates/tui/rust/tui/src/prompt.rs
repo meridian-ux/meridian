@@ -341,7 +341,7 @@ fn initial_state(f: &FormField) -> FieldState {
                 .unwrap_or(0);
         }
         // Nested is rejected in render_prompt before any state is built.
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => {}
+        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
     state
 }
@@ -427,7 +427,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => {}
+        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
 }
 
@@ -482,6 +482,7 @@ fn validate_one(s: &FieldState) -> Option<String> {
         | Some(Kind::EnumSelection(_))
         | Some(Kind::Nested(_))
         | Some(Kind::Repeated(_))
+        | Some(Kind::KeyValueMap(_))
         | None => None,
     }
 }
