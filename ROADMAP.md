@@ -81,12 +81,14 @@ Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing
 Three facts shape the order of work:
 
 - **The shared seam is now open.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
-  exposes optional `Stream` and `Terminal` members, and the HTML kit proves the Stream
-  path with an accessible placeholder. The remaining gaps are concrete kit renderers
-  and the TUI's full-parity stream implementation.
-- **The TUI is the largest single gap** at 13 cells, and has one test file for eleven
-  source files. [#6](../../issues/6) closes both together: every widget lands with a
-  `TestBackend` render test.
+  exposes optional `Stream` and `Terminal` members, and the kits plus web-components
+  renderer cover their declared panel arms. The remaining gaps are explicit
+  degradation or dedicated-entrypoint decisions recorded in the coverage manifest.
+- **The remaining parity gaps are intentional and bounded:** two TUI placeholders
+  (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
+  and the TUI stream/terminal transport boundaries documented in their degradation
+  ladders. The TUI now has focused `TestBackend` coverage for its rendered content
+  and snapshot stream path; new parity work should preserve those tests.
 - **The manifest is itself incomplete.** The public catalog advertises a SwiftUI renderer
   in preview with no row here, and the chat and launchpad modalities are not modelled.
   [#5](../../issues/5) makes the gate reject a shipped renderer with no declaration.
