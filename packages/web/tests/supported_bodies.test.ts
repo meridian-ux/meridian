@@ -17,6 +17,7 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
+import coverageManifest from "../../../schemas/conformance/coverage.json";
 import { SUPPORTED_BODIES, renderPanel, supportsBody } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 
@@ -120,6 +121,12 @@ async function draw(descriptor: PanelDescriptor): Promise<HTMLElement> {
 }
 
 describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
+  it("matches the canonical coverage manifest", () => {
+    const toBodyCase = (arm: string) => arm.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    const canonical = Object.keys(coverageManifest.arms).map(toBodyCase).sort();
+    expect([...SUPPORTED_BODIES].sort()).toEqual(canonical);
+  });
+
   it("has a fixture for every listed case", () => {
     // Guards the guard: a new case added to the list without a fixture here
     // would otherwise be silently untested by the loop below.
