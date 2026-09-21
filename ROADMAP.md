@@ -108,8 +108,10 @@ protobuf wire fixtures under `schemas/conformance/binpb/` for the TUI, whose
 headless `TestBackend` now decodes and renders every arm through its real dispatch
 ladder. The React kits use a kit-neutral `data-panel` normalizer, while
 web-components and TUI preserve their explicit degradation behavior. The next
-conformance work is snapshot-level normalization and CI wiring across these
-consumers, not another renderer-local fixture vocabulary.
+conformance slice also has a byte-integrity test in the web package, so CI fails
+if the checked-in native fixtures drift from the canonical TypeScript messages.
+The remaining work is snapshot-level normalization across these consumers, not
+another renderer-local fixture vocabulary.
 
 ## Track B — One language
 
