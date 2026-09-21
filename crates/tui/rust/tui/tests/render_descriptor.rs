@@ -359,6 +359,39 @@ fn detail_panels_populate_and_render_the_record_dispatch_path() {
 }
 
 #[test]
+fn form_prefill_renders_and_submit_contains_edited_values() {
+    let descriptor = form_descriptor();
+    let form = match descriptor.body.as_ref() {
+        Some(Body::Form(form)) => form,
+        _ => panic!("expected form descriptor"),
+    };
+    let ctx = Context::default();
+    let mut view = PanelView::with_palette(Palette::default());
+    let mut term = Terminal::new(TestBackend::new(64, 12)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &FormData))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("Edit deployment"), "form mode missing:\n{output}");
+    assert!(output.contains("Name: worker"), "prefill missing:\n{output}");
+    assert!(output.contains("Replicas: 2"), "integer prefill missing:\n{output}");
+
+    view.handle_form_key(form, &ctx, KeyCode::Char('x'));
+    let submission = view
+        .handle_form_key(form, &ctx, KeyCode::Enter)
+        .expect("editable form should submit");
+    assert_eq!(submission.service, "demo.Deploy");
+    assert_eq!(submission.method, "Apply");
+    assert_eq!(submission.request["name"], "workerx");
+    assert_eq!(submission.request["replicas"], 2);
+}
+
+#[test]
 fn an_empty_descriptor_draws_rather_than_panicking() {
     // main.rs will happily decode a zero-byte file into a default
     // PanelDescriptor — an empty message is valid protobuf. It must not panic on
