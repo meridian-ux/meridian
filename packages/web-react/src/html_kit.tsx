@@ -20,6 +20,7 @@ import {
   StatContent,
   classesFor,
 } from "./content_shapes.js";
+import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
 
 // The six content shapes are rendered by the shared, field-complete
@@ -129,6 +130,7 @@ export const htmlKit: ComponentKit = {
       </p>
     </figure>
   ),
+  ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

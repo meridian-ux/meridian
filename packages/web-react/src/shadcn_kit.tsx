@@ -24,6 +24,7 @@ import {
   StatContent,
   classesFor,
 } from "./content_shapes.js";
+import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
@@ -148,6 +149,7 @@ export const shadcnKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

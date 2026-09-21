@@ -35,6 +35,7 @@ import {
 } from "@savvifi/meridian-web-react";
 import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
   FormMode,
@@ -81,6 +82,7 @@ import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./co
 import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
+import { MeridianResourceCards } from "./components/resource_cards.js";
 
 type Row = Record<string, unknown>;
 
@@ -853,6 +855,9 @@ export const muiKit: ComponentKit = {
   Gallery: ({ panel, invoker }: ShapeProps<GalleryPanel>) => (
     <MeridianGallery panel={panel} invoker={invoker} />
   ),
+  ResourceCard: ({ panel, invoker }: ShapeProps<ResourceCardPanel>) => (
+    <MeridianResourceCards panel={panel} invoker={invoker} />
+  ),
   // ── content shapes (MUI) ────────────────────────────────────────────────────
   Choice: ({ panel }: ShapeProps<ChoicePanel>) => <ChoiceView panel={panel} />,
   Snippet: ({ panel }: ShapeProps<SnippetPanel>) =>
@@ -871,4 +876,3 @@ export const muiKit: ComponentKit = {
   Fallback,
   ActionBar,
 };
-

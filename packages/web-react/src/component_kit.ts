@@ -12,6 +12,7 @@ import type { ComponentType, CSSProperties, ReactNode } from "react";
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChartPanel } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
+import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
@@ -60,6 +61,7 @@ export type ConnectFlowPanelProps = ShapeProps<ConnectFlowPanel>;
 export type CopyValuePanelProps = ShapeProps<CopyValuePanel>;
 export type CatalogPanelProps = ShapeProps<CatalogPanel>;
 export type ChartPanelProps = ShapeProps<ChartPanel>;
+export type ResourceCardPanelProps = ShapeProps<ResourceCardPanel>;
 // Specialized panel (web-specific rich render; degrades per the ladder).
 export type GrammarPanelProps = ShapeProps<GrammarPanel>;
 // Full-parity KPI tile.
@@ -116,6 +118,8 @@ export interface ComponentKit {
   Catalog?: ComponentType<CatalogPanelProps>;
   /** Portable chart intent; kits may render natively or degrade to data text. */
   Chart?: ComponentType<ChartPanelProps>;
+  /** Fetch-driven resource cards with row-scoped lifecycle actions. */
+  ResourceCard?: ComponentType<ResourceCardPanelProps>;
   /**
    * GrammarPanel (markdown / mermaid / plantuml / graphviz / vega). Specialized:
    * the rich render is host-wired via renderGrammar; the kit degrades to native
