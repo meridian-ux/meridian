@@ -11,6 +11,12 @@ It ships:
   patch helpers, template loader, and UI-kit CSS. It speaks the **canonical**
   `@savvifi/meridian-proto-ts` types end to end and crosses the wasm boundary with
   protobuf **binary** (`toBinary` → `prost::decode`).
+
+  Descriptor-originated RPCs can be constrained with `MountOptions.admission`:
+  populate and stream calls are read-tier, while row/resource actions, view
+  actions, and LRO starts are mutation-tier. Reads are allowed by default for
+  compatibility; mutations are denied unless the host lists the exact
+  `service/method` (or passes the explicit `"unrestricted"` opt-out).
 - **`//theme:web`** — the web theme binding (`meridian.css` + `theme.ts`,
   `meridian.theme.v1` → `--mer-*` vars).
 - **`//bazel:panel_bundle.bzl`** — `meridian_panel_bundle`, compiling a textproto
