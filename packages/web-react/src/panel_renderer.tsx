@@ -6,8 +6,21 @@
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 
 import { useMeridian } from "./provider.js";
+
+function TerminalFallback({ panel }: { panel: TerminalPanel }): ReactNode {
+  return (
+    <section className="mer-terminal" role="region" aria-label={panel.tool || "Terminal"}>
+      <p className="mer-terminal-note">Interactive terminal connection</p>
+      <a href={panel.url}>{panel.url}</a>
+      {(panel.cols || panel.rows) ? (
+        <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>
+      ) : null}
+    </section>
+  );
+}
 
 export function PanelRenderer({
   descriptor,
@@ -170,7 +183,7 @@ export function PanelRenderer({
       inner = kit.Terminal ? (
         <kit.Terminal panel={body.value} descriptor={descriptor} invoker={invoker} />
       ) : (
-        <kit.Fallback descriptor={descriptor} />
+        <TerminalFallback panel={body.value} />
       );
       break;
     case "adhoc": {

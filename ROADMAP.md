@@ -47,7 +47,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `connect_flow` | full | ● | ● | ● | ● | ● | ● |
 | `copy_value` | full | ● | ● | ● | ● | ● | ● |
 | `catalog` | full | ● | ● | ● | ● | ● | ● |
-| `terminal` | specialized | ● | ✕ | ● | ● | ● | ◐ |
+| `terminal` | specialized | ● | ● | ● | ● | ● | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
 | `detail_header` | standard | ● | ● | ● | ● | ● | ● |
@@ -58,19 +58,18 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ● | ● | ● | ● | ● | ● |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 129 render, 9 do not.**
+**23 arms × 6 renderers = 138 cells; 130 render, 8 do not.**
 
 | status | cells |
 |---|---|
 | – `not-applicable` | 3 |
 | ◐ `placeholder` | 3 |
 | ◑ `separate-entrypoint` | 2 |
-| ✕ `structural-gap` | 1 |
 
 | renderer | gaps |
 |---|---|
 | web-components | 0 |
-| web-react | 1 |
+| web-react | 0 |
 | mui-kit | 1 |
 | html-kit | 1 |
 | shadcn-kit | 1 |

@@ -361,8 +361,8 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "structural-gap",
-          "reason": "The React ComponentKit seam is open, but no kit currently supplies the web-specific terminal component."
+          "status": "renders",
+          "reason": "PanelRenderer provides an accessible connection-metadata fallback when a React kit omits the specialized terminal component."
         },
         "mui-kit": {
           "status": "renders",

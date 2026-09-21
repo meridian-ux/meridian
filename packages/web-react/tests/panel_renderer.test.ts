@@ -175,4 +175,15 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain("wss://example.test/pty");
     expect(html).toContain("80 × 24");
   });
+
+  it("uses the core terminal degradation when a kit omits the specialized renderer", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "shell",
+      body: { case: "terminal", value: create(TerminalPanelSchema, { url: "wss://example.test/pty", tool: "bash", cols: 80, rows: 24 }) },
+    }), { ...htmlKit, Terminal: undefined });
+    expect(html).toContain('class="mer-terminal"');
+    expect(html).toContain('aria-label="bash"');
+    expect(html).toContain("wss://example.test/pty");
+    expect(html).toContain("80 × 24");
+  });
 });
