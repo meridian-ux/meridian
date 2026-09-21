@@ -40,14 +40,14 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ○ | ● | ○ | ● | ● | ◑ |
 | `gallery` | standard | ○ | ● | ● | ● | ● | ● |
-| `form` | standard | ● | ● | ● | ● | ● | ◐ |
+| `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
 | `snippet` | full | ● | ● | ● | ● | ● | ● |
 | `action` | full | ● | ● | ● | ● | ● | ● |
 | `connect_flow` | full | ● | ● | ● | ● | ● | ● |
 | `copy_value` | full | ● | ● | ● | ● | ● | ● |
 | `catalog` | full | ● | ● | ● | ● | ● | ● |
-| `terminal` | specialized | ● | ○ | ○ | ○ | ○ | ◐ |
+| `terminal` | specialized | ● | ✕ | ○ | ○ | ○ | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
 | `detail_header` | standard | ● | ● | ● | ● | ● | ● |
@@ -58,14 +58,15 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ○ | ● | ● | ● | ● | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 117 render, 21 do not.**
+**23 arms × 6 renderers = 138 cells; 118 render, 20 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 10 |
-| ◐ `placeholder` | 6 |
+| ○ `missing` | 9 |
+| ◐ `placeholder` | 5 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
+| ✕ `structural-gap` | 1 |
 
 | renderer | gaps |
 |---|---|
@@ -74,7 +75,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | mui-kit | 3 |
 | html-kit | 2 |
 | shadcn-kit | 2 |
-| tui | 8 |
+| tui | 7 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
