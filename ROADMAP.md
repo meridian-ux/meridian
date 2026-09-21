@@ -85,7 +85,7 @@ Three facts shape the order of work:
   exposes optional `Stream` and `Terminal` members, and the HTML kit proves the Stream
   path with an accessible placeholder. The remaining gaps are concrete kit renderers
   and the TUI's full-parity stream implementation.
-- **The TUI is the largest single gap** at 12 cells, and has one test file for eleven
+- **The TUI is the largest single gap** at 13 cells, and has one test file for eleven
   source files. [#6](../../issues/6) closes both together: every widget lands with a
   `TestBackend` render test.
 - **The manifest is itself incomplete.** The public catalog advertises a SwiftUI renderer
