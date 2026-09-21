@@ -23,6 +23,7 @@ use meridian_uiview::proto::{
     ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
+use meridian_uiview::RenderedCard;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
@@ -223,6 +224,79 @@ pub fn resource_action_visible(action: &ResourceAction, row: &Value) -> bool {
         return false;
     };
     value_at(row, path.trim()) == expected.trim()
+}
+
+/// Render a populated gallery as a selectable terminal card list. Image slots
+/// are intentionally omitted on a text surface; the card's text, icon, status,
+/// link, and action label remain visible.
+pub fn render_gallery(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &meridian_uiview::proto::GalleryPanel,
+    cards: &[RenderedCard],
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines: Vec<Line> = Vec::new();
+    if cards.is_empty() {
+        lines.push(Line::from(Span::styled(
+            if panel.placeholder.is_empty() {
+                "No items.".to_string()
+            } else {
+                panel.placeholder.clone()
+            },
+            palette.meta(),
+        )));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+
+    let selected = selected % cards.len();
+    for (index, card) in cards.iter().enumerate() {
+        let active = index == selected;
+        let style = if active {
+            palette.focused()
+        } else {
+            palette.header()
+        };
+        let marker = if active { "▶ " } else { "  " };
+        let mut title = vec![
+            Span::styled(format!("{marker}{}. ", index + 1), style),
+        ];
+        if !card.icon.is_empty() {
+            title.push(Span::styled(format!("{} ", glyph(&card.icon)), palette.meta()));
+        }
+        title.push(Span::styled(card.title.clone(), style));
+        if !card.status.is_empty() {
+            title.push(Span::styled(format!("  [{}]", card.status), palette.title()));
+        }
+        lines.push(Line::from(title));
+        if !card.subtitle.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(card.subtitle.clone(), palette.meta()),
+            ]));
+        }
+        if !card.action_label.is_empty() || !card.href.is_empty() {
+            let label = if card.action_label.is_empty() {
+                "Open"
+            } else {
+                &card.action_label
+            };
+            let mut action = vec![
+                Span::raw("    "),
+                Span::styled(format!("[{}] {}", index + 1, label), palette.title()),
+            ];
+            if !card.href.is_empty() {
+                action.push(Span::styled(format!("  {}", card.href), palette.meta()));
+            }
+            lines.push(Line::from(action));
+        }
+        if index + 1 < cards.len() {
+            lines.push(Line::from(""));
+        }
+    }
+    frame.render_widget(bordered(lines, palette), area);
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────
@@ -1449,6 +1523,58 @@ mod tests {
             &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
             &rows[0]
         ));
+    }
+
+    #[test]
+    fn gallery_renders_populated_cards_as_selectable_text() {
+        use meridian_uiview::proto::{CardSpec, GalleryPanel, RpcCall};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = GalleryPanel {
+            populate: Some(RpcCall {
+                service: "demo.Catalog".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "items".into(),
+            placeholder: "No integrations".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                subtitle_field: "description".into(),
+                icon_field: "icon".into(),
+                status_field: "status".into(),
+                href_field: "href".into(),
+                action_label_field: "action".into(),
+                ..Default::default()
+            }),
+        };
+        let response = serde_json::json!({
+            "items": [{
+                "name": "GitHub",
+                "description": "Source control",
+                "icon": "github",
+                "status": "Connected",
+                "href": "https://github.com",
+                "action": "Manage"
+            }]
+        });
+        let cards = meridian_uiview::render_gallery(&response, &panel);
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(72, 9)).unwrap();
+        term.draw(|f| render_gallery(f, f.area(), &panel, &cards, &palette, 0))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("GitHub"));
+        assert!(text.contains("Source control"));
+        assert!(text.contains("[Connected]"));
+        assert!(text.contains("Manage"));
+        assert!(text.contains("https://github.com"));
     }
 
     #[test]

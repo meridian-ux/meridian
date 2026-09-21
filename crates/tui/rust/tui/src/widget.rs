@@ -1,6 +1,8 @@
 use meridian_uiview::proto::panel_descriptor::Body;
-use meridian_uiview::proto::{ChartPanel, PanelDescriptor, ResourceCardPanel, TablePanel};
-use meridian_uiview::{render_table, Context, RenderedRow, RequestBuilder};
+use meridian_uiview::proto::{
+    ChartPanel, GalleryPanel, PanelDescriptor, ResourceCardPanel, TablePanel,
+};
+use meridian_uiview::{render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
@@ -23,6 +25,7 @@ use crate::theme::Palette;
 pub struct PanelView {
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
+    cached_gallery: Option<CachedGallery>,
     cached_resource_cards: Option<CachedResourceCards>,
     table_state: TableState,
     palette: Palette,
@@ -45,6 +48,11 @@ struct CachedChart {
     rows: Vec<(String, String)>,
 }
 
+struct CachedGallery {
+    cards: Vec<RenderedCard>,
+    error: Option<String>,
+}
+
 struct CachedResourceCards {
     rows: Vec<serde_json::Value>,
     error: Option<String>,
@@ -55,6 +63,7 @@ impl PanelView {
         Self {
             cached: None,
             cached_chart: None,
+            cached_gallery: None,
             cached_resource_cards: None,
             table_state: TableState::default(),
             palette: Palette::default(),
@@ -70,6 +79,7 @@ impl PanelView {
         Self {
             cached: None,
             cached_chart: None,
+            cached_gallery: None,
             cached_resource_cards: None,
             table_state: TableState::default(),
             palette,
@@ -88,6 +98,7 @@ impl PanelView {
     pub fn invalidate(&mut self) {
         self.cached = None;
         self.cached_chart = None;
+        self.cached_gallery = None;
         self.cached_resource_cards = None;
     }
 
@@ -209,12 +220,23 @@ impl PanelView {
                 chunks[2],
                 "LLM-prompt panels: drive via the standalone renderer (meridian_tui::render_llm_prompt — one-shot, like the PromptPanel renderer).",
             ),
-            Some(Body::Gallery(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Gallery panels: not yet supported in the TUI renderer.",
-            ),
+            Some(Body::Gallery(panel)) => {
+                self.populate_gallery_if_needed(panel, context, invoker);
+                let cached = self.cached_gallery.as_ref().unwrap();
+                self.content_len = cached.cards.len();
+                if let Some(error) = cached.error.as_deref() {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                } else {
+                    content::render_gallery(
+                        frame,
+                        content_area,
+                        panel,
+                        &cached.cards,
+                        &self.palette,
+                        self.content_selected,
+                    );
+                }
+            }
             Some(Body::Form(_)) => self.render_placeholder(
                 frame,
                 chunks[1],
@@ -437,6 +459,39 @@ impl PanelView {
         }
     }
 
+    fn populate_gallery_if_needed<I: RpcInvoker>(
+        &mut self,
+        panel: &GalleryPanel,
+        context: &Context,
+        invoker: &I,
+    ) {
+        if self.cached_gallery.is_some() {
+            return;
+        }
+        let Some(populate) = panel.populate.as_ref() else {
+            self.cached_gallery = Some(CachedGallery {
+                cards: vec![],
+                error: Some("Gallery panel has no populate RPC.".into()),
+            });
+            return;
+        };
+        let request = RequestBuilder::build(populate, context);
+        match invoker.invoke(&populate.service, &populate.method, request) {
+            Ok(response) => {
+                self.cached_gallery = Some(CachedGallery {
+                    cards: render_gallery(&response, panel),
+                    error: None,
+                });
+            }
+            Err(error) => {
+                self.cached_gallery = Some(CachedGallery {
+                    cards: vec![],
+                    error: Some(format!("Failed to load gallery: {error}")),
+                });
+            }
+        }
+    }
+
     fn render_table(
         &mut self,
         frame: &mut Frame,
@@ -525,6 +580,12 @@ impl PanelView {
         self.cached_resource_cards
             .as_ref()
             .and_then(|cached| cached.rows.get(self.content_selected))
+            .or_else(|| {
+                self.cached_gallery
+                    .as_ref()
+                    .and_then(|cached| cached.cards.get(self.content_selected))
+                    .map(|card| &card.raw)
+            })
     }
 }
 
