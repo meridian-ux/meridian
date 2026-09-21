@@ -118,6 +118,7 @@ proto_library(
         "panel.proto",
         "prompt.proto",
         "rpc.proto",
+        "resource_card.proto",
         "shell.proto",
         "snippet.proto",
         "stat.proto",
