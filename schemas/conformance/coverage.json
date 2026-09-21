@@ -158,8 +158,8 @@
           "reason": "The dependency-free HTML kit renders title, status, subtitle, and descriptor rows with semantic header markup."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders detail titles, status, descriptor rows, and record fields with semantic markup."
         },
         "tui": {
           "status": "separate-entrypoint",
@@ -445,8 +445,8 @@
           "reason": "The dependency-free HTML kit renders the record fields as an accessible definition list."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders record fields as an accessible definition list."
         },
         "tui": {
           "status": "placeholder",
