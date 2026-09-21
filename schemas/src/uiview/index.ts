@@ -13,3 +13,5 @@ export * from "./transport.js";
 export * from "./admission.js";
 // Shared StatPanel computation (the one TS impl of delta/trend/formatting).
 export * from "./stat.js";
+// Shared declared-value formatter used by browser read surfaces.
+export * from "./value_display.js";

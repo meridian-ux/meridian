@@ -58,7 +58,12 @@ import {
   type AdmissionPolicy,
   type GrammarHandle,
 } from "@savvifi/meridian-schemas/uiview";
-import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
+import {
+  computeStat,
+  formatByDisplay,
+  statSparklinePoints,
+  trendArrow,
+} from "@savvifi/meridian-schemas/uiview";
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
 import type { LogTerminalHandle } from "../terminal_panel.js";
@@ -1872,11 +1877,18 @@ async function renderRecordPanel(
   }
   metaEl.textContent = "";
 
-  const read = (path: string): string => {
+  const readValue = (path: string): unknown => {
     if (!path) return "";
-    const v = wasm.readPath(record, path);
-    return v == null ? "" : String(v);
+    return wasm.readPath(record, path);
   };
+
+  const read = (path: string): string => {
+    const value = readValue(path);
+    return value == null ? "" : String(value);
+  };
+
+  const readDisplay = (path: string, display: Parameters<typeof formatByDisplay>[1]): string =>
+    formatByDisplay(readValue(path), display).text;
 
   const box = document.createElement("div");
   box.className = "meridian-uiview-body";
@@ -1913,14 +1925,20 @@ async function renderRecordPanel(
     }
     box.appendChild(
       buildDescriptorRows(
-        p.descriptorRows.map((r) => ({ label: r.label, value: read(r.sourcePath) })),
+        p.descriptorRows.map((r) => ({
+          label: r.label,
+          value: readDisplay(r.sourcePath, r.display),
+        })),
       ),
     );
   } else {
     const p = panel as RecordCardPanel;
     box.appendChild(
       buildDescriptorRows(
-        p.fields.map((f) => ({ label: f.label || f.fieldId, value: read(f.fieldId) })),
+        p.fields.map((f) => ({
+          label: f.label || f.fieldId,
+          value: readDisplay(f.fieldId, f.display),
+        })),
       ),
     );
   }

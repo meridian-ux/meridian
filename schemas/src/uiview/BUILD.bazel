@@ -15,6 +15,7 @@ ts_project(
         "index.ts",
         "stat.ts",
         "transport.ts",
+        "value_display.ts",
         "web_renderer.ts",
     ],
     declaration = True,

@@ -9,7 +9,12 @@
 // declared three RowActions that no user could ever reach.
 
 import { create } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import {
+  DetailHeaderPanelSchema,
+  PanelDescriptorSchema,
+  RecordCardPanelSchema,
+} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
@@ -720,5 +725,62 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
     });
     expect(called).toBe(false); // no fetch at all
     expect(root.querySelector(".mer-stat-value")?.textContent).toContain("5");
+  });
+
+  describe("record panels and declared ValueDisplay", () => {
+    it("formats declared boolean and numeric values in the detail header", async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "build-header",
+        body: {
+          case: "detailHeader",
+          value: create(DetailHeaderPanelSchema, {
+            title: "Build 42",
+            populate: { service: "acme.Builds", method: "GetBuild" },
+            descriptorRows: [
+              { label: "Healthy", sourcePath: "healthy", display: { type: ValueType.BOOLEAN } },
+              { label: "Score", sourcePath: "score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+            ],
+          }),
+        },
+      });
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: wasmWith([]),
+        root,
+        descriptor,
+        invoker: { invoke: async () => ({ healthy: true, score: 1.236 }) },
+        context: CTX,
+      });
+
+      expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("HealthyYes");
+      expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("Score1.24");
+    });
+
+    it("formats declared values in the record card", async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "build-card",
+        body: {
+          case: "recordCard",
+          value: create(RecordCardPanelSchema, {
+            populate: { service: "acme.Builds", method: "GetBuild" },
+            fields: [
+              { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
+              { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+            ],
+          }),
+        },
+      });
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: wasmWith([]),
+        root,
+        descriptor,
+        invoker: { invoke: async () => ({ healthy: true, score: 1.236 }) },
+        context: CTX,
+      });
+
+      expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("HealthyYes");
+      expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("Score1.24");
+    });
   });
 });
