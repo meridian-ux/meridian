@@ -101,6 +101,13 @@ Declared is not proven. [#9](../../issues/9) builds the conformance corpus — f
 arm, a normalizer per renderer, snapshots gated in CI — so `renders` becomes a property
 CI checks rather than a word someone typed.
 
+The first cross-kit crank slice is now live: the canonical protobuf fixture corpus
+used by `web-react` is also rendered through `mui-kit`, with a kit-neutral
+`data-panel` normalizer asserting that every declared arm reaches the MUI dispatch.
+The remaining work is to move that corpus to a renderer-neutral home and add the
+web-components/TUI snapshot consumers without weakening their explicit degradation
+ladder.
+
 ## Track B — One language
 
 The protos already carry a semantic vocabulary. The work is to say each concept **once**:
