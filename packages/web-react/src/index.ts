@@ -84,6 +84,7 @@ export { renderMarkdown, grammarLanguageName } from "./content_shapes.js";
 // rendering import from here.
 export {
   FormFieldRow,
+  KeyValueMapControl,
   NestedFormFields,
   RepeatedFieldControl,
   HTML_FORM_CLASSES,

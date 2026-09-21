@@ -1,9 +1,13 @@
+// @vitest-environment jsdom
+
 // form_fields.test.ts — tests for the shared FormField / NestedForm /
 // RepeatedField renderer (form_fields.tsx). Uses renderToStaticMarkup for the
 // initial-render (SSR) structural checks; interactive behaviour (add/remove/
 // reorder state changes) is exercised in the catalog/storybook fixture.
 
 import { createElement } from "react";
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -16,6 +20,7 @@ import {
   BooleanToggleSchema,
   IntegerSpinnerSchema,
   EnumSelectionSchema,
+  KeyValueMapFieldSchema,
 } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import {
   FormMode,
@@ -162,6 +167,64 @@ describe("FormFieldRow — nested sub-form (htmlKit, EDIT mode)", () => {
     // Child names are prefixed with the parent path
     expect(html).toContain('name="address.street"');
     expect(html).toContain('name="address.city"');
+  });
+});
+
+// ── KeyValueMapField ──────────────────────────────────────────────────────────
+
+describe("KeyValueMapFieldControl — indexed inputs and JSON round-trip", () => {
+  it("adds an entry and keeps the canonical hidden map in sync", async () => {
+    const field = create(FormFieldSchema, {
+      fieldId: "env",
+      label: "Environment",
+      requestField: "env",
+      kind: {
+        case: "keyValueMap",
+        value: create(KeyValueMapFieldSchema, {
+          keyLabel: "Variable",
+          valueLabel: "Setting",
+          addLabel: "Add variable",
+          maxItems: 2,
+        }),
+      },
+    });
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "map-form",
+      title: "Map Form",
+      body: { case: "form", value: create(FormPanelSchema, { mode: FormMode.EDIT, fields: [field] }) },
+    });
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        createElement(
+          MeridianProvider,
+          { invoker, kit: htmlKit, adhoc: {} },
+          createElement(PanelRenderer, { descriptor }),
+        ),
+      );
+    });
+    const add = container.querySelector<HTMLButtonElement>("[data-key-value-map-add]");
+    expect(add?.textContent).toContain("Add variable");
+    await act(async () => add?.click());
+    const key = container.querySelector<HTMLInputElement>('input[name="env[0].key"]');
+    const value = container.querySelector<HTMLInputElement>('input[name="env[0].value"]');
+    expect(key).toBeTruthy();
+    expect(value).toBeTruthy();
+    await act(async () => {
+      if (key && value) {
+        const setNativeValue = (input: HTMLInputElement, next: string) => {
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, next);
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        };
+        setNativeValue(key, "REGION");
+        setNativeValue(value, "us-east-1");
+      }
+    });
+    expect(container.querySelector<HTMLInputElement>('input[type="hidden"][name="env"]')?.value).toBe(
+      '{"REGION":"us-east-1"}',
+    );
+    root.unmount();
   });
 });
 
