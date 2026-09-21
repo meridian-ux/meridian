@@ -75,14 +75,40 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   }
 
   if (mode?.case === "tabbed") {
-    // First cut: render each tab labeled + stacked (a non-interactive
-    // representation; an interactive web-components tab strip is a follow-up).
     const ordered = [...slots].sort(
       (a, b) => (a.placement?.tabPosition || 0) - (b.placement?.tabPosition || 0),
     );
-    for (const slot of ordered) {
-      await renderSlot(container, slot, opts, slot.placement?.tabLabel);
+    const tabSections: HTMLElement[] = [];
+    const tabs = document.createElement("div");
+    tabs.className = "meridian-uiview-tablist";
+    tabs.setAttribute("role", "tablist");
+    container.appendChild(tabs);
+
+    for (const [index, slot] of ordered.entries()) {
+      const section = await renderSlot(container, slot, opts);
+      section.classList.add("meridian-uiview-tabpanel");
+      section.setAttribute("role", "tabpanel");
+      section.id = `meridian-uiview-tabpanel-${slot.id}`;
+      tabSections.push(section);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "meridian-uiview-tab";
+      button.textContent = slot.placement?.tabLabel || slot.title || slot.id;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-controls", section.id);
+      button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+      button.onclick = () => {
+        tabSections.forEach((panel, panelIndex) => {
+          const active = panelIndex === index;
+          panel.hidden = !active;
+          const tab = tabs.children[panelIndex] as HTMLElement | undefined;
+          tab?.setAttribute("aria-selected", active ? "true" : "false");
+        });
+      };
+      tabs.appendChild(button);
     }
+    tabSections.forEach((section, index) => { section.hidden = index !== 0; });
     return;
   }
 
@@ -96,15 +122,14 @@ async function renderSlot(
   parent: HTMLElement,
   slot: Slot,
   opts: RenderViewOptions,
-  tabLabel?: string,
-): Promise<void> {
+): Promise<HTMLElement> {
   const section = document.createElement("section");
   section.className = "meridian-uiview-slot";
   section.dataset.slot = slot.id;
   if (slot.role) section.dataset.role = slot.role;
 
   const panel = slot.panel;
-  const label = tabLabel || slot.title || panel?.title;
+  const label = slot.title || panel?.title;
   if (label) {
     const h = document.createElement("h3");
     h.className = "meridian-uiview-slot-title";
@@ -125,6 +150,7 @@ async function renderSlot(
   if (slot.actions && slot.actions.length > 0) {
     section.appendChild(buildActions(slot.actions, opts.invoker));
   }
+  return section;
 }
 
 // Actions render as buttons; binding resolution (row/form → request) is a later

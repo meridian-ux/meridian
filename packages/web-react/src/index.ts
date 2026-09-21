@@ -22,6 +22,7 @@ export type {
   ConnectFlowPanelProps,
   CopyValuePanelProps,
   CatalogPanelProps,
+  ResourceCardPanelProps,
   GrammarPanelProps,
   StatPanelProps,
   ActionBarProps,
@@ -72,6 +73,7 @@ export {
   type MeridianSelection,
 } from "./pagination.js";
 export { reactWebRenderer } from "./react_web_renderer.js";
+export { ResourceCardsView, useResourceCardRows, type ResourceCardState } from "./resource_cards.js";
 export { htmlKit } from "./html_kit.js";
 export { shadcnKit } from "./shadcn_kit.js";
 // Shared grammar helpers (reused by other kits, e.g. mui): one markdown impl +
@@ -82,6 +84,7 @@ export { renderMarkdown, grammarLanguageName } from "./content_shapes.js";
 // rendering import from here.
 export {
   FormFieldRow,
+  KeyValueMapControl,
   NestedFormFields,
   RepeatedFieldControl,
   HTML_FORM_CLASSES,

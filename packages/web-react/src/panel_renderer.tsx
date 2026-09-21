@@ -117,6 +117,20 @@ export function PanelRenderer({
         <kit.Fallback descriptor={descriptor} />
       );
       break;
+    case "chart":
+      inner = kit.Chart ? (
+        <kit.Chart panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "resourceCards":
+      inner = kit.ResourceCard ? (
+        <kit.ResourceCard panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
     case "grammar":
       inner = kit.Grammar ? (
         <kit.Grammar panel={body.value} descriptor={descriptor} invoker={invoker} />

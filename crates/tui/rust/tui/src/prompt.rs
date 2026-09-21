@@ -96,6 +96,10 @@ pub enum PromptError {
     /// that silently submits a single empty value for a whole list.
     #[error("field {field_id}: repeated fields are not supported by the one-shot prompt renderer")]
     RepeatedUnsupported { field_id: String },
+    /// `KeyValueMapField` needs a row editor, which the one-shot prompt does
+    /// not yet provide. Reject it explicitly rather than silently dropping it.
+    #[error("field {field_id}: key/value map fields are not supported by the one-shot prompt renderer")]
+    KeyValueMapUnsupported { field_id: String },
 }
 
 /// Render `panel` in raw mode and return the user's response.
@@ -131,6 +135,11 @@ pub fn render_prompt(
             }
             Some(Kind::Repeated(_)) => {
                 return Err(PromptError::RepeatedUnsupported {
+                    field_id: f.field_id.clone(),
+                })
+            }
+            Some(Kind::KeyValueMap(_)) => {
+                return Err(PromptError::KeyValueMapUnsupported {
                     field_id: f.field_id.clone(),
                 })
             }
@@ -341,7 +350,7 @@ fn initial_state(f: &FormField) -> FieldState {
                 .unwrap_or(0);
         }
         // Nested is rejected in render_prompt before any state is built.
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => {}
+        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
     state
 }
@@ -427,7 +436,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => {}
+        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
 }
 
@@ -482,6 +491,7 @@ fn validate_one(s: &FieldState) -> Option<String> {
         | Some(Kind::EnumSelection(_))
         | Some(Kind::Nested(_))
         | Some(Kind::Repeated(_))
+        | Some(Kind::KeyValueMap(_))
         | None => None,
     }
 }
@@ -540,7 +550,10 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
                     .cloned()
                     .unwrap_or_default(),
             ),
-            Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => FieldValue::Text(String::new()),
+            Some(Kind::Nested(_))
+            | Some(Kind::Repeated(_))
+            | Some(Kind::KeyValueMap(_))
+            | None => FieldValue::Text(String::new()),
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -674,7 +687,10 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
                 .unwrap_or_default();
             format!("{current}    [{}/{}]", s.selection_index + 1, allowed_values.len())
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => String::new(),
+        Some(Kind::Nested(_))
+        | Some(Kind::Repeated(_))
+        | Some(Kind::KeyValueMap(_))
+        | None => String::new(),
     };
 
     let mut lines = vec![

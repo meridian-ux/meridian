@@ -20,6 +20,7 @@ import {
   StatContent,
   classesFor,
 } from "./content_shapes.js";
+import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
 
 // The six content shapes are rendered by the shared, field-complete
@@ -121,6 +122,15 @@ export const htmlKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
+  Chart: ({ panel }) => (
+    <figure className="mer-chart" data-mark={panel.chart?.mark}>
+      {panel.chart?.title && <figcaption className="mer-chart-title">{panel.chart.title}</figcaption>}
+      <p className="mer-chart-summary">
+        {panel.chart?.y?.fieldName || "value"} by {panel.chart?.x?.fieldName || "category"}
+      </p>
+    </figure>
+  ),
+  ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

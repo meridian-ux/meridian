@@ -27,6 +27,7 @@ import "google/api/field_behavior.proto";
 import "proto/value.proto";
 import "proto/affordance.proto";
 import "proto/catalog.proto";
+import "proto/chart.proto";
 import "proto/choice.proto";
 import "proto/connect_flow.proto";
 import "proto/copy_value.proto";
@@ -38,6 +39,7 @@ import "proto/lro.proto";
 import "proto/media.proto";
 import "proto/prompt.proto";
 import "proto/rpc.proto";
+import "proto/resource_card.proto";
 import "proto/snippet.proto";
 import "proto/stat.proto";
 import "proto/steps.proto";
@@ -160,6 +162,10 @@ message PanelDescriptor {
     // bounded snapshot, never a blank. Distinct from `terminal` (an interactive
     // pty, web-only) and from `table` (one bounded fetch). See stream.proto.
     StreamPanel stream = 23;
+    ResourceCardPanel resource_cards = 24;
+    // A portable chart intent. Hosts may render it natively or degrade to a
+    // tabular/text representation when no chart capability is available.
+    ChartPanel chart = 25;
   }
 }
 

@@ -35,6 +35,7 @@ import {
 } from "@savvifi/meridian-web-react";
 import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import {
   FormMode,
@@ -81,6 +82,7 @@ import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./co
 import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
+import { MeridianResourceCards } from "./components/resource_cards.js";
 
 type Row = Record<string, unknown>;
 
@@ -555,6 +557,46 @@ function buildField(
         },
       };
     }
+    case "keyValueMap": {
+      const currentObject = current && typeof current === "object" && !Array.isArray(current)
+        ? (current as FormObject)
+        : {};
+      const entries = Object.entries(currentObject).map(([key, value]) => ({
+        key,
+        value: typeof value === "string" ? value : "",
+      }));
+      const spec = field.kind.value;
+      return {
+        ...base,
+        type: "map",
+        entries,
+        keyLabel: spec.keyLabel || "Key",
+        valueLabel: spec.valueLabel || "Value",
+        addLabel: spec.addLabel || "Add entry",
+        // A blank key is the current new-row placeholder; wait for it to be
+        // named before allowing another row so map state never collapses two
+        // pending entries into one object property.
+        canAdd:
+          !Object.prototype.hasOwnProperty.call(currentObject, "") &&
+          (spec.maxItems === 0 || entries.length < spec.maxItems),
+        onAdd: () => {
+          // A blank key is the new-row placeholder. Do not add another blank
+          // object key until the user names the current row.
+          if (Object.prototype.hasOwnProperty.call(currentObject, "")) return;
+          setAt(path, { ...currentObject, "": "" });
+        },
+        onRemove: (index: number) => {
+          const next = entries.filter((_, entryIndex) => entryIndex !== index);
+          setAt(path, Object.fromEntries(next.map((entry) => [entry.key, entry.value] as const)));
+        },
+        onChange: (index: number, entry: { key: string; value: string }) => {
+          const next = entries.map((currentEntry, entryIndex) =>
+            entryIndex === index ? entry : currentEntry,
+          );
+          setAt(path, Object.fromEntries(next.map((currentEntry) => [currentEntry.key, currentEntry.value] as const)));
+        },
+      };
+    }
     case "text":
     case "masked":
     default:
@@ -853,6 +895,9 @@ export const muiKit: ComponentKit = {
   Gallery: ({ panel, invoker }: ShapeProps<GalleryPanel>) => (
     <MeridianGallery panel={panel} invoker={invoker} />
   ),
+  ResourceCard: ({ panel, invoker }: ShapeProps<ResourceCardPanel>) => (
+    <MeridianResourceCards panel={panel} invoker={invoker} />
+  ),
   // ── content shapes (MUI) ────────────────────────────────────────────────────
   Choice: ({ panel }: ShapeProps<ChoicePanel>) => <ChoiceView panel={panel} />,
   Snippet: ({ panel }: ShapeProps<SnippetPanel>) =>
@@ -871,4 +916,3 @@ export const muiKit: ComponentKit = {
   Fallback,
   ActionBar,
 };
-

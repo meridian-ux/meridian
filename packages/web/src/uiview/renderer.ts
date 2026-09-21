@@ -15,12 +15,18 @@ import { toBinary } from "@bufbuild/protobuf";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
+import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import {
+  ActionStyle,
+  type ResourceCardPanel,
+  type ResourceAction,
+} from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
   FormPanel,
@@ -41,6 +47,7 @@ import type {
   RpcInvoker,
   StreamInvoker,
 } from "@savvifi/meridian-schemas/uiview";
+import type { GrammarHandle } from "@savvifi/meridian-schemas/uiview";
 import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
@@ -170,6 +177,11 @@ export interface RenderPanelOptions {
     language: string;
     source: string;
     data?: unknown;
+  }) => HTMLElement | GrammarHandle | undefined;
+  /** Host-native transcoder for portable ChartSpec intent. */
+  renderChart?: (opts: {
+    spec: ChartSpec;
+    data?: object;
   }) => HTMLElement | undefined;
 }
 
@@ -238,6 +250,7 @@ export const SUPPORTED_BODIES = [
   "stream",
   "detailHeader",
   "recordCard",
+  "resourceCards",
   "choice",
   "snippet",
   "action",
@@ -349,6 +362,12 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "recordCard") {
     return renderRecordPanel(opts, body.value, meta, "card");
+  }
+  if (body.case === "resourceCards") {
+    return renderResourceCards(opts, body.value, meta);
+  }
+  if (body.case === "chart") {
+    return renderChartPanel(opts, body.value, meta);
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -657,8 +676,18 @@ function buildGrammar(
     source: panel.source,
     data: fetched ?? panel.data,
   });
-  if (rendered instanceof HTMLElement) {
-    mount.appendChild(rendered);
+  const handle = isGrammarHandle(rendered) ? rendered : undefined;
+  const renderedElement = handle?.element instanceof HTMLElement
+    ? handle.element
+    : rendered instanceof HTMLElement
+      ? rendered
+      : undefined;
+  if (renderedElement) {
+    mount.appendChild(renderedElement);
+    if (handle) {
+      if (handle.dispose) onDispose(opts.root, () => handle.dispose?.());
+      wireSignalBindings(opts, panel.populate, handle);
+    }
   } else if (lang === "markdown") {
     // Ladder (1): markdown is text — render it natively, no library.
     mount.appendChild(renderMarkdown(panel.source));
@@ -676,6 +705,103 @@ function buildGrammar(
   }
   if (panel.caption) wrap.appendChild(el("div", "mer-grammar-caption", panel.caption));
   return wrap;
+}
+
+function isGrammarHandle(value: unknown): value is GrammarHandle {
+  return !!value && typeof value === "object" &&
+    ("element" in value || "node" in value || "getSignal" in value || "onSignal" in value);
+}
+
+function wireSignalBindings(
+  opts: RenderPanelOptions,
+  populate: RpcCall | undefined,
+  handle: GrammarHandle,
+): void {
+  if (!populate?.bindings || !handle.onSignal) return;
+  for (const binding of populate.bindings) {
+    if (binding.source.case === "signal") {
+      handle.onSignal(binding.source.value, () => {
+        void invokeSignalBound(opts, populate, handle);
+      });
+    }
+    if (binding.source.case === "nested") {
+      wireNestedSignalBindings(opts, populate, handle, binding.source.value.fields);
+    }
+  }
+}
+
+function wireNestedSignalBindings(
+  opts: RenderPanelOptions,
+  populate: RpcCall,
+  handle: GrammarHandle,
+  bindings: typeof populate.bindings,
+): void {
+  for (const binding of bindings) {
+    if (binding.source.case === "signal") {
+      handle.onSignal?.(binding.source.value, () => {
+        void invokeSignalBound(opts, populate, handle);
+      });
+    }
+    if (binding.source.case === "nested") {
+      wireNestedSignalBindings(opts, populate, handle, binding.source.value.fields);
+    }
+  }
+}
+
+async function invokeSignalBound(
+  opts: RenderPanelOptions,
+  call: RpcCall,
+  handle: GrammarHandle,
+): Promise<void> {
+  const request = plainValue(
+    opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context),
+  ) as Record<string, unknown>;
+  applySignalBindings(request, call.bindings, handle);
+  await opts.invoker.invoke(call.service, call.method, request);
+}
+
+function applySignalBindings(
+  request: Record<string, unknown>,
+  bindings: RpcCall["bindings"],
+  handle: GrammarHandle,
+  prefix = "",
+): void {
+  for (const binding of bindings) {
+    const path = prefix ? `${prefix}.${binding.requestField}` : binding.requestField;
+    if (binding.source.case === "signal") {
+      const value = handle.getSignal?.(binding.source.value);
+      if (value === undefined) deletePath(request, path);
+      else setPath(request, path, value);
+    } else if (binding.source.case === "nested") {
+      applySignalBindings(request, binding.source.value.fields, handle, path);
+    }
+  }
+}
+
+function setPath(root: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split(".");
+  const leaf = keys.pop();
+  if (!leaf) return;
+  let cursor = root;
+  for (const key of keys) {
+    const next = cursor[key];
+    if (!next || typeof next !== "object") cursor[key] = {};
+    cursor = cursor[key] as Record<string, unknown>;
+  }
+  cursor[leaf] = value;
+}
+
+function deletePath(root: Record<string, unknown>, path: string): void {
+  const keys = path.split(".");
+  const leaf = keys.pop();
+  if (!leaf) return;
+  let cursor: Record<string, unknown> | undefined = root;
+  for (const key of keys) {
+    const next = cursor[key];
+    if (!next || typeof next !== "object") return;
+    cursor = next as Record<string, unknown>;
+  }
+  delete cursor[leaf];
 }
 
 // GrammarLanguage enum → the lowercase token on data-grammar-language + passed to
@@ -837,6 +963,211 @@ function readAt(obj: object, path: string): unknown {
   return path
     .split(".")
     .reduce<unknown>((acc, k) => (acc == null ? acc : (acc as Record<string, unknown>)[k]), obj);
+}
+
+// ChartPanel — portable chart intent with a host-native rich path and a
+// guaranteed text/table degradation path. ChartSpec stays data-oriented: the
+// renderer never assumes Vega or another chart library.
+async function renderChartPanel(
+  opts: RenderPanelOptions,
+  panel: ChartPanel,
+  metaEl: HTMLElement,
+): Promise<void> {
+  const spec = panel.chart;
+  if (!spec) {
+    metaEl.textContent = "Chart descriptor is empty.";
+    return;
+  }
+  let data: object | undefined;
+  if (spec.populate) {
+    try {
+      const request = plainValue(
+        opts.wasm.buildRequest(toBinary(RpcCallSchema, spec.populate), opts.context),
+      ) as object;
+      data = await opts.invoker.invoke(spec.populate.service, spec.populate.method, request);
+    } catch (err) {
+      metaEl.textContent = `Failed: ${(err as Error).message}`;
+    }
+  }
+  metaEl.textContent = "";
+  const mount = opts.renderChart?.({ spec, data });
+  if (mount) {
+    opts.root.appendChild(mount);
+    return;
+  }
+  opts.root.appendChild(buildChartFallback(spec, data));
+}
+
+function buildChartFallback(spec: ChartSpec, data?: object): HTMLElement {
+  const figure = el("figure", "mer-chart");
+  if (spec.title) figure.appendChild(el("figcaption", "mer-chart-title", spec.title));
+  const summary = el(
+    "p",
+    "mer-chart-summary",
+    `${chartMarkName(spec.mark)} of ${spec.y?.fieldName || "value"} by ${spec.x?.fieldName || "category"}`,
+  );
+  figure.appendChild(summary);
+  const rows = chartRows(data);
+  if (rows.length) {
+    const table = document.createElement("table");
+    table.className = "mer-chart-data";
+    const head = document.createElement("tr");
+    for (const key of [spec.x?.fieldName, spec.y?.fieldName, spec.series?.fieldName].filter(Boolean)) {
+      const th = document.createElement("th");
+      th.textContent = key!;
+      head.appendChild(th);
+    }
+    table.appendChild(head);
+    for (const row of rows.slice(0, 20)) {
+      const tr = document.createElement("tr");
+      for (const key of [spec.x?.fieldName, spec.y?.fieldName, spec.series?.fieldName].filter(Boolean)) {
+        const td = document.createElement("td");
+        td.textContent = String(readAt(row, key!) ?? "");
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    figure.appendChild(table);
+  }
+  return figure;
+}
+
+function chartRows(data?: object): object[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data as object[];
+  for (const path of ["rows", "items", "data"]) {
+    const candidate = readAt(data, path);
+    if (Array.isArray(candidate)) return candidate as object[];
+  }
+  return [];
+}
+
+function chartMarkName(mark: number): string {
+  return ["chart", "line", "area", "bar", "point", "stat"][mark] ?? "chart";
+}
+
+// ResourceCardPanel — fetch-driven resource cards with lifecycle actions. The
+// action model is descriptor-owned: the renderer only supplies the row as the
+// request context and never invents a route or endpoint. Confirmations are
+// rendered inline so the web-components surface stays usable without a host
+// dialog implementation and destructive actions cannot fire accidentally.
+async function renderResourceCards(
+  opts: RenderPanelOptions,
+  panel: ResourceCardPanel,
+  metaEl: HTMLElement,
+): Promise<void> {
+  if (!panel.populate || !panel.template) {
+    metaEl.textContent = "Invalid resource card descriptor";
+    return;
+  }
+  let response: object;
+  try {
+    const request = plainValue(
+      opts.wasm.buildRequest(toBinary(RpcCallSchema, panel.populate), opts.context),
+    ) as object;
+    response = await opts.invoker.invoke(panel.populate.service, panel.populate.method, request);
+  } catch (err) {
+    metaEl.textContent = `Failed: ${(err as Error).message}`;
+    return;
+  }
+
+  const rawRows = panel.rowsField ? readAt(response, panel.rowsField) : response;
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  metaEl.textContent = "";
+  const grid = el("div", "mer-resource-cards");
+  grid.setAttribute("role", "list");
+  if (rows.length === 0) {
+    grid.appendChild(el("p", "mer-empty", panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`));
+    opts.root.appendChild(grid);
+    return;
+  }
+
+  for (const raw of rows) {
+    const row = plainRow(raw);
+    const card = el("article", "mer-resource-card");
+    card.setAttribute("role", "listitem");
+    const title = readAt(row, panel.template.titleField);
+    card.appendChild(el("h3", "mer-resource-card-title", String(title ?? "")));
+    const subtitle = readAt(row, panel.template.subtitleField);
+    if (subtitle != null && subtitle !== "") card.appendChild(el("p", "mer-resource-card-subtitle", String(subtitle)));
+    const status = readAt(row, panel.template.statusField);
+    if (status != null && status !== "") card.appendChild(el("span", "mer-resource-card-status", String(status)));
+    if (panel.template.meta.length > 0) {
+      const meta = el("dl", "mer-resource-card-meta");
+      for (const field of panel.template.meta) {
+        meta.appendChild(el("dt", undefined, field.label));
+        meta.appendChild(el("dd", undefined, String(readAt(row, field.fieldPath) ?? "")));
+      }
+      card.appendChild(meta);
+    }
+    if (panel.template.actions?.actions.length) {
+      const actions = el("div", "mer-resource-card-actions");
+      for (const action of panel.template.actions.actions) {
+        if (!resourceActionVisible(action, row)) continue;
+        actions.appendChild(buildResourceAction(opts, action, row));
+      }
+      if (actions.childElementCount) card.appendChild(actions);
+    }
+    grid.appendChild(card);
+  }
+  opts.root.appendChild(grid);
+}
+
+function resourceActionVisible(action: ResourceAction, row: object): boolean {
+  if (!action.visibleWhen) return true;
+  const match = /^([^=]+)==(.*)$/.exec(action.visibleWhen);
+  return !!match && String(readAt(row, match[1].trim()) ?? "") === match[2].trim();
+}
+
+function buildResourceAction(
+  opts: RenderPanelOptions,
+  action: ResourceAction,
+  row: object,
+): HTMLElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `mer-resource-action mer-resource-action-${resourceActionStyle(action.style)}`;
+  button.textContent = action.label;
+  button.onclick = () => {
+    if (!action.invoke) return;
+    const run = () => {
+      const request = opts.wasm.buildRequest(
+        toBinary(RpcCallSchema, action.invoke!),
+        { ...opts.context, selectedRow: row },
+      );
+      void opts.invoker.invoke(action.invoke!.service, action.invoke!.method, request);
+    };
+    if (!action.confirm) {
+      run();
+      return;
+    }
+    const prompt = el("div", "mer-resource-confirm");
+    prompt.setAttribute("role", "alertdialog");
+    prompt.appendChild(el("strong", "mer-resource-confirm-title", action.confirm.title));
+    prompt.appendChild(el("p", "mer-resource-confirm-message", action.confirm.message));
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.textContent = action.confirm.confirmLabel || "Confirm";
+    confirm.onclick = () => { prompt.remove(); run(); };
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Cancel";
+    cancel.onclick = () => prompt.remove();
+    prompt.append(confirm, cancel);
+    button.parentElement?.appendChild(prompt);
+  };
+  return button;
+}
+
+function resourceActionStyle(style: ActionStyle): "default" | "primary" | "danger" {
+  switch (style) {
+    case ActionStyle.PRIMARY:
+      return "primary";
+    case ActionStyle.DANGER:
+      return "danger";
+    default:
+      return "default";
+  }
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
@@ -1134,6 +1465,14 @@ async function renderFetchDriven(
     opts.root.appendChild(build(undefined));
     return;
   }
+  // A signal value does not exist until the host mounts the live grammar. The
+  // grammar renderer wires the handle and owns subsequent signal-bound calls;
+  // degraded/static surfaces intentionally remain inert.
+  if (hasSignalBindings(populate)) {
+    metaEl.textContent = "";
+    opts.root.appendChild(build(undefined));
+    return;
+  }
   let data: object | undefined;
   try {
     const request = plainValue(
@@ -1145,6 +1484,18 @@ async function renderFetchDriven(
     metaEl.textContent = `Failed: ${(err as Error).message}`;
   }
   opts.root.appendChild(build(data));
+}
+
+function hasSignalBindings(call: RpcCall): boolean {
+  return call.bindings.some((binding) =>
+    binding.source.case === "signal" ||
+    (binding.source.case === "nested" && binding.source.value.fields.some(hasSignalBinding)),
+  );
+}
+
+function hasSignalBinding(binding: RpcCall["bindings"][number]): boolean {
+  return binding.source.case === "signal" ||
+    (binding.source.case === "nested" && binding.source.value.fields.some(hasSignalBinding));
 }
 
 // ---------------------------------------------------------------------------

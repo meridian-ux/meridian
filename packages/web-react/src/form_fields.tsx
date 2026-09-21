@@ -17,7 +17,12 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import type { FormField, NestedForm, RepeatedField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type {
+  FormField,
+  KeyValueMapField,
+  NestedForm,
+  RepeatedField,
+} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
 // ── Class table ────────────────────────────────────────────────────────────────
 
@@ -253,6 +258,23 @@ export function FormFieldRow({
     );
   }
 
+  if (kind.case === "keyValueMap") {
+    return (
+      <div className={c.field}>
+        {field.label && <span className={c.fieldLabel}>{field.label}</span>}
+        {field.description && (
+          <span className={c.fieldDesc}>{field.description}</span>
+        )}
+        <KeyValueMapControl
+          c={c}
+          spec={kind.value}
+          mode={mode}
+          namePath={namePath}
+        />
+      </div>
+    );
+  }
+
   // Scalar field
   return (
     <div className={c.field}>
@@ -263,6 +285,121 @@ export function FormFieldRow({
         )}
         <ScalarInput c={c} field={field} mode={mode} name={namePath} />
       </label>
+    </div>
+  );
+}
+
+// ── KeyValueMapFieldControl ───────────────────────────────────────────────────
+
+interface KeyValueRow {
+  id: number;
+  key: string;
+  value: string;
+}
+
+/**
+ * Stateful string-map editor. The visible controls use indexed names so the
+ * submitted form remains inspectable, while the hidden input carries the
+ * canonical object value expected by RPC request builders.
+ */
+export function KeyValueMapControl({
+  c,
+  spec,
+  mode,
+  namePath,
+}: {
+  c: FormFieldClasses;
+  spec: KeyValueMapField;
+  mode: number;
+  namePath: string;
+}): ReactNode {
+  const [rows, setRows] = useState<KeyValueRow[]>([]);
+  const [nextId, setNextId] = useState(0);
+  const maxItems = spec.maxItems ?? 0;
+  const isEdit = mode === 2;
+  // Keep one pending blank row at a time: duplicate blank keys would collapse
+  // when the canonical object is serialized for submission.
+  const canAdd =
+    !rows.some((row) => row.key === "") &&
+    (maxItems === 0 || rows.length < maxItems);
+  const mapValue = Object.fromEntries(rows.map((row) => [row.key, row.value]));
+
+  function addRow() {
+    if (!canAdd) return;
+    setRows((prev) => [...prev, { id: nextId, key: "", value: "" }]);
+    setNextId((value) => value + 1);
+  }
+
+  function updateRow(id: number, patch: Partial<Omit<KeyValueRow, "id">>) {
+    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+  }
+
+  function removeRow(id: number) {
+    setRows((prev) => prev.filter((row) => row.id !== id));
+  }
+
+  const keyLabel = spec.keyLabel || "Key";
+  const valueLabel = spec.valueLabel || "Value";
+  const addLabel = spec.addLabel || "Add entry";
+
+  return (
+    <div
+      className={c.repeated}
+      data-key-value-map
+      data-max={maxItems || undefined}
+    >
+      <ol className={c.repeatedList}>
+        {rows.map((row, index) => (
+          <li key={row.id} className={c.repeatedRow}>
+            <div className={c.repeatedRowBody}>
+              <label>
+                <span className={c.fieldLabel}>{keyLabel}</span>
+                <input
+                  className={c.fieldInput}
+                  name={`${namePath}[${index}].key`}
+                  value={row.key}
+                  readOnly={!isEdit}
+                  onChange={(event) => updateRow(row.id, { key: event.target.value })}
+                />
+              </label>
+              <label>
+                <span className={c.fieldLabel}>{valueLabel}</span>
+                <input
+                  className={c.fieldInput}
+                  name={`${namePath}[${index}].value`}
+                  value={row.value}
+                  readOnly={!isEdit}
+                  onChange={(event) => updateRow(row.id, { value: event.target.value })}
+                />
+              </label>
+            </div>
+            {isEdit && (
+              <div className={c.repeatedRowControls}>
+                <button
+                  type="button"
+                  className={c.removeBtn}
+                  aria-label="Remove entry"
+                  onClick={() => removeRow(row.id)}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ol>
+      <input type="hidden" name={namePath} value={JSON.stringify(mapValue)} />
+      {isEdit && (
+        <button
+          type="button"
+          className={c.addBtn}
+          data-key-value-map-add
+          disabled={!canAdd}
+          onClick={addRow}
+        >
+          {addLabel}
+        </button>
+      )}
     </div>
   );
 }
