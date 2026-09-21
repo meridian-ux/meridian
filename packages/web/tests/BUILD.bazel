@@ -170,6 +170,33 @@ vitest_test(
     ],
 )
 
+# Resource-card lifecycle actions exercise the untrusted-descriptor admission
+# seam: populate is a read callsite, while row actions are mutation callsites
+# and must be explicitly allowed by the host.
+vitest_test(
+    name = "resource_cards",
+    srcs = ["resource_cards.test.ts"],
+    deps = [
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
+vitest_test(
+    name = "view_renderer",
+    srcs = ["view_renderer.test.ts"],
+    deps = [
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
 # The browser bundle is the entire surface a bundler-free host can reach. A
 # symbol exported from renderer.ts but not re-exported here does not exist for
 # them — which shipped once already (`supportsBody`).

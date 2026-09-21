@@ -147,6 +147,14 @@ contract items the merge shipped with notes attached
 ([#10](https://github.com/meridian-ux/meridian-internal/issues/10)), and the playground
 as the place parity is *seen* ([#11](https://github.com/meridian-ux/meridian-internal/issues/11)).
 
+The reference web-components renderer now enforces the descriptor admission policy
+at every RPC boundary: populate and stream calls are read-tier, while row/resource
+actions and LRO starts are mutation-tier and default closed. Hosts can allow exact
+service/methods through `MountOptions.admission`; denied actions remain visible with
+the policy reason instead of reaching the invoker. React-kit enforcement remains a
+follow-on slice because its action and populate transports are split across kit and
+view composition components.
+
 ## Working the roadmap
 
 - **Labels.** `track:parity` · `track:design-language` · `track:hardening` for the track;

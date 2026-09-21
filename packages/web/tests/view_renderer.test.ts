@@ -48,3 +48,64 @@ describe("renderView tab keyboard navigation", () => {
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
   });
 });
+
+describe("renderView admission", () => {
+  it("gates view-level call actions as mutations", async () => {
+    const root = document.createElement("div");
+    const calls: string[] = [];
+    const view = create(ViewDescriptorSchema, {
+      id: "orders",
+      title: "Orders",
+      actions: [{ id: "delete", label: "Delete", call: { service: "acme.Orders", method: "DeleteOrder" } }],
+      layout: { mode: { case: "list", value: {} } },
+    });
+    await renderView({
+      root,
+      view,
+      wasm,
+      context,
+      invoker: {
+        invoke: async (_service, method) => {
+          calls.push(method);
+          return {};
+        },
+      },
+      admission: {},
+    });
+
+    const button = root.querySelector(".meridian-uiview-actions button") as HTMLButtonElement;
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(calls).toEqual([]);
+    expect(button.dataset.error).toMatch(/admission\.mutations/);
+  });
+
+  it("forwards a view action only when its method is explicitly allowed", async () => {
+    const root = document.createElement("div");
+    const calls: string[] = [];
+    const view = create(ViewDescriptorSchema, {
+      id: "orders",
+      title: "Orders",
+      actions: [{ id: "archive", label: "Archive", call: { service: "acme.Orders", method: "ArchiveOrder" } }],
+      layout: { mode: { case: "list", value: {} } },
+    });
+    await renderView({
+      root,
+      view,
+      wasm,
+      context,
+      invoker: {
+        invoke: async (_service, method) => {
+          calls.push(method);
+          return {};
+        },
+      },
+      admission: { mutations: ["acme.Orders/ArchiveOrder"] },
+    });
+
+    (root.querySelector(".meridian-uiview-actions button") as HTMLButtonElement).click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(calls).toEqual(["ArchiveOrder"]);
+  });
+});

@@ -14,7 +14,6 @@ import {
   createAdmissionGate,
   type AdmissionGate,
   type RpcInvoker,
-  type StreamInvoker,
 } from "@savvifi/meridian-schemas/uiview";
 
 import { renderPanel } from "./renderer.js";
@@ -47,21 +46,9 @@ function gatedInvoker(
   tier: "read" | "mutation",
 ): RpcInvoker {
   return {
-    invoke(service, method, request) {
+    async invoke(service, method, request) {
       gate.check(tier, service, method);
       return invoker.invoke(service, method, request);
-    },
-  };
-}
-
-function gatedStreamInvoker(
-  invoker: StreamInvoker,
-  gate: AdmissionGate,
-): StreamInvoker {
-  return {
-    subscribe(service, method, request, handlers) {
-      gate.check("read", service, method);
-      return invoker.subscribe(service, method, request, handlers);
     },
   };
 }
@@ -69,17 +56,8 @@ function gatedStreamInvoker(
 /** Renders a ViewDescriptor. The layout mode selects the arrangement of slots. */
 export async function renderView(opts: RenderViewOptions): Promise<void> {
   const gate = createAdmissionGate(opts.admission);
-  const invoker = gatedInvoker(opts.invoker, gate, "read");
   const mutationInvoker = gatedInvoker(opts.invoker, gate, "mutation");
-  const guardedOpts: RenderViewOptions = {
-    ...opts,
-    invoker,
-    mutationInvoker,
-    streamInvoker: opts.streamInvoker
-      ? gatedStreamInvoker(opts.streamInvoker, gate)
-      : undefined,
-  };
-  const { root, view } = guardedOpts;
+  const { root, view } = opts;
   root.innerHTML = "";
   root.className = "meridian-uiview-view";
 
@@ -110,7 +88,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
     container.appendChild(side);
     for (const slot of slots) {
       // Column.COLUMN_SIDEBAR = 2; everything else is main.
-      await renderSlot(slot.placement?.column === 2 ? side : main, slot, guardedOpts);
+      await renderSlot(slot.placement?.column === 2 ? side : main, slot, opts, mutationInvoker);
     }
     return;
   }
@@ -126,7 +104,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
     container.appendChild(tabs);
 
     for (const [index, slot] of ordered.entries()) {
-      const section = await renderSlot(container, slot, guardedOpts);
+      const section = await renderSlot(container, slot, opts, mutationInvoker);
       section.classList.add("meridian-uiview-tabpanel");
       section.setAttribute("role", "tabpanel");
       section.id = `meridian-uiview-tabpanel-${slot.id}`;
@@ -170,7 +148,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
 
   // list + stacked: slots rendered in position order.
   for (const slot of slots) {
-    await renderSlot(container, slot, guardedOpts);
+    await renderSlot(container, slot, opts, mutationInvoker);
   }
 }
 
@@ -178,6 +156,7 @@ async function renderSlot(
   parent: HTMLElement,
   slot: Slot,
   opts: RenderViewOptions,
+  mutationInvoker: RpcInvoker,
 ): Promise<HTMLElement> {
   const section = document.createElement("section");
   section.className = "meridian-uiview-slot";
@@ -204,7 +183,7 @@ async function renderSlot(
   }
 
   if (slot.actions && slot.actions.length > 0) {
-    section.appendChild(buildActions(slot.actions, opts.mutationInvoker ?? opts.invoker));
+    section.appendChild(buildActions(slot.actions, mutationInvoker));
   }
   return section;
 }

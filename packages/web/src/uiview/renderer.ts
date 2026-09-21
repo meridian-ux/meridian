@@ -197,13 +197,17 @@ export interface RenderPanelOptions {
   }) => HTMLElement | undefined;
 }
 
+interface PreparedRenderPanelOptions extends RenderPanelOptions {
+  mutationInvoker: RpcInvoker;
+}
+
 function gatedInvoker(
   invoker: RpcInvoker,
   gate: AdmissionGate,
   tier: "read" | "mutation",
 ): RpcInvoker {
   return {
-    invoke(service, method, request) {
+    async invoke(service, method, request) {
       gate.check(tier, service, method);
       return invoker.invoke(service, method, request);
     },
@@ -222,11 +226,12 @@ function gatedStreamInvoker(
   };
 }
 
-function withAdmission(opts: RenderPanelOptions): RenderPanelOptions {
+function withAdmission(opts: RenderPanelOptions): PreparedRenderPanelOptions {
   const gate = createAdmissionGate(opts.admission);
   return {
     ...opts,
     invoker: gatedInvoker(opts.invoker, gate, "read"),
+    mutationInvoker: gatedInvoker(opts.invoker, gate, "mutation"),
     streamInvoker: opts.streamInvoker
       ? gatedStreamInvoker(opts.streamInvoker, gate)
       : undefined,
@@ -1221,7 +1226,7 @@ function chartMarkName(mark: number): string {
 // rendered inline so the web-components surface stays usable without a host
 // dialog implementation and destructive actions cannot fire accidentally.
 async function renderResourceCards(
-  opts: RenderPanelOptions,
+  opts: PreparedRenderPanelOptions,
   panel: ResourceCardPanel,
   metaEl: HTMLElement,
 ): Promise<void> {
@@ -1289,7 +1294,7 @@ function resourceActionVisible(action: ResourceAction, row: object): boolean {
 }
 
 function buildResourceAction(
-  opts: RenderPanelOptions,
+  opts: PreparedRenderPanelOptions,
   action: ResourceAction,
   row: object,
 ): HTMLElement {
@@ -1538,7 +1543,7 @@ function buildPromptField(field: FormField): HTMLElement {
 // ---------------------------------------------------------------------------
 
 async function renderTablePanel(
-  opts: RenderPanelOptions,
+  opts: PreparedRenderPanelOptions,
   table: TablePanel,
   metaEl: HTMLElement,
 ): Promise<void> {
@@ -2080,21 +2085,25 @@ function renderStreamPanel(
     // fatal — subscribe with what we have and let the server decide.
   }
 
-  const sub = opts.streamInvoker.subscribe(
-    subscribe.service,
-    subscribe.method,
-    request,
-    {
-      onFrame: (frame) => append(textOf(frame)),
-      onError: (err) => {
-        metaEl.textContent = `${count} ${noun} — stream failed: ${err.message}`;
+  try {
+    const sub = opts.streamInvoker.subscribe(
+      subscribe.service,
+      subscribe.method,
+      request,
+      {
+        onFrame: (frame) => append(textOf(frame)),
+        onError: (err) => {
+          metaEl.textContent = `${count} ${noun} — stream failed: ${err.message}`;
+        },
+        onClose: () => {
+          metaEl.textContent = `${count} ${noun} — ended`;
+        },
       },
-      onClose: () => {
-        metaEl.textContent = `${count} ${noun} — ended`;
-      },
-    },
-  );
-  onDispose(root, () => sub.close());
+    );
+    onDispose(root, () => sub.close());
+  } catch (err) {
+    metaEl.textContent = `Failed: ${(err as Error).message}`;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -2115,7 +2124,7 @@ const LRO_MAX_DURATION_MS = 30 * 60 * 1000; // 30 minutes; matches JavaFX driver
 const LRO_POLL_WAIT_SECONDS = 5; // Server-side wait per poll cycle.
 
 async function renderLroPanel(
-  opts: RenderPanelOptions,
+  opts: PreparedRenderPanelOptions,
   panel: LroPanel,
   metaEl: HTMLElement,
 ): Promise<void> {
@@ -2306,7 +2315,7 @@ function snapshotForm(
 }
 
 interface DriveLroArgs {
-  opts: RenderPanelOptions;
+  opts: PreparedRenderPanelOptions;
   metaEl: HTMLElement;
   resultArea: HTMLElement;
   panel: LroPanel;
