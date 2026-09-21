@@ -180,6 +180,13 @@ export const htmlKit: ComponentKit = {
       </figure>
     );
   },
+  Terminal: ({ panel }) => (
+    <section className="mer-terminal" aria-label={panel.tool || "Terminal"}>
+      <p className="mer-terminal-note">Interactive terminal connection</p>
+      <a href={panel.url}>{panel.url}</a>
+      {(panel.cols || panel.rows) && <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>}
+    </section>
+  ),
   Steps: ({ panel }) => (
     <section className="mer-steps">
       {panel.intro && <p className="mer-steps-intro">{panel.intro}</p>}

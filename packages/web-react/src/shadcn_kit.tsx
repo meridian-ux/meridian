@@ -221,6 +221,13 @@ export const shadcnKit: ComponentKit = {
       : <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>{panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}</video>;
     return <figure className="grid gap-2">{player}<figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>{panel.chapters.length > 0 && <ol className="text-sm">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}</figure>;
   },
+  Terminal: ({ panel }) => (
+    <section className="grid gap-1 rounded-md border p-3 text-sm" aria-label={panel.tool || "Terminal"}>
+      <span className="font-medium">Interactive terminal connection</span>
+      <a href={panel.url} className="underline">{panel.url}</a>
+      {(panel.cols || panel.rows) && <span className="text-muted-foreground">{panel.cols || "auto"} × {panel.rows || "auto"}</span>}
+    </section>
+  ),
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

@@ -14,6 +14,7 @@ import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
@@ -163,5 +164,15 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain("(Admin)");
     expect(html).toContain("Press deploy to continue");
     expect(html).toContain("You are done");
+  });
+
+  it("renders terminal connection metadata instead of a blank panel", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "shell",
+      body: { case: "terminal", value: create(TerminalPanelSchema, { url: "wss://example.test/pty", tool: "bash", cols: 80, rows: 24 }) },
+    }));
+    expect(html).toContain("Interactive terminal connection");
+    expect(html).toContain("wss://example.test/pty");
+    expect(html).toContain("80 × 24");
   });
 });
