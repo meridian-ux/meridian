@@ -159,6 +159,12 @@ invalid declarations preserve plain values. The TUI does not resolve routes or
 grant navigation capability. `StatPanel.value_display` now shares the bounded
 numeric `ValueDisplay` precision contract for current values and computed deltas;
 legacy `format` remains the fallback for absent or nonnumeric declarations.
+Declared fixed precision now rounds exact binary64 ties away from zero in both
+shared formatters (12.5 at zero digits becomes 13, and -1.125 at two becomes
+-1.13). Wire-decoded numeric, table, and stat cases cover ties, neighboring
+values, negative zero, and the 100-digit limit; legacy column formatting is
+unchanged. This follows the rounding rule in
+[ECMAScript toFixed](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-number.prototype.tofixed).
 Richer non-browser realizations remain open.
 
 ## Track C — Hardening

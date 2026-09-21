@@ -105,6 +105,27 @@ describe("general ValueLink routing inputs", () => {
 // 2026-07-30T12:00:00Z, so every expectation below is a fixed offset from it.
 const NOW = Date.parse("2026-07-30T12:00:00.000Z");
 
+describe("declared numeric rounding (paired with native wire/table/stat tests)", () => {
+  it("rounds exact binary ties away from zero without changing nearby values", () => {
+    for (const [value, digits, expected] of [
+      [12.5, 0, "13"], [-12.5, 0, "-13"], [13.5, 0, "14"],
+      [1.125, 2, "1.13"], [-1.125, 2, "-1.13"], [1.375, 2, "1.38"],
+      [9.5, 0, "10"], [2.675, 2, "2.67"], [1.005, 2, "1.00"],
+      [0.49999999999999994, 0, "0"], [0.5000000000000001, 0, "1"],
+      [-0, 2, "0.00"], [-0.01, 0, "-0"],
+      [2 ** -101, 100,
+        "0.0000000000000000000000000000003944304526105059027058642826413931148366032175545115023851394653320313"],
+      [Number.MIN_VALUE, 100, `0.${"0".repeat(100)}`],
+    ] as const) {
+      for (const type of [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT]) {
+        const display = fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema,
+          create(ValueDisplaySchema, { type, options: { case: "number", value: { fractionDigits: digits } } })));
+        expect(formatByDisplay(value, display).text).toBe(expected);
+      }
+    }
+  });
+});
+
 // The native table formatter runs these same precision boundary cases. Decode
 // the declaration first: absent optional precision and explicit zero differ.
 describe.each([ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT])(

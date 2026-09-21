@@ -403,6 +403,28 @@ mod tests {
     }
 
     #[test]
+    fn declared_value_and_delta_round_ties_away_from_zero() {
+        use prost::Message;
+        for (value, previous, digits, expected, delta) in [
+            (12.5, 10.0, 0, "13", "+3"),
+            (-12.5, -10.0, 0, "-13", "-3"),
+            (1.125, 1.0, 2, "1.13", "+0.13"),
+            (-1.125, -1.0, 2, "-1.13", "-0.13"),
+        ] {
+            let panel = StatPanel {
+                value,
+                previous: Some(previous),
+                value_display: Some(numeric_display(ValueType::Decimal, Some(digits))),
+                ..Default::default()
+            };
+            let panel = StatPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
+            let computed = compute_stat(&panel);
+            assert_eq!(computed.formatted_value, expected);
+            assert_eq!(computed.formatted_delta.as_deref(), Some(delta));
+        }
+    }
+
+    #[test]
     fn unsupported_display_keeps_legacy_stat_format() {
         for kind in [
             None,

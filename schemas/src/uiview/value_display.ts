@@ -252,6 +252,8 @@ export function formatByDisplay(
       // Invalid precision is ignored, not clamped (which would change the value).
       if (typeof value === "number" && digits !== undefined
         && Number.isInteger(digits) && digits >= 0 && digits <= 100) {
+        // Round the stored binary64 value, exact ties away from zero. Native
+        // format_declared_fixed mirrors this rule; avoid scaled Math.round.
         return { text: value.toFixed(digits) };
       }
       return { text: formatDisplayValue(value) };

@@ -349,10 +349,39 @@ fn format_display_number(value: &Value, options: Option<&NumberOptions>) -> Stri
         // The same bound as the browser formatter: never allocate a
         // descriptor-controlled number of digits outside the supported range.
         if (0..=100).contains(&fraction_digits) {
-            return format!("{:.*}", fraction_digits as usize, number);
+            return format_declared_fixed(number, fraction_digits as usize);
         }
     }
     format_display_scalar(value)
+}
+
+/// Fixed precision rounds the stored binary64 value to nearest, with exact
+/// ties away from zero (ECMAScript toFixed). Legacy ColumnFormat is unchanged.
+fn format_declared_fixed(number: f64, digits: usize) -> String {
+    // Negative zero itself has no sign in toFixed; negative nonzero values that
+    // round to zero still do. Rust's formatter otherwise handles sign/precision.
+    let number = if number == 0.0 { 0.0 } else { number };
+    let mut text = format!("{number:.digits$}");
+    let bits = number.abs().to_bits();
+    let biased_exponent = ((bits >> 52) & 0x7ff) as i32;
+    let mantissa = (bits & ((1u64 << 52) - 1)) | if biased_exponent == 0 { 0 } else { 1u64 << 52 };
+    if mantissa == 0 || biased_exponent == 0x7ff {
+        return text;
+    }
+    // x = odd * 2^exponent. Multiplication by 10^digits contributes
+    // 2^digits * 5^digits. A half-integer occurs exactly when exponent+digits
+    // is -1. Since 5^digits == 1 (mod 4), odd == 1 (mod 4) identifies the
+    // ties Rust rounded DOWN to even; the other ties already rounded up.
+    // This avoids double rounding/overflow from multiplying x by 10^digits.
+    let zeros = mantissa.trailing_zeros();
+    let odd = mantissa >> zeros;
+    let exponent = biased_exponent.max(1) - 1023 - 52 + zeros as i32;
+    if exponent + digits as i32 == -1 && odd % 4 == 1 {
+        // A down-rounded even last digit is in 0,2,4,6,8; no carry is needed.
+        let last = text.pop().expect("fixed decimal is nonempty");
+        text.push(char::from(last as u8 + 1));
+    }
+    text
 }
 
 /// Standalone formatter — also used by wasm wrappers that want to
@@ -423,6 +452,49 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(format_cell(&json!(true), &column), "Yes");
+    }
+
+    #[test]
+    fn declared_numeric_rounding_matches_browser_after_wire_decode() {
+        use crate::proto::StatPanel;
+        use crate::stat::compute_stat;
+        use prost::Message;
+        // Paired with value_display.test.ts. Include ties rounded down/up by
+        // nearest-even, adjacent binary values, signs and the precision limit.
+        for (value, digits, expected) in [
+            (12.5, 0, "13"), (-12.5, 0, "-13"), (13.5, 0, "14"),
+            (1.125, 2, "1.13"), (-1.125, 2, "-1.13"), (1.375, 2, "1.38"),
+            (9.5, 0, "10"), (2.675, 2, "2.67"), (1.005, 2, "1.00"),
+            (0.49999999999999994, 0, "0"), (0.5000000000000001, 0, "1"),
+            (-0.0, 2, "0.00"), (-0.01, 0, "-0"),
+            (2.0_f64.powi(-101), 100,
+             "0.0000000000000000000000000000003944304526105059027058642826413931148366032175545115023851394653320313"),
+        ] {
+            for kind in [ValueType::Integer, ValueType::Decimal, ValueType::Money, ValueType::Percent] {
+                let display = ValueDisplay {
+                    r#type: kind as i32,
+                    options: Some(value_display::Options::Number(NumberOptions {
+                        fraction_digits: Some(digits), ..Default::default()
+                    })), ..Default::default()
+                };
+                let display = ValueDisplay::decode(display.encode_to_vec().as_slice()).unwrap();
+                assert_eq!(format_display_value(&json!(value), &display), expected, "{value}, {digits}");
+                let table = TablePanel { rows_field: "rows".into(), columns: vec![TableColumn {
+                    field_path: "value".into(), value_display: Some(display.clone()),
+                    format: ColumnFormat::Float2dp as i32, ..Default::default()
+                }], ..Default::default() };
+                assert_eq!(render_table(&json!({"rows": [{"value": value}]}), &table)[0].cells, [expected]);
+                let stat = StatPanel { value, value_display: Some(display), ..Default::default() };
+                let stat = StatPanel::decode(stat.encode_to_vec().as_slice()).unwrap();
+                assert_eq!(compute_stat(&stat).formatted_value, expected);
+            }
+        }
+        // The additive ValueDisplay change must not silently migrate old columns.
+        assert_eq!(format_value(&json!(1.125), ColumnFormat::Float2dp), "1.12");
+        assert_eq!(
+            format_declared_fixed(f64::from_bits(1), 100),
+            format!("0.{}", "0".repeat(100))
+        );
     }
 
     #[test]

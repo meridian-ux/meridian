@@ -45,6 +45,19 @@ describe("formatStatNumber parity vectors (must match the Rust formatter)", () =
 const stat = (v: Parameters<typeof create<typeof StatPanelSchema>>[1]) => create(StatPanelSchema, v);
 
 describe("computeStat — computed delta/trend/semantics (parity with Rust)", () => {
+  it("rounds declared value and delta ties away from zero after wire decode", () => {
+    for (const [value, previous, digits, expectedValue, expectedDelta] of [
+      [12.5, 10, 0, "13", "+3"], [-12.5, -10, 0, "-13", "-3"],
+      [1.125, 1, 2, "1.13", "+0.13"], [-1.125, -1, 2, "-1.13", "-0.13"],
+    ] as const) {
+      const panel = stat({ value, previous, valueDisplay: { type: ValueType.DECIMAL,
+        options: { case: "number", value: { fractionDigits: digits } } } });
+      const result = computeStat(fromBinary(StatPanelSchema, toBinary(StatPanelSchema, panel)));
+      expect(result.formattedValue).toBe(expectedValue);
+      expect(result.formattedDelta).toBe(expectedDelta);
+    }
+  });
+
   it("uses numeric ValueDisplay after wire decode for both value and delta", () => {
     for (const type of [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT]) {
       for (const digits of [undefined, 0, 3, 100, -1, -2147483648, 101, 2147483647]) {
