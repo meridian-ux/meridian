@@ -35,7 +35,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
 |---|---|---|---|---|---|---|---|
 | `table` | standard | ● | ● | ● | ● | ● | ● |
-| `lro` | standard | ● | ● | ● | ● | ● | ◐ |
+| `lro` | standard | ● | ● | ● | ● | ● | ● |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ○ | ● | ○ | ● | ● | ◑ |
@@ -55,16 +55,16 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
 | `chart` | specialized | ● | ● | ● | ● | ● | ● |
 | `steps` | full | ○ | ● | ● | ● | ● | ● |
-| `media` | specialized | ○ | ● | ● | ● | ● | ◐ |
+| `media` | specialized | ○ | ● | ● | ● | ● | ● |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 120 render, 18 do not.**
+**23 arms × 6 renderers = 138 cells; 122 render, 16 do not.**
 
 | status | cells |
 |---|---|
 | ○ `missing` | 7 |
-| ◐ `placeholder` | 5 |
 | – `not-applicable` | 3 |
+| ◐ `placeholder` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 | ✕ `structural-gap` | 1 |
 
@@ -75,7 +75,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | mui-kit | 3 |
 | html-kit | 1 |
 | shadcn-kit | 1 |
-| tui | 7 |
+| tui | 5 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
