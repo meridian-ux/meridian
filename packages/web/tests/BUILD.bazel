@@ -30,6 +30,7 @@ vitest_test(
 vitest_test(
     name = "conformance",
     srcs = [
+        "conformance_binpb.test.ts",
         "conformance.test.ts",
         "fixtures.ts",
     ],
