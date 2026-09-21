@@ -159,6 +159,20 @@ export function PanelRenderer({
         <kit.Fallback descriptor={descriptor} />
       );
       break;
+    case "stream":
+      inner = kit.Stream ? (
+        <kit.Stream panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
+    case "terminal":
+      inner = kit.Terminal ? (
+        <kit.Terminal panel={body.value} descriptor={descriptor} invoker={invoker} />
+      ) : (
+        <kit.Fallback descriptor={descriptor} />
+      );
+      break;
     case "adhoc": {
       const Adhoc = adhoc[body.value.handlerId];
       inner = Adhoc ? (
