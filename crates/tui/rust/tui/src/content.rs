@@ -850,6 +850,27 @@ mod tests {
         assert!(text.contains("-30")); // 120 − 150
     }
 
+    #[test]
+    fn chart_renders_portable_intent_as_terminal_summary() {
+        use meridian_uiview::proto::{ChartPanel, ChartSpec, Encoding};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ChartPanel {
+            chart: Some(ChartSpec {
+                title: "Latency".into(),
+                x: Some(Encoding { field_name: "service".into(), ..Default::default() }),
+                y: Some(Encoding { field_name: "p95".into(), ..Default::default() }),
+                ..Default::default()
+            }),
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette)).unwrap();
+        let text: String = term.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+        assert!(text.contains("Latency"));
+        assert!(text.contains("p95 by service"));
+    }
+
     // Concatenate a Line's span contents for assertions.
     fn line_text(line: &Line) -> String {
         line.spans.iter().map(|s| s.content.as_ref()).collect()
