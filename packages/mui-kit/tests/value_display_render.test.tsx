@@ -39,6 +39,7 @@ const COMMENT = {
   text: "Carrier confirmed the 2026 rates.",
   createdAt: "2026-07-25T09:18:00.000Z",
   dueDate: "2026-03-29T00:00:00.000Z",
+  profileUrl: "https://example.com/docs",
 };
 
 const invoker: RpcInvoker = { invoke: async () => COMMENT as never };
@@ -89,6 +90,7 @@ function cardView(): ViewDescriptor {
                     options: { case: "temporal", value: { display: TemporalDisplay.ABSOLUTE } },
                   }),
                 ),
+                field("profileUrl", "Profile", create(ValueDisplaySchema, { type: ValueType.URL })),
               ],
             }),
           },
@@ -118,6 +120,8 @@ describe("record card honours a declared ValueDisplay", () => {
     expect(screen.queryByText("2026-07-25T09:18:00.000Z")).toBeNull();
     const posted = screen.getByText(/ago|just now|Jul 25, 2026/);
     expect(posted).toBeTruthy();
+    expect(screen.getByRole("link", { name: "https://example.com/docs" }).getAttribute("href"))
+      .toBe("https://example.com/docs");
   });
 
   it("leaves an undeclared field on the existing inference", async () => {

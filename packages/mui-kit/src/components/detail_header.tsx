@@ -10,10 +10,10 @@
 
 import { useContext, type ReactNode } from "react";
 
-import { Box, Card, CardContent, Chip, Skeleton, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import { formatByDisplay } from "../display_format.js";
+import { formatByDisplay, isSafeHttpUrl } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
@@ -65,7 +65,12 @@ export function MeridianDetailHeader({
   const rows = panel.descriptorRows
     .map((row) => ({ label: row.label, raw: resolvePath(record, row.sourcePath), display: row.display }))
     .filter((row) => asText(row.raw) !== "")
-    .map((row) => ({ label: row.label, ...formatByDisplay(row.raw, row.display, now) }));
+    .map((row) => ({
+      label: row.label,
+      raw: row.raw,
+      display: row.display,
+      ...formatByDisplay(row.raw, row.display, now),
+    }));
 
   return (
     <Card variant="outlined" className="mer-detail-header">
@@ -101,7 +106,13 @@ export function MeridianDetailHeader({
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   {row.label}
                 </Typography>
-                <Typography variant="body2" title={row.title}>{row.text}</Typography>
+                {isSafeHttpUrl(row.raw, row.display) ? (
+                  <Link href={row.text} target="_blank" rel="noreferrer noopener" underline="hover" title={row.title}>
+                    {row.text}
+                  </Link>
+                ) : (
+                  <Typography variant="body2" title={row.title}>{row.text}</Typography>
+                )}
               </Box>
             ))}
           </Box>

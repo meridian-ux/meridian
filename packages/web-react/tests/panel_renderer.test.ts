@@ -193,14 +193,20 @@ describe("meridian-web-react renderer", () => {
     const initialData = { "acme.Builds.GetBuild": {
       rows: [{ url: "https://example.com/docs" }],
     } };
-    const safe = renderWithInitialData(card, initialData);
-    expect(safe).toContain('<a href="https://example.com/docs"');
-    expect(safe).toContain("https://example.com/docs</a>");
+    for (const kit of [htmlKit, shadcnKit]) {
+      const safe = renderWithInitialData(card, initialData, kit);
+      expect(safe).toContain('<a href="https://example.com/docs"');
+      expect(safe).toContain("https://example.com/docs</a>");
 
-    for (const value of ["javascript:alert(1)", "data:text/html,unsafe"]) {
-      const unsafe = renderWithInitialData(card, { "acme.Builds.GetBuild": { rows: [{ url: value }] } });
-      expect(unsafe).not.toContain("<a ");
-      expect(unsafe).toContain(value);
+      for (const value of ["javascript:alert(1)", "data:text/html,unsafe"]) {
+        const unsafe = renderWithInitialData(
+          card,
+          { "acme.Builds.GetBuild": { rows: [{ url: value }] } },
+          kit,
+        );
+        expect(unsafe).not.toContain("<a ");
+        expect(unsafe).toContain(value);
+      }
     }
   });
 

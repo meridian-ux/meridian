@@ -61,6 +61,7 @@ import {
 import {
   computeStat,
   formatByDisplay,
+  isSafeHttpUrl,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -1876,6 +1877,9 @@ async function renderRecordPanel(
     return;
   }
   metaEl.textContent = "";
+  // Web-components has no React hydration boundary, so a render may use the
+  // current instant for fields that explicitly request relative text.
+  const displayNow = Date.now();
 
   const readValue = (path: string): unknown => {
     if (!path) return "";
@@ -1887,8 +1891,8 @@ async function renderRecordPanel(
     return value == null ? "" : String(value);
   };
 
-  const readDisplay = (path: string, display: Parameters<typeof formatByDisplay>[1]): string =>
-    formatByDisplay(readValue(path), display).text;
+  const readDisplay = (path: string, display: Parameters<typeof formatByDisplay>[1]) =>
+    formatByDisplay(readValue(path), display, displayNow);
 
   const box = document.createElement("div");
   box.className = "meridian-uiview-body";
@@ -1927,7 +1931,10 @@ async function renderRecordPanel(
       buildDescriptorRows(
         p.descriptorRows.map((r) => ({
           label: r.label,
-          value: readDisplay(r.sourcePath, r.display),
+          href: isSafeHttpUrl(readValue(r.sourcePath), r.display)
+            ? (readValue(r.sourcePath) as string)
+            : undefined,
+          ...readDisplay(r.sourcePath, r.display),
         })),
       ),
     );
@@ -1937,7 +1944,10 @@ async function renderRecordPanel(
       buildDescriptorRows(
         p.fields.map((f) => ({
           label: f.label || f.fieldId,
-          value: readDisplay(f.fieldId, f.display),
+          href: isSafeHttpUrl(readValue(f.fieldId), f.display)
+            ? (readValue(f.fieldId) as string)
+            : undefined,
+          ...readDisplay(f.fieldId, f.display),
         })),
       ),
     );
@@ -1946,18 +1956,28 @@ async function renderRecordPanel(
 }
 
 /** A labeled-value grid — read-only values, NOT disabled inputs. */
-function buildDescriptorRows(rows: Array<{ label: string; value: string }>): HTMLElement {
+function buildDescriptorRows(rows: Array<{ label: string; text: string; title?: string; href?: string }>): HTMLElement {
   const grid = document.createElement("dl");
   grid.className = "meridian-uiview-record-rows";
-  for (const { label, value } of rows) {
+  for (const { label, text, title, href } of rows) {
     // An empty value still renders its label: on a detail view "Team: —" is
     // information (nobody set one), whereas a missing row reads as a schema that
     // never had the field.
     const dt = document.createElement("dt");
     dt.textContent = label;
     const dd = document.createElement("dd");
-    dd.textContent = value || "—";
-    if (!value) dd.classList.add("empty");
+    if (title) dd.title = title;
+    if (href) {
+      const link = document.createElement("a");
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noreferrer noopener";
+      link.textContent = text;
+      dd.appendChild(link);
+    } else {
+      dd.textContent = text || "—";
+      if (!text) dd.classList.add("empty");
+    }
     grid.appendChild(dt);
     grid.appendChild(dd);
   }

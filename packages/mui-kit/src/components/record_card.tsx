@@ -6,14 +6,14 @@
 
 import { useContext, type ReactNode } from "react";
 
-import { Box, Card, CardContent, Chip, Skeleton, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RecordCardPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
-import { EMPTY_DISPLAY, displayValueList, formatByDisplay } from "../display_format.js";
+import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 
 /**
@@ -83,6 +83,17 @@ export function MeridianRecordCard({
                       <Chip key={chip} label={chip} size="small" variant="outlined" />
                     ))}
                   </Stack>
+                ) : isSafeHttpUrl(value, field.display) ? (
+                  <Link
+                    href={shown.text}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    underline="hover"
+                    title={shown.title}
+                    sx={{ wordBreak: "break-word" }}
+                  >
+                    {shown.text}
+                  </Link>
                 ) : (
                   <Typography
                     variant="body2"

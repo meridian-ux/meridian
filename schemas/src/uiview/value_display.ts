@@ -120,6 +120,17 @@ export interface DisplayedValue {
   title?: string;
 }
 
+/** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
+export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined): value is string {
+  if (display?.type !== ValueType.URL || typeof value !== "string") return false;
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /** Format a value according to its declared ValueDisplay, with inference fallback. */
 export function formatByDisplay(
   value: unknown,

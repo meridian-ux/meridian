@@ -14,7 +14,7 @@ import {
   PanelDescriptorSchema,
   RecordCardPanelSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { TemporalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
@@ -739,6 +739,7 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
             descriptorRows: [
               { label: "Healthy", sourcePath: "healthy", display: { type: ValueType.BOOLEAN } },
               { label: "Score", sourcePath: "score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+              { label: "Posted", sourcePath: "posted", display: { type: ValueType.DATE_TIME, options: { case: "temporal", value: { display: TemporalDisplay.RELATIVE_WITH_ABSOLUTE_TITLE } } } },
             ],
           }),
         },
@@ -748,12 +749,15 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
         wasm: wasmWith([]),
         root,
         descriptor,
-        invoker: { invoke: async () => ({ healthy: true, score: 1.236 }) },
+        invoker: { invoke: async () => ({ healthy: true, score: 1.236, posted: new Date(Date.now() - 2 * 86_400_000).toISOString() }) },
         context: CTX,
       });
 
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("HealthyYes");
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("Score1.24");
+      const posted = root.querySelector<HTMLElement>(".meridian-uiview-record-rows dd:last-child");
+      expect(posted?.textContent).toContain("days ago");
+      expect(posted?.title).toContain("UTC");
     });
 
     it("formats declared values in the record card", async () => {
@@ -781,6 +785,36 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
 
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("HealthyYes");
       expect(root.querySelector(".meridian-uiview-record-rows")?.textContent).toContain("Score1.24");
+    });
+
+    it("renders only safe declared URL values as links", async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "link-card",
+        body: {
+          case: "recordCard",
+          value: create(RecordCardPanelSchema, {
+            populate: { service: "acme.Builds", method: "GetBuild" },
+            fields: [{ fieldId: "url", label: "URL", display: { type: ValueType.URL } }],
+          }),
+        },
+      });
+      const renderValue = async (url: string) => {
+        const root = document.createElement("div");
+        await renderPanel({
+          wasm: wasmWith([]),
+          root,
+          descriptor,
+          invoker: { invoke: async () => ({ url }) },
+          context: CTX,
+        });
+        return root;
+      };
+
+      const safe = await renderValue("https://example.com/docs");
+      expect(safe.querySelector<HTMLAnchorElement>("a")?.href).toBe("https://example.com/docs");
+      const unsafe = await renderValue("javascript:alert(1)");
+      expect(unsafe.querySelector("a")).toBeNull();
+      expect(unsafe.textContent).toContain("javascript:alert(1)");
     });
   });
 });
