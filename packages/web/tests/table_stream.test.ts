@@ -124,6 +124,7 @@ describe("TablePanel row selection + actions", () => {
         },
       },
       context: CTX,
+      admission: { mutations: ["acme.Builds/ListBuildTargets"] },
     });
     calls.length = 0; // drop the initial populate
 
