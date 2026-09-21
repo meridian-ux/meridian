@@ -1,7 +1,7 @@
 use crate::paths::ProtoPaths;
 use crate::proto::{
     value_display, ColumnFormat, GalleryPanel, NumberOptions, TableColumn, TablePanel,
-    ValueDisplay, ValueType,
+    TemporalPrecision, ValueDisplay, ValueType,
 };
 use serde_json::Value;
 
@@ -141,13 +141,23 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         | ValueType::Email
         | ValueType::Url
         | ValueType::Identifier => {
-            if matches!(value_type, ValueType::Date | ValueType::DateTime) {
-                value
-                    .as_str()
+            let text = value.as_str();
+            match value_type {
+                ValueType::Date | ValueType::DateTime => text
                     .and_then(|text| format_temporal(text, value_type))
-                    .unwrap_or_else(|| format_display_scalar(value))
-            } else {
-                format_display_scalar(value)
+                    .unwrap_or_else(|| format_display_scalar(value)),
+                ValueType::Time => {
+                    let precision = match display.options.as_ref() {
+                        Some(value_display::Options::Temporal(options)) => {
+                            TemporalPrecision::try_from(options.precision)
+                                .unwrap_or(TemporalPrecision::Unspecified)
+                        }
+                        _ => TemporalPrecision::Unspecified,
+                    };
+                    text.and_then(|text| format_time(text, precision))
+                        .unwrap_or_else(|| format_display_scalar(value))
+                }
+                _ => format_display_scalar(value),
             }
         }
     }
@@ -167,7 +177,7 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     let year = text[0..4].parse::<u16>().ok()?;
     let month = text[5..7].parse::<u8>().ok()?;
     let day = text[8..10].parse::<u8>().ok()?;
-    if !(1..=12).contains(&month) || day == 0 || day > 31 {
+    if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
         return None;
     }
     let months = [
@@ -202,6 +212,58 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
         display_hour,
         minute,
         suffix
+    ))
+}
+
+fn days_in_month(year: u16, month: u8) -> u8 {
+    match month {
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    }
+}
+
+fn format_time(text: &str, precision: TemporalPrecision) -> Option<String> {
+    let bytes = text.as_bytes();
+    if bytes.len() != 5 && bytes.len() != 8 {
+        return None;
+    }
+    if bytes[2] != b':' || !bytes[..2].iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    let hour = text[0..2].parse::<u8>().ok()?;
+    let minute = text[3..5].parse::<u8>().ok()?;
+    if hour > 23 || minute > 59 {
+        return None;
+    }
+    let second = if bytes.len() == 8 {
+        if bytes[5] != b':' || !bytes[6..8].iter().all(u8::is_ascii_digit) {
+            return None;
+        }
+        let second = text[6..8].parse::<u8>().ok()?;
+        if second > 59 {
+            return None;
+        }
+        Some(second)
+    } else {
+        None
+    };
+    let suffix = if hour >= 12 { "PM" } else { "AM" };
+    let display_hour = match hour % 12 {
+        0 => 12,
+        value => value,
+    };
+    let seconds = if precision == TemporalPrecision::Second {
+        second
+            .map(|value| format!(":{:02}", value))
+            .unwrap_or_default()
+    } else {
+        String::new()
+    };
+    Some(format!(
+        "{}:{:02}{} {} UTC",
+        display_hour, minute, seconds, suffix
     ))
 }
 
@@ -338,6 +400,34 @@ mod tests {
         assert_eq!(
             format_display_value(&json!("not-a-date"), &date_time),
             "not-a-date"
+        );
+
+        let time = ValueDisplay {
+            r#type: ValueType::Time as i32,
+            options: Some(value_display::Options::Temporal(
+                crate::proto::TemporalOptions {
+                    precision: TemporalPrecision::Minute as i32,
+                    ..Default::default()
+                },
+            )),
+        };
+        assert_eq!(format_display_value(&json!("09:14"), &time), "9:14 AM UTC");
+        let seconds = ValueDisplay {
+            options: Some(value_display::Options::Temporal(
+                crate::proto::TemporalOptions {
+                    precision: TemporalPrecision::Second as i32,
+                    ..Default::default()
+                },
+            )),
+            ..time.clone()
+        };
+        assert_eq!(
+            format_display_value(&json!("21:14:07"), &seconds),
+            "9:14:07 PM UTC"
+        );
+        assert_eq!(
+            format_display_value(&json!("2026-02-29"), &date),
+            "2026-02-29"
         );
     }
 
