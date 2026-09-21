@@ -25,6 +25,7 @@ import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.j
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -248,6 +249,7 @@ export const SUPPORTED_BODIES = [
   "lro",
   "adhoc",
   "form",
+  "prompt",
   "terminal",
   "grammar",
   "stat",
@@ -318,6 +320,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   if (body.case === "form") {
     meta.textContent = "";
     root.appendChild(buildForm(body.value));
+    return;
+  }
+  if (body.case === "prompt") {
+    meta.textContent = "";
+    root.appendChild(buildPrompt(body.value));
     return;
   }
   // TerminalPanel — an xterm.js terminal over a pty WebSocket. WEB-SPECIFIC.
@@ -1372,6 +1379,84 @@ function buildForm(panel: FormPanel): HTMLElement {
     form.appendChild(label);
   }
   return form;
+}
+
+// PromptPanel is the web-components peer of the TUI's standalone prompt: it
+// paints the typed controls and leaves response collection to the host caller.
+function buildPrompt(panel: PromptPanel): HTMLElement {
+  const form = document.createElement("form");
+  form.className = "meridian-uiview-prompt";
+  form.addEventListener("submit", (event) => event.preventDefault());
+  if (panel.description) form.appendChild(el("p", "mer-prompt-description", panel.description));
+  if (panel.detail) form.appendChild(el("pre", "mer-prompt-detail", panel.detail));
+  if (panel.isConfirmation) {
+    const actions = el("div", "mer-prompt-actions");
+    const accept = document.createElement("button");
+    accept.type = "submit";
+    accept.textContent = panel.acceptLabel || "Yes";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = panel.cancelLabel || "No";
+    actions.append(accept, cancel);
+    form.appendChild(actions);
+    return form;
+  }
+  for (const field of panel.fields) form.appendChild(buildPromptField(field));
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.textContent = panel.acceptLabel || "Submit";
+  form.appendChild(submit);
+  return form;
+}
+
+function buildPromptField(field: FormField): HTMLElement {
+  const label = document.createElement("label");
+  label.className = "meridian-uiview-field";
+  label.appendChild(el("span", "meridian-uiview-field-label", field.label || field.fieldId));
+  if (field.description) {
+    label.appendChild(el("small", "meridian-uiview-field-description", field.description));
+  }
+  const kind = field.kind;
+  if (kind.case === "boolean") {
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = field.fieldId;
+    input.checked = kind.value.defaultValue;
+    label.appendChild(input);
+  } else if (kind.case === "enumSelection") {
+    const select = document.createElement("select");
+    select.name = field.fieldId;
+    const options = kind.value.options.length
+      ? kind.value.options.map((option) => ({ value: option.value, label: option.label || option.value }))
+      : kind.value.allowedValues.map((value) => ({ value, label: value }));
+    for (const option of options) {
+      const item = document.createElement("option");
+      item.value = option.value;
+      item.textContent = option.label;
+      item.selected = option.value === kind.value.defaultValue;
+      select.appendChild(item);
+    }
+    label.appendChild(select);
+  } else if (kind.case === "integer" || kind.case === "number") {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.name = field.fieldId;
+    input.value = String(kind.value.defaultValue);
+    if (kind.value.min !== 0) input.min = String(kind.value.min);
+    if (kind.value.max !== 0) input.max = String(kind.value.max);
+    if (kind.case === "integer") input.step = String(kind.value.step || 1);
+    else if (kind.value.step !== 0) input.step = String(kind.value.step);
+    label.appendChild(input);
+  } else if (kind.case === "nested" || kind.case === "repeated" || kind.case === "keyValueMap") {
+    label.appendChild(el("span", "meridian-uiview-field-value", "Structured input"));
+  } else {
+    const input = document.createElement("input");
+    input.type = kind.case === "masked" ? "password" : "text";
+    input.name = field.fieldId;
+    if (kind.case === "text" || kind.case === "masked") input.value = kind.value.defaultValue;
+    label.appendChild(input);
+  }
+  return label;
 }
 
 // ---------------------------------------------------------------------------

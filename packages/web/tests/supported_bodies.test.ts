@@ -63,6 +63,7 @@ const MINIMAL: Record<string, unknown> = {
   lro: { start: { service: "s", method: "m" }, metadataType: "M", responseType: "R" },
   adhoc: { handlerId: "h" },
   form: { fields: [] },
+  prompt: { description: "Configure it", fields: [{ fieldId: "name", label: "Name" }] },
   terminal: { url: "wss://example.test/pty" },
   grammar: { language: 1, source: "# hi" },
   stat: { label: "Churn", value: 1 },
@@ -132,6 +133,7 @@ describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
   it("supportsBody agrees with the list, and rejects the unknown", () => {
     for (const c of SUPPORTED_BODIES) expect(supportsBody(c)).toBe(true);
     expect(supportsBody("gallery")).toBe(true);
+    expect(supportsBody("prompt")).toBe(true);
     expect(supportsBody("nope")).toBe(false);
     expect(supportsBody(undefined)).toBe(false);
   });

@@ -118,8 +118,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer paints prompt descriptions, detail, typed controls, and confirmation/form actions."
         },
         "web-react": {
           "status": "renders"
