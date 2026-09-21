@@ -1710,6 +1710,7 @@ mod tests {
     #[test]
     fn copy_value_applies_declared_display_without_changing_copy_source() {
         use meridian_uiview::proto::{CopyValue, ValueDisplay, ValueType};
+        use prost::Message;
 
         let value = CopyValue {
             value: "2026-03-29".into(),
@@ -1719,9 +1720,20 @@ mod tests {
             }),
             ..Default::default()
         };
-        let line = line_text(&copy_value_line(&value, &Palette::default(), false));
+        let mut value = CopyValue::decode(value.encode_to_vec().as_slice()).unwrap();
+        let palette = Palette::default();
+        let line = line_text(&copy_value_line(&value, &palette, false));
         assert!(line.contains("Mar 29, 2026"));
         assert_eq!(value.value, "2026-03-29");
+        value.secret = true;
+        let masked = line_text(&copy_value_line(&value, &palette, false));
+        assert!(!masked.contains("Mar 29, 2026"));
+        assert!(masked.contains("••••••••"));
+        assert!(line_text(&copy_value_line(&value, &palette, true)).contains("Mar 29, 2026"));
+        for display in [None, Some(ValueDisplay::default())] {
+            value.display = display;
+            assert!(line_text(&copy_value_line(&value, &palette, true)).contains("2026-03-29"));
+        }
     }
 
     #[test]

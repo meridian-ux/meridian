@@ -8,7 +8,7 @@
 // language, CopyValue secret mask + reveal, and the ConnectFlow placeholder.
 
 import { create } from "@bufbuild/protobuf";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -35,6 +35,7 @@ const noWasm: UiviewWasm = {
 };
 
 const CTX = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 const invoker = { invoke: async () => ({}) };
 
 async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"], withIcons = false) {
@@ -90,6 +91,9 @@ describe("web-components content shapes (field-complete)", () => {
   });
 
   it("CopyValue applies declared display while preserving the raw copy source", async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
     const typed = create(PanelDescriptorSchema, {
       panelId: "typed",
       title: "Typed",
@@ -102,6 +106,38 @@ describe("web-components content shapes (field-complete)", () => {
     });
     const root = await draw(typed);
     expect(root.querySelector(".mer-copyvalue-value")?.textContent).toBe("Mar 29, 2026");
+    (root.querySelector(".mer-copyvalue-btn") as HTMLButtonElement).click();
+    expect(writeText).toHaveBeenCalledWith("2026-03-29");
+    vi.runAllTimers();
+  });
+
+  it("preserves copy/reveal behavior on a formatted ConnectFlow secret after copy feedback", async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const root = await draw(create(PanelDescriptorSchema, { body: { case: "connectFlow", value: {
+      endpoint: { value: "2026-03-29", secret: true, display: { type: ValueType.DATE } },
+    } } }));
+    const copy = root.querySelector(".mer-copyvalue-btn") as HTMLButtonElement;
+    const reveal = root.querySelector(".mer-reveal") as HTMLButtonElement;
+    expect(copy.textContent).toBe("••••••••");
+    copy.click();
+    vi.runAllTimers();
+    reveal.click();
+    expect(copy.textContent).toBe("Mar 29, 2026");
+    copy.click();
+    // Hiding while copy feedback is visible must also hide the restored value.
+    reveal.click();
+    vi.runAllTimers();
+    expect(copy.textContent).toBe("••••••••");
+    expect(writeText.mock.calls).toEqual([["2026-03-29"], ["2026-03-29"]]);
+  });
+
+  it.each([undefined, {}])("preserves literal text for absent/unspecified display: %j", async (display) => {
+    const root = await draw(create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+      value: { value: "2026-03-29", display },
+    } } }));
+    expect(root.querySelector(".mer-copyvalue-value")?.textContent).toBe("2026-03-29");
   });
 
   it("ConnectFlow renders endpoint + tabs + affordance description; switches on click", async () => {
