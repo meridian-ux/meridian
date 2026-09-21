@@ -131,6 +131,13 @@ export const htmlKit: ComponentKit = {
     </figure>
   ),
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
+  Stream: ({ panel }) => (
+    <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
+      <p className="mer-stream-placeholder">
+        {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
+      </p>
+    </section>
+  ),
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

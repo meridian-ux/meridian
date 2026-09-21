@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
@@ -53,5 +54,23 @@ describe("meridian-web-react renderer", () => {
   it("falls back for an unset panel body", () => {
     const descriptor = create(PanelDescriptorSchema, { panelId: "x", title: "X" });
     expect(render(descriptor)).toContain("empty panel");
+  });
+
+  it("renders a StreamPanel through htmlKit with an accessible placeholder", () => {
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "build-log",
+      title: "Build log",
+      body: {
+        case: "stream",
+        value: create(StreamPanelSchema, {
+          placeholder: "Waiting for build events...",
+          itemNoun: "events",
+        }),
+      },
+    });
+    const html = render(descriptor);
+    expect(html).toContain('class="mer-stream"');
+    expect(html).toContain('aria-live="polite"');
+    expect(html).toContain("Waiting for build events...");
   });
 });
