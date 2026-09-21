@@ -51,18 +51,18 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
 | `detail_header` | standard | ● | ● | ● | ● | ○ | ◐ |
-| `record_card` | standard | ● | ● | ● | ○ | ○ | ◐ |
+| `record_card` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `resource_cards` | standard | ● | ○ | ○ | ○ | ○ | ◐ |
 | `chart` | specialized | ● | ● | ○ | ● | ○ | ○ |
 | `steps` | full | ○ | ● | ● | ○ | ○ | ● |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 98 render, 40 do not.**
+**23 arms × 6 renderers = 138 cells; 99 render, 39 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 25 |
+| ○ `missing` | 24 |
 | ◐ `placeholder` | 10 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
@@ -72,7 +72,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | web-components | 5 |
 | web-react | 2 |
 | mui-kit | 5 |
-| html-kit | 6 |
+| html-kit | 5 |
 | shadcn-kit | 9 |
 | tui | 13 |
 <!-- matrix:end -->
