@@ -24,7 +24,9 @@ use meridian_uiview::proto::{
     ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
 use meridian_uiview::RenderedCard;
-use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
+use meridian_uiview::{
+    compute_stat, format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics,
+};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
@@ -226,6 +228,17 @@ fn value_at(row: &Value, path: &str) -> String {
     )
 }
 
+fn value_at_display(
+    row: &Value,
+    path: &str,
+    display: Option<&meridian_uiview::proto::ValueDisplay>,
+) -> String {
+    let value = ProtoPaths::get(row, path);
+    display
+        .map(|display| format_display_value(value, display))
+        .unwrap_or_else(|| value_at(row, path))
+}
+
 /// The shared visibility predicate used by the web kits: a deliberately small
 /// equality expression keeps action availability deterministic on every surface.
 pub fn resource_action_visible(action: &ResourceAction, row: &Value) -> bool {
@@ -355,7 +368,7 @@ pub fn render_detail_header(
     for row in &panel.descriptor_rows {
         lines.push(labeled_value(
             &row.label,
-            &value_at(record, &row.source_path),
+            &value_at_display(record, &row.source_path, row.display.as_ref()),
             palette,
         ));
     }
@@ -381,7 +394,7 @@ pub fn render_record_card(
                 } else {
                     &field.label
                 },
-                &value_at(record, &field.field_id),
+                &value_at_display(record, &field.field_id, field.display.as_ref()),
                 palette,
             )
         })
@@ -1991,7 +2004,8 @@ mod tests {
     #[test]
     fn detail_header_and_record_card_render_dotted_record_values() {
         use meridian_uiview::proto::{
-            DescriptorRow, DetailHeaderPanel, FormField, RecordCardPanel,
+            value_display, DescriptorRow, DetailHeaderPanel, FormField, NumberOptions,
+            RecordCardPanel, ValueDisplay, ValueType,
         };
         use ratatui::{backend::TestBackend, Terminal};
 
@@ -1999,6 +2013,8 @@ mod tests {
             "name": "Build 42",
             "owner": "Platform",
             "phase": "Running",
+            "healthy": true,
+            "score": 1.236,
             "metadata": {"region": "us-east"}
         });
         let header = DetailHeaderPanel {
@@ -2006,11 +2022,21 @@ mod tests {
             title_source_path: "name".into(),
             subtitle_source_path: "owner".into(),
             status_source_path: "phase".into(),
-            descriptor_rows: vec![DescriptorRow {
-                label: "Region".into(),
-                source_path: "metadata.region".into(),
-                ..Default::default()
-            }],
+            descriptor_rows: vec![
+                DescriptorRow {
+                    label: "Region".into(),
+                    source_path: "metadata.region".into(),
+                    ..Default::default()
+                },
+                DescriptorRow {
+                    label: "Healthy".into(),
+                    source_path: "healthy".into(),
+                    display: Some(ValueDisplay {
+                        r#type: ValueType::Boolean as i32,
+                        options: None,
+                    }),
+                },
+            ],
             ..Default::default()
         };
         let card = RecordCardPanel {
@@ -2024,6 +2050,18 @@ mod tests {
                 FormField {
                     field_id: "metadata.region".into(),
                     label: "Region".into(),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "score".into(),
+                    label: "Score".into(),
+                    display: Some(ValueDisplay {
+                        r#type: ValueType::Decimal as i32,
+                        options: Some(value_display::Options::Number(NumberOptions {
+                            fraction_digits: Some(2),
+                            ..Default::default()
+                        })),
+                    }),
                     ..Default::default()
                 },
             ],
@@ -2044,6 +2082,7 @@ mod tests {
         assert!(header_text.contains("Build 42"));
         assert!(header_text.contains("[Running]"));
         assert!(header_text.contains("Region: us-east"));
+        assert!(header_text.contains("Healthy: Yes"));
 
         let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
         card_term
@@ -2058,6 +2097,7 @@ mod tests {
             .collect();
         assert!(card_text.contains("Name: Build 42"));
         assert!(card_text.contains("Region: us-east"));
+        assert!(card_text.contains("Score: 1.24"));
     }
 
     #[test]
