@@ -38,6 +38,7 @@ describe("ChartPanel (web-components)", () => {
       invoke: async () => ({ rows: [{ name: "api", value: 42 }] }),
     } });
     expect(root.querySelector(".mer-chart-title")?.textContent).toBe("Latency by service");
+    expect(root.querySelector(".mer-chart-summary")?.textContent).toBe("bar of value by name");
     expect(root.querySelector(".mer-chart-data")?.textContent).toContain("api");
   });
 });
