@@ -28,6 +28,7 @@ import {
   MeridianRowActionsContext,
   MeridianViewContext,
   PaginationMode,
+  selectionDeps,
   useActionHandler,
   useHrefResolver,
   useMeridianSelection,
@@ -423,7 +424,24 @@ function initValues(fields: FormField[]): FormObject {
 function mergeFormValues(fields: FormField[], prefill: FormObject | undefined): FormObject {
   const defaults = initValues(fields);
   if (!prefill) return defaults;
-  return { ...defaults, ...prefill };
+  const merge = (base: FormValue, override: FormValue): FormValue => {
+    if (
+      base &&
+      override &&
+      typeof base === "object" &&
+      !Array.isArray(base) &&
+      typeof override === "object" &&
+      !Array.isArray(override)
+    ) {
+      const merged: FormObject = { ...(base as FormObject) };
+      for (const [key, value] of Object.entries(override as FormObject)) {
+        if (key in merged) merged[key] = merge(merged[key], value);
+      }
+      return merged;
+    }
+    return override;
+  };
+  return merge(defaults, prefill) as FormObject;
 }
 
 /** Read the value at a path (string keys index objects, number keys index arrays). */
@@ -723,19 +741,25 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   const createLike = edit && startsBlank(initValues(panel.fields));
   const selection = useMeridianSelection();
   const [prefillValues, setPrefillValues] = useState<FormObject | undefined>();
+  const prefillSelection = selectionDeps(panel.prefill, selection.values);
   useEffect(() => {
+    setPrefillValues(undefined);
     if (!edit || !panel.prefill?.service || !panel.prefill.method) return;
     let active = true;
-    const result = invoke(invoker, panel.prefill, buildBindingRequest(panel.prefill, selection.values));
-    void result?.then((response) => {
-      if (active && response && typeof response === "object" && !Array.isArray(response)) {
-        setPrefillValues(response as FormObject);
-      }
-    });
+    void Promise.resolve()
+      .then(() => invoke(invoker, panel.prefill, buildBindingRequest(panel.prefill, selection.values)))
+      .then((response) => {
+        if (active && response && typeof response === "object" && !Array.isArray(response)) {
+          setPrefillValues(response as FormObject);
+        }
+      })
+      .catch(() => {
+        // A failed prefill is non-fatal: retain the descriptor defaults.
+      });
     return () => {
       active = false;
     };
-  }, [edit, invoker, panel.prefill, selection.values]);
+  }, [edit, invoker, panel.prefill, prefillSelection, selection.values]);
   // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
   // request is not only what the user typed: an op scoped to the record it hangs
   // off (post a comment on THIS task → `resourceId`) gets that field from a

@@ -10,7 +10,7 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { FormFieldSchema, TextInputSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { FormFieldSchema, NestedFormSchema, TextInputSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { FormMode, FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
@@ -154,6 +154,90 @@ describe("FormPanel(EDIT) prefill", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /save/i }));
     expect(request).toEqual({ text: "from server" });
+  });
+
+  it("merges nested prefill values with descriptor defaults", async () => {
+    const panel = create(PanelDescriptorSchema, {
+      panelId: "nested-prefilled-form",
+      title: "Nested prefilled form",
+      body: {
+        case: "form",
+        value: create(FormPanelSchema, {
+          mode: FormMode.EDIT,
+          prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
+          fields: [
+            create(FormFieldSchema, {
+              fieldId: "settings",
+              label: "Settings",
+              kind: {
+                case: "nested",
+                value: create(NestedFormSchema, {
+                  fields: [
+                    create(FormFieldSchema, {
+                      fieldId: "region",
+                      label: "Region",
+                      kind: { case: "text", value: create(TextInputSchema, { defaultValue: "us-east" }) },
+                    }),
+                    create(FormFieldSchema, {
+                      fieldId: "tier",
+                      label: "Tier",
+                      kind: { case: "text", value: create(TextInputSchema, { defaultValue: "standard" }) },
+                    }),
+                  ],
+                }),
+              },
+            }),
+          ],
+        }),
+      },
+    });
+    let request: unknown;
+    const invoker: RpcInvoker = {
+      invoke: async (_service, method, req) => {
+        if (method === "prefill") return { settings: { region: "eu-west" } };
+        request = req;
+        return {};
+      },
+    };
+    render(
+      <MeridianMuiProvider invoker={invoker}>
+        <ViewRenderer view={view(panel)} />
+      </MeridianMuiProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Region")).toHaveValue("eu-west"));
+    expect(screen.getByLabelText("Tier")).toHaveValue("standard");
+    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    expect(request).toEqual({ settings: { region: "eu-west", tier: "standard" } });
+  });
+
+  it("keeps descriptor defaults when the prefill RPC rejects", async () => {
+    const panel = create(PanelDescriptorSchema, {
+      panelId: "failed-prefill-form",
+      title: "Failed prefill form",
+      body: {
+        case: "form",
+        value: create(FormPanelSchema, {
+          mode: FormMode.EDIT,
+          prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
+          fields: [
+            create(FormFieldSchema, {
+              fieldId: "text",
+              label: "Comment",
+              kind: { case: "text", value: create(TextInputSchema, { defaultValue: "fallback" }) },
+            }),
+          ],
+        }),
+      },
+    });
+    const invoker: RpcInvoker = { invoke: async () => { throw new Error("offline"); } };
+    render(
+      <MeridianMuiProvider invoker={invoker}>
+        <ViewRenderer view={view(panel)} />
+      </MeridianMuiProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Comment")).toHaveValue("fallback"));
   });
 });
 
