@@ -546,9 +546,8 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer.",
-          "waiver": "kit gap \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The HTML kit renders computed numbered steps with labels, actors, details, intro, outro, and media-alt fallback."
         },
         "shadcn-kit": {
           "status": "renders",
