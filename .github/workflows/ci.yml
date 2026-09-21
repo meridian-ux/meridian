@@ -94,6 +94,9 @@ jobs:
       - name: Renderer catalog
         run: node schemas/tools/check_renderer_catalog.mjs
 
+      - name: Conformance corpus
+        run: node schemas/tools/check_conformance_corpus.mjs
+
       - name: Coverage matrix
         run: node schemas/tools/check_coverage.mjs --matrix
 
