@@ -602,17 +602,13 @@
           "status": "renders"
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "The MUI kit has not yet supplied a Stream component.",
-          "waiver": "mui-kit#stream — a kit implementation is owed."
+          "status": "renders"
         },
         "html-kit": {
           "status": "renders"
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "The shadcn kit has not yet supplied a Stream component.",
-          "waiver": "shadcn-kit#stream — a kit implementation is owed."
+          "status": "renders"
         },
         "tui": {
           "status": "placeholder",
