@@ -68,6 +68,9 @@ describe("ResourceCardPanel (web-components)", () => {
           return method === "List" ? { items: [{ name: "Dev", repo: "meridian", phase: "Suspended", region: "us-east" }] } : {};
         },
       },
+      admission: {
+        mutations: ["workspace.Workspaces/Resume", "workspace.Workspaces/Delete"],
+      },
     });
 
     expect(root.querySelector(".mer-resource-card-title")?.textContent).toBe("Dev");
@@ -82,7 +85,63 @@ describe("ResourceCardPanel (web-components)", () => {
       (button) => button.textContent === "Delete",
     );
     (confirm as HTMLButtonElement).click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(calls.map((call) => call.method)).toEqual(["List", "Delete"]);
     expect((calls[1].request as { selected: { name: string } }).selected.name).toBe("Dev");
+  });
+
+  it("does not forward a mutation when the host leaves admission at its secure default", async () => {
+    const calls: string[] = [];
+    const denials: Array<{ tier: string; method: string }> = [];
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor,
+      context,
+      invoker: {
+        invoke: async (_service, method) => {
+          calls.push(method);
+          return method === "List" ? { items: [{ name: "Dev", phase: "Suspended" }] } : {};
+        },
+      },
+      admission: {
+        onDenied: (denial) => denials.push({ tier: denial.tier, method: denial.method }),
+      },
+    });
+
+    (root.querySelector(".mer-resource-action-danger") as HTMLButtonElement).click();
+    const confirm = [...root.querySelectorAll('[role="alertdialog"] button')].find(
+      (button) => button.textContent === "Delete",
+    );
+    (confirm as HTMLButtonElement).click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(calls).toEqual(["List"]);
+    expect(denials).toEqual([{ tier: "mutation", method: "Delete" }]);
+    expect(root.querySelector(".mer-resource-action-danger")?.getAttribute("data-error"))
+      .toMatch(/admission\.mutations/);
+  });
+
+  it("applies the host read allowlist before a populate reaches the invoker", async () => {
+    const calls: string[] = [];
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor,
+      context,
+      invoker: {
+        invoke: async (_service, method) => {
+          calls.push(method);
+          return { items: [] };
+        },
+      },
+      admission: { reads: ["workspace.Workspaces/Get"] },
+    });
+
+    expect(calls).toEqual([]);
+    expect(root.querySelector(".meridian-uiview-meta")?.textContent)
+      .toMatch(/not in the reads allowlist/);
   });
 });

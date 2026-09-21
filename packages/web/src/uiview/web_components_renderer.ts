@@ -59,6 +59,7 @@ export function webComponentsRenderer(wasm: UiviewWasm): WebRenderer {
           root: opts.container,
           descriptor,
           invoker: opts.invoker,
+          admission: opts.admission,
           streamInvoker: opts.streamInvoker,
           context,
           adhocFactories,

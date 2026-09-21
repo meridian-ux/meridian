@@ -52,7 +52,12 @@ import type {
   RpcInvoker,
   StreamInvoker,
 } from "@savvifi/meridian-schemas/uiview";
-import type { GrammarHandle } from "@savvifi/meridian-schemas/uiview";
+import {
+  createAdmissionGate,
+  type AdmissionGate,
+  type AdmissionPolicy,
+  type GrammarHandle,
+} from "@savvifi/meridian-schemas/uiview";
 import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
@@ -139,6 +144,8 @@ export interface RenderPanelOptions {
   descriptor: PanelDescriptor;
   /** Host transport for the populate / action RPCs. */
   invoker: RpcInvoker;
+  /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
+  admission?: AdmissionPolicy;
   /**
    * Host transport for SERVER-STREAMING methods — what a StreamPanel subscribes
    * through. Optional: streaming is a surface capability, not a given, and a
@@ -188,6 +195,42 @@ export interface RenderPanelOptions {
     spec: ChartSpec;
     data?: object;
   }) => HTMLElement | undefined;
+}
+
+function gatedInvoker(
+  invoker: RpcInvoker,
+  gate: AdmissionGate,
+  tier: "read" | "mutation",
+): RpcInvoker {
+  return {
+    invoke(service, method, request) {
+      gate.check(tier, service, method);
+      return invoker.invoke(service, method, request);
+    },
+  };
+}
+
+function gatedStreamInvoker(
+  invoker: StreamInvoker,
+  gate: AdmissionGate,
+): StreamInvoker {
+  return {
+    subscribe(service, method, request, handlers) {
+      gate.check("read", service, method);
+      return invoker.subscribe(service, method, request, handlers);
+    },
+  };
+}
+
+function withAdmission(opts: RenderPanelOptions): RenderPanelOptions {
+  const gate = createAdmissionGate(opts.admission);
+  return {
+    ...opts,
+    invoker: gatedInvoker(opts.invoker, gate, "read"),
+    streamInvoker: opts.streamInvoker
+      ? gatedStreamInvoker(opts.streamInvoker, gate)
+      : undefined,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -283,7 +326,8 @@ export function supportsBody(bodyCase: string | undefined): boolean {
  * interactive.
  */
 export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
-  const { root, descriptor } = opts;
+  const renderOpts = withAdmission(opts);
+  const { root, descriptor } = renderOpts;
   disposePanel(root);
   root.innerHTML = "";
   const header = document.createElement("div");
@@ -298,16 +342,16 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
 
   const body = descriptor.body;
   if (body.case === "table") {
-    await renderTablePanel(opts, body.value, meta);
+    await renderTablePanel(renderOpts, body.value, meta);
     return;
   }
   if (body.case === "lro") {
-    await renderLroPanel(opts, body.value, meta);
+    await renderLroPanel(renderOpts, body.value, meta);
     return;
   }
   if (body.case === "adhoc") {
     meta.textContent = "";
-    const factory = opts.adhocFactories?.[body.value.handlerId];
+    const factory = renderOpts.adhocFactories?.[body.value.handlerId];
     const slot = document.createElement("div");
     slot.className = "meridian-uiview-body";
     root.appendChild(slot);
@@ -338,7 +382,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     slot.className = "meridian-uiview-body";
     root.appendChild(slot);
     const handle = renderTerminalPanel(slot, {
-      url: fillTemplate(spec.url, opts.context),
+      url: fillTemplate(spec.url, renderOpts.context),
       tool: spec.tool,
       cols: spec.cols,
       rows: spec.rows,
@@ -352,14 +396,14 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // embed, a markdown lib); this kit stays grammar-lib-free and falls back to the
   // source in a <pre>.
   if (body.case === "grammar") {
-    return renderFetchDriven(opts, body.value, meta, (data) =>
-      buildGrammar(opts, body.value as GrammarPanel, data),
+    return renderFetchDriven(renderOpts, body.value, meta, (data) =>
+      buildGrammar(renderOpts, body.value as GrammarPanel, data),
     );
   }
   // StatPanel — a KPI tile. Full-parity content shape; delta/trend/formatting via
   // the shared computeStat (identical to the other renderers).
   if (body.case === "stat") {
-    return renderFetchDriven(opts, body.value, meta, (data) =>
+    return renderFetchDriven(renderOpts, body.value, meta, (data) =>
       buildStat(body.value as StatPanel, data),
     );
   }
@@ -367,23 +411,23 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // agent transcript). The host supplies the transport via `streamInvoker`;
   // absent, we degrade to the placeholder rather than blanking. See stream.proto.
   if (body.case === "stream") {
-    return renderStreamPanel(opts, body.value, meta);
+    return renderStreamPanel(renderOpts, body.value, meta);
   }
   // DetailHeaderPanel / RecordCardPanel — the two RECORD-BOUND bodies of a detail
   // view. Both fetch ONE record via `populate`, binding the view's subject into
   // `id_field`, then read dotted paths out of it. They share that tier, so they
   // share an implementation here. See panel.proto.
   if (body.case === "detailHeader") {
-    return renderRecordPanel(opts, body.value, meta, "header");
+    return renderRecordPanel(renderOpts, body.value, meta, "header");
   }
   if (body.case === "recordCard") {
-    return renderRecordPanel(opts, body.value, meta, "card");
+    return renderRecordPanel(renderOpts, body.value, meta, "card");
   }
   if (body.case === "resourceCards") {
-    return renderResourceCards(opts, body.value, meta);
+    return renderResourceCards(renderOpts, body.value, meta);
   }
   if (body.case === "gallery") {
-    return renderFetchDriven(opts, body.value, meta, (data) =>
+    return renderFetchDriven(renderOpts, body.value, meta, (data) =>
       buildGallery(body.value, data),
     );
   }
@@ -403,7 +447,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     return;
   }
   if (body.case === "chart") {
-    return renderChartPanel(opts, body.value, meta);
+    return renderChartPanel(renderOpts, body.value, meta);
   }
   // ── content shapes (static, brand-neutral; no wasm/RPC) ─────────────────────
   // These carry no populate RPC, so there is nothing to load — clear the meta and
@@ -411,7 +455,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // web-react htmlKit does, so ONE skin styles both web renderers identically.
   if (body.case === "choice") {
     meta.textContent = "";
-    root.appendChild(buildChoice(opts, body.value));
+    root.appendChild(buildChoice(renderOpts, body.value));
     return;
   }
   if (body.case === "snippet") {
@@ -421,7 +465,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "action") {
     meta.textContent = "";
-    root.appendChild(buildAction(opts, body.value));
+    root.appendChild(buildAction(renderOpts, body.value));
     return;
   }
   if (body.case === "copyValue") {
@@ -431,12 +475,12 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "connectFlow") {
     meta.textContent = "";
-    root.appendChild(buildConnectFlow(opts, body.value));
+    root.appendChild(buildConnectFlow(renderOpts, body.value));
     return;
   }
   if (body.case === "catalog") {
     meta.textContent = "";
-    root.appendChild(buildCatalog(opts, body.value));
+    root.appendChild(buildCatalog(renderOpts, body.value));
     return;
   }
   meta.textContent = "(no body set)";
@@ -1255,15 +1299,29 @@ function buildResourceAction(
   button.textContent = action.label;
   button.onclick = () => {
     if (!action.invoke) return;
-    const run = () => {
+    const run = async () => {
       const request = opts.wasm.buildRequest(
         toBinary(RpcCallSchema, action.invoke!),
         { ...opts.context, selectedRow: row },
       );
-      void opts.invoker.invoke(action.invoke!.service, action.invoke!.method, request);
+      await (opts.mutationInvoker ?? opts.invoker).invoke(
+        action.invoke!.service,
+        action.invoke!.method,
+        request,
+      );
+    };
+    const attempt = () => {
+      void run().catch((err: unknown) => {
+        // Admission failures are expected host-policy outcomes, not unhandled
+        // promise rejections. Keep the action visible and expose the reason to
+        // both a debugger and an assistive technology user.
+        const reason = err instanceof Error ? err.message : String(err);
+        button.dataset.error = reason;
+        button.title = reason;
+      });
     };
     if (!action.confirm) {
-      run();
+      attempt();
       return;
     }
     const prompt = el("div", "mer-resource-confirm");
@@ -1273,7 +1331,7 @@ function buildResourceAction(
     const confirm = document.createElement("button");
     confirm.type = "button";
     confirm.textContent = action.confirm.confirmLabel || "Confirm";
-    confirm.onclick = () => { prompt.remove(); run(); };
+    confirm.onclick = () => { prompt.remove(); attempt(); };
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.textContent = "Cancel";
@@ -1587,7 +1645,11 @@ async function renderTablePanel(
             selectedRow: row,
           }),
         );
-        await invoker.invoke(action.rpc.service, action.rpc.method, request as object);
+        await (opts.mutationInvoker ?? invoker).invoke(
+          action.rpc.service,
+          action.rpc.method,
+          request as object,
+        );
         // `RowAction.refresh_on_success` documents a default of TRUE, which a
         // non-presence proto3 bool cannot express (absent == false). We follow
         // the documented contract and always re-fetch; a descriptor that must
@@ -2266,6 +2328,7 @@ function bytesForRpc(call: RpcCall): Uint8Array {
 async function driveLro(args: DriveLroArgs): Promise<void> {
   const { opts, metaEl, resultArea, panel, formValues } = args;
   const { wasm, invoker, context } = opts;
+  const mutationInvoker = opts.mutationInvoker ?? invoker;
 
   const start = panel.start;
   if (!start) {
@@ -2278,7 +2341,7 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
   const startRequest = plainValue(wasm.buildRequest(bytesForRpc(start), startCtx)) as object;
   let op: Operation;
   try {
-    op = (await invoker.invoke(
+    op = (await mutationInvoker.invoke(
       start.service,
       start.method,
       startRequest,
