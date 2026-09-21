@@ -1378,6 +1378,80 @@ mod tests {
     }
 
     #[test]
+    fn resource_cards_render_populated_rows_and_visible_actions() {
+        use meridian_uiview::proto::{
+            ActionSet, ActionStyle, MetaField, ResourceAction, ResourceCardPanel,
+            ResourceCardTemplate, RpcCall,
+        };
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ResourceCardPanel {
+            populate: Some(RpcCall {
+                service: "demo.Workspaces".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "workspaces".into(),
+            item_noun: "workspaces".into(),
+            template: Some(ResourceCardTemplate {
+                title_field: "name".into(),
+                subtitle_field: "owner".into(),
+                status_field: "phase".into(),
+                meta: vec![MetaField {
+                    label: "Region".into(),
+                    field_path: "region".into(),
+                }],
+                actions: Some(ActionSet {
+                    actions: vec![
+                        ResourceAction {
+                            id: "launch".into(),
+                            label: "Launch".into(),
+                            style: ActionStyle::Primary as i32,
+                            visible_when: "phase==Stopped".into(),
+                            ..Default::default()
+                        },
+                        ResourceAction {
+                            id: "stop".into(),
+                            label: "Stop".into(),
+                            visible_when: "phase==Running".into(),
+                            ..Default::default()
+                        },
+                    ],
+                }),
+            }),
+            ..Default::default()
+        };
+        let rows = vec![
+            serde_json::json!({"name":"api-prod","owner":"platform","phase":"Running","region":"us-east"}),
+            serde_json::json!({"name":"worker-dev","owner":"infra","phase":"Stopped","region":"us-west"}),
+        ];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(72, 16)).unwrap();
+        term.draw(|f| render_resource_cards(f, f.area(), &panel, &rows, &palette, 0, None))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("api-prod"));
+        assert!(text.contains("status: Running"));
+        assert!(text.contains("Region: us-east"));
+        assert!(text.contains("[1] Stop"));
+        assert!(text.contains("[1] Launch"));
+        assert!(resource_action_visible(
+            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &rows[1]
+        ));
+        assert!(!resource_action_visible(
+            &panel.template.as_ref().unwrap().actions.as_ref().unwrap().actions[0],
+            &rows[0]
+        ));
+    }
+
+    #[test]
     fn stream_renders_placeholder_and_default_noun() {
         use meridian_uiview::proto::StreamPanel;
         use ratatui::{backend::TestBackend, Terminal};
