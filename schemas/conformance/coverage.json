@@ -82,8 +82,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI renders populated gallery cards as selectable text with status, metadata, links, and actions."
         }
       }
     },
