@@ -418,16 +418,10 @@ impl PanelView {
             }
             // Media is legitimately degraded here: a moving picture is not text,
             // so the terminal is outside its Accept set by construction.
-            Some(Body::Media(panel)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                if panel.alt.is_empty() {
-                    "Media panels need a raster surface — not displayable in a terminal."
-                } else {
-                    &panel.alt
-                },
-            ),
+            Some(Body::Media(panel)) => {
+                self.content_len = 0;
+                content::render_media(frame, content_area, panel, &self.palette);
+            }
             None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
         }
     }

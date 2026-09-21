@@ -20,8 +20,8 @@
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
     ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
-    form_field::Kind, FormField, FormMode, FormPanel, LroPanel, RecordCardPanel, ResourceAction,
-    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
+    form_field::Kind, FormField, FormMode, FormPanel, LroPanel, MediaPanel, RecordCardPanel,
+    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use meridian_uiview::RenderedCard;
@@ -591,6 +591,63 @@ pub fn render_lro(
         );
     }
     frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render MediaPanel's terminal degradation rung: the authored accessible
+/// description, source URI, duration, captions URI, and chapter contents. A
+/// terminal cannot play or display the medium, but it can preserve the useful
+/// text and the link the host can copy/open.
+pub fn render_media(frame: &mut Frame, area: Rect, panel: &MediaPanel, palette: &Palette) {
+    let mut lines = Vec::new();
+    let heading = if panel.caption.is_empty() {
+        "Media"
+    } else {
+        panel.caption.as_str()
+    };
+    lines.push(Line::from(Span::styled(heading.to_string(), palette.title())));
+    if !panel.alt.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Description: ".to_string(), palette.meta()),
+            Span::styled(panel.alt.clone(), palette.text()),
+        ]));
+    } else {
+        lines.push(Line::from(Span::styled(
+            "No text description was provided.",
+            palette.meta(),
+        )));
+    }
+    if panel.duration_ms > 0 {
+        lines.push(Line::from(Span::styled(
+            format!("Duration: {}", format_duration(panel.duration_ms)),
+            palette.meta(),
+        )));
+    }
+    if !panel.captions_uri.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Captions: ".to_string(), palette.meta()),
+            Span::styled(panel.captions_uri.clone(), palette.text()),
+        ]));
+    }
+    if !panel.src_uri.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Source: ".to_string(), palette.meta()),
+            Span::styled(panel.src_uri.clone(), palette.text()),
+        ]));
+    }
+    for chapter in &panel.chapters {
+        lines.push(Line::from(vec![
+            Span::styled("Chapter: ".to_string(), palette.meta()),
+            Span::styled(format_duration(chapter.start_ms), palette.meta()),
+            Span::raw(" — "),
+            Span::styled(chapter.label.clone(), palette.text()),
+        ]));
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn format_duration(milliseconds: u32) -> String {
+    let total_seconds = milliseconds / 1000;
+    format!("{:02}:{:02}", total_seconds / 60, total_seconds % 60)
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────

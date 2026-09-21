@@ -581,8 +581,8 @@
           "reason": "The shadcn kit renders video, audio, and image media with poster, captions, chapters, and alt fallback semantics."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly."
+          "status": "renders",
+          "reason": "The TUI realizes MediaPanel's terminal degradation rung with alt text, duration, captions, chapters, and source URI."
         }
       }
     },

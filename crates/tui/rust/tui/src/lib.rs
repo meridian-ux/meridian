@@ -47,8 +47,8 @@ mod widget;
 
 pub use content::{
     glyph, grammar_language_name, osc52, render_action, render_catalog, render_choice,
-    render_connect_flow, render_copy_value, render_gallery, render_grammar, render_resource_cards,
-    render_snippet, render_stat, resource_action_visible, selected_affordance,
+    render_connect_flow, render_copy_value, render_gallery, render_grammar, render_media,
+    render_resource_cards, render_snippet, render_stat, resource_action_visible, selected_affordance,
 };
 pub use conversation::{
     block_lines, conversation_lines, render_conversation, status_line,

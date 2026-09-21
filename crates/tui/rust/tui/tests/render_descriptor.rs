@@ -20,8 +20,8 @@ use ratatui::{backend::TestBackend, Terminal};
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
 use meridian_uiview::proto::{
     form_field::Kind, panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel,
-    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, LroPanel, PanelDescriptor,
-    RecordCardPanel, RpcCall, StatPanel, TextInput,
+    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, LroPanel, MediaChapter,
+    MediaPanel, PanelDescriptor, RecordCardPanel, RpcCall, StatPanel, TextInput,
 };
 use meridian_uiview::Context;
 
@@ -281,6 +281,26 @@ fn lro_descriptor() -> PanelDescriptor {
     }
 }
 
+fn media_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "deployment-recording".into(),
+        title: "Deployment recording".into(),
+        body: Some(Body::Media(MediaPanel {
+            src_uri: "https://cdn.example.test/deploy.mp4".into(),
+            alt: "A deployment progressing from build to ready.".into(),
+            captions_uri: "https://cdn.example.test/deploy.vtt".into(),
+            duration_ms: 125_000,
+            caption: "Deployment walkthrough".into(),
+            chapters: vec![MediaChapter {
+                start_ms: 65_000,
+                label: "Ready".into(),
+            }],
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
 #[test]
 fn wire_bytes_round_trip_into_drawn_cells() {
     // Encode and decode rather than rendering the struct directly: the binary is
@@ -451,6 +471,28 @@ fn lro_renders_inputs_and_emits_start_request() {
     assert_eq!(submission.service, "demo.Deploy");
     assert_eq!(submission.method, "Start");
     assert_eq!(submission.request["replicas"], 1);
+}
+
+#[test]
+fn media_uses_the_terminal_accessible_degradation() {
+    let descriptor = media_descriptor();
+    let mut view = PanelView::with_palette(Palette::default());
+    let ctx = Context::default();
+    let mut term = Terminal::new(TestBackend::new(80, 12)).unwrap();
+    term.draw(|f| view.render(f, f.area(), &descriptor, &ctx, &Refuse))
+        .unwrap();
+    let output: String = term
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(output.contains("A deployment progressing from build to ready."));
+    assert!(output.contains("02:05"));
+    assert!(output.contains("deploy.vtt"));
+    assert!(output.contains("Chapter: 01:05 — Ready"));
+    assert!(output.contains("deploy.mp4"));
 }
 
 #[test]
