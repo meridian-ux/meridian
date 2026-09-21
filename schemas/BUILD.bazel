@@ -22,6 +22,14 @@ js_library(
     ],
 )
 
+# Protobuf wire fixtures emitted from conformance/fixtures.ts. Native renderers
+# consume these exact bytes; they are test data, not a published package entry.
+filegroup(
+    name = "conformance_binpb",
+    srcs = glob(["conformance/binpb/*.binpb"]),
+    visibility = ["//visibility:public"],
+)
+
 # The npm_link_package calls that used to live here moved to //:BUILD.bazel.
 # They create `node_modules/<pkg>` in the package that DECLARES them, and this
 # directory was the workspace root before the merge — so leaving them here linked

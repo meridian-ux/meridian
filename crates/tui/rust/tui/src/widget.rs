@@ -463,6 +463,13 @@ impl PanelView {
             return;
         }
         let Some(populate) = table.populate.as_ref() else {
+            // A table may be a descriptor-only empty state. Initialize the
+            // cache so the normal table renderer can draw its columns and
+            // placeholder instead of unwrapping a cache that never existed.
+            self.cached = Some(CachedTable {
+                rows: vec![],
+                item_noun: table.item_noun.clone(),
+            });
             return;
         };
         let request = RequestBuilder::build(populate, context);

@@ -78,6 +78,7 @@ rust_binary(
 rust_test(
     name = "render_descriptor_test",
     srcs = ["tests/render_descriptor.rs"],
+    data = ["//schemas:conformance_binpb"],
     edition = "2021",
     deps = [
         ":tui",

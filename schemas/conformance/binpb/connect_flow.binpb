@@ -1,0 +1,11 @@
+
+connectConnect your agentj“
+(Every agent points at the same endpoint.∫
+cursorCursorCursor"One click installs it.2(
+addAdd to Cursor*cursor://install8:^
+B{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }json"~/.cursor/mcp.jsonø
+codexCodex	Codex CLI"+Bridge the remote endpoint with mcp-remote.:w
+Y[mcp_servers.demo]
+command = "npx"
+args = ["-y", "mcp-remote", "https://mcp.example/mcp"]toml"~/.codex/config.tomlcursor*
+mcp.example.com/mcpEndpoint

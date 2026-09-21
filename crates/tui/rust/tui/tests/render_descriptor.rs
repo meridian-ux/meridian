@@ -15,6 +15,8 @@
 
 #![allow(clippy::needless_update)]
 
+use std::path::PathBuf;
+
 use crossterm::event::KeyCode;
 use prost::Message as _;
 use ratatui::{backend::TestBackend, Terminal};
@@ -114,6 +116,81 @@ fn draw(descriptor: &PanelDescriptor, w: u16, h: u16) -> String {
         .map(|c| c.symbol())
         .collect::<Vec<_>>()
         .concat()
+}
+
+const CANONICAL_FIXTURES: &[(&str, &str)] = &[
+    ("table", "table.binpb"),
+    ("lro", "lro.binpb"),
+    ("adhoc", "adhoc.binpb"),
+    ("prompt", "prompt.binpb"),
+    ("llm_prompt", "llm_prompt.binpb"),
+    ("gallery", "gallery.binpb"),
+    ("form", "form.binpb"),
+    ("detail_header", "detail_header.binpb"),
+    ("record_card", "record_card.binpb"),
+    ("resource_cards", "resource_cards.binpb"),
+    ("chart", "chart.binpb"),
+    ("steps", "steps.binpb"),
+    ("media", "media.binpb"),
+    ("stream", "stream.binpb"),
+    ("choice", "choice.binpb"),
+    ("snippet", "snippet.binpb"),
+    ("action", "action.binpb"),
+    ("connect_flow", "connect_flow.binpb"),
+    ("copy_value", "copy_value.binpb"),
+    ("catalog", "catalog.binpb"),
+    ("stat", "stat.binpb"),
+    ("terminal", "terminal.binpb"),
+    ("grammar", "grammar.binpb"),
+    ("(unset)", "empty.binpb"),
+];
+
+fn read_canonical_fixture(filename: &str) -> Vec<u8> {
+    let mut candidates = vec![PathBuf::from("schemas/conformance/binpb").join(filename)];
+    if let Some(manifest_dir) = option_env!("CARGO_MANIFEST_DIR") {
+        candidates.push(
+            PathBuf::from(manifest_dir)
+                .join("../../../../schemas/conformance/binpb")
+                .join(filename),
+        );
+    }
+    candidates
+        .into_iter()
+        .find_map(|path| std::fs::read(&path).ok())
+        .unwrap_or_else(|| {
+            panic!(
+                "canonical fixture {filename} is missing; run schemas/tools/write_conformance_binpb.mjs"
+            )
+        })
+}
+
+fn body_name(descriptor: &PanelDescriptor) -> &'static str {
+    match descriptor.body.as_ref() {
+        Some(Body::Table(_)) => "table",
+        Some(Body::Lro(_)) => "lro",
+        Some(Body::Adhoc(_)) => "adhoc",
+        Some(Body::Prompt(_)) => "prompt",
+        Some(Body::LlmPrompt(_)) => "llm_prompt",
+        Some(Body::Gallery(_)) => "gallery",
+        Some(Body::Form(_)) => "form",
+        Some(Body::DetailHeader(_)) => "detail_header",
+        Some(Body::RecordCard(_)) => "record_card",
+        Some(Body::ResourceCards(_)) => "resource_cards",
+        Some(Body::Chart(_)) => "chart",
+        Some(Body::Steps(_)) => "steps",
+        Some(Body::Media(_)) => "media",
+        Some(Body::Stream(_)) => "stream",
+        Some(Body::Choice(_)) => "choice",
+        Some(Body::Snippet(_)) => "snippet",
+        Some(Body::Action(_)) => "action",
+        Some(Body::ConnectFlow(_)) => "connect_flow",
+        Some(Body::CopyValue(_)) => "copy_value",
+        Some(Body::Catalog(_)) => "catalog",
+        Some(Body::Stat(_)) => "stat",
+        Some(Body::Terminal(_)) => "terminal",
+        Some(Body::Grammar(_)) => "grammar",
+        None => "(unset)",
+    }
 }
 
 fn stat_descriptor() -> PanelDescriptor {
@@ -324,6 +401,39 @@ fn wire_bytes_round_trip_into_drawn_cells() {
     );
     assert!(out.contains("Nodes ready"), "stat label missing:\n{out}");
     assert!(out.contains("118"), "stat value missing:\n{out}");
+}
+
+#[test]
+fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
+    // These are the exact bytes emitted from schemas/conformance/fixtures.ts,
+    // not Rust-authored equivalents. Decoding and drawing every one proves the
+    // native renderer consumes the shared protobuf corpus and preserves its
+    // documented placeholder/degradation cases.
+    for (expected, filename) in CANONICAL_FIXTURES {
+        let bytes = read_canonical_fixture(filename);
+        let descriptor = PanelDescriptor::decode(bytes.as_slice())
+            .unwrap_or_else(|error| panic!("{filename} is not a PanelDescriptor: {error}"));
+        assert_eq!(
+            body_name(&descriptor),
+            *expected,
+            "fixture {filename} decoded to the wrong body arm"
+        );
+
+        let output = draw(&descriptor, 96, 12);
+        assert!(
+            output.contains(&descriptor.title),
+            "{filename} did not render its title {:?}:\n{output}",
+            descriptor.title
+        );
+        if *expected == "(unset)" {
+            assert!(output.contains("(no body set)"), "empty fixture lost its degradation");
+        } else {
+            assert!(
+                !output.contains("(no body set)"),
+                "{filename} fell through to the empty-body degradation"
+            );
+        }
+    }
 }
 
 #[test]
