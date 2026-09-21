@@ -20,6 +20,7 @@
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
     ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
+    StepsPanel,
 };
 use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -29,6 +30,50 @@ use ratatui::Frame;
 use serde_json::Value;
 
 use crate::theme::Palette;
+
+/// Render an ordered walkthrough as text. Images are omitted in the terminal;
+/// media_alt is retained as the accessible degradation.
+pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: &Palette) {
+    let mut lines = Vec::new();
+    if !panel.intro.is_empty() {
+        lines.push(Line::from(Span::styled(
+            panel.intro.clone(),
+            palette.meta(),
+        )));
+        lines.push(Line::from(""));
+    }
+    for (index, step) in panel.steps.iter().enumerate() {
+        let actor = if step.actor.is_empty() {
+            String::new()
+        } else {
+            format!(" [{}]", step.actor)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{}. ", index + 1), palette.title()),
+            Span::styled(step.label.clone(), palette.text()),
+            Span::styled(actor, palette.meta()),
+        ]));
+        if !step.detail.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("   {}", step.detail),
+                palette.meta(),
+            )));
+        } else if !step.media_alt.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("   {}", step.media_alt),
+                palette.meta(),
+            )));
+        }
+    }
+    if !panel.outro.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            panel.outro.clone(),
+            palette.meta(),
+        )));
+    }
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: true }), area);
+}
 
 // ── shared line builders ─────────────────────────────────────────────────────
 
@@ -1142,6 +1187,44 @@ mod tests {
         assert!(text.contains("service  |  p95"));
         assert!(text.contains("api  |  42"));
         assert!(!text.contains("invoker-aware"));
+    }
+
+    #[test]
+    fn steps_render_numbered_labels_and_details() {
+        use meridian_uiview::proto::{Step, StepsPanel};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = StepsPanel {
+            intro: "Deploy the service".into(),
+            steps: vec![
+                Step {
+                    label: "Open settings".into(),
+                    detail: "Choose production".into(),
+                    actor: "Admin".into(),
+                    ..Default::default()
+                },
+                Step {
+                    label: "Click deploy".into(),
+                    ..Default::default()
+                },
+            ],
+            outro: "Deployment started".into(),
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 10)).unwrap();
+        term.draw(|f| render_steps(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("1. Open settings [Admin]"));
+        assert!(text.contains("Choose production"));
+        assert!(text.contains("2. Click deploy"));
+        assert!(text.contains("Deployment started"));
     }
 
     // Concatenate a Line's span contents for assertions.

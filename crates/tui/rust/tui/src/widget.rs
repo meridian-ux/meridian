@@ -292,15 +292,10 @@ impl PanelView {
             // meridian-ux/meridian-uiview-core#3. They are spelled out rather than
             // swept into a `_ =>` wildcard so the next shape added upstream keeps
             // failing this build loudly instead of silently rendering nothing.
-            Some(Body::Steps(panel)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                &format!(
-                    "Steps panels ({} steps): a numbered list is full-parity text — TUI renderer owed (uiview-core#3).",
-                    panel.steps.len()
-                ),
-            ),
+            Some(Body::Steps(panel)) => {
+                self.content_len = panel.steps.len();
+                content::render_steps(frame, chunks[2], panel, &self.palette);
+            }
             Some(Body::Stream(_)) => self.render_placeholder(
                 frame,
                 chunks[1],
