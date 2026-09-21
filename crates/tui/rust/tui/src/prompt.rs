@@ -540,7 +540,10 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
                     .cloned()
                     .unwrap_or_default(),
             ),
-            Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => FieldValue::Text(String::new()),
+            Some(Kind::Nested(_))
+            | Some(Kind::Repeated(_))
+            | Some(Kind::KeyValueMap(_))
+            | None => FieldValue::Text(String::new()),
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -674,7 +677,10 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
                 .unwrap_or_default();
             format!("{current}    [{}/{}]", s.selection_index + 1, allowed_values.len())
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | None => String::new(),
+        Some(Kind::Nested(_))
+        | Some(Kind::Repeated(_))
+        | Some(Kind::KeyValueMap(_))
+        | None => String::new(),
     };
 
     let mut lines = vec![
