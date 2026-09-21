@@ -480,6 +480,60 @@
         }
       }
     },
+    "resource_cards": {
+      "parity": "standard",
+      "renderers": {
+        "web-components": {
+          "status": "renders"
+        },
+        "web-react": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "mui-kit": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "html-kit": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "shadcn-kit": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "tui": {
+          "status": "placeholder",
+          "reason": "The TUI does not yet render resource cards; it uses an explicit placeholder for unsupported panel shapes."
+        }
+      }
+    },
+    "chart": {
+      "parity": "specialized",
+      "renderers": {
+        "web-components": {
+          "status": "renders"
+        },
+        "web-react": {
+          "status": "renders"
+        },
+        "mui-kit": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "html-kit": {
+          "status": "renders"
+        },
+        "shadcn-kit": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        },
+        "tui": {
+          "status": "missing",
+          "reason": "Not implemented in this renderer."
+        }
+      }
+    },
     "steps": {
       "parity": "full",
       "renderers": {
