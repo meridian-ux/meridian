@@ -189,7 +189,10 @@ vitest_test(
 
 vitest_test(
     name = "view_renderer",
-    srcs = ["view_renderer.test.ts"],
+    srcs = [
+        "fixtures.ts",
+        "view_renderer.test.ts",
+    ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
         "//packages/web:node_modules/@savvifi/meridian-proto-ts",
