@@ -84,6 +84,13 @@ const MINIMAL: Record<string, unknown> = {
   media: { kind: 3, srcUri: "image.png", alt: "A diagram" },
   steps: { intro: "Do this", steps: [{ label: "Open it", actor: "Admin" }] },
   llmPrompt: { userTemplate: "Hello {{name}}" },
+  chart: {
+    chart: {
+      mark: 3,
+      x: { fieldName: "day", type: 1 },
+      y: { fieldName: "count", type: 2 },
+    },
+  },
   choice: { options: [{ id: "a", label: "A" }] },
   snippet: { snippet: { text: "x" } },
   action: { action: { label: "Go" } },

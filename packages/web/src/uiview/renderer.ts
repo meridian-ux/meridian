@@ -261,6 +261,7 @@ export const SUPPORTED_BODIES = [
   "media",
   "steps",
   "llmPrompt",
+  "chart",
   "choice",
   "snippet",
   "action",
