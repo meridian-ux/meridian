@@ -53,16 +53,16 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `detail_header` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `record_card` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
-| `chart` | specialized | ● | ● | ● | ● | ○ | ○ |
+| `chart` | specialized | ● | ● | ● | ● | ○ | ● |
 | `steps` | full | ○ | ● | ● | ○ | ○ | ● |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 105 render, 33 do not.**
+**23 arms × 6 renderers = 138 cells; 106 render, 32 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 19 |
+| ○ `missing` | 18 |
 | ◐ `placeholder` | 9 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
@@ -74,7 +74,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | mui-kit | 3 |
 | html-kit | 4 |
 | shadcn-kit | 8 |
-| tui | 12 |
+| tui | 11 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.

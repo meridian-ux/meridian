@@ -526,8 +526,8 @@
           "reason": "Not implemented in this renderer."
         },
         "tui": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The TUI renders portable chart intent and populated rows as a bounded terminal table."
         }
       }
     },
