@@ -221,6 +221,9 @@ enum TemporalPrecision {
 message NumberOptions {
   // Digits after the decimal point. Explicitly OPTIONAL because 0 is a real
   // answer ("show no decimals") and must not read as "unset".
+  // Supported range: 0 through 100 inclusive. Outside this range, renderers
+  // ignore the precision and preserve the unrounded scalar representation.
+  // This bounds formatting work even for untrusted descriptors.
   optional int32 fraction_digits = 1 [(google.api.field_behavior) = OPTIONAL];
   // ISO 4217 code (e.g. "USD"). MONEY only.
   string currency_code = 2 [(google.api.field_behavior) = OPTIONAL];

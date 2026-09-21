@@ -247,8 +247,12 @@ export function formatByDisplay(
     case ValueType.MONEY:
     case ValueType.PERCENT: {
       const options = display?.options.case === "number" ? display.options.value : undefined;
-      if (typeof value === "number" && options?.fractionDigits !== undefined) {
-        return { text: value.toFixed(Math.max(0, options.fractionDigits)) };
+      const digits = options?.fractionDigits;
+      // Match the native formatter and bound work for untrusted descriptors.
+      // Invalid precision is ignored, not clamped (which would change the value).
+      if (typeof value === "number" && digits !== undefined
+        && Number.isInteger(digits) && digits >= 0 && digits <= 100) {
+        return { text: value.toFixed(digits) };
       }
       return { text: formatDisplayValue(value) };
     }

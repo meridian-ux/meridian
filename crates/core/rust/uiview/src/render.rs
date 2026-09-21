@@ -346,7 +346,9 @@ fn format_display_number(value: &Value, options: Option<&NumberOptions>) -> Stri
         return format_display_scalar(value);
     };
     if let Some(fraction_digits) = options.and_then(|options| options.fraction_digits) {
-        if fraction_digits >= 0 {
+        // The same bound as the browser formatter: never allocate a
+        // descriptor-controlled number of digits outside the supported range.
+        if (0..=100).contains(&fraction_digits) {
             return format!("{:.*}", fraction_digits as usize, number);
         }
     }
@@ -421,6 +423,57 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(format_cell(&json!(true), &column), "Yes");
+    }
+
+    #[test]
+    fn numeric_precision_is_bounded_after_wire_decode() {
+        use prost::Message;
+        // Paired with the browser formatter's precision conformance cases.
+        let at_limit = format!("1.125{}", "0".repeat(97));
+        for value_type in [
+            ValueType::Integer,
+            ValueType::Decimal,
+            ValueType::Money,
+            ValueType::Percent,
+        ] {
+            for (digits, expected) in [
+                (None, "1.125"),
+                (Some(0), "1"),
+                (Some(3), "1.125"),
+                (Some(100), at_limit.as_str()),
+                (Some(-1), "1.125"),
+                (Some(i32::MIN), "1.125"),
+                (Some(101), "1.125"),
+                (Some(i32::MAX), "1.125"),
+            ] {
+                let display = ValueDisplay {
+                    r#type: value_type as i32,
+                    options: Some(value_display::Options::Number(NumberOptions {
+                        fraction_digits: digits,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                };
+                let display = ValueDisplay::decode(display.encode_to_vec().as_slice()).unwrap();
+                let table = TablePanel {
+                    rows_field: "rows".into(),
+                    columns: vec![TableColumn {
+                        field_path: "amount".into(),
+                        format: ColumnFormat::Float2dp as i32,
+                        value_display: Some(display),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                };
+                let rows = render_table(
+                    &json!({"rows": [{"amount": 1.125}, {"amount": "001.125"}, {"amount": null}]}),
+                    &table,
+                );
+                assert_eq!(rows[0].cells, [expected], "{value_type:?}: {digits:?}");
+                assert_eq!(rows[1].cells, ["001.125"]);
+                assert_eq!(rows[2].cells, ["—"]);
+            }
+        }
     }
 
     #[test]

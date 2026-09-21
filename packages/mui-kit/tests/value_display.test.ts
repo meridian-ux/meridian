@@ -105,6 +105,24 @@ describe("general ValueLink routing inputs", () => {
 // 2026-07-30T12:00:00Z, so every expectation below is a fixed offset from it.
 const NOW = Date.parse("2026-07-30T12:00:00.000Z");
 
+// The native table formatter runs these same precision boundary cases. Decode
+// the declaration first: absent optional precision and explicit zero differ.
+describe.each([ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT])(
+  "numeric precision contract for ValueType %s", (type) => {
+    it.each([
+      [undefined, "1.125"], [0, "1"], [3, "1.125"],
+      [100, `1.125${"0".repeat(97)}`],
+      [-1, "1.125"], [-2147483648, "1.125"], [101, "1.125"], [2147483647, "1.125"],
+    ] as const)("preserves bounded behavior for precision %s", (fractionDigits, expected) => {
+      const display = fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema,
+        create(ValueDisplaySchema, { type, options: { case: "number", value: { fractionDigits } } })));
+      expect(formatByDisplay(1.125, display).text).toBe(expected);
+      expect(formatByDisplay("001.125", display).text).toBe("001.125");
+      expect(formatByDisplay(null, display).text).toBe(EMPTY_DISPLAY);
+    });
+  },
+);
+
 const temporal = (
   type: ValueType,
   display: TemporalDisplay,
