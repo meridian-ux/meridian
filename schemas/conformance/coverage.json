@@ -365,8 +365,8 @@
           "reason": "The React ComponentKit seam is open, but no kit currently supplies the web-specific terminal component."
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "The MUI kit does not supply the web-specific terminal component."
+          "status": "renders",
+          "reason": "The MUI kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "html-kit": {
           "status": "renders",

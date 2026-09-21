@@ -39,6 +39,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import {
   FormMode,
   type DetailHeaderPanel,
@@ -823,6 +824,18 @@ function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
   );
 }
 
+function TerminalShape({ panel }: { panel: TerminalPanel }): ReactNode {
+  return (
+    <Stack spacing={1} className="mer-terminal" role="region" aria-label={panel.tool || "Terminal"}>
+      <Typography variant="body2" color="text.secondary">Interactive terminal connection</Typography>
+      <Link href={panel.url} target="_blank" rel="noreferrer">{panel.url}</Link>
+      {(panel.cols || panel.rows) ? (
+        <Typography variant="caption">{panel.cols || "auto"} × {panel.rows || "auto"}</Typography>
+      ) : null}
+    </Stack>
+  );
+}
+
 function PromptShape({ panel }: { panel: PromptPanel }): ReactNode {
   return (
     <FieldForm
@@ -961,6 +974,7 @@ export const muiKit: ComponentKit = {
   ),
   Prompt: ({ panel }: ShapeProps<PromptPanel>) => <PromptShape panel={panel} />,
   LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
+  Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
   Lro: ({ panel, invoker }: ShapeProps<LroPanel>) => (
     <LroShape panel={panel} invoker={invoker} />
   ),
