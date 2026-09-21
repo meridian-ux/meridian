@@ -17,7 +17,9 @@ use prost::Message as _;
 use ratatui::{backend::TestBackend, Terminal};
 
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
-use meridian_uiview::proto::{panel_descriptor::Body, PanelDescriptor, StatPanel};
+use meridian_uiview::proto::{
+    panel_descriptor::Body, CardSpec, GalleryPanel, PanelDescriptor, RpcCall, StatPanel,
+};
 use meridian_uiview::Context;
 
 /// Refuses everything, loudly — the same posture as the binary's OfflineInvoker.
@@ -28,6 +30,26 @@ struct Refuse;
 impl RpcInvoker for Refuse {
     fn invoke(&self, s: &str, m: &str, _r: serde_json::Value) -> Result<serde_json::Value, RpcError> {
         Err(RpcError::Transport(format!("{s}/{m}: no transport")))
+    }
+}
+
+struct GalleryData;
+
+impl RpcInvoker for GalleryData {
+    fn invoke(
+        &self,
+        _service: &str,
+        _method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({
+            "items": [{
+                "name": "GitHub",
+                "description": "Source control",
+                "status": "Connected",
+                "href": "https://github.com"
+            }]
+        }))
     }
 }
 
@@ -63,6 +85,30 @@ fn stat_descriptor() -> PanelDescriptor {
     }
 }
 
+fn gallery_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "integrations".into(),
+        title: "Integrations".into(),
+        body: Some(Body::Gallery(GalleryPanel {
+            populate: Some(RpcCall {
+                service: "demo.Catalog".into(),
+                method: "List".into(),
+                ..Default::default()
+            }),
+            rows_field: "items".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                subtitle_field: "description".into(),
+                status_field: "status".into(),
+                href_field: "href".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
 #[test]
 fn wire_bytes_round_trip_into_drawn_cells() {
     // Encode and decode rather than rendering the struct directly: the binary is
@@ -88,6 +134,34 @@ fn a_declining_stat_marked_higher_is_better_reads_as_bad() {
         out.contains('↓') || out.contains('-') || out.contains('▾'),
         "no decrease marker for 124 -> 118:\n{out}"
     );
+}
+
+#[test]
+fn gallery_populate_flows_into_the_tui_card_list() {
+    let mut view = PanelView::with_palette(Palette::default());
+    let ctx = Context::default();
+    let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();
+    term.draw(|f| {
+        view.render(
+            f,
+            f.area(),
+            &gallery_descriptor(),
+            &ctx,
+            &GalleryData,
+        )
+    })
+    .unwrap();
+    let out = term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(out.contains("GitHub"), "gallery title missing:\n{out}");
+    assert!(out.contains("Connected"), "gallery status missing:\n{out}");
+    assert!(out.contains("https://github.com"), "gallery href missing:\n{out}");
 }
 
 #[test]
