@@ -55,10 +55,11 @@ option java_outer_classname = "PanelProto";
 // view. `panel_id` is the routing key; `body` selects which shape
 // (table / lro / prompt / adhoc) the renderer should use.
 //
-// Meridian ships three host renderers consuming the same descriptors:
-//   - JavaFX desktop (meridian.ui.javafx)
+// Meridian ships multiple host renderers consuming the same descriptors:
 //   - Web via web components (meridian.ui in TypeScript)
+//   - Web via the kit-driven React seam (web-react, including MUI kits)
 //   - Rust TUI via ratatui (meridian.ui in Rust)
+// JavaFX and SwiftUI bindings are maintained as external renderer tiers.
 //
 // Bespoke layouts (SPARQL editors, image viewers, document trees)
 // that don't fit any shape variant stay as hand-coded host classes

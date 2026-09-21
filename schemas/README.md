@@ -57,8 +57,8 @@ Two checks run on every PR (`.github/workflows/ci.yml`). Both exist because the
 failure they catch has already shipped.
 
 ```bash
-python3 tools/check_versions.py      # published versions move in lockstep
-node --test "tools/*.test.mjs"       # the mirror gate still catches divergence
+python3 tools/publish_manifests.py --check  # published manifests match development manifests
+node --test "schemas/tools/*.test.mjs"  # the mirror gate still catches divergence
 ```
 
 ### Mirroring `meridian.ui.v1`
