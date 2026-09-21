@@ -20,7 +20,7 @@
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
     ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
-    form_field::Kind, FormField, FormMode, FormPanel, RecordCardPanel, ResourceAction,
+    form_field::Kind, FormField, FormMode, FormPanel, LroPanel, RecordCardPanel, ResourceAction,
     ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
@@ -548,6 +548,48 @@ pub fn render_form(
         0,
         true,
     );
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+/// Render the input/run half of an LRO panel. Starting the operation is a
+/// renderer event; polling `google.longrunning.Operation` and rendering the
+/// optional result table remain host transport responsibilities.
+pub fn render_lro(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &LroPanel,
+    values: &Value,
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines = vec![Line::from(Span::styled(
+        if panel.run_button_label.is_empty() { "Run".to_string() } else { panel.run_button_label.clone() },
+        palette.title(),
+    ))];
+    lines.push(Line::from(Span::styled(
+        "↑/↓ select · edit scalar · Enter start operation",
+        palette.meta(),
+    )));
+    if panel.inputs.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "Press Enter to start.",
+            palette.meta(),
+        )));
+    } else {
+        lines.push(Line::from(""));
+        let mut selected_index = selected.min(panel.inputs.len().saturating_sub(1));
+        let mut next_index = 0;
+        render_form_fields(
+            &mut lines,
+            &panel.inputs,
+            values,
+            palette,
+            &mut selected_index,
+            &mut next_index,
+            0,
+            true,
+        );
+    }
     frame.render_widget(bordered(lines, palette), area);
 }
 

@@ -1,7 +1,7 @@
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
-    form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, PanelDescriptor,
-    ResourceCardPanel, TablePanel,
+    form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
+    PanelDescriptor, ResourceCardPanel, TablePanel,
 };
 use meridian_uiview::{render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder};
 use crossterm::event::KeyCode;
@@ -31,6 +31,7 @@ pub struct PanelView {
     cached_record: Option<CachedRecord>,
     cached_resource_cards: Option<CachedResourceCards>,
     cached_form: Option<CachedForm>,
+    cached_lro: Option<CachedForm>,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -81,6 +82,16 @@ pub struct FormSubmission {
     pub request: serde_json::Value,
 }
 
+/// Start request emitted by an editable LroPanel. The host invokes this RPC,
+/// polls the returned long-running operation, and feeds any final result into
+/// the descriptor's optional TablePanel result renderer.
+#[derive(Debug, Clone, PartialEq)]
+pub struct LroSubmission {
+    pub service: String,
+    pub method: String,
+    pub request: serde_json::Value,
+}
+
 impl PanelView {
     pub fn new() -> Self {
         Self {
@@ -90,6 +101,7 @@ impl PanelView {
             cached_record: None,
             cached_resource_cards: None,
             cached_form: None,
+            cached_lro: None,
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -108,6 +120,7 @@ impl PanelView {
             cached_record: None,
             cached_resource_cards: None,
             cached_form: None,
+            cached_lro: None,
             table_state: TableState::default(),
             palette,
             content_selected: 0,
@@ -129,6 +142,7 @@ impl PanelView {
         self.cached_record = None;
         self.cached_resource_cards = None;
         self.cached_form = None;
+        self.cached_lro = None;
     }
 
     pub fn select_next(&mut self) {
@@ -225,12 +239,19 @@ impl PanelView {
                 self.populate_if_needed(table, context, invoker);
                 self.render_table(frame, table, chunks[1], chunks[2]);
             }
-            Some(Body::Lro(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "LRO panels: drive via host (RpcInvoker + WaitOperation polling).",
-            ),
+            Some(Body::Lro(panel)) => {
+                self.populate_lro_if_needed(panel);
+                let cached = self.cached_lro.as_ref().unwrap();
+                self.content_len = panel.inputs.len();
+                content::render_lro(
+                    frame,
+                    content_area,
+                    panel,
+                    &cached.values,
+                    &self.palette,
+                    self.content_selected,
+                );
+            }
             Some(Body::Adhoc(adhoc)) => self.render_placeholder(
                 frame,
                 chunks[1],
@@ -651,6 +672,57 @@ impl PanelView {
                     edit_form_field(field, &mut cached.values, code);
                 }
             }
+        }
+        None
+    }
+
+    fn populate_lro_if_needed(&mut self, panel: &LroPanel) {
+        if self.cached_lro.is_none() {
+            self.cached_lro = Some(CachedForm {
+                values: content::form_defaults(&panel.inputs),
+                error: None,
+            });
+        }
+    }
+
+    /// Handle keyboard input for an LroPanel's input/run surface. The returned
+    /// start request is intentionally separate from `RpcInvoker`: hosts must
+    /// choose their long-running-operation client and polling policy.
+    pub fn handle_lro_key(
+        &mut self,
+        panel: &LroPanel,
+        context: &Context,
+        key: KeyCode,
+    ) -> Option<LroSubmission> {
+        self.populate_lro_if_needed(panel);
+        let cached = self.cached_lro.as_mut()?;
+        let field_count = panel.inputs.len();
+        let selected = self.content_selected.min(field_count.saturating_sub(1));
+        match key {
+            KeyCode::Down | KeyCode::Tab if field_count > 0 => {
+                self.content_selected = (selected + 1) % field_count;
+            }
+            KeyCode::Up | KeyCode::BackTab if field_count > 0 => {
+                self.content_selected = (selected + field_count - 1) % field_count;
+            }
+            KeyCode::Enter => {
+                let start = panel.start.as_ref()?;
+                let mut start_context = context.clone();
+                start_context.form_values = form_values_by_id(&panel.inputs, &cached.values);
+                let mut request = RequestBuilder::build(start, &start_context);
+                merge_form_request(&mut request, &panel.inputs, &cached.values);
+                return Some(LroSubmission {
+                    service: start.service.clone(),
+                    method: start.method.clone(),
+                    request,
+                });
+            }
+            code if field_count > 0 => {
+                if let Some(field) = panel.inputs.get(selected) {
+                    edit_form_field(field, &mut cached.values, code);
+                }
+            }
+            _ => {}
         }
         None
     }
