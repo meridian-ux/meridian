@@ -17,11 +17,13 @@ import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/me
 import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
+import { MeridianInitialDataContext } from "../src/pagination.js";
 import { MeridianProvider } from "../src/provider.js";
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
@@ -32,6 +34,24 @@ function render(descriptor: PanelDescriptor, kit = htmlKit): string {
       MeridianProvider,
       { invoker, kit, adhoc: {} },
       createElement(PanelRenderer, { descriptor }),
+    ),
+  );
+}
+
+function renderWithInitialData(
+  descriptor: PanelDescriptor,
+  initialData: Record<string, { rows: Array<Record<string, unknown>> }>,
+  kit = htmlKit,
+): string {
+  return renderToStaticMarkup(
+    createElement(
+      MeridianProvider,
+      { invoker, kit, adhoc: {} },
+      createElement(
+        MeridianInitialDataContext.Provider,
+        { value: initialData },
+        createElement(PanelRenderer, { descriptor }),
+      ),
     ),
   );
 }
@@ -113,6 +133,53 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain("Profile");
     expect(html).toContain("Record summary");
     expect(html).toContain("data.type");
+  });
+
+  it("realizes seeded detail values through the shared formatter in both reference kits", () => {
+    const header = create(PanelDescriptorSchema, {
+      panelId: "header",
+      body: {
+        case: "detailHeader",
+        value: create(DetailHeaderPanelSchema, {
+          titleSourcePath: "name",
+          populate: { service: "acme.Builds", method: "GetBuild" },
+          descriptorRows: [
+            { label: "Healthy", sourcePath: "healthy", display: { type: ValueType.BOOLEAN } },
+            { label: "Score", sourcePath: "score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+          ],
+        }),
+      },
+    });
+    const card = create(PanelDescriptorSchema, {
+      panelId: "card",
+      body: {
+        case: "recordCard",
+        value: create(RecordCardPanelSchema, {
+          populate: { service: "acme.Builds", method: "GetBuild" },
+          fields: [
+            { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
+            { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+          ],
+        }),
+      },
+    });
+    const initialData = {
+      "acme.Builds.GetBuild": {
+        rows: [{ name: "Build 42", healthy: true, score: 1.236 }],
+      },
+    };
+
+    for (const kit of [htmlKit, shadcnKit]) {
+      const headerHtml = renderWithInitialData(header, initialData, kit);
+      const cardHtml = renderWithInitialData(card, initialData, kit);
+      expect(headerHtml).toContain("Build 42");
+      expect(headerHtml).toContain("Healthy");
+      expect(headerHtml).toContain("Yes");
+      expect(headerHtml).toContain("1.24");
+      expect(cardHtml).toContain("Healthy");
+      expect(cardHtml).toContain("Yes");
+      expect(cardHtml).toContain("1.24");
+    }
   });
 
   it("renders HTML media with poster, captions, and accessible text", () => {
