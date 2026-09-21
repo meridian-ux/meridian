@@ -8,6 +8,7 @@ import {
   ViewDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { renderView } from "../src/uiview/view_renderer.js";
+import { mermaidGrammarFixture } from "./fixtures.js";
 
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const wasm = {
@@ -107,5 +108,41 @@ describe("renderView admission", () => {
     (root.querySelector(".meridian-uiview-actions button") as HTMLButtonElement).click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(calls).toEqual(["ArchiveOrder"]);
+  });
+});
+
+describe("renderView host capability forwarding", () => {
+  it("forwards renderGrammar into a grammar panel nested in a slot", async () => {
+    const root = document.createElement("div");
+    const seen: string[] = [];
+    const view = create(ViewDescriptorSchema, {
+      id: "dashboard",
+      title: "Dashboard",
+      layout: { mode: { case: "list", value: {} } },
+      slots: [
+        create(SlotSchema, {
+          id: "flow",
+          panel: mermaidGrammarFixture,
+        }),
+      ],
+    });
+
+    await renderView({
+      root,
+      view,
+      wasm,
+      context,
+      invoker: { invoke: async () => ({}) },
+      renderGrammar: ({ language, source }) => {
+        seen.push(`${language}:${source}`);
+        const hostOutput = document.createElement("div");
+        hostOutput.className = "host-view-grammar";
+        return hostOutput;
+      },
+    });
+
+    expect(seen).toEqual(["mermaid:graph TD; A-->B"]);
+    expect(root.querySelector(".host-view-grammar")).toBeTruthy();
+    expect(root.querySelector(".mer-grammar-fallback")).toBeNull();
   });
 });
