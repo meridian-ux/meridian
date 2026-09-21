@@ -96,6 +96,10 @@ pub enum PromptError {
     /// that silently submits a single empty value for a whole list.
     #[error("field {field_id}: repeated fields are not supported by the one-shot prompt renderer")]
     RepeatedUnsupported { field_id: String },
+    /// `KeyValueMapField` needs a row editor, which the one-shot prompt does
+    /// not yet provide. Reject it explicitly rather than silently dropping it.
+    #[error("field {field_id}: key/value map fields are not supported by the one-shot prompt renderer")]
+    KeyValueMapUnsupported { field_id: String },
 }
 
 /// Render `panel` in raw mode and return the user's response.
@@ -131,6 +135,11 @@ pub fn render_prompt(
             }
             Some(Kind::Repeated(_)) => {
                 return Err(PromptError::RepeatedUnsupported {
+                    field_id: f.field_id.clone(),
+                })
+            }
+            Some(Kind::KeyValueMap(_)) => {
+                return Err(PromptError::KeyValueMapUnsupported {
                     field_id: f.field_id.clone(),
                 })
             }
