@@ -13,6 +13,7 @@ import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
@@ -72,5 +73,29 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain('class="mer-stream"');
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain("Waiting for build events...");
+  });
+
+  it("renders detail header and record card semantics through htmlKit", () => {
+    const header = render(create(PanelDescriptorSchema, {
+      panelId: "header",
+      body: { case: "detailHeader", value: create(DetailHeaderPanelSchema, {
+        title: "Sponsor", subtitleSourcePath: "data.owner", statusSourcePath: "data.status",
+        descriptorRows: [{ label: "Type", sourcePath: "data.type" }],
+      }) },
+    }));
+    expect(header).toContain("Sponsor");
+    expect(header).toContain("data.owner");
+    expect(header).toContain("data.status");
+    expect(header).toContain("data.type");
+
+    const card = render(create(PanelDescriptorSchema, {
+      panelId: "card",
+      body: { case: "recordCard", value: create(RecordCardPanelSchema, {
+        itemNoun: "sponsor", fields: [{ fieldId: "name", label: "Name" }],
+      }) },
+    }));
+    expect(card).toContain('aria-label="sponsor"');
+    expect(card).toContain("Name");
+    expect(card).toContain("name");
   });
 });

@@ -110,6 +110,23 @@ export const htmlKit: ComponentKit = {
       ))}
     </form>
   ),
+  DetailHeader: ({ panel }) => (
+    <header className="mer-detail-header">
+      <h3>{panel.title || "Details"}</h3>
+      {panel.subtitleSourcePath && <p className="mer-detail-subtitle">{panel.subtitleSourcePath}</p>}
+      {panel.statusSourcePath && <span className="mer-detail-status" role="status">{panel.statusSourcePath}</span>}
+      {panel.descriptorRows.length > 0 && (
+        <dl className="mer-detail-rows">
+          {panel.descriptorRows.map((row) => <div key={row.sourcePath}><dt>{row.label}</dt><dd>{row.sourcePath}</dd></div>)}
+        </dl>
+      )}
+    </header>
+  ),
+  RecordCard: ({ panel }) => (
+    <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
+      {panel.fields.map((field) => <div key={field.fieldId}><dt>{field.label || field.fieldId}</dt><dd>{field.fieldId}</dd></div>)}
+    </dl>
+  ),
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
