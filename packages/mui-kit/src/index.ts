@@ -35,6 +35,7 @@ export {
   formatDisplayValue,
   formatRelativeTime,
   formatTimestamp,
+  isSafeHttpUrl,
   type DisplayedValue,
 } from "./display_format.js";
 // The instant relative labels measure against — undefined until mounted, which is
