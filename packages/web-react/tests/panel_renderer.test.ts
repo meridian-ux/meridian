@@ -182,6 +182,28 @@ describe("meridian-web-react renderer", () => {
     }
   });
 
+  it("realizes only http URL values as safe links", () => {
+    const card = create(PanelDescriptorSchema, {
+      panelId: "links",
+      body: { case: "recordCard", value: create(RecordCardPanelSchema, {
+        populate: { service: "acme.Builds", method: "GetBuild" },
+        fields: [{ fieldId: "url", label: "URL", display: { type: ValueType.URL } }],
+      }) },
+    });
+    const initialData = { "acme.Builds.GetBuild": {
+      rows: [{ url: "https://example.com/docs" }],
+    } };
+    const safe = renderWithInitialData(card, initialData);
+    expect(safe).toContain('<a href="https://example.com/docs"');
+    expect(safe).toContain("https://example.com/docs</a>");
+
+    for (const value of ["javascript:alert(1)", "data:text/html,unsafe"]) {
+      const unsafe = renderWithInitialData(card, { "acme.Builds.GetBuild": { rows: [{ url: value }] } });
+      expect(unsafe).not.toContain("<a ");
+      expect(unsafe).toContain(value);
+    }
+  });
+
   it("renders HTML media with poster, captions, and accessible text", () => {
     const html = render(create(PanelDescriptorSchema, {
       panelId: "demo-video",

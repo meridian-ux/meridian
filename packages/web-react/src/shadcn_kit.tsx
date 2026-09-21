@@ -11,7 +11,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -29,12 +29,19 @@ import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { resolvePath, useRecord } from "./pagination.js";
+import { useDisplayNow } from "./display_now.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
 // reference kits are guaranteed field-parity (icon / description / language /
 // secret-reveal / placeholder). Different classes, identical dispatch: Swap B.
 const c = classesFor("shadcn");
+
+function renderDisplayedValue(value: unknown, display: Parameters<typeof formatByDisplay>[1], text: string) {
+  return isSafeHttpUrl(value, display)
+    ? <a href={value} rel="noreferrer noopener" target="_blank">{text}</a>
+    : text;
+}
 
 // Bind the meridian palette to shadcn/ui's CSS custom properties so shadcn
 // Tailwind classes (bg-card, text-muted-foreground, border, …) paint the skin.
@@ -145,6 +152,7 @@ export const shadcnKit: ComponentKit = {
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const now = useDisplayNow();
     const hasRecord = record !== undefined;
     const title = hasRecord
       ? String(resolvePath(record, panel.titleSourcePath) ?? panel.title)
@@ -167,9 +175,12 @@ export const shadcnKit: ComponentKit = {
               <div key={row.sourcePath} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
                 <dt className="text-sm text-muted-foreground">{row.label}</dt>
                 <dd className="text-sm">
-                  {hasRecord
-                    ? formatByDisplay(resolvePath(record, row.sourcePath), row.display).text
-                    : row.sourcePath}
+                  {(() => {
+                    const shown = hasRecord
+                      ? formatByDisplay(resolvePath(record, row.sourcePath), row.display, now)
+                      : { text: row.sourcePath };
+                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown.text);
+                  })()}
                 </dd>
               </div>
             ))}
@@ -181,6 +192,7 @@ export const shadcnKit: ComponentKit = {
   RecordCard: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const now = useDisplayNow();
     const hasRecord = record !== undefined;
     return (
       <dl className="grid gap-2" aria-label={panel.itemNoun || "Record details"}>
@@ -188,9 +200,12 @@ export const shadcnKit: ComponentKit = {
           <div key={field.fieldId} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
             <dt className="text-sm text-muted-foreground">{field.label || field.fieldId}</dt>
             <dd className="text-sm">
-              {hasRecord
-                ? formatByDisplay(resolvePath(record, field.fieldId), field.display).text
-                : field.fieldId}
+              {(() => {
+                const shown = hasRecord
+                  ? formatByDisplay(resolvePath(record, field.fieldId), field.display, now)
+                  : { text: field.fieldId };
+                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown.text);
+              })()}
             </dd>
           </div>
         ))}

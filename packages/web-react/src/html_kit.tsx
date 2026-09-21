@@ -7,7 +7,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -25,6 +25,7 @@ import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { resolvePath, useRecord } from "./pagination.js";
+import { useDisplayNow } from "./display_now.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -32,6 +33,12 @@ import { resolvePath, useRecord } from "./pagination.js";
 // delegates to the SAME module (different class table), so the two reference
 // kits cannot drift.
 const c = classesFor("html");
+
+function renderDisplayedValue(value: unknown, display: Parameters<typeof formatByDisplay>[1], shown: { text: string; title?: string }) {
+  return isSafeHttpUrl(value, display)
+    ? <a href={value} rel="noreferrer noopener" target="_blank" title={shown.title}>{shown.text}</a>
+    : <span title={shown.title}>{shown.text}</span>;
+}
 
 function themeToStyle(theme: Theme | undefined): CSSProperties {
   if (!theme) return {};
@@ -121,6 +128,7 @@ export const htmlKit: ComponentKit = {
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const now = useDisplayNow();
     const hasRecord = record !== undefined;
     const title = hasRecord
       ? String(resolvePath(record, panel.titleSourcePath) ?? panel.title)
@@ -143,9 +151,12 @@ export const htmlKit: ComponentKit = {
               <div key={row.sourcePath}>
                 <dt>{row.label}</dt>
                 <dd>
-                  {hasRecord
-                    ? formatByDisplay(resolvePath(record, row.sourcePath), row.display).text
-                    : row.sourcePath}
+                  {(() => {
+                    const shown = hasRecord
+                      ? formatByDisplay(resolvePath(record, row.sourcePath), row.display, now)
+                      : { text: row.sourcePath };
+                    return renderDisplayedValue(resolvePath(record, row.sourcePath), row.display, shown);
+                  })()}
                 </dd>
               </div>
             ))}
@@ -157,6 +168,7 @@ export const htmlKit: ComponentKit = {
   RecordCard: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const now = useDisplayNow();
     const hasRecord = record !== undefined;
     return (
       <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
@@ -164,9 +176,12 @@ export const htmlKit: ComponentKit = {
           <div key={field.fieldId}>
             <dt>{field.label || field.fieldId}</dt>
             <dd>
-              {hasRecord
-                ? formatByDisplay(resolvePath(record, field.fieldId), field.display).text
-                : field.fieldId}
+              {(() => {
+                const shown = hasRecord
+                  ? formatByDisplay(resolvePath(record, field.fieldId), field.display, now)
+                  : { text: field.fieldId };
+                return renderDisplayedValue(resolvePath(record, field.fieldId), field.display, shown);
+              })()}
             </dd>
           </div>
         ))}
