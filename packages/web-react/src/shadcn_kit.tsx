@@ -135,6 +135,33 @@ export const shadcnKit: ComponentKit = {
       ))}
     </form>
   ),
+  DetailHeader: ({ panel }) => (
+    <header className="grid gap-2" data-title-path={panel.titleSourcePath || undefined}>
+      <h2 className="text-xl font-semibold">{panel.title || "Details"}</h2>
+      {panel.subtitleSourcePath && <p className="text-sm text-muted-foreground">{panel.subtitleSourcePath}</p>}
+      {panel.statusSourcePath && <span className="inline-flex w-fit rounded-full border px-2 py-0.5 text-xs">{panel.statusSourcePath}</span>}
+      {panel.descriptorRows.length > 0 && (
+        <dl className="grid gap-2" aria-label="Record summary">
+          {panel.descriptorRows.map((row) => (
+            <div key={row.sourcePath} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+              <dt className="text-sm text-muted-foreground">{row.label}</dt>
+              <dd className="text-sm">{row.sourcePath}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </header>
+  ),
+  RecordCard: ({ panel }) => (
+    <dl className="grid gap-2" aria-label={panel.itemNoun || "Record details"}>
+      {panel.fields.map((field) => (
+        <div key={field.fieldId} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+          <dt className="text-sm text-muted-foreground">{field.label || field.fieldId}</dt>
+          <dd className="text-sm">{field.fieldId}</dd>
+        </div>
+      ))}
+    </dl>
+  ),
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),

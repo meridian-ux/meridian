@@ -17,16 +17,17 @@ import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridia
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
+import { shadcnKit } from "../src/shadcn_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { MeridianProvider } from "../src/provider.js";
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
-function render(descriptor: PanelDescriptor): string {
+function render(descriptor: PanelDescriptor, kit = htmlKit): string {
   return renderToStaticMarkup(
     createElement(
       MeridianProvider,
-      { invoker, kit: htmlKit, adhoc: {} },
+      { invoker, kit, adhoc: {} },
       createElement(PanelRenderer, { descriptor }),
     ),
   );
@@ -97,5 +98,17 @@ describe("meridian-web-react renderer", () => {
     expect(card).toContain('aria-label="sponsor"');
     expect(card).toContain("Name");
     expect(card).toContain("name");
+  });
+
+  it("renders shadcn detail headers through the same dispatch seam", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "header",
+      body: { case: "detailHeader", value: create(DetailHeaderPanelSchema, {
+        title: "Profile", descriptorRows: [{ label: "Type", sourcePath: "data.type" }],
+      }) },
+    }), shadcnKit);
+    expect(html).toContain("Profile");
+    expect(html).toContain("Record summary");
+    expect(html).toContain("data.type");
   });
 });
