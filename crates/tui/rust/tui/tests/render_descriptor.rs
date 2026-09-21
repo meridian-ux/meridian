@@ -18,7 +18,8 @@ use ratatui::{backend::TestBackend, Terminal};
 
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
 use meridian_uiview::proto::{
-    panel_descriptor::Body, CardSpec, GalleryPanel, PanelDescriptor, RpcCall, StatPanel,
+    panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel, FormField, GalleryPanel,
+    PanelDescriptor, RecordCardPanel, RpcCall, StatPanel,
 };
 use meridian_uiview::Context;
 
@@ -49,6 +50,24 @@ impl RpcInvoker for GalleryData {
                 "status": "Connected",
                 "href": "https://github.com"
             }]
+        }))
+    }
+}
+
+struct RecordData;
+
+impl RpcInvoker for RecordData {
+    fn invoke(
+        &self,
+        _service: &str,
+        _method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({
+            "name": "Build 42",
+            "owner": "Platform",
+            "phase": "Running",
+            "metadata": {"region": "us-east"}
         }))
     }
 }
@@ -101,6 +120,60 @@ fn gallery_descriptor() -> PanelDescriptor {
                 subtitle_field: "description".into(),
                 status_field: "status".into(),
                 href_field: "href".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn detail_header_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "build-header".into(),
+        title: "Build".into(),
+        body: Some(Body::DetailHeader(DetailHeaderPanel {
+            title: "Build".into(),
+            title_source_path: "name".into(),
+            subtitle_source_path: "owner".into(),
+            status_source_path: "phase".into(),
+            descriptor_rows: vec![DescriptorRow {
+                label: "Region".into(),
+                source_path: "metadata.region".into(),
+                ..Default::default()
+            }],
+            populate: Some(RpcCall {
+                service: "demo.Builds".into(),
+                method: "Get".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }
+}
+
+fn record_card_descriptor() -> PanelDescriptor {
+    PanelDescriptor {
+        panel_id: "build-card".into(),
+        title: "Build details".into(),
+        body: Some(Body::RecordCard(RecordCardPanel {
+            item_noun: "build".into(),
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "metadata.region".into(),
+                    label: "Region".into(),
+                    ..Default::default()
+                },
+            ],
+            populate: Some(RpcCall {
+                service: "demo.Builds".into(),
+                method: "Get".into(),
                 ..Default::default()
             }),
             ..Default::default()
@@ -162,6 +235,59 @@ fn gallery_populate_flows_into_the_tui_card_list() {
     assert!(out.contains("GitHub"), "gallery title missing:\n{out}");
     assert!(out.contains("Connected"), "gallery status missing:\n{out}");
     assert!(out.contains("https://github.com"), "gallery href missing:\n{out}");
+}
+
+#[test]
+fn detail_panels_populate_and_render_the_record_dispatch_path() {
+    let ctx = Context::default();
+    let mut header = PanelView::with_palette(Palette::default());
+    let mut header_term = Terminal::new(TestBackend::new(64, 9)).unwrap();
+    header_term
+        .draw(|f| {
+            header.render(
+                f,
+                f.area(),
+                &detail_header_descriptor(),
+                &ctx,
+                &RecordData,
+            )
+        })
+        .unwrap();
+    let header_out = header_term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(header_out.contains("Build 42"));
+    assert!(header_out.contains("[Running]"));
+    assert!(header_out.contains("Region: us-east"));
+
+    let mut card = PanelView::with_palette(Palette::default());
+    let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+    card_term
+        .draw(|f| {
+            card.render(
+                f,
+                f.area(),
+                &record_card_descriptor(),
+                &ctx,
+                &RecordData,
+            )
+        })
+        .unwrap();
+    let card_out = card_term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect::<Vec<_>>()
+        .concat();
+    assert!(card_out.contains("Name: Build 42"));
+    assert!(card_out.contains("Region: us-east"));
 }
 
 #[test]
