@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import coverageManifest from "../../../schemas/conformance/coverage.json";
 
 import type { ComponentKit } from "../src/component_kit.js";
 import { htmlKit } from "../src/html_kit.js";
@@ -66,7 +67,21 @@ const HTMLKIT_IMPLEMENTS = new Set([
   "stat",
 ]);
 
+function toFixtureShape(arm: string): string {
+  return arm.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
+
 describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
+  it("has exactly one fixture for every canonical panel arm", () => {
+    const canonical = Object.keys(coverageManifest.arms).map(toFixtureShape).sort();
+    const fixtures = FIXTURES
+      .filter((fixture) => fixture.shape !== "(unset)")
+      .map((fixture) => toFixtureShape(fixture.shape))
+      .sort();
+    expect(new Set(fixtures).size, "fixture corpus must not duplicate an arm").toBe(fixtures.length);
+    expect(fixtures).toEqual(canonical);
+  });
+
   for (const fx of FIXTURES) {
     it(`renders the ${fx.name} shape without crashing and shows its title`, () => {
       const html = render(fx.descriptor);
