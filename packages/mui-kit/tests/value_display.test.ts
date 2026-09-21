@@ -145,6 +145,36 @@ describe("formatByDisplay — types", () => {
     expect(formatByDisplay("ruchi@example.com", who).text).toBe("ruchi@example.com");
   });
 
+  it("keeps malformed principal labels and missing values readable in every mode", () => {
+    for (const mode of [PrincipalDisplay.UNSPECIFIED, PrincipalDisplay.NAME, PrincipalDisplay.EMAIL, PrincipalDisplay.NAME_WITH_EMAIL_TITLE, 99]) {
+      const display = create(ValueDisplaySchema, {
+        type: ValueType.PRINCIPAL,
+        options: { case: "principal", value: { display: mode } },
+      });
+      for (const value of [
+        "Ruchi Sharma", "ruchi@example.com", "Name <@example.com>",
+        "Name <user@>", "Name <user@@example.com>", "Name < user@example.com>",
+        "Name <<user@example.com>>", " <user@example.com>",
+        "Name <user@example.com> trailing", "Name <user@example.com>\n",
+        "Name <user\u0085@example.com>",
+      ]) {
+        expect(formatByDisplay(value, display), `${mode}: ${value}`).toEqual({ text: value });
+      }
+      for (const value of [null, undefined, ""]) {
+        expect(formatByDisplay(value, display)).toEqual({ text: "—" });
+      }
+      const expected = mode === PrincipalDisplay.EMAIL
+        ? { text: "ruchi@example.com" }
+        : mode === PrincipalDisplay.NAME_WITH_EMAIL_TITLE
+          ? { text: "Ruchi Sharma", title: "ruchi@example.com" }
+          : { text: "Ruchi Sharma" };
+      expect(formatByDisplay("Ruchi Sharma <ruchi@example.com>", display)).toEqual(expected);
+    }
+    expect(formatByDisplay("Ruchi Sharma <ruchi@example.com>", undefined)).toEqual({
+      text: "Ruchi Sharma <ruchi@example.com>",
+    });
+  });
+
   it("honors declared numeric precision", () => {
     const decimal = create(ValueDisplaySchema, {
       type: ValueType.DECIMAL,

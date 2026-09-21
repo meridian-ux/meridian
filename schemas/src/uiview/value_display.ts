@@ -115,7 +115,7 @@ function formatTime(text: string, precision: TemporalPrecision): string | undefi
   return `${displayHour}:${String(minute).padStart(2, "0")}${seconds} ${suffix} UTC`;
 }
 
-/** A formatted value and its optional absolute title for relative displays. */
+/** A formatted value and optional supporting text, such as an absolute time or email. */
 export interface DisplayedValue {
   text: string;
   title?: string;
@@ -128,9 +128,18 @@ export interface DisplayedValue {
  */
 function principalParts(value: unknown): { name: string; email?: string } {
   const text = String(value);
-  const match = /^(.+?)\s*<([^<>\s]+@[^<>\s]+)>$/.exec(text);
-  if (match) return { name: match[1]!.trim(), email: match[2] };
-  return { name: text, email: /^[^<>\s]+@[^<>\s]+$/.test(text) ? text : undefined };
+  const isEmail = (email: string): boolean => {
+    const parts = email.split("@");
+    return parts.length === 2 && parts.every(Boolean) && !/[<>\p{White_Space}]/u.test(email);
+  };
+  const open = text.indexOf("<");
+  if (open > 0 && text.endsWith(">")) {
+    // Unicode White_Space matches Rust's trim/is_whitespace contract.
+    const name = text.slice(0, open).replace(/^\p{White_Space}+|\p{White_Space}+$/gu, "");
+    const email = text.slice(open + 1, -1);
+    if (name && !name.includes(">") && isEmail(email)) return { name, email };
+  }
+  return { name: text, email: isEmail(text) ? text : undefined };
 }
 
 /** Format a principal according to its declared name/email preference. */
@@ -138,6 +147,7 @@ export function formatPrincipalValue(
   value: unknown,
   display: PrincipalDisplay = PrincipalDisplay.UNSPECIFIED,
 ): DisplayedValue {
+  if (value === null || value === undefined || value === "") return { text: EMPTY_DISPLAY };
   const parts = principalParts(value);
   const name = parts.name || parts.email || EMPTY_DISPLAY;
   if (display === PrincipalDisplay.EMAIL) return { text: parts.email ?? name };

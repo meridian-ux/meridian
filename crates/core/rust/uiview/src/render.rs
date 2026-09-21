@@ -94,9 +94,9 @@ pub fn format_cell(value: &Value, column: &TableColumn) -> String {
 /// `ValueDisplay` is additive to the older `ColumnFormat`: callers that do not
 /// declare it retain the legacy formatter byte-for-byte, while the web WASM
 /// path and the native TUI now read the same semantic declaration. Types whose
-/// display is surface-specific (links, rich principals, and localized temporal
-/// labels) retain their wire text here; a renderer can add decoration without
-/// changing the value's meaning.
+/// decoration is surface-specific (links and principal email titles) return
+/// readable text here; a renderer can add decoration without changing the
+/// value's meaning.
 pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
     const EMPTY: &str = "—";
     if value.is_null() {
@@ -177,14 +177,25 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
 /// same readable fallback as NAME.
 fn format_principal_value(value: &Value, options: Option<&PrincipalOptions>) -> String {
     let text = format_display_scalar(value);
-    let (name, email) = if let Some(open) = text.rfind('<') {
+    if text.is_empty() {
+        return "—".to_string();
+    }
+    let is_email = |email: &str| {
+        let Some((local, domain)) = email.split_once('@') else {
+            return false;
+        };
+        !local.is_empty()
+            && !domain.is_empty()
+            && !domain.contains('@')
+            && !email
+                .chars()
+                .any(|c| c.is_whitespace() || matches!(c, '<' | '>'))
+    };
+    let (name, email) = if let Some(open) = text.find('<') {
         if text.ends_with('>') && open > 0 {
             let name = text[..open].trim();
-            let email = text[open + 1..text.len() - 1].trim();
-            if !name.is_empty()
-                && email.contains('@')
-                && !email.chars().any(|character| character.is_whitespace())
-            {
+            let email = &text[open + 1..text.len() - 1];
+            if !name.is_empty() && !name.contains('>') && is_email(email) {
                 (name.to_string(), Some(email.to_string()))
             } else {
                 (text.clone(), None)
@@ -192,7 +203,7 @@ fn format_principal_value(value: &Value, options: Option<&PrincipalOptions>) -> 
         } else {
             (text.clone(), None)
         }
-    } else if text.contains('@') && !text.chars().any(|character| character.is_whitespace()) {
+    } else if is_email(&text) {
         (text.clone(), Some(text.clone()))
     } else {
         (text, None)
@@ -447,6 +458,62 @@ mod tests {
         assert_eq!(
             format_display_value(&json!("ruchi@example.com"), &name),
             "ruchi@example.com"
+        );
+    }
+
+    #[test]
+    fn principal_modes_preserve_malformed_labels_and_handle_empty_values() {
+        for mode in [
+            PrincipalDisplay::Unspecified as i32,
+            PrincipalDisplay::Name as i32,
+            PrincipalDisplay::Email as i32,
+            PrincipalDisplay::NameWithEmailTitle as i32,
+            99,
+        ] {
+            let display = ValueDisplay {
+                r#type: ValueType::Principal as i32,
+                options: Some(value_display::Options::Principal(PrincipalOptions {
+                    display: mode,
+                    ..Default::default()
+                })),
+            };
+            for value in [
+                "Ruchi Sharma",
+                "ruchi@example.com",
+                "Name <@example.com>",
+                "Name <user@>",
+                "Name <user@@example.com>",
+                "Name < user@example.com>",
+                "Name <<user@example.com>>",
+                " <user@example.com>",
+                "Name <user@example.com> trailing",
+                "Name <user@example.com>\n",
+                "Name <user\u{0085}@example.com>",
+            ] {
+                assert_eq!(
+                    format_display_value(&json!(value), &display),
+                    value,
+                    "mode {mode}"
+                );
+            }
+            assert_eq!(format_display_value(&Value::Null, &display), "—");
+            assert_eq!(format_display_value(&json!(""), &display), "—");
+            let expected = if mode == PrincipalDisplay::Email as i32 {
+                "ruchi@example.com"
+            } else {
+                "Ruchi Sharma"
+            };
+            assert_eq!(
+                format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &display),
+                expected
+            );
+        }
+        assert_eq!(
+            format_cell(
+                &json!("Ruchi Sharma <ruchi@example.com>"),
+                &TableColumn::default()
+            ),
+            "Ruchi Sharma <ruchi@example.com>"
         );
     }
 

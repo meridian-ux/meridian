@@ -156,11 +156,11 @@ describe("meridian-web-react renderer", () => {
         case: "recordCard",
         value: create(RecordCardPanelSchema, {
           populate: { service: "acme.Builds", method: "GetBuild" },
-            fields: [
-              { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
-              { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
-              { fieldId: "owner", label: "Owner", display: { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
-            ],
+          fields: [
+            { fieldId: "healthy", label: "Healthy", display: { type: ValueType.BOOLEAN } },
+            { fieldId: "score", label: "Score", display: { type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } } } },
+            { fieldId: "owner", label: "Owner", display: { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
+          ],
         }),
       },
     });
