@@ -155,6 +155,31 @@ export const htmlKit: ComponentKit = {
       </p>
     </section>
   ),
+  Media: ({ panel }) => {
+    const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
+    if (panel.kind === 3) {
+      return (
+        <figure className="mer-media mer-media-image">
+          <img src={panel.srcUri} alt={panel.alt} />
+          {(panel.caption || panel.alt) && <figcaption>{panel.caption || panel.alt}{details}</figcaption>}
+        </figure>
+      );
+    }
+    const player = panel.kind === 2 ? (
+      <audio controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
+    ) : (
+      <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>
+        {panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}
+      </video>
+    );
+    return (
+      <figure className="mer-media">
+        {player}
+        <figcaption>{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>
+        {panel.chapters.length > 0 && <ol className="mer-media-chapters">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}
+      </figure>
+    );
+  },
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

@@ -13,6 +13,7 @@ import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -110,5 +111,23 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain("Profile");
     expect(html).toContain("Record summary");
     expect(html).toContain("data.type");
+  });
+
+  it("renders HTML media with poster, captions, and accessible text", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "demo-video",
+      body: { case: "media", value: create(MediaPanelSchema, {
+        kind: MediaKind.VIDEO,
+        srcUri: "/demo.mp4",
+        posterUri: "/poster.jpg",
+        captionsUri: "/demo.vtt",
+        alt: "A demo walkthrough",
+        caption: "Product demo",
+      }) },
+    }));
+    expect(html).toContain('class="mer-media"');
+    expect(html).toContain('poster="/poster.jpg"');
+    expect(html).toContain('src="/demo.vtt"');
+    expect(html).toContain("Product demo");
   });
 });
