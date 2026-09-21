@@ -559,9 +559,8 @@
           "waiver": "kit gap \u2014 a numbered list is full-parity text."
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "The TUI draws an explanatory placeholder rather than the shape; spelled out instead of a wildcard so a new upstream shape keeps failing the build loudly.",
-          "waiver": "uiview-core#3 \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The TUI renders ordered labels, actor labels, details, intro/outro, and media-alt degradation as terminal text."
         }
       }
     },
