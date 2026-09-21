@@ -35,7 +35,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
 |---|---|---|---|---|---|---|---|
 | `table` | standard | ● | ● | ● | ● | ● | ● |
-| `lro` | standard | ● | ● | ● | ● | ● | ● |
+| `lro` | standard | ● | ● | ● | ● | ● | ◐ |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ○ | ● | ○ | ● | ● | ◑ |
@@ -50,7 +50,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `terminal` | specialized | ● | ○ | ○ | ○ | ○ | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
-| `detail_header` | standard | ● | ● | ● | ● | ● | ◐ |
+| `detail_header` | standard | ● | ● | ● | ● | ● | ● |
 | `record_card` | standard | ● | ● | ● | ● | ● | ● |
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
 | `chart` | specialized | ● | ● | ● | ● | ● | ● |
