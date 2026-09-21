@@ -150,9 +150,10 @@ links across browser surfaces. Declared principal labels now honor name and emai
 modes across browser and native read surfaces using the compatible `Name <email>`
 scalar form. Browser read surfaces also preserve email titles; native surfaces
 degrade that mode to the visible name. Principal record links now use the
-existing host route resolver when a target kind is declared; the remaining
-migration surface is native link decoration and a broader general `ValueLink`
-contract for non-principal values.
+existing host route resolver when a target kind is declared. General
+`ValueLink` declarations now reuse that same host-owned route seam for scalar
+values across browser read surfaces, while the remaining migration surface is
+native link decoration and richer non-browser realizations.
 
 ## Track C — Hardening
 
