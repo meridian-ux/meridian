@@ -12,7 +12,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack } from "@mui/material";
+import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
 
 import type {
   ActionBarProps,
@@ -38,6 +38,7 @@ import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import {
   FormMode,
   type DetailHeaderPanel,
@@ -797,6 +798,31 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   );
 }
 
+function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
+  const fields = panel.slots
+    .map((slot) => slot.field)
+    .filter((field): field is FormField => field !== undefined);
+  const model = [panel.modelHint?.provider, panel.modelHint?.model].filter(Boolean).join(" / ");
+  return (
+    <Stack spacing={2} className="mer-llm-prompt">
+      {panel.description && <Typography color="text.secondary">{panel.description}</Typography>}
+      {model && <Chip label={model} size="small" />}
+      {panel.systemTemplate && (
+        <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.systemTemplate}</Box>
+      )}
+      <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.userTemplate}</Box>
+      {fields.length > 0 && (
+        <FieldForm
+          fields={fields}
+          disabled={false}
+          submitLabel="Preview"
+          submitDisabled
+        />
+      )}
+    </Stack>
+  );
+}
+
 function PromptShape({ panel }: { panel: PromptPanel }): ReactNode {
   return (
     <FieldForm
@@ -934,6 +960,7 @@ export const muiKit: ComponentKit = {
     <TableShape panel={panel} invoker={invoker} />
   ),
   Prompt: ({ panel }: ShapeProps<PromptPanel>) => <PromptShape panel={panel} />,
+  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
   Lro: ({ panel, invoker }: ShapeProps<LroPanel>) => (
     <LroShape panel={panel} invoker={invoker} />
   ),

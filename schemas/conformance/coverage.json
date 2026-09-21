@@ -150,8 +150,8 @@
           "status": "renders"
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The MUI kit renders model metadata, system/user templates, and typed parameter-slot controls in preview mode."
         },
         "html-kit": {
           "status": "renders",
