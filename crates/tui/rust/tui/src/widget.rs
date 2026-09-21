@@ -1,5 +1,5 @@
 use meridian_uiview::proto::panel_descriptor::Body;
-use meridian_uiview::proto::{PanelDescriptor, TablePanel};
+use meridian_uiview::proto::{ChartPanel, PanelDescriptor, TablePanel};
 use meridian_uiview::{render_table, Context, RenderedRow, RequestBuilder};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
@@ -22,6 +22,7 @@ use crate::theme::Palette;
 /// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
     cached: Option<CachedTable>,
+    cached_chart: Option<CachedChart>,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -39,10 +40,15 @@ struct CachedTable {
     item_noun: String,
 }
 
+struct CachedChart {
+    rows: Vec<(String, String)>,
+}
+
 impl PanelView {
     pub fn new() -> Self {
         Self {
             cached: None,
+            cached_chart: None,
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -56,6 +62,7 @@ impl PanelView {
     pub fn with_palette(palette: Palette) -> Self {
         Self {
             cached: None,
+            cached_chart: None,
             table_state: TableState::default(),
             palette,
             content_selected: 0,
@@ -72,6 +79,7 @@ impl PanelView {
     /// Forces the next render to refetch the table data.
     pub fn invalidate(&mut self) {
         self.cached = None;
+        self.cached_chart = None;
     }
 
     pub fn select_next(&mut self) {
@@ -266,7 +274,9 @@ impl PanelView {
                 content::render_stat(frame, content_area, panel, &self.palette);
             }
             Some(Body::Chart(panel)) => {
-                content::render_chart(frame, content_area, panel, &self.palette);
+                self.populate_chart_if_needed(panel, context, invoker);
+                let rows = self.cached_chart.as_ref().map(|cached| cached.rows.as_slice());
+                content::render_chart(frame, content_area, panel, &self.palette, rows);
             }
             Some(Body::Terminal(_)) => self.render_placeholder(
                 frame,
@@ -343,6 +353,43 @@ impl PanelView {
                 });
             }
         }
+    }
+
+    fn populate_chart_if_needed<I: RpcInvoker>(
+        &mut self,
+        panel: &ChartPanel,
+        context: &Context,
+        invoker: &I,
+    ) {
+        if self.cached_chart.is_some() {
+            return;
+        }
+        let Some(chart) = panel.chart.as_ref() else {
+            self.cached_chart = Some(CachedChart { rows: vec![] });
+            return;
+        };
+        let Some(populate) = chart.populate.as_ref() else {
+            self.cached_chart = Some(CachedChart { rows: vec![] });
+            return;
+        };
+        let request = RequestBuilder::build(populate, context);
+        let rows = match invoker.invoke(&populate.service, &populate.method, request) {
+            Ok(response) => {
+                let x = chart
+                    .x
+                    .as_ref()
+                    .map(|encoding| encoding.field_name.as_str())
+                    .unwrap_or("category");
+                let y = chart
+                    .y
+                    .as_ref()
+                    .map(|encoding| encoding.field_name.as_str())
+                    .unwrap_or("value");
+                content::chart_rows(&response, &chart.rows_field, x, y)
+            }
+            Err(_) => vec![],
+        };
+        self.cached_chart = Some(CachedChart { rows });
     }
 
     fn render_table(

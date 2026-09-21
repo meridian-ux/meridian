@@ -702,10 +702,16 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
     frame.render_widget(bordered(lines, palette), area);
 }
 
-/// Render a portable ChartPanel as a terminal-native summary. The TUI does not
-/// assume a chart library; it exposes the chart intent and leaves populated
-/// values to a future invoker-aware chart widget.
-pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: &Palette) {
+/// Render a portable ChartPanel as a terminal-native summary and bounded data
+/// table. The TUI does not assume a chart library; populated responses use the
+/// descriptor's x/y encodings, while absent data keeps the intent summary.
+pub fn render_chart(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ChartPanel,
+    palette: &Palette,
+    rows: Option<&[(String, String)]>,
+) {
     let Some(chart) = panel.chart.as_ref() else {
         frame.render_widget(
             bordered(vec![Line::from("Empty chart descriptor")], palette),
@@ -728,14 +734,29 @@ pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: 
         .as_ref()
         .map(|e| e.field_name.as_str())
         .unwrap_or("value");
-    let lines = vec![
+    let mut lines = vec![
         Line::from(Span::styled(title.to_owned(), palette.title())),
         Line::from(Span::styled(format!("{} by {}", y, x), palette.meta())),
-        Line::from(Span::styled(
+    ];
+    match rows {
+        Some(rows) if !rows.is_empty() => {
+            lines.push(Line::from(Span::styled(
+                format!("{x}  |  {y}"),
+                palette.header(),
+            )));
+            for (category, value) in rows {
+                lines.push(Line::from(vec![
+                    Span::styled(category.clone(), palette.text()),
+                    Span::styled("  |  ", palette.meta()),
+                    Span::styled(value.clone(), palette.value()),
+                ]));
+            }
+        }
+        _ => lines.push(Line::from(Span::styled(
             "Chart data is available to an invoker-aware host.",
             palette.meta(),
-        )),
-    ];
+        ))),
+    }
     frame.render_widget(bordered(lines, palette), area);
 }
 
@@ -1060,7 +1081,7 @@ mod tests {
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_chart(f, f.area(), &panel, &palette))
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, None))
             .unwrap();
         let text: String = term
             .backend()
@@ -1085,6 +1106,42 @@ mod tests {
             chart_rows(&response, "result.points", "service", "p95"),
             vec![("api".into(), "42".into()), ("worker".into(), "7".into())]
         );
+    }
+
+    #[test]
+    fn chart_renders_populated_rows_instead_of_summary_placeholder() {
+        use meridian_uiview::proto::{ChartPanel, ChartSpec, Encoding};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ChartPanel {
+            chart: Some(ChartSpec {
+                title: "Latency".into(),
+                x: Some(Encoding {
+                    field_name: "service".into(),
+                    ..Default::default()
+                }),
+                y: Some(Encoding {
+                    field_name: "p95".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+        };
+        let rows = vec![("api".to_string(), "42".to_string())];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 8)).unwrap();
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, Some(&rows)))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("service  |  p95"));
+        assert!(text.contains("api  |  42"));
+        assert!(!text.contains("invoker-aware"));
     }
 
     // Concatenate a Line's span contents for assertions.
