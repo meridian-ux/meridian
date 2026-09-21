@@ -131,12 +131,13 @@ The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): ever
 current concept is mapped to its meaning, modality ladder, and theme roles while
 the proto remains the source of truth.
 
-The first `ValueDisplay` migration slice is now shared at the table boundary:
-`meridian-uiview` honors a declared display before legacy `ColumnFormat`, so the
-native TUI and the web WASM renderer consume the same semantic formatter, while
-the MUI formatter honors the same numeric precision contract. Descriptors without
-`ValueDisplay` retain their existing output; temporal, link, and richer principal
-realizations remain the next migration surface.
+The first `ValueDisplay` migration slice is now shared at the table and native
+read-surface boundaries: `meridian-uiview` honors a declared display before legacy
+`ColumnFormat`, and the TUI detail-header and record-card consumers use that same
+semantic formatter. The web WASM renderer and MUI formatter honor the table
+contract, including numeric precision. Descriptors without `ValueDisplay` retain
+their existing output; browser detail/record consumers plus temporal, link, and
+richer principal realizations remain the next migration surface.
 
 ## Track C — Hardening
 
