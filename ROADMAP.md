@@ -135,11 +135,11 @@ The first `ValueDisplay` migration slice is now shared at the table, native
 read-surface, and browser read-surface boundaries: `meridian-uiview` honors a
 declared display before legacy `ColumnFormat`, including deterministic date and
 date-time labels; the TUI detail-header and record-card consumers use that same
-semantic formatter; and the web-components renderer plus MUI kit consume the
-framework-neutral browser formatter. Descriptors without `ValueDisplay` retain
-their existing output. The remaining migration surface is relative/time display,
-link and richer principal realizations, and live value realization in the minimal
-HTML/shadcn reference kits.
+semantic formatter; and the web-components renderer plus all three browser kits
+consume the framework-neutral browser formatter. The dependency-free HTML and
+shadcn kits now fetch and realize populated detail values as well. Descriptors
+without `ValueDisplay` retain their existing output. The remaining migration
+surface is relative/time display, link and richer principal realizations.
 
 ## Track C — Hardening
 
