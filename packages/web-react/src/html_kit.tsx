@@ -180,6 +180,25 @@ export const htmlKit: ComponentKit = {
       </figure>
     );
   },
+  Steps: ({ panel }) => (
+    <section className="mer-steps">
+      {panel.intro && <p className="mer-steps-intro">{panel.intro}</p>}
+      <ol>
+        {panel.steps.map((step, index) => (
+          <li key={index} className="mer-step">
+            <div className="mer-step-label">
+              {step.label}
+              {step.actor && <span className="mer-step-actor"> ({step.actor})</span>}
+            </div>
+            {(step.detail || step.mediaAlt) && (
+              <p className="mer-step-detail">{step.detail || step.mediaAlt}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+      {panel.outro && <p className="mer-steps-outro">{panel.outro}</p>}
+    </section>
+  ),
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

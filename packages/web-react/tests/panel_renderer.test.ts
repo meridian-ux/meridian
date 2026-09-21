@@ -14,6 +14,7 @@ import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -142,5 +143,25 @@ describe("meridian-web-react renderer", () => {
     expect(html).toContain('poster="/poster.jpg"');
     expect(html).toContain('src="/demo.vtt"');
     expect(html).toContain("Product demo");
+  });
+
+  it("renders HTML steps as an ordered accessible list", () => {
+    const html = render(create(PanelDescriptorSchema, {
+      panelId: "walkthrough",
+      body: { case: "steps", value: create(StepsPanelSchema, {
+        intro: "Get started",
+        steps: [
+          { label: "Open settings", actor: "Admin", detail: "Choose production" },
+          { label: "Deploy", mediaAlt: "Press deploy to continue" },
+        ],
+        outro: "You are done",
+      }) },
+    }));
+    expect(html).toContain('class="mer-steps"');
+    expect(html).toContain("<ol>");
+    expect(html).toContain("Open settings");
+    expect(html).toContain("(Admin)");
+    expect(html).toContain("Press deploy to continue");
+    expect(html).toContain("You are done");
   });
 });
