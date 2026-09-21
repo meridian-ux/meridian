@@ -130,8 +130,10 @@ Baseline, 2026‑09‑11:
 | `schemas` | 14 | `@savvifi/meridian-schemas` 0.25.1 |
 | `crates/*` (cargo) | 79 | **no crate on crates.io** — Bazel registry / git only |
 
-[#14](../../issues/14) sets a per-package floor that only rises. [#15](../../issues/15)
-closes the release-engineering items the monorepo merge left deliberately open — the
+[#14](../../issues/14) sets a per-package floor that only rises; the current floor is
+declared in [`schemas/conformance/test_floor.json`](schemas/conformance/test_floor.json)
+and checked by [`schemas/tools/check_test_floor.mjs`](schemas/tools/check_test_floor.mjs).
+[#15](../../issues/15) closes the release-engineering items the monorepo merge left deliberately open — the
 uncommitted lockfile, the `bats` fetch that reddens CI without being used, the
 tectonic targets, `--action_env=HOME`. [#16](../../issues/16) decides the publish
 surface and moves the registry admission ratchet into CI, where 0.25.0's regression

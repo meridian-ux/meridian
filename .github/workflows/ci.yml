@@ -117,6 +117,9 @@ jobs:
       - name: Tests
         run: pnpm -r --filter './packages/**' test
 
+      - name: Test floor
+        run: node schemas/tools/check_test_floor.mjs
+
   cargo:
     runs-on: ubuntu-latest
     steps:

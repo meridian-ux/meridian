@@ -60,6 +60,7 @@ failure they catch has already shipped.
 python3 tools/publish_manifests.py --check  # published manifests match development manifests
 node --test "schemas/tools/*.test.mjs"  # the mirror gate still catches divergence
 node schemas/tools/check_renderer_catalog.mjs # every public renderer is declared
+node schemas/tools/check_test_floor.mjs # declared test floors only move upward
 ```
 
 Panel parity is declared in [`conformance/coverage.json`](conformance/coverage.json)
@@ -68,6 +69,11 @@ in [`conformance/renderer_catalog.json`](conformance/renderer_catalog.json): it
 links each tier to a modality and local entrypoint, or records an explicit
 external preview. This keeps conversation, launchpad, and native tiers visible
 without forcing them into the `PanelDescriptor.body` matrix.
+
+`conformance/test_floor.json` is the per-suite ratchet for the M1 test floor.
+It counts test declarations in the same package roots that CI runs, and must be
+checked after the test job; deleting tests below a floor fails even if the
+remaining tests pass.
 
 ### Mirroring `meridian.ui.v1`
 

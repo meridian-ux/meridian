@@ -1,0 +1,12 @@
+{
+  "$schema-note": "Minimum declared test cases for the suites that CI executes. The floor only rises; test execution remains the CI job's responsibility.",
+  "suites": [
+    { "id": "chat", "kind": "javascript", "roots": ["packages/chat/tests"], "floor": 14 },
+    { "id": "launchpad", "kind": "javascript", "roots": ["packages/launchpad/tests"], "floor": 12 },
+    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 124 },
+    { "id": "web", "kind": "javascript", "roots": ["packages/web/tests"], "floor": 82 },
+    { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 72 },
+    { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 14 },
+    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 79 }
+  ]
+}
