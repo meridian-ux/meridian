@@ -165,6 +165,7 @@ describe("FormPanel(EDIT) prefill", () => {
         value: create(FormPanelSchema, {
           mode: FormMode.EDIT,
           prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
+          submit: create(RpcCallSchema, { service: "svc", method: "save" }),
           fields: [
             create(FormFieldSchema, {
               fieldId: "settings",
@@ -205,8 +206,8 @@ describe("FormPanel(EDIT) prefill", () => {
       </MeridianMuiProvider>,
     );
 
-    await waitFor(() => expect(screen.getByLabelText("Region")).toHaveValue("eu-west"));
-    expect(screen.getByLabelText("Tier")).toHaveValue("standard");
+    await waitFor(() => expect((screen.getByLabelText("Region") as HTMLInputElement).value).toBe("eu-west"));
+    expect((screen.getByLabelText("Tier") as HTMLInputElement).value).toBe("standard");
     fireEvent.click(screen.getByRole("button", { name: /save/i }));
     expect(request).toEqual({ settings: { region: "eu-west", tier: "standard" } });
   });
@@ -237,7 +238,7 @@ describe("FormPanel(EDIT) prefill", () => {
       </MeridianMuiProvider>,
     );
 
-    await waitFor(() => expect(screen.getByLabelText("Comment")).toHaveValue("fallback"));
+    await waitFor(() => expect((screen.getByLabelText("Comment") as HTMLInputElement).value).toBe("fallback"));
   });
 });
 
