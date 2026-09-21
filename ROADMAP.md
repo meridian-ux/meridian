@@ -52,18 +52,18 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `stat` | full | ● | ● | ● | ● | ● | ● |
 | `detail_header` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `record_card` | standard | ● | ● | ● | ● | ○ | ◐ |
-| `resource_cards` | standard | ● | ○ | ○ | ○ | ○ | ◐ |
+| `resource_cards` | standard | ● | ○ | ○ | ○ | ○ | ● |
 | `chart` | specialized | ● | ● | ○ | ● | ○ | ○ |
 | `steps` | full | ○ | ● | ● | ○ | ○ | ● |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 99 render, 39 do not.**
+**23 arms × 6 renderers = 138 cells; 100 render, 38 do not.**
 
 | status | cells |
 |---|---|
 | ○ `missing` | 24 |
-| ◐ `placeholder` | 10 |
+| ◐ `placeholder` | 9 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 
@@ -74,7 +74,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | mui-kit | 5 |
 | html-kit | 5 |
 | shadcn-kit | 9 |
-| tui | 13 |
+| tui | 12 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
