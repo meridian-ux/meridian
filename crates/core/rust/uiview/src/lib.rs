@@ -53,6 +53,7 @@ pub mod proto {
 #[cfg(not(bazel_proto))]
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/meridian.ui.v1.rs"));
+    pub use meridian::ui::v1::*;
 }
 
 mod conversation;
