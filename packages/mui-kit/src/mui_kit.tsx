@@ -573,7 +573,12 @@ function buildField(
         keyLabel: spec.keyLabel || "Key",
         valueLabel: spec.valueLabel || "Value",
         addLabel: spec.addLabel || "Add entry",
-        canAdd: spec.maxItems === 0 || entries.length < spec.maxItems,
+        // A blank key is the current new-row placeholder; wait for it to be
+        // named before allowing another row so map state never collapses two
+        // pending entries into one object property.
+        canAdd:
+          !Object.prototype.hasOwnProperty.call(currentObject, "") &&
+          (spec.maxItems === 0 || entries.length < spec.maxItems),
         onAdd: () => {
           // A blank key is the new-row placeholder. Do not add another blank
           // object key until the user names the current row.

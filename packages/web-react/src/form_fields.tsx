@@ -317,7 +317,11 @@ export function KeyValueMapControl({
   const [nextId, setNextId] = useState(0);
   const maxItems = spec.maxItems ?? 0;
   const isEdit = mode === 2;
-  const canAdd = maxItems === 0 || rows.length < maxItems;
+  // Keep one pending blank row at a time: duplicate blank keys would collapse
+  // when the canonical object is serialized for submission.
+  const canAdd =
+    !rows.some((row) => row.key === "") &&
+    (maxItems === 0 || rows.length < maxItems);
   const mapValue = Object.fromEntries(rows.map((row) => [row.key, row.value]));
 
   function addRow() {
