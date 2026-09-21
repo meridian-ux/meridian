@@ -70,6 +70,10 @@ links each tier to a modality and local entrypoint, or records an explicit
 external preview. This keeps conversation, launchpad, and native tiers visible
 without forcing them into the `PanelDescriptor.body` matrix.
 
+The semantic glossary is [`DESIGN_LANGUAGE.md`](DESIGN_LANGUAGE.md). It explains
+the shared meaning of tone, affordances, value display, layout, degradation, and
+theme roles without introducing a second schema source.
+
 `conformance/test_floor.json` is the per-suite ratchet for the M1 test floor.
 It counts test declarations in the same package roots that CI runs, and must be
 checked after the test job; deleting tests below a floor fails even if the
