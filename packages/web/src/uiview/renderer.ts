@@ -40,6 +40,7 @@ import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { Snippet, SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { FollowMode } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
@@ -253,6 +254,7 @@ export const SUPPORTED_BODIES = [
   "recordCard",
   "resourceCards",
   "media",
+  "steps",
   "choice",
   "snippet",
   "action",
@@ -371,6 +373,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   if (body.case === "media") {
     meta.textContent = "";
     root.appendChild(buildMedia(body.value));
+    return;
+  }
+  if (body.case === "steps") {
+    meta.textContent = "";
+    root.appendChild(buildSteps(body.value));
     return;
   }
   if (body.case === "chart") {
@@ -572,6 +579,30 @@ function buildMedia(panel: MediaPanel): HTMLElement {
     figure.appendChild(list);
   }
   return figure;
+}
+
+function buildSteps(panel: StepsPanel): HTMLElement {
+  const section = el("section", "mer-steps");
+  if (panel.intro) section.appendChild(el("p", "mer-steps-intro", panel.intro));
+  const list = el("ol");
+  panel.steps.forEach((step) => {
+    const item = el("li", "mer-step");
+    const label = el("div", "mer-step-label", step.label);
+    if (step.actor) label.appendChild(el("span", "mer-step-actor", ` (${step.actor})`));
+    item.appendChild(label);
+    if (step.mediaUri) {
+      const image = document.createElement("img");
+      image.className = "mer-step-media";
+      image.src = step.mediaUri;
+      image.alt = step.mediaAlt;
+      item.appendChild(image);
+    }
+    if (step.detail || step.mediaAlt) item.appendChild(el("p", "mer-step-detail", step.detail || step.mediaAlt));
+    list.appendChild(item);
+  });
+  section.appendChild(list);
+  if (panel.outro) section.appendChild(el("p", "mer-steps-outro", panel.outro));
+  return section;
 }
 
 function formatDuration(durationMs: number): string {

@@ -535,9 +535,8 @@
       "parity": "full",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer.",
-          "waiver": "uiview-core#3 \u2014 a numbered list is full-parity text."
+          "status": "renders",
+          "reason": "The web-components renderer emits an ordered walkthrough with labels, actors, details, and optional frames."
         },
         "web-react": {
           "status": "renders"
@@ -563,8 +562,8 @@
       "parity": "specialized",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer realizes native image, audio, and video elements with captions, posters, duration, and chapter metadata."
         },
         "web-react": {
           "status": "renders"

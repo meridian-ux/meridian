@@ -75,6 +75,7 @@ const MINIMAL: Record<string, unknown> = {
     template: { titleField: "name" },
   },
   media: { kind: 3, srcUri: "image.png", alt: "A diagram" },
+  steps: { intro: "Do this", steps: [{ label: "Open it", actor: "Admin" }] },
   choice: { options: [{ id: "a", label: "A" }] },
   snippet: { snippet: { text: "x" } },
   action: { action: { label: "Go" } },
