@@ -858,6 +858,10 @@ async function renderResourceCards(
   panel: ResourceCardPanel,
   metaEl: HTMLElement,
 ): Promise<void> {
+  if (!panel.populate || !panel.template) {
+    metaEl.textContent = "Invalid resource card descriptor";
+    return;
+  }
   let response: object;
   try {
     const request = plainValue(

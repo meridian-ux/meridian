@@ -78,7 +78,9 @@ describe("ResourceCardPanel (web-components)", () => {
     expect(root.querySelector('[role="alertdialog"]')).toBeTruthy();
     expect(calls.map((call) => call.method)).toEqual(["List"]);
 
-    const confirm = [...root.querySelectorAll("button")].find((button) => button.textContent === "Delete");
+    const confirm = [...root.querySelectorAll('[role="alertdialog"] button')].find(
+      (button) => button.textContent === "Delete",
+    );
     (confirm as HTMLButtonElement).click();
     expect(calls.map((call) => call.method)).toEqual(["List", "Delete"]);
     expect((calls[1].request as { selected: { name: string } }).selected.name).toBe("Dev");
