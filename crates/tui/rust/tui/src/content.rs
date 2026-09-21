@@ -1656,6 +1656,78 @@ mod tests {
     }
 
     #[test]
+    fn detail_header_and_record_card_render_dotted_record_values() {
+        use meridian_uiview::proto::{
+            DescriptorRow, DetailHeaderPanel, FormField, RecordCardPanel,
+        };
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let record = serde_json::json!({
+            "name": "Build 42",
+            "owner": "Platform",
+            "phase": "Running",
+            "metadata": {"region": "us-east"}
+        });
+        let header = DetailHeaderPanel {
+            title: "Build".into(),
+            title_source_path: "name".into(),
+            subtitle_source_path: "owner".into(),
+            status_source_path: "phase".into(),
+            descriptor_rows: vec![DescriptorRow {
+                label: "Region".into(),
+                source_path: "metadata.region".into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let card = RecordCardPanel {
+            item_noun: "build".into(),
+            fields: vec![
+                FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "metadata.region".into(),
+                    label: "Region".into(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let palette = Palette::default();
+        let mut header_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+        header_term
+            .draw(|f| render_detail_header(f, f.area(), &header, Some(&record), &palette))
+            .unwrap();
+        let header_text: String = header_term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(header_text.contains("Build 42"));
+        assert!(header_text.contains("[Running]"));
+        assert!(header_text.contains("Region: us-east"));
+
+        let mut card_term = Terminal::new(TestBackend::new(64, 8)).unwrap();
+        card_term
+            .draw(|f| render_record_card(f, f.area(), &card, Some(&record), &palette))
+            .unwrap();
+        let card_text: String = card_term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(card_text.contains("Name: Build 42"));
+        assert!(card_text.contains("Region: us-east"));
+    }
+
+    #[test]
     fn stream_renders_placeholder_and_default_noun() {
         use meridian_uiview::proto::StreamPanel;
         use ratatui::{backend::TestBackend, Terminal};
