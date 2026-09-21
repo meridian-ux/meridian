@@ -143,8 +143,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer displays prompt templates, model metadata, and declared parameter slots."
         },
         "web-react": {
           "status": "renders"
