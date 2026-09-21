@@ -40,7 +40,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `lro` | standard | ● | ● | ● | ● | ● | ● |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ● | ● | ● | ● | ● | ◑ |
-| `llm_prompt` | standard | ● | ● | ● | ○ | ○ | ◑ |
+| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ |
 | `gallery` | standard | ● | ● | ● | ● | ● | ● |
 | `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
@@ -60,22 +60,21 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ● | ● | ● | ● | ● | ● |
 | `stream` | full | ● | ● | ● | ● | ● | ● |
 
-**23 arms × 6 renderers = 138 cells; 129 render, 9 do not.**
+**23 arms × 6 renderers = 138 cells; 131 render, 7 do not.**
 
 | status | cells |
 |---|---|
 | – `not-applicable` | 3 |
 | ◐ `placeholder` | 2 |
 | ◑ `separate-entrypoint` | 2 |
-| ○ `missing` | 2 |
 
 | renderer | gaps |
 |---|---|
 | web-components | 0 |
 | web-react | 0 |
 | mui-kit | 1 |
-| html-kit | 2 |
-| shadcn-kit | 2 |
+| html-kit | 1 |
+| shadcn-kit | 1 |
 | tui | 4 |
 <!-- matrix:end -->
 
@@ -85,8 +84,8 @@ Three facts shape the order of work:
 
 - **The shared seam is now open.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
   exposes optional `Stream` and `Terminal` members. Semantic snapshots exposed
-  two inaccurate declarations: HTML and Shadcn still omit `LlmPrompt`, and those
-  cells now honestly read `missing` in the coverage manifest.
+  the missing HTML/Shadcn `LlmPrompt` implementations; both now share typed
+  parameter controls and local textual preview, with focused interaction tests.
 - **The remaining intentional parity gaps are bounded:** two TUI placeholders
   (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
   and the TUI stream/terminal transport boundaries documented in their degradation

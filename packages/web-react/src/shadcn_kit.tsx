@@ -30,6 +30,7 @@ import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
+import { LlmPromptContent } from "./llm_prompt.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -126,6 +127,7 @@ export const shadcnKit: ComponentKit = {
       ))}
     </form>
   ),
+  LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={SHADCN_FORM_CLASSES} />,
   Lro: ({ panel }) => (
     <div className="flex items-center gap-2">
       <button

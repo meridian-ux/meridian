@@ -44,10 +44,11 @@ populated data renders. Network/clipboard/keyboard behavior remains covered by
 the focused interaction suites. A stable snapshot does not establish full
 accessibility or layout correctness.
 
-The baseline exposed real debt: HTML and Shadcn omit `LlmPrompt`, and their
-Steps realization omits step media. The former is now explicitly `missing` in
-the coverage manifest. Those snapshots document current behavior, not approval
-of the gap. Epic #9 still owns representative populated/overflow/ValueType
+The baseline exposed real debt: HTML and Shadcn omitted `LlmPrompt`, and their
+Steps realization omits step media. Both reference kits now implement the LLM
+parameter-fill preview, with focused tests for typed controls, local substitution,
+unresolved tokens, and descriptor changes. The Steps snapshots still document a
+gap. Epic #9 still owns representative populated/overflow/ValueType
 fixtures, native snapshots, and a common Bazel-aware re-record workflow. MUI's
 semantic suite currently runs through the package test job; its Bazel browser
 harness is a separate set of tests.

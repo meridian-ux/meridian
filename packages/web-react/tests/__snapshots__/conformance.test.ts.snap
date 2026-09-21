@@ -142,7 +142,13 @@ p
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the llmPrompt shape and shows its title > shadcn-kit/llm_prompt 1`] = `
 "h3
   "Summarize"
-"unsupported panel shape: llmPrompt""
+p
+  "Summarize the document"
+form
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre"
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the lro shape and shows its title > shadcn-kit/lro 1`] = `
@@ -421,8 +427,13 @@ p
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the llmPrompt shape without crashing and shows its title > html-kit/llm_prompt 1`] = `
 "h2
   "Summarize"
-pre
-  "unsupported panel shape: llmPrompt""
+p
+  "Summarize the document"
+form
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre"
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the lro shape without crashing and shows its title > html-kit/lro 1`] = `

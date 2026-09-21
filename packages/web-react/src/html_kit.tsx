@@ -26,6 +26,7 @@ import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
+import { LlmPromptContent } from "./llm_prompt.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -107,6 +108,7 @@ export const htmlKit: ComponentKit = {
       ))}
     </form>
   ),
+  LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={HTML_FORM_CLASSES} />,
   Lro: ({ panel }) => (
     <div className="mer-lro">
       <button type="button">{panel.runButtonLabel || "Run"}</button>

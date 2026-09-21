@@ -154,12 +154,12 @@
           "reason": "The MUI kit renders model metadata, system/user templates, and typed parameter-slot controls in preview mode."
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "htmlKit has no LlmPrompt component; PanelRenderer currently renders the unsupported-shape fallback."
+          "status": "renders",
+          "reason": "htmlKit renders model metadata, templates, output schema, and typed parameter controls with local textual preview."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "shadcnKit has no LlmPrompt component; PanelRenderer currently renders the unsupported-shape fallback."
+          "status": "renders",
+          "reason": "shadcnKit shares the typed parameter-fill and local textual preview implementation with htmlKit."
         },
         "tui": {
           "status": "separate-entrypoint",
