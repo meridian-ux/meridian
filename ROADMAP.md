@@ -38,7 +38,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `lro` | standard | ● | ● | ● | ● | ● | ◐ |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
-| `llm_prompt` | standard | ○ | ● | ○ | ○ | ○ | ◑ |
+| `llm_prompt` | standard | ○ | ● | ○ | ● | ○ | ◑ |
 | `gallery` | standard | ○ | ● | ● | ● | ● | ◐ |
 | `form` | standard | ● | ● | ● | ● | ● | ◐ |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
@@ -50,7 +50,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `terminal` | specialized | ● | ○ | ○ | ○ | ○ | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
-| `detail_header` | standard | ● | ● | ● | ○ | ○ | ◐ |
+| `detail_header` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `record_card` | standard | ● | ● | ● | ○ | ○ | ◐ |
 | `resource_cards` | standard | ● | ○ | ○ | ○ | ○ | ◐ |
 | `chart` | specialized | ● | ● | ○ | ● | ○ | ○ |
@@ -58,11 +58,11 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 96 render, 42 do not.**
+**23 arms × 6 renderers = 138 cells; 98 render, 40 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 27 |
+| ○ `missing` | 25 |
 | ◐ `placeholder` | 10 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
@@ -72,7 +72,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | web-components | 5 |
 | web-react | 2 |
 | mui-kit | 5 |
-| html-kit | 8 |
+| html-kit | 6 |
 | shadcn-kit | 9 |
 | tui | 13 |
 <!-- matrix:end -->
