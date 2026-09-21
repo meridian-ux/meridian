@@ -34,14 +34,15 @@ function renderFixture(fixture: (typeof FIXTURES)[number]): string {
 }
 
 describe("muiKit canonical panel conformance", () => {
-  for (const fixture of FIXTURES.filter((candidate) => candidate.shape !== "(unset)")) {
+  for (const fixture of FIXTURES) {
     it(`renders the ${fixture.name} fixture without crashing`, () => {
       const html = renderFixture(fixture);
       expect(html.length).toBeGreaterThan(0);
       // Panel titles are not required to be repeated by every kit's shape
       // component (some use the descriptor only for the outer panel identity),
-      // so the cross-renderer normalizer is the stable data-panel marker.
+      // so the cross-renderer normalizers are the stable panel and body-arm markers.
       expect(html).toContain(`data-panel="${fixture.descriptor.panelId}"`);
+      expect(html).toContain(`data-panel-shape="${fixture.descriptor.body.case || "unset"}"`);
     });
   }
 });

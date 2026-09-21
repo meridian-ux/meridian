@@ -88,6 +88,7 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
+      expect(html).toContain(`data-panel-shape="${fx.descriptor.body.case || "unset"}"`);
     });
   }
 
@@ -136,6 +137,7 @@ describe("Swap B — shadcnKit renders the same fixtures, different look", () =>
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
+      expect(html).toContain(`data-panel-shape="${fx.descriptor.body.case || "unset"}"`);
     });
   }
 

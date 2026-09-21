@@ -135,6 +135,7 @@ describe("renderPanel (web-components, binary boundary)", () => {
       });
 
       expect(root.dataset.panel).toBe(fixture.descriptor.panelId);
+      expect(root.dataset.panelShape).toBe(fixture.descriptor.body.case || "unset");
       expect(root.querySelector(".meridian-uiview-header")?.textContent).toBe(
         fixture.descriptor.title,
       );

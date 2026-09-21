@@ -62,6 +62,7 @@ export const shadcnKit: ComponentKit = {
     <section
       className="rounded-lg border bg-card text-card-foreground shadow-sm"
       data-panel={descriptor.panelId}
+      data-panel-shape={descriptor.body.case || "unset"}
     >
       <header className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold leading-none tracking-tight">

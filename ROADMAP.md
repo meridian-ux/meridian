@@ -106,13 +106,15 @@ lives under `schemas/conformance/fixtures.ts` and is consumed by `web-react`,
 `mui-kit`, and the web-components renderer. The same corpus is materialized as
 protobuf wire fixtures under `schemas/conformance/binpb/` for the TUI, whose
 headless `TestBackend` now decodes and renders every arm through its real dispatch
-ladder. The React kits use a kit-neutral `data-panel` normalizer, while
-web-components and TUI preserve their explicit degradation behavior. The next
+ladder. The browser renderers use kit-neutral `data-panel` and `data-panel-shape`
+normalizers, while
+web-components and TUI preserve their explicit degradation behavior. The
 conformance slice also has a byte-integrity test in the web package, so CI fails
 if the checked-in native fixtures drift from the canonical TypeScript messages;
 the CI corpus gate also rejects missing or stale files against the coverage arm
-set. The remaining work is snapshot-level normalization across these consumers,
-not another renderer-local fixture vocabulary.
+set. Snapshot-level normalization now covers panel identity and body-arm identity
+across the browser consumers; remaining conformance work is semantic assertion
+depth, not another renderer-local fixture vocabulary.
 
 ## Track B — One language
 

@@ -54,6 +54,7 @@ export const htmlKit: ComponentKit = {
     <section
       className="mer-panel"
       data-panel={descriptor.panelId}
+      data-panel-shape={descriptor.body.case || "unset"}
       style={themeToStyle(undefined)}
     >
       <h2 className="mer-panel-title">{descriptor.title || descriptor.panelId}</h2>

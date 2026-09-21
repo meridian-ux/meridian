@@ -887,7 +887,11 @@ function Chrome({
   // tables rendered as dim/unreadable text on the dark page. Just wrap the panel;
   // it inherits the provider's (correct-mode) theme.
   return (
-    <Box className="mer-panel" data-panel={descriptor.panelId}>
+    <Box
+      className="mer-panel"
+      data-panel={descriptor.panelId}
+      data-panel-shape={descriptor.body.case || "unset"}
+    >
       {children}
     </Box>
   );
