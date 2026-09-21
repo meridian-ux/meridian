@@ -1,5 +1,5 @@
 use meridian_uiview::proto::panel_descriptor::Body;
-use meridian_uiview::proto::{ChartPanel, PanelDescriptor, TablePanel};
+use meridian_uiview::proto::{ChartPanel, PanelDescriptor, ResourceCardPanel, TablePanel};
 use meridian_uiview::{render_table, Context, RenderedRow, RequestBuilder};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
@@ -23,6 +23,7 @@ use crate::theme::Palette;
 pub struct PanelView {
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
+    cached_resource_cards: Option<CachedResourceCards>,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -44,11 +45,17 @@ struct CachedChart {
     rows: Vec<(String, String)>,
 }
 
+struct CachedResourceCards {
+    rows: Vec<serde_json::Value>,
+    error: Option<String>,
+}
+
 impl PanelView {
     pub fn new() -> Self {
         Self {
             cached: None,
             cached_chart: None,
+            cached_resource_cards: None,
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -63,6 +70,7 @@ impl PanelView {
         Self {
             cached: None,
             cached_chart: None,
+            cached_resource_cards: None,
             table_state: TableState::default(),
             palette,
             content_selected: 0,
@@ -80,6 +88,7 @@ impl PanelView {
     pub fn invalidate(&mut self) {
         self.cached = None;
         self.cached_chart = None;
+        self.cached_resource_cards = None;
     }
 
     pub fn select_next(&mut self) {
@@ -95,7 +104,8 @@ impl PanelView {
                 .unwrap_or(0);
             self.table_state.select(Some(i));
         } else if self.content_len > 0 {
-            // Content shapes (Choice / ConnectFlow) — advance the target cursor.
+            // Content shapes and populated resource cards share the terminal
+            // cursor; `content_len` is set by the active descriptor.
             self.content_selected = (self.content_selected + 1) % self.content_len;
         }
     }
@@ -226,12 +236,20 @@ impl PanelView {
                 chunks[2],
                 "Record-card panels (entity detail views): not yet supported in the TUI renderer.",
             ),
-            Some(Body::ResourceCards(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Resource-card panels: not yet supported in the TUI renderer.",
-            ),
+            Some(Body::ResourceCards(panel)) => {
+                self.populate_resource_cards_if_needed(panel, context, invoker);
+                let cached = self.cached_resource_cards.as_ref().unwrap();
+                self.content_len = cached.rows.len();
+                content::render_resource_cards(
+                    frame,
+                    content_area,
+                    panel,
+                    &cached.rows,
+                    &self.palette,
+                    self.content_selected,
+                    cached.error.as_deref(),
+                );
+            }
             // ── content shapes ────────────────────────────────────────────────
             Some(Body::Choice(panel)) => {
                 self.content_len = panel.options.len();
@@ -385,6 +403,40 @@ impl PanelView {
         self.cached_chart = Some(CachedChart { rows });
     }
 
+    fn populate_resource_cards_if_needed<I: RpcInvoker>(
+        &mut self,
+        panel: &ResourceCardPanel,
+        context: &Context,
+        invoker: &I,
+    ) {
+        if self.cached_resource_cards.is_some() {
+            return;
+        }
+        let Some(populate) = panel.populate.as_ref() else {
+            self.cached_resource_cards = Some(CachedResourceCards {
+                rows: vec![],
+                error: Some("Resource-card panel has no populate RPC.".into()),
+            });
+            return;
+        };
+        let request = RequestBuilder::build(populate, context);
+        match invoker.invoke(&populate.service, &populate.method, request) {
+            Ok(response) => {
+                let rows = meridian_uiview::ProtoPaths::rows(&response, &panel.rows_field)
+                    .into_iter()
+                    .cloned()
+                    .collect();
+                self.cached_resource_cards = Some(CachedResourceCards { rows, error: None });
+            }
+            Err(error) => {
+                self.cached_resource_cards = Some(CachedResourceCards {
+                    rows: vec![],
+                    error: Some(format!("Failed to load resources: {error}")),
+                });
+            }
+        }
+    }
+
     fn render_table(
         &mut self,
         frame: &mut Frame,
@@ -466,9 +518,13 @@ impl PanelView {
     /// Convenience: returns the currently-selected row's raw JSON,
     /// for hosts that want to fire RowActions.
     pub fn selected_row(&self) -> Option<&serde_json::Value> {
-        let cached = self.cached.as_ref()?;
-        let index = self.table_state.selected()?;
-        cached.rows.get(index).map(|r| &r.raw)
+        if let Some(cached) = &self.cached {
+            let index = self.table_state.selected()?;
+            return cached.rows.get(index).map(|r| &r.raw);
+        }
+        self.cached_resource_cards
+            .as_ref()
+            .and_then(|cached| cached.rows.get(self.content_selected))
     }
 }
 

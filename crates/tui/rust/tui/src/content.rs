@@ -19,10 +19,10 @@
 
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
-    ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
-    StepsPanel, StreamPanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, ResourceAction,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
-use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
+use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
@@ -97,6 +97,132 @@ pub fn render_stream(frame: &mut Frame, area: Rect, panel: &StreamPanel, palette
         ),
         area,
     );
+}
+
+/// Render populated resources as selectable terminal cards. The TUI uses a
+/// compact numbered-block degradation rather than a multi-column grid; the
+/// selected row remains available through `PanelView::selected_row`, so hosts
+/// can build an action request with the same `row_field` bindings as web kits.
+pub fn render_resource_cards(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ResourceCardPanel,
+    rows: &[Value],
+    palette: &Palette,
+    selected: usize,
+    error: Option<&str>,
+) {
+    let mut lines: Vec<Line> = Vec::new();
+    if let Some(message) = error {
+        lines.push(Line::from(Span::styled(message.to_string(), palette.meta())));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+    if rows.is_empty() {
+        let noun = if panel.item_noun.is_empty() {
+            "resources"
+        } else {
+            &panel.item_noun
+        };
+        let message = if panel.empty_message.is_empty() {
+            format!("No {noun}.")
+        } else {
+            panel.empty_message.clone()
+        };
+        lines.push(Line::from(Span::styled(message, palette.meta())));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+
+    let Some(template) = panel.template.as_ref() else {
+        lines.push(Line::from(Span::styled(
+            "Invalid resource-card descriptor.",
+            palette.meta(),
+        )));
+        frame.render_widget(bordered(lines, palette), area);
+        return;
+    };
+
+    let selected = selected % rows.len();
+    for (index, row) in rows.iter().enumerate() {
+        let active = index == selected;
+        let title_style = if active {
+            palette.focused()
+        } else {
+            palette.header()
+        };
+        let marker = if active { "▶ " } else { "  " };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{marker}{}. ", index + 1), title_style),
+            Span::styled(value_at(row, &template.title_field), title_style),
+        ]));
+
+        if !template.subtitle_field.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(value_at(row, &template.subtitle_field), palette.meta()),
+            ]));
+        }
+        if !template.status_field.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("    status: "),
+                Span::styled(value_at(row, &template.status_field), palette.title()),
+            ]));
+        }
+        for field in &template.meta {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(format!("{}: ", field.label), palette.meta()),
+                Span::styled(value_at(row, &field.field_path), palette.text()),
+            ]));
+        }
+
+        let actions: Vec<&ResourceAction> = template
+            .actions
+            .as_ref()
+            .map(|set| {
+                set.actions
+                    .iter()
+                    .filter(|action| resource_action_visible(action, row))
+                    .collect()
+            })
+            .unwrap_or_default();
+        if !actions.is_empty() {
+            let labels = actions
+                .iter()
+                .enumerate()
+                .map(|(action_index, action)| format!("[{}] {}", action_index + 1, action.label))
+                .collect::<Vec<_>>()
+                .join("  ");
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(labels, palette.title()),
+            ]));
+        }
+        if index + 1 < rows.len() {
+            lines.push(Line::from(""));
+        }
+    }
+    frame.render_widget(bordered(lines, palette), area);
+}
+
+fn value_at(row: &Value, path: &str) -> String {
+    format_value(
+        ProtoPaths::get(row, path),
+        meridian_uiview::proto::ColumnFormat::Unspecified,
+    )
+}
+
+/// The shared visibility predicate used by the web kits: a deliberately small
+/// equality expression keeps action availability deterministic on every surface.
+pub fn resource_action_visible(action: &ResourceAction, row: &Value) -> bool {
+    if action.visible_when.is_empty() {
+        return true;
+    }
+    let Some((path, expected)) = action.visible_when.split_once("==") else {
+        return false;
+    };
+    value_at(row, path.trim()) == expected.trim()
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────
