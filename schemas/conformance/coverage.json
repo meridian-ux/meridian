@@ -369,12 +369,12 @@
           "reason": "The MUI kit does not supply the web-specific terminal component."
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "The HTML kit does not supply the web-specific terminal component."
+          "status": "renders",
+          "reason": "The HTML kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "The shadcn kit does not supply the web-specific terminal component."
+          "status": "renders",
+          "reason": "The shadcn kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
         },
         "tui": {
           "status": "placeholder",
