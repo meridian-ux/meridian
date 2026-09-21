@@ -8,9 +8,10 @@
 // primitives) would be its own package, a peer of mui-kit — this is the
 // in-core reference that keeps web-react kit-agnostic.
 
-import type { CSSProperties } from "react";
+import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -26,6 +27,8 @@ import {
 } from "./content_shapes.js";
 import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, SHADCN_FORM_CLASSES } from "./form_fields.js";
+import { MeridianViewContext } from "./view_renderer.js";
+import { resolvePath, useRecord } from "./pagination.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -139,33 +142,61 @@ export const shadcnKit: ComponentKit = {
       ))}
     </form>
   ),
-  DetailHeader: ({ panel }) => (
-    <header className="grid gap-2" data-title-path={panel.titleSourcePath || undefined}>
-      <h2 className="text-xl font-semibold">{panel.title || "Details"}</h2>
-      {panel.subtitleSourcePath && <p className="text-sm text-muted-foreground">{panel.subtitleSourcePath}</p>}
-      {panel.statusSourcePath && <span className="inline-flex w-fit rounded-full border px-2 py-0.5 text-xs">{panel.statusSourcePath}</span>}
-      {panel.descriptorRows.length > 0 && (
-        <dl className="grid gap-2" aria-label="Record summary">
-          {panel.descriptorRows.map((row) => (
-            <div key={row.sourcePath} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
-              <dt className="text-sm text-muted-foreground">{row.label}</dt>
-              <dd className="text-sm">{row.sourcePath}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </header>
-  ),
-  RecordCard: ({ panel }) => (
-    <dl className="grid gap-2" aria-label={panel.itemNoun || "Record details"}>
-      {panel.fields.map((field) => (
-        <div key={field.fieldId} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
-          <dt className="text-sm text-muted-foreground">{field.label || field.fieldId}</dt>
-          <dd className="text-sm">{field.fieldId}</dd>
-        </div>
-      ))}
-    </dl>
-  ),
+  DetailHeader: ({ panel, invoker }) => {
+    const { subjectId } = useContext(MeridianViewContext);
+    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const hasRecord = record !== undefined;
+    const title = hasRecord
+      ? String(resolvePath(record, panel.titleSourcePath) ?? panel.title)
+      : panel.title || "Details";
+    const subtitle = hasRecord
+      ? String(resolvePath(record, panel.subtitleSourcePath) ?? "")
+      : panel.subtitleSourcePath;
+    const status = hasRecord
+      ? String(resolvePath(record, panel.statusSourcePath) ?? "")
+      : panel.statusSourcePath;
+
+    return (
+      <header className="grid gap-2" data-title-path={panel.titleSourcePath || undefined}>
+        <h2 className="text-xl font-semibold">{title}</h2>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        {status && <span className="inline-flex w-fit rounded-full border px-2 py-0.5 text-xs">{status}</span>}
+        {panel.descriptorRows.length > 0 && (
+          <dl className="grid gap-2" aria-label="Record summary">
+            {panel.descriptorRows.map((row) => (
+              <div key={row.sourcePath} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+                <dt className="text-sm text-muted-foreground">{row.label}</dt>
+                <dd className="text-sm">
+                  {hasRecord
+                    ? formatByDisplay(resolvePath(record, row.sourcePath), row.display).text
+                    : row.sourcePath}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </header>
+    );
+  },
+  RecordCard: ({ panel, invoker }) => {
+    const { subjectId } = useContext(MeridianViewContext);
+    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const hasRecord = record !== undefined;
+    return (
+      <dl className="grid gap-2" aria-label={panel.itemNoun || "Record details"}>
+        {panel.fields.map((field) => (
+          <div key={field.fieldId} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+            <dt className="text-sm text-muted-foreground">{field.label || field.fieldId}</dt>
+            <dd className="text-sm">
+              {hasRecord
+                ? formatByDisplay(resolvePath(record, field.fieldId), field.display).text
+                : field.fieldId}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  },
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
