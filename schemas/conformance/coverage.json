@@ -118,8 +118,8 @@
       "parity": "standard",
       "renderers": {
         "web-components": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The web-components renderer emits native image, audio, and video elements with captions, duration, and chapter metadata."
         },
         "web-react": {
           "status": "renders"

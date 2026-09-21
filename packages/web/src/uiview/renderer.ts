@@ -22,6 +22,7 @@ import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -251,6 +252,7 @@ export const SUPPORTED_BODIES = [
   "detailHeader",
   "recordCard",
   "resourceCards",
+  "media",
   "choice",
   "snippet",
   "action",
@@ -365,6 +367,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "resourceCards") {
     return renderResourceCards(opts, body.value, meta);
+  }
+  if (body.case === "media") {
+    meta.textContent = "";
+    root.appendChild(buildMedia(body.value));
+    return;
   }
   if (body.case === "chart") {
     return renderChartPanel(opts, body.value, meta);
@@ -530,6 +537,46 @@ function buildCopyValue(value: CopyValue): HTMLElement {
   }
   if (value.help) wrap.appendChild(el("span", "mer-copyvalue-help", value.help));
   return wrap;
+}
+
+function buildMedia(panel: MediaPanel): HTMLElement {
+  const figure = el("figure", "mer-media");
+  let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement;
+  if (panel.kind === MediaKind.IMAGE) {
+    media = document.createElement("img");
+    media.alt = panel.alt;
+  } else if (panel.kind === MediaKind.AUDIO) {
+    media = document.createElement("audio");
+    media.controls = true;
+    media.setAttribute("aria-label", panel.alt || "Audio");
+  } else {
+    media = document.createElement("video");
+    media.controls = true;
+    media.setAttribute("aria-label", panel.alt || "Video");
+    if (panel.posterUri) (media as HTMLVideoElement).poster = panel.posterUri;
+    if (panel.captionsUri) {
+      const track = document.createElement("track");
+      track.kind = "captions";
+      track.src = panel.captionsUri;
+      media.appendChild(track);
+    }
+  }
+  media.src = panel.srcUri;
+  media.className = `mer-media-${panel.kind === MediaKind.IMAGE ? "image" : panel.kind === MediaKind.AUDIO ? "audio" : "video"}`;
+  figure.appendChild(media);
+  const details = [panel.caption, panel.durationMs ? formatDuration(panel.durationMs) : ""].filter(Boolean).join(" · ");
+  if (details) figure.appendChild(el("figcaption", "mer-media-caption", details));
+  if (panel.chapters.length) {
+    const list = el("ol", "mer-media-chapters");
+    for (const chapter of panel.chapters) list.appendChild(el("li", undefined, chapter.label));
+    figure.appendChild(list);
+  }
+  return figure;
+}
+
+function formatDuration(durationMs: number): string {
+  const seconds = Math.round(durationMs / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 function buildChoice(opts: RenderPanelOptions, panel: ChoicePanel): HTMLElement {
