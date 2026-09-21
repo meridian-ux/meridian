@@ -522,8 +522,8 @@
           "status": "renders"
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The shadcn kit renders the portable chart mark, title, and x/y field summary."
         },
         "tui": {
           "status": "renders",
