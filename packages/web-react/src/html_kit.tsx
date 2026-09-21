@@ -4,9 +4,10 @@
 // `mui-kit` (wrapping a host's internal MUI component library) and a future `shadcn-kit` are richer
 // implementations of the same ComponentKit interface.
 
-import type { CSSProperties } from "react";
+import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -22,6 +23,8 @@ import {
 } from "./content_shapes.js";
 import { ResourceCardsView } from "./resource_cards.js";
 import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
+import { MeridianViewContext } from "./view_renderer.js";
+import { resolvePath, useRecord } from "./pagination.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -115,23 +118,61 @@ export const htmlKit: ComponentKit = {
       ))}
     </form>
   ),
-  DetailHeader: ({ panel }) => (
-    <header className="mer-detail-header">
-      <h3>{panel.title || "Details"}</h3>
-      {panel.subtitleSourcePath && <p className="mer-detail-subtitle">{panel.subtitleSourcePath}</p>}
-      {panel.statusSourcePath && <span className="mer-detail-status" role="status">{panel.statusSourcePath}</span>}
-      {panel.descriptorRows.length > 0 && (
-        <dl className="mer-detail-rows">
-          {panel.descriptorRows.map((row) => <div key={row.sourcePath}><dt>{row.label}</dt><dd>{row.sourcePath}</dd></div>)}
-        </dl>
-      )}
-    </header>
-  ),
-  RecordCard: ({ panel }) => (
-    <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
-      {panel.fields.map((field) => <div key={field.fieldId}><dt>{field.label || field.fieldId}</dt><dd>{field.fieldId}</dd></div>)}
-    </dl>
-  ),
+  DetailHeader: ({ panel, invoker }) => {
+    const { subjectId } = useContext(MeridianViewContext);
+    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const hasRecord = record !== undefined;
+    const title = hasRecord
+      ? String(resolvePath(record, panel.titleSourcePath) ?? panel.title)
+      : panel.title || "Details";
+    const subtitle = hasRecord
+      ? String(resolvePath(record, panel.subtitleSourcePath) ?? "")
+      : panel.subtitleSourcePath;
+    const status = hasRecord
+      ? String(resolvePath(record, panel.statusSourcePath) ?? "")
+      : panel.statusSourcePath;
+
+    return (
+      <header className="mer-detail-header">
+        <h3>{title}</h3>
+        {subtitle && <p className="mer-detail-subtitle">{subtitle}</p>}
+        {status && <span className="mer-detail-status" role="status">{status}</span>}
+        {panel.descriptorRows.length > 0 && (
+          <dl className="mer-detail-rows">
+            {panel.descriptorRows.map((row) => (
+              <div key={row.sourcePath}>
+                <dt>{row.label}</dt>
+                <dd>
+                  {hasRecord
+                    ? formatByDisplay(resolvePath(record, row.sourcePath), row.display).text
+                    : row.sourcePath}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </header>
+    );
+  },
+  RecordCard: ({ panel, invoker }) => {
+    const { subjectId } = useContext(MeridianViewContext);
+    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const hasRecord = record !== undefined;
+    return (
+      <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
+        {panel.fields.map((field) => (
+          <div key={field.fieldId}>
+            <dt>{field.label || field.fieldId}</dt>
+            <dd>
+              {hasRecord
+                ? formatByDisplay(resolvePath(record, field.fieldId), field.display).text
+                : field.fieldId}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  },
   // ── content shapes (shared, field-complete renderers) ───────────────────────
   Choice: ({ panel }) => <ChoiceContent c={c} panel={panel} />,
   Snippet: ({ panel }) => (panel.snippet ? <SnippetContent c={c} snippet={panel.snippet} /> : null),
