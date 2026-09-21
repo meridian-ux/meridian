@@ -22,9 +22,14 @@ export type {
   ConnectFlowPanelProps,
   CopyValuePanelProps,
   CatalogPanelProps,
+  ChartPanelProps,
   ResourceCardPanelProps,
   GrammarPanelProps,
   StatPanelProps,
+  StepsPanelProps,
+  MediaPanelProps,
+  StreamPanelProps,
+  TerminalPanelProps,
   ActionBarProps,
 } from "./component_kit.js";
 export {
