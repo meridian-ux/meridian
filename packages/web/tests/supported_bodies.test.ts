@@ -76,6 +76,7 @@ const MINIMAL: Record<string, unknown> = {
   },
   media: { kind: 3, srcUri: "image.png", alt: "A diagram" },
   steps: { intro: "Do this", steps: [{ label: "Open it", actor: "Admin" }] },
+  llmPrompt: { userTemplate: "Hello {{name}}" },
   choice: { options: [{ id: "a", label: "A" }] },
   snippet: { snippet: { text: "x" } },
   action: { action: { label: "Go" } },
@@ -124,12 +125,8 @@ describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
 
   it("supportsBody agrees with the list, and rejects the unknown", () => {
     for (const c of SUPPORTED_BODIES) expect(supportsBody(c)).toBe(true);
-    // `llmPrompt` and `gallery` are real oneof arms that renderPanel does NOT
-    // draw — hosts handle galleries themselves. They must report false, or a
-    // host trusting this would render an empty panel instead of using its own
-    // path.
+    // Gallery remains a dedicated host/wasm entrypoint; it must report false.
     expect(supportsBody("gallery")).toBe(false);
-    expect(supportsBody("llmPrompt")).toBe(false);
     expect(supportsBody("nope")).toBe(false);
     expect(supportsBody(undefined)).toBe(false);
   });

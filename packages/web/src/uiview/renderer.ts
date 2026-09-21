@@ -20,8 +20,10 @@ import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js"
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import {
   ActionStyle,
@@ -255,6 +257,7 @@ export const SUPPORTED_BODIES = [
   "resourceCards",
   "media",
   "steps",
+  "llmPrompt",
   "choice",
   "snippet",
   "action",
@@ -370,6 +373,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   if (body.case === "resourceCards") {
     return renderResourceCards(opts, body.value, meta);
   }
+  if (body.case === "gallery") {
+    return renderFetchDriven(opts, body.value, meta, (data) =>
+      buildGallery(body.value, data),
+    );
+  }
   if (body.case === "media") {
     meta.textContent = "";
     root.appendChild(buildMedia(body.value));
@@ -378,6 +386,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   if (body.case === "steps") {
     meta.textContent = "";
     root.appendChild(buildSteps(body.value));
+    return;
+  }
+  if (body.case === "llmPrompt") {
+    meta.textContent = "";
+    root.appendChild(buildLlmPrompt(body.value));
     return;
   }
   if (body.case === "chart") {
@@ -602,6 +615,31 @@ function buildSteps(panel: StepsPanel): HTMLElement {
   });
   section.appendChild(list);
   if (panel.outro) section.appendChild(el("p", "mer-steps-outro", panel.outro));
+  return section;
+}
+
+function buildLlmPrompt(panel: LlmPromptPanel): HTMLElement {
+  const section = el("section", "mer-llm-prompt");
+  if (panel.description) section.appendChild(el("p", "mer-llm-prompt-description", panel.description));
+  if (panel.modelHint?.provider || panel.modelHint?.model) {
+    const model = [panel.modelHint.provider, panel.modelHint.model].filter(Boolean).join(" / ");
+    section.appendChild(el("p", "mer-llm-prompt-model", model));
+  }
+  for (const [label, template] of [["System", panel.systemTemplate], ["User", panel.userTemplate]] as const) {
+    if (!template) continue;
+    const block = el("div", "mer-llm-prompt-template");
+    block.appendChild(el("h3", undefined, label));
+    block.appendChild(el("pre", undefined, template));
+    section.appendChild(block);
+  }
+  if (panel.slots.length) {
+    const fields = el("dl", "mer-llm-prompt-slots");
+    for (const slot of panel.slots) {
+      fields.appendChild(el("dt", undefined, slot.name));
+      fields.appendChild(el("dd", undefined, slot.field?.label || slot.name));
+    }
+    section.appendChild(fields);
+  }
   return section;
 }
 
@@ -1246,6 +1284,64 @@ function resourceActionStyle(style: ActionStyle): "default" | "primary" | "dange
     default:
       return "default";
   }
+}
+
+// GalleryPanel — a fetch-driven card grid. This is deliberately separate from
+// ResourceCardPanel: galleries have display-only cards and href navigation,
+// while resource cards own row-scoped lifecycle actions and confirmations.
+function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
+  const grid = el("div", "mer-gallery");
+  grid.setAttribute("role", "list");
+  const rawRows = response && panel.rowsField ? readAt(response, panel.rowsField) : [];
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  if (rows.length === 0) {
+    grid.appendChild(el("p", "mer-empty", panel.placeholder || "No items."));
+    return grid;
+  }
+  const card = panel.card;
+  if (!card) {
+    grid.appendChild(el("p", "mer-empty", "Invalid gallery descriptor."));
+    return grid;
+  }
+  for (const raw of rows) {
+    const row = plainRow(raw);
+    const article = el("article", "mer-gallery-card");
+    article.setAttribute("role", "listitem");
+    const title = String(readAt(row, card.titleField) ?? "");
+    if (card.imageField) {
+      const image = document.createElement("img");
+      image.className = "mer-gallery-card-image";
+      image.src = String(readAt(row, card.imageField) ?? "");
+      image.alt = title;
+      article.appendChild(image);
+    }
+    const icon = card.iconField ? readAt(row, card.iconField) : undefined;
+    if (icon) article.appendChild(el("span", "mer-gallery-card-icon", String(icon)));
+    article.appendChild(el("h3", "mer-gallery-card-title", title));
+    const subtitle = card.subtitleField ? readAt(row, card.subtitleField) : undefined;
+    if (subtitle != null && subtitle !== "") {
+      article.appendChild(el("p", "mer-gallery-card-subtitle", String(subtitle)));
+    }
+    const status = card.statusField ? readAt(row, card.statusField) : undefined;
+    if (status != null && status !== "") {
+      article.appendChild(el("span", "mer-gallery-card-status", String(status)));
+    }
+    const href = card.hrefField ? readAt(row, card.hrefField) : undefined;
+    if (href) {
+      const link = document.createElement("a");
+      link.className = "mer-gallery-card-link";
+      link.href = String(href);
+      link.textContent = card.actionLabelField
+        ? String(readAt(row, card.actionLabelField) ?? "Open")
+        : "Open";
+      article.appendChild(link);
+    } else if (card.actionLabelField) {
+      const action = readAt(row, card.actionLabelField);
+      if (action) article.appendChild(el("span", "mer-gallery-card-action", String(action)));
+    }
+    grid.appendChild(article);
+  }
+  return grid;
 }
 
 // Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
