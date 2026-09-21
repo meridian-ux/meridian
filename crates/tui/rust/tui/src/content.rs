@@ -20,8 +20,8 @@
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
     ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, GrammarPanel,
-    RecordCardPanel, ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel,
-    StepsPanel, StreamPanel,
+    form_field::Kind, FormField, FormMode, FormPanel, RecordCardPanel, ResourceAction,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use meridian_uiview::RenderedCard;
@@ -375,6 +375,174 @@ fn labeled_value(label: &str, value: &str, palette: &Palette) -> Line<'static> {
         Span::styled(format!("{label}: "), palette.meta()),
         Span::styled(value.to_string(), palette.text()),
     ])
+}
+
+/// Build the initial values for a FormPanel from its declared field defaults.
+/// The map is keyed by `field_id`, matching `Context.form_values` and the
+/// `form_field` binding source used by submit RPCs.
+pub fn form_defaults(fields: &[FormField]) -> Value {
+    let mut values = serde_json::Map::new();
+    for field in fields {
+        values.insert(field.field_id.clone(), form_field_default(field));
+    }
+    Value::Object(values)
+}
+
+fn form_field_default(field: &FormField) -> Value {
+    match field.kind.as_ref() {
+        Some(Kind::Integer(input)) => Value::from(input.default_value),
+        Some(Kind::Text(input)) => Value::String(input.default_value.clone()),
+        Some(Kind::EnumSelection(input)) => {
+            let value = if !input.default_value.is_empty() {
+                input.default_value.clone()
+            } else if let Some(option) = input.options.first() {
+                option.value.clone()
+            } else {
+                input.allowed_values.first().cloned().unwrap_or_default()
+            };
+            Value::String(value)
+        }
+        Some(Kind::Masked(input)) => Value::String(input.default_value.clone()),
+        Some(Kind::Boolean(input)) => Value::Bool(input.default_value),
+        Some(Kind::Number(input)) => Value::from(input.default_value),
+        Some(Kind::Nested(nested)) => form_defaults(&nested.fields),
+        Some(Kind::Repeated(_)) => Value::Array(Vec::new()),
+        Some(Kind::KeyValueMap(_)) => Value::Object(serde_json::Map::new()),
+        None => Value::Null,
+    }
+}
+
+fn form_value<'a>(values: &'a Value, field_id: &str) -> &'a Value {
+    values
+        .get(field_id)
+        .or_else(|| {
+            if field_id.contains('.') {
+                Some(ProtoPaths::get(values, field_id))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(&Value::Null)
+}
+
+fn form_value_text(field: &FormField, value: &Value) -> String {
+    match field.kind.as_ref() {
+        Some(Kind::Masked(_)) => {
+            if value.as_str().is_some_and(|text| !text.is_empty()) {
+                "••••••".to_string()
+            } else {
+                "(empty)".to_string()
+            }
+        }
+        Some(Kind::Nested(_)) => "(nested object)".to_string(),
+        Some(Kind::Repeated(_)) => match value.as_array() {
+            Some(items) => format!("{} item{}", items.len(), if items.len() == 1 { "" } else { "s" }),
+            None => "(list)".to_string(),
+        },
+        Some(Kind::KeyValueMap(_)) => match value.as_object() {
+            Some(entries) => format!("{} entr{}", entries.len(), if entries.len() == 1 { "y" } else { "ies" }),
+            None => "(map)".to_string(),
+        },
+        _ => {
+            let text = format_value(value, meridian_uiview::proto::ColumnFormat::Unspecified);
+            if text.is_empty() { "—".to_string() } else { text }
+        }
+    }
+}
+
+fn render_form_fields(
+    lines: &mut Vec<Line<'static>>,
+    fields: &[FormField],
+    values: &Value,
+    palette: &Palette,
+    selected: &mut usize,
+    next_index: &mut usize,
+    indent: usize,
+) {
+    for field in fields {
+        let index = *next_index;
+        *next_index += 1;
+        let active = index == *selected;
+        let marker = if active { "▶ " } else { "  " };
+        let label = if field.label.is_empty() {
+            field.field_id.as_str()
+        } else {
+            field.label.as_str()
+        };
+        let prefix = " ".repeat(indent);
+        let style = if active { palette.focused() } else { palette.meta() };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{prefix}{marker}{label}: "), style),
+            Span::styled(form_value_text(field, form_value(values, &field.field_id)), palette.text()),
+        ]));
+        if !field.description.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("{prefix}   {}", field.description),
+                palette.meta(),
+            )));
+        }
+        if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
+            let nested_values = form_value(values, &field.field_id);
+            render_form_fields(
+                lines,
+                &nested.fields,
+                nested_values,
+                palette,
+                selected,
+                next_index,
+                indent + 3,
+            );
+        }
+    }
+}
+
+/// Render a FormPanel as a selectable terminal form. Scalar defaults are
+/// visible and editable through `PanelView::handle_form_key`; nested, repeated,
+/// and map fields remain visible as honest summaries until their richer row
+/// editors are added to the shared TUI interaction model.
+pub fn render_form(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &FormPanel,
+    values: &Value,
+    palette: &Palette,
+    selected: usize,
+) {
+    let mut lines = Vec::new();
+    let mode = if panel.mode == FormMode::Edit as i32 {
+        "Edit"
+    } else {
+        "Read-only"
+    };
+    let noun = if panel.item_noun.is_empty() {
+        "item"
+    } else {
+        panel.item_noun.as_str()
+    };
+    lines.push(Line::from(Span::styled(
+        format!("{mode} {noun}"),
+        palette.title(),
+    )));
+    lines.push(Line::from(Span::styled(
+        if panel.mode == FormMode::Edit as i32 {
+            "↑/↓ select · edit scalar · Enter submit"
+        } else {
+            "read-only form"
+        },
+        palette.meta(),
+    )));
+    lines.push(Line::from(""));
+    let mut next_index = 0;
+    render_form_fields(
+        &mut lines,
+        &panel.fields,
+        values,
+        palette,
+        &mut { selected.min(panel.fields.len().saturating_sub(1)) },
+        &mut next_index,
+        0,
+    );
+    frame.render_widget(bordered(lines, palette), area);
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────

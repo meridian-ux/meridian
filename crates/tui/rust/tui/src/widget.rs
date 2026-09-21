@@ -1,8 +1,10 @@
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
-    ChartPanel, GalleryPanel, PanelDescriptor, ResourceCardPanel, TablePanel,
+    form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, PanelDescriptor,
+    ResourceCardPanel, TablePanel,
 };
 use meridian_uiview::{render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder};
+use crossterm::event::KeyCode;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
@@ -28,6 +30,7 @@ pub struct PanelView {
     cached_gallery: Option<CachedGallery>,
     cached_record: Option<CachedRecord>,
     cached_resource_cards: Option<CachedResourceCards>,
+    cached_form: Option<CachedForm>,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -64,6 +67,20 @@ struct CachedResourceCards {
     error: Option<String>,
 }
 
+struct CachedForm {
+    values: serde_json::Value,
+    error: Option<String>,
+}
+
+/// Result emitted when an inline editable FormPanel is submitted. The host
+/// owns the actual transport and decides how to surface the RPC response.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FormSubmission {
+    pub service: String,
+    pub method: String,
+    pub request: serde_json::Value,
+}
+
 impl PanelView {
     pub fn new() -> Self {
         Self {
@@ -72,6 +89,7 @@ impl PanelView {
             cached_gallery: None,
             cached_record: None,
             cached_resource_cards: None,
+            cached_form: None,
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -89,6 +107,7 @@ impl PanelView {
             cached_gallery: None,
             cached_record: None,
             cached_resource_cards: None,
+            cached_form: None,
             table_state: TableState::default(),
             palette,
             content_selected: 0,
@@ -109,6 +128,7 @@ impl PanelView {
         self.cached_gallery = None;
         self.cached_record = None;
         self.cached_resource_cards = None;
+        self.cached_form = None;
     }
 
     pub fn select_next(&mut self) {
@@ -246,12 +266,23 @@ impl PanelView {
                     );
                 }
             }
-            Some(Body::Form(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Form panels (entity detail sections): not yet supported in the TUI renderer.",
-            ),
+            Some(Body::Form(panel)) => {
+                self.populate_form_if_needed(panel, context, invoker);
+                let cached = self.cached_form.as_ref().unwrap();
+                if let Some(error) = cached.error.as_deref() {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                } else {
+                    self.content_len = panel.fields.len();
+                    content::render_form(
+                        frame,
+                        content_area,
+                        panel,
+                        &cached.values,
+                        &self.palette,
+                        self.content_selected,
+                    );
+                }
+            }
             Some(Body::DetailHeader(panel)) => {
                 self.populate_record_if_needed(panel.populate.as_ref(), context, invoker);
                 let cached = self.cached_record.as_ref().unwrap();
@@ -547,6 +578,81 @@ impl PanelView {
                 });
             }
         }
+    }
+
+    fn populate_form_if_needed<I: RpcInvoker>(
+        &mut self,
+        panel: &FormPanel,
+        context: &Context,
+        invoker: &I,
+    ) {
+        if self.cached_form.is_some() {
+            return;
+        }
+        let mut values = content::form_defaults(&panel.fields);
+        if panel.mode == FormMode::Edit as i32 {
+            if let Some(prefill) = panel.prefill.as_ref() {
+                let request = RequestBuilder::build(prefill, context);
+                match invoker.invoke(&prefill.service, &prefill.method, request) {
+                    Ok(prefill_values) if prefill_values.is_object() => {
+                        merge_form_values(&mut values, &prefill_values);
+                    }
+                    Ok(_) => {}
+                    Err(error) => {
+                        self.cached_form = Some(CachedForm {
+                            values,
+                            error: Some(format!("Failed to prefill form: {error}")),
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+        self.cached_form = Some(CachedForm { values, error: None });
+    }
+
+    /// Handle keyboard input for an inline FormPanel. Hosts may call this
+    /// after `render`; ordinary panel selection remains available through
+    /// `select_next` / `select_prev` for non-form shapes.
+    pub fn handle_form_key(
+        &mut self,
+        panel: &FormPanel,
+        context: &Context,
+        key: KeyCode,
+    ) -> Option<FormSubmission> {
+        let cached = self.cached_form.as_mut()?;
+        if panel.fields.is_empty() {
+            return None;
+        }
+        let selected = self.content_selected.min(panel.fields.len() - 1);
+        match key {
+            KeyCode::Down | KeyCode::Tab => {
+                self.content_selected = (selected + 1) % panel.fields.len();
+            }
+            KeyCode::Up | KeyCode::BackTab => {
+                self.content_selected = (selected + panel.fields.len() - 1) % panel.fields.len();
+            }
+            KeyCode::Enter if panel.mode == FormMode::Edit as i32 => {
+                let Some(submit) = panel.submit.as_ref() else {
+                    return None;
+                };
+                let mut submit_context = context.clone();
+                submit_context.form_values = form_values_by_id(&panel.fields, &cached.values);
+                let mut request = RequestBuilder::build(submit, &submit_context);
+                merge_form_request(&mut request, &panel.fields, &cached.values);
+                return Some(FormSubmission {
+                    service: submit.service.clone(),
+                    method: submit.method.clone(),
+                    request,
+                });
+            }
+            code => {
+                if let Some(field) = panel.fields.get(selected) {
+                    edit_form_field(field, &mut cached.values, code);
+                }
+            }
+        }
+        None
     }
 
     fn render_table(
