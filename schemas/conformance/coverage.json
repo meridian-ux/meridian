@@ -574,8 +574,8 @@
           "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The HTML kit renders video, audio, and image media with poster, captions, chapters, and alt fallback semantics."
         },
         "shadcn-kit": {
           "status": "missing",
