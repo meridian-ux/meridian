@@ -59,7 +59,10 @@ export const shadcnKit: ComponentKit = {
   id: "shadcn",
   themeToStyle,
   Chrome: ({ descriptor, children }) => (
-    <section className="rounded-lg border bg-card text-card-foreground shadow-sm">
+    <section
+      className="rounded-lg border bg-card text-card-foreground shadow-sm"
+      data-panel={descriptor.panelId}
+    >
       <header className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold leading-none tracking-tight">
           {descriptor.title || descriptor.panelId}

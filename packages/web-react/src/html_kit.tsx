@@ -51,7 +51,11 @@ export const htmlKit: ComponentKit = {
   id: "html",
   themeToStyle,
   Chrome: ({ descriptor, children }) => (
-    <section className="mer-panel" style={themeToStyle(undefined)}>
+    <section
+      className="mer-panel"
+      data-panel={descriptor.panelId}
+      style={themeToStyle(undefined)}
+    >
       <h2 className="mer-panel-title">{descriptor.title || descriptor.panelId}</h2>
       {children}
     </section>

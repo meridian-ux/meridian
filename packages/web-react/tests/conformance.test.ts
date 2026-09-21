@@ -87,6 +87,7 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
       const html = render(fx.descriptor);
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
+      expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
     });
   }
 
@@ -134,6 +135,7 @@ describe("Swap B — shadcnKit renders the same fixtures, different look", () =>
       const html = renderWith(shadcnKit, fx.descriptor);
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
+      expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
     });
   }
 
