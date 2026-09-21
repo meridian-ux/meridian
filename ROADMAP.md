@@ -35,12 +35,12 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
 |---|---|---|---|---|---|---|---|
 | `table` | standard | ● | ● | ● | ● | ● | ● |
-| `lro` | standard | ● | ● | ● | ● | ● | ● |
+| `lro` | standard | ● | ● | ● | ● | ● | ◐ |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ |
 | `prompt` | standard | ○ | ● | ● | ● | ● | ◑ |
 | `llm_prompt` | standard | ○ | ● | ○ | ● | ○ | ◑ |
-| `gallery` | standard | ○ | ● | ● | ● | ● | ◐ |
-| `form` | standard | ● | ● | ● | ● | ● | ◐ |
+| `gallery` | standard | ○ | ● | ● | ● | ● | ● |
+| `form` | standard | ● | ● | ● | ● | ● | ● |
 | `choice` | full | ● | ● | ● | ● | ● | ● |
 | `snippet` | full | ● | ● | ● | ● | ● | ● |
 | `action` | full | ● | ● | ● | ● | ● | ● |
@@ -54,16 +54,16 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `record_card` | standard | ● | ● | ● | ● | ○ | ◐ |
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
 | `chart` | specialized | ● | ● | ● | ● | ● | ● |
-| `steps` | full | ○ | ● | ● | ○ | ○ | ● |
+| `steps` | full | ○ | ● | ● | ○ | ● | ● |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 108 render, 30 do not.**
+**23 arms × 6 renderers = 138 cells; 110 render, 28 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 17 |
-| ◐ `placeholder` | 8 |
+| ○ `missing` | 16 |
+| ◐ `placeholder` | 7 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 
@@ -73,8 +73,8 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | web-react | 1 |
 | mui-kit | 3 |
 | html-kit | 4 |
-| shadcn-kit | 7 |
-| tui | 10 |
+| shadcn-kit | 6 |
+| tui | 9 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.

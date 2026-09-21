@@ -548,11 +548,11 @@
         "html-kit": {
           "status": "missing",
           "reason": "Not implemented in this renderer.",
+          "waiver": "kit gap \u2014 a numbered list is full-parity text."
         },
         "shadcn-kit": {
           "status": "renders",
-          "reason": "The shadcn kit renders computed numbered steps with labels, actors, detail, intro, and outro text.",
-          "waiver": "kit gap \u2014 a numbered list is full-parity text."
+          "reason": "The shadcn kit renders computed numbered steps with labels, actors, detail, intro, and outro text."
         },
         "tui": {
           "status": "renders",
