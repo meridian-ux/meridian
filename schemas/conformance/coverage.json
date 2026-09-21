@@ -487,20 +487,17 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "The React renderer fetches rows and renders metadata, status, visibility-gated actions, and confirmation controls."
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "html-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "shadcn-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders"
         },
         "tui": {
           "status": "renders",
