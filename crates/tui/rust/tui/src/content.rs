@@ -20,7 +20,7 @@
 use meridian_uiview::proto::{
     affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
     ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
-    StepsPanel,
+    StepsPanel, StreamPanel,
 };
 use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -73,6 +73,30 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
         )));
     }
     frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: true }), area);
+}
+
+/// Render the static degradation of a stream when no live stream transport is
+/// available. The panel's authored placeholder remains visible and the noun
+/// makes the waiting state understandable on a terminal surface.
+pub fn render_stream(frame: &mut Frame, area: Rect, panel: &StreamPanel, palette: &Palette) {
+    let noun = if panel.item_noun.is_empty() {
+        "stream"
+    } else {
+        &panel.item_noun
+    };
+    let text = if panel.placeholder.is_empty() {
+        format!("Waiting for {noun}…")
+    } else {
+        panel.placeholder.clone()
+    };
+    frame.render_widget(
+        Paragraph::new(Line::from(Span::styled(text, palette.meta()))).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(palette.border_style()),
+        ),
+        area,
+    );
 }
 
 // ── shared line builders ─────────────────────────────────────────────────────
@@ -1225,6 +1249,45 @@ mod tests {
         assert!(text.contains("Choose production"));
         assert!(text.contains("2. Click deploy"));
         assert!(text.contains("Deployment started"));
+    }
+
+    #[test]
+    fn stream_renders_placeholder_and_default_noun() {
+        use meridian_uiview::proto::StreamPanel;
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = StreamPanel {
+            placeholder: "Waiting for build output".into(),
+            ..Default::default()
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(48, 5)).unwrap();
+        term.draw(|f| render_stream(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("Waiting for build output"));
+
+        let panel = StreamPanel {
+            item_noun: "events".into(),
+            ..Default::default()
+        };
+        let mut term = Terminal::new(TestBackend::new(48, 5)).unwrap();
+        term.draw(|f| render_stream(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("Waiting for events"));
     }
 
     // Concatenate a Line's span contents for assertions.

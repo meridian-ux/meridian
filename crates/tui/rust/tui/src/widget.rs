@@ -296,12 +296,10 @@ impl PanelView {
                 self.content_len = panel.steps.len();
                 content::render_steps(frame, chunks[2], panel, &self.palette);
             }
-            Some(Body::Stream(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Stream panels (log tail): full-parity text — TUI renderer owed (uiview-core#3).",
-            ),
+            Some(Body::Stream(panel)) => {
+                self.content_len = 0;
+                content::render_stream(frame, chunks[2], panel, &self.palette);
+            }
             // Media is legitimately degraded here: a moving picture is not text,
             // so the terminal is outside its Accept set by construction.
             Some(Body::Media(panel)) => self.render_placeholder(
