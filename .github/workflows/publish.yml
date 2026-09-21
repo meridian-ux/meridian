@@ -56,6 +56,8 @@ jobs:
       # input that was previously correct into a conflict.
       - uses: pnpm/action-setup@v4
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - uses: bazel-contrib/setup-bazel@0.9.0
         with:
           bazelisk-cache: true
@@ -117,6 +119,23 @@ jobs:
           fi
           echo "dist-tag: $TAG"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      # A tag can be pushed without relying on a particular pull request having
+      # been the source of the checkout. Repeat the repository truth gates here,
+      # before any build or publish action, so a release cannot outrun parity,
+      # catalog, test-floor, or runtime verification.
+      - name: Release contract gates
+        run: |
+          set -euo pipefail
+          node schemas/tools/check_coverage.mjs
+          node schemas/tools/check_renderer_catalog.mjs
+          node schemas/tools/check_test_floor.mjs
+          python3 tools/publish_manifests.py --check
+          python3 -m unittest tools/test_publish_manifests.py
+          pnpm -r --filter './packages/**' test
+          cargo test --workspace --all-targets
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo fmt --all -- --check
 
       - name: Build the packages
         run: |

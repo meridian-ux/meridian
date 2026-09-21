@@ -135,7 +135,8 @@ declared in [`schemas/conformance/test_floor.json`](schemas/conformance/test_flo
 and checked by [`schemas/tools/check_test_floor.mjs`](schemas/tools/check_test_floor.mjs).
 [#15](../../issues/15) closes the release-engineering items the monorepo merge left deliberately open — the
 uncommitted lockfile, the `bats` fetch that reddens CI without being used, the
-tectonic targets, `--action_env=HOME`. [#16](../../issues/16) decides the publish
+tectonic targets, `--action_env=HOME`. The publish workflow now repeats the parity,
+catalog, test-floor, package-test, and Rust gates before any publish action. [#16](../../issues/16) decides the publish
 surface and moves the registry admission ratchet into CI, where 0.25.0's regression
 would have failed a pull request instead of a release. [#17](../../issues/17) treats
 the descriptor boundary as untrusted, because the playground's own README says it is.
