@@ -80,7 +80,11 @@ impl PanelView {
             if n == 0 {
                 return;
             }
-            let i = self.table_state.selected().map(|i| (i + 1) % n).unwrap_or(0);
+            let i = self
+                .table_state
+                .selected()
+                .map(|i| (i + 1) % n)
+                .unwrap_or(0);
             self.table_state.select(Some(i));
         } else if self.content_len > 0 {
             // Content shapes (Choice / ConnectFlow) — advance the target cursor.
@@ -149,10 +153,7 @@ impl PanelView {
         .split(area);
 
         // Header.
-        let title = Paragraph::new(Span::styled(
-            descriptor.title.clone(),
-            self.palette.title(),
-        ));
+        let title = Paragraph::new(Span::styled(descriptor.title.clone(), self.palette.title()));
         frame.render_widget(title, chunks[0]);
 
         // Content shapes use the whole region below the header; reset the
@@ -365,7 +366,12 @@ impl PanelView {
             .rows
             .iter()
             .map(|r| {
-                Row::new(r.cells.iter().map(|c| Cell::from(c.clone())).collect::<Vec<_>>())
+                Row::new(
+                    r.cells
+                        .iter()
+                        .map(|c| Cell::from(c.clone()))
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect();
 

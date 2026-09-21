@@ -18,8 +18,8 @@
 //   * Catalog       → a list, one row per item (name · state — description).
 
 use meridian_uiview::proto::{
-    affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChoicePanel, ConnectFlowPanel,
-    CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel, ChartPanel,
+    affordance::Invoke, Affordance, AffordanceStyle, CatalogPanel, ChartPanel, ChoicePanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, GrammarPanel, Snippet, SnippetPanel, StatPanel,
 };
 use meridian_uiview::{compute_stat, trend_arrow, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -72,7 +72,10 @@ fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
     // where an Affordance appears without an ActionPanel wrapper (CatalogItem,
     // ConnectTarget).
     if !a.description.is_empty() {
-        spans.push(Span::styled(format!("  — {}", a.description), palette.meta()));
+        spans.push(Span::styled(
+            format!("  — {}", a.description),
+            palette.meta(),
+        ));
     }
     Line::from(spans)
 }
@@ -115,7 +118,11 @@ fn copy_value_line(v: &CopyValue, palette: &Palette, revealed: bool) -> Line<'st
     spans.push(Span::styled(shown, palette.value()));
     spans.push(Span::styled("   [c] copy".to_string(), palette.meta()));
     if v.secret {
-        let hint = if revealed { "  [r] hide" } else { "  [r] reveal" };
+        let hint = if revealed {
+            "  [r] hide"
+        } else {
+            "  [r] reveal"
+        };
         spans.push(Span::styled(hint.to_string(), palette.meta()));
     }
     Line::from(spans)
@@ -125,24 +132,43 @@ fn copy_value_line(v: &CopyValue, palette: &Palette, revealed: bool) -> Line<'st
 
 /// Render a ChoicePanel as an arrow-key list. `selected` is the active option
 /// index (wraps via the host's select_next/prev, mirroring table selection).
-pub fn render_choice(frame: &mut Frame, area: Rect, panel: &ChoicePanel, palette: &Palette, selected: usize) {
+pub fn render_choice(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ChoicePanel,
+    palette: &Palette,
+    selected: usize,
+) {
     let mut lines: Vec<Line> = Vec::new();
     if !panel.prompt.is_empty() {
-        lines.push(Line::from(Span::styled(panel.prompt.clone(), palette.meta())));
+        lines.push(Line::from(Span::styled(
+            panel.prompt.clone(),
+            palette.meta(),
+        )));
         lines.push(Line::from(""));
     }
     let sel = choice_selected_index(panel, selected);
     for (i, opt) in panel.options.iter().enumerate() {
         let active = i == sel;
         let marker = if active { "▶ " } else { "  " };
-        let style = if active { palette.focused() } else { palette.text() };
+        let style = if active {
+            palette.focused()
+        } else {
+            palette.text()
+        };
         let mut spans = vec![Span::styled(marker, style)];
         if !opt.icon.is_empty() {
-            spans.push(Span::styled(format!("{} ", glyph(&opt.icon)), palette.meta()));
+            spans.push(Span::styled(
+                format!("{} ", glyph(&opt.icon)),
+                palette.meta(),
+            ));
         }
         spans.push(Span::styled(opt.label.clone(), style));
         if !opt.description.is_empty() {
-            spans.push(Span::styled(format!("  — {}", opt.description), palette.meta()));
+            spans.push(Span::styled(
+                format!("  — {}", opt.description),
+                palette.meta(),
+            ));
         }
         lines.push(Line::from(spans));
     }
@@ -155,15 +181,28 @@ pub fn render_snippet(frame: &mut Frame, area: Rect, panel: &SnippetPanel, palet
         .snippet
         .as_ref()
         .map(|s| snippet_lines(s, palette))
-        .unwrap_or_else(|| vec![Line::from(Span::styled("(empty snippet)".to_string(), palette.meta()))]);
+        .unwrap_or_else(|| {
+            vec![Line::from(Span::styled(
+                "(empty snippet)".to_string(),
+                palette.meta(),
+            ))]
+        });
     frame.render_widget(bordered(lines, palette), area);
 }
 
 /// Render an ActionPanel (a single Affordance + optional lead copy).
-pub fn render_action(frame: &mut Frame, area: Rect, panel: &meridian_uiview::proto::ActionPanel, palette: &Palette) {
+pub fn render_action(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &meridian_uiview::proto::ActionPanel,
+    palette: &Palette,
+) {
     let mut lines: Vec<Line> = Vec::new();
     if !panel.description.is_empty() {
-        lines.push(Line::from(Span::styled(panel.description.clone(), palette.meta())));
+        lines.push(Line::from(Span::styled(
+            panel.description.clone(),
+            palette.meta(),
+        )));
         lines.push(Line::from(""));
     }
     if let Some(a) = panel.action.as_ref() {
@@ -212,13 +251,24 @@ pub fn render_catalog(
         frame.render_widget(bordered(lines, palette), area);
         return;
     }
-    let sel = if panel.items.is_empty() { 0 } else { selected % panel.items.len() };
+    let sel = if panel.items.is_empty() {
+        0
+    } else {
+        selected % panel.items.len()
+    };
     for (i, item) in panel.items.iter().enumerate() {
         let active = i == sel;
-        let name_style = if active { palette.focused() } else { palette.header() };
+        let name_style = if active {
+            palette.focused()
+        } else {
+            palette.header()
+        };
         let mut head = vec![Span::styled(if active { "▶ " } else { "  " }, name_style)];
         if !item.icon.is_empty() {
-            head.push(Span::styled(format!("{} ", glyph(&item.icon)), palette.meta()));
+            head.push(Span::styled(
+                format!("{} ", glyph(&item.icon)),
+                palette.meta(),
+            ));
         }
         head.push(Span::styled(item.name.clone(), name_style));
         if !item.state.is_empty() {
@@ -278,7 +328,10 @@ pub fn render_connect_flow(
     if panel.targets.is_empty() {
         let mut lines: Vec<Line> = Vec::new();
         if !panel.prompt.is_empty() {
-            lines.push(Line::from(Span::styled(panel.prompt.clone(), palette.meta())));
+            lines.push(Line::from(Span::styled(
+                panel.prompt.clone(),
+                palette.meta(),
+            )));
         }
         if let Some(v) = panel.endpoint.as_ref() {
             lines.push(copy_value_line(v, palette, revealed));
@@ -298,7 +351,10 @@ pub fn render_connect_flow(
     // Top: prompt + endpoint chip.
     let mut top: Vec<Line> = Vec::new();
     if !panel.prompt.is_empty() {
-        top.push(Line::from(Span::styled(panel.prompt.clone(), palette.meta())));
+        top.push(Line::from(Span::styled(
+            panel.prompt.clone(),
+            palette.meta(),
+        )));
     }
     if let Some(v) = panel.endpoint.as_ref() {
         top.push(copy_value_line(v, palette, revealed));
@@ -313,7 +369,11 @@ pub fn render_connect_flow(
     let mut list: Vec<Line> = Vec::new();
     for (i, t) in panel.targets.iter().enumerate() {
         let active = i == sel;
-        let style = if active { palette.focused() } else { palette.text() };
+        let style = if active {
+            palette.focused()
+        } else {
+            palette.text()
+        };
         let mut spans = vec![Span::styled(if active { "▶ " } else { "  " }, style)];
         if !t.icon.is_empty() {
             spans.push(Span::styled(format!("{} ", glyph(&t.icon)), palette.meta()));
@@ -329,7 +389,10 @@ pub fn render_connect_flow(
         let name = if t.name.is_empty() { &t.label } else { &t.name };
         detail.push(Line::from(Span::styled(name.clone(), palette.title())));
         if !t.description.is_empty() {
-            detail.push(Line::from(Span::styled(t.description.clone(), palette.meta())));
+            detail.push(Line::from(Span::styled(
+                t.description.clone(),
+                palette.meta(),
+            )));
         }
         for a in &t.actions {
             detail.push(affordance_line(a, palette));
@@ -352,7 +415,11 @@ pub fn choice_selected_index(panel: &ChoicePanel, selected: usize) -> usize {
     // Honor default_option_id when the host hasn't moved the cursor (selected 0
     // and a default is set to a non-first option).
     if selected == 0 && !panel.default_option_id.is_empty() {
-        if let Some(i) = panel.options.iter().position(|o| o.id == panel.default_option_id) {
+        if let Some(i) = panel
+            .options
+            .iter()
+            .position(|o| o.id == panel.default_option_id)
+        {
             return i;
         }
     }
@@ -365,7 +432,11 @@ pub fn connect_selected_index(panel: &ConnectFlowPanel, selected: usize) -> usiz
         return 0;
     }
     if selected == 0 && !panel.default_target_id.is_empty() {
-        if let Some(i) = panel.targets.iter().position(|t| t.id == panel.default_target_id) {
+        if let Some(i) = panel
+            .targets
+            .iter()
+            .position(|t| t.id == panel.default_target_id)
+        {
             return i;
         }
     }
@@ -400,15 +471,26 @@ pub fn render_grammar(frame: &mut Frame, area: Rect, panel: &GrammarPanel, palet
     let lang = grammar_language_name(panel.language);
     let mut lines: Vec<Line> = Vec::new();
     if !panel.title.is_empty() {
-        lines.push(Line::from(Span::styled(panel.title.clone(), palette.title())));
+        lines.push(Line::from(Span::styled(
+            panel.title.clone(),
+            palette.title(),
+        )));
     }
     match lang {
         "markdown" => lines.extend(markdown_lines(&panel.source, palette)),
         "vega-lite" | "vega" => match extract_series(&panel.source) {
             Some(series) => {
-                lines.push(Line::from(Span::styled(sparkline(&series), palette.accent_line())));
                 lines.push(Line::from(Span::styled(
-                    format!("{} points  min {}  max {}", series.len(), fmt_num(min(&series)), fmt_num(max(&series))),
+                    sparkline(&series),
+                    palette.accent_line(),
+                )));
+                lines.push(Line::from(Span::styled(
+                    format!(
+                        "{} points  min {}  max {}",
+                        series.len(),
+                        fmt_num(min(&series)),
+                        fmt_num(max(&series))
+                    ),
                     palette.meta(),
                 )));
             }
@@ -417,7 +499,10 @@ pub fn render_grammar(frame: &mut Frame, area: Rect, panel: &GrammarPanel, palet
         _ => lines.extend(grammar_ladder(panel, lang, palette)),
     }
     if !panel.caption.is_empty() {
-        lines.push(Line::from(Span::styled(panel.caption.clone(), palette.meta())));
+        lines.push(Line::from(Span::styled(
+            panel.caption.clone(),
+            palette.meta(),
+        )));
     }
     frame.render_widget(bordered(lines, palette), area);
 }
@@ -429,7 +514,10 @@ fn grammar_ladder(panel: &GrammarPanel, lang: &str, palette: &Palette) -> Vec<Li
         out.push(Line::from(Span::styled(panel.alt.clone(), palette.text())));
     } else {
         let label = if lang.is_empty() { "source" } else { lang };
-        out.push(Line::from(Span::styled(format!("[{label}]"), palette.meta())));
+        out.push(Line::from(Span::styled(
+            format!("[{label}]"),
+            palette.meta(),
+        )));
         for line in panel.source.lines() {
             out.push(Line::from(Span::styled(line.to_string(), palette.value())));
         }
@@ -481,7 +569,10 @@ fn inline_md(text: &str, palette: &Palette) -> Vec<Span<'static>> {
         if text[i..].starts_with("**") {
             if let Some(end) = text[i + 2..].find("**") {
                 flush(&mut plain, &mut spans);
-                spans.push(Span::styled(text[i + 2..i + 2 + end].to_string(), palette.header()));
+                spans.push(Span::styled(
+                    text[i + 2..i + 2 + end].to_string(),
+                    palette.header(),
+                ));
                 i += 2 + end + 2;
                 continue;
             }
@@ -489,7 +580,10 @@ fn inline_md(text: &str, palette: &Palette) -> Vec<Span<'static>> {
         if bytes[i] == b'`' {
             if let Some(end) = text[i + 1..].find('`') {
                 flush(&mut plain, &mut spans);
-                spans.push(Span::styled(text[i + 1..i + 1 + end].to_string(), palette.value()));
+                spans.push(Span::styled(
+                    text[i + 1..i + 1 + end].to_string(),
+                    palette.value(),
+                ));
                 i += 1 + end + 1;
                 continue;
             }
@@ -510,7 +604,11 @@ fn sparkline(series: &[f64]) -> String {
     }
     let lo = min(series);
     let hi = max(series);
-    let span = if (hi - lo).abs() < f64::EPSILON { 1.0 } else { hi - lo };
+    let span = if (hi - lo).abs() < f64::EPSILON {
+        1.0
+    } else {
+        hi - lo
+    };
     series
         .iter()
         .map(|v| {
@@ -564,7 +662,10 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
     let c = compute_stat(panel);
     let mut lines: Vec<Line> = Vec::new();
     // Label.
-    lines.push(Line::from(Span::styled(panel.label.clone(), palette.meta())));
+    lines.push(Line::from(Span::styled(
+        panel.label.clone(),
+        palette.meta(),
+    )));
     // Value + delta badge.
     let mut value_spans = vec![Span::styled(c.formatted_value.clone(), palette.title())];
     if let Some(delta) = &c.formatted_delta {
@@ -585,11 +686,17 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
     lines.push(Line::from(value_spans));
     // Sparkline.
     if !c.series.is_empty() {
-        lines.push(Line::from(Span::styled(sparkline(&c.series), palette.accent_line())));
+        lines.push(Line::from(Span::styled(
+            sparkline(&c.series),
+            palette.accent_line(),
+        )));
     }
     // Caption.
     if !panel.caption.is_empty() {
-        lines.push(Line::from(Span::styled(panel.caption.clone(), palette.meta())));
+        lines.push(Line::from(Span::styled(
+            panel.caption.clone(),
+            palette.meta(),
+        )));
     }
     frame.render_widget(bordered(lines, palette), area);
 }
@@ -599,16 +706,34 @@ pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &P
 /// values to a future invoker-aware chart widget.
 pub fn render_chart(frame: &mut Frame, area: Rect, panel: &ChartPanel, palette: &Palette) {
     let Some(chart) = panel.chart.as_ref() else {
-        frame.render_widget(bordered(vec![Line::from("Empty chart descriptor")], palette), area);
+        frame.render_widget(
+            bordered(vec![Line::from("Empty chart descriptor")], palette),
+            area,
+        );
         return;
     };
-    let title = if chart.title.is_empty() { "Chart" } else { &chart.title };
-    let x = chart.x.as_ref().map(|e| e.field_name.as_str()).unwrap_or("category");
-    let y = chart.y.as_ref().map(|e| e.field_name.as_str()).unwrap_or("value");
+    let title = if chart.title.is_empty() {
+        "Chart"
+    } else {
+        &chart.title
+    };
+    let x = chart
+        .x
+        .as_ref()
+        .map(|e| e.field_name.as_str())
+        .unwrap_or("category");
+    let y = chart
+        .y
+        .as_ref()
+        .map(|e| e.field_name.as_str())
+        .unwrap_or("value");
     let lines = vec![
         Line::from(Span::styled(title.to_owned(), palette.title())),
         Line::from(Span::styled(format!("{} by {}", y, x), palette.meta())),
-        Line::from(Span::styled("Chart data is available to an invoker-aware host.", palette.meta())),
+        Line::from(Span::styled(
+            "Chart data is available to an invoker-aware host.",
+            palette.meta(),
+        )),
     ];
     frame.render_widget(bordered(lines, palette), area);
 }
@@ -684,8 +809,18 @@ mod tests {
         use meridian_uiview::proto::ChoiceOption;
         let panel = ChoicePanel {
             options: vec![
-                ChoiceOption { id: "a".into(), label: "A".into(), description: String::new(), icon: String::new() },
-                ChoiceOption { id: "b".into(), label: "B".into(), description: String::new(), icon: String::new() },
+                ChoiceOption {
+                    id: "a".into(),
+                    label: "A".into(),
+                    description: String::new(),
+                    icon: String::new(),
+                },
+                ChoiceOption {
+                    id: "b".into(),
+                    label: "B".into(),
+                    description: String::new(),
+                    icon: String::new(),
+                },
             ],
             default_option_id: "b".into(),
             style: 0,
@@ -706,7 +841,12 @@ mod tests {
     #[test]
     fn copy_value_masks_secret_until_revealed_but_still_carries_plaintext() {
         let palette = Palette::default();
-        let secret = CopyValue { value: "sk-123".into(), label: "Token".into(), secret: true, help: String::new() };
+        let secret = CopyValue {
+            value: "sk-123".into(),
+            label: "Token".into(),
+            secret: true,
+            help: String::new(),
+        };
         // Masked when not revealed; plaintext when revealed. (`value` is always the
         // source the host copies via OSC52.)
         let masked = line_text(&copy_value_line(&secret, &palette, false));
@@ -805,7 +945,10 @@ mod tests {
         assert!(t.contains("flowchart A to B"));
         assert!(!t.contains("graph TD")); // alt wins, source not shown
 
-        let no_alt = GrammarPanel { alt: String::new(), ..with_alt };
+        let no_alt = GrammarPanel {
+            alt: String::new(),
+            ..with_alt
+        };
         let t2: String = grammar_ladder(&no_alt, "mermaid", &palette)
             .iter()
             .map(line_text)
@@ -836,7 +979,8 @@ mod tests {
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_stat(f, f.area(), &panel, &palette)).unwrap();
+        term.draw(|f| render_stat(f, f.area(), &panel, &palette))
+            .unwrap();
         let text: String = term
             .backend()
             .buffer()
@@ -858,15 +1002,28 @@ mod tests {
         let panel = ChartPanel {
             chart: Some(ChartSpec {
                 title: "Latency".into(),
-                x: Some(Encoding { field_name: "service".into(), ..Default::default() }),
-                y: Some(Encoding { field_name: "p95".into(), ..Default::default() }),
+                x: Some(Encoding {
+                    field_name: "service".into(),
+                    ..Default::default()
+                }),
+                y: Some(Encoding {
+                    field_name: "p95".into(),
+                    ..Default::default()
+                }),
                 ..Default::default()
             }),
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_chart(f, f.area(), &panel, &palette)).unwrap();
-        let text: String = term.backend().buffer().content.iter().map(|c| c.symbol()).collect();
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
         assert!(text.contains("Latency"));
         assert!(text.contains("p95 by service"));
     }
