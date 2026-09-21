@@ -174,7 +174,12 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
     if value_type == ValueType::Date || text.len() == 10 {
-        return Some(format!("{} {}, {}", months[(month - 1) as usize], day, year));
+        return Some(format!(
+            "{} {}, {}",
+            months[(month - 1) as usize],
+            day,
+            year
+        ));
     }
     if text.len() < 16 || !matches!(text.as_bytes().get(10), Some(b'T' | b' ')) {
         return None;
@@ -191,7 +196,12 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     };
     Some(format!(
         "{} {}, {}, {}:{:02} {} UTC",
-        months[(month - 1) as usize], day, year, display_hour, minute, suffix
+        months[(month - 1) as usize],
+        day,
+        year,
+        display_hour,
+        minute,
+        suffix
     ))
 }
 
@@ -312,7 +322,10 @@ mod tests {
             r#type: ValueType::Date as i32,
             options: None,
         };
-        assert_eq!(format_display_value(&json!("2026-03-29"), &date), "Mar 29, 2026");
+        assert_eq!(
+            format_display_value(&json!("2026-03-29"), &date),
+            "Mar 29, 2026"
+        );
 
         let date_time = ValueDisplay {
             r#type: ValueType::DateTime as i32,
@@ -322,7 +335,10 @@ mod tests {
             format_display_value(&json!("2026-03-21T09:14:00Z"), &date_time),
             "Mar 21, 2026, 9:14 AM UTC"
         );
-        assert_eq!(format_display_value(&json!("not-a-date"), &date_time), "not-a-date");
+        assert_eq!(
+            format_display_value(&json!("not-a-date"), &date_time),
+            "not-a-date"
+        );
     }
 
     #[test]
