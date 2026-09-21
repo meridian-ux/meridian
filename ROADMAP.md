@@ -55,14 +55,14 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
 | `chart` | specialized | ● | ● | ● | ● | ● | ● |
 | `steps` | full | ○ | ● | ● | ○ | ● | ● |
-| `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
+| `media` | specialized | ○ | ● | ● | ● | ○ | ◐ |
 | `stream` | full | ● | ● | ● | ● | ● | ◐ |
 
-**23 arms × 6 renderers = 138 cells; 114 render, 24 do not.**
+**23 arms × 6 renderers = 138 cells; 115 render, 23 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 13 |
+| ○ `missing` | 12 |
 | ◐ `placeholder` | 6 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
@@ -72,7 +72,7 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | web-components | 5 |
 | web-react | 1 |
 | mui-kit | 3 |
-| html-kit | 4 |
+| html-kit | 3 |
 | shadcn-kit | 3 |
 | tui | 8 |
 <!-- matrix:end -->
