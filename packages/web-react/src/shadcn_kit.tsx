@@ -32,6 +32,7 @@ import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
+import { StepMedia } from "./step_media.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -261,7 +262,7 @@ export const shadcnKit: ComponentKit = {
               {step.actor && <span className="text-xs text-muted-foreground">{step.actor}</span>}
             </div>
             {step.detail && <p className="mt-1 text-sm text-muted-foreground">{step.detail}</p>}
-            {!step.detail && step.mediaAlt && <p className="mt-1 text-sm text-muted-foreground">{step.mediaAlt}</p>}
+            <StepMedia step={step} className="mt-3 rounded-md border" fallbackClassName="mt-1 text-sm text-muted-foreground" />
           </li>
         ))}
       </ol>

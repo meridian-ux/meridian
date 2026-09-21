@@ -233,6 +233,7 @@ section aria-label="Steps"
       "Admin"
       p
         "The list of every employer your organization administers."
+      img alt="The sponsors list" src="/evidence/sponsors.png"
     li
       "2."
       "Add a new sponsor"
@@ -516,6 +517,7 @@ ol
     "(Admin)"
     p
       "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
   li
     "Add a new sponsor"
     "(Admin)"

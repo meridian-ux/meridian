@@ -28,6 +28,7 @@ import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
+import { StepMedia } from "./step_media.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -272,9 +273,8 @@ export const htmlKit: ComponentKit = {
               {step.label}
               {step.actor && <span className="mer-step-actor"> ({step.actor})</span>}
             </div>
-            {(step.detail || step.mediaAlt) && (
-              <p className="mer-step-detail">{step.detail || step.mediaAlt}</p>
-            )}
+            {step.detail && <p className="mer-step-detail">{step.detail}</p>}
+            <StepMedia step={step} className="mer-step-media" fallbackClassName="mer-step-detail" />
           </li>
         ))}
       </ol>
