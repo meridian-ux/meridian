@@ -426,7 +426,10 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
             descriptor.title
         );
         if *expected == "(unset)" {
-            assert!(output.contains("(no body set)"), "empty fixture lost its degradation");
+            assert!(
+                output.contains("(no body set)"),
+                "empty fixture lost its degradation"
+            );
         } else {
             assert!(
                 !output.contains("(no body set)"),
