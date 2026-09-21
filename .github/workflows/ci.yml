@@ -77,6 +77,9 @@ jobs:
       - name: Published manifests are current
         run: python3 tools/publish_manifests.py --check
 
+      - name: Published manifest transformation tests
+        run: python3 -m unittest tools/test_publish_manifests.py
+
       # check_versions.py is RETIRED, not moved. It compared
       # schemas.package.json and proto-ts.package.json against MODULE.bazel's
       # version and against each other — a detector for drift between manifests
