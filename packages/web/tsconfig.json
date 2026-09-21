@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "declaration": true,
     "skipLibCheck": true,
-    "rootDir": ".",
+    "rootDir": "../..",
     "baseUrl": ".",
     "types": []
   },

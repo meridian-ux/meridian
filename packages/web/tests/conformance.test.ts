@@ -11,11 +11,12 @@ import { fromBinary } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import { adhocFixture, tableFixture } from "./fixtures.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 
 // A mock wasm that validates the binpb it receives (fromBinary throws on bad
 // bytes) and returns canned data.
@@ -52,6 +53,31 @@ const EMPTY_CTX = {
   formValues: {},
 };
 
+// xterm's terminal realization is part of the web renderer's documented
+// degradation ladder, so the shared corpus reaches it too. jsdom has no
+// matchMedia, which xterm uses while opening its DOM renderer; provide the
+// smallest browser seam needed for this test without pretending to exercise
+// layout or a real terminal connection.
+beforeAll(() => {
+  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    configurable: true,
+    value: () => null,
+  });
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: () => ({
+      matches: false,
+      media: "",
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
+});
+
 describe("renderPanel (web-components, binary boundary)", () => {
   it("renders a TablePanel: header, columns, and rows from the wasm", async () => {
     const root = document.createElement("div");
@@ -85,4 +111,38 @@ describe("renderPanel (web-components, binary boundary)", () => {
     });
     expect(received).toBe("custom"); // the factory got the canonical PanelDescriptor
   });
+
+  // The neutral corpus is deliberately rendered through the same web surface
+  // as the focused tests above. A header alone would only prove that the
+  // outer shell mounted; the meta assertion catches a fixture that falls
+  // through the dispatch ladder into the generic no-body path. Shapes without
+  // a host capability still pass through their documented degradation (for
+  // example, StreamPanel reports that this surface is not live).
+  for (const fixture of FIXTURES) {
+    it(`renders the canonical ${fixture.name} fixture`, async () => {
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: mockWasm,
+        root,
+        descriptor: fixture.descriptor,
+        invoker: { invoke: async () => ({}) },
+        context: EMPTY_CTX,
+        adhocFactories: {
+          "overview-dashboard": (_slot, descriptor) => {
+            _slot.dataset.panel = descriptor.panelId;
+          },
+        },
+      });
+
+      expect(root.querySelector(".meridian-uiview-header")?.textContent).toBe(
+        fixture.descriptor.title,
+      );
+      const meta = root.querySelector(".meridian-uiview-meta")?.textContent;
+      if (fixture.shape === "(unset)") {
+        expect(meta).toBe("(no body set)");
+      } else {
+        expect(meta).not.toBe("(no body set)");
+      }
+    });
+  }
 });
