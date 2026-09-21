@@ -13,7 +13,7 @@ import { useContext, type ReactNode } from "react";
 import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import { formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "../display_format.js";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
@@ -70,9 +70,9 @@ export function MeridianDetailHeader({
       label: row.label,
       raw: row.raw,
       display: row.display,
-      principalHref: (() => {
-        const principal = resolvePrincipalLink(row.raw, row.display);
-        return principal ? resolveHref?.(principal.targetKind, principal.id) : undefined;
+      valueHref: (() => {
+        const link = resolveValueLink(row.raw, row.display);
+        return link ? resolveHref?.(link.targetKind, link.id) : undefined;
       })(),
       ...formatByDisplay(row.raw, row.display, now),
     }));
@@ -111,11 +111,11 @@ export function MeridianDetailHeader({
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   {row.label}
                 </Typography>
-                {row.principalHref || isSafeHttpUrl(row.raw, row.display) ? (
+                {row.valueHref || (!row.display?.link && isSafeHttpUrl(row.raw, row.display)) ? (
                   <Link
-                    href={row.principalHref ?? row.text}
-                    target={row.principalHref ? undefined : "_blank"}
-                    rel={row.principalHref ? undefined : "noreferrer noopener"}
+                    href={row.valueHref || row.text}
+                    target={row.valueHref ? undefined : "_blank"}
+                    rel={row.valueHref ? undefined : "noreferrer noopener"}
                     underline="hover"
                     title={row.title}
                   >

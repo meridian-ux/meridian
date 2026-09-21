@@ -96,9 +96,10 @@ message EnumOption {
 // additively, exactly as TableColumn.format will. Two names for one idea is the
 // cost of not breaking consumers today; it should not outlive the migration.
 //
-// Deliberately NOT here yet: the link half. `ColumnLink` remains table-only; the
-// header names links as a resident too, and PrincipalOptions.link_to_record is a
-// narrow first taste. Promoting a general ValueLink is the next step.
+// `ValueLink` is the host-owned link half. It is additive to the narrow
+// PrincipalOptions.link_to_record compatibility field and to table-only
+// `ColumnLink`; producers can now state the same route intent on any declared
+// value without making a renderer invent a URL.
 message ValueDisplay {
   // What KIND of thing the value is. Unspecified ⇒ the renderer's default
   // handling (today: the raw string), so an unformatted descriptor is unchanged.
@@ -110,6 +111,20 @@ message ValueDisplay {
     NumberOptions number = 3;
     PrincipalOptions principal = 4;
   }
+  // Optional host-resolved destination for this value. A renderer passes the
+  // original scalar value and target kind to the host route resolver; absent
+  // resolver or a declined route leaves the value as plain text.
+  // Presence takes precedence over principal link options and direct URL
+  // display, even when target_kind is empty. Absence preserves legacy behavior.
+  ValueLink link = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Renders a declared value as a host-resolved link. The renderer never builds
+// a URL; the host owns lookup, authorization, and route encoding. `target_kind`
+// is required in practice because a display label cannot safely identify an
+// entity type. Empty target kinds decline to link.
+message ValueLink {
+  string target_kind = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // The semantic kind of a value. Names describe MEANING, not a widget: a renderer

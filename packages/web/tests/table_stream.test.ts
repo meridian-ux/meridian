@@ -47,6 +47,42 @@ function wasmWith(rows: RenderedRow[]): UiviewWasm {
 
 const CTX = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 
+describe.each(["recordCard", "detailHeader"] as const)("%s explicit URL ValueLink", (shape) => {
+  it.each(["resolved", "no-resolver", "declined", "empty-href", "blank-kind", "absent-link"] as const)("handles %s without an unintended destination", async (scenario) => {
+    const raw = "https://example.com/raw";
+      const display = {
+        type: ValueType.URL,
+        link: scenario === "absent-link" ? undefined : { targetKind: scenario === "blank-kind" ? " " : "build" },
+      };
+      const populate = { service: "acme.Builds", method: "GetBuild" };
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "value-link",
+        body: shape === "recordCard"
+          ? { case: shape, value: { populate, fields: [{ fieldId: "value", display }] } }
+          : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "value", display }] } },
+      });
+      const resolver = vi.fn(() => scenario === "declined" ? undefined : scenario === "empty-href" ? "" : "/host-selected");
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: wasmWith([]), root, descriptor, context: CTX,
+      invoker: { invoke: async () => ({ value: raw }) },
+      resolveHref: scenario === "no-resolver" ? undefined : resolver,
+    });
+    const link = root.querySelector("a");
+    expect(root.textContent).toContain(raw);
+    if (scenario === "resolved") {
+      expect(link?.getAttribute("href")).toBe("/host-selected");
+      expect(link?.getAttribute("target")).toBeNull();
+    } else if (scenario === "absent-link") {
+      expect(link?.getAttribute("href")).toBe(raw);
+      expect(link?.getAttribute("target")).toBe("_blank");
+    } else expect(link).toBeNull();
+    if (["no-resolver", "blank-kind", "absent-link"].includes(scenario)) {
+      expect(resolver).not.toHaveBeenCalled();
+    } else expect(resolver).toHaveBeenCalledWith({ targetKind: "build", id: raw, row: { value: raw } });
+  });
+});
+
 // xterm needs browser APIs jsdom does not implement. Installed once, at module
 // scope, so the StreamPanel tests exercise the TERMINAL path a browser takes
 // rather than the fallback.
@@ -891,6 +927,36 @@ describe("populate on StatPanel / GrammarPanel (schemas 0.19.0)", () => {
       const link = root.querySelector<HTMLAnchorElement>("a");
       expect(link?.textContent).toBe("user_123");
       expect(link?.getAttribute("href")).toBe("/directory/identity.user/user_123");
+      expect(link?.target).toBe("");
+    });
+
+    it("uses the host resolver for a general ValueLink", async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "build-link-card",
+        body: {
+          case: "recordCard",
+          value: create(RecordCardPanelSchema, {
+            populate: { service: "acme.Builds", method: "GetBuild" },
+            fields: [{
+              fieldId: "buildId",
+              label: "Build",
+              display: { type: ValueType.IDENTIFIER, link: { targetKind: "build" } },
+            }],
+          }),
+        },
+      });
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: wasmWith([]),
+        root,
+        descriptor,
+        invoker: { invoke: async () => ({ buildId: "build_123" }) },
+        context: CTX,
+        resolveHref: ({ targetKind, id }) => `/builds/${targetKind}/${id}`,
+      });
+      const link = root.querySelector<HTMLAnchorElement>("a");
+      expect(link?.textContent).toBe("build_123");
+      expect(link?.getAttribute("href")).toBe("/builds/build/build_123");
       expect(link?.target).toBe("");
     });
   });

@@ -244,6 +244,67 @@ describe("meridian-web-react renderer", () => {
     }
   });
 
+for (const shape of ["recordCard", "detailHeader"] as const) {
+    it(`${shape} honors explicit ValueLink precedence over direct URL behavior`, () => {
+      for (const kit of [htmlKit, shadcnKit]) for (const scenario of ["resolved", "no-resolver", "declined", "empty-href", "blank-kind", "absent-link"] as const) {
+        const raw = "https://example.com/raw";
+      const display = {
+        type: ValueType.URL,
+        link: scenario === "absent-link" ? undefined : { targetKind: scenario === "blank-kind" ? " " : "build" },
+      };
+      const populate = { service: "acme.Builds", method: "GetBuild" };
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "value-link",
+        body: shape === "recordCard"
+          ? { case: shape, value: { populate, fields: [{ fieldId: "value", display }] } }
+          : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "value", display }] } },
+      });
+      const resolver = vi.fn(() => scenario === "declined" ? undefined : scenario === "empty-href" ? "" : "/host-selected");
+        const html = renderWithInitialData(descriptor, {
+          "acme.Builds.GetBuild": { rows: [{ value: raw }] },
+        }, kit, scenario === "no-resolver" ? undefined : resolver);
+        if (scenario === "resolved") {
+          expect(html).toContain('href="/host-selected"');
+          expect(html).not.toContain('target="_blank"');
+        } else if (scenario === "absent-link") {
+          expect(html).toContain('href="https://example.com/raw"');
+          expect(html).toContain('target="_blank"');
+        } else expect(html).not.toContain("<a ");
+        expect(html).toContain(raw);
+        if (["no-resolver", "blank-kind", "absent-link"].includes(scenario)) {
+          expect(resolver).not.toHaveBeenCalled();
+        } else expect(resolver).toHaveBeenCalledWith("build", raw);
+      }
+    });
+  }
+
+  it("uses the host resolver for a general ValueLink", () => {
+    const card = create(PanelDescriptorSchema, {
+      panelId: "build-link",
+      body: {
+        case: "recordCard",
+        value: create(RecordCardPanelSchema, {
+          populate: { service: "acme.Builds", method: "GetBuild" },
+          fields: [{
+            fieldId: "buildId",
+            label: "Build",
+            display: { type: ValueType.IDENTIFIER, link: { targetKind: "build" } },
+          }],
+        }),
+      },
+    });
+    for (const kit of [htmlKit, shadcnKit]) {
+      const html = renderWithInitialData(
+        card,
+        { "acme.Builds.GetBuild": { rows: [{ buildId: "build_123" }] } },
+        kit,
+        (kind, id) => `/builds/${kind}/${id}`,
+      );
+      expect(html).toContain('href="/builds/build/build_123"');
+      expect(html).toContain(">build_123</a>");
+    }
+  });
+
   for (const shape of ["recordCard", "detailHeader"] as const) {
     it(`${shape} preserves principal labels and requires a host-approved destination`, () => {
       for (const kit of [htmlKit, shadcnKit]) {

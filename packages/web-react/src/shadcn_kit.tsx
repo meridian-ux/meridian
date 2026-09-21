@@ -11,7 +11,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -46,11 +46,11 @@ function renderDisplayedValue(
   shown: { text: string; title?: string },
   resolveHref: ReturnType<typeof useHrefResolver>,
 ) {
-  const principal = resolvePrincipalLink(value, display);
-  const principalHref = principal && resolveHref?.(principal.targetKind, principal.id);
-  return principalHref
-    ? <a href={principalHref} rel="noreferrer noopener" title={shown.title}>{shown.text}</a>
-    : isSafeHttpUrl(value, display)
+  const link = resolveValueLink(value, display);
+  const valueHref = link && resolveHref?.(link.targetKind, link.id);
+  return valueHref
+    ? <a href={valueHref} rel="noreferrer noopener" title={shown.title}>{shown.text}</a>
+    : !display?.link && isSafeHttpUrl(value, display)
       ? <a href={value} rel="noreferrer noopener" target="_blank" title={shown.title}>{shown.text}</a>
     : <span title={shown.title}>{shown.text}</span>;
 }

@@ -72,6 +72,65 @@ describe.each(["recordCard", "detailHeader"] as const)("%s principal destination
   });
 });
 
+describe.each(["recordCard", "detailHeader"] as const)("%s explicit URL ValueLink", (shape) => {
+  it.each(["resolved", "no-resolver", "declined", "empty-href", "blank-kind", "absent-link"] as const)("handles %s without an unintended destination", async (scenario) => {
+    const raw = "https://example.com/raw";
+      const display = {
+        type: ValueType.URL,
+        link: scenario === "absent-link" ? undefined : { targetKind: scenario === "blank-kind" ? " " : "build" },
+      };
+      const populate = { service: "acme.Builds", method: "GetBuild" };
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "value-link",
+        body: shape === "recordCard"
+          ? { case: shape, value: { populate, fields: [{ fieldId: "value", display }] } }
+          : { case: shape, value: { populate, descriptorRows: [{ sourcePath: "value", display }] } },
+      });
+      const resolver = vi.fn(() => scenario === "declined" ? undefined : scenario === "empty-href" ? "" : "/host-selected");
+    render(
+      <MeridianMuiProvider invoker={{ invoke: async () => ({ value: raw }) }} resolveHref={scenario === "no-resolver" ? undefined : resolver}>
+        <PanelRenderer descriptor={descriptor} />
+      </MeridianMuiProvider>,
+    );
+    await screen.findByText(raw);
+    const link = screen.queryByRole("link");
+    if (scenario === "resolved") {
+      expect(link?.getAttribute("href")).toBe("/host-selected");
+      expect(link?.getAttribute("target")).toBeNull();
+    } else if (scenario === "absent-link") {
+      expect(link?.getAttribute("href")).toBe(raw);
+      expect(link?.getAttribute("target")).toBe("_blank");
+    } else expect(link).toBeNull();
+    if (["no-resolver", "blank-kind", "absent-link"].includes(scenario)) {
+      expect(resolver).not.toHaveBeenCalled();
+    } else expect(resolver).toHaveBeenCalledWith("build", raw);
+  });
+});
+
+it("uses a general ValueLink for non-principal identifiers", async () => {
+  const descriptor = create(PanelDescriptorSchema, {
+    panelId: "build-link",
+    body: {
+      case: "recordCard",
+      value: {
+        populate: { service: "svc", method: "get" },
+        fields: [{
+          fieldId: "buildId",
+          label: "Build",
+          display: { type: ValueType.IDENTIFIER, link: { targetKind: "build" } },
+        }],
+      },
+    },
+  });
+  render(
+    <MeridianMuiProvider invoker={{ invoke: async () => ({ buildId: "build_123" }) }} resolveHref={(kind, id) => `/builds/${kind}/${id}`}>
+      <PanelRenderer descriptor={descriptor} />
+    </MeridianMuiProvider>,
+  );
+  const link = await screen.findByRole("link", { name: "build_123" });
+  expect(link.getAttribute("href")).toBe("/builds/build/build_123");
+});
+
 const COMMENT = {
   authorName: "Ruchi Sharma <ruchi@example.com>",
   text: "Carrier confirmed the 2026 rates.",

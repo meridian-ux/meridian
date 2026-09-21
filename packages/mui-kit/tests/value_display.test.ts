@@ -15,7 +15,13 @@ import {
   ValueType,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 
-import { EMPTY_DISPLAY, formatByDisplay, formatRelativeTime, resolvePrincipalLink } from "../src/display_format.js";
+import {
+  EMPTY_DISPLAY,
+  formatByDisplay,
+  formatRelativeTime,
+  resolvePrincipalLink,
+  resolveValueLink,
+} from "../src/display_format.js";
 
 describe("principal record routing inputs", () => {
   const linked = (type = ValueType.PRINCIPAL, targetKind = "identity.user", linkToRecord = true) =>
@@ -54,6 +60,45 @@ describe("principal record routing inputs", () => {
     for (const value of [null, undefined, "", " \t\n", {}, [], true, NaN, Infinity, -Infinity]) {
       expect(resolvePrincipalLink(value, linked())).toBeUndefined();
     }
+  });
+});
+
+describe("general ValueLink routing inputs", () => {
+  it("preserves explicit-link precedence and legacy absence through protobuf encoding", () => {
+    const make = (link?: { targetKind: string }) => fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema,
+      create(ValueDisplaySchema, {
+        type: ValueType.PRINCIPAL, link,
+        options: { case: "principal", value: { linkToRecord: true, targetKind: "legacy" } },
+      })));
+    expect(resolveValueLink("  raw /?#  ", make({ targetKind: " build " })))
+      .toEqual({ targetKind: "build", id: "  raw /?#  " });
+    expect(resolveValueLink("id", make())).toEqual({ targetKind: "legacy", id: "id" });
+    expect(resolveValueLink("id", make({ targetKind: "" }))).toBeUndefined();
+    expect(resolveValueLink("id", make({ targetKind: "  " }))).toBeUndefined();
+    for (const value of [null, undefined, "", "  ", {}, [], true, NaN, Infinity, -Infinity]) {
+      expect(resolveValueLink(value, make({ targetKind: "build" }))).toBeUndefined();
+    }
+    expect(resolveValueLink(0, make({ targetKind: "build" }))).toEqual({ targetKind: "build", id: "0" });
+  });
+
+  it("routes any declared scalar value without changing its display text", () => {
+    const display = create(ValueDisplaySchema, {
+      type: ValueType.IDENTIFIER,
+      link: { targetKind: "build" },
+    });
+    expect(formatByDisplay("build_123", display).text).toBe("build_123");
+    expect(resolveValueLink("build_123", display)).toEqual({ targetKind: "build", id: "build_123" });
+    expect(resolveValueLink(42, display)).toEqual({ targetKind: "build", id: "42" });
+  });
+
+  it("keeps malformed general link declarations inert", () => {
+    const display = create(ValueDisplaySchema, {
+      type: ValueType.IDENTIFIER,
+      link: { targetKind: "   " },
+    });
+    expect(resolveValueLink("build_123", display)).toBeUndefined();
+    expect(resolveValueLink({}, create(ValueDisplaySchema, { type: ValueType.IDENTIFIER, link: { targetKind: "build" } })))
+      .toBeUndefined();
   });
 });
 

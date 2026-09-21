@@ -62,7 +62,7 @@ import {
   computeStat,
   formatByDisplay,
   isSafeHttpUrl,
-  resolvePrincipalLink,
+  resolveValueLink,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -1898,11 +1898,12 @@ async function renderRecordPanel(
 
   const resolveRecordHref = (path: string, display: Parameters<typeof formatByDisplay>[1]) => {
     const value = readValue(path);
-    const principal = resolvePrincipalLink(value, display);
-    if (principal && opts.resolveHref) {
-      return opts.resolveHref({ targetKind: principal.targetKind, id: principal.id, row: plainValue(record) as object }) ?? undefined;
+    const link = resolveValueLink(value, display);
+    if (link) {
+      if (!opts.resolveHref) return undefined;
+      return opts.resolveHref({ targetKind: link.targetKind, id: link.id, row: plainValue(record) as object }) ?? undefined;
     }
-    return isSafeHttpUrl(value, display) ? String(value) : undefined;
+    return !display?.link && isSafeHttpUrl(value, display) ? String(value) : undefined;
   };
 
   const box = document.createElement("div");
@@ -1943,7 +1944,7 @@ async function renderRecordPanel(
         p.descriptorRows.map((r) => ({
           label: r.label,
           href: resolveRecordHref(r.sourcePath, r.display),
-          external: isSafeHttpUrl(readValue(r.sourcePath), r.display),
+          external: !r.display?.link && isSafeHttpUrl(readValue(r.sourcePath), r.display),
           ...readDisplay(r.sourcePath, r.display),
         })),
       ),
@@ -1955,7 +1956,7 @@ async function renderRecordPanel(
         p.fields.map((f) => ({
           label: f.label || f.fieldId,
           href: resolveRecordHref(f.fieldId, f.display),
-          external: isSafeHttpUrl(readValue(f.fieldId), f.display),
+          external: !f.display?.link && isSafeHttpUrl(readValue(f.fieldId), f.display),
           ...readDisplay(f.fieldId, f.display),
         })),
       ),

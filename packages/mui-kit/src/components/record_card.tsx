@@ -13,7 +13,7 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RecordCardPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
-import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl, resolvePrincipalLink } from "../display_format.js";
+import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 
 /**
@@ -70,8 +70,8 @@ export function MeridianRecordCard({
             // The field's DECLARED display wins; with none, formatByDisplay defers
             // to the inference this card has always used.
             const shown = formatByDisplay(value, field.display, now);
-            const principal = resolvePrincipalLink(value, field.display);
-            const principalHref = principal ? resolveHref?.(principal.targetKind, principal.id) : undefined;
+            const link = resolveValueLink(value, field.display);
+            const valueHref = link ? resolveHref?.(link.targetKind, link.id) : undefined;
             return (
               <Box key={field.fieldId}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
@@ -86,11 +86,11 @@ export function MeridianRecordCard({
                       <Chip key={chip} label={chip} size="small" variant="outlined" />
                     ))}
                   </Stack>
-                ) : principalHref || isSafeHttpUrl(value, field.display) ? (
+                ) : valueHref || (!field.display?.link && isSafeHttpUrl(value, field.display)) ? (
                   <Link
-                    href={principalHref ?? shown.text}
-                    target={principalHref ? undefined : "_blank"}
-                    rel={principalHref ? undefined : "noreferrer noopener"}
+                    href={valueHref || shown.text}
+                    target={valueHref ? undefined : "_blank"}
+                    rel={valueHref ? undefined : "noreferrer noopener"}
                     underline="hover"
                     title={shown.title}
                     sx={{ wordBreak: "break-word" }}

@@ -180,6 +180,26 @@ export function resolvePrincipalLink(
   return id.trim() === "" ? undefined : { targetKind, id };
 }
 
+/**
+ * Return the host-routing inputs for any declared ValueLink, falling back to
+ * the legacy principal/email link fields for descriptors written before the
+ * general link field existed.
+ */
+export function resolveValueLink(
+  value: unknown,
+  display: ValueDisplay | undefined,
+): { targetKind: string; id: string } | undefined {
+  if (display?.link) {
+    const targetKind = display.link.targetKind.trim();
+    if (!targetKind) return undefined;
+    if (typeof value !== "string" && typeof value !== "number") return undefined;
+    if (typeof value === "number" && !Number.isFinite(value)) return undefined;
+    const id = String(value);
+    return id.trim() === "" ? undefined : { targetKind, id };
+  }
+  return resolvePrincipalLink(value, display);
+}
+
 /** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
 export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined): value is string {
   if (display?.type !== ValueType.URL || typeof value !== "string") return false;
