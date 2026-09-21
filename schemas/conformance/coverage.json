@@ -361,24 +361,24 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "missing",
+          "reason": "The React ComponentKit seam is open, but no kit currently supplies the web-specific terminal component."
         },
         "mui-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "missing",
+          "reason": "The MUI kit does not supply the web-specific terminal component."
         },
         "html-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "missing",
+          "reason": "The HTML kit does not supply the web-specific terminal component."
         },
         "shadcn-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "status": "missing",
+          "reason": "The shadcn kit does not supply the web-specific terminal component."
         },
         "tui": {
           "status": "placeholder",
-          "reason": "ComponentKit declares no Terminal member, so no React kit can render it. terminal.proto calls this shape web-specific; the gap is the missing seam, not the missing component."
+          "reason": "The TUI keeps an explanatory placeholder because terminal.proto defines this arm as web-specific."
         }
       }
     },
@@ -599,24 +599,20 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 adding ComponentKit.Stream is Phase 2 model work."
+          "status": "renders"
         },
         "mui-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "missing",
+          "reason": "The MUI kit has not yet supplied a Stream component.",
+          "waiver": "mui-kit#stream — a kit implementation is owed."
         },
         "html-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "renders"
         },
         "shadcn-kit": {
-          "status": "structural-gap",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#seam \u2014 blocked on ComponentKit.Stream."
+          "status": "missing",
+          "reason": "The shadcn kit has not yet supplied a Stream component.",
+          "waiver": "shadcn-kit#stream — a kit implementation is owed."
         },
         "tui": {
           "status": "placeholder",

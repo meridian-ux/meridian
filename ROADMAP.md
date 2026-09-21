@@ -47,22 +47,23 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 | `connect_flow` | full | ● | ● | ● | ● | ● | ● |
 | `copy_value` | full | ● | ● | ● | ● | ● | ● |
 | `catalog` | full | ● | ● | ● | ● | ● | ● |
-| `terminal` | specialized | ● | ✕ | ✕ | ✕ | ✕ | ◐ |
+| `terminal` | specialized | ● | ○ | ○ | ○ | ○ | ◐ |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● |
 | `stat` | full | ● | ● | ● | ● | ● | ● |
 | `detail_header` | standard | ● | ● | ● | ○ | ○ | ◐ |
 | `record_card` | standard | ● | ● | ● | ○ | ○ | ◐ |
+| `resource_cards` | standard | ● | ○ | ○ | ○ | ○ | ◐ |
+| `chart` | specialized | ● | ● | ○ | ● | ○ | ○ |
 | `steps` | full | ○ | ● | ● | ○ | ○ | ◐ |
 | `media` | specialized | ○ | ● | ● | ○ | ○ | ◐ |
-| `stream` | full | ● | ✕ | ✕ | ✕ | ✕ | ◐ |
+| `stream` | full | ● | ● | ○ | ● | ○ | ◐ |
 
-**21 arms × 6 renderers = 126 cells; 87 render, 39 do not.**
+**23 arms × 6 renderers = 138 cells; 93 render, 45 do not.**
 
 | status | cells |
 |---|---|
-| ○ `missing` | 16 |
-| ◐ `placeholder` | 10 |
-| ✕ `structural-gap` | 8 |
+| ○ `missing` | 29 |
+| ◐ `placeholder` | 11 |
 | – `not-applicable` | 3 |
 | ◑ `separate-entrypoint` | 2 |
 
@@ -70,19 +71,20 @@ The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
 |---|---|
 | web-components | 5 |
 | web-react | 2 |
-| mui-kit | 4 |
+| mui-kit | 6 |
 | html-kit | 8 |
-| shadcn-kit | 8 |
-| tui | 12 |
+| shadcn-kit | 10 |
+| tui | 14 |
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
 
 Three facts shape the order of work:
 
-- **Eight of the gaps have one cause.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
-  has no `Stream` or `Terminal` member, so no React kit *can* render those arms — and
-  `stream` is declared full-parity. Opening the seam is [#4](../../issues/4), and it is first.
+- **The shared seam is now open.** `ComponentKit` (`packages/web-react/src/component_kit.ts`)
+  exposes optional `Stream` and `Terminal` members, and the HTML kit proves the Stream
+  path with an accessible placeholder. The remaining gaps are concrete kit renderers
+  and the TUI's full-parity stream implementation.
 - **The TUI is the largest single gap** at 12 cells, and has one test file for eleven
   source files. [#6](../../issues/6) closes both together: every widget lands with a
   `TestBackend` render test.
