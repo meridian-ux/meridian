@@ -752,6 +752,177 @@ impl PanelView {
     }
 }
 
+fn merge_form_values(destination: &mut serde_json::Value, source: &serde_json::Value) {
+    match (destination, source) {
+        (serde_json::Value::Object(dst), serde_json::Value::Object(src)) => {
+            for (key, value) in src {
+                match dst.get_mut(key) {
+                    Some(existing) => merge_form_values(existing, value),
+                    None => {
+                        dst.insert(key.clone(), value.clone());
+                    }
+                }
+            }
+        }
+        (destination, source) => *destination = source.clone(),
+    }
+}
+
+fn form_values_by_id(
+    fields: &[FormField],
+    values: &serde_json::Value,
+) -> std::collections::HashMap<String, serde_json::Value> {
+    fields
+        .iter()
+        .filter_map(|field| values.get(&field.field_id).cloned().map(|value| (field.field_id.clone(), value)))
+        .collect()
+}
+
+fn join_form_path(prefix: &str, segment: &str) -> String {
+    if prefix.is_empty() {
+        segment.to_string()
+    } else if segment.is_empty() {
+        prefix.to_string()
+    } else {
+        format!("{prefix}.{segment}")
+    }
+}
+
+fn set_json_path(root: &mut serde_json::Value, path: &str, value: serde_json::Value) {
+    if path.is_empty() {
+        return;
+    }
+    let mut current = root;
+    let segments: Vec<&str> = path.split('.').collect();
+    for segment in &segments[..segments.len().saturating_sub(1)] {
+        if !current.is_object() {
+            *current = serde_json::json!({});
+        }
+        current = current
+            .as_object_mut()
+            .expect("object created above")
+            .entry((*segment).to_string())
+            .or_insert_with(|| serde_json::json!({}));
+    }
+    if !current.is_object() {
+        *current = serde_json::json!({});
+    }
+    current
+        .as_object_mut()
+        .expect("object created above")
+        .insert(segments.last().unwrap().to_string(), value);
+}
+
+fn merge_form_request(root: &mut serde_json::Value, fields: &[FormField], values: &serde_json::Value) {
+    for field in fields {
+        let value = values.get(&field.field_id).cloned().unwrap_or(serde_json::Value::Null);
+        let path = if field.request_field.is_empty() {
+            field.field_id.clone()
+        } else {
+            field.request_field.clone()
+        };
+        if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
+            let nested_values = values.get(&field.field_id).unwrap_or(&serde_json::Value::Null);
+            for child in &nested.fields {
+                let child_value = nested_values
+                    .get(&child.field_id)
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                let child_path = join_form_path(&path, if child.request_field.is_empty() {
+                    &child.field_id
+                } else {
+                    &child.request_field
+                });
+                set_json_path(root, &child_path, child_value);
+            }
+        } else {
+            set_json_path(root, &path, value);
+        }
+    }
+}
+
+fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) {
+    let Some(current) = values
+        .as_object_mut()
+        .and_then(|object| object.get_mut(&field.field_id))
+    else {
+        return;
+    };
+    match field.kind.as_ref() {
+        Some(Kind::Text(_)) | Some(Kind::Masked(_)) => match key {
+            KeyCode::Char(c) => {
+                if let Some(text) = current.as_str() {
+                    *current = serde_json::Value::String(format!("{text}{c}"));
+                }
+            }
+            KeyCode::Backspace => {
+                if let Some(text) = current.as_str() {
+                    let mut text = text.to_string();
+                    text.pop();
+                    *current = serde_json::Value::String(text);
+                }
+            }
+            _ => {}
+        },
+        Some(Kind::Integer(input)) => {
+            let step = if input.step == 0 { 1 } else { input.step } as i64;
+            let mut number = current.as_i64().unwrap_or(input.default_value as i64);
+            match key {
+                KeyCode::Up => number = number.saturating_add(step),
+                KeyCode::Down => number = number.saturating_sub(step),
+                _ => return,
+            }
+            if input.max != 0 {
+                number = number.min(input.max as i64);
+            }
+            if input.min != 0 {
+                number = number.max(input.min as i64);
+            }
+            *current = serde_json::Value::from(number);
+        }
+        Some(Kind::Number(input)) => {
+            let step = if input.step == 0.0 { 1.0 } else { input.step };
+            let mut number = current.as_f64().unwrap_or(input.default_value);
+            match key {
+                KeyCode::Up => number += step,
+                KeyCode::Down => number -= step,
+                _ => return,
+            }
+            if input.max != 0.0 {
+                number = number.min(input.max);
+            }
+            if input.min != 0.0 {
+                number = number.max(input.min);
+            }
+            *current = serde_json::Value::from(number);
+        }
+        Some(Kind::Boolean(_)) if matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down) => {
+            *current = serde_json::Value::Bool(!current.as_bool().unwrap_or(false));
+        }
+        Some(Kind::EnumSelection(input)) => {
+            let options: Vec<String> = if !input.options.is_empty() {
+                input.options.iter().map(|option| option.value.clone()).collect()
+            } else {
+                input.allowed_values.clone()
+            };
+            if options.is_empty() {
+                return;
+            }
+            let current_index = options
+                .iter()
+                .position(|option| Some(option.as_str()) == current.as_str())
+                .unwrap_or(0);
+            let next = match key {
+                KeyCode::Up | KeyCode::Left => (current_index + options.len() - 1) % options.len(),
+                KeyCode::Down | KeyCode::Right => (current_index + 1) % options.len(),
+                _ => return,
+            };
+            *current = serde_json::Value::String(options[next].clone());
+        }
+        _ => {}
+    }
+}
+
 impl Default for PanelView {
     fn default() -> Self {
         Self::new()

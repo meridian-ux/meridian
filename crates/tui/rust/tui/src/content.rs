@@ -458,11 +458,14 @@ fn render_form_fields(
     selected: &mut usize,
     next_index: &mut usize,
     indent: usize,
+    selectable: bool,
 ) {
     for field in fields {
         let index = *next_index;
-        *next_index += 1;
-        let active = index == *selected;
+        if selectable {
+            *next_index += 1;
+        }
+        let active = selectable && index == *selected;
         let marker = if active { "▶ " } else { "  " };
         let label = if field.label.is_empty() {
             field.field_id.as_str()
@@ -491,6 +494,7 @@ fn render_form_fields(
                 selected,
                 next_index,
                 indent + 3,
+                false,
             );
         }
     }
@@ -533,14 +537,16 @@ pub fn render_form(
     )));
     lines.push(Line::from(""));
     let mut next_index = 0;
+    let mut selected_index = selected.min(panel.fields.len().saturating_sub(1));
     render_form_fields(
         &mut lines,
         &panel.fields,
         values,
         palette,
-        &mut { selected.min(panel.fields.len().saturating_sub(1)) },
+        &mut selected_index,
         &mut next_index,
         0,
+        true,
     );
     frame.render_widget(bordered(lines, palette), area);
 }

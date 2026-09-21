@@ -61,7 +61,7 @@ pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use theme::{parse_hex, Mode, Palette, Theme};
-pub use widget::PanelView;
+pub use widget::{FormSubmission, PanelView};
 
 // Re-export the ratatui + crossterm crates so downstream consumers
 // (cli chrome) can render their own widgets against the SAME
