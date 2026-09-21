@@ -24,6 +24,7 @@ export { MeridianTable, type MeridianColumn, type MeridianTableProps } from "./c
 export { MeridianForm, type MeridianFormField, type MeridianFormProps } from "./components/form.js";
 export { MeridianDetailHeader } from "./components/detail_header.js";
 export { MeridianRecordCard } from "./components/record_card.js";
+export { MeridianChart } from "./components/chart.js";
 // Shared read-view value formatting — the one place that decides how a value
 // READS, so a card field and a table cell can agree.
 export {

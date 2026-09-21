@@ -84,6 +84,7 @@ import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
 import { MeridianResourceCards } from "./components/resource_cards.js";
+import { MeridianChart } from "./components/chart.js";
 
 type Row = Record<string, unknown>;
 
@@ -964,6 +965,9 @@ export const muiKit: ComponentKit = {
   CopyValue: ({ panel }: ShapeProps<CopyValuePanel>) =>
     panel.value ? <CopyValueView value={panel.value} /> : null,
   Catalog: ({ panel }: ShapeProps<CatalogPanel>) => <CatalogView panel={panel} />,
+  Chart: ({ panel, invoker }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/chart_pb.js").ChartPanel>) => (
+    <MeridianChart panel={panel} invoker={invoker} />
+  ),
   Grammar: ({ panel }: ShapeProps<GrammarPanel>) => <GrammarView panel={panel} />,
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
