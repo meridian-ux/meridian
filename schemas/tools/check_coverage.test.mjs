@@ -70,11 +70,12 @@ test("an UNWAIVED full-parity gap fails", () => {
 test("a specialized shape may have gaps without a waiver", () => {
   // terminal/grammar/media document degradation ladders instead of parity, so
   // the gate must not demand waivers there — otherwise it cries wolf and gets
-  // switched off.
+  // switched off. Terminal's web-react fallback is now rendered, while the
+  // specialized shape remains valid for the remaining degradation statuses.
   const m = realManifest();
   assert.equal(m.arms.terminal.parity, "specialized");
-  assert.equal(m.arms.terminal.renderers["web-react"].status, "structural-gap");
-  assert.ok(!m.arms.terminal.renderers["web-react"].waiver);
+  assert.equal(m.arms.terminal.renderers["web-react"].status, "renders");
+  assert.match(m.arms.terminal.renderers["web-react"].reason, /fallback/);
   assert.deepEqual(check(m, realArms()), []);
 });
 
