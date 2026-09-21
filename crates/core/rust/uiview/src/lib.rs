@@ -46,11 +46,13 @@
 /// `[[bin]]` and cannot be run. Both paths land the types at
 /// `meridian_uiview::proto::*`, so nothing downstream cares which ran.
 #[cfg(bazel_proto)]
+#[allow(clippy::large_enum_variant)]
 pub mod proto {
     pub use uiview_proto::meridian::ui::v1::*;
 }
 
 #[cfg(not(bazel_proto))]
+#[allow(clippy::large_enum_variant)]
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/meridian.ui.v1.rs"));
 }

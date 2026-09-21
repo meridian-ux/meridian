@@ -13,6 +13,8 @@
 //! a `Block.view` arm missing since schemas 0.21.0 and three test fixtures
 //! enumerating fields the schema had outgrown.
 
+#![allow(clippy::needless_update)]
+
 use crossterm::event::KeyCode;
 use prost::Message as _;
 use ratatui::{backend::TestBackend, Terminal};

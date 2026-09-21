@@ -43,17 +43,14 @@ impl ConversationModel {
     /// indistinguishable from one sending 0. The TS model skips dedup when `seq`
     /// is absent; doing the same here keeps an unsequenced stream from collapsing
     /// to a single block.
+    #[allow(clippy::collapsible_match)]
     pub fn ingest(&mut self, event: &ConversationEvent) -> bool {
         if event.seq != 0 && !self.seen.insert(event.seq) {
             return false;
         }
         match &event.event {
             Some(conversation_event::Event::Block(block)) => {
-                if self
-                    .by_id
-                    .insert(block.block_id.clone(), block.clone())
-                    .is_none()
-                {
+                if self.by_id.insert(block.block_id.clone(), block.clone()).is_none() {
                     self.order.push(block.block_id.clone());
                 }
             }

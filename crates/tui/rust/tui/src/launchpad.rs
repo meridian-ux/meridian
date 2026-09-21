@@ -71,6 +71,7 @@ pub fn command_outcome(command: &Command) -> LaunchpadOutcome<'_> {
 
 /// Why the palette closed.
 #[derive(Debug, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub enum LaunchpadResponse {
     /// The user ran a command. Decode it with [`command_outcome`].
     Run(Command),

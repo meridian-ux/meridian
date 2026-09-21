@@ -172,8 +172,10 @@ mod tests {
 
     #[test]
     fn context_binding_resolves() {
-        let mut ctx = Context::default();
-        ctx.current_resource_path = Some("/tmp/x.pdf".into());
+        let ctx = Context {
+            current_resource_path: Some("/tmp/x.pdf".into()),
+            ..Context::default()
+        };
         let call = RpcCall {
             service: "p.v1.S".into(),
             method: "M".into(),

@@ -125,6 +125,9 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --all-targets
 
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
       # The binary exists now. Smoke it: --help must work, and a non-descriptor
       # must be REJECTED with a readable error rather than a panic.
       - name: meridian-tui smoke
@@ -144,12 +147,9 @@ jobs:
             *) echo "::error::expected a wire-format complaint, got: $out"; exit 1 ;;
           esac
 
-      # ⛔ NOT YET GATED: cargo fmt --check and clippy -D warnings both fail today
-      # on pre-existing drift inherited from meridian-uiview-core (formatting in
-      # conversation.rs / launchpad.rs, four clippy findings in test code). Adding
-      # a gate red on the commit that introduces it teaches everyone to ignore the
-      # gate — this estate has paid for that lesson once already. They get their
-      # own commit, so the formatting churn does not bury a behaviour change.
+      # ⛔ NOT YET GATED: cargo fmt --check still reports inherited formatting drift.
+      # Keep that mechanical cleanup separate from behavior changes so the eventual
+      # formatting gate is reviewable and does not hide semantic regressions.
 
   bazel:
     runs-on: ubuntu-latest

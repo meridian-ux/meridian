@@ -658,9 +658,7 @@ impl PanelView {
                 self.content_selected = (selected + panel.fields.len() - 1) % panel.fields.len();
             }
             KeyCode::Enter if panel.mode == FormMode::Edit as i32 => {
-                let Some(submit) = panel.submit.as_ref() else {
-                    return None;
-                };
+                let submit = panel.submit.as_ref()?;
                 let mut submit_context = context.clone();
                 submit_context.form_values = form_values_by_id(&panel.fields, &cached.values);
                 let mut request = RequestBuilder::build(submit, &submit_context);
