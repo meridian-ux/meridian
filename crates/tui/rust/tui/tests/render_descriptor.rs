@@ -475,6 +475,115 @@ fn gallery_populate_flows_into_the_tui_card_list() {
 }
 
 #[test]
+fn declared_record_links_survive_wire_decode_and_render_as_noninteractive_metadata() {
+    use meridian_uiview::proto::{
+        value_display::Options, PrincipalOptions, TableColumn, TablePanel, ValueDisplay, ValueLink,
+        ValueType,
+    };
+    use std::cell::Cell;
+    struct Data(Cell<usize>);
+    impl RpcInvoker for Data {
+        fn invoke(
+            &self,
+            _: &str,
+            _: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            self.0.set(self.0.get() + 1);
+            let record = serde_json::json!({"owner": "Name <name@example.com>"});
+            Ok(serde_json::json!({"owner": record["owner"], "items": [record]}))
+        }
+    }
+    for (link, linked) in [
+        (None, true),
+        (
+            Some(ValueLink {
+                target_kind: "identity.user".into(),
+            }),
+            true,
+        ),
+        (Some(ValueLink::default()), false),
+    ] {
+        let display = ValueDisplay {
+            r#type: ValueType::Principal as i32,
+            options: Some(Options::Principal(PrincipalOptions {
+                target_kind: "identity.user".into(),
+                link_to_record: true,
+                ..Default::default()
+            })),
+            link,
+        };
+        let populate = Some(RpcCall {
+            service: "demo.Users".into(),
+            method: "Get".into(),
+            ..Default::default()
+        });
+        let bodies = [
+            Body::DetailHeader(DetailHeaderPanel {
+                populate: populate.clone(),
+                descriptor_rows: vec![DescriptorRow {
+                    label: "Owner".into(),
+                    source_path: "owner".into(),
+                    display: Some(display.clone()),
+                }],
+                ..Default::default()
+            }),
+            Body::RecordCard(RecordCardPanel {
+                populate: populate.clone(),
+                fields: vec![FormField {
+                    field_id: "owner".into(),
+                    label: "Owner".into(),
+                    display: Some(display.clone()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+            Body::Table(TablePanel {
+                populate,
+                rows_field: "items".into(),
+                columns: vec![TableColumn {
+                    header: "Owner".into(),
+                    field_path: "owner".into(),
+                    value_display: Some(display),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+        ];
+        for body in bodies {
+            let descriptor = PanelDescriptor {
+                panel_id: "linked".into(),
+                body: Some(body),
+                ..Default::default()
+            };
+            let decoded = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+            let data = Data(Cell::new(0));
+            let mut view = PanelView::default();
+            let mut terminal = Terminal::new(TestBackend::new(110, 12)).unwrap();
+            terminal
+                .draw(|f| view.render(f, f.area(), &decoded, &Context::default(), &data))
+                .unwrap();
+            let text = terminal
+                .backend()
+                .buffer()
+                .content()
+                .iter()
+                .map(|c| c.symbol())
+                .collect::<String>();
+            assert!(text.contains("Name"), "{text}");
+            assert_eq!(text.contains("[record:"), linked, "{text}");
+            if linked {
+                assert!(
+                    text.contains("[record: \"identity.user\" id=\"Name <name@example.com>\"]"),
+                    "{text}"
+                );
+            }
+            assert_eq!(data.0.get(), 1, "link decoration must not invoke an RPC");
+        }
+    }
+}
+
+#[test]
 fn detail_panels_populate_and_render_the_record_dispatch_path() {
     let ctx = Context::default();
     let mut header = PanelView::with_palette(Palette::default());

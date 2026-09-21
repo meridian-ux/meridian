@@ -234,9 +234,64 @@ fn value_at_display(
     display: Option<&meridian_uiview::proto::ValueDisplay>,
 ) -> String {
     let value = ProtoPaths::get(row, path);
-    display
+    let shown = display
         .map(|display| format_display_value(value, display))
-        .unwrap_or_else(|| value_at(row, path))
+        .unwrap_or_else(|| value_at(row, path));
+    decorate_value_link(shown, value, display)
+}
+
+/// TUI read surfaces have no route resolver. Show route intent as metadata,
+/// never as an actionable URL or an indication that the host approved a route.
+pub(crate) fn decorate_value_link(
+    shown: String,
+    value: &Value,
+    display: Option<&meridian_uiview::proto::ValueDisplay>,
+) -> String {
+    use meridian_uiview::proto::{value_display::Options, ValueType};
+
+    let Some(display) = display else { return shown };
+    // Presence is authoritative: an explicit empty link suppresses legacy links.
+    let kind = if let Some(link) = &display.link {
+        link.target_kind.as_str()
+    } else if matches!(
+        ValueType::try_from(display.r#type),
+        Ok(ValueType::Principal | ValueType::Email)
+    ) {
+        match &display.options {
+            Some(Options::Principal(options)) if options.link_to_record => &options.target_kind,
+            _ => return shown,
+        }
+    } else {
+        return shown;
+    };
+    let kind = kind.trim();
+    let id = match value {
+        Value::String(id) => id.clone(),
+        Value::Number(id) => id.to_string(),
+        _ => return shown,
+    };
+    if kind.is_empty() || id.trim().is_empty() {
+        return shown;
+    }
+    // Quote opaque route components; escape controls before they reach a terminal.
+    // Preserve the raw ID (not a principal's formatted name/email) in this hint.
+    let quote = |text: &str| escape_link_text(&Value::String(text.to_owned()).to_string());
+    format!(
+        "{} [record: {} id={}]",
+        escape_link_text(&shown),
+        quote(kind),
+        quote(&id)
+    )
+}
+
+fn escape_link_text(text: &str) -> String {
+    text.chars().flat_map(|ch| {
+        if ch.is_control() || matches!(ch, '\u{2028}' | '\u{2029}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}') {
+            ch.escape_default().collect::<Vec<_>>()
+        } else {
+            vec![ch]
+        }
+    }).collect()
 }
 
 /// The shared visibility predicate used by the web kits: a deliberately small
@@ -1584,6 +1639,49 @@ mod tests {
     }
 
     #[test]
+    fn value_links_decorate_native_values_without_inventing_urls() {
+        use meridian_uiview::proto::{ValueDisplay, ValueLink, ValueType};
+
+        let display = ValueDisplay {
+            r#type: ValueType::Identifier as i32,
+            link: Some(ValueLink {
+                target_kind: "build".into(),
+            }),
+            ..Default::default()
+        };
+        assert_eq!(
+            decorate_value_link(
+                "build_42".into(),
+                &serde_json::json!("build_42"),
+                Some(&display)
+            ),
+            "build_42 [record: \"build\" id=\"build_42\"]"
+        );
+
+        let malformed = ValueDisplay {
+            r#type: ValueType::Identifier as i32,
+            link: Some(ValueLink::default()),
+            ..Default::default()
+        };
+        assert_eq!(
+            decorate_value_link(
+                "build_42".into(),
+                &serde_json::json!("build_42"),
+                Some(&malformed)
+            ),
+            "build_42"
+        );
+        assert_eq!(
+            decorate_value_link(
+                "build_42".into(),
+                &serde_json::json!({"id": "build_42"}),
+                Some(&display),
+            ),
+            "build_42"
+        );
+    }
+
+    #[test]
     fn copy_value_masks_secret_until_revealed_but_still_carries_plaintext() {
         let palette = Palette::default();
         let secret = CopyValue {
@@ -2002,6 +2100,93 @@ mod tests {
     }
 
     #[test]
+    fn value_links_preserve_raw_ids_and_decline_invalid_intent() {
+        use meridian_uiview::proto::{
+            value_display::Options, PrincipalOptions, ValueDisplay, ValueLink, ValueType,
+        };
+        let mut display = ValueDisplay {
+            r#type: ValueType::Principal as i32,
+            options: Some(Options::Principal(PrincipalOptions {
+                link_to_record: true,
+                target_kind: "identity.user".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let raw = serde_json::json!("Name <name@example.com>");
+        let expected = "Name [record: \"identity.user\" id=\"Name <name@example.com>\"]";
+        assert_eq!(
+            decorate_value_link("Name".into(), &raw, Some(&display)),
+            expected
+        );
+        display.r#type = ValueType::Email as i32;
+        assert_eq!(
+            decorate_value_link("Name".into(), &raw, Some(&display)),
+            expected
+        );
+        display.link = Some(ValueLink {
+            target_kind: "  team  ".into(),
+        });
+        assert_eq!(
+            decorate_value_link("0".into(), &serde_json::json!(0), Some(&display)),
+            "0 [record: \"team\" id=\"0\"]"
+        );
+        for invalid in [
+            Value::Null,
+            serde_json::json!(false),
+            serde_json::json!([]),
+            serde_json::json!({}),
+            serde_json::json!(" \t"),
+        ] {
+            assert_eq!(
+                decorate_value_link("unchanged".into(), &invalid, Some(&display)),
+                "unchanged"
+            );
+        }
+        display.link = Some(ValueLink::default());
+        assert_eq!(
+            decorate_value_link("Name".into(), &raw, Some(&display)),
+            "Name"
+        );
+        display.link = None;
+        display.r#type = ValueType::Text as i32;
+        assert_eq!(
+            decorate_value_link("Name".into(), &raw, Some(&display)),
+            "Name"
+        );
+        display.r#type = ValueType::Principal as i32;
+        if let Some(Options::Principal(options)) = &mut display.options {
+            options.link_to_record = false;
+        }
+        assert_eq!(
+            decorate_value_link("Name".into(), &raw, Some(&display)),
+            "Name"
+        );
+        assert_eq!(decorate_value_link("Name".into(), &raw, None), "Name");
+    }
+
+    #[test]
+    fn value_link_metadata_cannot_inject_terminal_controls_or_bidi_overrides() {
+        use meridian_uiview::proto::{ValueDisplay, ValueLink};
+        let display = ValueDisplay {
+            link: Some(ValueLink {
+                target_kind: "entity\u{1b}]8;;evil\u{7}".into(),
+            }),
+            ..Default::default()
+        };
+        let out = decorate_value_link(
+            "A\n\u{1b}[31m".into(),
+            &serde_json::json!("id\n\u{202e}\u{009b}"),
+            Some(&display),
+        );
+        assert!(!out.chars().any(char::is_control));
+        assert!(!out.contains('\u{202e}'));
+        assert!(out.contains("[record:"));
+        assert!(out.contains("\\n"));
+        assert!(out.contains("\\u{202e}"));
+    }
+
+    #[test]
     fn detail_header_and_record_card_render_dotted_record_values() {
         use meridian_uiview::proto::{
             value_display, DescriptorRow, DetailHeaderPanel, FormField, NumberOptions,
@@ -2034,6 +2219,7 @@ mod tests {
                     display: Some(ValueDisplay {
                         r#type: ValueType::Boolean as i32,
                         options: None,
+                        ..Default::default()
                     }),
                 },
             ],
@@ -2061,6 +2247,7 @@ mod tests {
                             fraction_digits: Some(2),
                             ..Default::default()
                         })),
+                        ..Default::default()
                     }),
                     ..Default::default()
                 },

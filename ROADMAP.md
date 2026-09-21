@@ -152,8 +152,11 @@ scalar form. Browser read surfaces also preserve email titles; native surfaces
 degrade that mode to the visible name. Principal record links now use the
 existing host route resolver when a target kind is declared. General
 `ValueLink` declarations now reuse that same host-owned route seam for scalar
-values across browser read surfaces, while the remaining migration surface is
-native link decoration and richer non-browser realizations.
+values across browser read surfaces. TUI tables, detail headers, and record cards
+now show declared route intent as escaped, noninteractive record-kind/raw-ID
+metadata. Explicit empty links suppress legacy principal decoration; absent or
+invalid declarations preserve plain values. The TUI does not resolve routes or
+grant navigation capability. Richer non-browser realizations remain open.
 
 ## Track C — Hardening
 

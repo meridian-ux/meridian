@@ -121,6 +121,11 @@ fn carries_the_fields_this_crate_reads() {
         "TableColumn.value_display absent — the set predates schemas 0.22.0"
     );
     let stat = field_names("StatPanel");
+    assert!(field_names("ValueDisplay").iter().any(|n| n == "link"));
+    assert!(field_names("ValueLink").iter().any(|n| n == "target_kind"));
+    assert!(field_names("PrincipalOptions")
+        .iter()
+        .any(|n| n == "target_kind"));
     for want in ["populate", "previous_field", "display_field"] {
         assert!(stat.iter().any(|n| n == want), "StatPanel.{want} absent");
     }

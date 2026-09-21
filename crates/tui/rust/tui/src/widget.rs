@@ -786,7 +786,14 @@ impl PanelView {
                 Row::new(
                     r.cells
                         .iter()
-                        .map(|c| Cell::from(c.clone()))
+                        .zip(&table_panel.columns)
+                        .map(|(c, column)| {
+                            Cell::from(content::decorate_value_link(
+                                c.clone(),
+                                meridian_uiview::ProtoPaths::get(&r.raw, &column.field_path),
+                                column.value_display.as_ref(),
+                            ))
+                        })
                         .collect::<Vec<_>>(),
                 )
             })

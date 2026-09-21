@@ -416,6 +416,7 @@ mod tests {
             value_display: Some(ValueDisplay {
                 r#type: ValueType::Boolean as i32,
                 options: None,
+                ..Default::default()
             }),
             ..Default::default()
         };
@@ -427,6 +428,7 @@ mod tests {
         let list = ValueDisplay {
             r#type: ValueType::List as i32,
             options: None,
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!(["one", "two"]), &list),
@@ -439,6 +441,7 @@ mod tests {
                 fraction_digits: Some(2),
                 ..Default::default()
             })),
+            ..Default::default()
         };
         assert_eq!(format_display_value(&json!(1.236), &decimal), "1.24");
     }
@@ -448,6 +451,7 @@ mod tests {
         let name = ValueDisplay {
             r#type: ValueType::Principal as i32,
             options: None,
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &name),
@@ -460,6 +464,7 @@ mod tests {
                 display: PrincipalDisplay::Email as i32,
                 ..Default::default()
             })),
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &email),
@@ -472,6 +477,7 @@ mod tests {
         let address = ValueDisplay {
             r#type: ValueType::Email as i32,
             options: None,
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!("Ruchi Sharma <ruchi@example.com>"), &address),
@@ -494,6 +500,7 @@ mod tests {
                     display: mode,
                     ..Default::default()
                 })),
+                ..Default::default()
             };
             for value in [
                 "Ruchi Sharma",
@@ -540,6 +547,7 @@ mod tests {
         let date = ValueDisplay {
             r#type: ValueType::Date as i32,
             options: None,
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!("2026-03-29"), &date),
@@ -549,6 +557,7 @@ mod tests {
         let date_time = ValueDisplay {
             r#type: ValueType::DateTime as i32,
             options: None,
+            ..Default::default()
         };
         assert_eq!(
             format_display_value(&json!("2026-03-21T09:14:00Z"), &date_time),
@@ -567,6 +576,7 @@ mod tests {
                     ..Default::default()
                 },
             )),
+            ..Default::default()
         };
         assert_eq!(format_display_value(&json!("09:14"), &time), "9:14 AM UTC");
         let seconds = ValueDisplay {
