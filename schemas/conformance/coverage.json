@@ -515,8 +515,8 @@
           "status": "renders"
         },
         "mui-kit": {
-          "status": "missing",
-          "reason": "Not implemented in this renderer."
+          "status": "renders",
+          "reason": "MeridianChart renders portable chart intent and fetched rows as an accessible data table."
         },
         "html-kit": {
           "status": "renders"
