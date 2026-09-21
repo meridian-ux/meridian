@@ -47,6 +47,7 @@ import type {
   RpcInvoker,
   StreamInvoker,
 } from "@savvifi/meridian-schemas/uiview";
+import type { GrammarHandle } from "@savvifi/meridian-schemas/uiview";
 import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
@@ -176,7 +177,7 @@ export interface RenderPanelOptions {
     language: string;
     source: string;
     data?: unknown;
-  }) => HTMLElement | undefined;
+  }) => HTMLElement | GrammarHandle | undefined;
   /** Host-native transcoder for portable ChartSpec intent. */
   renderChart?: (opts: {
     spec: ChartSpec;
@@ -675,8 +676,18 @@ function buildGrammar(
     source: panel.source,
     data: fetched ?? panel.data,
   });
-  if (rendered instanceof HTMLElement) {
-    mount.appendChild(rendered);
+  const handle = isGrammarHandle(rendered) ? rendered : undefined;
+  const renderedElement = handle?.element instanceof HTMLElement
+    ? handle.element
+    : rendered instanceof HTMLElement
+      ? rendered
+      : undefined;
+  if (renderedElement) {
+    mount.appendChild(renderedElement);
+    if (handle) {
+      if (handle.dispose) onDispose(opts.root, () => handle.dispose?.());
+      wireSignalBindings(opts, panel.populate, handle);
+    }
   } else if (lang === "markdown") {
     // Ladder (1): markdown is text — render it natively, no library.
     mount.appendChild(renderMarkdown(panel.source));
@@ -694,6 +705,103 @@ function buildGrammar(
   }
   if (panel.caption) wrap.appendChild(el("div", "mer-grammar-caption", panel.caption));
   return wrap;
+}
+
+function isGrammarHandle(value: unknown): value is GrammarHandle {
+  return !!value && typeof value === "object" &&
+    ("element" in value || "node" in value || "getSignal" in value || "onSignal" in value);
+}
+
+function wireSignalBindings(
+  opts: RenderPanelOptions,
+  populate: RpcCall | undefined,
+  handle: GrammarHandle,
+): void {
+  if (!populate?.bindings || !handle.onSignal) return;
+  for (const binding of populate.bindings) {
+    if (binding.source.case === "signal") {
+      handle.onSignal(binding.source.value, () => {
+        void invokeSignalBound(opts, populate, handle);
+      });
+    }
+    if (binding.source.case === "nested") {
+      wireNestedSignalBindings(opts, populate, handle, binding.source.value.fields);
+    }
+  }
+}
+
+function wireNestedSignalBindings(
+  opts: RenderPanelOptions,
+  populate: RpcCall,
+  handle: GrammarHandle,
+  bindings: typeof populate.bindings,
+): void {
+  for (const binding of bindings) {
+    if (binding.source.case === "signal") {
+      handle.onSignal?.(binding.source.value, () => {
+        void invokeSignalBound(opts, populate, handle);
+      });
+    }
+    if (binding.source.case === "nested") {
+      wireNestedSignalBindings(opts, populate, handle, binding.source.value.fields);
+    }
+  }
+}
+
+async function invokeSignalBound(
+  opts: RenderPanelOptions,
+  call: RpcCall,
+  handle: GrammarHandle,
+): Promise<void> {
+  const request = plainValue(
+    opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context),
+  ) as Record<string, unknown>;
+  applySignalBindings(request, call.bindings, handle);
+  await opts.invoker.invoke(call.service, call.method, request);
+}
+
+function applySignalBindings(
+  request: Record<string, unknown>,
+  bindings: RpcCall["bindings"],
+  handle: GrammarHandle,
+  prefix = "",
+): void {
+  for (const binding of bindings) {
+    const path = prefix ? `${prefix}.${binding.requestField}` : binding.requestField;
+    if (binding.source.case === "signal") {
+      const value = handle.getSignal?.(binding.source.value);
+      if (value === undefined) deletePath(request, path);
+      else setPath(request, path, value);
+    } else if (binding.source.case === "nested") {
+      applySignalBindings(request, binding.source.value.fields, handle, path);
+    }
+  }
+}
+
+function setPath(root: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split(".");
+  const leaf = keys.pop();
+  if (!leaf) return;
+  let cursor = root;
+  for (const key of keys) {
+    const next = cursor[key];
+    if (!next || typeof next !== "object") cursor[key] = {};
+    cursor = cursor[key] as Record<string, unknown>;
+  }
+  cursor[leaf] = value;
+}
+
+function deletePath(root: Record<string, unknown>, path: string): void {
+  const keys = path.split(".");
+  const leaf = keys.pop();
+  if (!leaf) return;
+  let cursor: Record<string, unknown> | undefined = root;
+  for (const key of keys) {
+    const next = cursor[key];
+    if (!next || typeof next !== "object") return;
+    cursor = next as Record<string, unknown>;
+  }
+  delete cursor[leaf];
 }
 
 // GrammarLanguage enum → the lowercase token on data-grammar-language + passed to
@@ -1357,6 +1465,14 @@ async function renderFetchDriven(
     opts.root.appendChild(build(undefined));
     return;
   }
+  // A signal value does not exist until the host mounts the live grammar. The
+  // grammar renderer wires the handle and owns subsequent signal-bound calls;
+  // degraded/static surfaces intentionally remain inert.
+  if (hasSignalBindings(populate)) {
+    metaEl.textContent = "";
+    opts.root.appendChild(build(undefined));
+    return;
+  }
   let data: object | undefined;
   try {
     const request = plainValue(
@@ -1368,6 +1484,18 @@ async function renderFetchDriven(
     metaEl.textContent = `Failed: ${(err as Error).message}`;
   }
   opts.root.appendChild(build(data));
+}
+
+function hasSignalBindings(call: RpcCall): boolean {
+  return call.bindings.some((binding) =>
+    binding.source.case === "signal" ||
+    (binding.source.case === "nested" && binding.source.value.fields.some(hasSignalBinding)),
+  );
+}
+
+function hasSignalBinding(binding: RpcCall["bindings"][number]): boolean {
+  return binding.source.case === "signal" ||
+    (binding.source.case === "nested" && binding.source.value.fields.some(hasSignalBinding));
 }
 
 // ---------------------------------------------------------------------------
