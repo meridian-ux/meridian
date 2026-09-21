@@ -86,6 +86,7 @@ vitest_test(
         "//packages/web-react:node_modules/@bufbuild/protobuf",
         "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web-react:node_modules/vitest",
+        "//schemas:conformance_fixtures",
     ],
 )
 

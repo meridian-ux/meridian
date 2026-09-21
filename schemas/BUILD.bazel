@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 
@@ -9,6 +10,17 @@ package(default_visibility = ["//visibility:public"])
 # one lost it when the npm_link_package calls moved to //:BUILD.bazel, which was
 # a mistake on my part rather than a consequence of the merge.
 npm_link_all_packages(name = "node_modules")
+
+# Renderer conformance consumes the same protobuf fixture messages from every
+# modality. This is test infrastructure, not a published schemas entrypoint.
+js_library(
+    name = "conformance_fixtures",
+    srcs = ["conformance/fixtures.ts"],
+    deps = [
+        "//schemas:node_modules/@bufbuild/protobuf",
+        "//schemas:node_modules/@savvifi/meridian-proto-ts",
+    ],
+)
 
 # The npm_link_package calls that used to live here moved to //:BUILD.bazel.
 # They create `node_modules/<pkg>` in the package that DECLARES them, and this
