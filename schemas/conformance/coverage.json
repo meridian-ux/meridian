@@ -604,9 +604,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "placeholder",
-          "reason": "ComponentKit declares no Stream member, so no React kit can render it \u2014 while stream.proto declares the shape full-parity for every modality.",
-          "waiver": "uiview-core#3 \u2014 the TUI owes a tailing pane."
+          "status": "renders",
+          "reason": "The TUI renders host-provided bounded stream snapshots and retains the authored placeholder when no lines are available."
         }
       }
     }

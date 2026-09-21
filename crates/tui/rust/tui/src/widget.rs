@@ -32,6 +32,7 @@ pub struct PanelView {
     cached_resource_cards: Option<CachedResourceCards>,
     cached_form: Option<CachedForm>,
     cached_lro: Option<CachedForm>,
+    stream_lines: Vec<String>,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -102,6 +103,7 @@ impl PanelView {
             cached_resource_cards: None,
             cached_form: None,
             cached_lro: None,
+            stream_lines: Vec::new(),
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -121,12 +123,20 @@ impl PanelView {
             cached_resource_cards: None,
             cached_form: None,
             cached_lro: None,
+            stream_lines: Vec::new(),
             table_state: TableState::default(),
             palette,
             content_selected: 0,
             content_len: 0,
             reveal_secret: false,
         }
+    }
+
+    /// Supply a bounded snapshot for a StreamPanel. Hosts own the live
+    /// subscription; the TUI retains only the panel's configured tail.
+    pub fn set_stream_lines(&mut self, panel: &meridian_uiview::proto::StreamPanel, lines: Vec<String>) {
+        let max = if panel.max_lines == 0 { usize::MAX } else { panel.max_lines as usize };
+        self.stream_lines = lines.into_iter().rev().take(max).collect::<Vec<_>>().into_iter().rev().collect();
     }
 
     /// Swap the active palette (e.g. on a runtime theme/mode change).
@@ -413,8 +423,8 @@ impl PanelView {
                 content::render_steps(frame, chunks[2], panel, &self.palette);
             }
             Some(Body::Stream(panel)) => {
-                self.content_len = 0;
-                content::render_stream(frame, chunks[2], panel, &self.palette);
+                self.content_len = self.stream_lines.len();
+                content::render_stream(frame, chunks[2], panel, &self.stream_lines, &self.palette);
             }
             // Media is legitimately degraded here: a moving picture is not text,
             // so the terminal is outside its Accept set by construction.
