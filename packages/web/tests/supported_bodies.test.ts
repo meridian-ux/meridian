@@ -69,6 +69,11 @@ const MINIMAL: Record<string, unknown> = {
   stream: { subscribe: { service: "s", method: "m" } },
   detailHeader: { title: "T", populate: { service: "s", method: "m" } },
   recordCard: { fields: [], populate: { service: "s", method: "m" } },
+  resourceCards: {
+    populate: { service: "s", method: "m" },
+    rowsField: "items",
+    template: { titleField: "name" },
+  },
   choice: { options: [{ id: "a", label: "A" }] },
   snippet: { snippet: { text: "x" } },
   action: { action: { label: "Go" } },
