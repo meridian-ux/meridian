@@ -14,6 +14,7 @@ import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
@@ -128,6 +129,22 @@ describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
     expect(html).toContain("••••••••"); // masked
     expect(html).toContain("data-reveal"); // reveal affordance
     expect(html).toContain('data-copy="sk-abc123"'); // copy yields plaintext
+  });
+
+  it("CopyValue applies declared display while preserving the raw copy source", () => {
+    const typed = create(PanelDescriptorSchema, {
+      panelId: "typed",
+      title: "Typed",
+      body: {
+        case: "copyValue",
+        value: create(CopyValuePanelSchema, {
+          value: { value: "2026-03-29", display: { type: ValueType.DATE } },
+        }),
+      },
+    });
+    const html = render(htmlKit, typed);
+    expect(html).toContain("Mar 29, 2026");
+    expect(html).toContain('data-copy="2026-03-29"');
   });
 
   it("ConnectFlow with no targets renders the placeholder", () => {

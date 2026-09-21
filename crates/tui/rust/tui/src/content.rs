@@ -841,10 +841,15 @@ fn snippet_lines(s: &Snippet, palette: &Palette) -> Vec<Line<'static>> {
 
 fn copy_value_line(v: &CopyValue, palette: &Palette, revealed: bool) -> Line<'static> {
     // Secrets mask until revealed; copy always yields the plaintext.
+    let display_value = v
+        .display
+        .as_ref()
+        .map(|display| format_display_value(&Value::String(v.value.clone()), display))
+        .unwrap_or_else(|| v.value.clone());
     let shown = if v.secret && !revealed {
         "••••••••".to_string()
     } else {
-        v.value.clone()
+        display_value
     };
     let mut spans = Vec::new();
     if !v.label.is_empty() {
@@ -1689,6 +1694,7 @@ mod tests {
             label: "Token".into(),
             secret: true,
             help: String::new(),
+            display: None,
         };
         // Masked when not revealed; plaintext when revealed. (`value` is always the
         // source the host copies via OSC52.)
@@ -1698,6 +1704,23 @@ mod tests {
         let revealed = line_text(&copy_value_line(&secret, &palette, true));
         assert!(revealed.contains("sk-123"));
         assert_eq!(secret.value, "sk-123"); // copy source unchanged
+    }
+
+    #[test]
+    fn copy_value_applies_declared_display_without_changing_copy_source() {
+        use meridian_uiview::proto::{CopyValue, ValueDisplay, ValueType};
+
+        let value = CopyValue {
+            value: "2026-03-29".into(),
+            display: Some(ValueDisplay {
+                r#type: ValueType::Date as i32,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let line = line_text(&copy_value_line(&value, &Palette::default(), false));
+        assert!(line.contains("Mar 29, 2026"));
+        assert_eq!(value.value, "2026-03-29");
     }
 
     #[test]

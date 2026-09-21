@@ -12,6 +12,7 @@ import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
@@ -155,6 +156,20 @@ describe("muiKit content field-completeness", () => {
     const reveal = await screen.findByRole("button", { name: "Reveal" });
     fireEvent.click(reveal);
     await screen.findByText("sk-xyz"); // revealed plaintext
+  });
+
+  it("CopyValue applies declared display while preserving the raw copy source", async () => {
+    renderPanel(create(PanelDescriptorSchema, {
+      panelId: "typed",
+      title: "Typed",
+      body: {
+        case: "copyValue",
+        value: create(CopyValuePanelSchema, {
+          value: { value: "2026-03-29", display: { type: ValueType.DATE } },
+        }),
+      },
+    }));
+    await screen.findByText("Mar 29, 2026");
   });
 
   it("Affordance.description renders nested in a CatalogItem (no ActionPanel wrapper)", async () => {

@@ -7,8 +7,12 @@
 // description, the icon seam (data-icon + host glyph via renderIcon), snippet
 // language, CopyValue secret mask + reveal, and the ConnectFlow placeholder.
 
+import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
+import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import {
@@ -83,6 +87,21 @@ describe("web-components content shapes (field-complete)", () => {
     expect(reveal).toBeTruthy();
     reveal.click();
     expect(code.textContent).toBe("sk-abc123");
+  });
+
+  it("CopyValue applies declared display while preserving the raw copy source", async () => {
+    const typed = create(PanelDescriptorSchema, {
+      panelId: "typed",
+      title: "Typed",
+      body: {
+        case: "copyValue",
+        value: create(CopyValuePanelSchema, {
+          value: { value: "2026-03-29", display: { type: ValueType.DATE } },
+        }),
+      },
+    });
+    const root = await draw(typed);
+    expect(root.querySelector(".mer-copyvalue-value")?.textContent).toBe("Mar 29, 2026");
   });
 
   it("ConnectFlow renders endpoint + tabs + affordance description; switches on click", async () => {

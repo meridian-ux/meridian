@@ -606,9 +606,10 @@ function buildCopyValue(value: CopyValue): HTMLElement {
   const wrap = el("div", "mer-copyvalue");
   if (value.secret) wrap.dataset.secret = "true";
   if (value.label) wrap.appendChild(el("span", "mer-copyvalue-label", value.label));
+  const displayValue = value.display ? formatByDisplay(value.value, value.display).text : value.value;
   const btn = el("button", "mer-copy mer-copyvalue-btn");
   (btn as HTMLButtonElement).type = "button";
-  const code = el("code", "mer-copyvalue-value", value.secret ? "••••••••" : value.value);
+  const code = el("code", "mer-copyvalue-value", value.secret ? "••••••••" : displayValue);
   btn.appendChild(code);
   copyOnClick(btn, value.value); // copy always yields plaintext
   wrap.appendChild(btn);
@@ -616,12 +617,12 @@ function buildCopyValue(value: CopyValue): HTMLElement {
     const reveal = el("button", "mer-reveal", "Reveal");
     (reveal as HTMLButtonElement).type = "button";
     reveal.setAttribute("aria-pressed", "false");
-    let shown = false;
+    let revealed = false;
     reveal.addEventListener("click", () => {
-      shown = !shown;
-      code.textContent = shown ? value.value : "••••••••";
-      reveal.textContent = shown ? "Hide" : "Reveal";
-      reveal.setAttribute("aria-pressed", String(shown));
+      revealed = !revealed;
+      code.textContent = revealed ? displayValue : "••••••••";
+      reveal.textContent = revealed ? "Hide" : "Reveal";
+      reveal.setAttribute("aria-pressed", String(revealed));
     });
     wrap.appendChild(reveal);
   }

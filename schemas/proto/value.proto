@@ -12,7 +12,8 @@
 // links are the obvious next residents, at which point TableColumn and
 // FormField reference one spec instead of describing the same idea twice.
 //
-// No internal dependencies; consumed by form.proto.
+// No internal dependencies; consumed by form.proto, copy_value.proto, and
+// the other value-bearing descriptor messages.
 syntax = "proto3";
 
 package meridian.ui.v1;

@@ -44,6 +44,7 @@ import {
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay } from "../display_format.js";
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
@@ -140,7 +141,8 @@ export function SnippetView({ snippet }: { snippet: Snippet }): ReactNode {
 
 export function CopyValueView({ value }: { value: CopyValue }): ReactNode {
   const [revealed, setRevealed] = useState(false);
-  const shown = value.secret && !revealed ? "••••••••" : value.value;
+  const displayValue = value.display ? formatByDisplay(value.value, value.display).text : value.value;
+  const shown = value.secret && !revealed ? "••••••••" : displayValue;
   return (
     <Stack direction="row" spacing={1} alignItems="center" data-secret={value.secret || undefined}>
       {value.label && (

@@ -6,12 +6,13 @@
 // CopyValue is a single inline datum. Reused nested (`ConnectFlowPanel.endpoint`
 // is the shared endpoint chip) and exposed as a panel via `CopyValuePanel`.
 //
-// Depends on nothing but the field_behavior annotation.
+// Depends on the shared ValueDisplay contract and field_behavior annotation.
 syntax = "proto3";
 
 package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -28,6 +29,9 @@ message CopyValue {
   bool secret = 3 [(google.api.field_behavior) = OPTIONAL];
   // Optional one-liner help shown under the value.
   string help = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the visible value. Copy and reveal always
+  // preserve the original `value`; absent or unspecified keeps legacy output.
+  ValueDisplay display = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // PanelDescriptor body variant: a panel that is a single CopyValue. The

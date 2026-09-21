@@ -165,6 +165,9 @@ shared formatters (12.5 at zero digits becomes 13, and -1.125 at two becomes
 values, negative zero, and the 100-digit limit; legacy column formatting is
 unchanged. This follows the rounding rule in
 [ECMAScript toFixed](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-number.prototype.tofixed).
+`CopyValue.display` now extends the same declared-value contract to standalone
+and ConnectFlow copy surfaces: browsers and the TUI format the visible/revealed
+text while copy actions retain the original scalar.
 Richer non-browser realizations remain open.
 
 ## Track C — Hardening

@@ -27,7 +27,12 @@ import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import { computeStat, statSparklinePoints, trendArrow } from "@savvifi/meridian-schemas/uiview";
+import {
+  computeStat,
+  formatByDisplay,
+  statSparklinePoints,
+  trendArrow,
+} from "@savvifi/meridian-schemas/uiview";
 
 import { useGrammarResolver, useIcon } from "./provider.js";
 
@@ -282,11 +287,12 @@ export function SnippetContent({ c, snippet }: { c: ContentClasses; snippet: Sni
 
 // ── CopyValue (realizes secret mask + reveal) ────────────────────────────────
 export function CopyValueContent({ c, value }: { c: ContentClasses; value: CopyValue }): ReactNode {
+  const shown = value.display ? formatByDisplay(value.value, value.display).text : value.value;
   return (
     <div className={c.copyValue} data-secret={value.secret || undefined}>
       {value.label && <span className={c.copyValueLabel}>{value.label}</span>}
       <button type="button" className={c.copyValueBtn} data-copy={value.value}>
-        <code className={c.copyValueValue}>{value.secret ? "••••••••" : value.value}</code>
+        <code className={c.copyValueValue}>{value.secret ? "••••••••" : shown}</code>
       </button>
       {value.secret && (
         <>
@@ -295,7 +301,7 @@ export function CopyValueContent({ c, value }: { c: ContentClasses; value: CopyV
           </button>
           {/* plaintext, host JS unhides on reveal; copy already yields it */}
           <code className={c.copyValuePlain} data-plain hidden>
-            {value.value}
+            {shown}
           </code>
         </>
       )}
