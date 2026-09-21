@@ -59,6 +59,18 @@ export type MeridianFormField =
       onRemove: (index: number) => void;
       onMoveUp: (index: number) => void;
       onMoveDown: (index: number) => void;
+    })
+  // A user-editable string map rendered as key/value rows.
+  | (BaseField & {
+      type: "map";
+      entries: { key: string; value: string }[];
+      keyLabel: string;
+      valueLabel: string;
+      addLabel: string;
+      canAdd: boolean;
+      onAdd: () => void;
+      onRemove: (index: number) => void;
+      onChange: (index: number, entry: { key: string; value: string }) => void;
     });
 
 export interface MeridianFormSubmit {
@@ -178,6 +190,63 @@ function renderField(field: MeridianFormField): ReactNode {
             </Stack>
           ))}
           {field.items.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              (none)
+            </Typography>
+          ) : null}
+        </Stack>
+        {showControls ? (
+          <Button size="small" onClick={field.onAdd} disabled={!field.canAdd} sx={{ mt: 1 }}>
+            {field.addLabel}
+          </Button>
+        ) : null}
+      </Box>
+    );
+  }
+  if (field.type === "map") {
+    const showControls = !field.disabled;
+    return (
+      <Box key={field.key} sx={{ minWidth: 0 }}>
+        <Typography variant="subtitle2" gutterBottom>
+          {field.label}
+        </Typography>
+        {field.helperText ? (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+            {field.helperText}
+          </Typography>
+        ) : null}
+        <Stack spacing={1}>
+          {field.entries.map((entry, index) => (
+            <Stack key={`${field.key}-${index}`} direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                fullWidth
+                label={field.keyLabel}
+                value={entry.key}
+                disabled={field.disabled}
+                onChange={(event) => field.onChange(index, { ...entry, key: event.target.value })}
+              />
+              <TextField
+                fullWidth
+                label={field.valueLabel}
+                value={entry.value}
+                disabled={field.disabled}
+                onChange={(event) => field.onChange(index, { ...entry, value: event.target.value })}
+              />
+              {showControls ? (
+                <IconButton
+                  aria-label="remove entry"
+                  size="small"
+                  onClick={() => field.onRemove(index)}
+                  sx={{ mt: 1 }}
+                >
+                  <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>
+                    &#10005;
+                  </Box>
+                </IconButton>
+              ) : null}
+            </Stack>
+          ))}
+          {field.entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               (none)
             </Typography>

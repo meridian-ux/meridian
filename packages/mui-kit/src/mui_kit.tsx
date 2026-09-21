@@ -557,6 +557,41 @@ function buildField(
         },
       };
     }
+    case "keyValueMap": {
+      const currentObject = current && typeof current === "object" && !Array.isArray(current)
+        ? (current as FormObject)
+        : {};
+      const entries = Object.entries(currentObject).map(([key, value]) => ({
+        key,
+        value: typeof value === "string" ? value : "",
+      }));
+      const spec = field.kind.value;
+      return {
+        ...base,
+        type: "map",
+        entries,
+        keyLabel: spec.keyLabel || "Key",
+        valueLabel: spec.valueLabel || "Value",
+        addLabel: spec.addLabel || "Add entry",
+        canAdd: spec.maxItems === 0 || entries.length < spec.maxItems,
+        onAdd: () => {
+          // A blank key is the new-row placeholder. Do not add another blank
+          // object key until the user names the current row.
+          if (Object.prototype.hasOwnProperty.call(currentObject, "")) return;
+          setAt(path, { ...currentObject, "": "" });
+        },
+        onRemove: (index: number) => {
+          const next = entries.filter((_, entryIndex) => entryIndex !== index);
+          setAt(path, Object.fromEntries(next.map((entry) => [entry.key, entry.value] as const)));
+        },
+        onChange: (index: number, entry: { key: string; value: string }) => {
+          const next = entries.map((currentEntry, entryIndex) =>
+            entryIndex === index ? entry : currentEntry,
+          );
+          setAt(path, Object.fromEntries(next.map((currentEntry) => [currentEntry.key, currentEntry.value] as const)));
+        },
+      };
+    }
     case "text":
     case "masked":
     default:
