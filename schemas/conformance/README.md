@@ -41,9 +41,13 @@ The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
 link, an admitted view action's exact service/method and empty request, and
 mutation denial before transport with a host denial callback. ActionPanel
-affordances are URI/command controls, not RPC actions. These checks do not prove
-disabled denial controls or visible action errors: the current view action
-fallback remains enabled and catches invocation failures without rendering them.
+affordances retain their URI/command contracts, separate from RPC actions.
+The shared view action fallback exposes denied calls with `aria-disabled` and
+an unavailable description while remaining focusable; attempted activation
+reports the denial through the gated invoker without transport. Pending actions
+disable duplicate activation. Failures render a `role="alert"` message and allow
+retry; successful retries clear the error. This evidence covers HTML/Shadcn's
+fallback, not custom kit ActionBar implementations or row actions.
 The HTML/Shadcn `form.test.ts` suite verifies FormPanel read-tier prefill,
 typed scalar/nested/repeated/map payloads, submit bindings, mutation admission,
 validation, duplicate-submit prevention, visible failures and retry, and saved

@@ -6,7 +6,7 @@
 // Actions via the invoker. The layout STRUCTURE is kit-agnostic; the panels and
 // the action affordances come from the active ComponentKit.
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -17,7 +17,7 @@ import type {
   Slot,
   ViewDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { createAdmissionGate, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
@@ -58,17 +58,50 @@ function fireAction(
   action: Action,
   subjectKind?: string,
   entityId?: string | number,
-): void {
+): Promise<void> {
   if (action.call) {
-    void invoker.invoke(action.call.service, action.call.method, {}).catch(() => {});
-    return;
+    return invoker.invoke(action.call.service, action.call.method, {}).then(() => {});
   }
   onAction?.(action.id, subjectKind, entityId);
+  return Promise.resolve();
+}
+
+function ActionControl({ action }: { action: Action }): ReactNode {
+  const { mutationInvoker, onAction, admission } = useMeridian();
+  const { subjectKind } = useContext(MeridianViewContext);
+  const gate = useMemo(() => createAdmissionGate(admission), [admission]);
+  const denied = !!action.call && !gate.admits("mutation", action.call.service, action.call.method);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string>();
+  const busy = useRef(false);
+  const descriptionId = useId();
+  async function activate() {
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
+    setError(undefined);
+    try {
+      // The gated invoker still reports attempted denials to the host.
+      await fireAction(mutationInvoker, onAction, action, subjectKind);
+    } catch {
+      setError(denied ? "This action is unavailable." : "Action failed. Try again.");
+    } finally {
+      busy.current = false;
+      setPending(false);
+    }
+  }
+  return <span className="mer-action">
+    <button type="button" aria-disabled={denied || undefined} disabled={pending}
+      aria-busy={pending || undefined} aria-describedby={denied || error ? descriptionId : undefined}
+      onClick={() => { void activate(); }}>{action.label}</button>
+    {(denied || error) && <span id={descriptionId} role={error ? "alert" : undefined}>
+      {error ?? "This action is unavailable."}
+    </span>}
+  </span>;
 }
 
 function ActionsView({ actions }: { actions: Action[] }): ReactNode {
-  const { kit, mutationInvoker, onAction } = useMeridian();
-  const { subjectKind } = useContext(MeridianViewContext);
+  const { kit, mutationInvoker } = useMeridian();
   if (!actions || actions.length === 0) return null;
   if (kit.ActionBar) {
     return <kit.ActionBar actions={actions} invoker={mutationInvoker} />;
@@ -76,13 +109,7 @@ function ActionsView({ actions }: { actions: Action[] }): ReactNode {
   return (
     <div className="mer-actions">
       {actions.map((a) => (
-        <button
-          key={a.id}
-          type="button"
-          onClick={() => fireAction(mutationInvoker, onAction, a, subjectKind)}
-        >
-          {a.label}
-        </button>
+        <ActionControl key={a.id} action={a} />
       ))}
     </div>
   );
