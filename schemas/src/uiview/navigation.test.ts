@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { safeAssetSrc, safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
+import { safeAssetSrc, safeFontSrc, safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
 
 test("safeNavigationHref retains web, relative, mail, and application deep links", () => {
   for (const href of [
@@ -59,6 +59,32 @@ test("safeAssetSrc rejects active, local, opaque, malformed, and empty sources",
     "   ",
   ]) {
     assert.equal(safeAssetSrc(src), undefined, src);
+  }
+});
+
+test("safeFontSrc retains web assets and narrowly typed embedded fonts", () => {
+  for (const src of [
+    "/fonts/outfit.woff2",
+    "https://cdn.example.com/outfit.woff2",
+    "data:font/woff2;base64,d09GMgABAAAAAA==",
+    "data:font/ttf;base64,AAEAAAALAIAAAwAwT1MvMg==",
+  ]) {
+    assert.equal(safeFontSrc(src), src);
+  }
+});
+
+test("safeFontSrc rejects active, local, and non-font data sources", () => {
+  for (const src of [
+    "javascript:alert(1)",
+    "file:///tmp/outfit.woff2",
+    "blob:https://example.com/opaque",
+    "data:text/html;base64,PHNjcmlwdD4=",
+    "data:image/svg+xml;base64,PHN2Zz4=",
+    "data:font/woff2,not-base64",
+    "data:font/woff2;base64,not base64",
+    "data:font/woff2;base64,AA\n==",
+  ]) {
+    assert.equal(safeFontSrc(src), undefined, src);
   }
 });
 

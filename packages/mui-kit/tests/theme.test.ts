@@ -141,14 +141,35 @@ describe("themeProtoToFontFaceCss", () => {
     expect(css).toContain("font-display: swap");
   });
 
-  it("escapes values that would otherwise break out of url() or the rule", () => {
+  it("rejects a source that would otherwise break out of url() or the rule", () => {
     const css = themeProtoToFontFaceCss(
       withFonts([{ family: 'Ev"il', srcUri: 'x.woff2") ; } body { display: none' }]),
     );
-    expect(css).not.toContain("body { display: none");
-    expect(css).not.toContain('Ev"il');
-    // one rule in, one rule out — nothing injected alongside it
+    expect(css).toBe("");
+  });
+
+  it("retains self-contained font data while rejecting arbitrary data documents", () => {
+    const css = themeProtoToFontFaceCss(
+      withFonts([
+        { family: "Embedded", srcUri: "data:font/woff2;base64,d09GMgABAAAAAA==" },
+        { family: "Document", srcUri: "data:text/html;base64,PHNjcmlwdD4=" },
+      ]),
+    );
+    expect(css).toContain('font-family: "Embedded"');
+    expect(css).toContain('url("data:font/woff2;base64,d09GMgABAAAAAA==")');
+    expect(css).not.toContain("Document");
     expect(css.match(/@font-face/g)).toHaveLength(1);
+  });
+
+  it("omits active and local font sources instead of materializing them in CSS", () => {
+    const css = themeProtoToFontFaceCss(
+      withFonts([
+        { family: "Active", srcUri: "javascript:alert(1)" },
+        { family: "Local", srcUri: "file:///tmp/local.woff2" },
+        { family: "Blob", srcUri: "blob:https://example.com/font" },
+      ]),
+    );
+    expect(css).toBe("");
   });
 
   it("skips sources missing a family or a URI rather than emitting broken CSS", () => {

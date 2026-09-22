@@ -142,9 +142,13 @@ posters, and caption tracks now share that passive-asset admission rule across
 all browser renderers, degrading rejected primary sources to authored text and
 dropping rejected auxiliary assets. Gallery image fields now use the same
 passive-asset admission rule across all browser renderers, and host asset
-resolvers run only for admitted sources. These checks do not establish visual
-layout, every formatter option, or full renderer parity. Remaining work is
-the broader parity and renderer-specific/tooling scope called out above.
+resolvers run only for admitted sources. Theme font files now pass through a
+dedicated font-source admission rule before the MUI kit emits `@font-face` CSS;
+HTTP(S), relative, and narrowly typed embedded fonts remain available while
+active, local, opaque, and arbitrary data sources are omitted. These checks do
+not establish visual layout, every formatter option, or full renderer parity.
+Remaining work is the broader parity and renderer-specific/tooling scope called
+out above.
 
 ## Track B — One language
 

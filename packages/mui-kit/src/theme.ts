@@ -9,6 +9,7 @@ import type { CSSProperties } from "react";
 import { createTheme, type Theme as MuiTheme } from "@mui/material/styles";
 
 import type { Palette, Theme, Typography } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { safeFontSrc } from "@savvifi/meridian-schemas/uiview";
 
 export interface ThemeConfig {
   mode: "light" | "dark";
@@ -216,6 +217,12 @@ export function themeFontSources(theme: Theme | undefined): FontSourceView[] {
 const cssSafe = (value: string | undefined): string =>
   (value ?? "").replace(/["'()\\\r\n;{}]/g, "").trim();
 
+// `safeFontSrc` has already rejected CSS delimiters and control characters.
+// Keep a separate final quoted-string escape so the semicolon required by an
+// admitted `data:font/*;base64,...` source is not stripped by `cssSafe`.
+const cssUrlSafe = (value: string): string =>
+  value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
 const FORMAT_BY_EXT: Record<string, string> = {
   woff2: "woff2",
   woff: "woff",
@@ -242,10 +249,11 @@ function fontFormat(srcUri: string): string | undefined {
  */
 export function themeProtoToFontFaceCss(theme: Theme | undefined): string {
   return themeFontSources(theme)
-    .filter((font) => font.family && font.srcUri)
-    .map((font) => {
-      const format = fontFormat(font.srcUri);
-      const src = `url("${cssSafe(font.srcUri)}")${format ? ` format("${format}")` : ""}`;
+    .flatMap((font) => {
+      const srcUri = safeFontSrc(font.srcUri);
+      if (!font.family || !srcUri) return [];
+      const format = fontFormat(srcUri);
+      const src = `url("${cssUrlSafe(srcUri)}")${format ? ` format("${format}")` : ""}`;
       const lines = [
         `  font-family: "${cssSafe(font.family)}";`,
         `  src: ${src};`,
@@ -257,7 +265,7 @@ export function themeProtoToFontFaceCss(theme: Theme | undefined): string {
       ];
       const range = cssSafe(font.unicodeRange);
       if (range) lines.push(`  unicode-range: ${range};`);
-      return `@font-face {\n${lines.join("\n")}\n}`;
+      return [`@font-face {\n${lines.join("\n")}\n}`];
     })
     .join("\n");
 }

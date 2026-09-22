@@ -363,6 +363,13 @@ web-components, HTML, Shadcn, or MUI create an image. Rejected sources leave the
 card's authored text and actions intact without emitting an image; MUI invokes
 the host asset resolver only after the authored source is admitted.
 
+`Theme.typography.fonts[].src_uri` uses a dedicated font-source admission rule
+before the MUI theme binding emits `@font-face` CSS. Relative and HTTP(S) font
+files remain available, as do base64 `data:font/*` sources for self-contained
+skins. Active, local, opaque, malformed, and non-font data sources are omitted
+instead of being escaped into an active stylesheet URL. Focused seam and theme
+tests protect the admission and materialization boundaries.
+
 `TerminalPanel.url` uses a separate, narrower transport admission rule: only
 absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
 fragments can reach the browser's WebSocket constructor. Rejected endpoints do
