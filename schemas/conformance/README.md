@@ -333,6 +333,11 @@ before document navigation. Safe application deep links retain precedence over
 the command action; rejected executable or local-document schemes render as
 disabled commands and never fall through to the alternate action.
 
+Gallery `href_field` values use the same admission rule in web-components,
+HTML, Shadcn, and MUI. Safe application deep links remain interactive;
+rejected destinations degrade to the authored action label or an inert card.
+Focused tests cover both outcomes without granting navigation to image sources.
+
 `TerminalPanel.url` uses a separate, narrower transport admission rule: only
 absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
 fragments can reach the browser's WebSocket constructor. Rejected endpoints do

@@ -1487,11 +1487,12 @@ function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
     if (status != null && status !== "") {
       article.appendChild(slot("span", "mer-gallery-card-status", card.statusField, card.statusDisplay));
     }
-    const href = card.hrefField ? readAt(row, card.hrefField) : undefined;
+    const rawHref = card.hrefField ? readAt(row, card.hrefField) : undefined;
+    const href = safeNavigationHref(rawHref);
     if (href) {
       const link = document.createElement("a");
       link.className = "mer-gallery-card-link";
-      link.href = String(href);
+      link.href = href;
       link.textContent = card.actionLabelField
         ? String(readAt(row, card.actionLabelField) ?? "Open")
         : "Open";

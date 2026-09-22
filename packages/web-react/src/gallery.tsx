@@ -6,7 +6,7 @@ import { useContext, type ReactNode } from "react";
 
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 
 import { useDisplayNow } from "./display_now.js";
 import { resolvePath, useRecord } from "./pagination.js";
@@ -28,18 +28,6 @@ function rowsFromRecord(record: Row | undefined, rowsField: string): Row[] {
   return Array.isArray(value)
     ? value.filter((row): row is Row => !!row && typeof row === "object" && !Array.isArray(row))
     : [];
-}
-
-function safeHref(value: unknown): string | undefined {
-  const href = asText(value).trim();
-  if (!href || /[\u0000-\u001f\u007f]/.test(href)) return undefined;
-  // href_field is authored navigation, but descriptors can come from untrusted
-  // producers. Keep relative links and HTTP(S); never emit executable schemes.
-  try {
-    const url = new URL(href, "https://meridian.invalid/");
-    if (["http:", "https:", "mailto:"].includes(url.protocol)) return href;
-  } catch { /* Invalid destinations degrade to a label. */ }
-  return undefined;
 }
 
 function safeAssetSrc(value: unknown): string | undefined {
@@ -104,7 +92,7 @@ export function GalleryContent({
         const status = card.statusField ? slot(row, card.statusField, card.statusDisplay) : undefined;
         const image = card.imageField ? safeAssetSrc(resolvePath(row, card.imageField)) : undefined;
         const icon = card.iconField ? asText(resolvePath(row, card.iconField)) : "";
-        const href = card.hrefField ? safeHref(resolvePath(row, card.hrefField)) : undefined;
+        const href = card.hrefField ? safeNavigationHref(resolvePath(row, card.hrefField)) : undefined;
         const action = card.actionLabelField ? asText(resolvePath(row, card.actionLabelField)) : "";
         const hasSubtitle = subtitle !== undefined && (subtitleValue !== null && subtitleValue !== undefined && subtitleValue !== "" || card.subtitleDisplay);
         const hasStatus = status !== undefined && (statusValue !== null && statusValue !== undefined && statusValue !== "" || card.statusDisplay);

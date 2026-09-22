@@ -15,7 +15,7 @@ import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/mat
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { safeNavigationHref, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianAssetContext } from "../asset_context.js";
 import { formatByDisplay } from "../display_format.js";
@@ -164,8 +164,9 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
               {it.subtitle && <Typography title={it.subtitleTitle} color="text.secondary" variant="body2">{it.subtitle}</Typography>}
             </Box>
           );
-          return it.href ? (
-            <a key={idx} href={withAsset(it.href)} style={{ textDecoration: "none", color: "inherit" }}>
+          const href = safeNavigationHref(withAsset(it.href));
+          return href ? (
+            <a key={idx} href={href} style={{ textDecoration: "none", color: "inherit" }}>
               {inner}
             </a>
           ) : (

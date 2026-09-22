@@ -94,6 +94,29 @@ it("routes declared table value links by their raw value and suppresses URL fall
 });
 
 describe("web-components GalleryPanel", () => {
+  it("admits gallery deep links and degrades unsafe destinations to action text", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor: create(PanelDescriptorSchema, {
+        body: { case: "gallery", value: create(GalleryPanelSchema, {
+          populate: { service: "demo.Catalog", method: "List" },
+          rowsField: "items",
+          card: { titleField: "name", hrefField: "href", actionLabelField: "action" },
+        }) },
+      }),
+      invoker: { invoke: async () => ({ items: [
+        { name: "Workspace", href: "vscode://file/project", action: "Open" },
+        { name: "Unsafe", href: "javascript:alert(1)", action: "Manage" },
+      ] }) },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+    expect(Array.from(root.querySelectorAll("a"), link => link.getAttribute("href"))).toEqual(["vscode://file/project"]);
+    expect(root.querySelector(".mer-gallery-card-action")?.textContent).toBe("Manage");
+    expect(root.querySelector('a[href^="javascript:"]')).toBeNull();
+  });
+
   it.each([false, true])("fetches wire-decoded cards with declared displays=%s", async (declared) => {
     const root = document.createElement("div");
     await renderPanel({

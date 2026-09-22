@@ -105,15 +105,14 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s populated
   });
 
   it("preserves literal slots, escapes markup, and degrades unsafe URLs to text", async () => {
-    const { container, close } = await mount({ data: { items: [null, { name: "<script>bad()</script>", owner: "Ada <ada@example.com>", created: false, href: "javascript:bad()", image: "data:text/html,bad", action: "Manage" }, { name: "2026-03-29", href: "/safe" }] } });
-    expect(container.querySelectorAll('[role="listitem"]')).toHaveLength(2);
+    const { container, close } = await mount({ data: { items: [null, { name: "<script>bad()</script>", owner: "Ada <ada@example.com>", created: false, href: "javascript:bad()", image: "data:text/html,bad", action: "Manage" }, { name: "2026-03-29", href: "/safe" }, { name: "Open workspace", href: "vscode://file/project", action: "Open" }] } });
+    expect(container.querySelectorAll('[role="listitem"]')).toHaveLength(3);
     expect(container.querySelector("[data-gallery-title]")?.textContent).toBe("<script>bad()</script>");
     expect(container.querySelector("script")).toBeNull();
     expect(container.querySelector(".mer-gallery-card-subtitle")?.textContent).toBe("Ada <ada@example.com>");
     expect(container.querySelector(".mer-gallery-card-status")?.textContent).toBe("false");
     expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelectorAll("a")).toHaveLength(1);
-    expect(container.querySelector("a")?.textContent).toBe("Open");
+    expect(Array.from(container.querySelectorAll("a"), link => link.getAttribute("href"))).toEqual(["/safe", "vscode://file/project"]);
     expect(container.querySelector(".mer-gallery-card-action")?.textContent).toBe("Manage");
     await close();
   });

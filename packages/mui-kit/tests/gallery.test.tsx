@@ -172,6 +172,20 @@ describe("MeridianGallery", () => {
     expect(screen.getByText("Ada").getAttribute("title")).toBe("ada@example.com");
   });
 
+  it("admits gallery deep links and degrades unsafe destinations to inert cards", async () => {
+    render(
+      <MeridianMuiProvider invoker={{ invoke: async () => ({ slides: [
+        { created: "Workspace", href: "vscode://file/project" },
+        { created: "Unsafe", href: "javascript:alert(1)" },
+      ] }) }}>
+        <ViewRenderer view={galleryView(false, false)} />
+      </MeridianMuiProvider>,
+    );
+    await screen.findByText("Workspace");
+    expect(screen.getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["vscode://file/project"]);
+    expect(screen.getByText("Unsafe").closest("a")).toBeNull();
+  });
+
   it.each([false, true])("preserves legacy output without displays (images=%s)", async (withImage) => {
     render(
       <MeridianMuiProvider invoker={invoker}>
