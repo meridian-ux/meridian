@@ -96,7 +96,7 @@ Vitest command and review the golden diff. Do not re-record to hide a missing
 field or unexpected fallback. The existing React and web-components Bazel
 conformance targets include the normalizer and goldens as runfiles.
 
-## What these fixtures do not prove
+## Focused interaction and content coverage
 
 The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
@@ -133,7 +133,7 @@ the same text at sufficient terminal width and renders at a narrow width without
 panicking. This keeps 24 fixtures and 96 browser snapshots. CSS overflow, clipping,
 and wrapping remain renderer-specific; these checks do not prove visual layout.
 
-These are initial-state regression snapshots. Several fixtures have no populate
+The browser semantic goldens are initial-state regression snapshots. Several fixtures have no populate
 RPC, and React snapshots are server-rendered, so loading/empty/degraded output is
 recorded where appropriate. A snapshot of a loading message does not prove that
 populated data renders. Network/clipboard/keyboard behavior remains covered by
@@ -152,7 +152,8 @@ and TUI tests. Focused gallery tests cover declared `CardSpec` title, subtitle,
 and status displays in HTML, Shadcn, MUI, web-components, and native rendering.
 HTML and Shadcn focused tests also cover populated media, icons, navigation,
 literal labels, unsafe URL degradation, malformed responses, and request failure.
-Their initial-state snapshots still do not establish populated card support.
+Populated card support is established by these focused tests; the initial-state
+snapshots alone record loading, empty, or degraded output.
 The canonical Gallery fixture now also carries its populate and card mapping;
 the same two-row response is exercised through HTML, Shadcn, MUI,
 web-components, and TUI, closing the first populated gallery matrix slice.
@@ -186,7 +187,11 @@ plain text; these checks do not prove navigation, colors, or layout fidelity.
 Run `cargo test -p meridian-tui --test render_descriptor` to compare them; intentional
 changes require reviewing and editing the inline expected lines.
 
-Epic #9 still owns broader overflow/ValueType renderer fixtures,
-broader interactive snapshots, native snapshots, and a common Bazel-aware
+## Remaining coverage and tooling
+
+Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
+ValueType renderer fixtures beyond the shared formatter corpus, broader
+interactive snapshots, native snapshots beyond the Gallery/Table text goldens,
+and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package
 test job; its Bazel browser harness is a separate set of tests.
