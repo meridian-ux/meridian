@@ -133,7 +133,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 |---|---|---|
 | **Tone** — how serious, how it looks | `ValueTone` (6) · `Status.State` / `ToolBlock.State` · `AffordanceStyle` · `Palette` roles | one `Tone` enum; `Palette` keyed by it — [#10](../../issues/10) |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
-| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, and `Conversation.Block.Field`; resource-card template slots and gallery fields still infer from string shape | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
+| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, and `Conversation.Block.Field`; gallery fields still infer from string shape | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` is empty; four layout modes with no per-modality realization; `NestedForm.element` is an empty oneof | `Metrics` defined; a degradation ladder per layout like `panel.proto` gives each arm; `schemas/DESIGN_LANGUAGE.md` as the glossary — [#13](../../issues/13) |
 
 The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): every
@@ -181,6 +181,10 @@ or invent navigation routes.
 `ResourceCard.MetaField.display` now formats fetched card metadata across browser
 kits, web-components, and TUI, reusing the existing safe URL and host-resolved
 record-link seam; legacy scalar output is preserved when unset.
+`ResourceCardTemplate` now applies the same formatter to title, subtitle, and
+status slots across browser kits, web-components, and TUI, including supporting
+titles for principal email labels while preserving the old scalar path when
+those declarations are absent.
 Richer non-browser realizations remain open.
 
 ## Track C — Hardening
