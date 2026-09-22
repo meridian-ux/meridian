@@ -26,8 +26,10 @@ export function renderBlockInner(b: Block): string {
     const items = (b.list.items || [])
       .map((it) => {
         const badges = (it.badges || []).map((x) => `<span class="badge">${esc(x)}</span>`).join("");
-        const sub = it.subtitle ? ` <span class="lsub">${esc(it.subtitle)}</span>` : "";
-        return `<div class="litem"><span class="ltitle">${esc(it.title || "")}</span>${sub}<span class="lbadges">${badges}</span></div>`;
+        const title = displayField({ value: it.title, display: it.titleDisplay });
+        const subtitle = displayField({ value: it.subtitle, display: it.subtitleDisplay });
+        const sub = it.subtitle ? ` <span class="lsub"${subtitle.title ? ` title="${esc(subtitle.title)}"` : ""}>${esc(subtitle.text)}</span>` : "";
+        return `<div class="litem"><span class="ltitle"${title.title ? ` title="${esc(title.title)}"` : ""}>${esc(title.text)}</span>${sub}<span class="lbadges">${badges}</span></div>`;
       })
       .join("");
     const head = b.list.title ? `<div class="lhead">${esc(b.list.title)}</div>` : "";

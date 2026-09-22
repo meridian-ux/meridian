@@ -136,6 +136,10 @@ message Block {
     string subtitle = 2 [(google.api.field_behavior) = OPTIONAL];
     repeated string badges = 3 [(google.api.field_behavior) = OPTIONAL];
     string icon = 4 [(google.api.field_behavior) = OPTIONAL];
+    // Optional label formatting with Field.display's string semantics. Raw
+    // strings and legacy rendering are preserved when absent or unsupported.
+    ValueDisplay title_display = 5 [(google.api.field_behavior) = OPTIONAL];
+    ValueDisplay subtitle_display = 6 [(google.api.field_behavior) = OPTIONAL];
   }
 
   message ListBlock {

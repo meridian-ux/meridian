@@ -183,9 +183,18 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
                         palette.meta(),
                     ));
                 }
-                spans.push(Span::styled(item.title.clone(), base));
+                spans.push(Span::styled(
+                    list_slot_text(&item.title, item.title_display.as_ref()),
+                    base,
+                ));
                 if !item.subtitle.is_empty() {
-                    spans.push(Span::styled(format!("  {}", item.subtitle), palette.meta()));
+                    spans.push(Span::styled(
+                        format!(
+                            "  {}",
+                            list_slot_text(&item.subtitle, item.subtitle_display.as_ref())
+                        ),
+                        palette.meta(),
+                    ));
                 }
                 for badge in &item.badges {
                     spans.push(Span::styled(format!("  [{badge}]"), palette.accent_line()));
@@ -319,6 +328,25 @@ fn table_cell_text(row: &block::Row, key: &str) -> String {
             )
         }
         _ => cell.value.clone(),
+    }
+}
+
+fn list_slot_text(value: &str, display: Option<&meridian_uiview::proto::ValueDisplay>) -> String {
+    match display {
+        Some(display)
+            if !value.is_empty()
+                && matches!(
+                    ValueType::try_from(display.r#type),
+                    Ok(ValueType::Date
+                        | ValueType::DateTime
+                        | ValueType::Time
+                        | ValueType::Principal
+                        | ValueType::Email)
+                ) =>
+        {
+            meridian_uiview::format_display_value(&serde_json::Value::String(value.into()), display)
+        }
+        _ => value.into(),
     }
 }
 
@@ -657,6 +685,59 @@ mod tests {
         let lines = table_lines(&table, &palette(), Style::default());
         assert_eq!(text_of(&lines[0]), "  D             L      ");
         assert_eq!(text_of(&lines[1]), "  Mar 29, 2026  literal");
+    }
+
+    #[test]
+    fn list_displays_survive_wire_without_coercing_strings() {
+        use meridian_uiview::proto::{
+            value_display, PrincipalDisplay, PrincipalOptions, ValueDisplay,
+        };
+        use prost::Message;
+        let original = block_of(block::Kind::List(block::ListBlock {
+            title: "Items".into(),
+            items: vec![block::ListItem {
+                title: "2026-03-29T00:00:00Z".into(),
+                subtitle: "Ada <ada@example.com>".into(),
+                title_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
+                subtitle_display: Some(ValueDisplay {
+                    r#type: ValueType::Principal as i32,
+                    options: Some(value_display::Options::Principal(PrincipalOptions {
+                        display: PrincipalDisplay::NameWithEmailTitle as i32,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }],
+        }));
+        let bytes = original.encode_to_vec();
+        let decoded = Block::decode(bytes.as_slice()).unwrap();
+        let rendered = block_lines(&decoded, &palette())
+            .iter()
+            .map(text_of)
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(rendered.contains("Mar 29, 2026"));
+        assert!(rendered.contains("Ada"));
+        assert!(!rendered.contains("ada@example.com"));
+        assert_eq!(decoded.encode_to_vec(), bytes);
+        for kind in [0, 999, ValueType::Decimal as i32, ValueType::Boolean as i32] {
+            let display = ValueDisplay {
+                r#type: kind,
+                ..Default::default()
+            };
+            assert_eq!(list_slot_text("0012.50", Some(&display)), "0012.50");
+        }
+        assert_eq!(list_slot_text("legacy", None), "legacy");
+        let date = ValueDisplay {
+            r#type: ValueType::Date as i32,
+            ..Default::default()
+        };
+        assert_eq!(list_slot_text("invalid-date", Some(&date)), "invalid-date");
+        assert_eq!(list_slot_text("", Some(&date)), "");
     }
 
     #[test]

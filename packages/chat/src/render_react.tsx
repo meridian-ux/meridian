@@ -54,10 +54,13 @@ export function BlockView({
     return (
       <div className="list">
         {block.list.title ? <div className="lhead">{block.list.title}</div> : null}
-        {(block.list.items || []).map((it, i) => (
+        {(block.list.items || []).map((it, i) => {
+          const title = displayField({ value: it.title, display: it.titleDisplay });
+          const subtitle = displayField({ value: it.subtitle, display: it.subtitleDisplay });
+          return (
           <div className="litem" key={i}>
-            <span className="ltitle">{it.title}</span>
-            {it.subtitle ? <span className="lsub"> {it.subtitle}</span> : null}
+            <span className="ltitle" title={title.title}>{title.text}</span>
+            {it.subtitle ? <span className="lsub" title={subtitle.title}> {subtitle.text}</span> : null}
             <span className="lbadges">
               {(it.badges || []).map((b, j) => (
                 <span className="badge" key={j}>
@@ -66,7 +69,8 @@ export function BlockView({
               ))}
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
     );
   }

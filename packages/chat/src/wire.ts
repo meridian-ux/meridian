@@ -30,6 +30,8 @@ export interface ToolBlock {
 export interface ListItem {
   title?: string;
   subtitle?: string;
+  titleDisplay?: JsonObject;
+  subtitleDisplay?: JsonObject;
   badges?: string[];
   icon?: string;
 }

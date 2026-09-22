@@ -9,6 +9,41 @@ import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
 import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
 import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 
+describe("conversation list displays", () => {
+  const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];
+  it("formats protobuf list slots without changing raw values", () => {
+    const message = create(BlockSchema, { kind: { case: "list", value: { items: [{
+      title: "2026-03-29T00:00:00Z", titleDisplay: { type: ValueType.DATE },
+      subtitle: "Ada <ada@example.com>", subtitleDisplay: { type: ValueType.PRINCIPAL,
+        options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } },
+      badges: ["<safe>"],
+    }] } } });
+    const bytes = toBinary(BlockSchema, message);
+    const decoded = fromBinary(BlockSchema, bytes);
+    for (const enumAsInteger of [true, false]) {
+      const wire = toJson(BlockSchema, decoded, { enumAsInteger }) as unknown as Block;
+      for (const render of renderers) {
+        const html = render(wire);
+        expect(html).toContain("Mar 29, 2026");
+        expect(html).toContain('title="ada@example.com"');
+        expect(html).toContain("Ada</span>");
+        expect(html).toContain("&lt;safe&gt;");
+      }
+    }
+    expect(toBinary(BlockSchema, decoded)).toEqual(bytes);
+  });
+  it("preserves literal strings for absent, unsupported, and malformed declarations", () => {
+    for (const display of [undefined, {}, { type: 999 }, { type: "FUTURE" },
+      { type: "DATE", temporal: { precision: [] } }, { type: ValueType.DECIMAL }]) {
+      for (const render of renderers) {
+        const html = render({ list: { items: [{ title: "0012.50", subtitle: "<literal>", titleDisplay: display, subtitleDisplay: display }] } });
+        expect(html).toContain("0012.50</span>");
+        expect(html).toContain("&lt;literal&gt;</span>");
+      }
+    }
+  });
+});
+
 describe("conversation field displays", () => {
   const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];
 

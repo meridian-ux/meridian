@@ -1,5 +1,11 @@
 # Renderer conformance
 
+Conversation list items accept optional title/subtitle `ValueDisplay` declarations.
+Chat HTML/React and TUI tests wire-round-trip temporal and principal labels while
+preserving raw strings. Unsupported types retain literal text; browsers expose
+principal email titles and native output retains the visible name. These slots
+do not coerce numeric strings or introduce navigation.
+
 MUI table and view-level row actions resolve declared literal, selection, row-field,
 and nested request bindings against the clicked row. Unbound row calls retain the
 legacy `{id}` request. Focused tests cover nested false/zero values, admission

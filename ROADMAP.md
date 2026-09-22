@@ -209,6 +209,8 @@ icon, href, and action slots remain scalar/navigation fields, and absent display
 declarations preserve scalar labels. HTML and Shadcn reference kits now fetch
 populated cards, including media alternatives, host-resolved icons, and href actions.
 Richer non-browser realizations remain open.
+Conversation list title/subtitle slots now share the field display contract in
+chat HTML/React and TUI, with wire-roundtrip coverage and literal string fallback.
 
 ## Track C — Hardening
 
