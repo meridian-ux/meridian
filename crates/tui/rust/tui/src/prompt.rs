@@ -8,8 +8,9 @@
 //
 // Returns `PromptResponse::Cancelled` on Esc, `Confirmed(bool)` on a
 // confirmation panel, or `Submitted(map)` on a form. The submitted
-// map is keyed by `FormField.field_id`. Numeric/integer values
-// preserve typing via the `FieldValue` enum.
+// map is keyed by `FormField.field_id`. Numeric/integer values preserve
+// typing via `FieldValue`; repeated arrays preserve validated raw JSON in
+// the existing Text variant so this helper's public response API stays stable.
 
 use std::collections::HashMap;
 use std::io;
@@ -20,8 +21,8 @@ use crossterm::{
     execute, terminal,
 };
 use meridian_uiview::proto::{
-    form_field::Kind, BooleanToggle, FormField, IntegerSpinner, MaskedInput, NumberInput,
-    PromptPanel, TextInput,
+    form_field::Kind, repeated_field::Element, BooleanToggle, FormField, IntegerSpinner,
+    MaskedInput, NumberInput, PromptPanel, RepeatedField, TextInput,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -91,12 +92,10 @@ pub enum PromptError {
         "field {field_id}: nested sub-forms are not supported by the one-shot prompt renderer"
     )]
     NestedUnsupported { field_id: String },
-    /// `RepeatedField` describes a LIST the user adds to and removes from, which
-    /// the one-shot renderer has no affordance for, and `PromptResponse::Submitted`
-    /// is flat (one value per field_id) so there is nowhere to put the elements.
-    /// Rejected up front, like NestedUnsupported, rather than rendered as a field
-    /// that silently submits a single empty value for a whole list.
-    #[error("field {field_id}: repeated fields are not supported by the one-shot prompt renderer")]
+    /// Scalar repeated fields use a typed JSON-array editor. Object rows and
+    /// malformed repeated declarations remain unsupported because the one-shot
+    /// renderer has no nested row editor.
+    #[error("field {field_id}: repeated object or missing-element fields are not supported by the one-shot prompt renderer")]
     RepeatedUnsupported { field_id: String },
     /// `KeyValueMapField` needs a row editor, which the one-shot prompt does
     /// not yet provide. Reject it explicitly rather than silently dropping it.
@@ -122,34 +121,7 @@ pub fn render_prompt(
         return Err(PromptError::EmptyPrompt);
     }
 
-    // Validate that every field carries a recognised kind up front
-    // so we fail fast before entering raw mode (where errors are
-    // harder to surface cleanly).
-    for f in &panel.fields {
-        match f.kind.as_ref() {
-            None => {
-                return Err(PromptError::UnsupportedKind {
-                    field_id: f.field_id.clone(),
-                })
-            }
-            Some(Kind::Nested(_)) => {
-                return Err(PromptError::NestedUnsupported {
-                    field_id: f.field_id.clone(),
-                })
-            }
-            Some(Kind::Repeated(_)) => {
-                return Err(PromptError::RepeatedUnsupported {
-                    field_id: f.field_id.clone(),
-                })
-            }
-            Some(Kind::KeyValueMap(_)) => {
-                return Err(PromptError::KeyValueMapUnsupported {
-                    field_id: f.field_id.clone(),
-                })
-            }
-            Some(_) => {}
-        }
-    }
+    validate_supported_fields(&panel.fields)?;
 
     let mut stdout = io::stdout();
     terminal::enable_raw_mode()?;
@@ -172,6 +144,51 @@ pub fn render_prompt(
     let _ = terminal::disable_raw_mode();
 
     result
+}
+
+/// Fail before raw mode for shapes the one-shot editor cannot faithfully
+/// collect. Scalar repeated fields (including nested scalar arrays) are valid;
+/// object rows still require the richer FormPanel row editor.
+fn validate_supported_fields(fields: &[FormField]) -> Result<(), PromptError> {
+    for field in fields {
+        match field.kind.as_ref() {
+            None => {
+                return Err(PromptError::UnsupportedKind {
+                    field_id: field.field_id.clone(),
+                })
+            }
+            Some(Kind::Nested(_)) => {
+                return Err(PromptError::NestedUnsupported {
+                    field_id: field.field_id.clone(),
+                })
+            }
+            Some(Kind::Repeated(spec)) => validate_repeated_shape(field, spec)?,
+            Some(Kind::KeyValueMap(_)) => {
+                return Err(PromptError::KeyValueMapUnsupported {
+                    field_id: field.field_id.clone(),
+                })
+            }
+            Some(_) => {}
+        }
+    }
+    Ok(())
+}
+
+fn validate_repeated_shape(field: &FormField, spec: &RepeatedField) -> Result<(), PromptError> {
+    let Some(Element::Scalar(scalar)) = spec.element.as_ref() else {
+        return Err(PromptError::RepeatedUnsupported {
+            field_id: field.field_id.clone(),
+        });
+    };
+    match scalar.kind.as_ref() {
+        Some(Kind::Repeated(nested)) => validate_repeated_shape(field, nested),
+        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
+            Err(PromptError::RepeatedUnsupported {
+                field_id: field.field_id.clone(),
+            })
+        }
+        Some(_) => Ok(()),
+    }
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -362,8 +379,9 @@ fn initial_state(f: &FormField) -> FieldState {
                 .position(|v| v.0 == spec.default_value)
                 .unwrap_or(0);
         }
-        // Nested is rejected in render_prompt before any state is built.
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
+        Some(Kind::Repeated(_)) => state.text = "[]".to_string(),
+        // Nested/map are rejected in render_prompt before any state is built.
+        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
     state
 }
@@ -384,7 +402,7 @@ fn is_editing_field(s: &FieldState) -> bool {
 
 fn apply_field_input(s: &mut FieldState, code: KeyCode) {
     match s.field.kind.as_ref() {
-        Some(Kind::Text(_)) | Some(Kind::Masked(_)) => match code {
+        Some(Kind::Text(_)) | Some(Kind::Masked(_)) | Some(Kind::Repeated(_)) => match code {
             KeyCode::Char(c) => s.text.push(c),
             KeyCode::Backspace => {
                 s.text.pop();
@@ -450,7 +468,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {}
+        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {}
     }
 }
 
@@ -507,12 +525,118 @@ fn validate_one(s: &FieldState) -> Option<String> {
                 None
             }
         }
+        Some(Kind::Repeated(spec)) => parse_repeated_text(spec, &s.text).err(),
         Some(Kind::Boolean(_))
         | Some(Kind::EnumSelection(_))
         | Some(Kind::Nested(_))
-        | Some(Kind::Repeated(_))
         | Some(Kind::KeyValueMap(_))
         | None => None,
+    }
+}
+
+fn parse_repeated_text(spec: &RepeatedField, text: &str) -> Result<(), String> {
+    let value: serde_json::Value =
+        serde_json::from_str(text).map_err(|error| format!("invalid JSON array: {error}"))?;
+    parse_repeated_value(spec, &value)
+}
+
+fn parse_repeated_value(spec: &RepeatedField, value: &serde_json::Value) -> Result<(), String> {
+    let items = value
+        .as_array()
+        .ok_or_else(|| "value must be a JSON array".to_string())?;
+    if spec.min_items > 0 && items.len() < spec.min_items as usize {
+        let noun = if spec.min_items == 1 { "item" } else { "items" };
+        return Err(format!("must contain at least {} {noun}", spec.min_items));
+    }
+    if spec.max_items > 0 && items.len() > spec.max_items as usize {
+        let noun = if spec.max_items == 1 { "item" } else { "items" };
+        return Err(format!("must contain at most {} {noun}", spec.max_items));
+    }
+    let Some(Element::Scalar(field)) = spec.element.as_ref() else {
+        return Err("repeated object rows are not supported".to_string());
+    };
+    items
+        .iter()
+        .enumerate()
+        .map(|(index, item)| {
+            parse_repeated_item(field, item).map_err(|error| format!("item {}: {error}", index + 1))
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(|_| ())
+}
+
+fn parse_repeated_item(field: &FormField, value: &serde_json::Value) -> Result<(), String> {
+    match field.kind.as_ref() {
+        Some(Kind::Text(input)) => {
+            let value = value
+                .as_str()
+                .ok_or_else(|| "must be a string".to_string())?;
+            length_and_pattern(
+                value,
+                input.min_length,
+                input.max_length,
+                &input.pattern,
+                &input.pattern_error_msg,
+            )
+            .map_or(Ok(()), Err)
+        }
+        Some(Kind::Masked(input)) => {
+            let value = value
+                .as_str()
+                .ok_or_else(|| "must be a string".to_string())?;
+            length_and_pattern(
+                value,
+                input.min_length,
+                input.max_length,
+                &input.pattern,
+                &input.pattern_error_msg,
+            )
+            .map_or(Ok(()), Err)
+        }
+        Some(Kind::Integer(input)) => {
+            let value = value
+                .as_i64()
+                .ok_or_else(|| "must be an integer".to_string())?;
+            if input.max != 0 && value > input.max as i64 {
+                Err(format!("value must be ≤ {}", input.max))
+            } else if input.min != 0 && value < input.min as i64 {
+                Err(format!("value must be ≥ {}", input.min))
+            } else {
+                Ok(())
+            }
+        }
+        Some(Kind::Number(input)) => {
+            let value = value
+                .as_f64()
+                .filter(|value| value.is_finite())
+                .ok_or_else(|| "must be a finite number".to_string())?;
+            if input.max != 0.0 && value > input.max {
+                Err(format!("value must be ≤ {}", input.max))
+            } else if input.min != 0.0 && value < input.min {
+                Err(format!("value must be ≥ {}", input.min))
+            } else {
+                Ok(())
+            }
+        }
+        Some(Kind::Boolean(_)) => value
+            .as_bool()
+            .map(|_| ())
+            .ok_or_else(|| "must be true or false".to_string()),
+        Some(Kind::EnumSelection(spec)) => {
+            let value = value
+                .as_str()
+                .ok_or_else(|| "must be a string token".to_string())?;
+            let options = crate::enum_options::options(spec);
+            if !options.is_empty() && !options.iter().any(|option| option.0 == value) {
+                Err(format!("unknown option {value:?}"))
+            } else {
+                Ok(())
+            }
+        }
+        Some(Kind::Repeated(nested)) => parse_repeated_value(nested, value),
+        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
+            Err("unsupported repeated element kind".to_string())
+        }
     }
 }
 
@@ -570,7 +694,8 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
                     .map(|option| option.0.to_string())
                     .unwrap_or_default(),
             ),
-            Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {
+            Some(Kind::Repeated(_)) => FieldValue::Text(s.text.clone()),
+            Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
                 FieldValue::Text(String::new())
             }
         };
@@ -708,9 +833,8 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
                 allowed_values.len()
             )
         }
-        Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {
-            String::new()
-        }
+        Some(Kind::Repeated(_)) => format!("{}  (JSON array)", s.text),
+        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => String::new(),
     };
 
     let mut lines = vec![
@@ -852,5 +976,176 @@ mod enum_tests {
         let mut state = initial_state(&field);
         apply_field_input(&mut state, KeyCode::Left);
         assert_eq!(collect(&[state])["state"].as_string(), "");
+    }
+}
+
+#[cfg(test)]
+mod repeated_tests {
+    use super::*;
+    use meridian_uiview::proto::{
+        form_field, repeated_field, BooleanToggle, KeyValueMapField, NestedForm,
+    };
+    use ratatui::{backend::TestBackend, Terminal};
+
+    fn repeated_field(element: FormField, min_items: u32, max_items: u32) -> FormField {
+        FormField {
+            field_id: "ports".into(),
+            label: "Ports".into(),
+            kind: Some(Kind::Repeated(Box::new(RepeatedField {
+                element: Some(repeated_field::Element::Scalar(Box::new(element))),
+                min_items,
+                max_items,
+                ..Default::default()
+            }))),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn repeated_integer_json_edits_validate_and_submit_raw_array() {
+        let field = repeated_field(
+            FormField {
+                kind: Some(Kind::Integer(IntegerSpinner {
+                    min: 1,
+                    max: 65535,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            1,
+            3,
+        );
+        validate_supported_fields(std::slice::from_ref(&field)).unwrap();
+        let mut state = initial_state(&field);
+        assert_eq!(state.text, "[]");
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("must contain at least 1 item")
+        );
+
+        apply_field_input(&mut state, KeyCode::Backspace);
+        apply_field_input(&mut state, KeyCode::Backspace);
+        for ch in "[443,8443]".chars() {
+            apply_field_input(&mut state, KeyCode::Char(ch));
+        }
+        assert_eq!(validate_one(&state), None);
+        let submitted = collect(std::slice::from_ref(&state));
+        assert!(matches!(&submitted["ports"], FieldValue::Text(value) if value == "[443,8443]"));
+        assert_eq!(submitted["ports"].as_string(), "[443,8443]");
+
+        let palette = Palette::default();
+        let mut terminal = Terminal::new(TestBackend::new(70, 6)).unwrap();
+        terminal
+            .draw(|frame| draw_field(frame, frame.area(), &state, true, &palette))
+            .unwrap();
+        let text = format!("{:?}", terminal.backend().buffer());
+        assert!(text.contains("Ports"));
+        assert!(text.contains("[443,8443]  (JSON array)"));
+    }
+
+    #[test]
+    fn repeated_values_reject_malformed_json_types_constraints_and_unknown_options() {
+        let text_field = repeated_field(
+            FormField {
+                kind: Some(Kind::Text(TextInput {
+                    min_length: 2,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            0,
+            2,
+        );
+        let mut state = initial_state(&text_field);
+        state.text = "[".into();
+        assert!(validate_one(&state)
+            .unwrap()
+            .starts_with("invalid JSON array:"));
+        state.text = "[1]".into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("item 1: must be a string")
+        );
+        state.text = "[\"a\"]".into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("item 1: must be at least 2 characters")
+        );
+        state.text = "[\"aa\",\"bb\",\"cc\"]".into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("must contain at most 2 items")
+        );
+
+        let enum_field = repeated_field(
+            FormField {
+                kind: Some(Kind::EnumSelection(meridian_uiview::proto::EnumSelection {
+                    allowed_values: vec!["dev".into(), "prod".into()],
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            0,
+            0,
+        );
+        let mut state = initial_state(&enum_field);
+        state.text = "[\"staging\"]".into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("item 1: unknown option \"staging\"")
+        );
+    }
+
+    #[test]
+    fn nested_scalar_arrays_are_typed_but_object_rows_nested_and_maps_stay_rejected() {
+        let inner = repeated_field(
+            FormField {
+                kind: Some(Kind::Boolean(BooleanToggle::default())),
+                ..Default::default()
+            },
+            0,
+            0,
+        );
+        let outer = repeated_field(inner, 0, 0);
+        validate_supported_fields(std::slice::from_ref(&outer)).unwrap();
+        let mut state = initial_state(&outer);
+        state.text = "[[true,false],[false]]".into();
+        assert_eq!(validate_one(&state), None);
+        assert_eq!(
+            collect(&[state])["ports"].as_string(),
+            "[[true,false],[false]]"
+        );
+
+        let object_rows = FormField {
+            field_id: "objects".into(),
+            kind: Some(Kind::Repeated(Box::new(RepeatedField {
+                element: Some(repeated_field::Element::Object(NestedForm::default())),
+                ..Default::default()
+            }))),
+            ..Default::default()
+        };
+        assert!(matches!(
+            validate_supported_fields(&[object_rows]),
+            Err(PromptError::RepeatedUnsupported { .. })
+        ));
+
+        let nested = FormField {
+            field_id: "nested".into(),
+            kind: Some(form_field::Kind::Nested(NestedForm::default())),
+            ..Default::default()
+        };
+        assert!(matches!(
+            validate_supported_fields(&[nested]),
+            Err(PromptError::NestedUnsupported { .. })
+        ));
+        let map = FormField {
+            field_id: "map".into(),
+            kind: Some(form_field::Kind::KeyValueMap(KeyValueMapField::default())),
+            ..Default::default()
+        };
+        assert!(matches!(
+            validate_supported_fields(&[map]),
+            Err(PromptError::KeyValueMapUnsupported { .. })
+        ));
     }
 }

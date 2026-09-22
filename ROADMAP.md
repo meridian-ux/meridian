@@ -199,6 +199,12 @@ defaults, and visible save/retry states; its submit bindings use the WASM reques
 builder. HTML/Shadcn dynamic enum sources now load through the read-tier invoker,
 preserve prefilled tokens, expose loading/failure states, and validate submitted
 values against resolved options. Broader interaction parity remains separate work.
+The native one-shot `PromptPanel` path now accepts scalar `RepeatedField` values
+as JSON arrays, validates every element against its declared scalar kind and
+item constraints, and submits the validated raw JSON through the existing text
+value boundary. Nested scalar arrays are supported; repeated object rows,
+top-level nested forms, and key/value maps still require a richer row editor and
+remain explicit pre-terminal errors.
 `ResourceCard.MetaField.display` now formats fetched card metadata across browser
 kits, web-components, and TUI, reusing the existing safe URL and host-resolved
 record-link seam; legacy scalar output is preserved when unset.
