@@ -80,9 +80,14 @@ conformance targets include the normalizer and goldens as runfiles.
 
 The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
-link, an admitted view action's exact service/method and empty request, and
+link, an admitted unbound view action's exact service/method and empty request, and
 mutation denial before transport with a host denial callback. ActionPanel
 affordances retain their URI/command contracts, separate from RPC actions.
+The HTML/Shadcn view-action fallback also resolves literal, current selection,
+and ambient repeated-view record fields into declared request paths, including
+nested bindings. Missing sources are omitted; raw false/zero values survive.
+This does not cover custom kit ActionBars or row-action controls, nor supply
+form, signal, or host runtime context when those sources are unavailable.
 The shared view action fallback exposes denied calls with `aria-disabled` and
 an unavailable description while remaining focusable; attempted activation
 reports the denial through the gated invoker without transport. Pending actions

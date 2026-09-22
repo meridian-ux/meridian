@@ -24,6 +24,7 @@ import { useMeridian } from "./provider.js";
 import type { MeridianActionHandler } from "./provider.js";
 import {
   EMPTY_SELECTION,
+  buildActionBindingRequest,
   MeridianInitialDataContext,
   MeridianRecordContext,
   MeridianSelectionContext,
@@ -49,18 +50,18 @@ export const MeridianViewContext = createContext<{ subjectKind?: string; subject
 
 // Fire an action. Actions carrying an RpcCall go through the invoker; no-call
 // actions (host-resolved keys — nav/custom) fall to the host's onAction handler
-// with the view subject + optional bound row id. Binding resolution (row/form
-// context → request fields) for RpcCall actions is a later increment; the first
-// cut fires with an empty request and lets the invoker/backend supply defaults.
+// with the view subject + optional bound row id. RPC requests resolve declared
+// bindings from the current selection and ambient repeated-view record.
 function fireAction(
   invoker: RpcInvoker,
   onAction: MeridianActionHandler | undefined,
   action: Action,
   subjectKind?: string,
   entityId?: string | number,
+  request: Record<string, unknown> = {},
 ): Promise<void> {
   if (action.call) {
-    return invoker.invoke(action.call.service, action.call.method, {}).then(() => {});
+    return invoker.invoke(action.call.service, action.call.method, request).then(() => {});
   }
   onAction?.(action.id, subjectKind, entityId);
   return Promise.resolve();
@@ -69,6 +70,8 @@ function fireAction(
 function ActionControl({ action }: { action: Action }): ReactNode {
   const { mutationInvoker, onAction, admission } = useMeridian();
   const { subjectKind } = useContext(MeridianViewContext);
+  const selection = useMeridianSelection();
+  const record = useContext(MeridianRecordContext);
   const gate = useMemo(() => createAdmissionGate(admission), [admission]);
   const denied = !!action.call && !gate.admits("mutation", action.call.service, action.call.method);
   const [pending, setPending] = useState(false);
@@ -82,7 +85,8 @@ function ActionControl({ action }: { action: Action }): ReactNode {
     setError(undefined);
     try {
       // The gated invoker still reports attempted denials to the host.
-      await fireAction(mutationInvoker, onAction, action, subjectKind);
+      await fireAction(mutationInvoker, onAction, action, subjectKind, undefined,
+        buildActionBindingRequest(action.call, selection.values, record));
     } catch {
       setError(denied ? "This action is unavailable." : "Action failed. Try again.");
     } finally {

@@ -11,6 +11,7 @@ import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { ViewRenderer } from "../src/view_renderer.js";
+import { MeridianRecordContext } from "../src/pagination.js";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -42,7 +43,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
-  it("invokes an admitted view action exactly once with the current empty-request contract", async () => {
+  it("invokes an admitted unbound view action exactly once with an empty request", async () => {
     const invoke = vi.fn(async () => ({}));
     const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
       id: "run", label: "Run report", placement: ActionPlacement.HEADER,
@@ -56,6 +57,37 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(invoke).not.toHaveBeenCalled();
       await act(async () => button.click());
       expect(invoke.mock.calls).toEqual([["demo.Reports", "Run", {}]]);
+    });
+  });
+
+  it("resolves nested bindings from the current selection and ambient record on each activation", async () => {
+    const invoke = vi.fn(async () => ({}));
+    const selection = { values: { scope: "year-1" }, set: () => {} };
+    const record = { owner: { id: "member-7" }, enabled: false, count: 0 };
+    const view = create(ViewDescriptorSchema, { id: "bound", actions: [{
+      id: "run", label: "Run bound report", call: { service: "demo.Reports", method: "Run", bindings: [
+        { requestField: "mode", source: { case: "literal", value: "audit" } },
+        { requestField: "filter", source: { case: "nested", value: { fields: [
+          { requestField: "year", source: { case: "selectionKey", value: "scope" } },
+          { requestField: "owner.id", source: { case: "rowField", value: "owner.id" } },
+          { requestField: "enabled", source: { case: "rowField", value: "enabled" } },
+          { requestField: "count", source: { case: "rowField", value: "count" } },
+          { requestField: "missing", source: { case: "selectionKey", value: "unset" } },
+        ] } } },
+      ] },
+    }] });
+    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
+      createElement(MeridianRecordContext.Provider, { value: record }, createElement(ViewRenderer, { view, selection }))), async container => {
+      await act(async () => container.querySelector("button")!.click());
+      expect(invoke).toHaveBeenLastCalledWith("demo.Reports", "Run", {
+        mode: "audit", filter: { year: "year-1", owner: { id: "member-7" }, enabled: false, count: 0 },
+      });
+      selection.values.scope = "year-2";
+      await act(async () => container.querySelector("button")!.click());
+      expect(invoke).toHaveBeenLastCalledWith("demo.Reports", "Run", {
+        mode: "audit", filter: { year: "year-2", owner: { id: "member-7" }, enabled: false, count: 0 },
+      });
+      expect(record).toEqual({ owner: { id: "member-7" }, enabled: false, count: 0 });
     });
   });
 
@@ -74,12 +106,34 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
+  it("omits unavailable sources and unsafe paths without inventing action context", async () => {
+    const invoke = vi.fn(async () => ({}));
+    const view = create(ViewDescriptorSchema, { id: "missing", actions: [{ id: "run", label: "Run", call: {
+      service: "demo.Reports", method: "Run", bindings: [
+        { requestField: "record", source: { case: "rowField", value: "id" } },
+        { requestField: "form", source: { case: "formField", value: "name" } },
+        { requestField: "scope", source: { case: "nested", value: { fields: [
+          { requestField: "id", source: { case: "selectionKey", value: "unset" } },
+        ] } } },
+        { requestField: "__proto__.meridianTest", source: { case: "literal", value: "unsafe" } },
+      ],
+    } }] });
+    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
+      createElement(ViewRenderer, { view })), async container => {
+      await act(async () => container.querySelector("button")!.click());
+      expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
+      expect(Object.hasOwn(Object.prototype, "meridianTest")).toBe(false);
+    });
+  });
+
   it("blocks a denied mutation before transport and reports the exact denied call to the host", async () => {
     const invoke = vi.fn(async () => ({}));
     const onDenied = vi.fn();
     const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
       id: "delete", label: "Delete report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Delete" },
+      call: { service: "demo.Reports", method: "Delete", bindings: [
+        { requestField: "id", source: { case: "literal", value: "protected-report" } },
+      ] },
     }] });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: { mutations: [], onDenied } }, createElement(ViewRenderer, { view })), async container => {

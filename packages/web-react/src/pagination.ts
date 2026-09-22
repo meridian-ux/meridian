@@ -93,14 +93,11 @@ export function useMeridianSelection(): MeridianSelection {
 }
 
 /**
- * Resolve a call's FieldBindings into request fields. Only two sources are
- * meaningful for a `populate`:
+ * Resolve a call's FieldBindings into request fields. Populate calls use:
  *   - `literal`      — an authored (or projection-constant-folded) scalar.
  *   - `selectionKey` — the CURRENT value of a view selection key: the only binding
  *     source that reads live client state.
- * The other sources (context / row_field / form_field / signal / nested) belong to
- * the action / LRO / grammar tiers — a populate has no row, form or signal — and
- * are skipped here.
+ * Other sources are skipped because populate has no row, form, or signal.
  *
  * A selection key that is unset contributes NOTHING: the field is OMITTED, never
  * sent as undefined/null/"". An unset scope must not silently widen the query. Pure.
@@ -120,6 +117,32 @@ export function buildBindingRequest(
       continue;
     }
     if (value === undefined || value === null || value === "") continue;
+    setNested(request, binding.requestField, value);
+  }
+  return request;
+}
+
+/** Resolve view actions from selection and an optional repeated-view record.
+ * Unavailable form, signal, and host runtime-context sources remain omitted. */
+export function buildActionBindingRequest(call: RpcCall | undefined, selection: Record<string, string>, record?: Row): Row {
+  const request: Row = {};
+  for (const binding of call?.bindings ?? []) {
+    let value: unknown;
+    if (binding.source.case === "nested") {
+      value = buildActionBindingRequest({ bindings: binding.source.value.fields } as RpcCall, selection, record);
+      if (Object.keys(value as Row).length === 0) continue;
+    } else if (binding.source.case === "rowField" && record) {
+      value = binding.source.value.split(".").reduce<unknown>((current, key) =>
+        current && typeof current === "object" && Object.hasOwn(current, key)
+          ? (current as Row)[key] : undefined, record);
+    } else {
+      // Preserve the established literal/selection omission semantics.
+      const resolved = buildBindingRequest({ bindings: [{ ...binding, requestField: "value" }] } as RpcCall, selection);
+      value = resolved.value;
+    }
+    if (value === undefined || value === null || value === "") continue;
+    // Descriptor paths must never traverse JavaScript prototypes.
+    if (binding.requestField.split(".").some(key => ["__proto__", "constructor", "prototype"].includes(key))) continue;
     setNested(request, binding.requestField, value);
   }
   return request;
