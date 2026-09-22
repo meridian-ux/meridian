@@ -935,6 +935,178 @@ fn detail_panels_populate_and_render_the_record_dispatch_path() {
 }
 
 #[test]
+fn form_display_wire_text_goldens_preserve_editable_values() {
+    use meridian_uiview::proto::{EnumOption, EnumSelection, ValueDisplay, ValueTone, ValueType};
+    use serde_json::json;
+
+    let text_field = |id: &str, value: &str, display: Option<ValueDisplay>| FormField {
+        field_id: id.into(),
+        label: id.into(),
+        request_field: id.into(),
+        kind: Some(Kind::Text(TextInput {
+            default_value: value.into(),
+            ..Default::default()
+        })),
+        display,
+        ..Default::default()
+    };
+    let date = ValueDisplay {
+        r#type: ValueType::Date as i32,
+        ..Default::default()
+    };
+    for mode in [FormMode::Readonly, FormMode::Edit] {
+        let descriptor = PanelDescriptor {
+            panel_id: "form-display-evidence".into(),
+            body: Some(Body::Form(FormPanel {
+                mode: mode as i32,
+                item_noun: "record".into(),
+                fields: vec![
+                    text_field("Due", "2026-03-29", Some(date.clone())),
+                    text_field("Legacy", "2026-03-29", None),
+                    text_field("Unspecified", "2026-03-29", Some(ValueDisplay::default())),
+                    text_field("Invalid", "not-a-date", Some(date.clone())),
+                    text_field(
+                        "Unknown",
+                        "0012.50",
+                        Some(ValueDisplay {
+                            r#type: 9999,
+                            ..Default::default()
+                        }),
+                    ),
+                    FormField {
+                        field_id: "State".into(),
+                        label: "State".into(),
+                        request_field: "State".into(),
+                        kind: Some(Kind::EnumSelection(EnumSelection {
+                            default_value: "approved".into(),
+                            allowed_values: vec!["ignored".into()],
+                            options: vec![
+                                EnumOption {
+                                    value: "approved".into(),
+                                    label: "Approved".into(),
+                                    tone: ValueTone::Success as i32,
+                                },
+                                EnumOption {
+                                    value: "needs_review".into(),
+                                    label: "Needs review".into(),
+                                    tone: ValueTone::Danger as i32,
+                                },
+                                EnumOption {
+                                    value: "other".into(),
+                                    tone: 9999,
+                                    ..Default::default()
+                                },
+                            ],
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    },
+                ],
+                submit: Some(RpcCall {
+                    service: "demo.Records".into(),
+                    method: "Save".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+        let Some(Body::Form(form)) = descriptor.body.as_ref() else {
+            unreachable!()
+        };
+        let palette = Palette::default();
+        let mut view = PanelView::with_palette(palette);
+        let ctx = Context::default();
+        let mut terminal = Terminal::new(TestBackend::new(100, 16)).unwrap();
+        let render = |view: &mut PanelView, terminal: &mut Terminal<TestBackend>| {
+            terminal
+                .draw(|f| view.render(f, f.area(), &descriptor, &ctx, &Refuse))
+                .unwrap();
+            let output: String = terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|c| c.symbol())
+                .collect();
+            terminal_lines(&output, 100)
+        };
+        let mut expected = vec![
+            if mode == FormMode::Edit {
+                "Edit record"
+            } else {
+                "Read-only record"
+            }
+            .to_string(),
+            if mode == FormMode::Edit {
+                "↑/↓ select · edit scalar · Enter submit"
+            } else {
+                "read-only form"
+            }
+            .to_string(),
+            "▶ Due: Mar 29, 2026".into(),
+            "Legacy: 2026-03-29".into(),
+            "Unspecified: 2026-03-29".into(),
+            "Invalid: not-a-date".into(),
+            "Unknown: 0012.50".into(),
+            "State: Approved".into(),
+        ];
+        assert_eq!(render(&mut view, &mut terminal), expected);
+        // Inspect palette roles separately: normalized text cannot establish tone.
+        let label_color = |terminal: &Terminal<TestBackend>, label: &str| {
+            let buffer = terminal.backend().buffer();
+            let offset = buffer
+                .content
+                .windows(label.chars().count())
+                .position(|cells| cells.iter().map(|c| c.symbol()).collect::<String>() == label)
+                .expect("enum label must be rendered");
+            buffer.content[offset].fg
+        };
+        assert_eq!(label_color(&terminal, "Approved"), palette.success);
+        if mode != FormMode::Edit {
+            assert!(view.handle_form_key(form, &ctx, KeyCode::Enter).is_none());
+            continue;
+        }
+        let mut raw = json!({"Due":"2026-03-29", "Legacy":"2026-03-29",
+            "Unspecified":"2026-03-29", "Invalid":"not-a-date", "Unknown":"0012.50", "State":"approved"});
+        let submission = view.handle_form_key(form, &ctx, KeyCode::Enter).unwrap();
+        assert_eq!(
+            (submission.service.as_str(), submission.method.as_str()),
+            ("demo.Records", "Save")
+        );
+        assert_eq!(submission.request, raw);
+
+        // Editing acts on the date token, not its displayed label.
+        view.handle_form_key(form, &ctx, KeyCode::Backspace);
+        view.handle_form_key(form, &ctx, KeyCode::Char('8'));
+        raw["Due"] = json!("2026-03-28");
+        expected[2] = "▶ Due: Mar 28, 2026".into();
+        assert_eq!(render(&mut view, &mut terminal), expected);
+        for _ in 0..5 {
+            view.handle_form_key(form, &ctx, KeyCode::Down);
+        }
+        expected[2] = "Due: Mar 28, 2026".into();
+        for (token, label, color) in [
+            ("needs_review", "Needs review", palette.danger),
+            ("other", "other", palette.code_fg),
+        ] {
+            view.handle_form_key(form, &ctx, KeyCode::Right);
+            expected[7] = format!("▶ State: {label}");
+            assert_eq!(render(&mut view, &mut terminal), expected);
+            assert_eq!(label_color(&terminal, label), color);
+            raw["State"] = json!(token);
+            assert_eq!(
+                view.handle_form_key(form, &ctx, KeyCode::Enter)
+                    .unwrap()
+                    .request,
+                raw
+            );
+        }
+    }
+}
+
+#[test]
 fn form_prefill_renders_and_submit_contains_edited_values() {
     let descriptor = form_descriptor();
     let form = match descriptor.body.as_ref() {

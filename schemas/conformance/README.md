@@ -37,6 +37,17 @@ the terminal palette has no warning role). Wire-decoded prompt tests cover
 selection, cycling, text/style rendering, and raw submission. Dynamic
 `options_source` loading remains host-owned on native surfaces.
 
+The native descriptor suite also wire-round-trips a focused FormPanel fixture
+through `PanelView` and `TestBackend` at 100-by-16. Text goldens cover read-only
+and editable date displays, absent/unspecified/unknown display fallbacks, invalid
+date text, and static enum labels with empty-label fallback. Editing a formatted
+date and cycling enum options verifies exact raw submission values; authored
+options take precedence over legacy tokens. Separate cell assertions check the
+success, danger, and unknown-tone palette roles. This fixture is separate from
+the canonical panel corpus and does not establish layout, dynamic option loading,
+or transport behavior. Run `cargo test -p meridian-tui --test render_descriptor`
+to compare the inline goldens and request assertions.
+
 MUI FormPanel dynamic enum tests cover read-tier `options_source` requests,
 dotted response/value/label paths, prefill token preservation, and validation
 against resolved tokens (including nested and repeated values). While option
