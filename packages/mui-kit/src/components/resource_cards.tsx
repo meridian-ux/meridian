@@ -7,6 +7,7 @@ import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { resolvePath, useHrefResolver, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
+import { useActionFeedback } from "../action_feedback.js";
 
 function style(action: ResourceAction): "inherit" | "primary" | "error" {
   return action.style === 3 ? "error" : action.style === 2 ? "primary" : "inherit";
@@ -39,6 +40,7 @@ export function MeridianResourceCards({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const mutationInvoker = useMutationRpcInvoker();
+  const feedback = useActionFeedback();
   const resolveHref = useHrefResolver();
   const now = useDisplayNow();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
@@ -50,13 +52,12 @@ export function MeridianResourceCards({
   const actions = template.actions?.actions ?? [];
   const invoke = (action: ResourceAction, row: Record<string, unknown>) => {
     if (action.invoke) {
-      void mutationInvoker
-        .invoke(action.invoke.service, action.invoke.method, requestFor(action, row))
-        .catch(() => {});
+      void feedback.run(() => mutationInvoker.invoke(action.invoke!.service, action.invoke!.method, requestFor(action, row)));
     }
   };
   return (
     <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={2}>
+      {feedback.feedback}
       {rows.map((row, index) => {
         const slot = (path: string, display: Parameters<typeof formatByDisplay>[1]) => {
           const value = resolvePath(row, path);
@@ -88,7 +89,7 @@ export function MeridianResourceCards({
               <Stack direction="row" gap={1} flexWrap="wrap">
                 {actions.filter((action) => visible(action, row)).map((action) => (
                   <Box key={action.id}>
-                    <Button size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ action, row }) : invoke(action, row)}>
+                    <Button {...feedback.props(action.invoke)} size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ action, row }) : invoke(action, row)}>
                       {action.label}
                     </Button>
                     {confirming?.action === action && confirming.row === row && (
@@ -96,7 +97,7 @@ export function MeridianResourceCards({
                         <Typography variant="subtitle2">{action.confirm?.title}</Typography>
                         <Typography variant="body2" sx={{ mb: 1 }}>{action.confirm?.message}</Typography>
                         <Stack direction="row" gap={1}>
-                          <Button size="small" color="error" onClick={() => { setConfirming(null); invoke(action, row); }}>{action.confirm?.confirmLabel || "Confirm"}</Button>
+                          <Button {...feedback.props(action.invoke)} size="small" color="error" onClick={() => { setConfirming(null); invoke(action, row); }}>{action.confirm?.confirmLabel || "Confirm"}</Button>
                           <Button size="small" onClick={() => setConfirming(null)}>Cancel</Button>
                         </Stack>
                       </Alert>

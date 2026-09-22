@@ -1,5 +1,15 @@
 # Renderer conformance
 
+MUI header/overflow, table-row, resource-card, and launchpad RPC controls expose
+admission denial with `aria-disabled` and an unavailable title. Attempted
+activation still uses the guarded invoker and preserves the host denial callback.
+Pending mutations suppress duplicate activation; failures render text-only alerts
+and the same control can retry. Launchpad RPC commands close only after success.
+Focused header/resource tests assert exact payloads, denial callbacks, escaped
+errors, and retry; the shell suite protects existing navigation behavior. URI and
+copy affordances retain their existing behavior. This does not add table refresh
+semantics or prove every action placement's interaction matrix.
+
 Web-components view, resource-card, and table actions expose mutation denial
 with `aria-disabled` and an associated explanation. Activation still passes
 through the host admission gate, including its denial callback. Invocation

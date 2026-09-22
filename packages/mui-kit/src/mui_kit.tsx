@@ -10,6 +10,7 @@
 // form patterns are reusable by any meridian host, not just a studio console.
 
 import { useContext, useEffect, useMemo, useState } from "react";
+import { useActionFeedback } from "./action_feedback.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
@@ -310,16 +311,18 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   //    (with a `call`) invokes against the row; a host-resolved action (no call —
   //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
+  const feedback = useActionFeedback();
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
     const result: MeridianRowAction<Row>[] = [];
     (panel.actions ?? []).forEach((action, index) => {
       result.push({
         id: `panel-action-${index}`,
+        ...feedback.props(action.rpc),
         label: action.label,
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.rpc) {
-            void mutationInvoker.invoke(action.rpc.service, action.rpc.method, id != null ? { id } : {}).catch(() => {});
+            void feedback.run(() => mutationInvoker.invoke(action.rpc!.service, action.rpc!.method, id != null ? { id } : {}));
           }
         },
       });
@@ -327,11 +330,12 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
     for (const action of viewRowActions) {
       result.push({
         id: action.id,
+        ...feedback.props(action.call),
         label: action.label,
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.call) {
-            void mutationInvoker.invoke(action.call.service, action.call.method, id != null ? { id } : {}).catch(() => {});
+            void feedback.run(() => mutationInvoker.invoke(action.call!.service, action.call!.method, id != null ? { id } : {}));
             return;
           }
           onAction?.(action.id, subjectKind, id as string | number | undefined);
@@ -339,10 +343,11 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
       });
     }
     return result;
-  }, [panel.actions, viewRowActions, invoker, onAction, subjectKind]);
+  }, [panel.actions, viewRowActions, mutationInvoker, onAction, subjectKind, feedback]);
 
   return (
     <Box>
+      {feedback.feedback}
       {paged.error ? (
         <Alert severity="error" className="mer-table-error">
           Failed to load {panel.itemNoun || "items"}.
@@ -909,6 +914,7 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
 }
 
 function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
+  const feedback = useActionFeedback();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const { subjectKind } = useContext(MeridianViewContext);
   const onAction = useActionHandler();
@@ -917,7 +923,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
   // the view subject (no row id at the header level).
   const fire = (action: Action): void => {
     if (action.call) {
-      void invoke(invoker, action.call)?.catch(() => {});
+      void feedback.run(() => invoke(invoker, action.call));
       return;
     }
     onAction?.(action.id, subjectKind);
@@ -929,9 +935,11 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
   const overflow = actions.filter((a: Action) => a.placement === ActionPlacement.OVERFLOW);
   return (
     <Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
+      {feedback.feedback}
       {inline.map((action: Action) => (
         <Button
           key={action.id}
+          {...feedback.props(action.call)}
           size="small"
           variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
           onClick={() => fire(action)}
@@ -955,6 +963,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
             {overflow.map((action: Action) => (
               <MenuItem
                 key={action.id}
+                {...feedback.props(action.call)}
                 onClick={() => {
                   setAnchor(null);
                   fire(action);

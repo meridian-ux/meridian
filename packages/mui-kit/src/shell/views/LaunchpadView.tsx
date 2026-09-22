@@ -35,6 +35,7 @@ import { PanelRenderer, useIcon, useMutationRpcInvoker } from "@savvifi/meridian
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
 import { SearchGlyph } from "./glyphs.js";
+import { useActionFeedback } from "../../action_feedback.js";
 
 function CommandIcon({ iconKey }: { iconKey: string }) {
   const glyph = useIcon(iconKey || undefined);
@@ -43,6 +44,7 @@ function CommandIcon({ iconKey }: { iconKey: string }) {
 }
 
 export function LaunchpadView() {
+  const feedback = useActionFeedback();
   const { shell, seams, launchpad, capabilities } = useShell();
   const mutationInvoker = useMutationRpcInvoker();
   const [query, setQuery] = React.useState("");
@@ -107,19 +109,14 @@ export function LaunchpadView() {
           setStep(command);
           return;
         case "rpc": {
-          // ⛔ Fired and closed without awaiting. A palette command is a "do this" gesture,
-          // and holding the overlay open on a spinner would make ⌘K feel like a form. The
-          // host surfaces failure through its own invoker, which is where every other
-          // meridian action reports it.
-          void mutationInvoker.invoke(action.value.service, action.value.method, {}).catch(() => {});
-          close();
+          void feedback.run(() => mutationInvoker.invoke(action.value.service, action.value.method, {}), close);
           return;
         }
         default:
           close();
       }
     },
-    [close, go, mutationInvoker, seams],
+    [close, go, mutationInvoker, seams, feedback],
   );
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -142,6 +139,7 @@ export function LaunchpadView() {
 
   return (
     <Dialog open={launchpad.isOpen} onClose={close} fullWidth maxWidth="sm">
+      {feedback.feedback}
       {panel ? (
         <DialogContent>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
@@ -192,6 +190,7 @@ export function LaunchpadView() {
                       return (
                         <ListItemButton
                           key={command.id}
+                          {...feedback.props(!command.deepLink && command.action.case === "rpc" ? command.action.value : undefined)}
                           selected={position === index}
                           onMouseEnter={() => setIndex(position)}
                           onClick={() => run(command)}

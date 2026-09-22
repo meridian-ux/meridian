@@ -57,6 +57,9 @@ export interface MeridianSortState {
 
 /** A per-row action — a labeled item fired against a specific row. */
 export interface MeridianRowAction<T> {
+  disabled?: boolean;
+  "aria-disabled"?: boolean;
+  title?: string;
   id: string;
   label: string;
   onClick: (row: T) => void;
@@ -103,6 +106,9 @@ function RowActionsMenu<T>({ row, actions }: { row: T; actions: MeridianRowActio
         {actions.map((action) => (
           <MenuItem
             key={action.id}
+            disabled={action.disabled}
+            aria-disabled={action["aria-disabled"]}
+            title={action.title}
             onClick={(event: MouseEvent<HTMLElement>) => {
               event.stopPropagation();
               setAnchor(null);

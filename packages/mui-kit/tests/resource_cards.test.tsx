@@ -16,6 +16,32 @@ import { MeridianMuiProvider } from "../src/provider.js";
 afterEach(cleanup);
 
 describe("ResourceCardPanel (MUI)", () => {
+  it.each([false, true])("reports resource mutation feedback (admitted=%s)", async (admitted) => {
+    let mutations = 0;
+    let denials = 0;
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+      populate: { service: "demo.Items", method: "List" }, rowsField: "items",
+      template: { titleField: "id", actions: { actions: [{ id: "run", label: "Run", invoke: {
+        service: "demo.Items", method: "Run", bindings: [{ requestField: "id", source: { case: "rowField", value: "id" } }],
+      } }] } },
+    } } });
+    render(<MeridianMuiProvider admission={{ mutations: admitted ? ["*"] : [], onDenied: () => { denials++; } }} invoker={{ invoke: async (_, method, request) => {
+      if (method === "List") return { items: [{ id: "raw/7" }] };
+      expect(request).toEqual({ id: "raw/7" });
+      if (++mutations === 1) throw new Error("Try again");
+      return {};
+    } }}><PanelRenderer descriptor={descriptor} /></MeridianMuiProvider>);
+    const button = await screen.findByRole("button", { name: "Run" });
+    expect(button.getAttribute("aria-disabled")).toBe(String(!admitted));
+    fireEvent.click(button);
+    await screen.findByRole("alert");
+    if (admitted) {
+      expect(screen.getByRole("alert").textContent).toContain("Try again");
+      fireEvent.click(button);
+      await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+      expect(mutations).toBe(2);
+    } else { expect(mutations).toBe(0); expect(denials).toBe(1); }
+  });
   it("applies declared displays to resource-card title slots", async () => {
     const descriptor = create(PanelDescriptorSchema, {
       panelId: "typed-slots",
