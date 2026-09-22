@@ -1,0 +1,41 @@
+[package]
+name = "meridian-uiview-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+meridian-uiview = { path = ".." }
+prost = "0.13"
+
+[[bin]]
+name = "decode_panel_descriptor"
+path = "fuzz_targets/decode_panel_descriptor.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_gallery_panel"
+path = "fuzz_targets/decode_gallery_panel.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_table_panel"
+path = "fuzz_targets/decode_table_panel.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_rpc_call"
+path = "fuzz_targets/decode_rpc_call.rs"
+test = false
+doc = false
+bench = false
