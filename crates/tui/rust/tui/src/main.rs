@@ -32,7 +32,10 @@ use prost::Message as _;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 
-use meridian_tui::{Mode, Palette, PanelView, RpcError, RpcInvoker, Theme};
+use meridian_tui::{
+    Mode, Palette, PanelView, RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession,
+    Theme,
+};
 use meridian_uiview::proto::PanelDescriptor;
 use meridian_uiview::Context;
 
@@ -56,6 +59,19 @@ impl RpcInvoker for OfflineInvoker {
         Err(RpcError::Transport(format!(
             "{service}/{method}: meridian-tui renders descriptors offline and has no transport. \
              Populate the data into the descriptor, or embed this crate and supply an RpcInvoker."
+        )))
+    }
+}
+
+impl StreamInvoker for OfflineInvoker {
+    fn subscribe(
+        &self,
+        call: &meridian_uiview::proto::RpcCall,
+        _request: serde_json::Value,
+    ) -> Result<StreamSession, StreamError> {
+        let (service, method) = (call.service.as_str(), call.method.as_str());
+        Err(StreamError::Transport(format!(
+            "{service}/{method}: meridian-tui has no stream transport"
         )))
     }
 }
@@ -197,11 +213,31 @@ fn event_loop(
             })
             .map_err(|e| format!("drawing: {e}"))?;
 
+        view.poll_stream(descriptor, &context, &invoker);
+
         match event::read().map_err(|e| format!("reading input: {e}"))? {
             Event::Key(k) if k.kind == KeyEventKind::Press => match k.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
-                KeyCode::Down | KeyCode::Char('j') => view.select_next(),
-                KeyCode::Up | KeyCode::Char('k') => view.select_prev(),
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if matches!(
+                        descriptor.body,
+                        Some(meridian_uiview::proto::panel_descriptor::Body::Stream(_))
+                    ) {
+                        view.scroll_stream(1);
+                    } else {
+                        view.select_next();
+                    }
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if matches!(
+                        descriptor.body,
+                        Some(meridian_uiview::proto::panel_descriptor::Body::Stream(_))
+                    ) {
+                        view.scroll_stream(-1);
+                    } else {
+                        view.select_prev();
+                    }
+                }
                 KeyCode::Char('r') => view.toggle_reveal(),
                 _ => {}
             },

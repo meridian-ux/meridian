@@ -1,5 +1,7 @@
 use serde_json::Value;
 
+pub use meridian_uiview::{StreamError, StreamInvoker, StreamSession};
+
 /// Transport bridge implemented by hosts. The TUI renderer hands the
 /// invoker a JSON-shaped request (built by
 /// `meridian_uiview::RequestBuilder`) and gets back a JSON-shaped

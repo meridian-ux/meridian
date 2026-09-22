@@ -63,6 +63,7 @@ mod paths;
 mod render;
 mod request;
 mod stat;
+mod stream;
 
 pub use conversation::{is_active_status, ConversationModel};
 pub use launchpad::{command_haystack, filter_launchpad, flatten, match_score, FilteredGroup};
@@ -75,6 +76,7 @@ pub use request::{Context, RequestBuilder};
 pub use stat::{
     compute_stat, format_stat_number, trend_arrow, StatComputed, StatSemantics, StatTrend,
 };
+pub use stream::{StreamError, StreamInvoker, StreamSession};
 
 // Re-export the prost crate so downstream consumers can decode our
 // generated message types (e.g. `PanelBundle`) without introducing a

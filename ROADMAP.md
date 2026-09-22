@@ -117,9 +117,10 @@ Three facts shape the order of work:
   parameter controls and local textual preview, with focused interaction tests.
 - **The remaining intentional parity gaps are bounded:** two TUI placeholders
   (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
-  and the TUI stream/terminal transport boundaries documented in their degradation
-  ladders. The TUI now has focused `TestBackend` coverage for its rendered content
-  and snapshot stream path; new parity work should preserve those tests.
+  and the TUI terminal transport boundary documented in its degradation ladder.
+  The TUI stream pane now subscribes through a host-owned `StreamInvoker`, keeps a
+  bounded tail, and lets readers scroll back without losing their place as frames
+  arrive. Its follow behavior is covered with `TestBackend`.
 - **The renderer catalog is now complete at the tier level.** The panel matrix remains
   intentionally scoped to `PanelDescriptor.body`; the catalog separately declares the
   SwiftUI preview tier and the conversation and launchpad modalities, with local

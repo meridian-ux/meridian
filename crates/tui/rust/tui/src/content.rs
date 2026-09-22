@@ -91,6 +91,7 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
 /// Render the static degradation of a stream when no live stream transport is
 /// available. The panel's authored placeholder remains visible and the noun
 /// makes the waiting state understandable on a terminal surface.
+#[cfg(test)]
 pub fn render_stream(
     frame: &mut Frame,
     area: Rect,
@@ -112,6 +113,39 @@ pub fn render_stream(
     };
     frame.render_widget(
         Paragraph::new(Line::from(Span::styled(text, palette.meta()))).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(palette.border_style()),
+        ),
+        area,
+    );
+}
+
+/// Render a bounded stream window, keeping the reader's explicit scroll offset.
+pub fn render_stream_window(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &StreamPanel,
+    lines: &[String],
+    scroll: u16,
+    palette: &Palette,
+) {
+    let noun = if panel.item_noun.is_empty() {
+        "stream"
+    } else {
+        &panel.item_noun
+    };
+    let text = if lines.is_empty() {
+        if panel.placeholder.is_empty() {
+            format!("Waiting for {noun}…")
+        } else {
+            panel.placeholder.clone()
+        }
+    } else {
+        lines.join("\n")
+    };
+    frame.render_widget(
+        Paragraph::new(text).scroll((scroll, 0)).block(
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(palette.border_style()),

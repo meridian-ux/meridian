@@ -53,7 +53,7 @@ pub use content::{
     selected_affordance,
 };
 pub use conversation::{block_lines, conversation_lines, render_conversation, status_line};
-pub use invoker::{RpcError, RpcInvoker};
+pub use invoker::{RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession};
 pub use launchpad::{
     command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState, AGENT_GROUP_ID,
 };

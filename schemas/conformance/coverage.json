@@ -680,8 +680,7 @@
           "status": "renders"
         },
         "tui": {
-          "status": "renders",
-          "reason": "The TUI renders host-provided bounded stream snapshots and retains the authored placeholder when no lines are available."
+          "status": "renders"
         }
       }
     }

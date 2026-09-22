@@ -2,7 +2,7 @@ use crossterm::event::KeyCode;
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
-    PanelDescriptor, ResourceCardPanel, RpcCall, TablePanel,
+    PanelDescriptor, ResourceCardPanel, RpcCall, StreamFrame, TablePanel,
 };
 use meridian_uiview::{
     render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder,
@@ -13,7 +13,7 @@ use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
 use ratatui::Frame;
 
 use crate::content;
-use crate::invoker::RpcInvoker;
+use crate::invoker::{RpcInvoker, StreamInvoker, StreamSession};
 use crate::theme::Palette;
 
 // Keep an unspecified StreamPanel bounded just like the browser renderer. The
@@ -40,6 +40,11 @@ pub struct PanelView {
     cached_form: Option<CachedForm>,
     cached_lro: Option<CachedForm>,
     stream_lines: Vec<String>,
+    stream_session: Option<StreamSession>,
+    stream_request_key: Option<String>,
+    stream_scroll: usize,
+    stream_follow: bool,
+    stream_view_height: usize,
     table_state: TableState,
     palette: Palette,
     // Selection cursor for the *content* shapes (Choice / ConnectFlow / Catalog /
@@ -112,6 +117,11 @@ impl PanelView {
             cached_form: None,
             cached_lro: None,
             stream_lines: Vec::new(),
+            stream_session: None,
+            stream_request_key: None,
+            stream_scroll: 0,
+            stream_follow: true,
+            stream_view_height: 1,
             table_state: TableState::default(),
             palette: Palette::default(),
             content_selected: 0,
@@ -132,6 +142,11 @@ impl PanelView {
             cached_form: None,
             cached_lro: None,
             stream_lines: Vec::new(),
+            stream_session: None,
+            stream_request_key: None,
+            stream_scroll: 0,
+            stream_follow: true,
+            stream_view_height: 1,
             table_state: TableState::default(),
             palette,
             content_selected: 0,
@@ -160,6 +175,109 @@ impl PanelView {
             .into_iter()
             .rev()
             .collect();
+        self.stream_follow = true;
+        self.stream_scroll = self.stream_lines.len();
+    }
+
+    /// Start or poll the active stream using the host's transport adapter.
+    pub fn poll_stream<I: StreamInvoker>(
+        &mut self,
+        descriptor: &PanelDescriptor,
+        context: &Context,
+        invoker: &I,
+    ) {
+        let Some(Body::Stream(panel)) = descriptor.body.as_ref() else {
+            self.stream_session = None;
+            self.stream_request_key = None;
+            self.stream_lines.clear();
+            return;
+        };
+        let request = panel
+            .subscribe
+            .as_ref()
+            .map(|call| RequestBuilder::build(call, context))
+            .unwrap_or_else(|| serde_json::json!({}));
+        let key = format!(
+            "{}:{}:{}",
+            panel
+                .subscribe
+                .as_ref()
+                .map(|c| c.service.as_str())
+                .unwrap_or_default(),
+            panel
+                .subscribe
+                .as_ref()
+                .map(|c| c.method.as_str())
+                .unwrap_or_default(),
+            request
+        );
+        if self.stream_request_key.as_deref() != Some(key.as_str()) {
+            self.stream_session = None;
+            self.stream_lines.clear();
+            self.stream_scroll = 0;
+            self.stream_follow = true;
+            self.stream_request_key = Some(key);
+            self.stream_session = panel
+                .subscribe
+                .as_ref()
+                .and_then(|call| invoker.subscribe(call, request).ok());
+        }
+        let mut appended = 0usize;
+        if let Some(session) = self.stream_session.as_ref() {
+            while let Ok(Some(frame)) = session.try_recv() {
+                if let Some(line) = stream_line(&frame, &panel.line_field) {
+                    self.stream_lines.push(line);
+                    appended += 1;
+                }
+            }
+        }
+        let max = if panel.max_lines == 0 {
+            STREAM_DEFAULT_MAX_LINES
+        } else {
+            panel.max_lines as usize
+        };
+        if self.stream_lines.len() > max {
+            let dropped = self.stream_lines.len() - max;
+            self.stream_lines.drain(..dropped);
+            self.stream_scroll = self.stream_scroll.saturating_sub(dropped);
+            if self.stream_follow {
+                self.stream_scroll = self.stream_lines.len();
+            }
+        }
+        if appended > 0 && self.stream_follow {
+            self.stream_scroll = self
+                .stream_lines
+                .len()
+                .saturating_sub(self.stream_view_height);
+        } else if appended > 0 {
+            self.stream_scroll = self.stream_scroll.saturating_add(appended);
+        }
+    }
+
+    /// Scroll the stream viewport. Moving up detaches from follow mode; moving
+    /// back to the tail re-enables it.
+    pub fn scroll_stream(&mut self, delta: isize) {
+        let max = self.stream_lines.len();
+        self.stream_scroll = if delta < 0 {
+            self.stream_scroll.saturating_sub(delta.unsigned_abs())
+        } else {
+            self.stream_scroll.saturating_add(delta as usize).min(max)
+        };
+        self.stream_follow = if delta < 0 {
+            false
+        } else {
+            self.stream_scroll >= max
+        };
+    }
+
+    /// Current retained log lines (useful to host applications and tests).
+    pub fn stream_lines(&self) -> &[String] {
+        &self.stream_lines
+    }
+
+    /// Whether the viewport is currently following the newest line.
+    pub fn stream_is_following(&self) -> bool {
+        self.stream_follow
     }
 
     /// Swap the active palette (e.g. on a runtime theme/mode change).
@@ -449,7 +567,20 @@ impl PanelView {
             }
             Some(Body::Stream(panel)) => {
                 self.content_len = self.stream_lines.len();
-                content::render_stream(frame, chunks[2], panel, &self.stream_lines, &self.palette);
+                self.stream_view_height = chunks[2].height.saturating_sub(2).max(1) as usize;
+                let max = self.stream_lines.len();
+                if self.stream_follow {
+                    self.stream_scroll = max.saturating_sub(self.stream_view_height);
+                }
+                self.stream_scroll = self.stream_scroll.min(max.saturating_sub(self.stream_view_height));
+                content::render_stream_window(
+                    frame,
+                    chunks[2],
+                    panel,
+                    &self.stream_lines,
+                    self.stream_scroll.min(u16::MAX as usize) as u16,
+                    &self.palette,
+                );
             }
             // Media is legitimately degraded here: a moving picture is not text,
             // so the terminal is outside its Accept set by construction.
@@ -903,6 +1034,38 @@ impl PanelView {
                     .and_then(|cached| cached.cards.get(self.content_selected))
                     .map(|card| &card.raw)
             })
+    }
+}
+
+fn stream_line(frame: &StreamFrame, line_field: &str) -> Option<String> {
+    let value = protobuf_value_to_json(frame.data.as_ref()?);
+    let selected = meridian_uiview::ProtoPaths::get(&value, line_field);
+    if selected.is_null() {
+        return None;
+    }
+    match selected {
+        serde_json::Value::String(text) => Some(text.clone()),
+        other => Some(other.to_string()),
+    }
+}
+
+fn protobuf_value_to_json(value: &prost_types::Value) -> serde_json::Value {
+    use prost_types::value::Kind;
+    match value.kind.as_ref() {
+        Some(Kind::NullValue(_)) | None => serde_json::Value::Null,
+        Some(Kind::NumberValue(number)) => serde_json::json!(number),
+        Some(Kind::StringValue(text)) => serde_json::Value::String(text.clone()),
+        Some(Kind::BoolValue(boolean)) => serde_json::Value::Bool(*boolean),
+        Some(Kind::StructValue(object)) => serde_json::Value::Object(
+            object
+                .fields
+                .iter()
+                .map(|(key, value)| (key.clone(), protobuf_value_to_json(value)))
+                .collect(),
+        ),
+        Some(Kind::ListValue(list)) => {
+            serde_json::Value::Array(list.values.iter().map(protobuf_value_to_json).collect())
+        }
     }
 }
 

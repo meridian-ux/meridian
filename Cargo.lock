@@ -336,6 +336,7 @@ dependencies = [
  "crossterm",
  "meridian-uiview",
  "prost",
+ "prost-types",
  "ratatui",
  "regex",
  "serde_json",

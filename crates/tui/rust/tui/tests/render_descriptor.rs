@@ -875,8 +875,138 @@ fn canonical_stream_snapshot_retention_is_bounded() {
         "default retention is unbounded: {output}"
     );
     assert!(
-        output.contains("default-0001"),
+        output.contains("default-1997"),
         "default tail start missing: {output}"
+    );
+}
+
+#[test]
+fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
+    use meridian_tui::{StreamError, StreamInvoker, StreamSession};
+    use meridian_uiview::proto::StreamFrame;
+    use prost_types::{value::Kind, Struct, Value};
+    use std::sync::mpsc;
+
+    struct LiveStream(std::sync::Mutex<Option<mpsc::Receiver<StreamFrame>>>);
+    impl StreamInvoker for LiveStream {
+        fn subscribe(
+            &self,
+            _: &meridian_uiview::proto::RpcCall,
+            _: serde_json::Value,
+        ) -> Result<StreamSession, StreamError> {
+            let receiver = self.0.lock().unwrap().take().unwrap();
+            Ok(StreamSession::new(receiver, || {}))
+        }
+    }
+    let (sender, receiver) = mpsc::channel();
+    for index in 0..8 {
+        sender
+            .send(StreamFrame {
+                data: Some(Value {
+                    kind: Some(Kind::StructValue(Struct {
+                        fields: std::collections::BTreeMap::from([(
+                            "event".into(),
+                            Value {
+                                kind: Some(Kind::StructValue(Struct {
+                                    fields: std::collections::BTreeMap::from([(
+                                        "message".into(),
+                                        Value {
+                                            kind: Some(Kind::StringValue(format!("line-{index}"))),
+                                        },
+                                    )]),
+                                })),
+                            },
+                        )]),
+                    })),
+                }),
+            })
+            .unwrap();
+    }
+    let stream = LiveStream(std::sync::Mutex::new(Some(receiver)));
+    let mut descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("stream.binpb").as_slice()).unwrap();
+    if let Some(Body::Stream(panel)) = descriptor.body.as_mut() {
+        panel.line_field = "event.message".into();
+    }
+    let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let mut view = PanelView::new();
+    view.poll_stream(&descriptor, &Context::default(), &stream);
+    assert_eq!(view.stream_lines().len(), 8);
+    assert!(view.stream_is_following());
+
+    let mut terminal = Terminal::new(TestBackend::new(80, 8)).unwrap();
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    view.scroll_stream(-2);
+    assert!(
+        !view.stream_is_following(),
+        "scrolling up must detach follow mode"
+    );
+
+    sender
+        .send(StreamFrame {
+            data: Some(Value {
+                kind: Some(Kind::StructValue(Struct {
+                    fields: std::collections::BTreeMap::from([(
+                        "event".into(),
+                        Value {
+                            kind: Some(Kind::StructValue(Struct {
+                                fields: std::collections::BTreeMap::from([(
+                                    "message".into(),
+                                    Value {
+                                        kind: Some(Kind::StringValue("line-8".into())),
+                                    },
+                                )]),
+                            })),
+                        },
+                    )]),
+                })),
+            }),
+        })
+        .unwrap();
+    view.poll_stream(&descriptor, &Context::default(), &stream);
+    assert!(
+        !view.stream_is_following(),
+        "new frames must not yank a reader back to the tail"
+    );
+    assert_eq!(
+        view.stream_lines().last().map(String::as_str),
+        Some("line-8")
+    );
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    let output: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(
+        output.contains("line-6"),
+        "reader's prior viewport should remain visible: {output}"
+    );
+    assert!(
+        !output.contains("line-8"),
+        "new tail should remain outside detached viewport: {output}"
     );
 }
 
