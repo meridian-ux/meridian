@@ -311,6 +311,12 @@ The TUI wire-to-render suite now covers populated chart rows through the same
 descriptor encodings and separately preserves successful-empty and transport-
 failure states instead of collapsing them into the static-host hint.
 
+The canonical Stream fixture also exercises the TUI's host-supplied snapshot
+boundary. Explicit `max_lines` values retain only the newest authored number of
+lines, and an unspecified limit uses a bounded 2,000-line renderer default
+rather than retaining an unbounded process-lifetime stream. This establishes
+native retention semantics without claiming a built-in streaming transport.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and

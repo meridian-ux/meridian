@@ -16,6 +16,11 @@ use crate::content;
 use crate::invoker::RpcInvoker;
 use crate::theme::Palette;
 
+// Keep an unspecified StreamPanel bounded just like the browser renderer. The
+// schema deliberately leaves the exact default to each surface, but it also
+// requires every renderer to prevent an unbounded stream from growing forever.
+const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
+
 /// Stateful ratatui widget rendering one PanelDescriptor. For
 /// TablePanels it does its own populate call against the invoker
 /// (lazy + cached); for LroPanels it shows a placeholder telling
@@ -143,7 +148,7 @@ impl PanelView {
         lines: Vec<String>,
     ) {
         let max = if panel.max_lines == 0 {
-            usize::MAX
+            STREAM_DEFAULT_MAX_LINES
         } else {
             panel.max_lines as usize
         };
@@ -435,14 +440,9 @@ impl PanelView {
                 chunks[2],
                 "Terminal panels are web-specific (xterm.js) — not rendered in the TUI.",
             ),
-            // ── FULL-PARITY shapes still owed a terminal renderer ──────────────
-            // Steps and Stream are both declared full-parity in their protos: an
-            // ordered list of labeled text, and a list of log lines, are text and
-            // therefore displayable HERE at full fidelity. Placeholders are a
-            // stopgap, not the intended end state — tracked in
-            // meridian-ux/meridian-uiview-core#3. They are spelled out rather than
-            // swept into a `_ =>` wildcard so the next shape added upstream keeps
-            // failing this build loudly instead of silently rendering nothing.
+            // Steps and Stream are full-parity text shapes. Keep their arms
+            // explicit so a future upstream shape cannot silently fall through
+            // to an unrelated placeholder.
             Some(Body::Steps(panel)) => {
                 self.content_len = panel.steps.len();
                 content::render_steps(frame, chunks[2], panel, &self.palette);

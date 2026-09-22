@@ -782,6 +782,104 @@ fn canonical_chart_transport_failure_text_golden() {
     );
 }
 
+#[test]
+fn canonical_stream_snapshot_retention_is_bounded() {
+    let mut descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("stream.binpb").as_slice()).unwrap();
+    // Retaining a tail must drop older entries from the front. Re-encode the
+    // edited canonical descriptor so the assertion covers the wire value that a
+    // producer authors, not only a Rust field assignment.
+    let Some(Body::Stream(panel)) = descriptor.body.as_mut() else {
+        panic!("expected stream fixture")
+    };
+    panel.max_lines = 3;
+    let mut descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let Some(Body::Stream(panel)) = descriptor.body.as_ref() else {
+        unreachable!()
+    };
+    let mut view = PanelView::new();
+    view.set_stream_lines(
+        panel,
+        (0..5).map(|index| format!("explicit-{index}")).collect(),
+    );
+    let mut terminal = Terminal::new(TestBackend::new(80, 8)).unwrap();
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    let output: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(
+        !output.contains("explicit-1"),
+        "old stream line was retained: {output}"
+    );
+    assert!(
+        output.contains("explicit-2"),
+        "tail start missing: {output}"
+    );
+    assert!(
+        output.contains("explicit-4"),
+        "newest stream line missing: {output}"
+    );
+
+    // Zero means a renderer-owned default, not unlimited retention. Feed one
+    // more line than the shared native/browser default and prove the oldest one
+    // is gone while the first retained line is visible at the top of the pane.
+    let Some(Body::Stream(panel)) = descriptor.body.as_mut() else {
+        unreachable!()
+    };
+    panel.max_lines = 0;
+    let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let Some(Body::Stream(panel)) = descriptor.body.as_ref() else {
+        unreachable!()
+    };
+    let mut view = PanelView::new();
+    view.set_stream_lines(
+        panel,
+        (0..=2_000)
+            .map(|index| format!("default-{index:04}"))
+            .collect(),
+    );
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    let output: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(
+        !output.contains("default-0000"),
+        "default retention is unbounded: {output}"
+    );
+    assert!(
+        output.contains("default-0001"),
+        "default tail start missing: {output}"
+    );
+}
+
 struct EmptyData;
 impl RpcInvoker for EmptyData {
     fn invoke(

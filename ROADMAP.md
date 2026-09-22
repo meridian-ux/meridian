@@ -130,9 +130,9 @@ snapshots. Long-copy text preservation, a shared formatter corpus covering all
 18 semantic ValueTypes, populated Gallery/Table native text goldens, nested
 Steps affordances across all renderers, playable Media chapter seek controls
 across all browser renderers, populated Chart fallbacks across all browser
-renderers plus native populated/empty/failure text goldens, and HTML/Shadcn
-ActionPanel/Form interaction contracts are also
-checked in. These checks do not establish visual
+renderers plus native populated/empty/failure text goldens, bounded native
+Stream snapshot retention, and HTML/Shadcn ActionPanel/Form interaction
+contracts are also checked in. These checks do not establish visual
 layout, every formatter option, or full renderer parity. Remaining work is
 the broader parity and renderer-specific/tooling scope called out above.
 
