@@ -207,7 +207,7 @@ describe("MeridianGallery", () => {
     expect(resolved.length).toBeGreaterThan(0);
     expect(new Set(resolved)).toEqual(new Set(["/evidence/safe.png"]));
     fireEvent.click(screen.getByText("Next ›"));
-    expect(screen.getByText("Unsafe")).toBeTruthy();
+    expect(await screen.findByText("Unsafe")).toBeTruthy();
     expect(screen.queryByRole("img", { name: "Unsafe" })).toBeNull();
   });
 
