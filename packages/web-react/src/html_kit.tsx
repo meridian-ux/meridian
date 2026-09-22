@@ -22,7 +22,8 @@ import {
   classesFor,
 } from "./content_shapes.js";
 import { ResourceCardsView } from "./resource_cards.js";
-import { FormFieldRow, HTML_FORM_CLASSES } from "./form_fields.js";
+import { HTML_FORM_CLASSES } from "./form_fields.js";
+import { FormContent } from "./form.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
@@ -102,19 +103,7 @@ export const htmlKit: ComponentKit = {
       <button type="button">{panel.runButtonLabel || "Run"}</button>
     </div>
   ),
-  Form: ({ panel }) => (
-    // FORM_MODE_EDIT = 2; anything else renders read-only.
-    <form className="mer-form" data-mode={panel.mode}>
-      {panel.fields.map((field) => (
-        <FormFieldRow
-          key={field.fieldId}
-          c={HTML_FORM_CLASSES}
-          field={field}
-          mode={panel.mode}
-        />
-      ))}
-    </form>
-  ),
+  Form: ({ panel }) => <FormContent panel={panel} c={HTML_FORM_CLASSES} className="mer-form" />,
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const resolveHref = useHrefResolver();

@@ -14,7 +14,8 @@
 //   The hidden <input> at the end of each RepeatedFieldControl carries the full
 //   JSON-encoded current value at `namePath` so standard FormData round-trips work.
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
+import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 import type { ReactNode } from "react";
 
 import type {
@@ -23,6 +24,15 @@ import type {
   NestedForm,
   RepeatedField,
 } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+
+export const FormInitialValues = createContext<Record<string, unknown>>({});
+function useInitialValue(name: string): unknown {
+  const values = useContext(FormInitialValues);
+  if (Object.hasOwn(values, name)) return values[name];
+  return name.replace(/\[(\d+)\]/g, ".$1").split(".").reduce<unknown>((value, key) =>
+    value && typeof value === "object" && Object.hasOwn(value, key)
+      ? (value as Record<string, unknown>)[key] : undefined, values);
+}
 
 // ── Class table ────────────────────────────────────────────────────────────────
 
@@ -101,8 +111,12 @@ function ScalarInput({
   mode: number;
   name: string;
 }): ReactNode {
+  const initial = useInitialValue(name);
+  const fallback = field.kind.value && "defaultValue" in field.kind.value ? field.kind.value.defaultValue : "";
+  const raw = initial ?? fallback;
   if (mode !== 2) {
-    return <span className={c.fieldValue} data-field={name} />;
+    const shown = field.display ? formatByDisplay(raw, field.display) : { text: String(raw) };
+    return <span className={c.fieldValue} data-field={name}>{field.kind.case === "masked" ? "••••••" : shown.text}</span>;
   }
   const kind = field.kind;
   if (kind.case === "boolean") {
@@ -111,7 +125,7 @@ function ScalarInput({
         type="checkbox"
         className={c.fieldCheck}
         name={name}
-        defaultChecked={kind.value.defaultValue}
+        defaultChecked={Boolean(raw)}
       />
     );
   }
@@ -124,7 +138,7 @@ function ScalarInput({
         min={kind.value.min !== 0 ? kind.value.min : undefined}
         max={kind.value.max !== 0 ? kind.value.max : undefined}
         step={kind.value.step !== 0 ? kind.value.step : 1}
-        defaultValue={kind.value.defaultValue}
+        defaultValue={String(raw)}
       />
     );
   }
@@ -137,7 +151,7 @@ function ScalarInput({
         min={kind.value.min !== 0 ? kind.value.min : undefined}
         max={kind.value.max !== 0 ? kind.value.max : undefined}
         step={kind.value.step !== 0 ? kind.value.step : undefined}
-        defaultValue={kind.value.defaultValue}
+        defaultValue={String(raw)}
       />
     );
   }
@@ -146,7 +160,7 @@ function ScalarInput({
       <select
         className={c.fieldSelect}
         name={name}
-        defaultValue={kind.value.defaultValue}
+        defaultValue={String(raw)}
       >
         {kind.value.allowedValues.map((v) => (
           <option key={v} value={v}>
@@ -157,16 +171,12 @@ function ScalarInput({
     );
   }
   // text, masked, or unset
-  const defVal =
-    kind.case === "text" || kind.case === "masked"
-      ? kind.value.defaultValue
-      : "";
   return (
     <input
       type={kind.case === "masked" ? "password" : "text"}
       className={c.fieldInput}
       name={name}
-      defaultValue={defVal !== "" ? defVal : undefined}
+      defaultValue={String(raw)}
     />
   );
 }
@@ -313,8 +323,10 @@ export function KeyValueMapControl({
   mode: number;
   namePath: string;
 }): ReactNode {
-  const [rows, setRows] = useState<KeyValueRow[]>([]);
-  const [nextId, setNextId] = useState(0);
+  const initial = useInitialValue(namePath);
+  const entries = initial && typeof initial === "object" && !Array.isArray(initial) ? Object.entries(initial) : [];
+  const [rows, setRows] = useState<KeyValueRow[]>(() => entries.map(([key, value], id) => ({ id, key, value: String(value) })));
+  const [nextId, setNextId] = useState(entries.length);
   const maxItems = spec.maxItems ?? 0;
   const isEdit = mode === 2;
   // Keep one pending blank row at a time: duplicate blank keys would collapse
@@ -432,13 +444,16 @@ export function RepeatedFieldControl({
   mode: number;
   namePath: string;
 }): ReactNode {
+  const initialValues = useContext(FormInitialValues);
   const minItems = spec.minItems ?? 0;
+  const initial = useInitialValue(namePath);
+  const initialCount = Array.isArray(initial) ? initial.length : minItems;
   const maxItems = spec.maxItems ?? 0; // 0 = unlimited
 
   const [rows, setRows] = useState<RowSlot[]>(() =>
-    Array.from({ length: minItems }, (_, i) => ({ id: i })),
+    Array.from({ length: initialCount }, (_, i) => ({ id: i })),
   );
-  const [nextId, setNextId] = useState(minItems);
+  const [nextId, setNextId] = useState(initialCount);
 
   const canAdd = maxItems === 0 || rows.length < maxItems;
   const canRemove = rows.length > minItems;
@@ -469,12 +484,24 @@ export function RepeatedFieldControl({
   const addLabel = spec.addLabel || "Add";
   const isEdit = mode === 2;
 
+  function rowValues(id: number, index: number): Record<string, unknown> {
+    const source = `${namePath}[${id}]`;
+    const destination = `${namePath}[${index}]`;
+    return Object.fromEntries(Object.entries(initialValues).flatMap(([key, value]) => {
+      if (key === namePath) return [[key, undefined]];
+      if (key === source || key.startsWith(`${source}.`) || key.startsWith(`${source}[`))
+        return [[destination + key.slice(source.length), value]];
+      return key.startsWith(`${namePath}[`) ? [] : [[key, value]];
+    }));
+  }
+
   return (
     <div className={c.repeated} data-min={minItems || undefined} data-max={maxItems || undefined}>
       <ol className={c.repeatedList}>
         {rows.map((row, idx) => (
           <li key={row.id} className={c.repeatedRow}>
             <div className={c.repeatedRowBody}>
+              <FormInitialValues.Provider value={rowValues(row.id, idx)}>
               {element.case === "object" ? (
                 <NestedFormFields
                   c={c}
@@ -490,6 +517,7 @@ export function RepeatedFieldControl({
                   name={`${namePath}[${idx}]`}
                 />
               ) : null}
+              </FormInitialValues.Provider>
             </div>
             {isEdit && (
               <div className={c.repeatedRowControls}>

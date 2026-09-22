@@ -44,8 +44,12 @@ mutation denial before transport with a host denial callback. ActionPanel
 affordances are URI/command controls, not RPC actions. These checks do not prove
 disabled denial controls or visible action errors: the current view action
 fallback remains enabled and catches invocation failures without rendering them.
-Reference-kit FormPanel submission and request-failure rendering are also still
-unimplemented; rendering editable fields does not establish a submit contract.
+The HTML/Shadcn `form.test.ts` suite verifies FormPanel read-tier prefill,
+typed scalar/nested/repeated/map payloads, submit bindings, mutation admission,
+validation, duplicate-submit prevention, visible failures and retry, and saved
+status. Failed prefill retains defaults. Read-only scalar defaults honor declared
+displays; editable values remain raw. These tests do not establish dynamic enum
+population or browser-native validation/layout parity.
 
 The canonical `copy_value` fixture contains a long panel title, label, and
 unbroken URL segment. All four browser semantic snapshots and explicit content

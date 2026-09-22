@@ -78,6 +78,7 @@ vitest_test(
     srcs = [
         "tests/conformance.test.ts",
         "tests/interactive_conformance.test.ts",
+        "tests/form.test.ts",
         "tests/llm_prompt.test.ts",
         "tests/steps.test.ts",
         "tests/gallery.test.ts",
