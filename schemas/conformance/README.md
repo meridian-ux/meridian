@@ -117,13 +117,21 @@ The Node CI job runs this same verification command after the package test
 suites. CI never passes `--update` or `--bazel`: committed goldens are read-only
 there, and Bazel remains isolated in its dedicated job.
 
-To record an intentional behavior change, run
-`pnpm conformance:snapshots:update` and review every golden diff. Do not
-re-record to hide a missing field or unexpected fallback. Pass `--bazel` to
-`schemas/tools/conformance_snapshots.mjs` to also verify the React and
-web-components Bazel conformance targets, which include the normalizer and
-goldens as runfiles. MUI remains covered by its package Vitest suite because its
-browser Bazel harness is a separate test tier.
+To record an intentional behavior change, use the same explicit switch from
+either build entrypoint, then review every golden diff:
+
+```sh
+UPDATE_SNAPSHOTS=1 pnpm conformance:snapshots
+UPDATE_SNAPSHOTS=1 bazel run //:re_record_conformance
+```
+
+The Bazel launcher returns to `BUILD_WORKSPACE_DIRECTORY` before running the
+shared updater, so Vitest writes to the checked-out package snapshots rather
+than through Bazel's runfiles symlinks. Do not re-record to hide a missing field
+or unexpected fallback. After reviewing the diff, run
+`node schemas/tools/conformance_snapshots.mjs --bazel` to verify the React and
+web-components Bazel conformance targets. MUI remains covered by its package
+Vitest suite because its browser Bazel harness is a separate test tier.
 
 ## Focused interaction and content coverage
 

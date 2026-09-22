@@ -25,6 +25,19 @@ test("update mode is explicit and applies to every Vitest suite", () => {
   }
 });
 
+test("the shared update environment switch enables every Vitest suite", () => {
+  const options = parseArgs([], { UPDATE_SNAPSHOTS: "1" });
+  assert.equal(options.update, true);
+  const commands = buildCommands(options);
+  for (const step of commands.slice(0, VITEST_SUITES.length)) {
+    assert.equal(step.args.at(-1), "--update");
+  }
+});
+
+test("other UPDATE_SNAPSHOTS values do not opt into writing", () => {
+  assert.equal(parseArgs([], { UPDATE_SNAPSHOTS: "true" }).update, false);
+});
+
 test("Bazel verification uses only snapshot-owning conformance targets", () => {
   const commands = buildCommands({ bazel: true });
   assert.deepEqual(commands.at(-1)?.args, ["test", ...BAZEL_TARGETS]);
