@@ -21,6 +21,27 @@ export function safeNavigationHref(value: unknown): string | undefined {
 }
 
 /**
+ * Admit an authored browser asset source.
+ *
+ * Panel media and walkthrough frames are passive resources, not navigation
+ * destinations. Keep their contract narrower than `safeNavigationHref`: only
+ * host-relative paths and HTTP(S) sources may reach a browser media element.
+ * Host asset resolvers run after this check and remain responsible for any
+ * trusted, surface-local translation (for example, a mounted asset prefix).
+ */
+export function safeAssetSrc(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const src = value.trim();
+  if (!src || /[\u0000-\u001f\u007f]/.test(src)) return undefined;
+  try {
+    const protocol = new URL(src, "https://meridian.invalid/").protocol.toLowerCase();
+    return protocol === "http:" || protocol === "https:" ? src : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Admit a TerminalPanel broker URL at the browser transport boundary.
  *
  * Terminal descriptors carry a WebSocket endpoint, not a general navigation

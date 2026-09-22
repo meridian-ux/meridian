@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
+import { safeAssetSrc, safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
 
 test("safeNavigationHref retains web, relative, mail, and application deep links", () => {
   for (const href of [
@@ -31,6 +31,34 @@ test("safeNavigationHref rejects executable, local, malformed, and empty destina
     "   ",
   ]) {
     assert.equal(safeNavigationHref(href), undefined, href);
+  }
+});
+
+test("safeAssetSrc retains host-relative and HTTP(S) asset sources", () => {
+  for (const src of [
+    "/evidence/frame.png",
+    "../frames/frame.png",
+    "?asset=frame",
+    "https://cdn.example.com/frame.png",
+    "http://localhost:3000/frame.png",
+  ]) {
+    assert.equal(safeAssetSrc(src), src);
+  }
+});
+
+test("safeAssetSrc rejects active, local, opaque, malformed, and empty sources", () => {
+  for (const src of [
+    "javascript:alert(1)",
+    "data:image/svg+xml,unsafe",
+    "file:///etc/passwd",
+    "blob:https://example.com/opaque",
+    "cursor://file/workspace/frame.png",
+    "java\nscript:alert(1)",
+    "https://[invalid",
+    "",
+    "   ",
+  ]) {
+    assert.equal(safeAssetSrc(src), undefined, src);
   }
 });
 

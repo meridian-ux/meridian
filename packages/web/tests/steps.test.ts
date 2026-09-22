@@ -47,4 +47,27 @@ describe("web-components StepsPanel", () => {
     expect(action?.dataset.icon).toBe("open");
     expect(root.querySelector(".mer-affordance-desc")?.textContent).toBe("Watch the rollout");
   });
+
+  it("admits passive frame sources and degrades unsafe sources to text", async () => {
+    for (const [mediaUri, admitted] of [
+      ["/evidence/deploy.png", true],
+      ["https://example.com/deploy.png", true],
+      ["javascript:alert(1)", false],
+      ["data:image/svg+xml,unsafe", false],
+      ["file:///tmp/deploy.png", false],
+    ] as const) {
+      const root = document.createElement("div");
+      await renderPanel({
+        wasm: noWasm,
+        root,
+        descriptor: create(PanelDescriptorSchema, {
+          body: { case: "steps", value: { steps: [{ label: "Deploy", mediaUri, mediaAlt: "Deployment screen" }] } },
+        }),
+        invoker: { invoke: async () => ({}) },
+        context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+      });
+      expect(!!root.querySelector("img")).toBe(admitted);
+      expect(root.textContent).toContain("Deployment screen");
+    }
+  });
 });

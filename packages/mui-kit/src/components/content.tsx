@@ -41,6 +41,7 @@ import {
 } from "@savvifi/meridian-web-react";
 import {
   computeStat,
+  safeAssetSrc,
   safeNavigationHref,
   statSparklinePoints,
   trendArrow,
@@ -512,11 +513,11 @@ export function StepsView({ panel }: { panel: StepsPanel }): ReactNode {
                   {step.detail}
                 </Typography>
               )}
-              {step.mediaUri && (
+              {safeAssetSrc(step.mediaUri) ? (
                 <Box
                   component="img"
                   className="mer-step-media"
-                  src={withAsset(step.mediaUri)}
+                  src={withAsset(safeAssetSrc(step.mediaUri)!)}
                   // media_alt is the accessible description AND the degradation
                   // content; empty alt would silently hide a missing description.
                   alt={step.mediaAlt || step.label}
@@ -531,7 +532,11 @@ export function StepsView({ panel }: { panel: StepsPanel }): ReactNode {
                     borderColor: "divider",
                   }}
                 />
-              )}
+              ) : step.mediaUri ? (
+                <Typography variant="body2" color="text.secondary" className="mer-step-media-alt" sx={{ mt: 1.5 }}>
+                  {step.mediaAlt || step.label}
+                </Typography>
+              ) : null}
               {step.action && (
                 <Box sx={{ mt: 1.5 }}>
                   <AffordanceButton affordance={step.action} />

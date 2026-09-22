@@ -65,6 +65,7 @@ import {
   formatByDisplay,
   isSafeHttpUrl,
   resolveValueLink,
+  safeAssetSrc,
   safeNavigationHref,
   statSparklinePoints,
   trendArrow,
@@ -716,11 +717,14 @@ function buildSteps(opts: RenderPanelOptions, panel: StepsPanel): HTMLElement {
     const label = el("div", "mer-step-label", step.label);
     if (step.actor) label.appendChild(el("span", "mer-step-actor", ` (${step.actor})`));
     item.appendChild(label);
-    if (step.mediaUri) {
+    const mediaSrc = safeAssetSrc(step.mediaUri);
+    if (mediaSrc) {
       const image = document.createElement("img");
       image.className = "mer-step-media";
-      image.src = step.mediaUri;
-      image.alt = step.mediaAlt;
+      image.src = mediaSrc;
+      image.alt = step.mediaAlt || step.label;
+      image.loading = "lazy";
+      image.addEventListener("error", () => image.remove());
       item.appendChild(image);
     }
     if (step.detail || step.mediaAlt) item.appendChild(el("p", "mer-step-detail", step.detail || step.mediaAlt));

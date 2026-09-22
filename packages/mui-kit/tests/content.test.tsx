@@ -401,6 +401,22 @@ describe("muiKit renders StepsPanel", () => {
     // No media_alt ⇒ the label, never "" (which would hide the omission).
     await screen.findByAltText("Undescribed");
   });
+
+  it("degrades unsafe step frame sources to their authored alternatives", async () => {
+    const { container } = renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "unsafe-shot",
+        body: {
+          case: "steps",
+          value: create(StepsPanelSchema, {
+            steps: [{ label: "Open deploys", mediaUri: "javascript:alert(1)", mediaAlt: "Deployment screen" }],
+          }),
+        },
+      }),
+    );
+    expect(container.querySelector("img")).toBeNull();
+    expect(await screen.findByText("Deployment screen")).toBeTruthy();
+  });
 });
 
 describe("muiKit renders MediaPanel", () => {

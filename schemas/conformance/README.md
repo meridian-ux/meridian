@@ -344,6 +344,13 @@ HTML, Shadcn, and MUI. Safe application deep links remain interactive;
 rejected destinations degrade to the authored action label or an inert card.
 Focused tests cover both outcomes without granting navigation to image sources.
 
+Walkthrough `Step.media_uri` values pass through one passive-asset admission
+rule before browser renderers create an image. Host-relative and HTTP(S) frames
+remain available; executable, local-document, opaque, malformed, or
+control-character sources degrade to `media_alt` (or the step label) without
+emitting an image element. Host asset resolvers run only after authored input is
+admitted, so trusted surfaces can still map valid paths onto mounted assets.
+
 `TerminalPanel.url` uses a separate, narrower transport admission rule: only
 absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
 fragments can reach the browser's WebSocket constructor. Rejected endpoints do
