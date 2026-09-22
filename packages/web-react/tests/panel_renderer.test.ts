@@ -79,10 +79,12 @@ describe("meridian-web-react renderer", () => {
 
   it("falls back for an unset panel body", () => {
     const descriptor = create(PanelDescriptorSchema, { panelId: "x", title: "X" });
-    expect(render(descriptor)).toContain("(empty panel)");
+    for (const kit of [htmlKit, shadcnKit]) {
+      expect(render(descriptor, kit), `${kit.id} unknown-arm fallback`).toContain("(empty panel)");
+    }
   });
 
-  it("visibly falls back after decoding an unknown future oneof arm", () => {
+  it("visibly falls back after decoding an unknown future oneof arm in each reference kit", () => {
     const bytes = toBinary(PanelDescriptorSchema, create(PanelDescriptorSchema, {
       panelId: "future-panel",
       title: "Future panel",
@@ -92,7 +94,9 @@ describe("meridian-web-react renderer", () => {
     const wire = new Uint8Array([...bytes, 0xa2, 0x06, 0x00]);
     const descriptor = fromBinary(PanelDescriptorSchema, wire);
     expect(descriptor.body.case).toBeUndefined();
-    expect(render(descriptor)).toContain("(empty panel)");
+    for (const kit of [htmlKit, shadcnKit]) {
+      expect(render(descriptor, kit), `${kit.id} unknown-arm fallback`).toContain("(empty panel)");
+    }
   });
 
   it("renders a StreamPanel through htmlKit with an accessible placeholder", () => {
