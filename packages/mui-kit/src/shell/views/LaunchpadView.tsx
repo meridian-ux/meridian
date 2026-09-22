@@ -77,9 +77,12 @@ export function LaunchpadView() {
   // and as the ONLY path for a deep link, which may point off-origin.
   const go = React.useCallback(
     (route: string) => {
+      const href = safeNavigationHref(route);
+      if (!href) return false;
       const navigate = seams.routing.navigate;
-      if (navigate) navigate(route);
-      else window.location.assign(route);
+      if (navigate) navigate(href);
+      else window.location.assign(href);
+      return true;
     },
     [seams],
   );
@@ -99,8 +102,7 @@ export function LaunchpadView() {
       const action = command.action;
       switch (action.case) {
         case "navigate":
-          go(action.value.route);
-          close();
+          if (go(action.value.route)) close();
           return;
         case "openViewId": {
           const href = seams.hrefFor?.({ id: action.value, label: command.title });
@@ -192,12 +194,16 @@ export function LaunchpadView() {
                     {group.commands.map((command) => {
                       const position = flat.indexOf(command);
                       const deepLinkDisabled = Boolean(command.deepLink && !safeNavigationHref(command.deepLink));
+                      const routeDisabled = !command.deepLink
+                        && command.action.case === "navigate"
+                        && !safeNavigationHref(command.action.value.route);
+                      const navigationDisabled = deepLinkDisabled || routeDisabled;
                       return (
                         <ListItemButton
                           key={command.id}
                           {...feedback.props(!command.deepLink && command.action.case === "rpc" ? command.action.value : undefined)}
-                          {...(deepLinkDisabled ? { "aria-disabled": true } : {})}
-                          disabled={deepLinkDisabled}
+                          {...(navigationDisabled ? { "aria-disabled": true } : {})}
+                          disabled={navigationDisabled}
                           selected={position === index}
                           onMouseEnter={() => setIndex(position)}
                           onClick={() => run(command)}

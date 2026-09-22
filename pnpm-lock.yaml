@@ -57,6 +57,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
+      '@savvifi/meridian-schemas':
+        specifier: workspace:*
+        version: link:../../schemas
     devDependencies:
       '@savvifi/meridian-proto-ts':
         specifier: workspace:*

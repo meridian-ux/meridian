@@ -333,6 +333,12 @@ before document navigation. Safe application deep links retain precedence over
 the command action; rejected executable or local-document schemes render as
 disabled commands and never fall through to the alternate action.
 
+The standalone React Launchpad now shares that precedence and degradation rule,
+and both launchpad tiers admit authored `Navigate.route` values before invoking
+either the host router or `window.location`. Rejected routes remain disabled and
+cannot reach either navigation boundary. The standalone interaction suite is
+owned by a Bazel target as well as the package test command.
+
 Gallery `href_field` values use the same admission rule in web-components,
 HTML, Shadcn, and MUI. Safe application deep links remain interactive;
 rejected destinations degrade to the authored action label or an inert card.

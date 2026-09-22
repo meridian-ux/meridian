@@ -5,7 +5,8 @@
 //   - rpc          → the provider's mutation-tier invoker
 //   - open_panel   → a focused step rendering the panel through the host's kit
 //   - open_view_id → onOpenView (or the host action handler)
-//   - navigate     → onNavigate (or window.location)
+//   - navigate     → admitted onNavigate route (or window.location)
+//   - deep_link    → admitted window.location destination, ahead of action
 //
 // The host owns the open gesture (bind ⌘K to toggle `open`); this component owns
 // filtering, keyboard navigation, and dispatch. It must render inside a
@@ -19,6 +20,7 @@ import type {
   Launchpad as LaunchpadDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import {
   PanelRenderer,
   useActionHandler,
@@ -82,11 +84,13 @@ const panelStyle: CSSProperties = {
 function CommandRow({
   command,
   active,
+  disabled,
   onRun,
   onHover,
 }: {
   command: Command;
   active: boolean;
+  disabled: boolean;
   onRun: () => void;
   onHover: () => void;
 }): ReactNode {
@@ -96,11 +100,12 @@ function CommandRow({
       className="mlp-row"
       role="option"
       aria-selected={active}
+      aria-disabled={disabled || undefined}
       data-active={active || undefined}
       data-command-id={command.id}
       onMouseDown={(e) => {
         e.preventDefault();
-        onRun();
+        if (!disabled) onRun();
       }}
       onMouseEnter={onHover}
       style={{
@@ -108,7 +113,8 @@ function CommandRow({
         alignItems: "center",
         gap: 10,
         padding: "8px 14px",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.55 : undefined,
         background: active ? "var(--accent, #6366f1)" : "transparent",
       }}
     >
@@ -227,6 +233,17 @@ export function Launchpad({
 
   const runCommand = useCallback(
     (command: Command) => {
+      // A deep link represents URL-driven palette state and wins over the
+      // action. It is authored input, so it crosses the same navigation
+      // admission boundary as every browser affordance.
+      if (command.deepLink) {
+        const href = safeNavigationHref(command.deepLink);
+        if (!href) return;
+        window.location.assign(href);
+        finish();
+        onRun?.(command);
+        return;
+      }
       const action = command.action;
       switch (action.case) {
         case "rpc":
@@ -242,7 +259,8 @@ export function Launchpad({
           finish();
           break;
         case "navigate": {
-          const route = action.value.route;
+          const route = safeNavigationHref(action.value.route);
+          if (!route) return;
           if (onNavigate) onNavigate(route);
           else if (typeof window !== "undefined") window.location.assign(route);
           finish();
@@ -356,11 +374,17 @@ export function Launchpad({
                     ) : null}
                     {g.commands.map((command) => {
                       const idx = indexOf.get(command) ?? -1;
+                      const disabled = command.deepLink
+                        ? !safeNavigationHref(command.deepLink)
+                        : command.action.case === "navigate"
+                          ? !safeNavigationHref(command.action.value.route)
+                          : false;
                       return (
                         <CommandRow
                           key={`${g.id}:${command.id}`}
                           command={command}
                           active={idx === activeIndex}
+                          disabled={disabled}
                           onRun={() => runCommand(command)}
                           onHover={() => setActiveIndex(idx)}
                         />

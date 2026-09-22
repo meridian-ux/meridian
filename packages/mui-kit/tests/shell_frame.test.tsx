@@ -225,6 +225,32 @@ describe("the launchpad navigates through the host's router", () => {
     expect(location.assign).toHaveBeenCalledWith("/teams");
     location.restore();
   });
+
+  it("disables an unsafe navigate route before it reaches the host or document", () => {
+    const navigate = vi.fn();
+    const location = spyOnAssign();
+    const unsafe = shellWith({
+      launchpad: create(LaunchpadSchema, {
+        groups: [create(CommandGroupSchema, {
+          id: "unsafe",
+          commands: [create(CommandSchema, {
+            id: "unsafe-route",
+            title: "Unsafe route",
+            action: { case: "navigate", value: { route: "javascript:alert(1)" } },
+          })],
+        })],
+      }),
+    });
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, unsafe);
+
+    fireEvent.click(screen.getByLabelText("Open the launchpad"));
+    const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Unsafe route" });
+    expect(command.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(command);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(location.assign).not.toHaveBeenCalled();
+    location.restore();
+  });
 });
 
 describe("the launchpad admits authored deep links", () => {
