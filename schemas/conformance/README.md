@@ -260,8 +260,9 @@ web-components test substitutes the WASM bridge, so it is DOM/link evidence,
 not an end-to-end WASM test. HTML and Shadcn now fetch and render the same populated
 table, including column order, legacy scalar values, declared displays, and safe
 host-resolved links. Their focused tests cover pending, empty, and failed requests
-and escaped markup. These reference kits also link declared HTTP(S) URL values;
-URL display alone remains plain text in the MUI/web-components table realizations.
+and escaped markup. All four browser realizations link declared safe HTTP(S) URL
+values while preserving unsafe schemes as text; MUI and web-components focused
+tests exercise that behavior with the same canonical populated response.
 
 `value_types.json` (the proto3-JSON representation of the test-only
 `value_types.proto` envelope) supplies 29 cases to the TypeScript shared formatter

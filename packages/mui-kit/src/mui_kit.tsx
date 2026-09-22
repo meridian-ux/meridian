@@ -21,7 +21,7 @@ import type {
   ComponentKit,
   ShapeProps,
 } from "@savvifi/meridian-web-react";
-import { formatByDisplay } from "./display_format.js";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "./display_format.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
@@ -224,11 +224,23 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           render: (row: Row) => {
             const raw = getNested(row, col.fieldPath);
             const text = formatCell(raw, col.format, col.valueDisplay, nowMs);
-            // target_kind empty ⇒ the view's own subject (a self/detail link).
-            const targetKind = col.link ? col.link.targetKind || subjectKind : undefined;
-            if (targetKind && resolveHref && raw != null && raw !== "") {
-              const href = resolveHref(targetKind, String(raw));
+            // ColumnLink remains the table-specific override. Otherwise the
+            // shared ValueDisplay link contract may ask the host to resolve a
+            // record destination, or a declared URL may navigate directly when
+            // it is safe HTTP(S). Formatting never changes the routed raw ID.
+            const valueLink = resolveValueLink(raw, col.valueDisplay);
+            const targetKind = col.link
+              ? col.link.targetKind || subjectKind
+              : valueLink?.targetKind;
+            const id = col.link
+              ? raw == null ? "" : String(raw)
+              : valueLink?.id;
+            if (targetKind && id && resolveHref) {
+              const href = resolveHref(targetKind, id);
               if (href) return <Link href={href} underline="hover">{text}</Link>;
+            }
+            if (!col.link && !col.valueDisplay?.link && isSafeHttpUrl(raw, col.valueDisplay)) {
+              return <Link href={raw} underline="hover" rel="noopener noreferrer">{text}</Link>;
             }
             // Status/enum ⇒ a colored chip (matches the old studio status pills).
             if (status && raw != null && raw !== "") {

@@ -10,6 +10,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CardSpecSchema, GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
@@ -32,8 +33,47 @@ it("renders canonical table rows with legacy scalars, declared displays, and saf
   expect(screen.getByText("Grace")).toBeTruthy();
   expect(container.querySelectorAll("tbody tr")).toHaveLength(2);
   for (const text of ["0012.50", "0007.00", "Yes", "No", "javascript:alert(1)"]) expect(screen.getByText(text)).toBeTruthy();
+  expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual([
+    "/members/ada",
+    "https://example.com/ada",
+  ]);
+  expect(container.querySelector('a[href^="javascript:"]')).toBeNull();
+});
+
+it("routes declared table value links by their raw value and suppresses URL fallback", async () => {
+  const created = "2026-03-29";
+  const website = "https://example.com/docs";
+  const descriptor = create(PanelDescriptorSchema, {
+    panelId: "linked-values",
+    body: {
+      case: "table",
+      value: create(TablePanelSchema, {
+        populate: { service: "demo.Builds", method: "List" },
+        rowsField: "items",
+        columns: [
+          { header: "Created", fieldPath: "created", valueDisplay: { type: ValueType.DATE, link: { targetKind: "build" } } },
+          { header: "Website", fieldPath: "website", valueDisplay: { type: ValueType.URL, link: { targetKind: "document" } } },
+        ],
+      }),
+    },
+  });
+  const resolved: Array<[string, string]> = [];
+  render(
+    <MeridianMuiProvider
+      invoker={{ invoke: async () => ({ items: [{ created, website }] }) }}
+      resolveHref={(targetKind, id) => {
+        resolved.push([targetKind, id]);
+        return targetKind === "build" ? `/builds/${id}` : undefined;
+      }}
+    >
+      <PanelRenderer descriptor={descriptor} />
+    </MeridianMuiProvider>,
+  );
+  expect((await screen.findByRole("link", { name: "Mar 29, 2026" })).getAttribute("href"))
+    .toBe("/builds/2026-03-29");
   expect(screen.getAllByRole("link")).toHaveLength(1);
-  expect(screen.getByRole("link").getAttribute("href")).toBe("/members/ada");
+  expect(screen.getByText(website)).toBeTruthy();
+  expect(resolved).toEqual([["build", created], ["document", website]]);
 });
 
 const invoker: RpcInvoker = {

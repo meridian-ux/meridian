@@ -1801,12 +1801,21 @@ function buildCell(
   cell: string,
   row: RenderedRow,
 ): Node {
-  const link = table.columns[columnIndex]?.link;
-  if (link && opts.resolveHref) {
+  const column = table.columns[columnIndex];
+  const link = column?.link;
+  const rawRow = plainRow(row.raw);
+  const rowValue = column ? readAt(rawRow, column.fieldPath) : undefined;
+  // Older WASM bridges may return only the rendered cells. Preserve their
+  // ColumnLink behavior while preferring the raw value whenever it is present.
+  const raw = rowValue === undefined ? cell : rowValue;
+  const valueLink = resolveValueLink(raw, column?.valueDisplay);
+  const targetKind = link ? link.targetKind : valueLink?.targetKind;
+  const id = link ? (raw == null ? "" : String(raw)) : valueLink?.id;
+  if ((link || targetKind) && id && opts.resolveHref) {
     const href = opts.resolveHref({
-      targetKind: link.targetKind,
-      id: cell,
-      row: plainRow(row.raw),
+      targetKind: targetKind ?? "",
+      id,
+      row: rawRow,
     });
     if (href) {
       const a = document.createElement("a");
@@ -1816,6 +1825,14 @@ function buildCell(
       a.addEventListener("click", (e) => e.stopPropagation());
       return a;
     }
+  }
+  if (!link && !column?.valueDisplay?.link && isSafeHttpUrl(raw, column?.valueDisplay)) {
+    const a = document.createElement("a");
+    a.href = raw;
+    a.textContent = cell;
+    a.rel = "noopener noreferrer";
+    a.addEventListener("click", (e) => e.stopPropagation());
+    return a;
   }
   return document.createTextNode(cell);
 }

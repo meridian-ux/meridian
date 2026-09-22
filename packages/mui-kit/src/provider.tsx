@@ -67,8 +67,8 @@ export interface MeridianMuiProviderProps {
   /** Host transcoder for GrammarPanel (markdown / mermaid / vega …). Absent/null
    *  ⇒ the degradation ladder (native markdown → alt → source). */
   renderGrammar?: MeridianGrammarResolver;
-  /** Host resolver for a table cell's link destination (ColumnLink). Absent ⇒
-   *  link cells render as plain text. */
+  /** Host resolver for table ColumnLink and declared ValueDisplay record
+   *  destinations. Absent ⇒ those link cells render as plain text. */
   resolveHref?: MeridianHrefResolver;
   /** Host resolver for asset (image) URLs a panel renders — e.g. prefix a mount
    *  base or swap a CDN host. Used by the Gallery's images. Absent ⇒ src verbatim. */
