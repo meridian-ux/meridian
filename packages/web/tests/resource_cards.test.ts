@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { ValueType, PrincipalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { renderPanel } from "../src/uiview/renderer.js";
 
 const context = {
@@ -55,6 +55,41 @@ const descriptor = create(PanelDescriptorSchema, {
 });
 
 describe("ResourceCardPanel (web-components)", () => {
+  it("preserves legacy scalars, titles, and host route precedence after wire decoding", async () => {
+    const row = { raw: "2026-03-29", missing: null, tags: ["a", "b"], owner: "Ada <ada@example.com>",
+      safe: "https://example.com", unsafe: "data:text/html,bad", id: "user/7" };
+    const panel = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+      populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+        meta: [
+          { label: "Raw", fieldPath: "raw" }, { label: "Missing", fieldPath: "missing" }, { label: "Tags", fieldPath: "tags" },
+          { label: "Owner", fieldPath: "owner", display: { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
+          { label: "Safe", fieldPath: "safe", display: { type: ValueType.URL } },
+          { label: "Unsafe", fieldPath: "unsafe", display: { type: ValueType.URL } },
+          { label: "Record", fieldPath: "id", display: { type: ValueType.IDENTIFIER, link: { targetKind: "user" } } },
+          { label: "Declined", fieldPath: "safe", display: { type: ValueType.URL, link: { targetKind: "declined" } } },
+          { label: "Empty", fieldPath: "safe", display: { type: ValueType.URL, link: {} } },
+        ],
+      },
+    } } });
+    const decoded = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, panel));
+    for (const withResolver of [false, true]) {
+      const root = document.createElement("div");
+      await renderPanel({ wasm, root, context, descriptor: decoded, invoker: { invoke: async () => ({ items: [row] }) },
+        resolveHref: withResolver ? ({ targetKind, id, row: source }) => {
+          expect(source).toEqual(row);
+          return targetKind === "user" ? `/users/${encodeURIComponent(id)}` : null;
+        } : undefined });
+      const values = [...root.querySelectorAll("dd")];
+      expect(values.slice(0, 4).map((el) => el.textContent)).toEqual([row.raw, "", "a,b", "Ada"]);
+      expect(values[3].title).toBe("ada@example.com");
+      expect(values[4].querySelector("a")?.getAttribute("href")).toBe(row.safe);
+      expect(values[4].querySelector("a")?.target).toBe("_blank");
+      expect(values[5].querySelector("a")).toBeNull();
+      expect(values[6].querySelector("a")?.getAttribute("href")).toBe(withResolver ? "/users/user%2F7" : undefined);
+      expect(values[7].querySelector("a")).toBeNull();
+      expect(values[8].querySelector("a")).toBeNull();
+    }
+  });
   it("fetches rows, applies visibility predicates, and confirms actions", async () => {
     const calls: Array<{ method: string; request: object }> = [];
     const root = document.createElement("div");

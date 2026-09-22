@@ -134,14 +134,14 @@ export function ResourceCardsView({
           {template.statusField && <span className="mer-resource-card-status">{String(resolvePath(row, template.statusField) ?? "")}</span>}
           {template.meta.length > 0 && (
             <dl className="mer-resource-card-meta">
-              {template.meta.map((field) => {
+              {template.meta.map((field, fieldIndex) => {
                 const value = resolvePath(row, field.fieldPath);
                 const shown = field.display ? formatByDisplay(value, field.display, now) : { text: String(value ?? "") };
                 const link = resolveValueLink(value, field.display);
                 const hostHref = link ? resolveHref?.(link.targetKind, link.id) : undefined;
                 const external = !field.display?.link && isSafeHttpUrl(value, field.display);
                 const href = hostHref || (external ? String(value) : undefined);
-                return <span key={field.fieldPath}><dt>{field.label}</dt><dd title={shown.title}>
+                return <span key={`${field.fieldPath}:${fieldIndex}`}><dt>{field.label}</dt><dd title={shown.title}>
                   {href ? <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer noopener" : undefined}>{shown.text}</a> : shown.text}
                 </dd></span>;
               })}

@@ -64,14 +64,14 @@ export function MeridianResourceCards({
               <Typography variant="h6">{String(resolvePath(row, template.titleField) ?? "")}</Typography>
               {template.subtitleField && <Typography color="text.secondary">{String(resolvePath(row, template.subtitleField) ?? "")}</Typography>}
               {template.statusField && <Chip size="small" label={String(resolvePath(row, template.statusField) ?? "")} sx={{ alignSelf: "flex-start" }} />}
-              {template.meta.map((field) => {
+              {template.meta.map((field, fieldIndex) => {
                 const value = resolvePath(row, field.fieldPath);
                 const shown = field.display ? formatByDisplay(value, field.display, now) : { text: String(value ?? "") };
                 const link = resolveValueLink(value, field.display);
                 const hostHref = link ? resolveHref?.(link.targetKind, link.id) : undefined;
                 const external = !field.display?.link && isSafeHttpUrl(value, field.display);
                 const href = hostHref || (external ? String(value) : undefined);
-                return <Box key={field.fieldPath} display="flex" justifyContent="space-between" gap={2}>
+                return <Box key={`${field.fieldPath}:${fieldIndex}`} display="flex" justifyContent="space-between" gap={2}>
                   <Typography variant="caption" color="text.secondary">{field.label}</Typography>
                   {href ? <Link href={href} title={shown.title} target={external ? "_blank" : undefined} rel={external ? "noreferrer noopener" : undefined}>{shown.text}</Link>
                     : <Typography variant="body2" title={shown.title}>{shown.text}</Typography>}

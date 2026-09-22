@@ -2004,6 +2004,7 @@ mod tests {
             ActionSet, ActionStyle, MetaField, ResourceAction, ResourceCardPanel,
             ResourceCardTemplate, RpcCall, ValueDisplay, ValueType,
         };
+        use prost::Message;
         use ratatui::{backend::TestBackend, Terminal};
 
         let panel = ResourceCardPanel {
@@ -2047,6 +2048,7 @@ mod tests {
             }),
             ..Default::default()
         };
+        let panel = ResourceCardPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
         let rows = vec![
             serde_json::json!({"name":"api-prod","owner":"platform","phase":"Running","region":"2026-03-29"}),
             serde_json::json!({"name":"worker-dev","owner":"infra","phase":"Stopped","region":"us-west"}),

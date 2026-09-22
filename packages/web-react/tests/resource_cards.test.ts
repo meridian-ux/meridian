@@ -103,7 +103,7 @@ describe("ResourceCardPanel (React)", () => {
       const root = createRoot(container);
       await act(async () => root.render(createElement(MeridianProvider, {
         kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] },
-        resolveHref: (kind, id) => kind === "user" ? `/users/${encodeURIComponent(id)}` : null,
+        resolveHref: (kind, id) => kind === "user" ? `/users/${encodeURIComponent(id)}` : undefined,
         invoker: { invoke: async (_service, method, request) => { if (method === "Run") calls.push(request); return { items: [row] }; } },
       }, createElement(PanelRenderer, { descriptor: decoded }))));
       const values = [...container.querySelectorAll("dd")];
