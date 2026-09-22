@@ -190,6 +190,20 @@ vitest_test(
     ],
 )
 
+# TerminalPanel is the one browser shape that opens its own transport. Its
+# descriptor URL is admitted as an absolute ws/wss broker endpoint before xterm
+# or WebSocket construction.
+vitest_test(
+    name = "terminal_panel",
+    srcs = ["terminal_panel.test.ts"],
+    deps = [
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
 # Resource-card lifecycle actions exercise the untrusted-descriptor admission
 # seam: populate is a read callsite, while row actions are mutation callsites
 # and must be explicitly allowed by the host.

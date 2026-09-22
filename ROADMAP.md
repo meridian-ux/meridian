@@ -268,7 +268,9 @@ service/methods through `MountOptions.admission`; denied actions remain visible 
 the policy reason instead of reaching the invoker. The React kit now applies the
 same boundary through `MeridianProvider`: view/resource/table actions, form submits,
 LRO starts, and Launchpad `rpc` commands use the mutation tier, while automatic
-populate/prefill calls remain read-tier.
+populate/prefill calls remain read-tier. Browser `TerminalPanel` realizations now
+admit only absolute, credential-free `ws://` and `wss://` broker URLs before any
+WebSocket construction; rejected endpoints remain visible as inert diagnostics.
 
 ## Working the roadmap
 

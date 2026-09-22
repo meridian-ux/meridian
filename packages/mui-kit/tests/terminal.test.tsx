@@ -20,4 +20,20 @@ describe("MUI TerminalPanel", () => {
     expect(screen.getByRole("link", { name: "wss://example.test/pty" })).toBeTruthy();
     expect(screen.getByText("120 × 30")).toBeTruthy();
   });
+
+  it("preserves a rejected broker URL as inert diagnostic text", () => {
+    render(<MeridianProvider invoker={{ invoke: async () => ({}) }} kit={muiKit} adhoc={{}}>
+      <PanelRenderer descriptor={create(PanelDescriptorSchema, {
+        title: "Shell",
+        body: { case: "terminal", value: create(TerminalPanelSchema, {
+          tool: "Build shell",
+          url: "https://example.test/not-a-websocket",
+        }) },
+      })} />
+    </MeridianProvider>);
+
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(screen.getByText("https://example.test/not-a-websocket").getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getByRole("alert").textContent).toContain("expected a ws:// or wss:// broker URL");
+  });
 });

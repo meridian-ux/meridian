@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { safeNavigationHref } from "./navigation.js";
+import { safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
 
 test("safeNavigationHref retains web, relative, mail, and application deep links", () => {
   for (const href of [
@@ -31,5 +31,30 @@ test("safeNavigationHref rejects executable, local, malformed, and empty destina
     "   ",
   ]) {
     assert.equal(safeNavigationHref(href), undefined, href);
+  }
+});
+
+test("safeWebSocketUrl retains credential-free ws and wss broker URLs", () => {
+  for (const url of [
+    "wss://terminal.example.com/pty?session=abc",
+    "ws://localhost:8080/pty",
+  ]) {
+    assert.equal(safeWebSocketUrl(url), url);
+  }
+});
+
+test("safeWebSocketUrl rejects non-WebSocket, relative, credentialed, fragmented, and malformed URLs", () => {
+  for (const url of [
+    "https://terminal.example.com/pty",
+    "javascript:alert(1)",
+    "/pty/session",
+    "wss://user:secret@terminal.example.com/pty",
+    "wss://terminal.example.com/pty#fragment",
+    "wss://terminal.example.com/pt\ny",
+    "wss://[invalid",
+    "",
+    "   ",
+  ]) {
+    assert.equal(safeWebSocketUrl(url), undefined, url);
   }
 });

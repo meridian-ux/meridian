@@ -7,7 +7,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink, safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -206,13 +206,23 @@ export const htmlKit: ComponentKit = {
     chapters: "mer-media-chapters",
     chapterButton: "mer-media-chapter",
   }} />,
-  Terminal: ({ panel }) => (
-    <section className="mer-terminal" aria-label={panel.tool || "Terminal"}>
-      <p className="mer-terminal-note">Interactive terminal connection</p>
-      <a href={panel.url}>{panel.url}</a>
-      {(panel.cols || panel.rows) && <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>}
-    </section>
-  ),
+  Terminal: ({ panel }) => {
+    const href = safeWebSocketUrl(panel.url);
+    return (
+      <section className="mer-terminal" aria-label={panel.tool || "Terminal"}>
+        <p className="mer-terminal-note">Interactive terminal connection</p>
+        {href ? (
+          <a href={href}>{panel.url}</a>
+        ) : (
+          <>
+            <code className="mer-terminal-url" aria-invalid="true">{panel.url}</code>
+            <p className="mer-terminal-error" role="alert">Connection unavailable: expected a ws:// or wss:// broker URL</p>
+          </>
+        )}
+        {(panel.cols || panel.rows) && <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>}
+      </section>
+    );
+  },
   Steps: ({ panel }) => (
     <section className="mer-steps">
       {panel.intro && <p className="mer-steps-intro">{panel.intro}</p>}

@@ -13,6 +13,7 @@
 
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
+import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import { TERMINAL_PANEL_CSS } from "./terminal_panel_css.js";
 
@@ -122,8 +123,24 @@ export function renderTerminalPanel(
   root: HTMLElement,
   spec: TerminalSpec,
 ): TerminalHandle {
-  injectTerminalCss(root.ownerDocument ?? document);
   root.replaceChildren();
+  const brokerUrl = safeWebSocketUrl(spec.url);
+  if (!brokerUrl) {
+    const error = document.createElement("div");
+    error.className = "meridian-uiview-terminal-status closed";
+    error.setAttribute("role", "alert");
+    error.textContent = spec.tool
+      ? `${spec.tool} — connection unavailable: expected a ws:// or wss:// broker URL`
+      : "connection unavailable: expected a ws:// or wss:// broker URL";
+    const authored = document.createElement("code");
+    authored.className = "meridian-uiview-terminal-url";
+    authored.textContent = spec.url;
+    root.append(error, authored);
+    return { dispose() {} };
+  }
+  const admittedBrokerUrl = brokerUrl;
+
+  injectTerminalCss(root.ownerDocument ?? document);
 
   // Status line: a dot + label + a reconnect button (shown once closed).
   const status = document.createElement("div");
@@ -186,7 +203,7 @@ export function renderTerminalPanel(
     setStatus("connecting…", "");
     let sock: WebSocket;
     try {
-      sock = new WebSocket(spec.url);
+      sock = new WebSocket(admittedBrokerUrl);
     } catch (err) {
       setStatus(`connect failed: ${(err as Error).message}`, "closed");
       reconnect.style.display = "";

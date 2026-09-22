@@ -15,6 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
+import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -889,10 +890,18 @@ function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
 }
 
 function TerminalShape({ panel }: { panel: TerminalPanel }): ReactNode {
+  const href = safeWebSocketUrl(panel.url);
   return (
     <Stack spacing={1} className="mer-terminal" role="region" aria-label={panel.tool || "Terminal"}>
       <Typography variant="body2" color="text.secondary">Interactive terminal connection</Typography>
-      <Link href={panel.url} target="_blank" rel="noreferrer">{panel.url}</Link>
+      {href ? (
+        <Link href={href} target="_blank" rel="noreferrer">{panel.url}</Link>
+      ) : (
+        <>
+          <Typography component="code" aria-invalid="true">{panel.url}</Typography>
+          <Alert severity="error">Connection unavailable: expected a ws:// or wss:// broker URL</Alert>
+        </>
+      )}
       {(panel.cols || panel.rows) ? (
         <Typography variant="caption">{panel.cols || "auto"} × {panel.rows || "auto"}</Typography>
       ) : null}

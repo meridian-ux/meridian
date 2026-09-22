@@ -421,4 +421,22 @@ for (const shape of ["recordCard", "detailHeader"] as const) {
     expect(html).toContain("wss://example.test/pty");
     expect(html).toContain("80 × 24");
   });
+
+  it("degrades rejected terminal broker URLs across reference and fallback renderers", () => {
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "unsafe-shell",
+      body: { case: "terminal", value: create(TerminalPanelSchema, {
+        url: "javascript:alert(1)",
+        tool: "bash",
+      }) },
+    });
+
+    for (const kit of [htmlKit, shadcnKit, { ...htmlKit, Terminal: undefined }]) {
+      const html = render(descriptor, kit);
+      expect(html).not.toContain('href="javascript:alert(1)"');
+      expect(html).toContain('aria-invalid="true"');
+      expect(html).toContain("expected a ws:// or wss:// broker URL");
+      expect(html).toContain("javascript:alert(1)");
+    }
+  });
 });

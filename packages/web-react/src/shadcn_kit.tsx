@@ -11,7 +11,7 @@
 import { useContext, type CSSProperties } from "react";
 
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink, safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {
@@ -248,13 +248,23 @@ export const shadcnKit: ComponentKit = {
     chapters: "text-sm",
     chapterButton: "underline",
   }} />,
-  Terminal: ({ panel }) => (
-    <section className="grid gap-1 rounded-md border p-3 text-sm" aria-label={panel.tool || "Terminal"}>
-      <span className="font-medium">Interactive terminal connection</span>
-      <a href={panel.url} className="underline">{panel.url}</a>
-      {(panel.cols || panel.rows) && <span className="text-muted-foreground">{panel.cols || "auto"} × {panel.rows || "auto"}</span>}
-    </section>
-  ),
+  Terminal: ({ panel }) => {
+    const href = safeWebSocketUrl(panel.url);
+    return (
+      <section className="grid gap-1 rounded-md border p-3 text-sm" aria-label={panel.tool || "Terminal"}>
+        <span className="font-medium">Interactive terminal connection</span>
+        {href ? (
+          <a href={href} className="underline">{panel.url}</a>
+        ) : (
+          <>
+            <code aria-invalid="true">{panel.url}</code>
+            <span className="text-destructive" role="alert">Connection unavailable: expected a ws:// or wss:// broker URL</span>
+          </>
+        )}
+        {(panel.cols || panel.rows) && <span className="text-muted-foreground">{panel.cols || "auto"} × {panel.rows || "auto"}</span>}
+      </section>
+    );
+  },
   Grammar: ({ panel }) => <GrammarContent c={c} panel={panel} />,
   Stat: ({ panel }) => <StatContent c={c} panel={panel} />,
   Fallback: ({ descriptor }) => (

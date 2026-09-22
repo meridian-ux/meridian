@@ -19,3 +19,25 @@ export function safeNavigationHref(value: unknown): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * Admit a TerminalPanel broker URL at the browser transport boundary.
+ *
+ * Terminal descriptors carry a WebSocket endpoint, not a general navigation
+ * destination. Keep that contract narrower than `safeNavigationHref`: the URL
+ * must be absolute ws/wss, must not embed credentials, and must not carry a
+ * fragment that the WebSocket constructor would reject.
+ */
+export function safeWebSocketUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const url = value.trim();
+  if (!url || /[\u0000-\u001f\u007f]/.test(url)) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") return undefined;
+    if (parsed.username || parsed.password || parsed.hash) return undefined;
+    return url;
+  } catch {
+    return undefined;
+  }
+}

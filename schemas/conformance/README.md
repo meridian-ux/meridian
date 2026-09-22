@@ -333,6 +333,14 @@ before document navigation. Safe application deep links retain precedence over
 the command action; rejected executable or local-document schemes render as
 disabled commands and never fall through to the alternate action.
 
+`TerminalPanel.url` uses a separate, narrower transport admission rule: only
+absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
+fragments can reach the browser's WebSocket constructor. Rejected endpoints do
+not construct xterm or a socket; web-components, HTML, Shadcn, the core React
+fallback, and MUI retain the authored value as inert diagnostic text with an
+accessible error. This check establishes URL admission, not broker
+authentication, session ownership, codec behavior, or network connectivity.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
