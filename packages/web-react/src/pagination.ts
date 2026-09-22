@@ -122,7 +122,7 @@ export function buildBindingRequest(
   return request;
 }
 
-/** Resolve view actions from selection and an optional repeated-view record.
+/** Resolve actions from selection and an optional selected or repeated-view row.
  * Unavailable form, signal, and host runtime-context sources remain omitted. */
 export function buildActionBindingRequest(call: RpcCall | undefined, selection: Record<string, string>, record?: Row): Row {
   const request: Row = {};
@@ -135,12 +135,15 @@ export function buildActionBindingRequest(call: RpcCall | undefined, selection: 
       value = binding.source.value.split(".").reduce<unknown>((current, key) =>
         current && typeof current === "object" && Object.hasOwn(current, key)
           ? (current as Row)[key] : undefined, record);
-    } else {
-      // Preserve the established literal/selection omission semantics.
-      const resolved = buildBindingRequest({ bindings: [{ ...binding, requestField: "value" }] } as RpcCall, selection);
-      value = resolved.value;
+    } else if (binding.source.case === "literal") {
+      value = binding.source.value;
+    } else if (binding.source.case === "selectionKey") {
+      value = selection[binding.source.value];
+      // An unset scope must not silently widen the query; authored literals and
+      // row fields, in contrast, can intentionally contain an empty string.
+      if (value === "") continue;
     }
-    if (value === undefined || value === null || value === "") continue;
+    if (value === undefined || value === null) continue;
     // Descriptor paths must never traverse JavaScript prototypes.
     if (binding.requestField.split(".").some(key => ["__proto__", "constructor", "prototype"].includes(key))) continue;
     setNested(request, binding.requestField, value);
@@ -192,7 +195,13 @@ function setNested(target: Row, path: string, value: unknown): void {
   let cursor: Row = target;
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (typeof cursor[key] !== "object" || cursor[key] === null) cursor[key] = {};
+    // A preceding row-field binding may have borrowed this object from fetched
+    // data. Copy each parent we write through so overlapping request paths never
+    // mutate the raw row (or an earlier invocation's request).
+    const child = cursor[key];
+    cursor[key] = child && typeof child === "object"
+      ? Array.isArray(child) ? [...child] : { ...child }
+      : {};
     cursor = cursor[key] as Row;
   }
   cursor[keys[keys.length - 1]] = value;

@@ -137,6 +137,30 @@ these snapshots; append `--update` only for intentional changes and review
 This is evidence for the single web-components TablePanel implementation, not
 HTML/Shadcn table row actions, MUI, CSS/layout, or a computed accessibility tree.
 
+HTML/Shadcn `table_actions.test.ts` separately exercises `TablePanel.actions`
+through both reference kits with wire-decoded descriptors. Rows support click,
+Enter, and Space selection while cell links retain independent navigation.
+Actions check `enabled_when` against raw row fields and resolve literal,
+selection-key, row-field, and nested bindings through the shared action request
+helper. Raw false, zero, and empty strings survive; unset selection keys and
+unavailable context sources are omitted. Overlapping request paths copy parent
+objects so an override cannot modify the fetched row. Unbound calls send an empty request.
+Mutation denial retains the host callback and an accessible explanation;
+pending actions suppress duplicate activation, failures retain selection for
+retry, and successful mutations announce completion and refresh the current page.
+Like web-components, the kits follow the documented default of always refreshing:
+the non-presence proto3 `refresh_on_success` boolean cannot express an opt-out.
+Selection is cleared after success or result/page/scope replacement so an old
+index cannot target a different row. Late completions after descriptor/scope
+changes or unmount do not refresh replacement data. Failed refreshes expose the
+existing table-load error separately from mutation completion.
+
+Run `pnpm --dir packages/web-react exec vitest run tests/table_actions.test.ts`
+for these DOM, keyboard, admission, request, and lifecycle assertions. The suite
+is included in `//packages/web-react:conformance`. It covers TablePanel's selected
+row actions; view-level `ActionPlacement.ROW` controls, custom kits, visual
+layout, and a computed accessibility tree remain outside this evidence.
+
 The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
 link, an admitted unbound view action's exact service/method and empty request, and
