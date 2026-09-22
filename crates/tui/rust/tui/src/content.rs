@@ -2124,11 +2124,11 @@ mod tests {
 
     #[test]
     fn resource_card_template_slots_honor_declared_displays() {
-        use prost::Message;
         use meridian_uiview::proto::{
             value_display, PrincipalDisplay, PrincipalOptions, ResourceCardPanel,
             ResourceCardTemplate, ValueDisplay, ValueType,
         };
+        use prost::Message;
         use ratatui::{backend::TestBackend, Terminal};
 
         let panel = ResourceCardPanel {
