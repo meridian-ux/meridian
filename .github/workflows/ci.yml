@@ -1,6 +1,6 @@
 name: ci
 
-# One workflow over the whole repo, replacing the scattering the merge absorbed —
+# One primary workflow over the whole repo, replacing the scattering the merge absorbed —
 # and, more to the point, COVERING WHAT NOTHING COVERED. Four of the ten repos
 # folded in here had no CI whatsoever: meridian-web (7,716 lines, the entire
 # web-components renderer), meridian-tui (3,828), meridian-uiview-core (1,911, a

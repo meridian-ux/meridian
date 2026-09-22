@@ -1,0 +1,37 @@
+name: Tectonic catalogs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".bazelrc"
+      - "MODULE.bazel"
+      - "MODULE.bazel.lock"
+      - "packages/mui-kit/**"
+      - "packages/web/**"
+      - "packages/web-react/**"
+      - "schemas/**"
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  catalogs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+      - name: Build all Tectonic catalogs
+        run: >-
+          bazel build
+          //packages/mui-kit:catalog
+          //packages/mui-kit:proto_catalog
+          //packages/mui-kit:studio_catalog

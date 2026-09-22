@@ -137,11 +137,14 @@ js_run_binary(
 )
 
 # The visual catalog PDF — every meridian primitive + layout, real-Chrome
-# screenshots typeset via hermetic tectonic.
+# screenshots typeset via hermetic tectonic. PDF targets are manual because
+# bundle downloads are unreliable behind local proxies; the scheduled workflow
+# builds all three explicitly.
 tectonic_pdf(
     name = "catalog",
     srcs = [":catalog_figures"],
     main = "catalog/catalog.tex",
+    tags = ["manual"],
 )
 
 # ── Studio catalog: render the REAL studio views (projected to ViewDescriptors) ──
@@ -217,6 +220,7 @@ tectonic_pdf(
     name = "proto_catalog",
     srcs = [":proto_catalog_figures"],
     main = "catalog/proto-catalog.tex",
+    tags = ["manual"],
 )
 
 STUDIO_VIEWS = [
@@ -274,4 +278,5 @@ tectonic_pdf(
     name = "studio_catalog",
     srcs = [":studio_catalog_figures"],
     main = "catalog/studio-catalog.tex",
+    tags = ["manual"],
 )
