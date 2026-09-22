@@ -31,7 +31,9 @@ The source of truth for panel parity is [`schemas/conformance/coverage.json`](sc
 gated by [`schemas/tools/check_coverage.mjs`](schemas/tools/check_coverage.mjs). The wider
 renderer inventory is [`schemas/conformance/renderer_catalog.json`](schemas/conformance/renderer_catalog.json),
 gated by [`schemas/tools/check_renderer_catalog.mjs`](schemas/tools/check_renderer_catalog.mjs).
-The table below is **generated** from it by `tools/roadmap_matrix.py --write`.
+The table below is **generated** from the coverage manifest by
+`tools/roadmap_matrix.py --write`; CI verifies the committed projection with
+`tools/roadmap_matrix.py --check`.
 
 <!-- matrix:start -->
 | arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
