@@ -10,13 +10,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { check, parseBodyArms } from "./check_coverage.mjs";
+import { check, checkModalities, parseBodyArms, parseScopedOneofArms } from "./check_coverage.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const realManifest = () =>
   JSON.parse(readFileSync(join(ROOT, "conformance/coverage.json"), "utf8"));
 const realArms = () =>
   parseBodyArms(readFileSync(join(ROOT, "proto/panel.proto"), "utf8"));
+const realCatalog = () =>
+  JSON.parse(readFileSync(join(ROOT, "conformance/renderer_catalog.json"), "utf8"));
 
 test("the committed manifest and proto agree", () => {
   assert.deepEqual(check(realManifest(), realArms()), []);
@@ -29,6 +31,40 @@ test("the parser finds every arm of the body oneof", () => {
   assert.equal(new Set(arms.map((a) => a.number)).size, arms.length);
   assert.ok(arms.some((a) => a.name === "table" && a.type === "TablePanel"));
   assert.ok(arms.some((a) => a.name === "stream"));
+});
+
+test("the scoped parser finds every Conversation.Block.kind arm", () => {
+  const proto = readFileSync(join(ROOT, "proto/conversation.proto"), "utf8");
+  const arms = parseScopedOneofArms(proto, "Block.kind");
+  assert.equal(arms.length, 9);
+  assert.deepEqual(arms.map((arm) => arm.name), [
+    "markdown", "context", "tool", "list", "fields", "code", "divider", "table", "view",
+  ]);
+});
+
+test("the committed non-panel modality coverage and catalog agree", () => {
+  assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
+});
+
+test("a modality proto arm with no renderer coverage fails", () => {
+  const manifest = realManifest();
+  delete manifest.modalities.conversation.arms.view;
+  const errors = checkModalities(manifest, realCatalog());
+  assert.ok(errors.some((error) => /conversation\.view: proto arm has no declared coverage/.test(error)));
+});
+
+test("adding a conversation renderer without rows fails", () => {
+  const catalog = realCatalog();
+  catalog.renderers.push({ id: "new-chat", modality: "conversation", status: "development" });
+  const errors = checkModalities(realManifest(), catalog);
+  assert.ok(errors.some((error) => /conversation\.markdown: no entry for renderer "new-chat"/.test(error)));
+});
+
+test("a modality gap without a reason fails", () => {
+  const manifest = realManifest();
+  delete manifest.modalities.conversation.arms.view.renderers["chat-html"].reason;
+  const errors = checkModalities(manifest, realCatalog());
+  assert.ok(errors.some((error) => /conversation\.view\.chat-html: status "not-applicable" needs a reason/.test(error)));
 });
 
 test("a new proto arm with no declared coverage fails", () => {
@@ -102,21 +138,23 @@ test("a parse that finds too little throws rather than passing by omission", () 
     () => parseBodyArms("message PanelDescriptor {\n  oneof body {\n    TablePanel table = 3;\n  }\n}"),
     /parsed only 1 arms/,
   );
-  assert.throws(() => parseBodyArms("message X {}"), /no `oneof body` block/);
-  assert.throws(() => parseBodyArms("oneof body {\n  TablePanel table = 3;"), /never closes/);
+  assert.throws(() => parseBodyArms("message X {}"), /PanelDescriptor/);
+  assert.throws(() => parseBodyArms("message PanelDescriptor {\n  oneof body {\n    TablePanel table = 3;\n  }"), /brace never closes/);
 });
 
 test("commented-out arms are not counted", () => {
   // panel.proto's oneof carries prose about future shapes; a line comment must
   // not read as a declaration.
   const arms = parseBodyArms(`
-    oneof body {
-      TablePanel table = 3;
-      LroPanel lro = 4;
-      // GridPanel grid = 5;  — future, promoted via the corpus ratchet
-      FormPanel form = 9;
-      ChoicePanel choice = 10;
-      StatPanel stat = 18;
+    message PanelDescriptor {
+      oneof body {
+        TablePanel table = 3;
+        LroPanel lro = 4;
+        // GridPanel grid = 5;  — future, promoted via the corpus ratchet
+        FormPanel form = 9;
+        ChoicePanel choice = 10;
+        StatPanel stat = 18;
+      }
     }
   `);
   assert.deepEqual(arms.map((a) => a.name), ["table", "lro", "form", "choice", "stat"]);

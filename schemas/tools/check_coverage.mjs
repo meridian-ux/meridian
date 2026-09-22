@@ -36,6 +36,7 @@ import { dirname, join } from "node:path";
 import { checkSnapshotFiles } from "./check_conformance_snapshots.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const REPO_ROOT = join(ROOT, "..");
 
 /** Statuses that mean "the shape does not draw here". */
 const GAP_STATUSES = new Set(["missing", "structural-gap"]);
@@ -50,31 +51,65 @@ const NEEDS_REASON = (s) => s !== "renders";
  * returning a partial set — a silently-short list would make the gate pass by
  * omission, which is the one failure mode a drift gate must not have.
  */
-export function parseBodyArms(protoText) {
+export function parseScopedOneofArms(protoText, scope) {
   const withoutComments = protoText.replace(/\/\/[^\n]*/g, "");
-  const start = withoutComments.indexOf("oneof body");
-  if (start === -1) throw new Error("panel.proto: no `oneof body` block found");
+  const parts = scope.split(".");
+  if (parts.length < 2 || parts.some((part) => !/^[A-Za-z_][\w]*$/.test(part))) {
+    throw new Error(`invalid oneof scope "${scope}"`);
+  }
 
-  const open = withoutComments.indexOf("{", start);
-  if (open === -1) throw new Error("panel.proto: `oneof body` has no opening brace");
+  let context = withoutComments;
+  for (const messageName of parts.slice(0, -1)) {
+    const messagePattern = new RegExp(`\\bmessage\\s+${messageName}\\s*\\{`);
+    const message = messagePattern.exec(context);
+    if (!message) throw new Error(`${scope}: no message "${messageName}" block found`);
+    const open = context.indexOf("{", message.index);
+    let depth = 0;
+    let close = -1;
+    for (let i = open; i < context.length; i++) {
+      if (context[i] === "{") depth++;
+      else if (context[i] === "}") {
+        depth--;
+        if (depth === 0) { close = i; break; }
+      }
+    }
+    if (close === -1) throw new Error(`${scope}: message "${messageName}" brace never closes`);
+    context = context.slice(open + 1, close);
+  }
+
+  const oneofName = parts.at(-1);
+  const oneofPattern = new RegExp(`\\boneof\\s+${oneofName}\\s*\\{`);
+  const match = oneofPattern.exec(context);
+  if (!match) throw new Error(`${scope}: no oneof "${oneofName}" block found`);
+
+  const open = context.indexOf("{", match.index);
 
   let depth = 0;
   let end = -1;
-  for (let i = open; i < withoutComments.length; i++) {
-    if (withoutComments[i] === "{") depth++;
-    else if (withoutComments[i] === "}") {
+  for (let i = open; i < context.length; i++) {
+    if (context[i] === "{") depth++;
+    else if (context[i] === "}") {
       depth--;
       if (depth === 0) { end = i; break; }
     }
   }
-  if (end === -1) throw new Error("panel.proto: `oneof body` brace never closes");
+  if (end === -1) throw new Error(`${scope}: oneof brace never closes`);
 
-  const body = withoutComments.slice(open + 1, end);
+  const body = context.slice(open + 1, end);
   const arms = [];
   const re = /^\s*([A-Za-z_][\w.]*)\s+([a-z_][a-z0-9_]*)\s*=\s*(\d+)\s*;/gm;
   let m;
   while ((m = re.exec(body)) !== null) arms.push({ type: m[1], name: m[2], number: Number(m[3]) });
 
+  if (arms.length === 0) {
+    throw new Error(`${scope}: parsed no arms from oneof`);
+  }
+  return arms;
+}
+
+/** Extract the PanelDescriptor.body arms with a plausibility floor. */
+export function parseBodyArms(protoText) {
+  const arms = parseScopedOneofArms(protoText, "PanelDescriptor.body");
   if (arms.length < 5) {
     throw new Error(
       `panel.proto: parsed only ${arms.length} arms from \`oneof body\` — the parse is ` +
@@ -82,6 +117,76 @@ export function parseBodyArms(protoText) {
     );
   }
   return arms;
+}
+
+/** Validate declared non-panel modality coverage against its proto and catalog. */
+export function checkModalities(manifest, catalog, { repoRoot = REPO_ROOT } = {}) {
+  const errors = [];
+  const declared = manifest.modalities ?? {};
+  const catalogModalities = catalog.modalities ?? {};
+  const catalogRenderers = Array.isArray(catalog.renderers) ? catalog.renderers : [];
+
+  for (const [modality, contract] of Object.entries(catalogModalities)) {
+    if (modality === "panel" || !contract.coverage) continue;
+    if (!Object.hasOwn(declared, modality)) {
+      errors.push(`catalog modality "${modality}" declares coverage but coverage.json has no modality row`);
+    }
+  }
+
+  for (const [modality, section] of Object.entries(declared)) {
+    const contract = catalogModalities[modality];
+    if (!contract) {
+      errors.push(`coverage modality "${modality}" is not in renderer_catalog.json`);
+      continue;
+    }
+    if (!contract.coverage) {
+      errors.push(`coverage modality "${modality}" has no coverage path in renderer_catalog.json`);
+    }
+    if (!contract.schema || !contract.oneof || !section.oneof) {
+      errors.push(`modality "${modality}" needs schema and oneof declarations in renderer_catalog.json and coverage.json`);
+      continue;
+    }
+    if (contract.oneof !== section.oneof) {
+      errors.push(`modality "${modality}": oneof scope differs between renderer_catalog.json and coverage.json`);
+      continue;
+    }
+
+    let protoArms;
+    try {
+      protoArms = parseScopedOneofArms(readFileSync(join(repoRoot, contract.schema), "utf8"), section.oneof);
+    } catch (error) {
+      errors.push(`modality "${modality}": ${error.message}`);
+      continue;
+    }
+    const protoNames = new Set(protoArms.map((arm) => arm.name));
+    const manifestArms = section.arms ?? {};
+    const rendererIds = catalogRenderers.filter((entry) => entry.modality === modality).map((entry) => entry.id);
+    if (rendererIds.length === 0) errors.push(`modality "${modality}" has no renderer entries in renderer_catalog.json`);
+
+    for (const name of protoNames) {
+      if (!Object.hasOwn(manifestArms, name)) errors.push(`${modality}.${name}: proto arm has no declared coverage`);
+    }
+    for (const [name, arm] of Object.entries(manifestArms)) {
+      if (!protoNames.has(name)) errors.push(`${modality}.${name}: coverage arm is not declared by ${section.oneof}`);
+      const cells = arm.renderers ?? {};
+      for (const renderer of rendererIds) {
+        if (!Object.hasOwn(cells, renderer)) {
+          errors.push(`${modality}.${name}: no entry for renderer "${renderer}"`);
+          continue;
+        }
+        const { status, reason } = cells[renderer];
+        if (!Object.hasOwn(manifest.statuses ?? {}, status)) {
+          errors.push(`${modality}.${name}.${renderer}: unknown status "${status}"`);
+        } else if (NEEDS_REASON(status) && !reason) {
+          errors.push(`${modality}.${name}.${renderer}: status "${status}" needs a reason`);
+        }
+      }
+      for (const renderer of Object.keys(cells)) {
+        if (!rendererIds.includes(renderer)) errors.push(`${modality}.${name}: unknown renderer "${renderer}"`);
+      }
+    }
+  }
+  return errors;
 }
 
 function renderMatrix(manifest, arms) {
@@ -164,6 +269,7 @@ export function check(manifest, arms) {
 
 function main() {
   const manifest = JSON.parse(readFileSync(join(ROOT, "conformance/coverage.json"), "utf8"));
+  const catalog = JSON.parse(readFileSync(join(ROOT, "conformance/renderer_catalog.json"), "utf8"));
   const arms = parseBodyArms(readFileSync(join(ROOT, "proto/panel.proto"), "utf8"));
 
   if (process.argv.includes("--matrix")) {
@@ -171,7 +277,7 @@ function main() {
     return;
   }
 
-  const errors = [...check(manifest, arms), ...checkSnapshotFiles(manifest)];
+  const errors = [...check(manifest, arms), ...checkModalities(manifest, catalog), ...checkSnapshotFiles(manifest)];
   if (errors.length === 0) {
     const waived = Object.entries(manifest.arms).flatMap(([n, a]) =>
       Object.entries(a.renderers).filter(([, c]) => c.waiver).map(([r]) => `${n}.${r}`));
