@@ -229,6 +229,25 @@ impl RpcInvoker for ResourceCardsData {
     }
 }
 
+struct ChartData;
+
+impl RpcInvoker for ChartData {
+    fn invoke(
+        &self,
+        service: &str,
+        method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        assert_eq!((service, method), ("demo.Requests", "List"));
+        Ok(serde_json::json!({
+            "points": [
+                {"day": "Mon", "requests": 120},
+                {"day": "Tue", "requests": 175}
+            ]
+        }))
+    }
+}
+
 fn draw(descriptor: &PanelDescriptor, w: u16, h: u16) -> String {
     draw_with(descriptor, w, h, &Refuse)
 }
@@ -246,6 +265,22 @@ fn draw_with<I: RpcInvoker>(descriptor: &PanelDescriptor, w: u16, h: u16, invoke
         .map(|c| c.symbol())
         .collect::<Vec<_>>()
         .concat()
+}
+
+fn populated_chart_descriptor() -> PanelDescriptor {
+    let mut descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("chart.binpb").as_slice()).unwrap();
+    let Some(Body::Chart(panel)) = descriptor.body.as_mut() else {
+        panic!("expected chart fixture")
+    };
+    let chart = panel.chart.as_mut().expect("chart spec");
+    chart.populate = Some(RpcCall {
+        service: "demo.Requests".into(),
+        method: "List".into(),
+        ..Default::default()
+    });
+    chart.rows_field = "points".into();
+    descriptor
 }
 
 const CANONICAL_FIXTURES: &[(&str, &str)] = &[
@@ -623,6 +658,21 @@ fn canonical_table_fixture_renders_populated_rows() {
     assert!(!output.contains("no claims"));
 }
 
+#[test]
+fn canonical_chart_fixture_renders_populated_rows() {
+    let descriptor = populated_chart_descriptor();
+    let output = draw_with(&descriptor, 160, 20, &ChartData);
+    for text in [
+        "Requests by day",
+        "day  |  requests",
+        "Mon  |  120",
+        "Tue  |  175",
+    ] {
+        assert!(output.contains(text), "missing {text}: {output}");
+    }
+    assert!(!output.contains("invoker-aware"));
+}
+
 // Preserve row boundaries while discarding terminal padding. These text goldens
 // cover content and ordering, not colors or interactive navigation.
 fn terminal_lines(output: &str, width: usize) -> Vec<String> {
@@ -645,14 +695,19 @@ fn terminal_lines(output: &str, width: usize) -> Vec<String> {
 
 #[test]
 fn canonical_populated_native_text_goldens() {
-    for name in ["gallery", "table", "resource_cards", "steps"] {
-        let descriptor =
+    for name in ["gallery", "table", "resource_cards", "steps", "chart"] {
+        let descriptor = if name == "chart" {
+            populated_chart_descriptor()
+        } else {
             PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
-                .unwrap();
+                .unwrap()
+        };
         let output = if name == "gallery" {
             draw_with(&descriptor, 160, 20, &GalleryData)
         } else if name == "resource_cards" {
             draw_with(&descriptor, 160, 20, &ResourceCardsData)
+        } else if name == "chart" {
+            draw_with(&descriptor, 160, 20, &ChartData)
         } else if name == "steps" {
             draw(&descriptor, 160, 20)
         } else {
@@ -690,7 +745,7 @@ fn canonical_populated_native_text_goldens() {
                 "Everyone in your organization shares one sponsor list.",
                 "The sponsor is now visible to your whole team.",
             ]
-        } else {
+        } else if name == "table" {
             // URLs remain noninteractive scalar text in the native table.
             vec![
                 "Claims",
@@ -699,9 +754,32 @@ fn canonical_populated_native_text_goldens() {
                 "Ada 0012.50 Yes https://example.com/ada",
                 "Grace 0007.00 No javascript:alert(1)",
             ]
+        } else {
+            vec![
+                "Requests",
+                "Requests by day",
+                "requests by day",
+                "day | requests",
+                "Mon | 120",
+                "Tue | 175",
+            ]
         };
         assert_eq!(terminal_lines(&output, 160), expected, "{name}");
     }
+}
+
+#[test]
+fn canonical_chart_transport_failure_text_golden() {
+    let descriptor = populated_chart_descriptor();
+    assert_eq!(
+        terminal_lines(&draw(&descriptor, 160, 20), 160),
+        vec![
+            "Requests",
+            "Requests by day",
+            "requests by day",
+            "Failed to load chart: transport: demo.Requests/List: no transport",
+        ]
+    );
 }
 
 struct EmptyData;
@@ -712,20 +790,32 @@ impl RpcInvoker for EmptyData {
         _: &str,
         _: serde_json::Value,
     ) -> Result<serde_json::Value, RpcError> {
-        Ok(serde_json::json!({"items": [], "claims": [], "services": []}))
+        Ok(serde_json::json!({
+            "items": [], "claims": [], "services": [], "points": []
+        }))
     }
 }
 
 #[test]
 fn canonical_native_empty_and_absent_populate_states() {
-    for name in ["gallery", "table", "resource_cards"] {
-        let mut descriptor =
+    for name in ["gallery", "table", "resource_cards", "chart"] {
+        let mut descriptor = if name == "chart" {
+            populated_chart_descriptor()
+        } else {
             PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
-                .unwrap();
+                .unwrap()
+        };
         let empty = if name == "gallery" {
             vec!["Assets", "no assets"]
         } else if name == "resource_cards" {
             vec!["Services", "No services"]
+        } else if name == "chart" {
+            vec![
+                "Requests",
+                "Requests by day",
+                "requests by day",
+                "No chart data.",
+            ]
         } else {
             vec!["Claims", "0", "Member Amount Enabled Website"]
         };
@@ -738,12 +828,20 @@ fn canonical_native_empty_and_absent_populate_states() {
             Body::Gallery(panel) => panel.populate = None,
             Body::Table(panel) => panel.populate = None,
             Body::ResourceCards(panel) => panel.populate = None,
+            Body::Chart(panel) => panel.chart.as_mut().unwrap().populate = None,
             _ => unreachable!(),
         }
         let absent = if name == "gallery" {
             vec!["Assets", "Gallery panel has no populate RPC."]
         } else if name == "resource_cards" {
             vec!["Services", "Resource-card panel has no populate RPC."]
+        } else if name == "chart" {
+            vec![
+                "Requests",
+                "Requests by day",
+                "requests by day",
+                "Chart data is available to an invoker-aware host.",
+            ]
         } else {
             vec!["Claims", "0", "Member Amount Enabled Website"]
         };

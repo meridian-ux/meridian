@@ -1515,6 +1515,7 @@ pub fn render_chart(
     panel: &ChartPanel,
     palette: &Palette,
     rows: Option<&[(String, String)]>,
+    error: Option<&str>,
 ) {
     let Some(chart) = panel.chart.as_ref() else {
         frame.render_widget(
@@ -1542,24 +1543,29 @@ pub fn render_chart(
         Line::from(Span::styled(title.to_owned(), palette.title())),
         Line::from(Span::styled(format!("{} by {}", y, x), palette.meta())),
     ];
-    match rows {
-        Some(rows) if !rows.is_empty() => {
-            lines.push(Line::from(Span::styled(
-                format!("{x}  |  {y}"),
-                palette.header(),
-            )));
-            for (category, value) in rows {
-                lines.push(Line::from(vec![
-                    Span::styled(category.clone(), palette.text()),
-                    Span::styled("  |  ", palette.meta()),
-                    Span::styled(value.clone(), palette.value()),
-                ]));
+    if let Some(error) = error {
+        lines.push(Line::from(Span::styled(error.to_owned(), palette.meta())));
+    } else {
+        match rows {
+            Some(rows) if !rows.is_empty() => {
+                lines.push(Line::from(Span::styled(
+                    format!("{x}  |  {y}"),
+                    palette.header(),
+                )));
+                for (category, value) in rows {
+                    lines.push(Line::from(vec![
+                        Span::styled(category.clone(), palette.text()),
+                        Span::styled("  |  ", palette.meta()),
+                        Span::styled(value.clone(), palette.value()),
+                    ]));
+                }
             }
+            Some(_) => lines.push(Line::from(Span::styled("No chart data.", palette.meta()))),
+            None => lines.push(Line::from(Span::styled(
+                "Chart data is available to an invoker-aware host.",
+                palette.meta(),
+            ))),
         }
-        _ => lines.push(Line::from(Span::styled(
-            "Chart data is available to an invoker-aware host.",
-            palette.meta(),
-        ))),
     }
     frame.render_widget(bordered(lines, palette), area);
 }
@@ -1977,7 +1983,7 @@ mod tests {
         };
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 6)).unwrap();
-        term.draw(|f| render_chart(f, f.area(), &panel, &palette, None))
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, None, None))
             .unwrap();
         let text: String = term
             .backend()
@@ -2026,7 +2032,7 @@ mod tests {
         let rows = vec![("api".to_string(), "42".to_string())];
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(48, 8)).unwrap();
-        term.draw(|f| render_chart(f, f.area(), &panel, &palette, Some(&rows)))
+        term.draw(|f| render_chart(f, f.area(), &panel, &palette, Some(&rows), None))
             .unwrap();
         let text: String = term
             .backend()
@@ -2038,6 +2044,41 @@ mod tests {
         assert!(text.contains("service  |  p95"));
         assert!(text.contains("api  |  42"));
         assert!(!text.contains("invoker-aware"));
+    }
+
+    #[test]
+    fn chart_distinguishes_empty_data_and_transport_failure() {
+        use meridian_uiview::proto::{ChartPanel, ChartSpec};
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ChartPanel {
+            chart: Some(ChartSpec {
+                title: "Requests".into(),
+                ..Default::default()
+            }),
+        };
+        let palette = Palette::default();
+        for (rows, error, expected) in [
+            (Some(Vec::new()), None, "No chart data."),
+            (
+                None,
+                Some("Failed to load chart: offline"),
+                "Failed to load chart: offline",
+            ),
+        ] {
+            let mut term = Terminal::new(TestBackend::new(64, 6)).unwrap();
+            term.draw(|f| render_chart(f, f.area(), &panel, &palette, rows.as_deref(), error))
+                .unwrap();
+            let text: String = term
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|c| c.symbol())
+                .collect();
+            assert!(text.contains(expected));
+            assert!(!text.contains("invoker-aware"));
+        }
     }
 
     #[test]

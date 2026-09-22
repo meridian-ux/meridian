@@ -53,7 +53,8 @@ struct CachedTable {
 }
 
 struct CachedChart {
-    rows: Vec<(String, String)>,
+    rows: Option<Vec<(String, String)>>,
+    error: Option<String>,
 }
 
 struct CachedGallery {
@@ -418,8 +419,15 @@ impl PanelView {
             }
             Some(Body::Chart(panel)) => {
                 self.populate_chart_if_needed(panel, context, invoker);
-                let rows = self.cached_chart.as_ref().map(|cached| cached.rows.as_slice());
-                content::render_chart(frame, content_area, panel, &self.palette, rows);
+                let rows = self
+                    .cached_chart
+                    .as_ref()
+                    .and_then(|cached| cached.rows.as_deref());
+                let error = self
+                    .cached_chart
+                    .as_ref()
+                    .and_then(|cached| cached.error.as_deref());
+                content::render_chart(frame, content_area, panel, &self.palette, rows, error);
             }
             Some(Body::Terminal(_)) => self.render_placeholder(
                 frame,
@@ -502,15 +510,21 @@ impl PanelView {
             return;
         }
         let Some(chart) = panel.chart.as_ref() else {
-            self.cached_chart = Some(CachedChart { rows: vec![] });
+            self.cached_chart = Some(CachedChart {
+                rows: None,
+                error: None,
+            });
             return;
         };
         let Some(populate) = chart.populate.as_ref() else {
-            self.cached_chart = Some(CachedChart { rows: vec![] });
+            self.cached_chart = Some(CachedChart {
+                rows: None,
+                error: None,
+            });
             return;
         };
         let request = RequestBuilder::build(populate, context);
-        let rows = match invoker.invoke(&populate.service, &populate.method, request) {
+        let cached = match invoker.invoke(&populate.service, &populate.method, request) {
             Ok(response) => {
                 let x = chart
                     .x
@@ -522,11 +536,17 @@ impl PanelView {
                     .as_ref()
                     .map(|encoding| encoding.field_name.as_str())
                     .unwrap_or("value");
-                content::chart_rows(&response, &chart.rows_field, x, y)
+                CachedChart {
+                    rows: Some(content::chart_rows(&response, &chart.rows_field, x, y)),
+                    error: None,
+                }
             }
-            Err(_) => vec![],
+            Err(error) => CachedChart {
+                rows: None,
+                error: Some(format!("Failed to load chart: {error}")),
+            },
         };
-        self.cached_chart = Some(CachedChart { rows });
+        self.cached_chart = Some(cached);
     }
 
     fn populate_resource_cards_if_needed<I: RpcInvoker>(

@@ -307,13 +307,16 @@ Web-components, HTML, Shadcn, and MUI invoke the declared read call, resolve
 when no richer host chart is available. The React reference kits also apply live
 selection bindings and expose bounded loading, empty, and error states. These
 tests establish portable data semantics, not chart-library visuals or layout.
+The TUI wire-to-render suite now covers populated chart rows through the same
+descriptor encodings and separately preserves successful-empty and transport-
+failure states instead of collapsing them into the static-host hint.
 
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
 ValueType renderer fixtures beyond the shared formatter corpus, broader
 interactive snapshots, and native snapshots beyond the
-Gallery/Table/ResourceCards/Steps text goldens. The common snapshot command now
+Gallery/Table/ResourceCards/Steps/Chart text goldens. The common snapshot command now
 supports intentional re-recording and optional verification of the Bazel targets
 that own semantic goldens. MUI's semantic suite runs through the package test
 job; its Bazel browser harness is a separate set of tests.
