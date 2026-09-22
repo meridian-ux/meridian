@@ -24,6 +24,18 @@ vitest_test(
     ],
 )
 
+vitest_test(
+    name = "assistant_panel",
+    srcs = ["assistant_panel.test.ts"],
+    deps = [
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/vitest",
+        ":src_lib",
+    ],
+)
+
 # Render conformance + the binary-boundary guard for the B1 canonical/binpb
 # rewrite: each shape fixture renders through renderPanel into jsdom, with a mock
 # wasm that fromBinary-validates every Uint8Array the renderer emits.

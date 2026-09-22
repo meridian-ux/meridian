@@ -13,6 +13,10 @@
 //               status { state: IDLE|THINKING|WORKING, detail }
 //               done   { stopReason } · error { message }
 
+import { fromJson, type JsonObject } from '@bufbuild/protobuf';
+import { ValueDisplaySchema, ValueType } from '@savvifi/meridian-proto-ts/proto/value_pb.js';
+import { formatByDisplay, type DisplayedValue } from '@savvifi/meridian-schemas/uiview';
+
 import { escHtml as esc } from './dom.js';
 
 interface HostEvent {
@@ -37,6 +41,8 @@ interface BlockMsg {
 interface ListItem {
   title?: string;
   subtitle?: string;
+  titleDisplay?: JsonObject;
+  subtitleDisplay?: JsonObject;
   badges?: string[];
   icon?: string;
 }
@@ -121,7 +127,25 @@ function mdInline(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-function renderBlockInner(b: BlockMsg): string {
+function displayListValue(value: string | undefined, display: JsonObject | undefined): DisplayedValue {
+  const text = value ?? '';
+  if (!display) return { text };
+  try {
+    const decoded = fromJson(ValueDisplaySchema, display, { ignoreUnknownFields: true });
+    if (!text || ![
+      ValueType.DATE,
+      ValueType.DATE_TIME,
+      ValueType.TIME,
+      ValueType.PRINCIPAL,
+      ValueType.EMAIL,
+    ].includes(decoded.type)) return { text };
+    return formatByDisplay(text, decoded);
+  } catch {
+    return { text };
+  }
+}
+
+function renderAssistantBlock(b: BlockMsg): string {
   if (b.markdown) return `<div class="md">${mdInline(b.markdown.text || '')}</div>`;
   if (b.context) return `<div class="ctx">${b.context.icon ? esc(b.context.icon) + ' ' : ''}${esc(b.context.text)}</div>`;
   if (b.tool) {
@@ -137,8 +161,12 @@ function renderBlockInner(b: BlockMsg): string {
   if (b.list) {
     const items = (b.list.items || []).map((it) => {
       const badges = (it.badges || []).map((x) => `<span class="badge">${esc(x)}</span>`).join('');
-      const sub = it.subtitle ? ` <span class="lsub">${esc(it.subtitle)}</span>` : '';
-      return `<div class="litem"><span class="ltitle">${esc(it.title || '')}</span>${sub}<span class="lbadges">${badges}</span></div>`;
+      const title = displayListValue(it.title, it.titleDisplay);
+      const subtitle = displayListValue(it.subtitle, it.subtitleDisplay);
+      const sub = it.subtitle
+        ? ` <span class="lsub"${subtitle.title ? ` title="${esc(subtitle.title)}"` : ''}>${esc(subtitle.text)}</span>`
+        : '';
+      return `<div class="litem"><span class="ltitle"${title.title ? ` title="${esc(title.title)}"` : ''}>${esc(title.text)}</span>${sub}<span class="lbadges">${badges}</span></div>`;
     }).join('');
     const head = b.list.title ? `<div class="lhead">${esc(b.list.title)}</div>` : '';
     return `<div class="list">${head}${items}</div>`;
@@ -254,7 +282,7 @@ export class MAssistantPanel extends HTMLElement {
       log.insertBefore(el, this.statusEl);
       this.blocks.set(b.blockId, el);
     }
-    el.innerHTML = renderBlockInner(b);
+    el.innerHTML = renderAssistantBlock(b);
     this.scrollDown();
   }
 
