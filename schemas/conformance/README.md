@@ -113,6 +113,10 @@ Run every suite and the snapshot-presence gate from the repository root:
 pnpm conformance:snapshots
 ```
 
+The Node CI job runs this same verification command after the package test
+suites. CI never passes `--update` or `--bazel`: committed goldens are read-only
+there, and Bazel remains isolated in its dedicated job.
+
 To record an intentional behavior change, run
 `pnpm conformance:snapshots:update` and review every golden diff. Do not
 re-record to hide a missing field or unexpected fallback. Pass `--bazel` to

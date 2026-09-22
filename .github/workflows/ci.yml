@@ -120,6 +120,13 @@ jobs:
       - name: Tests
         run: pnpm -r --filter './packages/**' test
 
+      # Run the committed browser semantic snapshots through their shared,
+      # non-destructive workflow. This intentionally omits both --update and
+      # --bazel: CI verifies goldens here without rewriting them or depending on
+      # the separate Bazel job/toolchain.
+      - name: Browser semantic snapshots
+        run: pnpm conformance:snapshots
+
       - name: Test floor
         run: node schemas/tools/check_test_floor.mjs
 
