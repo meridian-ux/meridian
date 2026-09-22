@@ -41,15 +41,13 @@
 // presentation, not a domain schema (the same rule StepsPanel states). A producer
 // that wants a level in the output puts it in the line.
 //
-// Depends on rpc.proto for `RpcCall` and google/protobuf/struct.proto for a
-// transport-neutral structured frame payload.
+// Depends on rpc.proto for `RpcCall`.
 syntax = "proto3";
 
 package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
 import "proto/rpc.proto";
-import "google/protobuf/struct.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -78,12 +76,12 @@ message StreamPanel {
   string item_noun = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// One transport-independent server-streaming event. Hosts decode their wire
-// protocol into this envelope before handing it to a renderer. `data` retains
-// the producer's structured frame so `StreamPanel.line_field` can select the
-// presentation text without throwing away fields useful to other consumers.
+// One transport-independent server-streaming event. Hosts encode the structured
+// producer frame as UTF-8 JSON before handing it to a renderer. The envelope
+// keeps this transport-neutral without importing a language-specific dynamic
+// value type; `StreamPanel.line_field` selects presentation text from the JSON.
 message StreamFrame {
-  google.protobuf.Value data = 1 [(google.api.field_behavior) = REQUIRED];
+  bytes data_json = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // How a StreamPanel scrolls as lines arrive.

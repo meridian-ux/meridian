@@ -22,6 +22,7 @@
 use std::io::{self, IsTerminal as _};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::time::Duration;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
@@ -206,6 +207,7 @@ fn event_loop(
     let invoker = OfflineInvoker;
 
     loop {
+        view.poll_stream(descriptor, &context, &invoker);
         terminal
             .draw(|frame| {
                 let area = frame.area();
@@ -213,8 +215,9 @@ fn event_loop(
             })
             .map_err(|e| format!("drawing: {e}"))?;
 
-        view.poll_stream(descriptor, &context, &invoker);
-
+        if !event::poll(Duration::from_millis(100)).map_err(|e| format!("polling input: {e}"))? {
+            continue;
+        }
         match event::read().map_err(|e| format!("reading input: {e}"))? {
             Event::Key(k) if k.kind == KeyEventKind::Press => match k.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),

@@ -3,6 +3,18 @@ use std::sync::mpsc::{Receiver, TryRecvError};
 use crate::proto::{RpcCall, StreamFrame};
 use serde_json::Value;
 
+/// Decode the schema-defined JSON frame payload for `line_field` resolution.
+pub fn stream_frame_data(frame: &StreamFrame) -> Option<Value> {
+    serde_json::from_slice(&frame.data_json).ok()
+}
+
+/// Encode a host-decoded JSON event in the schema-defined frame envelope.
+pub fn stream_frame_from_json(data: Value) -> StreamFrame {
+    StreamFrame {
+        data_json: serde_json::to_vec(&data).expect("JSON values always serialize"),
+    }
+}
+
 /// Host-provided peer to `RpcInvoker` for a server-streaming RPC.
 ///
 /// The receiver is runtime-only; frames crossing a process or transport boundary

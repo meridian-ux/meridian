@@ -884,7 +884,6 @@ fn canonical_stream_snapshot_retention_is_bounded() {
 fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
     use meridian_tui::{StreamError, StreamInvoker, StreamSession};
     use meridian_uiview::proto::StreamFrame;
-    use prost_types::{value::Kind, Struct, Value};
     use std::sync::mpsc;
 
     struct LiveStream(std::sync::Mutex<Option<mpsc::Receiver<StreamFrame>>>);
@@ -898,29 +897,14 @@ fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
             Ok(StreamSession::new(receiver, || {}))
         }
     }
+    let frame = |text: String| {
+        meridian_uiview::stream_frame_from_json(serde_json::json!({
+            "event": { "message": text }
+        }))
+    };
     let (sender, receiver) = mpsc::channel();
     for index in 0..8 {
-        sender
-            .send(StreamFrame {
-                data: Some(Value {
-                    kind: Some(Kind::StructValue(Struct {
-                        fields: std::collections::BTreeMap::from([(
-                            "event".into(),
-                            Value {
-                                kind: Some(Kind::StructValue(Struct {
-                                    fields: std::collections::BTreeMap::from([(
-                                        "message".into(),
-                                        Value {
-                                            kind: Some(Kind::StringValue(format!("line-{index}"))),
-                                        },
-                                    )]),
-                                })),
-                            },
-                        )]),
-                    })),
-                }),
-            })
-            .unwrap();
+        sender.send(frame(format!("line-{index}"))).unwrap();
     }
     let stream = LiveStream(std::sync::Mutex::new(Some(receiver)));
     let mut descriptor =
@@ -952,27 +936,7 @@ fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
         "scrolling up must detach follow mode"
     );
 
-    sender
-        .send(StreamFrame {
-            data: Some(Value {
-                kind: Some(Kind::StructValue(Struct {
-                    fields: std::collections::BTreeMap::from([(
-                        "event".into(),
-                        Value {
-                            kind: Some(Kind::StructValue(Struct {
-                                fields: std::collections::BTreeMap::from([(
-                                    "message".into(),
-                                    Value {
-                                        kind: Some(Kind::StringValue("line-8".into())),
-                                    },
-                                )]),
-                            })),
-                        },
-                    )]),
-                })),
-            }),
-        })
-        .unwrap();
+    sender.send(frame("line-8".into())).unwrap();
     view.poll_stream(&descriptor, &Context::default(), &stream);
     assert!(
         !view.stream_is_following(),
@@ -1001,12 +965,98 @@ fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
         .map(|cell| cell.symbol())
         .collect();
     assert!(
-        output.contains("line-6"),
+        output.contains("line-2"),
         "reader's prior viewport should remain visible: {output}"
+    );
+    assert!(
+        output.contains("line-5"),
+        "viewport should remain anchored: {output}"
     );
     assert!(
         !output.contains("line-8"),
         "new tail should remain outside detached viewport: {output}"
+    );
+}
+
+#[test]
+fn stream_manual_mode_starts_at_top_and_does_not_auto_scroll() {
+    use meridian_tui::{StreamError, StreamInvoker, StreamSession};
+    use meridian_uiview::proto::StreamFrame;
+    use std::sync::mpsc;
+
+    struct LiveStream(std::sync::Mutex<Option<mpsc::Receiver<StreamFrame>>>);
+    impl StreamInvoker for LiveStream {
+        fn subscribe(
+            &self,
+            _: &meridian_uiview::proto::RpcCall,
+            _: serde_json::Value,
+        ) -> Result<StreamSession, StreamError> {
+            Ok(StreamSession::new(
+                self.0.lock().unwrap().take().unwrap(),
+                || {},
+            ))
+        }
+    }
+    let frame = |text: String| {
+        meridian_uiview::stream_frame_from_json(serde_json::json!({
+            "event": { "message": text }
+        }))
+    };
+    let (sender, receiver) = mpsc::channel();
+    for index in 0..8 {
+        sender.send(frame(format!("manual-{index}"))).unwrap();
+    }
+    let stream = LiveStream(std::sync::Mutex::new(Some(receiver)));
+    let mut descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("stream.binpb").as_slice()).unwrap();
+    if let Some(Body::Stream(panel)) = descriptor.body.as_mut() {
+        panel.line_field = "event.message".into();
+        panel.follow_mode = meridian_uiview::proto::FollowMode::Manual as i32;
+    }
+    let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let mut view = PanelView::new();
+    view.poll_stream(&descriptor, &Context::default(), &stream);
+    assert!(!view.stream_is_following());
+    let mut terminal = Terminal::new(TestBackend::new(80, 8)).unwrap();
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+
+    sender.send(frame("manual-8".into())).unwrap();
+    view.poll_stream(&descriptor, &Context::default(), &stream);
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    let output: String = terminal
+        .backend()
+        .buffer()
+        .content
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(
+        output.contains("manual-0"),
+        "manual mode must retain its starting position: {output}"
+    );
+    assert!(
+        !output.contains("manual-8"),
+        "manual mode must not auto-follow: {output}"
     );
 }
 

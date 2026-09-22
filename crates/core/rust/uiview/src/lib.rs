@@ -76,7 +76,9 @@ pub use request::{Context, RequestBuilder};
 pub use stat::{
     compute_stat, format_stat_number, trend_arrow, StatComputed, StatSemantics, StatTrend,
 };
-pub use stream::{StreamError, StreamInvoker, StreamSession};
+pub use stream::{
+    stream_frame_data, stream_frame_from_json, StreamError, StreamInvoker, StreamSession,
+};
 
 // Re-export the prost crate so downstream consumers can decode our
 // generated message types (e.g. `PanelBundle`) without introducing a

@@ -38,7 +38,6 @@ rust_library(
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
-        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
         "@meridian_crates//:regex",
         "@meridian_crates//:thiserror",
@@ -70,7 +69,6 @@ rust_binary(
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
-        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
     ],
 )
@@ -89,7 +87,6 @@ rust_test(
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
-        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
     ],
 )

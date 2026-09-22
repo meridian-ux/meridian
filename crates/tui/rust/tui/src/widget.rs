@@ -44,6 +44,7 @@ pub struct PanelView {
     stream_request_key: Option<String>,
     stream_scroll: usize,
     stream_follow: bool,
+    stream_auto_follow: bool,
     stream_view_height: usize,
     table_state: TableState,
     palette: Palette,
@@ -121,6 +122,7 @@ impl PanelView {
             stream_request_key: None,
             stream_scroll: 0,
             stream_follow: true,
+            stream_auto_follow: true,
             stream_view_height: 1,
             table_state: TableState::default(),
             palette: Palette::default(),
@@ -146,6 +148,7 @@ impl PanelView {
             stream_request_key: None,
             stream_scroll: 0,
             stream_follow: true,
+            stream_auto_follow: true,
             stream_view_height: 1,
             table_state: TableState::default(),
             palette,
@@ -175,8 +178,14 @@ impl PanelView {
             .into_iter()
             .rev()
             .collect();
-        self.stream_follow = true;
-        self.stream_scroll = self.stream_lines.len();
+        self.stream_auto_follow =
+            panel.follow_mode != meridian_uiview::proto::FollowMode::Manual as i32;
+        self.stream_follow = self.stream_auto_follow;
+        self.stream_scroll = if self.stream_follow {
+            self.stream_lines.len()
+        } else {
+            0
+        };
     }
 
     /// Start or poll the active stream using the host's transport adapter.
@@ -215,7 +224,9 @@ impl PanelView {
             self.stream_session = None;
             self.stream_lines.clear();
             self.stream_scroll = 0;
-            self.stream_follow = true;
+            self.stream_auto_follow =
+                panel.follow_mode != meridian_uiview::proto::FollowMode::Manual as i32;
+            self.stream_follow = self.stream_auto_follow;
             self.stream_request_key = Some(key);
             self.stream_session = panel
                 .subscribe
@@ -249,8 +260,6 @@ impl PanelView {
                 .stream_lines
                 .len()
                 .saturating_sub(self.stream_view_height);
-        } else if appended > 0 {
-            self.stream_scroll = self.stream_scroll.saturating_add(appended);
         }
     }
 
@@ -266,7 +275,7 @@ impl PanelView {
         self.stream_follow = if delta < 0 {
             false
         } else {
-            self.stream_scroll >= max
+            self.stream_auto_follow && self.stream_scroll >= max
         };
     }
 
@@ -1038,7 +1047,7 @@ impl PanelView {
 }
 
 fn stream_line(frame: &StreamFrame, line_field: &str) -> Option<String> {
-    let value = protobuf_value_to_json(frame.data.as_ref()?);
+    let value = meridian_uiview::stream_frame_data(frame)?;
     let selected = meridian_uiview::ProtoPaths::get(&value, line_field);
     if selected.is_null() {
         return None;
@@ -1046,26 +1055,6 @@ fn stream_line(frame: &StreamFrame, line_field: &str) -> Option<String> {
     match selected {
         serde_json::Value::String(text) => Some(text.clone()),
         other => Some(other.to_string()),
-    }
-}
-
-fn protobuf_value_to_json(value: &prost_types::Value) -> serde_json::Value {
-    use prost_types::value::Kind;
-    match value.kind.as_ref() {
-        Some(Kind::NullValue(_)) | None => serde_json::Value::Null,
-        Some(Kind::NumberValue(number)) => serde_json::json!(number),
-        Some(Kind::StringValue(text)) => serde_json::Value::String(text.clone()),
-        Some(Kind::BoolValue(boolean)) => serde_json::Value::Bool(*boolean),
-        Some(Kind::StructValue(object)) => serde_json::Value::Object(
-            object
-                .fields
-                .iter()
-                .map(|(key, value)| (key.clone(), protobuf_value_to_json(value)))
-                .collect(),
-        ),
-        Some(Kind::ListValue(list)) => {
-            serde_json::Value::Array(list.values.iter().map(protobuf_value_to_json).collect())
-        }
     }
 }
 
