@@ -133,7 +133,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 |---|---|---|
 | **Tone** — how serious, how it looks | `ValueTone` (6) · `Status.State` / `ToolBlock.State` · `AffordanceStyle` · `Palette` roles | one `Tone` enum; `Palette` keyed by it — [#10](../../issues/10) |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
-| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, and `MetaField`; some fetched card fields still infer from string shape | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
+| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, and `Conversation.Block.Field`; resource-card template slots and gallery fields still infer from string shape | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` is empty; four layout modes with no per-modality realization; `NestedForm.element` is an empty oneof | `Metrics` defined; a degradation ladder per layout like `panel.proto` gives each arm; `schemas/DESIGN_LANGUAGE.md` as the glossary — [#13](../../issues/13) |
 
 The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): every
@@ -172,6 +172,12 @@ unchanged. This follows the rounding rule in
 `CopyValue.display` now extends the same declared-value contract to standalone
 and ConnectFlow copy surfaces: browsers and the TUI format the visible/revealed
 text while copy actions retain the original scalar.
+`Conversation.Block.Field.display` now extends the contract to streamed chat
+field blocks: the vanilla and React chat tiers decode the proto3-JSON display
+declaration at one boundary, while the TUI realizes temporal and principal
+labels and preserves literal string semantics for unsupported or malformed
+declarations. Chat fields intentionally do not coerce numeric/boolean strings
+or invent navigation routes.
 `ResourceCard.MetaField.display` now formats fetched card metadata across browser
 kits, web-components, and TUI, reusing the existing safe URL and host-resolved
 record-link seam; legacy scalar output is preserved when unset.
