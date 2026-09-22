@@ -645,7 +645,7 @@ fn terminal_lines(output: &str, width: usize) -> Vec<String> {
 
 #[test]
 fn canonical_populated_native_text_goldens() {
-    for name in ["gallery", "table", "resource_cards"] {
+    for name in ["gallery", "table", "resource_cards", "steps"] {
         let descriptor =
             PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
                 .unwrap();
@@ -653,6 +653,8 @@ fn canonical_populated_native_text_goldens() {
             draw_with(&descriptor, 160, 20, &GalleryData)
         } else if name == "resource_cards" {
             draw_with(&descriptor, 160, 20, &ResourceCardsData)
+        } else if name == "steps" {
+            draw(&descriptor, 160, 20)
         } else {
             draw_with(&descriptor, 160, 20, &TableData)
         };
@@ -673,6 +675,19 @@ fn canonical_populated_native_text_goldens() {
                 "Source control",
                 "2. PagerDuty",
                 "Incident response",
+            ]
+        } else if name == "steps" {
+            vec![
+                "Create a sponsor",
+                "Add an employer and confirm a colleague can see it.",
+                "1. Open the Sponsors page [Admin]",
+                "The list of every employer your organization administers.",
+                "The sponsors list",
+                "2. Add a new sponsor [Admin]",
+                "Name it, then set Status to Active and Kind to Customer.",
+                "3. Confirm a colleague sees it [Manager]",
+                "Everyone in your organization shares one sponsor list.",
+                "The sponsor is now visible to your whole team.",
             ]
         } else {
             // URLs remain noninteractive scalar text in the native table.

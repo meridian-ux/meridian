@@ -62,7 +62,11 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
                 format!("   {}", step.detail),
                 palette.meta(),
             )));
-        } else if !step.media_alt.is_empty() {
+        }
+        // A terminal cannot render the authored frame. Preserve its text
+        // alternative even when the step also has narration: media_alt is the
+        // schema-defined degradation content, not a fallback for detail.
+        if !step.media_alt.is_empty() {
             lines.push(Line::from(Span::styled(
                 format!("   {}", step.media_alt),
                 palette.meta(),
@@ -2042,6 +2046,7 @@ mod tests {
                 Step {
                     label: "Open settings".into(),
                     detail: "Choose production".into(),
+                    media_alt: "Production settings screen".into(),
                     actor: "Admin".into(),
                     ..Default::default()
                 },
@@ -2065,6 +2070,7 @@ mod tests {
             .collect();
         assert!(text.contains("1. Open settings [Admin]"));
         assert!(text.contains("Choose production"));
+        assert!(text.contains("Production settings screen"));
         assert!(text.contains("2. Click deploy"));
         assert!(text.contains("Deployment started"));
     }
