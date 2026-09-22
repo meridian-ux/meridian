@@ -112,21 +112,36 @@ jobs:
         run: node --test "schemas/tools/*.test.mjs"
 
       - name: Admission gate
-        run: |
-          pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.test.json
-          node --test "schemas/.ts-test/*.test.js"
+        run: pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.test.json --noEmit
 
       - name: Typecheck
         run: |
           pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
 
-      # Every package that owns a runnable Vitest suite declares a test script;
-      # the private web workspace excludes only its Bazel-produced WASM suite.
-      # All tests run against workspace-linked web-react and proto-ts rather than
-      # registry copies, which is the first time that has been true.
-      - name: Tests
-        run: pnpm -r --filter './packages/**' test
+      # Six package suites report coverage independently. The schemas seam was
+      # previously compiled and run with node:test; it now uses Vitest so it is
+      # included rather than silently disappearing from package coverage.
+      - name: Coverage — schemas
+        run: pnpm --filter @savvifi/meridian-schemas exec vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../coverage/schemas --coverage.include='src/uiview/**/*.{ts,tsx}' --coverage.exclude='src/uiview/**/*.test.ts'
+      - name: Coverage — chat
+        run: pnpm --filter @savvifi/meridian-chat exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/chat --coverage.include='src/**/*.{js,jsx,ts,tsx}'
+      - name: Coverage — launchpad
+        run: pnpm --filter @savvifi/meridian-launchpad exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/launchpad --coverage.include='src/**/*.{js,jsx,ts,tsx}'
+      - name: Coverage — MUI kit
+        run: pnpm --filter @savvifi/meridian-mui-kit exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/mui-kit --coverage.include='src/**/*.{js,jsx,ts,tsx}' --coverage.exclude='src/**/*.test.{ts,tsx}'
+      - name: Coverage — web components
+        run: pnpm --filter meridian-web-workspace exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/web --coverage.include='src/**/*.{js,jsx,ts,tsx}' --exclude=tests/conformance_wasm.test.ts
+      - name: Coverage — web React
+        run: pnpm --filter @savvifi/meridian-web-react exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/web-react --coverage.include='src/**/*.{js,jsx,ts,tsx}' --coverage.exclude='src/**/*.test.{ts,tsx}'
+
+      - name: Upload JavaScript coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-node-raw
+          path: coverage
+          if-no-files-found: error
+          retention-days: 1
 
       # Run the committed browser semantic snapshots through their shared,
       # non-destructive workflow. This intentionally omits both --update and
@@ -143,6 +158,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
 
       # 73 tests: 43 tui, 27 core, 3 descriptor-set guards, 3 theme-proto
@@ -176,6 +193,44 @@ jobs:
 
       - name: Rust formatting
         run: cargo fmt --all -- --check
+
+      - uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Workspace coverage
+        run: |
+          mkdir -p coverage/rust
+          cargo llvm-cov --workspace --all-targets --lcov --output-path coverage/rust/lcov.info
+
+      - name: Upload Rust coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-rust-raw
+          path: coverage
+          if-no-files-found: error
+          retention-days: 1
+
+  coverage-summary:
+    runs-on: ubuntu-latest
+    needs: [node, cargo]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*-raw
+          path: coverage
+          merge-multiple: true
+      - name: Build coverage summary
+        run: node tools/coverage_summary.mjs coverage coverage-summary
+      - name: Upload single coverage summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage-summary
+          if-no-files-found: error
+          retention-days: 14
 
   bazel:
     runs-on: ubuntu-latest

@@ -5,12 +5,11 @@
 // the REFUSALS: the default-closed mutation tier, and the AIP tripwire that
 // catches a destructive call smuggled into a populate slot.
 //
-// NOT compiled into the published package: admission.ts is in the ts_project
-// srcs, this file is not. CI compiles the pair standalone (admission.ts has no
-// imports, by design) and runs this with node --test.
+// NOT included in the published package: admission.ts is in the ts_project
+// srcs, this file is not. Vitest transpiles this isolated seam test directly;
+// its imports stay within this package and do not depend on generated protos.
 
-import test from "node:test";
-import assert from "node:assert/strict";
+import { expect, it } from "vitest";
 import {
   AdmissionDeniedError,
   aipTier,
@@ -18,150 +17,143 @@ import {
   type AdmissionDenial,
 } from "./admission.js";
 
-test("with no policy: reads are allowed, mutations are denied", () => {
+it("with no policy: reads are allowed, mutations are denied", () => {
   const gate = createAdmissionGate();
 
   // Reads default open. Every host's populate already fires today; defaulting
   // this closed would break them all on upgrade without closing the hole.
-  assert.equal(gate.admits("read", "acme.v1.Orders", "ListOrders"), true);
+  expect(gate.admits("read", "acme.v1.Orders", "ListOrders")).toBe(true);
 
   // Mutations default closed. This is the whole point of the module.
-  assert.equal(gate.admits("mutation", "acme.v1.Orders", "ArchiveOrder"), false);
+  expect(gate.admits("mutation", "acme.v1.Orders", "ArchiveOrder")).toBe(false);
 });
 
-test("a denial names the exact entry to add", () => {
+it("a denial names the exact entry to add", () => {
   const gate = createAdmissionGate();
-  assert.throws(
-    () => gate.check("mutation", "acme.v1.Orders", "ArchiveOrder"),
-    (err: unknown) => {
-      assert.ok(err instanceof AdmissionDeniedError);
-      assert.equal(err.denial.tier, "mutation");
-      assert.equal(err.denial.service, "acme.v1.Orders");
-      assert.equal(err.denial.method, "ArchiveOrder");
-      // The message has to be actionable or a host will just reach for
-      // "unrestricted" to make it go away.
-      assert.match(err.denial.reason, /admission\.mutations/);
-      assert.match(err.denial.reason, /acme\.v1\.Orders\/ArchiveOrder/);
-      return true;
-    },
-  );
+  let thrown: unknown;
+  try { gate.check("mutation", "acme.v1.Orders", "ArchiveOrder"); } catch (err) { thrown = err; }
+  expect(thrown).toBeInstanceOf(AdmissionDeniedError);
+  if (!(thrown instanceof AdmissionDeniedError)) throw thrown;
+  expect(thrown.denial.tier).toBe("mutation");
+  expect(thrown.denial.service).toBe("acme.v1.Orders");
+  expect(thrown.denial.method).toBe("ArchiveOrder");
+  // The message has to be actionable or a host will just reach for
+  // "unrestricted" to make it go away.
+  expect(thrown.denial.reason).toMatch(/admission\.mutations/);
+  expect(thrown.denial.reason).toMatch(/acme\.v1\.Orders\/ArchiveOrder/);
 });
 
-test('"unrestricted" opts out completely, including the tripwire', () => {
+it('"unrestricted" opts out completely, including the tripwire', () => {
   const gate = createAdmissionGate("unrestricted");
-  assert.equal(gate.admits("mutation", "acme.v1.Orders", "DeleteOrder"), true);
-  assert.equal(gate.admits("read", "acme.v1.Orders", "DeleteOrder"), true);
+  expect(gate.admits("mutation", "acme.v1.Orders", "DeleteOrder")).toBe(true);
+  expect(gate.admits("read", "acme.v1.Orders", "DeleteOrder")).toBe(true);
   gate.check("mutation", "acme.v1.Orders", "DeleteOrder");
 });
 
-test("explicit allowlists admit exactly what they name", () => {
+it("explicit allowlists admit exactly what they name", () => {
   const gate = createAdmissionGate({
     reads: ["acme.v1.Orders/ListOrders"],
     mutations: ["acme.v1.Orders/ArchiveOrder"],
   });
 
-  assert.equal(gate.admits("read", "acme.v1.Orders", "ListOrders"), true);
-  assert.equal(gate.admits("read", "acme.v1.Orders", "ListInvoices"), false);
-  assert.equal(gate.admits("mutation", "acme.v1.Orders", "ArchiveOrder"), true);
-  assert.equal(gate.admits("mutation", "acme.v1.Orders", "DeleteOrder"), false);
+  expect(gate.admits("read", "acme.v1.Orders", "ListOrders")).toBe(true);
+  expect(gate.admits("read", "acme.v1.Orders", "ListInvoices")).toBe(false);
+  expect(gate.admits("mutation", "acme.v1.Orders", "ArchiveOrder")).toBe(true);
+  expect(gate.admits("mutation", "acme.v1.Orders", "DeleteOrder")).toBe(false);
 
   // The tiers are separate lists: naming a read does not grant the mutation.
-  assert.equal(gate.admits("mutation", "acme.v1.Orders", "ListOrders"), false);
+  expect(gate.admits("mutation", "acme.v1.Orders", "ListOrders")).toBe(false);
 });
 
-test("wildcards cover a service, or everything", () => {
+it("wildcards cover a service, or everything", () => {
   const svc = createAdmissionGate({ mutations: ["acme.v1.Orders/*"] });
-  assert.equal(svc.admits("mutation", "acme.v1.Orders", "ArchiveOrder"), true);
-  assert.equal(svc.admits("mutation", "acme.v1.Invoices", "ArchiveInvoice"), false);
+  expect(svc.admits("mutation", "acme.v1.Orders", "ArchiveOrder")).toBe(true);
+  expect(svc.admits("mutation", "acme.v1.Invoices", "ArchiveInvoice")).toBe(false);
 
   const all = createAdmissionGate({ mutations: ["*"] });
-  assert.equal(all.admits("mutation", "anything.v1.At", "All"), true);
+  expect(all.admits("mutation", "anything.v1.At", "All")).toBe(true);
 });
 
-test("a mutating verb fired from a READ callsite is refused", () => {
+it("a mutating verb fired from a READ callsite is refused", () => {
   // The attack this module exists for: a populate auto-fires on mount with no
   // user gesture, so a destructive method in that slot never needs a click.
   // Note reads are wide open here — the tripwire still refuses it.
   const gate = createAdmissionGate();
 
   for (const m of ["DeleteOrder", "CreateOrder", "UpdateOrder", "PatchOrder"]) {
-    assert.equal(gate.admits("read", "acme.v1.Orders", m), false, m);
+    expect(gate.admits("read", "acme.v1.Orders", m), m).toBe(false);
   }
-  assert.throws(
-    () => gate.check("read", "acme.v1.Orders", "DeleteOrder"),
-    /fired from a READ callsite/,
-  );
+  expect(() => gate.check("read", "acme.v1.Orders", "DeleteOrder")).toThrow(/fired from a READ callsite/);
 });
 
-test("the tripwire can be switched off, and only then", () => {
+it("the tripwire can be switched off, and only then", () => {
   const off = createAdmissionGate({ inferFromAipVerbs: false });
-  assert.equal(off.admits("read", "acme.v1.Orders", "DeleteOrder"), true);
+  expect(off.admits("read", "acme.v1.Orders", "DeleteOrder")).toBe(true);
 
   // It is a tripwire, never a grant: turning it ON does not admit a mutation
   // that the allowlist does not name.
   const on = createAdmissionGate({ inferFromAipVerbs: true });
-  assert.equal(on.admits("mutation", "acme.v1.Orders", "DeleteOrder"), false);
+  expect(on.admits("mutation", "acme.v1.Orders", "DeleteOrder")).toBe(false);
 });
 
-test("onDenied observes every refusal", () => {
+it("onDenied observes every refusal", () => {
   const seen: AdmissionDenial[] = [];
   const gate = createAdmissionGate({ onDenied: (d) => seen.push(d) });
 
-  assert.throws(() => gate.check("mutation", "acme.v1.Orders", "ArchiveOrder"));
-  assert.throws(() => gate.check("read", "acme.v1.Orders", "DeleteOrder"));
+  expect(() => gate.check("mutation", "acme.v1.Orders", "ArchiveOrder")).toThrow();
+  expect(() => gate.check("read", "acme.v1.Orders", "DeleteOrder")).toThrow();
 
-  assert.equal(seen.length, 2);
-  assert.deepEqual(
+  expect(seen).toHaveLength(2);
+  expect(
     seen.map((d) => `${d.tier} ${d.method}`),
-    ["mutation ArchiveOrder", "read DeleteOrder"],
-  );
+  ).toEqual(["mutation ArchiveOrder", "read DeleteOrder"]);
 });
 
-test("an empty service or method is refused at either tier", () => {
+it("an empty service or method is refused at either tier", () => {
   const gate = createAdmissionGate({});
-  assert.equal(gate.admits("read", "", "ListOrders"), false);
-  assert.equal(gate.admits("read", "acme.v1.Orders", ""), false);
-  assert.throws(() => gate.check("read", "", ""), /empty service/);
+  expect(gate.admits("read", "", "ListOrders")).toBe(false);
+  expect(gate.admits("read", "acme.v1.Orders", "")).toBe(false);
+  expect(() => gate.check("read", "", "")).toThrow(/empty service/);
 });
 
 // ── the AIP classifier ───────────────────────────────────────────────────────
 
-test("aipTier classifies the standard verbs", () => {
-  assert.equal(aipTier("ListOrders"), "read");
-  assert.equal(aipTier("GetOrder"), "read");
-  assert.equal(aipTier("SearchOrders"), "read");
-  assert.equal(aipTier("CreateOrder"), "mutation");
-  assert.equal(aipTier("UpdateOrder"), "mutation");
-  assert.equal(aipTier("PatchOrder"), "mutation");
-  assert.equal(aipTier("DeleteOrder"), "mutation");
+it("aipTier classifies the standard verbs", () => {
+  expect(aipTier("ListOrders")).toBe("read");
+  expect(aipTier("GetOrder")).toBe("read");
+  expect(aipTier("SearchOrders")).toBe("read");
+  expect(aipTier("CreateOrder")).toBe("mutation");
+  expect(aipTier("UpdateOrder")).toBe("mutation");
+  expect(aipTier("PatchOrder")).toBe("mutation");
+  expect(aipTier("DeleteOrder")).toBe("mutation");
 });
 
-test("aipTier keeps meridian-proto's Getty guard", () => {
+it("aipTier keeps meridian-proto's Getty guard", () => {
   // A prefix only counts at a word boundary. "Getty" is a name, not Get + ty.
-  assert.equal(aipTier("Getty"), null);
-  assert.equal(aipTier("Listen"), null);
-  assert.equal(aipTier("Patchwork"), null);
-  assert.equal(aipTier("Deleterious"), null);
+  expect(aipTier("Getty")).toBe(null);
+  expect(aipTier("Listen")).toBe(null);
+  expect(aipTier("Patchwork")).toBe(null);
+  expect(aipTier("Deleterious")).toBe(null);
   // A custom method follows no standard verb; we have nothing to say about it.
-  assert.equal(aipTier("Exchange"), null);
-  assert.equal(aipTier("ArchiveOrder"), null);
+  expect(aipTier("Exchange")).toBe(null);
+  expect(aipTier("ArchiveOrder")).toBe(null);
 });
 
-test("aipTier treats Batch as a modifier, not a verb", () => {
-  assert.equal(aipTier("BatchGetOrders"), "read");
-  assert.equal(aipTier("BatchDeleteOrders"), "mutation");
-  assert.equal(aipTier("BatchCreateOrders"), "mutation");
+it("aipTier treats Batch as a modifier, not a verb", () => {
+  expect(aipTier("BatchGetOrders")).toBe("read");
+  expect(aipTier("BatchDeleteOrders")).toBe("mutation");
+  expect(aipTier("BatchCreateOrders")).toBe("mutation");
 });
 
-test("a bare standard verb still classifies", () => {
-  assert.equal(aipTier("Get"), "read");
-  assert.equal(aipTier("Delete"), "mutation");
+it("a bare standard verb still classifies", () => {
+  expect(aipTier("Get")).toBe("read");
+  expect(aipTier("Delete")).toBe("mutation");
 });
 
-test("an unclassifiable method is not refused by the tripwire", () => {
+it("an unclassifiable method is not refused by the tripwire", () => {
   // ArchiveOrder mutates in fact, but its name follows no standard verb, so
   // inference must stay silent rather than guess. The allowlist is the real
   // control; inference only catches the cases it can prove.
   const gate = createAdmissionGate();
-  assert.equal(gate.admits("read", "acme.v1.Orders", "ArchiveOrder"), true);
+  expect(gate.admits("read", "acme.v1.Orders", "ArchiveOrder")).toBe(true);
 });

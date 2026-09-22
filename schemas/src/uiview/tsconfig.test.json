@@ -1,15 +1,14 @@
-// Builds the seam's own unit tests OUT of the source tree.
+// Type-check the seam's own unit tests without emitting into the source tree.
 //
 // The published package is `src/uiview/**/*.js` (schemas.package.json "files"),
 // so a compiled test emitted next to its source would ship to npm. tsconfig.json
-// therefore excludes *.test.ts and this config picks them back up, writing to a
-// scratch dir that CI then runs with `node --test`.
+// therefore excludes *.test.ts and this config picks them back up for a
+// no-emit CI typecheck; Vitest runs the source tests directly for coverage.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../.ts-test",
     "rootDir": ".",
-    "noEmit": false,
+    "noEmit": true,
     "types": ["node"]
   },
   // Scoped to the files under test and what they import — NOT `**/*.ts`.

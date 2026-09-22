@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { expect, it } from "vitest";
 
 import {
   safeAssetSrc,
@@ -9,7 +8,7 @@ import {
   safeWebSocketUrl,
 } from "./navigation.js";
 
-test("safeNavigationHref retains web, relative, mail, and application deep links", () => {
+it("safeNavigationHref retains web, relative, mail, and application deep links", () => {
   for (const href of [
     "https://example.com/docs",
     "http://localhost:3000",
@@ -19,11 +18,11 @@ test("safeNavigationHref retains web, relative, mail, and application deep links
     "cursor://anysphere.cursor-deeplink/mcp/install",
     "vscode:extension/example",
   ]) {
-    assert.equal(safeNavigationHref(href), href);
+    expect(safeNavigationHref(href)).toBe(href);
   }
 });
 
-test("safeNavigationHref rejects executable, local, malformed, and empty destinations", () => {
+it("safeNavigationHref rejects executable, local, malformed, and empty destinations", () => {
   for (const href of [
     "javascript:alert(1)",
     " javaScript:alert(1) ",
@@ -36,11 +35,11 @@ test("safeNavigationHref rejects executable, local, malformed, and empty destina
     "",
     "   ",
   ]) {
-    assert.equal(safeNavigationHref(href), undefined, href);
+    expect(safeNavigationHref(href), href).toBeUndefined();
   }
 });
 
-test("safeAssetSrc retains host-relative and HTTP(S) asset sources", () => {
+it("safeAssetSrc retains host-relative and HTTP(S) asset sources", () => {
   for (const src of [
     "/evidence/frame.png",
     "../frames/frame.png",
@@ -48,11 +47,11 @@ test("safeAssetSrc retains host-relative and HTTP(S) asset sources", () => {
     "https://cdn.example.com/frame.png",
     "http://localhost:3000/frame.png",
   ]) {
-    assert.equal(safeAssetSrc(src), src);
+    expect(safeAssetSrc(src)).toBe(src);
   }
 });
 
-test("safeAssetSrc rejects active, local, opaque, malformed, and empty sources", () => {
+it("safeAssetSrc rejects active, local, opaque, malformed, and empty sources", () => {
   for (const src of [
     "javascript:alert(1)",
     "data:image/svg+xml,unsafe",
@@ -64,22 +63,22 @@ test("safeAssetSrc rejects active, local, opaque, malformed, and empty sources",
     "",
     "   ",
   ]) {
-    assert.equal(safeAssetSrc(src), undefined, src);
+    expect(safeAssetSrc(src), src).toBeUndefined();
   }
 });
 
-test("safeFontSrc retains web assets and narrowly typed embedded fonts", () => {
+it("safeFontSrc retains web assets and narrowly typed embedded fonts", () => {
   for (const src of [
     "/fonts/outfit.woff2",
     "https://cdn.example.com/outfit.woff2",
     "data:font/woff2;base64,d09GMgABAAAAAA==",
     "data:font/ttf;base64,AAEAAAALAIAAAwAwT1MvMg==",
   ]) {
-    assert.equal(safeFontSrc(src), src);
+    expect(safeFontSrc(src)).toBe(src);
   }
 });
 
-test("safeFontSrc rejects active, local, and non-font data sources", () => {
+it("safeFontSrc rejects active, local, and non-font data sources", () => {
   for (const src of [
     "javascript:alert(1)",
     "file:///tmp/outfit.woff2",
@@ -90,20 +89,20 @@ test("safeFontSrc rejects active, local, and non-font data sources", () => {
     "data:font/woff2;base64,not base64",
     "data:font/woff2;base64,AA\n==",
   ]) {
-    assert.equal(safeFontSrc(src), undefined, src);
+    expect(safeFontSrc(src), src).toBeUndefined();
   }
 });
 
-test("safeWebSocketUrl retains credential-free ws and wss broker URLs", () => {
+it("safeWebSocketUrl retains credential-free ws and wss broker URLs", () => {
   for (const url of [
     "wss://terminal.example.com/pty?session=abc",
     "ws://localhost:8080/pty",
   ]) {
-    assert.equal(safeWebSocketUrl(url), url);
+    expect(safeWebSocketUrl(url)).toBe(url);
   }
 });
 
-test("safeWebSocketUrl rejects non-WebSocket, relative, credentialed, fragmented, and malformed URLs", () => {
+it("safeWebSocketUrl rejects non-WebSocket, relative, credentialed, fragmented, and malformed URLs", () => {
   for (const url of [
     "https://terminal.example.com/pty",
     "javascript:alert(1)",
@@ -115,11 +114,11 @@ test("safeWebSocketUrl rejects non-WebSocket, relative, credentialed, fragmented
     "",
     "   ",
   ]) {
-    assert.equal(safeWebSocketUrl(url), undefined, url);
+    expect(safeWebSocketUrl(url), url).toBeUndefined();
   }
 });
 
-test("safeFetchUrl retains relative and credential-free HTTP(S) request targets", () => {
+it("safeFetchUrl retains relative and credential-free HTTP(S) request targets", () => {
   for (const url of [
     "/api/save",
     "../actions/run",
@@ -127,11 +126,11 @@ test("safeFetchUrl retains relative and credential-free HTTP(S) request targets"
     "https://api.example.com/run",
     "http://localhost:8080/run",
   ]) {
-    assert.equal(safeFetchUrl(url), url);
+    expect(safeFetchUrl(url)).toBe(url);
   }
 });
 
-test("safeFetchUrl rejects active, local, credentialed, malformed, and empty targets", () => {
+it("safeFetchUrl rejects active, local, credentialed, malformed, and empty targets", () => {
   for (const url of [
     "javascript:alert(1)",
     "data:text/plain,unsafe",
@@ -143,6 +142,6 @@ test("safeFetchUrl rejects active, local, credentialed, malformed, and empty tar
     "",
     "   ",
   ]) {
-    assert.equal(safeFetchUrl(url), undefined, url);
+    expect(safeFetchUrl(url), url).toBeUndefined();
   }
 });
