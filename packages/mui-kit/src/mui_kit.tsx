@@ -23,7 +23,7 @@ import type {
 } from "@savvifi/meridian-web-react";
 import { formatByDisplay } from "./display_format.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
 import {
   buildBindingRequest,
@@ -674,11 +674,11 @@ function buildField(
  * This shipped as a live bug: a producer sent `options`, this kit read only
  * `allowedValues`, and the dropdown rendered EMPTY with no error anywhere.
  */
-export function enumOptions(sel: EnumSelection): Array<{ value: string; label: string }> {
+export function enumOptions(sel: EnumSelection): Array<{ value: string; label: string; tone?: ValueTone }> {
   if (sel.options.length > 0) {
     // label is OPTIONAL and "falls back to `value` when empty" — a blank entry is
     // worse than a raw token, since it cannot be picked out of a list.
-    return sel.options.map((o) => ({ value: o.value, label: o.label || o.value }));
+    return sel.options.map((o) => ({ value: o.value, label: o.label || o.value, ...(o.tone ? { tone: o.tone } : {}) }));
   }
   return sel.allowedValues.map((value) => ({ value, label: value }));
 }

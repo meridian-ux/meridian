@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { ValueTone, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 
 import { formatByDisplay } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
@@ -50,7 +50,7 @@ export type MeridianFormField =
       type: "select";
       value: string;
       onChange: (value: string) => void;
-      options: { value: string; label: string }[];
+      options: { value: string; label: string; tone?: ValueTone }[];
     })
   // A nested object → a titled sub-group of fields (NestedForm).
   | (BaseField & { type: "group"; fields: MeridianFormField[] })
@@ -93,6 +93,20 @@ export interface MeridianFormProps {
 }
 
 type NumericFormField = Extract<MeridianFormField, { type: "number" | "decimal" }>;
+
+// Use theme roles for both the menu and the selected label. Unknown wire values
+// degrade to ordinary text, just like unspecified tones.
+function enumTone(tone: ValueTone | undefined): { name: string; color: string } | undefined {
+  switch (tone) {
+    case ValueTone.NEUTRAL: return { name: "neutral", color: "text.primary" };
+    case ValueTone.INFO: return { name: "info", color: "info.main" };
+    case ValueTone.SUCCESS: return { name: "success", color: "success.main" };
+    case ValueTone.WARNING: return { name: "warning", color: "warning.main" };
+    case ValueTone.DANGER: return { name: "danger", color: "error.main" };
+    case ValueTone.ACCENT: return { name: "accent", color: "primary.main" };
+    default: return undefined;
+  }
+}
 
 function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): ReactNode | undefined {
   if (!field.disabled || !field.display || field.display.type === ValueType.UNSPECIFIED) return undefined;
@@ -313,11 +327,14 @@ function renderField(field: MeridianFormField, nowMs: number | undefined): React
         disabled={field.disabled}
         onChange={(event) => field.onChange(event.target.value)}
       >
-        {field.options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            {option.label}
-          </MenuItem>
-        ))}
+        {field.options.map((option) => {
+          const tone = enumTone(option.tone);
+          return (
+            <MenuItem key={option.value} value={option.value}>
+              {tone ? <Box component="span" data-value-tone={tone.name} sx={{ color: tone.color }}>{option.label}</Box> : option.label}
+            </MenuItem>
+          );
+        })}
       </TextField>
     );
   }

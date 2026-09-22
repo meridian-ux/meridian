@@ -5,19 +5,49 @@
 // this kit read only `allowedValues`, and the dropdown rendered EMPTY with no
 // error anywhere. The renderer looked broken; the descriptor was fine.
 //
-// Tested as a pure function rather than through the DOM on purpose. The rule
-// being protected is precedence and fallback — pure logic — and asserting it via
-// MUI's rendered listbox would couple a contract test to MUI's internals, so it
-// would break on a component upgrade that changed nothing about the contract.
+// Pure tests protect precedence and fallback; a focused interaction test covers
+// tone rendering and verifies that styled labels never replace submitted tokens.
 
 import { create } from "@bufbuild/protobuf";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelRenderer } from "@savvifi/meridian-web-react";
+import { MeridianMuiProvider } from "../src/provider.js";
 
 import { EnumSelectionSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
 import { enumOptions } from "../src/mui_kit.js";
 
+afterEach(cleanup);
+
 describe("EnumSelection options", () => {
+  it("renders authored tones in selected labels and menus while submitting raw tokens", async () => {
+    const invoke = vi.fn(async () => ({}));
+    const panel = create(PanelDescriptorSchema, { body: { case: "form", value: create(FormPanelSchema, {
+      mode: 2, submit: { service: "demo.Form", method: "Save" },
+      fields: [{ fieldId: "state", label: "State", kind: { case: "enumSelection", value: {
+        defaultValue: "ready", allowedValues: ["ignored"], options: [
+          { value: "ready", label: "Ready", tone: ValueTone.SUCCESS },
+          { value: "blocked", label: "Blocked", tone: ValueTone.DANGER },
+          { value: "plain", label: "", tone: 999 as ValueTone },
+        ],
+      } } }],
+    }) } });
+    render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["*"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
+    expect(screen.getByRole("combobox").querySelector('[data-value-tone="success"]')?.textContent).toBe("Ready");
+    fireEvent.mouseDown(screen.getByRole("combobox"));
+    const blocked = await screen.findByRole("option", { name: "Blocked" });
+    const toned = blocked.querySelector('[data-value-tone="danger"]')!;
+    expect(getComputedStyle(toned).color).not.toBe(getComputedStyle(blocked).color);
+    expect(screen.getByRole("option", { name: "plain" }).querySelector("[data-value-tone]")).toBeNull();
+    fireEvent.click(blocked);
+    expect(screen.getByRole("combobox").querySelector('[data-value-tone="danger"]')?.textContent).toBe("Blocked");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("demo.Form", "Save", { state: "blocked" }));
+  });
+
   it("renders the producer's labels, and keeps the stored token as the value", () => {
     const got = enumOptions(
       create(EnumSelectionSchema, {
