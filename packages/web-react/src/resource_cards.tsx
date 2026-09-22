@@ -8,9 +8,11 @@ import type {
 } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
 
 import { buildBindingRequest, resolvePath, selectionDeps, useMeridianSelection } from "./pagination.js";
-import { useMutationRpcInvoker } from "./provider.js";
+import { useHrefResolver, useMutationRpcInvoker } from "./provider.js";
+import { useDisplayNow } from "./display_now.js";
 
 type Row = Record<string, unknown>;
 
@@ -105,6 +107,8 @@ export function ResourceCardsView({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const mutationInvoker = useMutationRpcInvoker();
+  const resolveHref = useHrefResolver();
+  const now = useDisplayNow();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Row } | null>(null);
   if (loading) return <div className="mer-resource-cards"><p className="mer-empty">Loading…</p></div>;
   if (error) return <div className="mer-resource-cards"><p className="mer-empty">Failed to load resources.</p></div>;
@@ -130,7 +134,17 @@ export function ResourceCardsView({
           {template.statusField && <span className="mer-resource-card-status">{String(resolvePath(row, template.statusField) ?? "")}</span>}
           {template.meta.length > 0 && (
             <dl className="mer-resource-card-meta">
-              {template.meta.map((field) => <span key={field.fieldPath}><dt>{field.label}</dt><dd>{String(resolvePath(row, field.fieldPath) ?? "")}</dd></span>)}
+              {template.meta.map((field) => {
+                const value = resolvePath(row, field.fieldPath);
+                const shown = field.display ? formatByDisplay(value, field.display, now) : { text: String(value ?? "") };
+                const link = resolveValueLink(value, field.display);
+                const hostHref = link ? resolveHref?.(link.targetKind, link.id) : undefined;
+                const external = !field.display?.link && isSafeHttpUrl(value, field.display);
+                const href = hostHref || (external ? String(value) : undefined);
+                return <span key={field.fieldPath}><dt>{field.label}</dt><dd title={shown.title}>
+                  {href ? <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer noopener" : undefined}>{shown.text}</a> : shown.text}
+                </dd></span>;
+              })}
             </dl>
           )}
           <div className="mer-resource-card-actions">

@@ -1,10 +1,12 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { Alert, Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Chip, Link, Stack, Typography } from "@mui/material";
 import type { ResourceAction, ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { resolvePath, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
+import { resolvePath, useHrefResolver, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
+import { useDisplayNow } from "../use_display_now.js";
 
 function style(action: ResourceAction): "inherit" | "primary" | "error" {
   return action.style === 3 ? "error" : action.style === 2 ? "primary" : "inherit";
@@ -37,6 +39,8 @@ export function MeridianResourceCards({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const mutationInvoker = useMutationRpcInvoker();
+  const resolveHref = useHrefResolver();
+  const now = useDisplayNow();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
   if (loading) return <Typography color="text.secondary">Loading…</Typography>;
   if (error) return <Alert severity="error">Failed to load resources.</Alert>;
@@ -60,12 +64,19 @@ export function MeridianResourceCards({
               <Typography variant="h6">{String(resolvePath(row, template.titleField) ?? "")}</Typography>
               {template.subtitleField && <Typography color="text.secondary">{String(resolvePath(row, template.subtitleField) ?? "")}</Typography>}
               {template.statusField && <Chip size="small" label={String(resolvePath(row, template.statusField) ?? "")} sx={{ alignSelf: "flex-start" }} />}
-              {template.meta.map((field) => (
-                <Box key={field.fieldPath} display="flex" justifyContent="space-between" gap={2}>
+              {template.meta.map((field) => {
+                const value = resolvePath(row, field.fieldPath);
+                const shown = field.display ? formatByDisplay(value, field.display, now) : { text: String(value ?? "") };
+                const link = resolveValueLink(value, field.display);
+                const hostHref = link ? resolveHref?.(link.targetKind, link.id) : undefined;
+                const external = !field.display?.link && isSafeHttpUrl(value, field.display);
+                const href = hostHref || (external ? String(value) : undefined);
+                return <Box key={field.fieldPath} display="flex" justifyContent="space-between" gap={2}>
                   <Typography variant="caption" color="text.secondary">{field.label}</Typography>
-                  <Typography variant="body2">{String(resolvePath(row, field.fieldPath) ?? "")}</Typography>
-                </Box>
-              ))}
+                  {href ? <Link href={href} title={shown.title} target={external ? "_blank" : undefined} rel={external ? "noreferrer noopener" : undefined}>{shown.text}</Link>
+                    : <Typography variant="body2" title={shown.title}>{shown.text}</Typography>}
+                </Box>;
+              })}
               <Stack direction="row" gap={1} flexWrap="wrap">
                 {actions.filter((action) => visible(action, row)).map((action) => (
                   <Box key={action.id}>

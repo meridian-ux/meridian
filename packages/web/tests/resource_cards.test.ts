@@ -4,6 +4,7 @@ import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { renderPanel } from "../src/uiview/renderer.js";
 
 const context = {
@@ -35,7 +36,7 @@ const descriptor = create(PanelDescriptorSchema, {
         titleField: "name",
         subtitleField: "repo",
         statusField: "phase",
-        meta: [{ label: "Region", fieldPath: "region" }],
+        meta: [{ label: "Region", fieldPath: "region", display: { type: ValueType.DATE } }],
         actions: {
           actions: [
             { id: "resume", label: "Resume", visibleWhen: "phase==Suspended", invoke: { service: "workspace.Workspaces", method: "Resume" } },
@@ -65,7 +66,7 @@ describe("ResourceCardPanel (web-components)", () => {
       invoker: {
         invoke: async (service, method, request) => {
           calls.push({ method, request });
-          return method === "List" ? { items: [{ name: "Dev", repo: "meridian", phase: "Suspended", region: "us-east" }] } : {};
+          return method === "List" ? { items: [{ name: "Dev", repo: "meridian", phase: "Suspended", region: "2026-03-29" }] } : {};
         },
       },
       admission: {
@@ -75,6 +76,7 @@ describe("ResourceCardPanel (web-components)", () => {
 
     expect(root.querySelector(".mer-resource-card-title")?.textContent).toBe("Dev");
     expect(root.querySelector(".mer-resource-card-subtitle")?.textContent).toBe("meridian");
+    expect(root.querySelector(".mer-resource-card-meta dd")?.textContent).toBe("Mar 29, 2026");
     expect(root.querySelectorAll(".mer-resource-action")).toHaveLength(2);
 
     (root.querySelector(".mer-resource-action-danger") as HTMLButtonElement).click();

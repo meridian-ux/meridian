@@ -188,7 +188,10 @@ pub fn render_resource_cards(
             lines.push(Line::from(vec![
                 Span::raw("    "),
                 Span::styled(format!("{}: ", field.label), palette.meta()),
-                Span::styled(value_at(row, &field.field_path), palette.text()),
+                Span::styled(
+                    value_at_display(row, &field.field_path, field.display.as_ref()),
+                    palette.text(),
+                ),
             ]));
         }
 
@@ -1999,7 +2002,7 @@ mod tests {
     fn resource_cards_render_populated_rows_and_visible_actions() {
         use meridian_uiview::proto::{
             ActionSet, ActionStyle, MetaField, ResourceAction, ResourceCardPanel,
-            ResourceCardTemplate, RpcCall,
+            ResourceCardTemplate, RpcCall, ValueDisplay, ValueType,
         };
         use ratatui::{backend::TestBackend, Terminal};
 
@@ -2018,6 +2021,11 @@ mod tests {
                 meta: vec![MetaField {
                     label: "Region".into(),
                     field_path: "region".into(),
+                    display: Some(ValueDisplay {
+                        r#type: ValueType::Date as i32,
+                        ..Default::default()
+                    }),
+                    ..Default::default()
                 }],
                 actions: Some(ActionSet {
                     actions: vec![
@@ -2040,7 +2048,7 @@ mod tests {
             ..Default::default()
         };
         let rows = vec![
-            serde_json::json!({"name":"api-prod","owner":"platform","phase":"Running","region":"us-east"}),
+            serde_json::json!({"name":"api-prod","owner":"platform","phase":"Running","region":"2026-03-29"}),
             serde_json::json!({"name":"worker-dev","owner":"infra","phase":"Stopped","region":"us-west"}),
         ];
         let palette = Palette::default();
@@ -2056,7 +2064,7 @@ mod tests {
             .collect();
         assert!(text.contains("api-prod"));
         assert!(text.contains("status: Running"));
-        assert!(text.contains("Region: us-east"));
+        assert!(text.contains("Region: Mar 29, 2026"));
         assert!(text.contains("[1] Stop"));
         assert!(text.contains("[1] Launch"));
         assert!(resource_action_visible(

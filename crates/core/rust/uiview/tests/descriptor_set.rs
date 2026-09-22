@@ -127,6 +127,7 @@ fn carries_the_fields_this_crate_reads() {
         .iter()
         .any(|n| n == "target_kind"));
     assert!(field_names("CopyValue").iter().any(|n| n == "display"));
+    assert!(field_names("MetaField").iter().any(|n| n == "display"));
     for want in [
         "populate",
         "previous_field",

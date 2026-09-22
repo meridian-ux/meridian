@@ -7,6 +7,7 @@ package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
 import "proto/rpc.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -31,6 +32,9 @@ message ResourceCardTemplate {
 message MetaField {
   string label = 1 [(google.api.field_behavior) = REQUIRED];
   string field_path = 2 [(google.api.field_behavior) = REQUIRED];
+  // Optional semantic display for the fetched metadata value. Unset keeps the
+  // existing scalar rendering; copy/action behavior remains owned by the card.
+  ValueDisplay display = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ActionSet {

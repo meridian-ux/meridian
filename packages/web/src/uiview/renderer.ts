@@ -1271,6 +1271,7 @@ async function renderResourceCards(
     return;
   }
 
+  const displayNow = Date.now();
   for (const raw of rows) {
     const row = plainRow(raw);
     const card = el("article", "mer-resource-card");
@@ -1285,7 +1286,24 @@ async function renderResourceCards(
       const meta = el("dl", "mer-resource-card-meta");
       for (const field of panel.template.meta) {
         meta.appendChild(el("dt", undefined, field.label));
-        meta.appendChild(el("dd", undefined, String(readAt(row, field.fieldPath) ?? "")));
+        const value = readAt(row, field.fieldPath);
+        const shown = field.display ? formatByDisplay(value, field.display, displayNow) : { text: String(value ?? "") };
+        const link = resolveValueLink(value, field.display);
+        const hostHref = link ? opts.resolveHref?.({ targetKind: link.targetKind, id: link.id, row: plainValue(row) as object }) : undefined;
+        const external = !field.display?.link && isSafeHttpUrl(value, field.display);
+        const href = hostHref || (external ? String(value) : undefined);
+        const dd = el("dd");
+        if (shown.title) dd.title = shown.title;
+        if (href) {
+          const anchor = el("a", undefined, shown.text) as HTMLAnchorElement;
+          anchor.href = href;
+          if (external) {
+            anchor.target = "_blank";
+            anchor.rel = "noreferrer noopener";
+          }
+          dd.appendChild(anchor);
+        } else dd.textContent = shown.text;
+        meta.appendChild(dd);
       }
       card.appendChild(meta);
     }
