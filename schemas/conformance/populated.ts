@@ -6,6 +6,12 @@
 // rows instead of quietly growing kit-specific examples.
 
 export const POPULATED_RESPONSES = {
+  table: {
+    claims: [
+      { member: "Ada", amount: "0012.50", enabled: true, website: "https://example.com/ada" },
+      { member: "Grace", amount: "0007.00", enabled: false, website: "javascript:alert(1)" },
+    ],
+  },
   resource_cards: {
     services: [
       {

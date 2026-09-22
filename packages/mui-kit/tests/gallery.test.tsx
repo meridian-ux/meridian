@@ -21,6 +21,21 @@ import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 
 afterEach(cleanup);
 
+it("renders canonical table rows with legacy scalars, declared displays, and safe links", async () => {
+  const fixture = FIXTURES.find((candidate) => candidate.shape === "table")!;
+  const { container } = render(
+    <MeridianMuiProvider invoker={{ invoke: async () => POPULATED_RESPONSES.table }} resolveHref={(kind, id) => kind === "member" && id === "Ada" ? "/members/ada" : undefined}>
+      <PanelRenderer descriptor={fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor))} />
+    </MeridianMuiProvider>,
+  );
+  expect(await screen.findByText("Ada")).toBeTruthy();
+  expect(screen.getByText("Grace")).toBeTruthy();
+  expect(container.querySelectorAll("tbody tr")).toHaveLength(2);
+  for (const text of ["0012.50", "0007.00", "Yes", "No", "javascript:alert(1)"]) expect(screen.getByText(text)).toBeTruthy();
+  expect(screen.getAllByRole("link")).toHaveLength(1);
+  expect(screen.getByRole("link").getAttribute("href")).toBe("/members/ada");
+});
+
 const invoker: RpcInvoker = {
   invoke: async (_service, method) => {
     if (method === "get-run") {

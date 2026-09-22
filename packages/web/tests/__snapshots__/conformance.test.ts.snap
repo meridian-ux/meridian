@@ -221,7 +221,22 @@ div role="log" aria-live="polite"
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical table fixture > web-components/table 1`] = `
 ""Claims"
-"(table has no populate RPC)""
+"0 items"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+      th
+        "Enabled"
+      th
+        "Website"
+  tbody
+    tr
+      td
+        "no claims""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical terminal fixture > web-components/terminal 1`] = `

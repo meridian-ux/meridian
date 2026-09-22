@@ -10,6 +10,7 @@ import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
+import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 
 const wasm: UiviewWasm = {
   renderTable: () => [] as RenderedRow[],
@@ -19,6 +20,32 @@ const wasm: UiviewWasm = {
   renderTablePanel: () => [] as RenderedRow[],
   formatLroMetadata: () => "",
 };
+
+it("renders canonical populated table rows and admits only host-resolved member links", async () => {
+  const fixture = FIXTURES.find((candidate) => candidate.shape === "table")!;
+  const root = document.createElement("div");
+  // This suite tests the DOM bridge. Native TestBackend tests separately exercise
+  // the actual Rust formatter with the same serialized descriptor and row values.
+  const bridge: UiviewWasm = { ...wasm, renderTable: (bytes, response) => {
+    const descriptor = fromBinary(PanelDescriptorSchema, bytes);
+    if (descriptor.body.case !== "table") throw new Error("expected table");
+    const table = descriptor.body.value;
+    const rows = (response as Record<string, Array<Record<string, unknown>>>)[table.rowsField];
+    return rows.map((raw) => ({ raw, cells: table.columns.map((column) => column.valueDisplay
+      ? formatByDisplay(raw[column.fieldPath], column.valueDisplay).text
+      : String(raw[column.fieldPath] ?? "")) }));
+  } };
+  await renderPanel({ wasm: bridge, root,
+    descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor)),
+    invoker: { invoke: async () => POPULATED_RESPONSES.table },
+    context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    resolveHref: ({ targetKind, id }) => targetKind === "member" && id === "Ada" ? "/members/ada" : undefined,
+  });
+  expect(root.querySelectorAll("tbody tr")).toHaveLength(2);
+  for (const text of ["Ada", "Grace", "0012.50", "0007.00", "Yes", "No", "javascript:alert(1)"]) expect(root.textContent).toContain(text);
+  expect(root.querySelectorAll("a")).toHaveLength(1);
+  expect(root.querySelector("a")?.getAttribute("href")).toBe("/members/ada");
+});
 
 describe("web-components GalleryPanel", () => {
   it.each([false, true])("fetches wire-decoded cards with declared displays=%s", async (declared) => {

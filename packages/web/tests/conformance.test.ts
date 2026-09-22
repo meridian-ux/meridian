@@ -123,7 +123,10 @@ describe("renderPanel (web-components, binary boundary)", () => {
     it(`renders the canonical ${fixture.name} fixture`, async () => {
       const root = document.createElement("div");
       await renderPanel({
-        wasm: mockWasm,
+        wasm: { ...mockWasm, renderTable: (bytes) => {
+          fromBinary(PanelDescriptorSchema, bytes);
+          return [];
+        } },
         root,
         descriptor: fixture.descriptor,
         invoker: { invoke: async () => ({}) },

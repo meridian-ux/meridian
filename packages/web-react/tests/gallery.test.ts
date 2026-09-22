@@ -14,6 +14,23 @@ import { PanelRenderer } from "../src/panel_renderer.js";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s canonical populated table", (_name, kit) => {
+  it("documents the table placeholder boundary even when populated data is available", async () => {
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "table")!;
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(createElement(MeridianProvider, {
+        kit, adhoc: {}, invoker: { invoke: async () => POPULATED_RESPONSES.table },
+      }, createElement(PanelRenderer, { descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor)) }))));
+      expect(container.querySelectorAll("th")).toHaveLength(4);
+      expect(container.textContent).toContain("no claims");
+      expect(container.textContent).not.toContain("Ada");
+      expect(container.querySelectorAll("a")).toHaveLength(0);
+    } finally { await act(async () => root.unmount()); }
+  });
+});
+
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s populated gallery", (_name, kit) => {
   async function mount(response: unknown, typed = false, fail = false) {
     const descriptor = create(PanelDescriptorSchema, { panelId: "gallery", body: { case: "gallery", value: {

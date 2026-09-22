@@ -209,8 +209,8 @@ exports[`muiKit canonical panel conformance > renders the stream fixture without
 `;
 
 exports[`muiKit canonical panel conformance > renders the table fixture without crashing > mui-kit/table 1`] = `
-"p
-  "no claims""
+"span role="progressbar"
+  svg"
 `;
 
 exports[`muiKit canonical panel conformance > renders the terminal fixture without crashing > mui-kit/terminal 1`] = `

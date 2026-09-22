@@ -47,6 +47,23 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+struct TableData;
+
+impl RpcInvoker for TableData {
+    fn invoke(
+        &self,
+        service: &str,
+        method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        assert_eq!((service, method), ("demo.Claims", "List"));
+        Ok(serde_json::json!({"claims": [
+            {"member": "Ada", "amount": "0012.50", "enabled": true, "website": "https://example.com/ada"},
+            {"member": "Grace", "amount": "0007.00", "enabled": false, "website": "javascript:alert(1)"}
+        ]}))
+    }
+}
+
 impl RpcInvoker for GalleryData {
     fn invoke(
         &self,
@@ -482,6 +499,17 @@ fn canonical_gallery_fixture_renders_populated_rows() {
     assert!(output.contains("PagerDuty"));
     assert!(output.contains("Incident response"));
     assert!(!output.contains("Failed to load gallery"));
+}
+
+#[test]
+fn canonical_table_fixture_renders_populated_rows() {
+    let descriptor = PanelDescriptor::decode(read_canonical_fixture("table.binpb").as_slice())
+        .expect("table fixture decodes");
+    let output = draw_with(&descriptor, 160, 20, &TableData);
+    for text in ["Ada", "Grace", "0012.50", "0007.00", "Yes", "No"] {
+        assert!(output.contains(text), "missing {text}: {output}");
+    }
+    assert!(!output.contains("no claims"));
 }
 
 #[test]

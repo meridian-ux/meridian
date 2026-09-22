@@ -60,6 +60,15 @@ Their initial-state snapshots still do not establish populated card support.
 The canonical Gallery fixture now also carries its populate and card mapping;
 the same two-row response is exercised through HTML, Shadcn, MUI,
 web-components, and TUI, closing the first populated gallery matrix slice.
+The canonical Table descriptor now includes its populate RPC, legacy scalar
+columns, declared boolean/URL displays, and a host-resolved member link. Focused
+MUI and web-components tests use the shared two-row response; the native test
+decodes the same wire descriptor and exercises the Rust formatter. The browser
+web-components test substitutes the WASM bridge, so it is DOM/link evidence,
+not an end-to-end WASM test. HTML and Shadcn tables remain placeholders, explicitly
+tested as that boundary. URL display alone remains plain text on these populated
+table surfaces; only the host-approved ColumnLink becomes interactive.
+
 Epic #9 still owns representative overflow/ValueType fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package

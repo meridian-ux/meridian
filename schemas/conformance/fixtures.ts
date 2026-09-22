@@ -43,6 +43,7 @@ import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js
 import { SnippetPanelSchema } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 
 export interface Fixture {
   name: string;
@@ -61,7 +62,14 @@ export const FIXTURES: Fixture[] = [
       body: {
         case: "table",
         value: create(TablePanelSchema, {
-          columns: [{ header: "Member" }, { header: "Amount" }],
+          populate: { service: "demo.Claims", method: "List" },
+          rowsField: "claims",
+          columns: [
+            { header: "Member", fieldPath: "member", link: { targetKind: "member" } },
+            { header: "Amount", fieldPath: "amount" },
+            { header: "Enabled", fieldPath: "enabled", valueDisplay: { type: ValueType.BOOLEAN } },
+            { header: "Website", fieldPath: "website", valueDisplay: { type: ValueType.URL } },
+          ],
           placeholder: "no claims",
         }),
       },
