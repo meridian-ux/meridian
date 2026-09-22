@@ -15,3 +15,5 @@ export * from "./admission.js";
 export * from "./stat.js";
 // Shared declared-value formatter used by browser read surfaces.
 export * from "./value_display.js";
+// Browser navigation admission for authored links and deep-link affordances.
+export * from "./navigation.js";

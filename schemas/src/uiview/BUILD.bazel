@@ -13,6 +13,7 @@ ts_project(
     srcs = [
         "admission.ts",
         "index.ts",
+        "navigation.ts",
         "stat.ts",
         "transport.ts",
         "value_display.ts",

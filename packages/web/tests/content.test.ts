@@ -80,6 +80,25 @@ describe("web-components content shapes (field-complete)", () => {
     expect(link?.getAttribute("href")).toBe("cursor://install");
   });
 
+  it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(
+    "Action degrades an unsafe URI to a disabled control: %s",
+    async (uri) => {
+      const root = await draw(create(PanelDescriptorSchema, {
+        body: { case: "action", value: {
+          description: "Keep the authored context",
+          action: { label: "Open destination", description: "Untrusted target", icon: "open", invoke: { case: "uri", value: uri } },
+        } },
+      }));
+      expect(root.querySelector("a")).toBeNull();
+      const control = root.querySelector("button.mer-affordance") as HTMLButtonElement;
+      expect(control.disabled).toBe(true);
+      expect(control.getAttribute("aria-disabled")).toBe("true");
+      expect(root.textContent).toContain("Open destination");
+      expect(root.textContent).toContain("Untrusted target");
+      expect(control.dataset.icon).toBe("open");
+    },
+  );
+
   it("CopyValue masks a secret and reveals on click (copy yields plaintext)", async () => {
     const root = await draw(copyValueFixture);
     const code = root.querySelector(".mer-copyvalue-value") as HTMLElement;

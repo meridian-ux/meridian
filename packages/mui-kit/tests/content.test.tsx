@@ -224,6 +224,24 @@ describe("muiKit content field-completeness", () => {
     await screen.findByText("opens the repo"); // Affordance.description
   });
 
+  it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(
+    "unsafe Affordance URI degrades to a disabled control: %s",
+    async (uri) => {
+      const { container } = renderPanel(create(PanelDescriptorSchema, {
+        body: { case: "action", value: {
+          description: "Keep the authored context",
+          action: { label: "Open destination", description: "Untrusted target", icon: "open", invoke: { case: "uri", value: uri } },
+        } },
+      }));
+      expect(container.querySelector("a")).toBeNull();
+      const control = await screen.findByRole("button", { name: "Open destination" });
+      expect((control as HTMLButtonElement).disabled).toBe(true);
+      expect(control.getAttribute("aria-disabled")).toBe("true");
+      expect(control.getAttribute("data-icon")).toBe("open");
+      await screen.findByText("Untrusted target");
+    },
+  );
+
   it("ConnectFlow with no targets renders the placeholder", async () => {
     render(
       <MeridianMuiProvider invoker={invoker}>

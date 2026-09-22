@@ -318,6 +318,16 @@ lines, and an unspecified limit uses a bounded 2,000-line renderer default
 rather than retaining an unbounded process-lifetime stream. This establishes
 native retention semantics without claiming a built-in streaming transport.
 
+Authored `Affordance.invoke.uri` values pass through one browser navigation
+admission rule before any renderer creates a link. Relative routes, HTTP(S),
+mail links, and application deep links such as `cursor://` remain available;
+executable or local-document schemes (`javascript:`, `data:`, `file:`,
+`vbscript:`, and `blob:`), control characters, and malformed values degrade to
+a disabled control that retains the label, description, and icon. Focused
+web-components, HTML, Shadcn, MUI, and framework-neutral seam tests protect the
+same rule. Native surfaces continue to expose URI intent as text for host-owned
+activation.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and

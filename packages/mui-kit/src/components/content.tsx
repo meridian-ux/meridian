@@ -41,6 +41,7 @@ import {
 } from "@savvifi/meridian-web-react";
 import {
   computeStat,
+  safeNavigationHref,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -90,13 +91,20 @@ function AffordanceButton({ affordance }: { affordance: Affordance }): ReactNode
     title: affordance.description || undefined,
     "data-icon": affordance.icon || undefined,
   };
+  const href = affordance.invoke.case === "uri" ? safeNavigationHref(affordance.invoke.value) : undefined;
+  const unavailableUri = affordance.invoke.case === "uri" && !href;
   const button =
-    affordance.invoke.case === "uri" ? (
-      <Button component={Link} href={affordance.invoke.value} {...common}>
+    href ? (
+      <Button component={Link} href={href} {...common}>
         {affordance.label}
       </Button>
     ) : (
-      <Button onClick={() => copyText(affordance.invoke.case === "command" ? affordance.invoke.value : "")} {...common}>
+      <Button
+        disabled={unavailableUri}
+        aria-disabled={unavailableUri || undefined}
+        onClick={() => copyText(affordance.invoke.case === "command" ? affordance.invoke.value : "")}
+        {...common}
+      >
         {affordance.label}
       </Button>
     );

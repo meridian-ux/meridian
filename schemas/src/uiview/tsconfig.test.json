@@ -21,6 +21,11 @@
   //
   // A future test that needs the generated proto types belongs on the Bazel
   // path (publish.yml), not here. admission.ts is import-free by design.
-  "include": ["admission.ts", "admission.test.ts"],
+  "include": [
+    "admission.ts",
+    "admission.test.ts",
+    "navigation.ts",
+    "navigation.test.ts"
+  ],
   "exclude": []
 }

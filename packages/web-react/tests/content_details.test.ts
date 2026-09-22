@@ -124,6 +124,26 @@ describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
     expect(render(kit, catalog)).toContain('data-icon="github"');
   });
 
+  it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(
+    "unsafe Affordance URI degrades to a disabled control: %s",
+    (uri) => {
+      const unsafe = create(PanelDescriptorSchema, {
+        body: { case: "action", value: {
+          description: "Keep the authored context",
+          action: { label: "Open destination", description: "Untrusted target", icon: "open", invoke: { case: "uri", value: uri } },
+        } },
+      });
+      const html = render(kit, unsafe);
+      expect(html).not.toContain("<a ");
+      expect(html).toContain("<button");
+      expect(html).toContain('aria-disabled="true"');
+      expect(html).toContain("disabled");
+      expect(html).toContain("Open destination");
+      expect(html).toContain("Untrusted target");
+      expect(html).toContain('data-icon="open"');
+    },
+  );
+
   it("CopyValue secret masks + exposes a reveal affordance (plaintext still copyable)", () => {
     const html = render(kit, secret);
     expect(html).toContain("••••••••"); // masked

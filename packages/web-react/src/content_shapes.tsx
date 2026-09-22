@@ -31,6 +31,7 @@ import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import {
   computeStat,
   formatByDisplay,
+  safeNavigationHref,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -241,9 +242,11 @@ export function AffordanceControl({ c, affordance }: { c: ContentClasses; afford
       <span>{affordance.label}</span>
     </>
   );
+  const href = affordance.invoke.case === "uri" ? safeNavigationHref(affordance.invoke.value) : undefined;
+  const unavailableUri = affordance.invoke.case === "uri" && !href;
   const control =
-    affordance.invoke.case === "uri" ? (
-      <a className={cls} href={affordance.invoke.value} data-icon={affordance.icon || undefined} title={affordance.description || undefined}>
+    href ? (
+      <a className={cls} href={href} data-icon={affordance.icon || undefined} title={affordance.description || undefined}>
         {inner}
       </a>
     ) : (
@@ -251,6 +254,8 @@ export function AffordanceControl({ c, affordance }: { c: ContentClasses; afford
         type="button"
         className={`${cls} mer-copy`}
         data-copy={affordance.invoke.case === "command" ? affordance.invoke.value : ""}
+        disabled={unavailableUri}
+        aria-disabled={unavailableUri || undefined}
         data-icon={affordance.icon || undefined}
         title={affordance.description || undefined}
       >

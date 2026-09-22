@@ -65,6 +65,7 @@ import {
   formatByDisplay,
   isSafeHttpUrl,
   resolveValueLink,
+  safeNavigationHref,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -578,9 +579,18 @@ function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement
   const cls = `mer-affordance${primary ? " mer-affordance-primary" : ""}`;
   let control: HTMLElement;
   if (aff.invoke.case === "uri") {
-    const a = el("a", cls);
-    (a as HTMLAnchorElement).href = aff.invoke.value;
-    control = a;
+    const href = safeNavigationHref(aff.invoke.value);
+    if (href) {
+      const a = el("a", cls);
+      (a as HTMLAnchorElement).href = href;
+      control = a;
+    } else {
+      const button = el("button", cls);
+      (button as HTMLButtonElement).type = "button";
+      (button as HTMLButtonElement).disabled = true;
+      button.setAttribute("aria-disabled", "true");
+      control = button;
+    }
   } else {
     control = el("button", `${cls} mer-copy`);
     (control as HTMLButtonElement).type = "button";
