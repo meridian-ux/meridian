@@ -25,6 +25,18 @@ const view = create(ViewDescriptorSchema, {
   }],
 });
 
+const overflowView = create(ViewDescriptorSchema, {
+  id: "mui-admission-overflow-view",
+  kind: ViewKind.LIST,
+  layout: { mode: { case: "stacked", value: {} } },
+  actions: [{
+    id: "delete",
+    label: "Delete",
+    placement: ActionPlacement.OVERFLOW,
+    call: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }),
+  }],
+});
+
 describe("MUI admission boundary", () => {
   it("blocks a header mutation before the invoker", () => {
     const calls: string[] = [];
@@ -50,6 +62,30 @@ describe("MUI admission boundary", () => {
     expect(calls).toEqual([]);
     expect(denials).toMatchObject([{ tier: "mutation", service: "demo.Orders", method: "DeleteOrder" }]);
   });
+
+  it("shows an unavailable note for a denied overflow mutation", () => {
+    const calls: string[] = [];
+    const invoker: RpcInvoker = {
+      invoke: async (_service, method) => {
+        calls.push(method);
+        return {};
+      },
+    };
+    render(
+      <MeridianMuiProvider invoker={invoker} admission={{}}>
+        <ViewRenderer view={overflowView} />
+      </MeridianMuiProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "more actions" }));
+    const action = screen.getByRole("menuitem", { name: /Delete/ });
+    expect(action.getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
+    fireEvent.click(action);
+
+    expect(calls).toEqual([]);
+  });
+
   it("shows escaped failures, retries the same request, and prevents duplicate mutations", async () => {
     const calls: unknown[] = [];
     let finish: (() => void) | undefined;

@@ -1032,7 +1032,10 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
                   fire(action);
                 }}
               >
-                {action.label}
+                <Box display="inline-flex" alignItems="center" gap={1}>
+                  <span>{action.label}</span>
+                  {feedback.denial(action.call)}
+                </Box>
               </MenuItem>
             ))}
           </Menu>
