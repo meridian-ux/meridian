@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import { registerAssistantPanel } from "../src/assistant_panel.js";
 
-function renderListItem(item: Record<string, unknown>): string {
+function renderBlock(block: Record<string, unknown>): string {
   registerAssistantPanel();
   const panel = document.createElement("m-assistant-panel") as HTMLElement;
   const internals = panel as unknown as {
@@ -18,9 +18,13 @@ function renderListItem(item: Record<string, unknown>): string {
   Object.defineProperty(panel.querySelector("[data-log]"), "scrollTo", { value: () => undefined });
   internals.handle({
     seq: 1,
-    block: { blockId: "list", list: { items: [item] } },
+    block: { blockId: "test", ...block },
   });
   return panel.querySelector(".asst-row")?.innerHTML ?? "";
+}
+
+function renderListItem(item: Record<string, unknown>): string {
+  return renderBlock({ list: { items: [item] } });
 }
 
 describe("vanilla assistant list displays", () => {
@@ -61,5 +65,50 @@ describe("vanilla assistant list displays", () => {
       expect(html).not.toContain("<raw>");
       expect(html).not.toContain("<literal>");
     }
+  });
+});
+
+describe("vanilla assistant table displays", () => {
+  it("formats declared cells while preserving fallbacks, missing cells, and escaping", () => {
+    const html = renderBlock({
+      table: {
+        columns: [
+          { key: "created", label: "Created" },
+          { key: "owner", label: "Owner" },
+          { key: "raw", label: "Raw" },
+          { key: "missing", label: "Missing" },
+          { key: "escaped", label: "Escaped" },
+        ],
+        rows: [{
+          cells: {
+            created: "raw-date",
+            owner: "raw-owner",
+            raw: "0012.50 <raw>",
+            escaped: "unused",
+          },
+          displayCells: {
+            created: { value: "2026-03-29T00:00:00Z", display: { type: "VALUE_TYPE_DATE" } },
+            owner: {
+              value: "Ada <ada@example.com>",
+              display: {
+                type: "VALUE_TYPE_PRINCIPAL",
+                principal: { display: "PRINCIPAL_DISPLAY_NAME_WITH_EMAIL_TITLE" },
+              },
+            },
+            raw: { value: "0012.50 <raw>", display: { type: "VALUE_TYPE_DECIMAL" } },
+            escaped: { value: "<script>alert(1)</script>", display: { type: "FUTURE_TYPE" } },
+          },
+        }],
+      },
+    });
+
+    expect(html).toContain("<td>Mar 29, 2026</td>");
+    expect(html).toContain('<td title="ada@example.com">Ada</td>');
+    expect(html).toContain("<td>0012.50 &lt;raw&gt;</td>");
+    expect(html).toContain("<td></td>");
+    expect(html).toContain("<td>&lt;script&gt;alert(1)&lt;/script&gt;</td>");
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("raw-date");
+    expect(html).not.toContain("raw-owner");
   });
 });

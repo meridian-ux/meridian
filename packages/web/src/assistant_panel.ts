@@ -36,7 +36,14 @@ interface BlockMsg {
   fields?: { fields: { key: string; value: string }[] };
   code?: { language?: string; text: string };
   divider?: Record<string, never>;
-  table?: { title?: string; columns: { key: string; label: string }[]; rows: { cells: Record<string, string> }[] };
+  table?: {
+    title?: string;
+    columns: { key: string; label: string }[];
+    rows: {
+      cells: Record<string, string>;
+      displayCells?: Record<string, { value?: string; display?: JsonObject }>;
+    }[];
+  };
 }
 interface ListItem {
   title?: string;
@@ -180,7 +187,15 @@ function renderAssistantBlock(b: BlockMsg): string {
     const cols = b.table.columns || [];
     const head = cols.map((c) => `<th>${esc(c.label || c.key)}</th>`).join('');
     const body = (b.table.rows || []).map((r) =>
-      `<tr>${cols.map((c) => `<td>${esc((r.cells || {})[c.key] || '')}</td>`).join('')}</tr>`).join('');
+      `<tr>${cols.map((c) => {
+        const declared = r.displayCells && Object.prototype.hasOwnProperty.call(r.displayCells, c.key)
+          ? r.displayCells[c.key]
+          : undefined;
+        const shown = declared
+          ? displayListValue(declared.value, declared.display)
+          : { text: Object.prototype.hasOwnProperty.call(r.cells || {}, c.key) ? r.cells[c.key] : '' };
+        return `<td${shown.title ? ` title="${esc(shown.title)}"` : ''}>${esc(shown.text)}</td>`;
+      }).join('')}</tr>`).join('');
     return `<table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   }
   if (b.divider) return '<hr class="div">';
