@@ -16,6 +16,43 @@ import { MeridianMuiProvider } from "../src/provider.js";
 afterEach(cleanup);
 
 describe("ResourceCardPanel (MUI)", () => {
+  it("applies declared displays to resource-card title slots", async () => {
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "typed-slots",
+      body: {
+        case: "resourceCards",
+        value: {
+          populate: { service: "demo.Items", method: "List" },
+          rowsField: "items",
+          template: {
+            titleField: "created",
+            titleDisplay: { type: ValueType.DATE },
+            subtitleField: "owner",
+            subtitleDisplay: {
+              type: ValueType.PRINCIPAL,
+              options: {
+                case: "principal",
+                value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE },
+              },
+            },
+            statusField: "created",
+            statusDisplay: { type: ValueType.DATE },
+          },
+        },
+      },
+    });
+    render(
+      <MeridianMuiProvider
+        invoker={{ invoke: async () => ({ items: [{ created: "2026-03-29", owner: "Ada <ada@example.com>" }] }) }}
+      >
+        <PanelRenderer descriptor={descriptor} />
+      </MeridianMuiProvider>,
+    );
+    expect(await screen.findAllByText("Mar 29, 2026")).toHaveLength(2);
+    expect(screen.getByText("Ada").getAttribute("title")).toBe("ada@example.com");
+    expect(screen.getAllByText("Mar 29, 2026")).toHaveLength(2);
+  });
+
   it("renders the canonical populated resource-card scenario", async () => {
     const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
     const descriptor = fromBinary(

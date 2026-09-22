@@ -42,6 +42,45 @@ describe("ResourceCardPanel (React)", () => {
       expect(container.textContent).toContain("Incident response");
       await act(async () => root.unmount());
     });
+
+    it(`${name} applies declared displays to resource-card title slots`, async () => {
+      const descriptor = create(PanelDescriptorSchema, {
+        panelId: "typed-slots",
+        body: {
+          case: "resourceCards",
+          value: {
+            populate: { service: "demo.Items", method: "List" },
+            rowsField: "items",
+            template: {
+              titleField: "created",
+              titleDisplay: { type: ValueType.DATE },
+              subtitleField: "owner",
+              subtitleDisplay: {
+                type: ValueType.PRINCIPAL,
+                options: {
+                  case: "principal",
+                  value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE },
+                },
+              },
+              statusField: "created",
+              statusDisplay: { type: ValueType.DATE },
+            },
+          },
+        },
+      });
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      await act(async () => root.render(createElement(MeridianProvider, {
+        invoker: { invoke: async () => ({ items: [{ created: "2026-03-29", owner: "Ada <ada@example.com>" }] }) },
+        kit,
+        adhoc: {},
+      }, createElement(PanelRenderer, { descriptor }))));
+      expect(container.querySelector(".mer-resource-card-title")?.textContent).toBe("Mar 29, 2026");
+      expect(container.querySelector(".mer-resource-card-subtitle")?.textContent).toBe("Ada");
+      expect(container.querySelector(".mer-resource-card-subtitle")?.getAttribute("title")).toBe("ada@example.com");
+      expect(container.querySelector(".mer-resource-card-status")?.textContent).toBe("Mar 29, 2026");
+      await act(async () => root.unmount());
+    });
   }
 
   it("dispatches the resource-card shape through the kit", async () => {

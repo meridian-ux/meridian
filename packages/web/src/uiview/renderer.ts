@@ -1276,12 +1276,18 @@ async function renderResourceCards(
     const row = plainRow(raw);
     const card = el("article", "mer-resource-card");
     card.setAttribute("role", "listitem");
+    const slot = (tag: string, className: string, value: unknown, display: Parameters<typeof formatByDisplay>[1]) => {
+      const shown = display ? formatByDisplay(value, display, displayNow) : { text: String(value ?? "") };
+      const element = el(tag, className, shown.text);
+      if (shown.title) element.title = shown.title;
+      return element;
+    };
     const title = readAt(row, panel.template.titleField);
-    card.appendChild(el("h3", "mer-resource-card-title", String(title ?? "")));
+    card.appendChild(slot("h3", "mer-resource-card-title", title, panel.template.titleDisplay));
     const subtitle = readAt(row, panel.template.subtitleField);
-    if (subtitle != null && subtitle !== "") card.appendChild(el("p", "mer-resource-card-subtitle", String(subtitle)));
+    if (subtitle != null && subtitle !== "") card.appendChild(slot("p", "mer-resource-card-subtitle", subtitle, panel.template.subtitleDisplay));
     const status = readAt(row, panel.template.statusField);
-    if (status != null && status !== "") card.appendChild(el("span", "mer-resource-card-status", String(status)));
+    if (status != null && status !== "") card.appendChild(slot("span", "mer-resource-card-status", status, panel.template.statusDisplay));
     if (panel.template.meta.length > 0) {
       const meta = el("dl", "mer-resource-card-meta");
       for (const field of panel.template.meta) {

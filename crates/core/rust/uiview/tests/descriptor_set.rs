@@ -121,6 +121,10 @@ fn carries_the_fields_this_crate_reads() {
         "TableColumn.value_display absent — the set predates schemas 0.22.0"
     );
     let stat = field_names("StatPanel");
+    let card = field_names("ResourceCardTemplate");
+    for name in ["title_display", "subtitle_display", "status_display"] {
+        assert!(card.iter().any(|field| field == name), "missing {name}");
+    }
     assert!(field_names("ValueDisplay").iter().any(|n| n == "link"));
     assert!(field_names("ValueLink").iter().any(|n| n == "target_kind"));
     assert!(field_names("PrincipalOptions")

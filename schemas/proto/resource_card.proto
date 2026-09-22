@@ -27,6 +27,15 @@ message ResourceCardTemplate {
   string status_field = 3 [(google.api.field_behavior) = OPTIONAL];
   repeated MetaField meta = 4 [(google.api.field_behavior) = OPTIONAL];
   ActionSet actions = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the primary title slot. Unset preserves the
+  // existing scalar rendering and the title's role in the card chrome.
+  // These three slots use display text (and titles where supported), not link
+  // navigation. ValueLink does not change card actions or row identity.
+  ValueDisplay title_display = 6 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the secondary subtitle slot.
+  ValueDisplay subtitle_display = 7 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the status/badge slot.
+  ValueDisplay status_display = 8 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message MetaField {

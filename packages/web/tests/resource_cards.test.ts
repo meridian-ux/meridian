@@ -57,6 +57,44 @@ const descriptor = create(PanelDescriptorSchema, {
 });
 
 describe("ResourceCardPanel (web-components)", () => {
+  it("applies declared displays to resource-card title slots", async () => {
+    const panel = create(PanelDescriptorSchema, {
+      body: {
+        case: "resourceCards",
+        value: {
+          populate: { service: "demo.Items", method: "List" },
+          rowsField: "items",
+          template: {
+            titleField: "created",
+            titleDisplay: { type: ValueType.DATE },
+            subtitleField: "owner",
+            subtitleDisplay: {
+              type: ValueType.PRINCIPAL,
+              options: {
+                case: "principal",
+                value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE },
+              },
+            },
+            statusField: "created",
+            statusDisplay: { type: ValueType.DATE },
+          },
+        },
+      },
+    });
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, panel)),
+      invoker: { invoke: async () => ({ items: [{ created: "2026-03-29", owner: "Ada <ada@example.com>" }] }) },
+      context,
+    });
+    expect(root.querySelector(".mer-resource-card-title")?.textContent).toBe("Mar 29, 2026");
+    expect(root.querySelector(".mer-resource-card-subtitle")?.textContent).toBe("Ada");
+    expect(root.querySelector(".mer-resource-card-subtitle")?.getAttribute("title")).toBe("ada@example.com");
+    expect(root.querySelector(".mer-resource-card-status")?.textContent).toBe("Mar 29, 2026");
+  });
+
   it("renders the canonical populated resource-card scenario after wire decoding", async () => {
     const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
     const descriptor = fromBinary(

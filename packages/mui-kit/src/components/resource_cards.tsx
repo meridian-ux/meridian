@@ -57,13 +57,21 @@ export function MeridianResourceCards({
   };
   return (
     <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap={2}>
-      {rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const slot = (path: string, display: Parameters<typeof formatByDisplay>[1]) => {
+          const value = resolvePath(row, path);
+          return display ? formatByDisplay(value, display, now) : { text: String(value ?? "") };
+        };
+        const title = slot(template.titleField, template.titleDisplay);
+        const subtitle = slot(template.subtitleField, template.subtitleDisplay);
+        const status = slot(template.statusField, template.statusDisplay);
+        return (
         <Card variant="outlined" key={index}>
           <CardContent>
             <Stack spacing={1.25}>
-              <Typography variant="h6">{String(resolvePath(row, template.titleField) ?? "")}</Typography>
-              {template.subtitleField && <Typography color="text.secondary">{String(resolvePath(row, template.subtitleField) ?? "")}</Typography>}
-              {template.statusField && <Chip size="small" label={String(resolvePath(row, template.statusField) ?? "")} sx={{ alignSelf: "flex-start" }} />}
+              <Typography variant="h6" title={title.title}>{title.text}</Typography>
+              {template.subtitleField && <Typography color="text.secondary" title={subtitle.title}>{subtitle.text}</Typography>}
+              {template.statusField && <Chip size="small" label={status.text} title={status.title} sx={{ alignSelf: "flex-start" }} />}
               {template.meta.map((field, fieldIndex) => {
                 const value = resolvePath(row, field.fieldPath);
                 const shown = field.display ? formatByDisplay(value, field.display, now) : { text: String(value ?? "") };
@@ -99,7 +107,8 @@ export function MeridianResourceCards({
             </Stack>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </Box>
   );
 }

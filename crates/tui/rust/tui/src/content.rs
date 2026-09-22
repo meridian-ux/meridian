@@ -169,19 +169,36 @@ pub fn render_resource_cards(
         let marker = if active { "▶ " } else { "  " };
         lines.push(Line::from(vec![
             Span::styled(format!("{marker}{}. ", index + 1), title_style),
-            Span::styled(value_at(row, &template.title_field), title_style),
+            Span::styled(
+                value_at_slot(row, &template.title_field, template.title_display.as_ref()),
+                title_style,
+            ),
         ]));
 
         if !template.subtitle_field.is_empty() {
             lines.push(Line::from(vec![
                 Span::raw("    "),
-                Span::styled(value_at(row, &template.subtitle_field), palette.meta()),
+                Span::styled(
+                    value_at_slot(
+                        row,
+                        &template.subtitle_field,
+                        template.subtitle_display.as_ref(),
+                    ),
+                    palette.meta(),
+                ),
             ]));
         }
         if !template.status_field.is_empty() {
             lines.push(Line::from(vec![
                 Span::raw("    status: "),
-                Span::styled(value_at(row, &template.status_field), palette.title()),
+                Span::styled(
+                    value_at_slot(
+                        row,
+                        &template.status_field,
+                        template.status_display.as_ref(),
+                    ),
+                    palette.title(),
+                ),
             ]));
         }
         for field in &template.meta {
@@ -229,6 +246,17 @@ fn value_at(row: &Value, path: &str) -> String {
         ProtoPaths::get(row, path),
         meridian_uiview::proto::ColumnFormat::Unspecified,
     )
+}
+
+// Card chrome uses plain display text, without metadata's route decoration.
+fn value_at_slot(
+    row: &Value,
+    path: &str,
+    display: Option<&meridian_uiview::proto::ValueDisplay>,
+) -> String {
+    display
+        .map(|display| format_display_value(ProtoPaths::get(row, path), display))
+        .unwrap_or_else(|| value_at(row, path))
 }
 
 fn value_at_display(
@@ -2045,6 +2073,7 @@ mod tests {
                         },
                     ],
                 }),
+                ..Default::default()
             }),
             ..Default::default()
         };
@@ -2091,6 +2120,62 @@ mod tests {
                 .actions[0],
             &rows[0]
         ));
+    }
+
+    #[test]
+    fn resource_card_template_slots_honor_declared_displays() {
+        use prost::Message;
+        use meridian_uiview::proto::{
+            value_display, PrincipalDisplay, PrincipalOptions, ResourceCardPanel,
+            ResourceCardTemplate, ValueDisplay, ValueType,
+        };
+        use ratatui::{backend::TestBackend, Terminal};
+
+        let panel = ResourceCardPanel {
+            template: Some(ResourceCardTemplate {
+                title_field: "created".into(),
+                title_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
+                subtitle_field: "owner".into(),
+                subtitle_display: Some(ValueDisplay {
+                    r#type: ValueType::Principal as i32,
+                    options: Some(value_display::Options::Principal(PrincipalOptions {
+                        display: PrincipalDisplay::NameWithEmailTitle as i32,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
+                status_field: "status".into(),
+                status_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let panel = ResourceCardPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
+        let rows = vec![serde_json::json!({
+            "created": "2026-03-29",
+            "owner": "Ada <ada@example.com>",
+            "status": "2026-03-29"
+        })];
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(72, 10)).unwrap();
+        term.draw(|f| render_resource_cards(f, f.area(), &panel, &rows, &palette, 0, None))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect();
+        assert!(text.contains("Mar 29, 2026"));
+        assert!(text.contains("Ada"));
+        assert!(text.contains("status: Mar 29, 2026"));
     }
 
     #[test]

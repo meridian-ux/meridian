@@ -127,11 +127,19 @@ export function ResourceCardsView({
   };
   return (
     <div className="mer-resource-cards" role="list">
-      {rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const slot = (path: string, display: Parameters<typeof formatByDisplay>[1]) => {
+          const value = resolvePath(row, path);
+          return display ? formatByDisplay(value, display, now) : { text: String(value ?? "") };
+        };
+        const title = slot(template.titleField, template.titleDisplay);
+        const subtitle = slot(template.subtitleField, template.subtitleDisplay);
+        const status = slot(template.statusField, template.statusDisplay);
+        return (
         <article className="mer-resource-card" role="listitem" key={index}>
-          <h3 className="mer-resource-card-title">{String(resolvePath(row, template.titleField) ?? "")}</h3>
-          {template.subtitleField && <p className="mer-resource-card-subtitle">{String(resolvePath(row, template.subtitleField) ?? "")}</p>}
-          {template.statusField && <span className="mer-resource-card-status">{String(resolvePath(row, template.statusField) ?? "")}</span>}
+          <h3 className="mer-resource-card-title" title={title.title}>{title.text}</h3>
+          {template.subtitleField && <p className="mer-resource-card-subtitle" title={subtitle.title}>{subtitle.text}</p>}
+          {template.statusField && <span className="mer-resource-card-status" title={status.title}>{status.text}</span>}
           {template.meta.length > 0 && (
             <dl className="mer-resource-card-meta">
               {template.meta.map((field, fieldIndex) => {
@@ -169,7 +177,8 @@ export function ResourceCardsView({
             ))}
           </div>
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }
