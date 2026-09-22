@@ -198,7 +198,7 @@ vitest_test(
 # or WebSocket construction.
 vitest_test(
     name = "terminal_panel",
-    srcs = ["terminal_panel.test.ts"],
+    srcs = ["terminal_panel.test.ts", "utf8.test.ts"],
     deps = [
         "//packages/web:node_modules/@savvifi/meridian-schemas",
         "//packages/web:node_modules/jsdom",

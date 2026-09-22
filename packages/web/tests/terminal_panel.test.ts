@@ -13,6 +13,7 @@ describe("TerminalPanel broker admission", () => {
     const handle = renderTerminalPanel(root, {
       url: "javascript:alert(1)",
       tool: "Build shell",
+      createBudget: () => ({ admit: () => 0 }),
     });
 
     expect(root.querySelector('[role="alert"]')?.textContent).toContain(

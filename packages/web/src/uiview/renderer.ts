@@ -73,6 +73,7 @@ import {
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
 import type { LogTerminalHandle } from "../terminal_panel.js";
+import { utf8ByteLength } from "../utf8.js";
 
 /** One rendered row as returned by the wasm `renderTable` call. */
 export interface RenderedRow {
@@ -422,7 +423,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
       tool: spec.tool,
       cols: spec.cols,
       rows: spec.rows,
-      createBudget: () => makePayloadBudget(wasm, spec.maxBytes, spec.maxRate),
+      createBudget: () => makePayloadBudget(renderOpts.wasm, spec.maxBytes, spec.maxRate),
     });
     // The handle owns a live WebSocket; without this it outlived the panel.
     onDispose(root, () => handle.dispose());
@@ -2248,7 +2249,7 @@ function renderStreamPanel(
         onFrame: (frame) => {
           if (rejected) return;
           const encoded = typeof frame === "string" ? frame : JSON.stringify(frame);
-          const bytes = new TextEncoder().encode(encoded ?? "").byteLength;
+          const bytes = utf8ByteLength(encoded ?? "");
           if (budget.admit(bytes, performance.now()) !== 0) {
             rejectPayload();
             return;
@@ -2256,9 +2257,11 @@ function renderStreamPanel(
           append(textOf(frame));
         },
         onError: (err) => {
+          if (rejected) return;
           metaEl.textContent = `${count} ${noun} — stream failed: ${err.message}`;
         },
         onClose: () => {
+          if (rejected) return;
           metaEl.textContent = `${count} ${noun} — ended`;
         },
       },

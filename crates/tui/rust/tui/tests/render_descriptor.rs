@@ -979,6 +979,50 @@ fn stream_view_detaches_from_follow_when_reader_scrolls_up() {
 }
 
 #[test]
+fn stream_view_applies_descriptor_payload_limits_before_rendering() {
+    use meridian_tui::{StreamError, StreamInvoker, StreamSession};
+    use meridian_uiview::proto::StreamFrame;
+    use std::sync::mpsc;
+
+    struct LiveStream(std::sync::Mutex<Option<mpsc::Receiver<StreamFrame>>>);
+    impl StreamInvoker for LiveStream {
+        fn subscribe(
+            &self,
+            _: &meridian_uiview::proto::RpcCall,
+            _: serde_json::Value,
+        ) -> Result<StreamSession, StreamError> {
+            Ok(StreamSession::new(
+                self.0.lock().unwrap().take().unwrap(),
+                || {},
+            ))
+        }
+    }
+
+    let (sender, receiver) = mpsc::channel();
+    sender
+        .send(meridian_uiview::stream_frame_from_json(serde_json::json!({
+            "event": { "message": "must not render" }
+        })))
+        .unwrap();
+    let stream = LiveStream(std::sync::Mutex::new(Some(receiver)));
+    let mut descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("stream.binpb").as_slice()).unwrap();
+    if let Some(Body::Stream(panel)) = descriptor.body.as_mut() {
+        panel.line_field = "event.message".into();
+        panel.max_bytes = 1;
+        panel.max_rate = 1;
+    }
+    let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let mut view = PanelView::new();
+    view.poll_stream(&descriptor, &Context::default(), &stream);
+
+    assert!(
+        view.stream_lines().is_empty(),
+        "descriptor byte limit must reject the frame before rendering"
+    );
+}
+
+#[test]
 fn stream_manual_mode_starts_at_top_and_does_not_auto_scroll() {
     use meridian_tui::{StreamError, StreamInvoker, StreamSession};
     use meridian_uiview::proto::StreamFrame;

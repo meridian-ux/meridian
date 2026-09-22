@@ -233,7 +233,7 @@ impl PanelView {
                 .as_ref()
                 .and_then(|call| invoker.subscribe(call, request).ok());
             if let Some(session) = self.stream_session.as_mut() {
-                session.apply_limits(0, 0);
+                session.apply_limits(panel.max_bytes, panel.max_rate);
             }
         }
         let mut appended = 0usize;

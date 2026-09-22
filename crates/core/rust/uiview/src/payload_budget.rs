@@ -7,6 +7,19 @@ pub const DEFAULT_MAX_PAYLOAD_BYTES: u64 = 64 * 1024 * 1024;
 pub const DEFAULT_MAX_PAYLOAD_RATE: u64 = 1024 * 1024;
 
 const RATE_WINDOW: Duration = Duration::from_secs(1);
+const RATE_BUCKET: Duration = Duration::from_millis(1);
+
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) fn elapsed_from_monotonic_millis(started_at_ms: f64, now_ms: f64) -> Option<Duration> {
+    if !started_at_ms.is_finite()
+        || started_at_ms < 0.0
+        || !now_ms.is_finite()
+        || now_ms < started_at_ms
+    {
+        return None;
+    }
+    Duration::try_from_secs_f64((now_ms - started_at_ms) / 1000.0).ok()
+}
 
 /// Runtime-only guard for untrusted live payloads. `max_bytes` is the total
 /// bytes admitted for one direction of one session; `max_rate` is the maximum
@@ -19,6 +32,7 @@ pub struct PayloadBudget {
     admitted_bytes: u64,
     recent: VecDeque<(Duration, u64)>,
     recent_bytes: u64,
+    last_seen: Option<Duration>,
 }
 
 impl PayloadBudget {
@@ -40,6 +54,7 @@ impl PayloadBudget {
             admitted_bytes: 0,
             recent: VecDeque::new(),
             recent_bytes: 0,
+            last_seen: None,
         }
     }
 
@@ -50,11 +65,19 @@ impl PayloadBudget {
         if self.admitted_bytes.saturating_add(bytes) > self.max_bytes {
             return Err(PayloadLimitExceeded::SessionBytes);
         }
+        if self.last_seen.is_some_and(|last| now < last) {
+            return Err(PayloadLimitExceeded::InvalidClock);
+        }
+        self.last_seen = Some(now);
+        if bytes == 0 {
+            return Ok(());
+        }
 
+        let rate_expiry = RATE_WINDOW + RATE_BUCKET;
         while self
             .recent
             .front()
-            .is_some_and(|(at, _)| now.saturating_sub(*at) >= RATE_WINDOW)
+            .is_some_and(|(at, _)| now.saturating_sub(*at) >= rate_expiry)
         {
             let (_, expired) = self.recent.pop_front().expect("front was present");
             self.recent_bytes -= expired;
@@ -66,7 +89,18 @@ impl PayloadBudget {
 
         self.admitted_bytes += bytes;
         self.recent_bytes += bytes;
-        self.recent.push_back((now, bytes));
+        // Aggregate frames within each millisecond. A per-frame queue lets a
+        // flood of tiny messages amplify a small byte budget into large state.
+        // Expiring one bucket late is conservative: it can reject slightly
+        // early, but never admits more than the rolling byte ceiling.
+        let bucket_ms = u64::try_from(now.as_millis()).unwrap_or(u64::MAX);
+        let bucket = Duration::from_millis(bucket_ms);
+        if let Some((at, bucket_bytes)) = self.recent.back_mut().filter(|(at, _)| *at == bucket) {
+            *bucket_bytes += bytes;
+            debug_assert_eq!(*at, bucket);
+        } else {
+            self.recent.push_back((bucket, bytes));
+        }
         Ok(())
     }
 }
@@ -77,11 +111,23 @@ pub enum PayloadLimitExceeded {
     SessionBytes,
     #[error("payload rate limit exceeded")]
     Rate,
+    #[error("payload budget received a non-monotonic clock")]
+    InvalidClock,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn monotonic_millisecond_conversion_rejects_invalid_or_unrepresentable_times() {
+        assert_eq!(
+            elapsed_from_monotonic_millis(10.0, 1010.0),
+            Some(Duration::from_secs(1))
+        );
+        assert_eq!(elapsed_from_monotonic_millis(10.0, 9.0), None);
+        assert_eq!(elapsed_from_monotonic_millis(0.0, f64::MAX), None);
+    }
 
     #[test]
     fn enforces_total_bytes_including_exact_boundary() {
@@ -102,7 +148,7 @@ mod tests {
             budget.admit(3, Duration::from_millis(999)),
             Err(PayloadLimitExceeded::Rate)
         );
-        assert_eq!(budget.admit(3, Duration::from_secs(1)), Ok(()));
+        assert_eq!(budget.admit(3, Duration::from_millis(1_001)), Ok(()));
     }
 
     #[test]
@@ -135,6 +181,26 @@ mod tests {
             budget.admit(5, Duration::ZERO),
             Err(PayloadLimitExceeded::Rate)
         );
-        assert_eq!(budget.admit(4, Duration::from_secs(1)), Ok(()));
+        assert_eq!(budget.admit(4, Duration::from_millis(1_001)), Ok(()));
+    }
+
+    #[test]
+    fn rate_window_state_is_bounded_under_many_small_frames() {
+        let mut budget = PayloadBudget::new(20_000, 20_000);
+        for frame in 0..10_000 {
+            assert_eq!(budget.admit(1, Duration::from_micros(frame * 100)), Ok(()));
+        }
+        assert!(budget.recent.len() <= 1_001);
+        assert_eq!(budget.admitted_bytes, 10_000);
+    }
+
+    #[test]
+    fn rejects_a_non_monotonic_clock() {
+        let mut budget = PayloadBudget::new(100, 100);
+        assert_eq!(budget.admit(1, Duration::from_secs(2)), Ok(()));
+        assert_eq!(
+            budget.admit(1, Duration::from_secs(1)),
+            Err(PayloadLimitExceeded::InvalidClock)
+        );
     }
 }

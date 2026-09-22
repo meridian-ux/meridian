@@ -14,14 +14,13 @@
 // values too.
 
 use crate::paths::ProtoPaths;
-use crate::payload_budget::PayloadBudget;
+use crate::payload_budget::{elapsed_from_monotonic_millis, PayloadBudget};
 use crate::proto::{GalleryPanel, PanelDescriptor, RpcCall, TablePanel};
 use crate::render::{render_gallery, render_table};
 use crate::request::{Context, RequestBuilder};
 use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::time::Duration;
 use wasm_bindgen::prelude::*;
 
 /// Stateful JavaScript handle backed by the same payload policy used by native
@@ -49,15 +48,14 @@ impl WasmPayloadBudget {
             return 3;
         }
         let started_at_ms = *self.started_at_ms.get_or_insert(now_ms);
-        let elapsed_ms = now_ms - started_at_ms;
-        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 {
+        let Some(elapsed) = elapsed_from_monotonic_millis(started_at_ms, now_ms) else {
             return 3;
-        }
-        let elapsed = Duration::from_secs_f64(elapsed_ms / 1000.0);
+        };
         match self.inner.admit(payload_bytes as usize, elapsed) {
             Ok(()) => 0,
             Err(crate::PayloadLimitExceeded::SessionBytes) => 1,
             Err(crate::PayloadLimitExceeded::Rate) => 2,
+            Err(crate::PayloadLimitExceeded::InvalidClock) => 3,
         }
     }
 }

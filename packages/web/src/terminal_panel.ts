@@ -16,6 +16,7 @@ import { Terminal } from "@xterm/xterm";
 import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import { TERMINAL_PANEL_CSS } from "./terminal_panel_css.js";
+import { utf8ByteLength } from "./utf8.js";
 
 export { TERMINAL_PANEL_CSS };
 
@@ -202,7 +203,7 @@ export function renderTerminalPanel(
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const bytes =
       typeof payload === "string"
-        ? new TextEncoder().encode(payload).byteLength
+        ? utf8ByteLength(payload)
         : payload.byteLength;
     if (outboundBudget.admit(bytes, performance.now()) !== 0) {
       setStatus("payload limit exceeded", "closed");
@@ -245,7 +246,7 @@ export function renderTerminalPanel(
     };
     sock.onmessage = (ev: MessageEvent) => {
       if (typeof ev.data === "string") {
-        const bytes = new TextEncoder().encode(ev.data).byteLength;
+        const bytes = utf8ByteLength(ev.data);
         if (inboundBudget.admit(bytes, performance.now()) !== 0) {
           setStatus("payload limit exceeded", "closed");
           reconnect.style.display = "";

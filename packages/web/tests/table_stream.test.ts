@@ -36,9 +36,14 @@ const readPath = (value: object, path: string): unknown =>
     value,
   );
 
-function wasmWith(rows: RenderedRow[]): UiviewWasm {
+function wasmWith(
+  rows: RenderedRow[],
+  admitPayload: (payloadBytes: number, nowMs: number) => number = () => 0,
+): UiviewWasm {
   return {
-    PayloadBudget: class { admit() { return 0; } },
+    PayloadBudget: class { admit(payloadBytes: number, nowMs: number) {
+      return admitPayload(payloadBytes, nowMs);
+    } },
     renderTable: () => rows,
     buildPopulateRequest: () => ({}),
     readPath,
@@ -676,7 +681,7 @@ describe("StreamPanel (plain-pane fallback)", () => {
     const invoker: StreamInvoker = {
       subscribe: (_s, _m, _r, h) => {
         handlers = h;
-        return { close: () => { closed += 1; } };
+        return { close: () => { closed += 1; handlers?.onClose?.(); } };
       },
     };
     return {
@@ -688,10 +693,13 @@ describe("StreamPanel (plain-pane fallback)", () => {
     };
   }
 
-  async function draw(stream: ReturnType<typeof fakeStream> | null) {
+  async function draw(
+    stream: ReturnType<typeof fakeStream> | null,
+    admitPayload: (payloadBytes: number, nowMs: number) => number = () => 0,
+  ) {
     const root = document.createElement("div");
     await renderPanel({
-      wasm: wasmWith([]),
+      wasm: wasmWith([], admitPayload),
       root,
       descriptor: streamFixture,
       invoker: { invoke: async () => ({}) },
@@ -730,6 +738,19 @@ describe("StreamPanel (plain-pane fallback)", () => {
     expect(root.querySelector(".meridian-uiview-stream-line")?.textContent).toBe(
       '{"unexpected":"shape"}',
     );
+  });
+
+  it("stops the subscription when the shared payload budget rejects a frame", async () => {
+    const stream = fakeStream();
+    const root = await draw(stream, (payloadBytes) => payloadBytes > 0 ? 1 : 0);
+
+    stream.emit({ line: "over budget" });
+
+    expect(stream.closedCount()).toBe(1);
+    expect(root.querySelector(".meridian-uiview-meta")?.textContent).toContain(
+      "payload limit exceeded; stream stopped",
+    );
+    expect(root.querySelector(".meridian-uiview-stream-line")).toBeNull();
   });
 
   it("bounds retention at max_lines, dropping from the front", async () => {

@@ -147,4 +147,15 @@ fn carries_the_fields_this_crate_reads() {
     ] {
         assert!(stat.iter().any(|n| n == want), "StatPanel.{want} absent");
     }
+    for (message, field) in [
+        ("StreamPanel", "max_bytes"),
+        ("StreamPanel", "max_rate"),
+        ("TerminalPanel", "max_bytes"),
+        ("TerminalPanel", "max_rate"),
+    ] {
+        assert!(
+            field_names(message).iter().any(|name| name == field),
+            "{message}.{field} missing from descriptor set — regenerate with tools/regen_descriptors.sh"
+        );
+    }
 }

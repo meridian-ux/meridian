@@ -21,8 +21,9 @@
 # googleapis' field_behavior.proto. google/protobuf/struct.proto ships with protoc.
 set -euo pipefail
 
-SCHEMAS="${1:-../meridian-schemas}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$HERE/../.." && pwd)"
+SCHEMAS="${1:-$REPO_ROOT/schemas}"
 OUT="$HERE/rust/uiview/proto/gen/meridian_ui_v1.binpb"
 
 [ -d "$SCHEMAS/proto" ] || { echo "no proto/ under $SCHEMAS — pass the meridian-schemas checkout as \$1" >&2; exit 1; }
@@ -34,20 +35,24 @@ SRCS="$(python3 - "$SCHEMAS" <<'PY'
 import re, sys, pathlib
 build = pathlib.Path(sys.argv[1], "proto", "BUILD.bazel").read_text()
 blk = re.search(r'proto_library\(\s*name = "uiview_proto".*?\)\n', build, re.S).group(0)
-print(" ".join("proto/" + p for p in re.findall(r'"([^"]+\.proto)"', blk)))
+srcs = re.search(r'\bsrcs\s*=\s*\[(.*?)\]', blk, re.S).group(1)
+print(" ".join("proto/" + p for p in re.findall(r'"([^"]+\.proto)"', srcs)))
 PY
 )"
 
-# googleapis is a Bazel module under Bazel; for the cargo path we need the one
-# file the schemas actually import.
-GAPI="$(mktemp -d)"
-mkdir -p "$GAPI/google/api"
-curl -fsSL -o "$GAPI/google/api/field_behavior.proto" \
-  "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto"
+# Reuse the repository's vendored googleapis source when present. The fallback
+# keeps the script usable with a standalone meridian-schemas checkout.
+GAPI="$REPO_ROOT/third_party/googleapis"
+if [ ! -f "$GAPI/google/api/field_behavior.proto" ]; then
+  GAPI="$(mktemp -d)"
+  mkdir -p "$GAPI/google/api"
+  trap 'rm -rf "$GAPI"' EXIT
+  curl -fsSL -o "$GAPI/google/api/field_behavior.proto" \
+    "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto"
+fi
 
 mkdir -p "$(dirname "$OUT")"
 ( cd "$SCHEMAS" && protoc --include_imports --descriptor_set_out="$OUT" -I . -I "$GAPI" $SRCS )
-rm -rf "$GAPI"
 
-echo "wrote $OUT ($(stat -c%s "$OUT") bytes) from $(echo "$SRCS" | wc -w) protos"
+echo "wrote $OUT ($(wc -c < "$OUT" | tr -d ' ') bytes) from $(echo "$SRCS" | wc -w) protos"
 echo "Now run: (cd rust && cargo test -p meridian-uiview)"
