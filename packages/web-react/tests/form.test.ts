@@ -52,6 +52,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       ] } }));
       const select = view.container.querySelector("select")!;
       expect(select.value).toBe("east");
+      expect(select.hasAttribute("data-value-tone")).toBe(false);
       expect(select.textContent).toContain("<b>East</b>");
       expect(select.querySelector("b")).toBeNull();
       await act(async () => { submit(view.container); });
@@ -93,6 +94,31 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
         expect(invoke.mock.calls).toEqual([["demo.Records", "Update", { region: "west" }]]);
       } finally { await view.close(); }
     }
+  });
+  it("preserves option tones and updates selected metadata without changing submitted tokens", async () => {
+    const p = enumPanel();
+    const kind = p.fields[0].kind;
+    if (kind.case !== "enumSelection") throw new Error();
+    kind.value.optionsSource = undefined;
+    kind.value.options = create(EnumSelectionSchema, { options: [
+      { value: "west", label: "Western region", tone: 3 },
+      { value: "east", label: "", tone: 5 },
+      { value: "other", tone: 99 },
+    ] }).options;
+    const invoke = vi.fn(async () => ({})); const view = await mount(p, invoke);
+    try {
+      const select = view.container.querySelector("select")!;
+      expect(select.dataset.valueTone).toBe("success");
+      expect(select.selectedOptions[0].textContent).toBe("Western region");
+      expect(Array.from(select.options, option => option.dataset.valueTone)).toEqual(["success", "danger", undefined]);
+      await act(async () => { select.value = "east"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+      expect(select.dataset.valueTone).toBe("danger");
+      expect(select.selectedOptions[0].textContent).toBe("east");
+      await act(async () => { submit(view.container); });
+      expect(invoke.mock.calls.at(-1)).toEqual(["demo.Records", "Update", { region: "east" }]);
+      await act(async () => { select.value = "other"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+      expect(select.hasAttribute("data-value-tone")).toBe(false);
+    } finally { await view.close(); }
   });
   it("validates dynamic enums in nested and repeated field paths", async () => {
     const p = enumPanel(); const field = p.fields[0];

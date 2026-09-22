@@ -3,6 +3,9 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 
+// Native option styling is platform-dependent; expose semantic roles without literal colors.
+const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: "info", 3: "success", 4: "warning", 5: "danger", 6: "accent" };
+
 // Runtime DOM state only; requests and descriptors retain their protobuf contracts.
 export function buildInteractiveForm(panel: FormPanel, host: {
   allowed(call: RpcCall): boolean;
@@ -110,11 +113,24 @@ function buildField(parent: HTMLElement, field: FormField, initial: unknown, edi
     : kind.case === "integer" || kind.case === "number" ? "number" : "text";
   if (input instanceof HTMLInputElement && kind.case === "boolean") input.checked = value === true;
   if (kind.case === "enumSelection") {
-    const options = kind.value.options.length ? kind.value.options.map(item => ({ value: item.value, label: item.label || item.value }))
+    const options: { value: string; label: string; tone?: number }[] = kind.value.options.length ? kind.value.options.map(item => ({ value: item.value, label: item.label || item.value, tone: item.tone }))
       : kind.value.allowedValues.map(item => ({ value: item, label: item }));
-    for (const item of options) { const option = document.createElement("option"); option.value = item.value; option.textContent = item.label; input.append(option); }
+    for (const item of options) {
+      const option = document.createElement("option"); option.value = item.value; option.textContent = item.label;
+      const tone = enumTones[item.tone ?? 0];
+      if (tone) option.dataset.valueTone = tone;
+      input.append(option);
+    }
   }
   input.value = kind.case === "keyValueMap" ? JSON.stringify(value) : String(value);
+  if (input instanceof HTMLSelectElement) {
+    const updateTone = () => {
+      const tone = input.selectedOptions[0]?.dataset.valueTone;
+      if (tone) input.dataset.valueTone = tone;
+      else delete input.dataset.valueTone;
+    };
+    updateTone(); input.addEventListener("change", updateTone);
+  }
   if (input instanceof HTMLInputElement && kind.case === "number") input.step = "any";
   box.append(input);
   if (field.description) { const help = document.createElement("p"); help.textContent = field.description; box.append(help); }

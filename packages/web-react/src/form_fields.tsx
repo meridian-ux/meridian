@@ -31,6 +31,9 @@ export const FormInitialValues = createContext<Record<string, unknown>>({});
 // Runtime-only validation registry; loaded option tokens are never taken from DOM markup.
 export const FormEnumValues = createContext<Map<string, readonly string[]> | undefined>(undefined);
 
+// Native option styling is platform-dependent; expose semantic roles without literal colors.
+const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: "info", 3: "success", 4: "warning", 5: "danger", 6: "accent" };
+
 function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: string; raw: unknown; className: string }) {
   const invoker = useRpcInvoker();
   const registry = useContext(FormEnumValues);
@@ -60,8 +63,8 @@ function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: 
     }).catch(reason => { if (active) setResult({ options: [], error: reason instanceof Error ? reason.message : String(reason) }); });
     return () => { active = false; };
   }, [source, invoker]);
-  const options = source ? result?.options ?? [] : spec.options.length
-    ? spec.options.map(option => ({ value: option.value, label: option.label || option.value }))
+  const options: { value: string; label: string; tone?: number }[] = source ? result?.options ?? [] : spec.options.length
+    ? spec.options.map(option => ({ value: option.value, label: option.label || option.value, tone: option.tone }))
     : spec.allowedValues.map(value => ({ value, label: value }));
   const tokens = options.map(option => option.value);
   const tokenKey = JSON.stringify(tokens);
@@ -73,9 +76,10 @@ function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: 
   const message = pending ? "Loading options…" : result?.error ? `Could not load options: ${result.error}` : options.length === 0 ? "No options available." : "";
   const value = tokens.includes(chosen) ? chosen : tokens[0] ?? "";
   return <><select name={name} className={className} value={value} disabled={pending || options.length === 0}
+    data-value-tone={enumTones[options.find(option => option.value === value)?.tone ?? 0]}
     aria-busy={pending || undefined} aria-describedby={message ? id : undefined} onChange={event => setChosen(event.target.value)}>
     {options.length === 0 && <option value="">{pending ? "Loading…" : "No options"}</option>}
-    {options.map((option, index) => <option key={`${option.value}:${index}`} value={option.value}>{option.label}</option>)}
+    {options.map((option, index) => <option key={`${option.value}:${index}`} value={option.value} data-value-tone={enumTones[option.tone ?? 0]}>{option.label}</option>)}
   </select>{message && <span id={id} role={result?.error ? "alert" : "status"}>{message}</span>}</>;
 }
 function useInitialValue(name: string): unknown {
