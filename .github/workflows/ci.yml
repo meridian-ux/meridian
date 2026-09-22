@@ -201,13 +201,9 @@ jobs:
       # Resolution first and separately: it is fast, it needs no source archives,
       # and it is what catches the merge-shaped failures — use_repo collisions,
       # duplicate extension names, toolchain conflicts.
-      - name: Module graph resolves
-        run: bazel mod deps > /dev/null
-
-      # A successful resolution is not enough: default lockfile mode can update
-      # MODULE.bazel.lock. CI must prove the committed lock already covers the
-      # resolved graph and fail instead of repairing it in the runner.
-      - name: Bazel module lock is current
+      # Resolve with error mode from the outset: plain `bazel mod deps` can
+      # rewrite MODULE.bazel.lock and make a later error-mode check vacuous.
+      - name: Module graph resolves with committed lock
         run: bazel mod deps --lockfile_mode=error > /dev/null
 
       - name: bazel test //...
