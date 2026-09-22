@@ -17,6 +17,7 @@ import {
 } from "@savvifi/meridian-schemas/uiview";
 
 import { renderPanel } from "./renderer.js";
+import { actionFeedback } from "./action_feedback.js";
 import type { RenderPanelOptions } from "./renderer.js";
 
 /**
@@ -67,7 +68,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   title.className = "meridian-uiview-view-title";
   title.textContent = view.title;
   header.appendChild(title);
-  header.appendChild(buildActions(view.actions, mutationInvoker));
+  header.appendChild(buildActions(view.actions, mutationInvoker, gate));
   root.appendChild(header);
 
   const slots = [...view.slots].sort(
@@ -183,30 +184,28 @@ async function renderSlot(
   }
 
   if (slot.actions && slot.actions.length > 0) {
-    section.appendChild(buildActions(slot.actions, mutationInvoker));
+    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission)));
   }
   return section;
 }
 
 // Actions render as buttons; binding resolution (row/form → request) is a later
 // increment, so the first cut fires with an empty request.
-function buildActions(actions: Action[], invoker: RpcInvoker): HTMLElement {
+function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate): HTMLElement {
   const bar = document.createElement("div");
   bar.className = "meridian-uiview-actions";
   for (const a of actions || []) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = a.label;
+    const feedback = actionFeedback(btn, !!a.call && gate.admits("mutation", a.call.service, a.call.method));
     btn.onclick = () => {
       if (a.call) {
-        void invoker.invoke(a.call.service, a.call.method, {}).catch((err: unknown) => {
-          const reason = err instanceof Error ? err.message : String(err);
-          btn.dataset.error = reason;
-          btn.title = reason;
-        });
+        void feedback.run(() => invoker.invoke(a.call!.service, a.call!.method, {}));
       }
     };
     bar.appendChild(btn);
+    bar.appendChild(feedback.message);
   }
   return bar;
 }

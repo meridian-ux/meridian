@@ -22,6 +22,7 @@ import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_
 import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { actionFeedback } from "./action_feedback.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
@@ -1352,6 +1353,7 @@ function buildResourceAction(
   button.type = "button";
   button.className = `mer-resource-action mer-resource-action-${resourceActionStyle(action.style)}`;
   button.textContent = action.label;
+  const feedback = actionFeedback(button, !!action.invoke && createAdmissionGate(opts.admission).admits("mutation", action.invoke.service, action.invoke.method));
   button.onclick = () => {
     if (!action.invoke) return;
     const run = async () => {
@@ -1366,16 +1368,9 @@ function buildResourceAction(
       );
     };
     const attempt = () => {
-      void run().catch((err: unknown) => {
-        // Admission failures are expected host-policy outcomes, not unhandled
-        // promise rejections. Keep the action visible and expose the reason to
-        // both a debugger and an assistive technology user.
-        const reason = err instanceof Error ? err.message : String(err);
-        button.dataset.error = reason;
-        button.title = reason;
-      });
+      void feedback.run(run);
     };
-    if (!action.confirm) {
+    if (!action.confirm || button.getAttribute("aria-disabled") === "true") {
       attempt();
       return;
     }
@@ -1394,7 +1389,9 @@ function buildResourceAction(
     prompt.append(confirm, cancel);
     button.parentElement?.appendChild(prompt);
   };
-  return button;
+  const wrapper = el("span", "mer-resource-action-feedback");
+  wrapper.append(button, feedback.message);
+  return wrapper;
 }
 
 function resourceActionStyle(style: ActionStyle): "default" | "primary" | "danger" {
@@ -1668,20 +1665,22 @@ async function renderTablePanel(
     btn.type = "button";
     btn.textContent = action.label;
     btn.disabled = true;
+    const feedback = actionFeedback(btn, !!action.rpc && createAdmissionGate(opts.admission).admits("mutation", action.rpc.service, action.rpc.method));
     btn.addEventListener("click", async () => {
       const row = selectedRow();
       if (!row || !action.rpc) return;
+      const rpc = action.rpc;
       btn.disabled = true;
-      try {
+      await feedback.run(async () => {
         const request = plainValue(
-          wasm.buildRequest(toBinary(RpcCallSchema, action.rpc), {
+          wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
             ...opts.context,
             selectedRow: row,
           }),
         );
         await (opts.mutationInvoker ?? invoker).invoke(
-          action.rpc.service,
-          action.rpc.method,
+          rpc.service,
+          rpc.method,
           request as object,
         );
         // `RowAction.refresh_on_success` documents a default of TRUE, which a
@@ -1689,14 +1688,12 @@ async function renderTablePanel(
         // the documented contract and always re-fetch; a descriptor that must
         // NOT refresh needs the field made `optional` upstream first.
         await refresh();
-      } catch (err) {
-        metaEl.textContent = `${action.label} failed: ${(err as Error).message}`;
-      } finally {
-        syncButtons();
-      }
+      });
+      syncButtons();
     });
     buttons.push({ el: btn, action });
     actionsBar.appendChild(btn);
+    actionsBar.appendChild(feedback.message);
   }
 
   await refresh();

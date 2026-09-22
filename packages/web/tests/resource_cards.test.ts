@@ -57,6 +57,26 @@ const descriptor = create(PanelDescriptorSchema, {
 });
 
 describe("ResourceCardPanel (web-components)", () => {
+  it("reports failure and retries the selected resource request", async () => {
+    const root = document.createElement("div");
+    const requests: object[] = [];
+    await renderPanel({ root, wasm, descriptor, context, admission: "unrestricted", invoker: {
+      invoke: async (_service, method, request) => {
+        if (method === "List") return { items: [{ name: "Dev", phase: "Suspended" }] };
+        requests.push(request);
+        if (requests.length === 1) throw new Error("Unavailable");
+        return {};
+      },
+    } });
+    const button = root.querySelector<HTMLButtonElement>(".mer-resource-action")!;
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Unavailable");
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(requests).toEqual([{ selected: { name: "Dev", phase: "Suspended" } }, { selected: { name: "Dev", phase: "Suspended" } }]);
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+  });
   it("applies declared displays to resource-card title slots", async () => {
     const panel = create(PanelDescriptorSchema, {
       body: {
@@ -208,15 +228,14 @@ describe("ResourceCardPanel (web-components)", () => {
       },
     });
 
+    expect(root.querySelector(".mer-resource-action-danger")?.getAttribute("aria-disabled")).toBe("true");
     (root.querySelector(".mer-resource-action-danger") as HTMLButtonElement).click();
-    const confirm = [...root.querySelectorAll('[role="alertdialog"] button')].find(
-      (button) => button.textContent === "Delete",
-    );
-    (confirm as HTMLButtonElement).click();
+    expect(root.querySelector('[role="alertdialog"]')).toBeNull();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(calls).toEqual(["List"]);
     expect(denials).toEqual([{ tier: "mutation", method: "Delete" }]);
+    expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/admission\.mutations/);
     expect(root.querySelector(".mer-resource-action-danger")?.getAttribute("data-error"))
       .toMatch(/admission\.mutations/);
   });

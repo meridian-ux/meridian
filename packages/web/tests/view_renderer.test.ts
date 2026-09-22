@@ -51,6 +51,24 @@ describe("renderView tab keyboard navigation", () => {
 });
 
 describe("renderView admission", () => {
+  it("exposes failures and permits retry with the unchanged request", async () => {
+    const root = document.createElement("div");
+    const calls: unknown[] = [];
+    await renderView({ root, wasm, context, admission: "unrestricted",
+      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save" } }] }),
+      invoker: { invoke: async (...args) => { calls.push(args); if (calls.length === 1) throw new Error("<b>offline</b>"); return {}; } },
+    });
+    const button = root.querySelector("button")!;
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("<b>offline</b>");
+    expect(root.querySelector("b")).toBeNull();
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(calls).toEqual([["demo.Items", "Save", {}], ["demo.Items", "Save", {}]]);
+    expect(root.querySelector('[role="alert"]')).toBeNull();
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+  });
   it("gates view-level call actions as mutations", async () => {
     const root = document.createElement("div");
     const calls: string[] = [];

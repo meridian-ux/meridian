@@ -1,5 +1,12 @@
 # Renderer conformance
 
+Web-components view, resource-card, and table actions expose mutation denial
+with `aria-disabled` and an associated explanation. Activation still passes
+through the host admission gate, including its denial callback. Invocation
+failures render text-only alerts; the same control retries, prevents duplicate
+pending invocation, and announces completion. Focused DOM tests preserve resource
+request construction and table refresh after successful retry.
+
 `fixtures.ts` is the canonical protobuf corpus: 23 panel arms plus an unset body.
 The matching `binpb/` messages are consumed by the native renderer. Browser tests
 consume the TypeScript messages directly; the wire-integrity test verifies that

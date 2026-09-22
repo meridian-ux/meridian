@@ -100,6 +100,29 @@ if (!("ResizeObserver" in globalThis)) {
 }
 
 describe("TablePanel row selection + actions", () => {
+  it("reports a failed row action and refreshes after retry", async () => {
+    const root = document.createElement("div");
+    let mutations = 0;
+    let reads = 0;
+    const populate = tableWithActionsFixture.body.case === "table" ? tableWithActionsFixture.body.value.populate! : null!;
+    await renderPanel({ root, wasm: wasmWith(ROWS), descriptor: tableWithActionsFixture, context: CTX,
+      admission: "unrestricted", invoker: { invoke: async (_service, method) => {
+        if (method === populate.method) { reads++; return {}; }
+        if (++mutations === 1) throw new Error("Try again");
+        return {};
+      } },
+    });
+    root.querySelector("tbody tr[data-row]")!.dispatchEvent(new Event("click", { bubbles: true }));
+    const button = root.querySelector<HTMLButtonElement>(".meridian-uiview-actions button")!;
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Try again");
+    button.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(mutations).toBe(2);
+    expect(reads).toBe(2);
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+  });
   it("renders a button per RowAction, all disabled until a row is selected", async () => {
     const root = document.createElement("div");
     await renderPanel({
