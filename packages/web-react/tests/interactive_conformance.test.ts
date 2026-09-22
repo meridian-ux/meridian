@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { ActionPlacement, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
@@ -17,12 +18,14 @@ import { MeridianRecordContext } from "../src/pagination.js";
 
 async function mounted(node: ReactNode, check: (container: HTMLElement) => Promise<void>) {
   const container = document.createElement("div");
+  document.body.append(container);
   const root = createRoot(container);
   try {
     await act(async () => root.render(node));
     await check(container);
   } finally {
     await act(async () => root.unmount());
+    container.remove();
   }
 }
 
@@ -141,8 +144,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(button.getAttribute("aria-disabled")).toBe("true");
       expect(container.textContent).toContain("This action is unavailable.");
       expect(onDenied).not.toHaveBeenCalled();
+      expect(normalizeDom(container)).toMatchSnapshot("denied before activation");
       await act(async () => container.querySelector("button")!.click());
       expect(container.querySelector('[role="alert"]')?.textContent).toBe("This action is unavailable.");
+      expect(normalizeDom(container)).toMatchSnapshot("denied after activation");
       expect(invoke).not.toHaveBeenCalled();
       expect(onDenied).toHaveBeenCalledTimes(1);
       expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({
@@ -165,13 +170,16 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       await act(async () => { button.click(); button.click(); });
       expect(button.disabled).toBe(true);
       expect(invoke).toHaveBeenCalledTimes(1);
+      expect(normalizeDom(container)).toMatchSnapshot("action pending");
       await act(async () => reject(new Error("private backend details")));
       expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
       expect(container.textContent).not.toContain("private backend details");
       expect(button.disabled).toBe(false);
+      expect(normalizeDom(container)).toMatchSnapshot("action failed");
       await act(async () => button.click());
       expect(invoke.mock.calls).toEqual([["demo.Reports", "Run", {}], ["demo.Reports", "Run", {}]]);
       expect(container.querySelector('[role="alert"]')).toBeNull();
+      expect(normalizeDom(container)).toMatchSnapshot("action retry succeeded");
     });
   });
 });

@@ -1,0 +1,271 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HTML form transport > keeps failed and malformed dynamic option sources unavailable > enum options empty 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="No options available." disabled
+      option value=""
+        "No options"
+    span role="status"
+      "No options available."
+  button type="submit"
+    "Save""
+`;
+
+exports[`HTML form transport > keeps failed and malformed dynamic option sources unavailable > enum options failed 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Could not load options: <img> offline" disabled
+      option value=""
+        "No options"
+    span role="alert"
+      "Could not load options: <img> offline"
+  button type="submit"
+    "Save""
+`;
+
+exports[`HTML form transport > keeps failed and malformed dynamic option sources unavailable > enum options malformed 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Could not load options: Invalid options response." disabled
+      option value=""
+        "No options"
+    span role="alert"
+      "Could not load options: Invalid options response."
+  button type="submit"
+    "Save""
+`;
+
+exports[`HTML form transport > loads read-tier options after prefill and submits only resolved tokens > enum options loading 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Loading options…" disabled
+      option value=""
+        "Loading…"
+    span role="status"
+      "Loading options…"
+  button type="submit"
+    "Save""
+`;
+
+exports[`HTML form transport > loads read-tier options after prefill and submits only resolved tokens > enum options resolved after blocked submit 1`] = `
+"form
+  label
+    "Region"
+    select
+      option value="west"
+        "West"
+      option value="east"
+        "<b>East</b>"
+  button type="submit"
+    "Save"
+  p role="alert"
+    "Region: select an allowed value.""
+`;
+
+exports[`HTML form transport > prefills through reads, retains typed values, escapes failures and permits retry > form retry saved with prefilled values 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="<b>Ada</b>"
+  label
+    "Count"
+    input type="number" value="7" step="1"
+  label
+    "Enabled"
+    input type="checkbox"
+  button type="submit"
+    "Save record"
+  p role="status"
+    "Saved.""
+`;
+
+exports[`HTML form transport > prefills through reads, retains typed values, escapes failures and permits retry > form submit failed with prefilled values 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="<b>Ada</b>"
+  label
+    "Count"
+    input type="number" value="7" step="1"
+  label
+    "Enabled"
+    input type="checkbox"
+  button type="submit"
+    "Save record"
+  p role="alert"
+    "<img src=x> failed""
+`;
+
+exports[`HTML form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saved 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="Ada"
+  label
+    "Count"
+    input type="number" value="2" step="1"
+  label
+    "Enabled"
+    input type="checkbox" checked
+  button type="submit"
+    "Save record"
+  p role="status"
+    "Saved.""
+`;
+
+exports[`HTML form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saving 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="Ada"
+  label
+    "Count"
+    input type="number" value="2" step="1"
+  label
+    "Enabled"
+    input type="checkbox" checked
+  button type="submit" disabled
+    "Save record"
+  p role="status"
+    "Saving…""
+`;
+
+exports[`Shadcn form transport > keeps failed and malformed dynamic option sources unavailable > enum options empty 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="No options available." disabled
+      option value=""
+        "No options"
+    span role="status"
+      "No options available."
+  button type="submit"
+    "Save""
+`;
+
+exports[`Shadcn form transport > keeps failed and malformed dynamic option sources unavailable > enum options failed 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Could not load options: <img> offline" disabled
+      option value=""
+        "No options"
+    span role="alert"
+      "Could not load options: <img> offline"
+  button type="submit"
+    "Save""
+`;
+
+exports[`Shadcn form transport > keeps failed and malformed dynamic option sources unavailable > enum options malformed 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Could not load options: Invalid options response." disabled
+      option value=""
+        "No options"
+    span role="alert"
+      "Could not load options: Invalid options response."
+  button type="submit"
+    "Save""
+`;
+
+exports[`Shadcn form transport > loads read-tier options after prefill and submits only resolved tokens > enum options loading 1`] = `
+"form
+  label
+    "Region"
+    select aria-describedby="Loading options…" disabled
+      option value=""
+        "Loading…"
+    span role="status"
+      "Loading options…"
+  button type="submit"
+    "Save""
+`;
+
+exports[`Shadcn form transport > loads read-tier options after prefill and submits only resolved tokens > enum options resolved after blocked submit 1`] = `
+"form
+  label
+    "Region"
+    select
+      option value="west"
+        "West"
+      option value="east"
+        "<b>East</b>"
+  button type="submit"
+    "Save"
+  p role="alert"
+    "Region: select an allowed value.""
+`;
+
+exports[`Shadcn form transport > prefills through reads, retains typed values, escapes failures and permits retry > form retry saved with prefilled values 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="<b>Ada</b>"
+  label
+    "Count"
+    input type="number" value="7" step="1"
+  label
+    "Enabled"
+    input type="checkbox"
+  button type="submit"
+    "Save record"
+  p role="status"
+    "Saved.""
+`;
+
+exports[`Shadcn form transport > prefills through reads, retains typed values, escapes failures and permits retry > form submit failed with prefilled values 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="<b>Ada</b>"
+  label
+    "Count"
+    input type="number" value="7" step="1"
+  label
+    "Enabled"
+    input type="checkbox"
+  button type="submit"
+    "Save record"
+  p role="alert"
+    "<img src=x> failed""
+`;
+
+exports[`Shadcn form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saved 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="Ada"
+  label
+    "Count"
+    input type="number" value="2" step="1"
+  label
+    "Enabled"
+    input type="checkbox" checked
+  button type="submit"
+    "Save record"
+  p role="status"
+    "Saved.""
+`;
+
+exports[`Shadcn form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saving 1`] = `
+"form
+  label
+    "Name"
+    input type="text" value="Ada"
+  label
+    "Count"
+    input type="number" value="2" step="1"
+  label
+    "Enabled"
+    input type="checkbox" checked
+  button type="submit" disabled
+    "Save record"
+  p role="status"
+    "Saving…""
+`;

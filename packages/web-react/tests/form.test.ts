@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { EnumSelectionSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
@@ -45,6 +46,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       expect(invoke.mock.calls).toEqual([["demo.Records", "Get", {}], ["demo.Options", "List", {}]]);
       expect(view.container.querySelector("select")!.disabled).toBe(true);
       expect(view.container.textContent).toContain("Loading options");
+      expect(normalizeDom(view.container)).toMatchSnapshot("enum options loading");
       await act(async () => { submit(view.container); });
       expect(invoke).toHaveBeenCalledTimes(2);
       await act(async () => finish({ outer: { items: [
@@ -55,6 +57,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       expect(select.hasAttribute("data-value-tone")).toBe(false);
       expect(select.textContent).toContain("<b>East</b>");
       expect(select.querySelector("b")).toBeNull();
+      expect(normalizeDom(view.container)).toMatchSnapshot("enum options resolved after blocked submit");
       await act(async () => { submit(view.container); });
       expect(invoke.mock.calls[2]).toEqual(["demo.Records", "Update", { region: "east" }]);
       select.add(new Option("Forged", "forged")); select.value = "forged";
@@ -64,13 +67,16 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     } finally { await view.close(); }
   });
   it("keeps failed and malformed dynamic option sources unavailable", async () => {
-    for (const response of [undefined, { outer: { items: "invalid" } }, { outer: { items: [] } }]) {
+    for (const [state, response] of [
+      ["failed", undefined], ["malformed", { outer: { items: "invalid" } }], ["empty", { outer: { items: [] } }],
+    ] as const) {
       const invoke = vi.fn(async () => { if (!response) throw new Error("<img> offline"); return response; });
       const view = await mount(enumPanel(), invoke);
       try {
         expect(view.container.querySelector("select")!.disabled).toBe(true);
         expect(view.container.querySelector("img")).toBeNull();
         expect(view.container.querySelector('[role="alert"], [role="status"]')).not.toBeNull();
+        expect(normalizeDom(view.container)).toMatchSnapshot(`enum options ${state}`);
         await act(async () => { submit(view.container); });
         expect(invoke.mock.calls).toEqual([["demo.Options", "List", {}]]);
       } finally { await view.close(); }
@@ -142,8 +148,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       await act(async () => { submit(view.container); submit(view.container); });
       expect(invoke.mock.calls).toEqual([["demo.Records", "Update", { scope: "scope-1", name: "Ada", count: 2, enabled: true }]]);
       expect(view.container.querySelector<HTMLButtonElement>("button[type=submit]")!.disabled).toBe(true);
+      expect(normalizeDom(view.container)).toMatchSnapshot("form saving");
       await act(async () => finish({}));
       expect(view.container.textContent).toContain("Saved.");
+      expect(normalizeDom(view.container)).toMatchSnapshot("form saved");
     } finally { await view.close(); }
   });
   it("blocks invalid and denied submits without invoking transport", async () => {
@@ -177,8 +185,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       expect(invoke.mock.calls[1]).toEqual(["demo.Records", "Update", { scope: "scope-1", name: "<b>Ada</b>", count: 7, enabled: false }]);
       expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("<img src=x> failed");
       expect(view.container.querySelector("img")).toBeNull();
+      expect(normalizeDom(view.container)).toMatchSnapshot("form submit failed with prefilled values");
       await act(async () => { submit(view.container); });
       expect(view.container.textContent).toContain("Saved.");
+      expect(normalizeDom(view.container)).toMatchSnapshot("form retry saved with prefilled values");
     } finally { await view.close(); }
   });
   it("prefills and submits nested objects, repeated scalars, and string maps", async () => {

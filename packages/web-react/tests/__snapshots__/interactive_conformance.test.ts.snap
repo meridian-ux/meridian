@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action failed 1`] = `
+"h2
+button type="button" aria-describedby="Action failed. Try again."
+  "Run report"
+span role="alert"
+  "Action failed. Try again.""
+`;
+
+exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action pending 1`] = `
+"h2
+button type="button" disabled
+  "Run report""
+`;
+
+exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action retry succeeded 1`] = `
+"h2
+button type="button"
+  "Run report""
+`;
+
+exports[`HTML action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied after activation 1`] = `
+"h2
+button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+  "Delete report"
+span role="alert"
+  "This action is unavailable.""
+`;
+
+exports[`HTML action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied before activation 1`] = `
+"h2
+button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+  "Delete report"
+"This action is unavailable.""
+`;
+
+exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action failed 1`] = `
+"h2
+button type="button" aria-describedby="Action failed. Try again."
+  "Run report"
+span role="alert"
+  "Action failed. Try again.""
+`;
+
+exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action pending 1`] = `
+"h2
+button type="button" disabled
+  "Run report""
+`;
+
+exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action retry succeeded 1`] = `
+"h2
+button type="button"
+  "Run report""
+`;
+
+exports[`Shadcn action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied after activation 1`] = `
+"h2
+button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+  "Delete report"
+span role="alert"
+  "This action is unavailable.""
+`;
+
+exports[`Shadcn action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied before activation 1`] = `
+"h2
+button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+  "Delete report"
+"This action is unavailable.""
+`;

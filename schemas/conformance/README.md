@@ -126,6 +126,25 @@ precedence over bare allowed values. Tests cover both kits, nested/repeated
 enum fields, and rejection of tokens inserted into the DOM outside the resolved
 option set. These checks do not establish browser-native validation/layout parity.
 
+These two suites also commit 28 semantic DOM snapshots across HTML and Shadcn:
+view-action denial before/after activation, pending, failure, and successful retry;
+form saving, saved, submit failure, and successful retry with prefilled values;
+and dynamic enum loading, resolved options after a blocked submit, failed,
+malformed, and empty responses. They use the same normalizer as the initial-state
+corpus, preserving visible feedback, authored roles, disabled controls, and
+resolved description text. These action states belong to the shared view-action
+fallback, not ActionPanel's URI/command affordances. Live selected values and RPC
+payloads remain explicit assertions: the normalizer records DOM attributes, not
+all live control properties. The 28 snapshots supplement the 96 initial-state
+browser snapshots; they do not expand the canonical fixture count or prove
+layout, native browser validation, or other renderers' interaction behavior.
+
+From `packages/web-react`, run
+`pnpm exec vitest run tests/interactive_conformance.test.ts tests/form.test.ts`
+to compare these snapshots. Add `--update` only for intentional changes, then
+review both files under `tests/__snapshots__/`. Both snapshot files are included
+in the Bazel conformance target's inputs.
+
 The canonical `copy_value` fixture contains a long panel title, label, and
 unbroken URL segment. All four browser semantic snapshots and explicit content
 assertions preserve the full label and scalar. The native wire fixture preserves

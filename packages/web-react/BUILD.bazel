@@ -84,6 +84,8 @@ vitest_test(
         "tests/gallery.test.ts",
         "tests/fixtures.ts",
         "tests/__snapshots__/conformance.test.ts.snap",
+        "tests/__snapshots__/interactive_conformance.test.ts.snap",
+        "tests/__snapshots__/form.test.ts.snap",
     ],
     deps = [
         ":node_modules/react",
