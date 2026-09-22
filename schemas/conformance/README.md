@@ -37,6 +37,16 @@ conformance targets include the normalizer and goldens as runfiles.
 
 ## What these fixtures do not prove
 
+The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
+activates real DOM controls. It verifies the canonical ActionPanel's named URI
+link, an admitted view action's exact service/method and empty request, and
+mutation denial before transport with a host denial callback. ActionPanel
+affordances are URI/command controls, not RPC actions. These checks do not prove
+disabled denial controls or visible action errors: the current view action
+fallback remains enabled and catches invocation failures without rendering them.
+Reference-kit FormPanel submission and request-failure rendering are also still
+unimplemented; rendering editable fields does not establish a submit contract.
+
 The canonical `copy_value` fixture contains a long panel title, label, and
 unbroken URL segment. All four browser semantic snapshots and explicit content
 assertions preserve the full label and scalar. The native wire fixture preserves
