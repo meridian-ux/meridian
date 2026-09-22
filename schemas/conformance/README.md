@@ -57,6 +57,9 @@ and status displays in HTML, Shadcn, MUI, web-components, and native rendering.
 HTML and Shadcn focused tests also cover populated media, icons, navigation,
 literal labels, unsafe URL degradation, malformed responses, and request failure.
 Their initial-state snapshots still do not establish populated card support.
+The canonical Gallery fixture now also carries its populate and card mapping;
+the same two-row response is exercised through HTML, Shadcn, MUI,
+web-components, and TUI, closing the first populated gallery matrix slice.
 Epic #9 still owns representative overflow/ValueType fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package

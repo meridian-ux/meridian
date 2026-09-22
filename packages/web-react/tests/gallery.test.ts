@@ -5,6 +5,8 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
@@ -67,5 +69,23 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s populated
     const failed = await mount(undefined, false, true);
     expect(failed.container.textContent).toContain("Failed to load gallery.");
     await failed.close();
+  });
+
+  it("renders the canonical populated gallery descriptor", async () => {
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "gallery")!;
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    await act(async () => root.render(createElement(MeridianProvider, {
+      kit,
+      adhoc: {},
+      invoker: { invoke: async () => POPULATED_RESPONSES.gallery },
+    }, createElement(PanelRenderer, {
+      descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor)),
+    }))));
+    expect(container.querySelectorAll("[data-gallery-card]")).toHaveLength(2);
+    expect(container.textContent).toContain("GitHub");
+    expect(container.textContent).toContain("PagerDuty");
+    expect(container.querySelectorAll("[data-gallery-link]")).toHaveLength(2);
+    await act(async () => root.unmount());
   });
 });

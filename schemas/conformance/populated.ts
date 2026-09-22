@@ -18,4 +18,22 @@ export const POPULATED_RESPONSES = {
       },
     ],
   },
+  gallery: {
+    items: [
+      {
+        name: "GitHub",
+        description: "Source control",
+        status: "Connected",
+        href: "https://github.com",
+        action: "Manage",
+      },
+      {
+        name: "PagerDuty",
+        description: "Incident response",
+        status: "Connected",
+        href: "https://pagerduty.com",
+        action: "Manage",
+      },
+    ],
+  },
 } as const;

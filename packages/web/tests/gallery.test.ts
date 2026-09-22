@@ -8,6 +8,8 @@ import { describe, expect, it } from "vitest";
 
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 
 const wasm: UiviewWasm = {
   renderTable: () => [] as RenderedRow[],
@@ -71,5 +73,21 @@ describe("web-components GalleryPanel", () => {
     expect(root.querySelector("img")?.getAttribute("alt")).toBe(declared ? "Mar 29, 2026" : "2026-03-29");
     expect(root.querySelectorAll("a")).toHaveLength(1);
     expect(root.textContent).toContain("Manage");
+  });
+
+  it("renders the canonical populated gallery descriptor", async () => {
+    const root = document.createElement("div");
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "gallery")!;
+    await renderPanel({
+      wasm,
+      root,
+      descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor)),
+      invoker: { invoke: async () => POPULATED_RESPONSES.gallery },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+    expect(root.querySelectorAll(".mer-gallery-card")).toHaveLength(2);
+    expect(root.textContent).toContain("GitHub");
+    expect(root.textContent).toContain("PagerDuty");
+    expect(root.querySelectorAll(".mer-gallery-card-link")).toHaveLength(2);
   });
 });

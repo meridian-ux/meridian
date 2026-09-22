@@ -181,7 +181,18 @@ export const FIXTURES: Fixture[] = [
       title: "Assets",
       body: {
         case: "gallery",
-        value: create(GalleryPanelSchema, { placeholder: "no assets" }),
+        value: create(GalleryPanelSchema, {
+          populate: { service: "demo.Gallery", method: "List" },
+          rowsField: "items",
+          placeholder: "no assets",
+          card: {
+            titleField: "name",
+            subtitleField: "description",
+            statusField: "status",
+            hrefField: "href",
+            actionLabelField: "action",
+          },
+        }),
       },
     }),
   },
@@ -548,4 +559,3 @@ export const FIXTURES: Fixture[] = [
     descriptor: create(PanelDescriptorSchema, { panelId: "blank", title: "Blank" }),
   },
 ];
-

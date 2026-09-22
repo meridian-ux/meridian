@@ -97,8 +97,8 @@ exports[`muiKit canonical panel conformance > renders the form fixture without c
 `;
 
 exports[`muiKit canonical panel conformance > renders the gallery fixture without crashing > mui-kit/gallery 1`] = `
-"p
-  "no assets""
+"span role="progressbar"
+  svg"
 `;
 
 exports[`muiKit canonical panel conformance > renders the grammar fixture without crashing > mui-kit/grammar 1`] = `

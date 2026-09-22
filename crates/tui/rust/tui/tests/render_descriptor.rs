@@ -55,12 +55,10 @@ impl RpcInvoker for GalleryData {
         _request: serde_json::Value,
     ) -> Result<serde_json::Value, RpcError> {
         Ok(serde_json::json!({
-            "items": [{
-                "name": "GitHub",
-                "description": "Source control",
-                "status": "Connected",
-                "href": "https://github.com"
-            }]
+            "items": [
+                {"name": "GitHub", "description": "Source control", "status": "Connected", "href": "https://github.com", "action": "Manage"},
+                {"name": "PagerDuty", "description": "Incident response", "status": "Connected", "href": "https://pagerduty.com", "action": "Manage"}
+            ]
         }))
     }
 }
@@ -472,6 +470,18 @@ fn canonical_resource_cards_fixture_renders_populated_rows() {
     assert!(output.contains("PagerDuty"));
     assert!(output.contains("Incident response"));
     assert!(!output.contains("Failed to load resources"));
+}
+
+#[test]
+fn canonical_gallery_fixture_renders_populated_rows() {
+    let descriptor = PanelDescriptor::decode(read_canonical_fixture("gallery.binpb").as_slice())
+        .expect("gallery fixture decodes");
+    let output = draw_with(&descriptor, 72, 16, &GalleryData);
+    assert!(output.contains("GitHub"));
+    assert!(output.contains("Source control"));
+    assert!(output.contains("PagerDuty"));
+    assert!(output.contains("Incident response"));
+    assert!(!output.contains("Failed to load gallery"));
 }
 
 #[test]

@@ -12,10 +12,12 @@ import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 
 afterEach(cleanup);
 
@@ -65,6 +67,18 @@ function galleryView(withImage: boolean, declared = true): ViewDescriptor {
 }
 
 describe("MeridianGallery", () => {
+  it("renders the canonical populated gallery descriptor", async () => {
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "gallery")!;
+    render(
+      <MeridianMuiProvider invoker={{ invoke: async () => POPULATED_RESPONSES.gallery }}>
+        <PanelRenderer descriptor={fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor))} />
+      </MeridianMuiProvider>,
+    );
+    expect(await screen.findByText("GitHub")).toBeTruthy();
+    expect(screen.getByText("PagerDuty")).toBeTruthy();
+    expect(screen.getAllByRole("link")).toHaveLength(2);
+  });
+
   it("renders the image lightbox with host-resolved asset URLs", async () => {
     const { container } = render(
       <MeridianMuiProvider invoker={invoker} resolveAssetSrc={(s) => `/tools/e2e${s}`}>
