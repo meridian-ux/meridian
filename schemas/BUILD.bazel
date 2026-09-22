@@ -78,4 +78,5 @@ alias(
 exports_files([
     "package.json",
     "tsconfig.json",
+    "tools/conformance_snapshots.mjs",
 ])

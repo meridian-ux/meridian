@@ -50,12 +50,12 @@ export function buildCommands({ update = false, bazel = false } = {}) {
   return commands;
 }
 
-export function parseArgs(argv) {
+export function parseArgs(argv, env = process.env) {
   const known = new Set(["--update", "--bazel", "--dry-run", "--help"]);
   const unknown = argv.filter((arg) => !known.has(arg));
   if (unknown.length > 0) throw new Error(`unknown argument${unknown.length === 1 ? "" : "s"}: ${unknown.join(", ")}`);
   return {
-    update: argv.includes("--update"),
+    update: argv.includes("--update") || env.UPDATE_SNAPSHOTS === "1",
     bazel: argv.includes("--bazel"),
     dryRun: argv.includes("--dry-run"),
     help: argv.includes("--help"),
@@ -85,7 +85,7 @@ function usage() {
   console.log(`Usage: node schemas/tools/conformance_snapshots.mjs [--update] [--bazel] [--dry-run]
 
 Runs every browser semantic conformance suite and the snapshot coverage gate.
-  --update   Re-record intentional Vitest snapshot changes.
+  --update   Re-record intentional Vitest snapshot changes (also UPDATE_SNAPSHOTS=1).
   --bazel    Also run the Bazel conformance targets that own browser snapshots.
   --dry-run  Print the commands without executing them.`);
 }

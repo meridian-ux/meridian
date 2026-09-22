@@ -12,8 +12,19 @@
 
 load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
 load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 package(default_visibility = ["//visibility:public"])
+
+# Re-record browser semantic snapshots from the real workspace. The launcher
+# uses BUILD_WORKSPACE_DIRECTORY so Vitest updates source goldens instead of a
+# read-only Bazel runfiles copy.
+py_binary(
+    name = "re_record_conformance",
+    srcs = ["tools/re_record_conformance.py"],
+    main = "tools/re_record_conformance.py",
+    data = ["//schemas:tools/conformance_snapshots.mjs"],
+)
 
 # EVERY JS target in this repo depends on `//:node_modules/<pkg>`, and those
 # targets do not exist until this call creates them. Without it, `bazel build
