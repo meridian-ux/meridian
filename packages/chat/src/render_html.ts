@@ -4,7 +4,7 @@
 
 import { escHtml as esc, mdInline } from "./dom.js";
 import type { Block } from "./wire.js";
-import { displayField } from "./field_display.js";
+import { displayCell, displayField } from "./field_display.js";
 
 export function renderBlockInner(b: Block): string {
   if (b.markdown) return `<div class="md">${mdInline(b.markdown.text || "")}</div>`;
@@ -50,7 +50,10 @@ export function renderBlockInner(b: Block): string {
     const body = (b.table.rows || [])
       .map(
         (r) =>
-          `<tr>${cols.map((c) => `<td>${esc((r.cells || {})[c.key || ""] || "")}</td>`).join("")}</tr>`,
+          `<tr>${cols.map((c) => {
+            const shown = displayCell(r, c.key || "");
+            return `<td${shown.title ? ` title="${esc(shown.title)}"` : ""}>${esc(shown.text)}</td>`;
+          }).join("")}</tr>`,
       )
       .join("");
     return `<table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;

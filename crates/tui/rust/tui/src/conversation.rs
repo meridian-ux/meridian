@@ -297,6 +297,31 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
     }
 }
 
+fn table_cell_text(row: &block::Row, key: &str) -> String {
+    let Some(cell) = row.display_cells.get(key) else {
+        return row.cells.get(key).cloned().unwrap_or_default();
+    };
+    match cell.display.as_ref() {
+        Some(display)
+            if !cell.value.is_empty()
+                && matches!(
+                    ValueType::try_from(display.r#type),
+                    Ok(ValueType::Date
+                        | ValueType::DateTime
+                        | ValueType::Time
+                        | ValueType::Principal
+                        | ValueType::Email)
+                ) =>
+        {
+            meridian_uiview::format_display_value(
+                &serde_json::Value::String(cell.value.clone()),
+                display,
+            )
+        }
+        _ => cell.value.clone(),
+    }
+}
+
 fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
     if !table.title.is_empty() {
@@ -323,12 +348,7 @@ fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line
             let cells = table
                 .rows
                 .iter()
-                .map(|r| {
-                    r.cells
-                        .get(&col.key)
-                        .map(|v| v.chars().count())
-                        .unwrap_or(0)
-                })
+                .map(|r| table_cell_text(r, &col.key).chars().count())
                 .max()
                 .unwrap_or(0);
             cells.max(headers[i].chars().count())
@@ -356,7 +376,7 @@ fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line
                     .iter()
                     .enumerate()
                     .map(|(i, col)| {
-                        let v = row.cells.get(&col.key).cloned().unwrap_or_default();
+                        let v = table_cell_text(row, &col.key);
                         format!("{:width$}", v, width = widths[i])
                     })
                     .collect::<Vec<_>>()
@@ -529,7 +549,10 @@ mod tests {
                     label: String::new(),
                 },
             ],
-            rows: vec![block::Row { cells }],
+            rows: vec![block::Row {
+                cells,
+                ..Default::default()
+            }],
         }));
         let lines = block_lines(&b, &palette());
         assert_eq!(text_of(&lines[0]), "  Name   state");
@@ -552,6 +575,7 @@ mod tests {
             ],
             rows: vec![block::Row {
                 cells: std::collections::HashMap::new(),
+                ..Default::default()
             }],
         }));
         let lines = block_lines(&b, &palette());
@@ -581,6 +605,58 @@ mod tests {
         let lines = block_lines(&b, &palette());
         assert_eq!(text_of(&lines[0]), "  id      1");
         assert_eq!(text_of(&lines[1]), "  longer  2");
+    }
+
+    #[test]
+    fn table_displays_survive_wire_and_preserve_raw_cells() {
+        use meridian_uiview::proto::ValueDisplay;
+        use prost::Message;
+        let mut row = block::Row::default();
+        row.cells.insert("due".into(), "old".into());
+        row.cells.insert("legacy".into(), "literal".into());
+        row.cells.insert("empty".into(), "old".into());
+        for (key, value, kind) in [
+            ("due", "2026-03-29T00:00:00Z", ValueType::Date as i32),
+            ("empty", "", ValueType::Date as i32),
+            ("count", "0012.50", ValueType::Decimal as i32),
+            ("unknown", "raw", 999),
+        ] {
+            row.display_cells.insert(
+                key.into(),
+                block::Cell {
+                    value: value.into(),
+                    display: Some(ValueDisplay {
+                        r#type: kind,
+                        ..Default::default()
+                    }),
+                },
+            );
+        }
+        let row = block::Row::decode(row.encode_to_vec().as_slice()).unwrap();
+        assert_eq!(table_cell_text(&row, "due"), "Mar 29, 2026");
+        assert_eq!(row.display_cells["due"].value, "2026-03-29T00:00:00Z");
+        assert_eq!(table_cell_text(&row, "legacy"), "literal");
+        assert_eq!(table_cell_text(&row, "empty"), "");
+        assert_eq!(table_cell_text(&row, "count"), "0012.50");
+        assert_eq!(table_cell_text(&row, "unknown"), "raw");
+        assert_eq!(table_cell_text(&row, "missing"), "");
+        let table = block::Table {
+            columns: vec![
+                block::Column {
+                    key: "due".into(),
+                    label: "D".into(),
+                },
+                block::Column {
+                    key: "legacy".into(),
+                    label: "L".into(),
+                },
+            ],
+            rows: vec![row],
+            ..Default::default()
+        };
+        let lines = table_lines(&table, &palette(), Style::default());
+        assert_eq!(text_of(&lines[0]), "  D             L      ");
+        assert_eq!(text_of(&lines[1]), "  Mar 29, 2026  literal");
     }
 
     #[test]

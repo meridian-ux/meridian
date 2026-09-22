@@ -174,6 +174,16 @@ message Block {
   message Row {
     // column key → cell text (proto3-JSON: a plain object).
     map<string, string> cells = 1;
+    // Optional rich cells by column key. An entry overrides cells for that key,
+    // including an explicitly empty value. Missing keys fall back to cells.
+    // Producers may also populate cells for older consumers. Display follows
+    // Field's string semantics and never changes the stored raw value.
+    map<string, Cell> display_cells = 2;
+  }
+
+  message Cell {
+    string value = 1 [(google.api.field_behavior) = OPTIONAL];
+    ValueDisplay display = 2 [(google.api.field_behavior) = OPTIONAL];
   }
 
   message Table {

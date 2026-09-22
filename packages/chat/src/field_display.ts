@@ -3,7 +3,14 @@
 import { fromJson } from "@bufbuild/protobuf";
 import { ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { formatByDisplay, type DisplayedValue } from "@savvifi/meridian-schemas/uiview";
-import type { Field } from "./wire.js";
+import type { Field, TableRow } from "./wire.js";
+
+export function displayCell(row: TableRow, key: string): DisplayedValue {
+  if (row.displayCells && Object.prototype.hasOwnProperty.call(row.displayCells, key)) {
+    return displayField(row.displayCells[key] ?? {});
+  }
+  return { text: row.cells && Object.prototype.hasOwnProperty.call(row.cells, key) ? row.cells[key] : "" };
+}
 
 export function displayField(field: Field): DisplayedValue {
   const text = field.value ?? "";

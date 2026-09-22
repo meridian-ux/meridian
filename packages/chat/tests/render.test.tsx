@@ -64,6 +64,44 @@ describe("conversation field displays", () => {
   });
 });
 
+describe("conversation table cell displays", () => {
+  const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];
+
+  it("round-trips rich cells, preserves raw values, and falls back per key", () => {
+    const message = create(BlockSchema, { kind: { case: "table", value: {
+      columns: ["due", "owner", "legacy", "empty", "count"].map(key => ({ key })),
+      rows: [{ cells: { due: "old", legacy: "<raw>", empty: "old" }, displayCells: {
+        due: { value: "2026-03-29T00:00:00Z", display: { type: ValueType.DATE } },
+        owner: { value: "Ada <ada@example.com>", display: { type: ValueType.PRINCIPAL,
+          options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
+        empty: {}, count: { value: "0012.50", display: { type: ValueType.DECIMAL } },
+      } }],
+    } } });
+    const decoded = fromBinary(BlockSchema, toBinary(BlockSchema, message));
+    for (const enumAsInteger of [false, true]) {
+      const wire = toJson(BlockSchema, decoded, { enumAsInteger }) as unknown as Block;
+      for (const render of renderers) {
+        const html = render(wire);
+        expect(html).toContain("Mar 29, 2026");
+        expect(html).toContain('title="ada@example.com">Ada</td>');
+        expect(html).toContain("&lt;raw&gt;</td><td></td><td>0012.50</td>");
+        expect(html).not.toContain("old");
+      }
+      expect(wire.table?.rows?.[0].displayCells?.due.value).toBe("2026-03-29T00:00:00Z");
+    }
+  });
+
+  it("preserves absent, unknown, malformed and unsupported display values", () => {
+    for (const display of [undefined, {}, { type: 999 }, { type: "FUTURE_TYPE" },
+      { type: "DATE", temporal: { precision: [] } }, { type: "URL" }]) {
+      const block: Block = { table: { columns: [{ key: "v" }], rows: [{
+        displayCells: { v: { value: "<raw>", display } },
+      }] } };
+      for (const render of renderers) expect(render(block)).toContain("<td>&lt;raw&gt;</td>");
+    }
+  });
+});
+
 describe("renderBlockInner (vanilla HTML)", () => {
   it("renders a tool block with an ok dot + summary", () => {
     const b: Block = {

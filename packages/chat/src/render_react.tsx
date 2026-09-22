@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 import { mdInline } from "./dom.js";
 import type { Block, ViewBlock } from "./wire.js";
-import { displayField } from "./field_display.js";
+import { displayCell, displayField } from "./field_display.js";
 
 /**
  * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
@@ -100,9 +100,10 @@ export function BlockView({
         <tbody>
           {(block.table.rows || []).map((r, i) => (
             <tr key={i}>
-              {cols.map((c, j) => (
-                <td key={j}>{(r.cells || {})[c.key || ""] || ""}</td>
-              ))}
+              {cols.map((c, j) => {
+                const shown = displayCell(r, c.key || "");
+                return <td key={j} title={shown.title}>{shown.text}</td>;
+              })}
             </tr>
           ))}
         </tbody>

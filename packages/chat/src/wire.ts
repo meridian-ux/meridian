@@ -56,6 +56,8 @@ export interface TableColumn {
 }
 export interface TableRow {
   cells?: Record<string, string>;
+  /** Entries override legacy cells, including an explicitly empty value. */
+  displayCells?: Record<string, Pick<Field, "value" | "display">>;
 }
 export interface TableBlock {
   title?: string;
