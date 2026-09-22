@@ -284,11 +284,12 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     ))
 }
 
+// Bazel's pinned Rust toolchain predates `is_multiple_of`; keep this compatible
+// modulo check and suppress Clippy's newer-toolchain preference locally.
+#[allow(clippy::manual_is_multiple_of)]
 fn days_in_month(year: u16, month: u8) -> u8 {
     match month {
-        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => {
-            29
-        }
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
         2 => 28,
         4 | 6 | 9 | 11 => 30,
         _ => 31,

@@ -46,6 +46,9 @@ fn parts(n: f64) -> (bool, u64, u64) {
     (neg, a / 100, a % 100)
 }
 
+// Bazel's pinned Rust toolchain predates `is_multiple_of`; keep this compatible
+// modulo check and suppress Clippy's newer-toolchain preference locally.
+#[allow(clippy::manual_is_multiple_of)]
 fn group(int: u64) -> String {
     let s = int.to_string();
     let mut out = String::new();
