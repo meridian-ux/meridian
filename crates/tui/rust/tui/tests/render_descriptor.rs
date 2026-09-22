@@ -530,6 +530,107 @@ fn canonical_table_fixture_renders_populated_rows() {
     assert!(!output.contains("no claims"));
 }
 
+// Preserve row boundaries while discarding terminal padding. These text goldens
+// cover content and ordering, not colors or interactive navigation.
+fn terminal_lines(output: &str, width: usize) -> Vec<String> {
+    output
+        .chars()
+        .collect::<Vec<_>>()
+        .chunks(width)
+        .map(|row| {
+            row.iter()
+                .collect::<String>()
+                .trim_matches('│')
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .filter(|row| !row.starts_with(['┌', '└']))
+        .filter(|row| !row.is_empty())
+        .collect()
+}
+
+#[test]
+fn canonical_populated_native_text_goldens() {
+    for name in ["gallery", "table"] {
+        let descriptor =
+            PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
+                .unwrap();
+        let output = if name == "gallery" {
+            draw_with(&descriptor, 160, 20, &GalleryData)
+        } else {
+            draw_with(&descriptor, 160, 20, &TableData)
+        };
+        let expected = if name == "gallery" {
+            vec![
+                "Assets",
+                "▶ 1. GitHub [Connected]",
+                "Source control",
+                "[1] Manage https://github.com",
+                "2. PagerDuty [Connected]",
+                "Incident response",
+                "[2] Manage https://pagerduty.com",
+            ]
+        } else {
+            // URLs remain noninteractive scalar text in the native table.
+            vec![
+                "Claims",
+                "2",
+                "Member Amount Enabled Website",
+                "Ada 0012.50 Yes https://example.com/ada",
+                "Grace 0007.00 No javascript:alert(1)",
+            ]
+        };
+        assert_eq!(terminal_lines(&output, 160), expected, "{name}");
+    }
+}
+
+struct EmptyData;
+impl RpcInvoker for EmptyData {
+    fn invoke(
+        &self,
+        _: &str,
+        _: &str,
+        _: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({"items": [], "claims": []}))
+    }
+}
+
+#[test]
+fn canonical_native_empty_and_absent_populate_states() {
+    for name in ["gallery", "table"] {
+        let mut descriptor =
+            PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
+                .unwrap();
+        let empty = if name == "gallery" {
+            vec!["Assets", "no assets"]
+        } else {
+            vec!["Claims", "0", "Member Amount Enabled Website"]
+        };
+        assert_eq!(
+            terminal_lines(&draw_with(&descriptor, 160, 20, &EmptyData), 160),
+            empty,
+            "{name} empty"
+        );
+        match descriptor.body.as_mut().unwrap() {
+            Body::Gallery(panel) => panel.populate = None,
+            Body::Table(panel) => panel.populate = None,
+            _ => unreachable!(),
+        }
+        let absent = if name == "gallery" {
+            vec!["Assets", "Gallery panel has no populate RPC."]
+        } else {
+            vec!["Claims", "0", "Member Amount Enabled Website"]
+        };
+        assert_eq!(
+            terminal_lines(&draw(&descriptor, 160, 20), 160),
+            absent,
+            "{name} absent"
+        );
+    }
+}
+
 #[test]
 fn a_declining_stat_marked_higher_is_better_reads_as_bad() {
     // 118 against a previous 124 with higher_is_better: the delta must render,
