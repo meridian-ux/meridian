@@ -29,6 +29,7 @@ import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
+import { GalleryContent } from "./gallery.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -101,15 +102,7 @@ export const htmlKit: ComponentKit = {
       </tbody>
     </table>
   ),
-  // Gallery — the image/media card grid. Like Table, htmlKit is the minimal
-  // reference kit (no fetch), so it paints the semantic scaffold + placeholder;
-  // mui-kit renders the fetched image cards / lightbox. `card.image_field` is the
-  // image src slot (distinct from the icon glyph).
-  Gallery: ({ panel }) => (
-    <div className="mer-gallery" role="list" data-rows-field={panel.rowsField} data-image-field={panel.card?.imageField}>
-      <p className="mer-empty">{panel.placeholder || "(load to populate)"}</p>
-    </div>
-  ),
+  Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="mer-gallery" emptyClassName="mer-empty" />,
   Prompt: ({ panel }) => (
     <form className="mer-prompt">
       {panel.fields.map((field) => (

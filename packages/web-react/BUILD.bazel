@@ -79,6 +79,7 @@ vitest_test(
         "tests/conformance.test.ts",
         "tests/llm_prompt.test.ts",
         "tests/steps.test.ts",
+        "tests/gallery.test.ts",
         "tests/fixtures.ts",
         "tests/__snapshots__/conformance.test.ts.snap",
     ],

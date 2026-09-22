@@ -186,10 +186,10 @@ status slots across browser kits, web-components, and TUI, including supporting
 titles for principal email labels while preserving the old scalar path when
 those declarations are absent.
 Gallery `CardSpec` now applies the same formatter to title, subtitle, and
-status slots across the MUI, web-components, and TUI realizations. The image,
+status slots across the HTML, Shadcn, MUI, web-components, and TUI realizations. The image,
 icon, href, and action slots remain scalar/navigation fields, and absent display
-declarations preserve the previous gallery output. HTML and Shadcn reference
-kits still render gallery placeholders; populated cards remain open there.
+declarations preserve scalar labels. HTML and Shadcn reference kits now fetch
+populated cards, including media alternatives, host-resolved icons, and href actions.
 Richer non-browser realizations remain open.
 
 ## Track C — Hardening

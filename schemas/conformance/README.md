@@ -53,9 +53,10 @@ Focused tests cover both kits and replacement frames after a failed load.
 The first populated scenario now runs through the canonical `resource_cards`
 descriptor and the same two-row response in HTML, Shadcn, MUI, web-components,
 and TUI tests. Focused gallery tests cover declared `CardSpec` title, subtitle,
-and status displays in MUI, web-components, and native rendering. HTML and
-Shadcn galleries remain placeholders, so their snapshots do not establish
-populated card or slot-formatting support.
+and status displays in HTML, Shadcn, MUI, web-components, and native rendering.
+HTML and Shadcn focused tests also cover populated media, icons, navigation,
+literal labels, unsafe URL degradation, malformed responses, and request failure.
+Their initial-state snapshots still do not establish populated card support.
 Epic #9 still owns representative overflow/ValueType fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package

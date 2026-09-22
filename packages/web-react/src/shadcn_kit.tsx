@@ -33,6 +33,7 @@ import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
+import { GalleryContent } from "./gallery.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -122,13 +123,7 @@ export const shadcnKit: ComponentKit = {
       </table>
     </div>
   ),
-  // Gallery — image/media card grid. Reference kit (no fetch): the scaffold +
-  // placeholder; mui-kit renders the fetched image cards / lightbox.
-  Gallery: ({ panel }) => (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="list" data-rows-field={panel.rowsField} data-image-field={panel.card?.imageField}>
-      <p className="col-span-full text-sm text-muted-foreground">{panel.placeholder || "(load to populate)"}</p>
-    </div>
-  ),
+  Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="grid grid-cols-2 gap-3 sm:grid-cols-3" emptyClassName="col-span-full text-sm text-muted-foreground" />,
   Prompt: ({ panel }) => (
     <form className="grid gap-4">
       {panel.fields.map((field) => (
