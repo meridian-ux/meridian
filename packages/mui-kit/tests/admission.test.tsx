@@ -44,6 +44,7 @@ describe("MUI admission boundary", () => {
     const button = screen.getByRole("button", { name: "Delete" });
     expect(button.getAttribute("aria-disabled")).toBe("true");
     expect(button.title).toContain("not permitted");
+    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
     fireEvent.click(button);
 
     expect(calls).toEqual([]);

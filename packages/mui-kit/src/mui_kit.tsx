@@ -998,15 +998,17 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
     <Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
       {feedback.feedback}
       {inline.map((action: Action) => (
-        <Button
-          key={action.id}
-          {...feedback.props(action.call)}
-          size="small"
-          variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
-          onClick={() => fire(action)}
-        >
-          {action.label}
-        </Button>
+        <Box key={action.id} display="inline-flex" alignItems="center" gap={1}>
+          <Button
+            {...feedback.props(action.call)}
+            size="small"
+            variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
+            onClick={() => fire(action)}
+          >
+            {action.label}
+          </Button>
+          {feedback.denial(action.call)}
+        </Box>
       ))}
       {overflow.length > 0 && (
         <>

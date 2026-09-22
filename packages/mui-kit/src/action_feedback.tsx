@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Alert } from "@mui/material";
+import { Alert, Typography } from "@mui/material";
 import { useMeridian } from "@savvifi/meridian-web-react";
 import { createAdmissionGate } from "@savvifi/meridian-schemas/uiview";
 
@@ -25,6 +25,9 @@ export function useActionFeedback() {
     "aria-disabled": pending || denied(call),
     title: denied(call) ? "Unavailable: this action is not permitted." : undefined,
   });
+  const denial = (call?: { service: string; method: string }) => denied(call)
+    ? <Typography component="span" variant="caption" role="note">Unavailable: this action is not permitted.</Typography>
+    : null;
   return { run, props, pending, feedback: error ? <Alert severity="error" role="alert">{error}</Alert> :
-    pending ? <span role="status">Working…</span> : null };
+    pending ? <span role="status">Working…</span> : null, denial };
 }

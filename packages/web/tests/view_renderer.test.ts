@@ -141,6 +141,8 @@ describe("renderView admission", () => {
     });
 
     const button = root.querySelector(".meridian-uiview-actions button") as HTMLButtonElement;
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    expect(root.querySelector(".mer-action-feedback")?.textContent).toBe("Unavailable: this action is not permitted.");
     button.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
