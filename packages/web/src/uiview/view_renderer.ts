@@ -5,6 +5,8 @@
 // The imperative-DOM counterpart of meridian-web-react's ViewRenderer: the
 // layout is renderer-owned; the panels come from renderPanel.
 
+import { toBinary } from "@bufbuild/protobuf";
+import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type {
   Action,
   Slot,
@@ -16,7 +18,7 @@ import {
   type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
 
-import { renderPanel } from "./renderer.js";
+import { plainValue, renderPanel } from "./renderer.js";
 import { actionFeedback } from "./action_feedback.js";
 import type { RenderPanelOptions } from "./renderer.js";
 
@@ -68,7 +70,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   title.className = "meridian-uiview-view-title";
   title.textContent = view.title;
   header.appendChild(title);
-  header.appendChild(buildActions(view.actions, mutationInvoker, gate));
+  header.appendChild(buildActions(view.actions, mutationInvoker, gate, opts));
   root.appendChild(header);
 
   const slots = [...view.slots].sort(
@@ -184,14 +186,13 @@ async function renderSlot(
   }
 
   if (slot.actions && slot.actions.length > 0) {
-    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission)));
+    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission), opts));
   }
   return section;
 }
 
-// Actions render as buttons; binding resolution (row/form → request) is a later
-// increment, so the first cut fires with an empty request.
-function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate): HTMLElement {
+// Resolve declared bindings at activation so retries use the current host context.
+function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate, opts: RenderViewOptions): HTMLElement {
   const bar = document.createElement("div");
   bar.className = "meridian-uiview-actions";
   for (const a of actions || []) {
@@ -201,7 +202,14 @@ function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGat
     const feedback = actionFeedback(btn, !!a.call && gate.admits("mutation", a.call.service, a.call.method));
     btn.onclick = () => {
       if (a.call) {
-        void feedback.run(() => invoker.invoke(a.call!.service, a.call!.method, {}));
+        void feedback.run(async () => {
+          const call = a.call!;
+          gate.check("mutation", call.service, call.method);
+          const request = call.bindings.length
+            ? plainValue(opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context)) as Record<string, unknown>
+            : {};
+          return invoker.invoke(call.service, call.method, request);
+        });
       }
     };
     bar.appendChild(btn);

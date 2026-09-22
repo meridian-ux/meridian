@@ -121,7 +121,7 @@ function plainRow(raw: unknown): Record<string, unknown> {
  * Deep, not shallow: `NestedBinding` builds sub-objects, so an un-normalized
  * nested Map would break the same way one level down.
  */
-function plainValue(v: unknown): unknown {
+export function plainValue(v: unknown): unknown {
   if (v instanceof Map) {
     const out: Record<string, unknown> = {};
     for (const [k, val] of v) out[String(k)] = plainValue(val);

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
-import { create } from "@bufbuild/protobuf";
-import { describe, expect, it } from "vitest";
+import { create, fromBinary } from "@bufbuild/protobuf";
+import { describe, expect, it, vi } from "vitest";
+import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import {
   SlotSchema,
   TabbedLayoutSchema,
@@ -51,6 +52,53 @@ describe("renderView tab keyboard navigation", () => {
 });
 
 describe("renderView admission", () => {
+  it.each(["view", "slot"])("passes %s action bindings and current context through the WASM request seam", async (location) => {
+    const root = document.createElement("div");
+    const call = create(RpcCallSchema, { service: "demo.Items", method: "Save", bindings: [
+      { requestField: "kind", source: { case: "literal", value: "item" } },
+      { requestField: "record", source: { case: "nested", value: { fields: [
+        { requestField: "id", source: { case: "rowField", value: "id" } },
+      ] } } },
+    ] });
+    const action = { label: "Save", call };
+    const current = { ...context, selectedRow: { id: "first" }, formValues: { enabled: false, count: 0 } };
+    const buildRequest = vi.fn((bytes: Uint8Array, ctx: typeof current) => {
+      expect(fromBinary(RpcCallSchema, bytes)).toEqual(call);
+      expect(ctx).toBe(current);
+      return new Map<string, unknown>([["kind", "item"], ["record", new Map([["id", ctx.selectedRow.id]])],
+        ["enabled", ctx.formValues.enabled], ["count", ctx.formValues.count]]);
+    });
+    const invoke = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue({});
+    await renderView({ root, context: current, wasm: { ...wasm, buildRequest }, admission: "unrestricted",
+      invoker: { invoke }, view: create(ViewDescriptorSchema, location === "view"
+        ? { actions: [action] } : { slots: [{ id: "details", actions: [action] }] }),
+    });
+    root.querySelector("button")!.click();
+    await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("offline"));
+    current.selectedRow = { id: "second" };
+    root.querySelector("button")!.click();
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    expect(invoke.mock.calls.map(args => args[2])).toEqual([
+      { kind: "item", record: { id: "first" }, enabled: false, count: 0 },
+      { kind: "item", record: { id: "second" }, enabled: false, count: 0 },
+    ]);
+    expect(buildRequest).toHaveBeenCalledTimes(2);
+  });
+
+  it("denies bound actions before request building or transport", async () => {
+    const root = document.createElement("div");
+    const buildRequest = vi.fn();
+    const invoke = vi.fn();
+    const onDenied = vi.fn();
+    await renderView({ root, wasm: { ...wasm, buildRequest }, context, invoker: { invoke }, admission: { onDenied },
+      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save",
+        bindings: [{ requestField: "kind", source: { case: "literal", value: "item" } }] } }] }),
+    });
+    root.querySelector("button")!.click();
+    await vi.waitFor(() => expect(onDenied).toHaveBeenCalledTimes(1));
+    expect(buildRequest).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
+  });
   it("exposes failures and permits retry with the unchanged request", async () => {
     const root = document.createElement("div");
     const calls: unknown[] = [];

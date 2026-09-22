@@ -1,5 +1,14 @@
 # Renderer conformance
 
+Web-components view and slot RPC actions pass declared bindings to the WASM
+request builder with the current host `RenderContext` at activation. Nested Maps
+returned by the bridge become plain request objects; unbound actions retain an
+empty request. DOM tests verify descriptor/context forwarding, nested results,
+false/zero preservation, refreshed context on retry, and denial before request
+building or transport. The tests substitute the WASM bridge and therefore prove
+integration wiring, not end-to-end native binding evaluation. No new context
+sources or refresh behavior are introduced.
+
 Native prompts and inline form summaries honor static enum `options` labels,
 falling back to each token when its label is empty. Authored options take
 precedence over `allowed_values`; keyboard selection and submission retain raw
