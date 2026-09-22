@@ -579,8 +579,11 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
   const resolveAsset = useContext(MeridianAssetContext);
   const playerRef = useRef<HTMLMediaElement>(null);
   const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
-  const src = withAsset(panel.srcUri);
-  const poster = withAsset(panel.posterUri);
+  const admittedSrc = safeAssetSrc(panel.srcUri);
+  const admittedPoster = safeAssetSrc(panel.posterUri);
+  const admittedCaptions = safeAssetSrc(panel.captionsUri);
+  const src = admittedSrc ? withAsset(admittedSrc) : "";
+  const poster = admittedPoster ? withAsset(admittedPoster) : "";
   const duration = formatDuration(panel.durationMs);
 
   // Ladder step 3: nothing to play. Say what it was and offer the source, rather
@@ -627,8 +630,8 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
         >
           {/* Captions are the accessible path for anything with speech, and the
               only way the content is searchable. Rendered as a real <track>. */}
-          {panel.captionsUri && (
-            <track kind="captions" src={withAsset(panel.captionsUri)} default />
+          {admittedCaptions && (
+            <track kind="captions" src={withAsset(admittedCaptions)} default />
           )}
           {panel.alt}
         </Box>

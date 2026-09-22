@@ -44,4 +44,57 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} media chapters`, () 
       await act(async () => root.unmount());
     }
   });
+
+  it("degrades rejected media assets without mounting active sources", async () => {
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(createElement(
+        MeridianProvider,
+        { kit, invoker: { invoke: async () => ({}) }, adhoc: {} },
+        createElement(PanelRenderer, { descriptor: create(PanelDescriptorSchema, {
+          panelId: "unsafe-media",
+          body: { case: "media", value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "javascript:alert(1)",
+            posterUri: "data:image/png;base64,bad",
+            captionsUri: "file:///tmp/captions.vtt",
+            alt: "Rejected walkthrough",
+          }) },
+        }) }),
+      )));
+
+      expect(container.querySelector("video, audio, img, track")).toBeNull();
+      expect(container.querySelector("[data-media-kind=none]")?.textContent).toContain("Rejected walkthrough");
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it("drops rejected poster and caption assets while retaining a safe player", async () => {
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(createElement(
+        MeridianProvider,
+        { kit, invoker: { invoke: async () => ({}) }, adhoc: {} },
+        createElement(PanelRenderer, { descriptor: create(PanelDescriptorSchema, {
+          panelId: "partially-safe-media",
+          body: { case: "media", value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "/walkthrough.mp4",
+            posterUri: "javascript:alert(1)",
+            captionsUri: "data:text/vtt,unsafe",
+            alt: "Safe walkthrough",
+          }) },
+        }) }),
+      )));
+
+      expect(container.querySelector("video")?.getAttribute("src")).toBe("/walkthrough.mp4");
+      expect(container.querySelector("video")?.hasAttribute("poster")).toBe(false);
+      expect(container.querySelector("track")).toBeNull();
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
 });

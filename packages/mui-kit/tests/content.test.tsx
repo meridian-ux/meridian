@@ -465,6 +465,49 @@ describe("muiKit renders MediaPanel", () => {
     await screen.findByText("A four-minute walkthrough of creating a sponsor.");
   });
 
+  it("degrades rejected media assets without mounting active sources", async () => {
+    const { container } = renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "unsafe-media",
+        title: "Unsafe media",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "javascript:alert(1)",
+            posterUri: "data:image/png;base64,bad",
+            captionsUri: "file:///tmp/captions.vtt",
+            alt: "Rejected walkthrough",
+          }),
+        },
+      }),
+    );
+    expect(container.querySelector("video, audio, img, track")).toBeNull();
+    await screen.findByText("Rejected walkthrough");
+  });
+
+  it("drops rejected poster and caption assets while retaining a safe player", async () => {
+    const { container } = renderPanel(
+      create(PanelDescriptorSchema, {
+        panelId: "partially-safe-media",
+        title: "Partially safe media",
+        body: {
+          case: "media",
+          value: create(MediaPanelSchema, {
+            kind: MediaKind.VIDEO,
+            srcUri: "/walkthrough.mp4",
+            posterUri: "javascript:alert(1)",
+            captionsUri: "data:text/vtt,unsafe",
+            alt: "Safe walkthrough",
+          }),
+        },
+      }),
+    );
+    expect(container.querySelector("video")?.getAttribute("src")).toBe("/walkthrough.mp4");
+    expect(container.querySelector("video")?.hasAttribute("poster")).toBe(false);
+    expect(container.querySelector("track")).toBeNull();
+  });
+
   it("renders IMAGE as an img with alt, not a player", async () => {
     const { container } = renderPanel(
       create(PanelDescriptorSchema, {

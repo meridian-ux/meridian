@@ -657,7 +657,15 @@ function buildCopyValue(value: CopyValue): HTMLElement {
 
 function buildMedia(panel: MediaPanel): HTMLElement {
   const figure = el("figure", "mer-media");
-  let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement;
+  const source = safeAssetSrc(panel.srcUri);
+  const poster = safeAssetSrc(panel.posterUri);
+  const captions = safeAssetSrc(panel.captionsUri);
+  let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement | undefined;
+  if (!source) {
+    figure.dataset.mediaKind = "none";
+    figure.appendChild(el("figcaption", "mer-media-caption", panel.alt || panel.caption || "No media available."));
+    return figure;
+  }
   if (panel.kind === MediaKind.IMAGE) {
     media = document.createElement("img");
     media.alt = panel.alt;
@@ -669,15 +677,15 @@ function buildMedia(panel: MediaPanel): HTMLElement {
     media = document.createElement("video");
     media.controls = true;
     media.setAttribute("aria-label", panel.alt || "Video");
-    if (panel.posterUri) (media as HTMLVideoElement).poster = panel.posterUri;
-    if (panel.captionsUri) {
+    if (poster) (media as HTMLVideoElement).poster = poster;
+    if (captions) {
       const track = document.createElement("track");
       track.kind = "captions";
-      track.src = panel.captionsUri;
+      track.src = captions;
       media.appendChild(track);
     }
   }
-  media.src = panel.srcUri;
+  media.src = source;
   media.className = `mer-media-${panel.kind === MediaKind.IMAGE ? "image" : panel.kind === MediaKind.AUDIO ? "audio" : "video"}`;
   figure.appendChild(media);
   const details = [panel.caption, panel.durationMs ? formatDuration(panel.durationMs) : ""].filter(Boolean).join(" · ");

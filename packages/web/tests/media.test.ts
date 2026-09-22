@@ -60,4 +60,49 @@ describe("web-components MediaPanel", () => {
     seek.click();
     expect(video.currentTime).toBe(65.5);
   });
+
+  it("degrades rejected media assets without mounting active sources", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: noWasm, root,
+      descriptor: create(PanelDescriptorSchema, {
+        title: "Unsafe media",
+        body: { case: "media", value: create(MediaPanelSchema, {
+          kind: MediaKind.VIDEO,
+          srcUri: "javascript:alert(1)",
+          posterUri: "data:image/png;base64,bad",
+          captionsUri: "file:///tmp/captions.vtt",
+          alt: "Rejected walkthrough",
+        }) },
+      }),
+      invoker: { invoke: async () => ({}) },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+
+    expect(root.querySelector("video, audio, img, track")).toBeNull();
+    expect(root.querySelector("[data-media-kind=none]")?.textContent).toContain("Rejected walkthrough");
+  });
+
+  it("drops rejected poster and caption assets while retaining a safe player", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: noWasm, root,
+      descriptor: create(PanelDescriptorSchema, {
+        title: "Partially safe media",
+        body: { case: "media", value: create(MediaPanelSchema, {
+          kind: MediaKind.VIDEO,
+          srcUri: "/walkthrough.mp4",
+          posterUri: "javascript:alert(1)",
+          captionsUri: "data:text/vtt,unsafe",
+          alt: "Safe walkthrough",
+        }) },
+      }),
+      invoker: { invoke: async () => ({}) },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+
+    expect(root.querySelector("video")?.getAttribute("src")).toBe("/walkthrough.mp4");
+    expect(root.querySelector("video")?.hasAttribute("poster")).toBe(false);
+    expect(root.querySelector("track")).toBeNull();
+  });
 });

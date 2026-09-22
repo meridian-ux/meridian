@@ -137,7 +137,10 @@ deep links while disabling executable/local-document schemes, matching MUI
 and standalone Launchpad admission for authored command deep links and raw
 navigate routes, shared Gallery href admission across all browser renderers,
 shared Step frame source admission with text degradation, and HTML/Shadcn
-ActionPanel/Form interaction contracts are also checked in. These checks do not establish visual
+ActionPanel/Form interaction contracts are also checked in. Full Media sources,
+posters, and caption tracks now share that passive-asset admission rule across
+all browser renderers, degrading rejected primary sources to authored text and
+dropping rejected auxiliary assets. These checks do not establish visual
 layout, every formatter option, or full renderer parity. Remaining work is
 the broader parity and renderer-specific/tooling scope called out above.
 

@@ -351,6 +351,13 @@ control-character sources degrade to `media_alt` (or the step label) without
 emitting an image element. Host asset resolvers run only after authored input is
 admitted, so trusted surfaces can still map valid paths onto mounted assets.
 
+`MediaPanel.src_uri`, `poster_uri`, and `captions_uri` use the same passive-asset
+admission rule in web-components, HTML, Shadcn, and MUI. A rejected primary
+source creates no image, audio, video, or track element and preserves authored
+alt/caption text as the degradation rung. Rejected poster and caption sources
+are omitted independently while a safe primary player remains available. Host
+asset resolvers run only after each authored source is admitted.
+
 `TerminalPanel.url` uses a separate, narrower transport admission rule: only
 absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
 fragments can reach the browser's WebSocket constructor. Rejected endpoints do

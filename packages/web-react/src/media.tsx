@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from "react";
 
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { safeAssetSrc } from "@savvifi/meridian-schemas/uiview";
 
 export interface MediaClasses {
   figure: string;
@@ -24,11 +25,22 @@ function formatDuration(milliseconds: number): string {
 export function MediaContent({ panel, classes }: { panel: MediaPanel; classes: MediaClasses }): ReactNode {
   const playerRef = useRef<HTMLMediaElement>(null);
   const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
+  const source = safeAssetSrc(panel.srcUri);
+  const poster = safeAssetSrc(panel.posterUri);
+  const captions = safeAssetSrc(panel.captionsUri);
+
+  if (!source) {
+    return (
+      <figure className={classes.figure} data-media-kind="none">
+        <figcaption className={classes.caption}>{panel.alt || panel.caption || "No media available."}{details}</figcaption>
+      </figure>
+    );
+  }
 
   if (panel.kind === MediaKind.IMAGE) {
     return (
       <figure className={`${classes.figure}${classes.image ? ` ${classes.image}` : ""}`}>
-        <img src={panel.srcUri} alt={panel.alt} />
+        <img src={source} alt={panel.alt} />
         {(panel.caption || panel.alt) && (
           <figcaption className={classes.caption}>{panel.caption || panel.alt}{details}</figcaption>
         )}
@@ -43,10 +55,10 @@ export function MediaContent({ panel, classes }: { panel: MediaPanel; classes: M
     playerRef.current = player;
   };
   const player = panel.kind === MediaKind.AUDIO ? (
-    <audio ref={setPlayer} controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
+    <audio ref={setPlayer} controls src={source} aria-label={panel.alt || panel.caption} />
   ) : (
-    <video ref={setPlayer} controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>
-      {panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}
+    <video ref={setPlayer} controls src={source} poster={poster} aria-label={panel.alt || panel.caption}>
+      {captions && <track kind="captions" src={captions} />}
     </video>
   );
 
