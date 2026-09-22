@@ -190,8 +190,10 @@ retain their raw input values, and TUI form summaries use the same core
 formatter. HTML and Shadcn FormPanel now submit typed values through mutation
 admission, prefill through the read invoker, preserve input on failures, and show
 pending/saved/error states. Their read-only scalar defaults honor declared
-displays; editable controls retain raw values. Web-components form binding and
-broader interaction parity remain separate work.
+displays; editable controls retain raw values. Web-components FormPanel now uses
+the same read/mutation admission tiers, typed nested/repeated/map input, prefill
+defaults, and visible save/retry states; its submit bindings use the WASM request
+builder. Dynamic enum sources and broader interaction parity remain separate work.
 `ResourceCard.MetaField.display` now formats fetched card metadata across browser
 kits, web-components, and TUI, reusing the existing safe URL and host-resolved
 record-link seam; legacy scalar output is preserved when unset.

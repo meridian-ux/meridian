@@ -12,6 +12,7 @@
 // decodes them with prost. There is no JSON / snake_case DTO in between.
 
 import { toBinary } from "@bufbuild/protobuf";
+import { buildInteractiveForm } from "./form.js";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
@@ -34,7 +35,6 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
-  FormPanel,
   PanelDescriptor,
   RecordCardPanel,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -382,7 +382,18 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "form") {
     meta.textContent = "";
-    root.appendChild(buildForm(body.value));
+    const form = buildInteractiveForm(body.value, {
+      allowed: (call) => createAdmissionGate(renderOpts.admission).admits("mutation", call.service, call.method),
+      invoke: (call, values, mutation) => {
+        const request = plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
+          ...renderOpts.context, formValues: values,
+        })) as object;
+        return (mutation ? renderOpts.mutationInvoker : renderOpts.invoker).invoke(call.service, call.method,
+          mutation ? { ...values, ...request } : request);
+      },
+    });
+    root.appendChild(form.element);
+    onDispose(root, form.dispose);
     return;
   }
   if (body.case === "prompt") {
@@ -1461,35 +1472,6 @@ function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
     grid.appendChild(article);
   }
   return grid;
-}
-
-// Renders a FormPanel (entity detail section) as a DOM form. READONLY draws the
-// fields as a read-only card; EDIT draws inputs. Field values (READONLY) + submit
-// wiring (EDIT) are host concerns; this renders the structure. FORM_MODE_EDIT = 2.
-function buildForm(panel: FormPanel): HTMLElement {
-  const form = document.createElement("form");
-  form.className = "meridian-uiview-form";
-  const edit = panel.mode === 2;
-  for (const field of panel.fields) {
-    const label = document.createElement("label");
-    label.className = "meridian-uiview-field";
-    const span = document.createElement("span");
-    span.className = "meridian-uiview-field-label";
-    span.textContent = field.label;
-    label.appendChild(span);
-    if (edit) {
-      const input = document.createElement("input");
-      input.name = field.fieldId;
-      label.appendChild(input);
-    } else {
-      const value = document.createElement("span");
-      value.className = "meridian-uiview-field-value";
-      value.dataset.field = field.fieldId;
-      label.appendChild(value);
-    }
-    form.appendChild(label);
-  }
-  return form;
 }
 
 // PromptPanel is the web-components peer of the TUI's standalone prompt: it

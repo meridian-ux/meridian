@@ -7,6 +7,13 @@ both representations agree.
 
 ## Browser semantic snapshots
 
+Web-components `form.test.ts` exercises typed scalar, nested, repeated, and map
+submission, denied mutations, prefill/default merging and failure fallback,
+validation, duplicate-submit prevention, retry, teardown, and read-only display.
+Its request builder is a mocked WASM bridge; this proves DOM/admission wiring,
+not end-to-end WASM binding resolution. Dynamic enum option loading is not
+implemented by this FormPanel path.
+
 The conformance suites commit 96 goldens: each canonical fixture through HTML,
 Shadcn, MUI, and web-components. `normalize_dom.ts` removes generated IDs, style
 rules, and layout wrappers while retaining text, semantic elements, authored

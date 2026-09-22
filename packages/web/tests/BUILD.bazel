@@ -33,6 +33,7 @@ vitest_test(
         "conformance_binpb.test.ts",
         "conformance.test.ts",
         "conformance_normalizer.test.ts",
+        "form.test.ts",
         "__snapshots__/conformance.test.ts.snap",
         "fixtures.ts",
     ],

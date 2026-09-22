@@ -95,9 +95,14 @@ exports[`renderPanel (web-components, binary boundary) > renders the canonical e
 exports[`renderPanel (web-components, binary boundary) > renders the canonical form fixture > web-components/form 1`] = `
 ""Navigation"
 form
-  label
-    "Navigation groups"
-    input"
+  fieldset
+    fieldset
+      legend
+        "Navigation groups"
+      button type="button"
+        "Add section"
+  p role="status"
+  p role="alert""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical gallery fixture > web-components/gallery 1`] = `
