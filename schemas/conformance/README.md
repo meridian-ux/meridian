@@ -1,5 +1,14 @@
 # Renderer conformance
 
+MUI FormPanel dynamic enum tests cover read-tier `options_source` requests,
+dotted response/value/label paths, prefill token preservation, and validation
+against resolved tokens (including nested and repeated values). While option
+sources load, the form shows a status and disables submission; failed, malformed,
+or empty results show an alert and leave submission unavailable. Defaults remain
+in form state; invalid tokens are not silently replaced or submitted. Static
+labeled-option precedence continues to use the existing `enumOptions` contract.
+This does not establish dynamic options for Prompt/LRO or native forms.
+
 MUI header/overflow, table-row, resource-card, and launchpad RPC controls expose
 admission denial with `aria-disabled` and an unavailable title. Attempted
 activation still uses the guarded invoker and preserves the host denial callback.

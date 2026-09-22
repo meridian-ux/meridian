@@ -11,6 +11,7 @@
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useActionFeedback } from "./action_feedback.js";
+import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
@@ -530,7 +531,7 @@ function buildField(
       return {
         ...base,
         type: "select",
-        value: typeof current === "string" ? current : "",
+        value: typeof current === "string" && (!field.kind.value.optionsSource || enumOptions(field.kind.value).some(option => option.value === current)) ? current : "",
         onChange: (value: string) => setAt(path, value),
         options: enumOptions(field.kind.value),
       };
@@ -690,6 +691,7 @@ function FieldForm({
   submitDisabled,
   onSubmit,
   resetOnSubmit,
+  enumInvoker,
 }: {
   fields: FormField[];
   disabled: boolean;
@@ -704,7 +706,10 @@ function FieldForm({
    *  text you just posted is still sitting in the box beside its own new entry.
    *  Off by default: an EDIT form over an existing record must keep showing it. */
   resetOnSubmit?: boolean;
+  enumInvoker?: RpcInvoker;
 }): ReactNode {
+  const options = useFormOptions(fields, enumInvoker);
+  const [optionError, setOptionError] = useState<string>();
   const seed = useMemo(() => mergeFormValues(fields, initialValues), [fields, initialValues]);
   const [values, setValues] = useState<FormObject>(seed);
   useEffect(() => {
@@ -716,6 +721,10 @@ function FieldForm({
   // destroys what the user wrote, and the write is the thing we cannot redo for
   // them. A rejected submit keeps the text so it can be retried.
   const handleSubmit = () => {
+    if (options.pending || options.error) return;
+    const error = enumInvoker ? validateFormOptions(options.fields, values) : undefined;
+    setOptionError(error);
+    if (error) return;
     const result = onSubmit?.(values);
     if (!resetOnSubmit) {
       void Promise.resolve(result).catch(() => {});
@@ -727,11 +736,15 @@ function FieldForm({
     );
   };
   return (
+    <>
+    {options.pending && <Typography role="status">Loading options…</Typography>}
+    {(options.error || optionError) && <Alert severity="error">{options.error || optionError}</Alert>}
     <MeridianForm
-      fields={buildFields(fields, values, setAt, disabled)}
+      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled)}
       description={description || undefined}
-      submit={{ label: submitLabel, disabled: submitDisabled, onSubmit: handleSubmit }}
+      submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error), onSubmit: handleSubmit }}
     />
+    </>
   );
 }
 
@@ -793,6 +806,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   return (
     <FieldForm
       fields={panel.fields}
+      enumInvoker={invoker}
       disabled={!edit}
       initialValues={prefillValues}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
