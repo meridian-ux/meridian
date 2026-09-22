@@ -58,6 +58,9 @@ export interface MeridianSortState {
 /** A per-row action — a labeled item fired against a specific row. */
 export interface MeridianRowAction<T> {
   disabled?: boolean;
+  /** Row-specific availability, e.g. TablePanel.RowAction.enabled_when. */
+  disabledForRow?: (row: T) => boolean;
+  disabledTitle?: string;
   "aria-disabled"?: boolean;
   title?: string;
   id: string;
@@ -103,21 +106,24 @@ function RowActionsMenu<T>({ row, actions }: { row: T; actions: MeridianRowActio
         </Box>
       </IconButton>
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
-        {actions.map((action) => (
-          <MenuItem
-            key={action.id}
-            disabled={action.disabled}
-            aria-disabled={action["aria-disabled"]}
-            title={action.title}
-            onClick={(event: MouseEvent<HTMLElement>) => {
-              event.stopPropagation();
-              setAnchor(null);
-              action.onClick(row);
-            }}
-          >
-            {action.label}
-          </MenuItem>
-        ))}
+        {actions.map((action) => {
+          const rowDisabled = action.disabledForRow?.(row) ?? false;
+          return (
+            <MenuItem
+              key={action.id}
+              disabled={action.disabled || rowDisabled}
+              aria-disabled={action["aria-disabled"] || rowDisabled || undefined}
+              title={rowDisabled ? action.disabledTitle : action.title}
+              onClick={(event: MouseEvent<HTMLElement>) => {
+                event.stopPropagation();
+                setAnchor(null);
+                action.onClick(row);
+              }}
+            >
+              {action.label}
+            </MenuItem>
+          );
+        })}
       </Menu>
     </>
   );

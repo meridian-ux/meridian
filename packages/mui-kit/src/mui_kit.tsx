@@ -106,6 +106,14 @@ function getNested(source: unknown, path: string): unknown {
   }, source);
 }
 
+/** Evaluate the bounded equality predicate carried by a table row action. */
+function rowActionEnabled(action: TablePanel["actions"][number], row: Row): boolean {
+  const filter = action.enabledWhen;
+  if (!filter) return true;
+  const actual = getNested(row, filter.fieldPath);
+  return actual != null && String(actual) === filter.equals;
+}
+
 /**
  * Format a cell value. A column's `value_display` WINS when set; `ColumnFormat` is
  * the fallback.
@@ -318,18 +326,25 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
     const result: MeridianRowAction<Row>[] = [];
     (panel.actions ?? []).forEach((action, index) => {
+      const feedbackProps = feedback.props(action.rpc);
       result.push({
         id: `panel-action-${index}`,
-        ...feedback.props(action.rpc),
+        ...feedbackProps,
         label: action.label,
+        disabledForRow: (row: Row) =>
+          !action.rpc?.service || !action.rpc.method || !rowActionEnabled(action, row),
+        disabledTitle: "Unavailable for this row.",
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
-          if (action.rpc) {
+          if (action.rpc?.service && action.rpc.method && rowActionEnabled(action, row)) {
             void feedback.run(async () => {
               const call = action.rpc!;
               await mutationInvoker.invoke(call.service, call.method, call.bindings.length
                 ? buildActionBindingRequest(call, selection.values, row) : id != null ? { id } : {});
-              if (action.refreshOnSuccess) paged.refresh();
+              // proto3 cannot distinguish an omitted bool from authored false,
+              // while RowAction documents refresh_on_success as default true.
+              // Match the browser reference renderers and always refresh.
+              paged.refresh();
             });
           }
         },
