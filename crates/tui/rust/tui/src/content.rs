@@ -21,7 +21,7 @@ use meridian_uiview::proto::{
     affordance::Invoke, form_field::Kind, Affordance, AffordanceStyle, CatalogPanel, ChartPanel,
     ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, FormField,
     FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel, ResourceAction,
-    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel, ValueType,
 };
 use meridian_uiview::RenderedCard;
 use meridian_uiview::{
@@ -544,6 +544,13 @@ fn form_value<'a>(values: &'a Value, field_id: &str) -> &'a Value {
 }
 
 fn form_value_text(field: &FormField, value: &Value) -> String {
+    if let Some(display) = field
+        .display
+        .as_ref()
+        .filter(|display| display.r#type != ValueType::Unspecified as i32)
+    {
+        return format_display_value(value, display);
+    }
     match field.kind.as_ref() {
         Some(Kind::Masked(_)) => {
             if value.as_str().is_some_and(|text| !text.is_empty()) {
@@ -1665,6 +1672,25 @@ mod tests {
         };
         assert_eq!(choice_selected_index(&panel, 0), 1); // default = b
         assert_eq!(choice_selected_index(&panel, 3), 1); // 3 % 2
+    }
+
+    #[test]
+    fn form_field_display_uses_declared_formatter() {
+        use meridian_uiview::proto::{FormField, ValueDisplay, ValueType};
+
+        let field = FormField {
+            field_id: "due".into(),
+            display: Some(ValueDisplay {
+                r#type: ValueType::Date as i32,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            form_value_text(&field, &serde_json::json!("2026-03-29")),
+            "Mar 29, 2026"
+        );
     }
 
     #[test]

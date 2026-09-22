@@ -486,6 +486,7 @@ function buildField(
     label: field.label,
     helperText: field.description || undefined,
     disabled,
+    display: field.display,
   };
   const current = valueAt(values, path);
   switch (field.kind.case) {

@@ -179,6 +179,11 @@ declaration at one boundary, while the TUI realizes temporal and principal
 labels and preserves literal string semantics for unsupported or malformed
 declarations. Chat fields intentionally do not coerce numeric/boolean strings
 or invent navigation routes.
+`FormField.display` now reaches the MUI and native TUI form
+read surfaces: disabled MUI scalar controls render semantic text, edit controls
+retain their raw input values, and TUI form summaries use the same core
+formatter. HTML, Shadcn, and web-components FormPanel controls remain
+input-oriented until their host-owned value binding is defined.
 `ResourceCard.MetaField.display` now formats fetched card metadata across browser
 kits, web-components, and TUI, reusing the existing safe URL and host-resolved
 record-link seam; legacy scalar output is preserved when unset.

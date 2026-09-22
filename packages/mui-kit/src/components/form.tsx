@@ -20,12 +20,18 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+
+import { formatByDisplay } from "../display_format.js";
+import { useDisplayNow } from "../use_display_now.js";
 
 interface BaseField {
   key: string;
   label: string;
   helperText?: string;
   disabled?: boolean;
+  display?: ValueDisplay;
 }
 interface NumericField {
   value: number;
@@ -88,6 +94,17 @@ export interface MeridianFormProps {
 
 type NumericFormField = Extract<MeridianFormField, { type: "number" | "decimal" }>;
 
+function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): ReactNode | undefined {
+  if (!field.disabled || !field.display || field.display.type === ValueType.UNSPECIFIED) return undefined;
+  if (field.type === "group" || field.type === "list" || field.type === "map") return undefined;
+  const shown = formatByDisplay(field.value, field.display, nowMs);
+  return (
+    <Typography key={field.key} data-field-display={field.key} color="text.secondary">
+      {shown.text}
+    </Typography>
+  );
+}
+
 /** Integer (`number`, parseInt) and decimal (`decimal`, parseFloat) share a spinner. */
 function renderNumeric(field: NumericFormField): ReactNode {
   const integer = field.type === "number";
@@ -111,7 +128,10 @@ function renderNumeric(field: NumericFormField): ReactNode {
   );
 }
 
-function renderField(field: MeridianFormField): ReactNode {
+function renderField(field: MeridianFormField, nowMs: number | undefined): ReactNode {
+  const displayed = readOnlyDisplay(field, nowMs);
+  if (displayed) return displayed;
+
   // A nested object → a titled fieldset of sub-fields (recurses).
   if (field.type === "group") {
     return (
@@ -128,7 +148,7 @@ function renderField(field: MeridianFormField): ReactNode {
             {field.helperText}
           </Typography>
         ) : null}
-        <Stack spacing={2}>{field.fields.map(renderField)}</Stack>
+        <Stack spacing={2}>{field.fields.map((child) => renderField(child, nowMs))}</Stack>
       </Box>
     );
   }
@@ -149,7 +169,7 @@ function renderField(field: MeridianFormField): ReactNode {
         <Stack spacing={1}>
           {field.items.map((item, index) => (
             <Stack key={item.key} direction="row" spacing={1} alignItems="flex-start">
-              <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item)}</Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item, nowMs)}</Box>
               {showControls ? (
                 <Stack direction="column" spacing={0} sx={{ mt: 0.5 }}>
                   <IconButton
@@ -323,6 +343,7 @@ export function MeridianForm({
   fields,
   submit,
 }: MeridianFormProps): ReactNode {
+  const nowMs = useDisplayNow();
   return (
     <Card variant="outlined">
       <CardContent>
@@ -340,7 +361,7 @@ export function MeridianForm({
           ) : null}
           {description ? <Box sx={{ mb: 2 }}>{description}</Box> : null}
           <Stack spacing={2}>
-            {fields.map(renderField)}
+            {fields.map((field) => renderField(field, nowMs))}
             <Button type="submit" variant="contained" disabled={submit.disabled}>
               {submit.label}
             </Button>
