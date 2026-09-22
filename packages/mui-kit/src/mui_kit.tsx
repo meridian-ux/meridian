@@ -27,6 +27,7 @@ import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js"
 import { useDisplayNow } from "./use_display_now.js";
 import {
   buildBindingRequest,
+  buildActionBindingRequest,
   MeridianRowActionsContext,
   MeridianViewContext,
   PaginationMode,
@@ -306,12 +307,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   // Row actions render INSIDE each row as a ⋮ overflow menu (matching the old
   // studio TableActionsView — not a bar above the table). Two sources merge:
-  //  - TablePanel.actions (RowAction[]): fire the RpcCall against THIS row (host
-  //    rows carry `id`, so `{ id: row.id }`).
+  //  - TablePanel.actions resolve declared bindings against the clicked row and
+  //    current selection; unbound calls retain the legacy { id: row.id } request.
   //  - View-level ROW-placement actions (MeridianRowActionsContext): an op action
   //    (with a `call`) invokes against the row; a host-resolved action (no call —
   //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
+  const selection = useMeridianSelection();
   const feedback = useActionFeedback();
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
     const result: MeridianRowAction<Row>[] = [];
@@ -323,7 +325,12 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.rpc) {
-            void feedback.run(() => mutationInvoker.invoke(action.rpc!.service, action.rpc!.method, id != null ? { id } : {}));
+            void feedback.run(async () => {
+              const call = action.rpc!;
+              await mutationInvoker.invoke(call.service, call.method, call.bindings.length
+                ? buildActionBindingRequest(call, selection.values, row) : id != null ? { id } : {});
+              if (action.refreshOnSuccess) paged.refresh();
+            });
           }
         },
       });
@@ -336,7 +343,11 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         onClick: (row: Row) => {
           const id = (row as { id?: unknown }).id;
           if (action.call) {
-            void feedback.run(() => mutationInvoker.invoke(action.call!.service, action.call!.method, id != null ? { id } : {}));
+            void feedback.run(() => {
+              const call = action.call!;
+              return mutationInvoker.invoke(call.service, call.method, call.bindings.length
+                ? buildActionBindingRequest(call, selection.values, row) : id != null ? { id } : {});
+            });
             return;
           }
           onAction?.(action.id, subjectKind, id as string | number | undefined);
@@ -344,7 +355,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
       });
     }
     return result;
-  }, [panel.actions, viewRowActions, mutationInvoker, onAction, subjectKind, feedback]);
+  }, [panel.actions, viewRowActions, mutationInvoker, onAction, subjectKind, feedback, selection.values, paged.refresh]);
 
   return (
     <Box>

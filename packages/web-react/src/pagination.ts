@@ -13,7 +13,7 @@
 // The request/response field wiring is pure + separately testable
 // (`buildPageRequest` / `readPage`); the hook is thin glue over them.
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 
 import {
   PaginationMode,
@@ -293,6 +293,8 @@ export interface PagedTable {
   setPageSize: (size: number) => void;
   /** True when the populate RPC rejected — so the kit shows an error, not "no data". */
   error: boolean;
+  /** Reload the current page after a successful mutation. */
+  refresh: () => void;
 }
 
 /**
@@ -300,6 +302,8 @@ export interface PagedTable {
  * (the kit's table paginates locally); OFFSET / CURSOR fetch one page at a time.
  */
 export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable {
+  const [revision, setRevision] = useState(0);
+  const refresh = useCallback(() => setRevision(value => value + 1), []);
   const { pagination, mode, pageSize: resolvedPageSize } = resolvePagination(panel);
   // Renderer-changeable page size (drives the page-size selector). Init from the
   // panel; changing it resets to page 0 and refetches (CURSOR/OFFSET).
@@ -402,7 +406,7 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     // change refetches CURSOR/OFFSET at the new size. selectionKey refetches when a
     // bound selection value changes (and is "" — stable — for unbound panels).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panel, invoker, page, mode, pageSize, selectionKey]);
+  }, [panel, invoker, page, mode, pageSize, selectionKey, revision]);
 
   const hasPrev = page > 0;
   const hasNext =
@@ -438,7 +442,7 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     setCursorStack([""]);
   };
 
-  return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage, setPageSize };
+  return { mode, pageSize, rows, loading, error, page, total, hasPrev, hasNext, goNext, goPrev, setPage, setPageSize, refresh };
 }
 
 /**

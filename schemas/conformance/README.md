@@ -1,5 +1,10 @@
 # Renderer conformance
 
+MUI table and view-level row actions resolve declared literal, selection, row-field,
+and nested request bindings against the clicked row. Unbound row calls retain the
+legacy `{id}` request. Focused tests cover nested false/zero values, admission
+denial, and current-page reload after an explicitly enabled `refresh_on_success`.
+
 Web-components view and slot RPC actions pass declared bindings to the WASM
 request builder with the current host `RenderContext` at activation. Nested Maps
 returned by the bridge become plain request objects; unbound actions retain an

@@ -66,6 +66,7 @@ export {
   buildPageRequest,
   readPage,
   buildBindingRequest,
+  buildActionBindingRequest,
   selectionDeps,
   hasSelectionBindings,
   PaginationMode,
