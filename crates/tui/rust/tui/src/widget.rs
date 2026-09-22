@@ -2,7 +2,7 @@ use crossterm::event::KeyCode;
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
-    PanelDescriptor, ResourceCardPanel, TablePanel,
+    PanelDescriptor, ResourceCardPanel, RpcCall, TablePanel,
 };
 use meridian_uiview::{
     render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder,
@@ -839,6 +839,32 @@ impl PanelView {
                 .border_style(self.palette.border_style()),
         );
         frame.render_widget(body, body_area);
+    }
+
+    /// Build an action request from this panel's current raw row and host context.
+    /// Returns `None` when the panel has no selected row, even if the host context
+    /// contains an older selection. Declared bindings use the core request builder.
+    /// For unbound calls, opt into the legacy `{ "id": row.id }` request with
+    /// `legacy_id_fallback`; otherwise the request is empty. Missing/null IDs are
+    /// omitted. Neither the row nor the supplied context is modified.
+    ///
+    /// The host still owns action eligibility, admission, invocation, and refresh.
+    pub fn selected_row_request(
+        &self,
+        call: &RpcCall,
+        context: &Context,
+        legacy_id_fallback: bool,
+    ) -> Option<serde_json::Value> {
+        let row = self.selected_row()?;
+        if call.bindings.is_empty() && legacy_id_fallback {
+            return Some(match row.get("id").filter(|id| !id.is_null()) {
+                Some(id) => serde_json::json!({ "id": id }),
+                None => serde_json::json!({}),
+            });
+        }
+        let mut context = context.clone();
+        context.selected_row = Some(row.clone());
+        Some(RequestBuilder::build(call, &context))
     }
 
     /// Convenience: returns the currently-selected row's raw JSON,

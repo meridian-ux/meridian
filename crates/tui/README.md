@@ -26,6 +26,13 @@ transitively from
 
 ## Build
 
+Hosts can call `PanelView::selected_row_request(&call, &context, legacy_id_fallback)`
+to resolve an action's declared bindings against the selected raw table or resource
+row. The helper uses the core request builder, preserves host context, and returns
+`None` without a selection. Unbound calls produce `{}` unless the caller opts into
+the legacy non-null row `id` fallback. Hosts still decide whether an action is
+eligible, authorize it, invoke the RPC, and refresh the panel after success.
+
 ```bash
 bazel build //rust/tui
 bazel test  //rust/tui:tui_test

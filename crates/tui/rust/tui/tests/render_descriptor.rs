@@ -47,6 +47,98 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+#[test]
+fn selected_row_action_requests_use_wire_bindings_without_changing_raw_values() {
+    use meridian_uiview::proto::{field_binding::Source, FieldBinding, NestedBinding};
+    use serde_json::json;
+    struct Rows;
+    impl RpcInvoker for Rows {
+        fn invoke(
+            &self,
+            _: &str,
+            _: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            Ok(
+                json!({"claims": [{"id": 0, "member": "Ada", "enabled": false,
+                "amount": "0012.50", "metadata": {"count": 0}}, {"member": "Grace"}],
+                "services": [{"id": 0, "member": "Ada", "enabled": false,
+                "amount": "0012.50", "metadata": {"count": 0}}, {"member": "Grace"}]}),
+            )
+        }
+    }
+    let binding = |name: &str, source| FieldBinding {
+        request_field: name.into(),
+        source: Some(source),
+    };
+    let call = RpcCall {
+        service: "demo.Actions".into(),
+        method: "Run".into(),
+        bindings: vec![
+            binding("tenant", Source::Literal("demo".into())),
+            binding("enabled", Source::RowField("enabled".into())),
+            binding("amount", Source::RowField("amount".into())),
+            binding("missing", Source::RowField("absent".into())),
+            binding(
+                "details",
+                Source::Nested(NestedBinding {
+                    fields: vec![
+                        binding("count", Source::RowField("metadata.count".into())),
+                        binding("scope", Source::SelectionKey("scope".into())),
+                    ],
+                }),
+            ),
+        ],
+    };
+    let bytes = call.encode_to_vec();
+    let call = RpcCall::decode(bytes.as_slice()).unwrap();
+    let mut context = Context {
+        selected_row: Some(json!({"id": "stale"})),
+        ..Default::default()
+    };
+    context.selections.insert("scope".into(), json!(false));
+    for fixture in ["table.binpb", "resource_cards.binpb"] {
+        let descriptor =
+            PanelDescriptor::decode(read_canonical_fixture(fixture).as_slice()).unwrap();
+        let mut view = PanelView::new();
+        assert_eq!(view.selected_row_request(&call, &context, true), None);
+        let mut terminal = Terminal::new(TestBackend::new(100, 30)).unwrap();
+        terminal
+            .draw(|frame| view.render(frame, frame.area(), &descriptor, &context, &Rows))
+            .unwrap();
+        if view.selected_row().is_none() {
+            view.select_next();
+        }
+        let before = view.selected_row().unwrap().clone();
+        assert_eq!(
+            view.selected_row_request(&call, &context, true),
+            Some(json!({
+                "tenant": "demo", "enabled": false, "amount": "0012.50", "details": {"count": 0, "scope": false}
+            }))
+        );
+        let unbound = RpcCall {
+            bindings: vec![],
+            ..call.clone()
+        };
+        assert_eq!(
+            view.selected_row_request(&unbound, &context, true),
+            Some(json!({"id": 0}))
+        );
+        assert_eq!(
+            view.selected_row_request(&unbound, &context, false),
+            Some(json!({}))
+        );
+        assert_eq!(view.selected_row(), Some(&before));
+        view.select_next();
+        assert_eq!(
+            view.selected_row_request(&unbound, &context, true),
+            Some(json!({}))
+        );
+        assert_eq!(context.selected_row, Some(json!({"id": "stale"})));
+        assert_eq!(call.encode_to_vec(), bytes);
+    }
+}
+
 struct TableData;
 
 impl RpcInvoker for TableData {
