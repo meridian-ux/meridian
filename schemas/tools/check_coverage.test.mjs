@@ -8,12 +8,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
   check,
   checkModalities,
   checkPanelRendererCoverage,
+  checkWorkspaceRendererCoverage,
   parseBodyArms,
   parseScopedOneofArms,
 } from "./check_coverage.mjs";
@@ -63,6 +66,35 @@ test("coverage cannot contain a renderer absent from the panel catalog", () => {
   const manifest = realManifest();
   manifest.renderers.ghost = { repo: "elsewhere", entrypoint: "unknown" };
   assert.ok(checkPanelRendererCoverage(manifest, realCatalog()).some((error) => /ghost/.test(error)));
+});
+
+test("workspace renderers are declared and cataloged across panel and non-panel modalities", () => {
+  assert.deepEqual(checkWorkspaceRendererCoverage(realCatalog()), []);
+});
+
+test("a new proto-dependent package without renderer metadata fails", (t) => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "meridian-renderers-"));
+  t.after(() => rmSync(repoRoot, { recursive: true, force: true }));
+  mkdirSync(join(repoRoot, "packages", "new-renderer"), { recursive: true });
+  mkdirSync(join(repoRoot, "crates"), { recursive: true });
+  writeFileSync(join(repoRoot, "packages", "new-renderer", "package.json"), JSON.stringify({
+    dependencies: { "@savvifi/meridian-proto-ts": "workspace:*" },
+  }));
+  const errors = checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot });
+  assert.ok(errors.some((error) => /new-renderer.*no meridian\.rendererIds array/.test(error)));
+});
+
+test("a declared new workspace renderer missing from the catalog fails", (t) => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "meridian-renderers-"));
+  t.after(() => rmSync(repoRoot, { recursive: true, force: true }));
+  mkdirSync(join(repoRoot, "packages", "new-renderer"), { recursive: true });
+  mkdirSync(join(repoRoot, "crates"), { recursive: true });
+  writeFileSync(join(repoRoot, "packages", "new-renderer", "package.json"), JSON.stringify({
+    dependencies: { "@savvifi/meridian-proto-ts": "workspace:*" },
+    meridian: { rendererIds: ["new-renderer"] },
+  }));
+  const errors = checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot });
+  assert.ok(errors.some((error) => /new-renderer.*has no catalog entry/.test(error)));
 });
 
 test("the Launchpad manifest covers every Command.action arm", () => {

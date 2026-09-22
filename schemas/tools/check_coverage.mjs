@@ -29,7 +29,7 @@
  *       --matrix  print the coverage matrix and exit 0 (documentation mode)
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { checkSnapshotFiles } from "./check_conformance_snapshots.mjs";
@@ -205,6 +205,83 @@ export function checkPanelRendererCoverage(manifest, catalog) {
   return errors;
 }
 
+/** Discover renderer IDs from workspace packages/crates, not just the catalog. */
+export function checkWorkspaceRendererCoverage(catalog, { repoRoot = REPO_ROOT } = {}) {
+  const errors = [];
+  const discovered = new Map();
+  const catalogIds = new Set((catalog.renderers ?? []).map((entry) => entry.id));
+  const panelIds = new Set(
+    (catalog.renderers ?? []).filter((entry) => entry.modality === "panel").map((entry) => entry.id),
+  );
+  const add = (id, source) => {
+    if (typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id)) {
+      errors.push(`${source}: renderer_ids contains invalid id ${JSON.stringify(id)}`);
+    } else if (discovered.has(id)) {
+      errors.push(`${source}: renderer id "${id}" is already declared by ${discovered.get(id)}`);
+    } else {
+      discovered.set(id, source);
+      const catalogEntry = (catalog.renderers ?? []).find((entry) => entry.id === id);
+      if (!catalogEntry) errors.push(`${source}: workspace renderer "${id}" has no catalog entry`);
+      else if (catalogEntry.source?.kind !== "local") {
+        errors.push(`${source}: workspace renderer "${id}" is cataloged as external`);
+      }
+    }
+  };
+  const dependsOnProtoTs = (pkg) => [pkg.dependencies, pkg.devDependencies, pkg.peerDependencies]
+    .some((deps) => Object.hasOwn(deps ?? {}, "@savvifi/meridian-proto-ts"));
+
+  for (const directory of readdirSync(join(repoRoot, "packages"), { withFileTypes: true })) {
+    if (!directory.isDirectory()) continue;
+    const packagePath = join(repoRoot, "packages", directory.name, "package.json");
+    let pkg;
+    try { pkg = JSON.parse(readFileSync(packagePath, "utf8")); }
+    catch (error) {
+      if (error.code !== "ENOENT") errors.push(`${directory.name}: cannot read package.json: ${error.message}`);
+      continue;
+    }
+    if (!dependsOnProtoTs(pkg)) continue;
+    const ids = pkg.meridian?.rendererIds;
+    if (!Array.isArray(ids)) {
+      errors.push(`${directory.name}: package depends on @savvifi/meridian-proto-ts but has no meridian.rendererIds array`);
+      continue;
+    }
+    for (const id of ids) add(id, directory.name);
+  }
+
+  for (const directory of readdirSync(join(repoRoot, "crates"), { withFileTypes: true })) {
+    if (!directory.isDirectory()) continue;
+    const crateRoot = join(repoRoot, "crates", directory.name);
+    const queue = [crateRoot];
+    while (queue.length) {
+      const current = queue.pop();
+      for (const entry of readdirSync(current, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        if (entry.name === ".git" || entry.name === "target") continue;
+        queue.push(join(current, entry.name));
+      }
+      const cargoPath = join(current, "Cargo.toml");
+      let cargo;
+      try { cargo = readFileSync(cargoPath, "utf8"); }
+      catch (error) { if (error.code !== "ENOENT") errors.push(`${cargoPath}: ${error.message}`); continue; }
+      if (!/^meridian-uiview\s*=/m.test(cargo)) continue;
+      const metadata = cargo.match(/^\[package\.metadata\.meridian\]\s*\n([\s\S]*?)(?=^\[|\s*$)/m)?.[1] ?? "";
+      const values = metadata.match(/^renderer_ids\s*=\s*\[([^\]]*)\]/m)?.[1];
+      if (values === undefined) {
+        errors.push(`${cargoPath}: crate depends on meridian-uiview but has no package.metadata.meridian.renderer_ids`);
+        continue;
+      }
+      for (const match of values.matchAll(/"([^"]+)"/g)) add(match[1], cargoPath);
+    }
+  }
+  for (const id of catalogIds) {
+    if (!discovered.has(id)) {
+      const entry = catalog.renderers.find((renderer) => renderer.id === id);
+      if (entry?.source?.kind === "local") errors.push(`catalog local renderer "${id}" is not declared by any workspace package or crate`);
+    }
+  }
+  return errors;
+}
+
 function renderMatrix(manifest, arms) {
   const renderers = Object.keys(manifest.renderers);
   const glyph = {
@@ -297,6 +374,7 @@ function main() {
   const errors = [
     ...check(manifest, arms),
     ...checkPanelRendererCoverage(manifest, catalog),
+    ...checkWorkspaceRendererCoverage(catalog),
     ...checkModalities(manifest, catalog),
     ...checkSnapshotFiles(manifest),
   ];

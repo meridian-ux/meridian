@@ -5,6 +5,9 @@ edition.workspace = true
 license.workspace = true
 description = "ratatui-based renderer for Meridian PanelDescriptors."
 
+[package.metadata.meridian]
+renderer_ids = ["tui"]
+
 [dependencies]
 # The first-party core, now by PATH. Under Bazel these still come from the BUILD
 # deps (@meridian_uiview_core//rust/uiview and :theme_proto were rewritten to
