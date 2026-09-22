@@ -9,8 +9,9 @@
 // Returns `PromptResponse::Cancelled` on Esc, `Confirmed(bool)` on a
 // confirmation panel, or `Submitted(map)` on a form. The submitted
 // map is keyed by `FormField.field_id`. Numeric/integer values preserve
-// typing via `FieldValue`; repeated arrays preserve validated raw JSON in
-// the existing Text variant so this helper's public response API stays stable.
+// typing via `FieldValue`; repeated arrays and string maps preserve validated
+// raw JSON in the existing Text variant so this helper's public response API
+// stays stable.
 
 use std::collections::HashMap;
 use std::io;
@@ -22,7 +23,7 @@ use crossterm::{
 };
 use meridian_uiview::proto::{
     form_field::Kind, repeated_field::Element, BooleanToggle, FormField, IntegerSpinner,
-    MaskedInput, NumberInput, PromptPanel, RepeatedField, TextInput,
+    KeyValueMapField, MaskedInput, NumberInput, PromptPanel, RepeatedField, TextInput,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -97,8 +98,8 @@ pub enum PromptError {
     /// renderer has no nested row editor.
     #[error("field {field_id}: repeated object or missing-element fields are not supported by the one-shot prompt renderer")]
     RepeatedUnsupported { field_id: String },
-    /// `KeyValueMapField` needs a row editor, which the one-shot prompt does
-    /// not yet provide. Reject it explicitly rather than silently dropping it.
+    /// Legacy source-compatible error variant. Valid `KeyValueMapField`
+    /// declarations are now collected through the typed JSON-object editor.
     #[error(
         "field {field_id}: key/value map fields are not supported by the one-shot prompt renderer"
     )]
@@ -147,8 +148,8 @@ pub fn render_prompt(
 }
 
 /// Fail before raw mode for shapes the one-shot editor cannot faithfully
-/// collect. Scalar repeated fields (including nested scalar arrays) are valid;
-/// object rows still require the richer FormPanel row editor.
+/// collect. Scalar repeated fields (including nested scalar arrays) and string
+/// maps are valid; object rows still require the richer FormPanel row editor.
 fn validate_supported_fields(fields: &[FormField]) -> Result<(), PromptError> {
     for field in fields {
         match field.kind.as_ref() {
@@ -163,11 +164,7 @@ fn validate_supported_fields(fields: &[FormField]) -> Result<(), PromptError> {
                 })
             }
             Some(Kind::Repeated(spec)) => validate_repeated_shape(field, spec)?,
-            Some(Kind::KeyValueMap(_)) => {
-                return Err(PromptError::KeyValueMapUnsupported {
-                    field_id: field.field_id.clone(),
-                })
-            }
+            Some(Kind::KeyValueMap(_)) => {}
             Some(_) => {}
         }
     }
@@ -380,8 +377,9 @@ fn initial_state(f: &FormField) -> FieldState {
                 .unwrap_or(0);
         }
         Some(Kind::Repeated(_)) => state.text = "[]".to_string(),
-        // Nested/map are rejected in render_prompt before any state is built.
-        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {}
+        Some(Kind::KeyValueMap(_)) => state.text = "{}".to_string(),
+        // Nested fields are rejected in render_prompt before state is built.
+        Some(Kind::Nested(_)) | None => {}
     }
     state
 }
@@ -402,7 +400,10 @@ fn is_editing_field(s: &FieldState) -> bool {
 
 fn apply_field_input(s: &mut FieldState, code: KeyCode) {
     match s.field.kind.as_ref() {
-        Some(Kind::Text(_)) | Some(Kind::Masked(_)) | Some(Kind::Repeated(_)) => match code {
+        Some(Kind::Text(_))
+        | Some(Kind::Masked(_))
+        | Some(Kind::Repeated(_))
+        | Some(Kind::KeyValueMap(_)) => match code {
             KeyCode::Char(c) => s.text.push(c),
             KeyCode::Backspace => {
                 s.text.pop();
@@ -468,7 +469,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {}
+        Some(Kind::Nested(_)) | None => {}
     }
 }
 
@@ -526,12 +527,33 @@ fn validate_one(s: &FieldState) -> Option<String> {
             }
         }
         Some(Kind::Repeated(spec)) => parse_repeated_text(spec, &s.text).err(),
-        Some(Kind::Boolean(_))
-        | Some(Kind::EnumSelection(_))
-        | Some(Kind::Nested(_))
-        | Some(Kind::KeyValueMap(_))
-        | None => None,
+        Some(Kind::KeyValueMap(spec)) => parse_key_value_map_text(spec, &s.text).err(),
+        Some(Kind::Boolean(_)) | Some(Kind::EnumSelection(_)) | Some(Kind::Nested(_)) | None => {
+            None
+        }
     }
+}
+
+fn parse_key_value_map_text(spec: &KeyValueMapField, text: &str) -> Result<(), String> {
+    let value: serde_json::Value =
+        serde_json::from_str(text).map_err(|error| format!("invalid JSON object: {error}"))?;
+    let entries = value
+        .as_object()
+        .ok_or_else(|| "value must be a JSON object".to_string())?;
+    if spec.max_items > 0 && entries.len() > spec.max_items as usize {
+        let noun = if spec.max_items == 1 {
+            "entry"
+        } else {
+            "entries"
+        };
+        return Err(format!("must contain at most {} {noun}", spec.max_items));
+    }
+    for (key, value) in entries {
+        if !value.is_string() {
+            return Err(format!("value for key {key:?} must be a string"));
+        }
+    }
+    Ok(())
 }
 
 fn parse_repeated_text(spec: &RepeatedField, text: &str) -> Result<(), String> {
@@ -694,10 +716,10 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
                     .map(|option| option.0.to_string())
                     .unwrap_or_default(),
             ),
-            Some(Kind::Repeated(_)) => FieldValue::Text(s.text.clone()),
-            Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
-                FieldValue::Text(String::new())
+            Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) => {
+                FieldValue::Text(s.text.clone())
             }
+            Some(Kind::Nested(_)) | None => FieldValue::Text(String::new()),
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -834,7 +856,8 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
             )
         }
         Some(Kind::Repeated(_)) => format!("{}  (JSON array)", s.text),
-        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => String::new(),
+        Some(Kind::KeyValueMap(_)) => format!("{}  (JSON object)", s.text),
+        Some(Kind::Nested(_)) | None => String::new(),
     };
 
     let mut lines = vec![
@@ -982,9 +1005,7 @@ mod enum_tests {
 #[cfg(test)]
 mod repeated_tests {
     use super::*;
-    use meridian_uiview::proto::{
-        form_field, repeated_field, BooleanToggle, KeyValueMapField, NestedForm,
-    };
+    use meridian_uiview::proto::{form_field, repeated_field, BooleanToggle, NestedForm};
     use ratatui::{backend::TestBackend, Terminal};
 
     fn repeated_field(element: FormField, min_items: u32, max_items: u32) -> FormField {
@@ -1097,7 +1118,7 @@ mod repeated_tests {
     }
 
     #[test]
-    fn nested_scalar_arrays_are_typed_but_object_rows_nested_and_maps_stay_rejected() {
+    fn nested_scalar_arrays_are_typed_but_object_rows_and_nested_forms_stay_rejected() {
         let inner = repeated_field(
             FormField {
                 kind: Some(Kind::Boolean(BooleanToggle::default())),
@@ -1138,14 +1159,83 @@ mod repeated_tests {
             validate_supported_fields(&[nested]),
             Err(PromptError::NestedUnsupported { .. })
         ));
-        let map = FormField {
-            field_id: "map".into(),
-            kind: Some(form_field::Kind::KeyValueMap(KeyValueMapField::default())),
+    }
+}
+
+#[cfg(test)]
+mod map_tests {
+    use super::*;
+    use ratatui::{backend::TestBackend, Terminal};
+
+    fn map_field(max_items: u32) -> FormField {
+        FormField {
+            field_id: "labels".into(),
+            label: "Labels".into(),
+            kind: Some(Kind::KeyValueMap(KeyValueMapField {
+                key_label: "Key".into(),
+                value_label: "Value".into(),
+                add_label: "Add label".into(),
+                max_items,
+            })),
             ..Default::default()
-        };
-        assert!(matches!(
-            validate_supported_fields(&[map]),
-            Err(PromptError::KeyValueMapUnsupported { .. })
-        ));
+        }
+    }
+
+    #[test]
+    fn map_json_edits_validate_render_and_submit_raw_object() {
+        let field = map_field(3);
+        validate_supported_fields(std::slice::from_ref(&field)).unwrap();
+        let mut state = initial_state(&field);
+        assert_eq!(state.text, "{}");
+        assert_eq!(validate_one(&state), None);
+
+        apply_field_input(&mut state, KeyCode::Backspace);
+        apply_field_input(&mut state, KeyCode::Backspace);
+        let raw = r#"{"env":"prod","owner":"platform"}"#;
+        for ch in raw.chars() {
+            apply_field_input(&mut state, KeyCode::Char(ch));
+        }
+        assert_eq!(validate_one(&state), None);
+        let submitted = collect(std::slice::from_ref(&state));
+        assert!(matches!(&submitted["labels"], FieldValue::Text(value) if value == raw));
+        assert_eq!(submitted["labels"].as_string(), raw);
+
+        let palette = Palette::default();
+        let mut terminal = Terminal::new(TestBackend::new(80, 6)).unwrap();
+        terminal
+            .draw(|frame| draw_field(frame, frame.area(), &state, true, &palette))
+            .unwrap();
+        let text = format!("{:?}", terminal.backend().buffer());
+        assert!(text.contains("Labels"));
+        assert!(text.contains(r#"{"env":"prod","owner":"platform"}  (JSON object)"#));
+    }
+
+    #[test]
+    fn map_values_reject_malformed_non_object_non_string_and_excess_entries() {
+        let field = map_field(1);
+        let mut state = initial_state(&field);
+
+        state.text = "{".into();
+        assert!(validate_one(&state)
+            .unwrap()
+            .starts_with("invalid JSON object:"));
+        state.text = "[]".into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("value must be a JSON object")
+        );
+        state.text = r#"{"port":443}"#.into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("value for key \"port\" must be a string")
+        );
+        state.text = r#"{"env":"prod","owner":"platform"}"#.into();
+        assert_eq!(
+            validate_one(&state).as_deref(),
+            Some("must contain at most 1 entry")
+        );
+
+        state.text = r#"{"producer-defined-key":"value"}"#.into();
+        assert_eq!(validate_one(&state), None);
     }
 }
