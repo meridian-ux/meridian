@@ -1,0 +1,3 @@
+# Meridian does not use a Bats toolchain. Aspect registers this repository
+# unconditionally, so an empty package makes that registration a no-op and
+# avoids fetching bats-core for unrelated builds.

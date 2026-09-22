@@ -33,6 +33,13 @@ common --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
 common --registry=https://registry.tbzl.dev/
 common --registry=https://bcr.bazel.build/
 
+# Aspect's toolchain graph registers every target in these repositories even
+# though Meridian does not use a Bats toolchain. Override the unused archive
+# repositories with the intentionally empty in-tree packages so a transient
+# bats-core fetch failure cannot fail unrelated builds.
+common --override_repository=aspect_bazel_lib++toolchains+bats_toolchains=%workspace%/bazel/bats_toolchains_stub
+common --override_repository=bazel_lib++toolchains+bats_toolchains=%workspace%/bazel/bats_toolchains_stub
+
 # ⚠ These two arrived from single repos and are now GLOBAL. Both were verified as
 # intentional rather than dropped, but they change behaviour for targets that
 # never asked for them:
