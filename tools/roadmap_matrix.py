@@ -39,6 +39,30 @@ def render() -> str:
     out += ["", f"**{len(arms)} arms × {len(R)} renderers = {total} cells; {total - n} render, {n} do not.**", "",
             "| status | cells |", "|---|---|"] + [f"| {GLYPH[k]} `{k}` | {c} |" for k, c in gaps.most_common()]
     out += ["", "| renderer | gaps |", "|---|---|"] + [f"| {r} | {by_r[r]} |" for r in R]
+    for modality, section in d.get("modalities", {}).items():
+        modality_arms = section.get("arms", {})
+        if not modality_arms:
+            continue
+        renderer_sets = [set(arm.get("renderers", {})) for arm in modality_arms.values()]
+        modality_renderers = list(next(iter(modality_arms.values())).get("renderers", {}))
+        if any(renderers != set(modality_renderers) for renderers in renderer_sets):
+            raise ValueError(f"{modality}: coverage arms declare inconsistent renderer sets")
+        out += ["", f"### {modality.title()} modality", "",
+                "| arm | " + " | ".join(modality_renderers) + " |",
+                "|---|" + "---|" * len(modality_renderers)]
+        modality_gaps = 0
+        for arm_name, arm in modality_arms.items():
+            cells = []
+            for renderer in modality_renderers:
+                status = arm.get("renderers", {}).get(renderer, {}).get("status", "?")
+                cells.append(GLYPH.get(status, "?"))
+                modality_gaps += status != "renders"
+            out.append(f"| `{arm_name}` | " + " | ".join(cells) + " |")
+        total_cells = len(modality_arms) * len(modality_renderers)
+        renderer_label = "renderer" if len(modality_renderers) == 1 else "renderers"
+        out += ["", f"**{len(modality_arms)} arms × {len(modality_renderers)} {renderer_label} = "
+                f"{total_cells} cells; {total_cells - modality_gaps} render, "
+                f"{modality_gaps} do not.**"]
     return "\n".join(out)
 
 

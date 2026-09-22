@@ -8,10 +8,31 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 import roadmap_matrix
-from roadmap_matrix import matrix_diff, splice_matrix
+from roadmap_matrix import matrix_diff, render, splice_matrix
 
 
 class RoadmapMatrixTests(unittest.TestCase):
+    def test_generated_projection_includes_declared_modalities(self):
+        with patch.object(roadmap_matrix, "ROOT", Path(__file__).parent.parent):
+            projection = render()
+
+        self.assertIn("### Conversation modality", projection)
+        self.assertIn("| `markdown` | ● | ● |", projection)
+        self.assertIn("### Launchpad modality", projection)
+        self.assertIn("| `open_panel` | ● |", projection)
+        self.assertIn("4 arms × 1 renderer = 4 cells", projection)
+
+    def test_rejects_inconsistent_renderer_sets_within_a_modality(self):
+        with patch.object(roadmap_matrix, "ROOT", Path(__file__).parent.parent):
+            import json
+            coverage_path = roadmap_matrix.ROOT / "schemas/conformance/coverage.json"
+            coverage = json.loads(coverage_path.read_text())
+            coverage["modalities"]["launchpad"]["arms"]["navigate"]["renderers"].clear()
+            with patch.object(roadmap_matrix, "json") as json_module:
+                json_module.loads.return_value = coverage
+                with self.assertRaisesRegex(ValueError, "inconsistent renderer sets"):
+                    render()
+
     def test_splices_generated_matrix_without_changing_surrounding_text(self):
         roadmap = """# Roadmap
 before
