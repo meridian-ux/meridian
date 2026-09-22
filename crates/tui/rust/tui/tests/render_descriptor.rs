@@ -103,11 +103,33 @@ impl RpcInvoker for FormData {
     }
 }
 
+struct ResourceCardsData;
+
+impl RpcInvoker for ResourceCardsData {
+    fn invoke(
+        &self,
+        _service: &str,
+        _method: &str,
+        _request: serde_json::Value,
+    ) -> Result<serde_json::Value, RpcError> {
+        Ok(serde_json::json!({
+            "services": [
+                {"name": "GitHub", "description": "Source control"},
+                {"name": "PagerDuty", "description": "Incident response"}
+            ]
+        }))
+    }
+}
+
 fn draw(descriptor: &PanelDescriptor, w: u16, h: u16) -> String {
+    draw_with(descriptor, w, h, &Refuse)
+}
+
+fn draw_with<I: RpcInvoker>(descriptor: &PanelDescriptor, w: u16, h: u16, invoker: &I) -> String {
     let mut view = PanelView::with_palette(Palette::default());
     let ctx = Context::default();
     let mut term = Terminal::new(TestBackend::new(w, h)).unwrap();
-    term.draw(|f| view.render(f, f.area(), descriptor, &ctx, &Refuse))
+    term.draw(|f| view.render(f, f.area(), descriptor, &ctx, invoker))
         .unwrap();
     term.backend()
         .buffer()
@@ -437,6 +459,18 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
             );
         }
     }
+}
+
+#[test]
+fn canonical_resource_cards_fixture_renders_populated_rows() {
+    let descriptor = PanelDescriptor::decode(read_canonical_fixture("resource_cards.binpb").as_slice())
+        .expect("resource-card fixture decodes");
+    let output = draw_with(&descriptor, 72, 16, &ResourceCardsData);
+    assert!(output.contains("GitHub"));
+    assert!(output.contains("Source control"));
+    assert!(output.contains("PagerDuty"));
+    assert!(output.contains("Incident response"));
+    assert!(!output.contains("Failed to load resources"));
 }
 
 #[test]

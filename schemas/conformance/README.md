@@ -50,7 +50,9 @@ parameter-fill preview, with focused tests for typed controls, local substitutio
 unresolved tokens, and descriptor changes. Steps now renders lazy-loaded frames
 with accessible alternatives, falling back to text for invalid or failed sources.
 Focused tests cover both kits and replacement frames after a failed load.
-Epic #9 still owns representative populated/overflow/ValueType
-fixtures, native snapshots, and a common Bazel-aware re-record workflow. MUI's
-semantic suite currently runs through the package test job; its Bazel browser
-harness is a separate set of tests.
+The first populated scenario now runs through the canonical `resource_cards`
+descriptor and the same two-row response in HTML, Shadcn, MUI, web-components,
+and TUI tests. Epic #9 still owns representative overflow/ValueType fixtures,
+broader interactive snapshots, native snapshots, and a common Bazel-aware
+re-record workflow. MUI's semantic suite currently runs through the package
+test job; its Bazel browser harness is a separate set of tests.

@@ -10,6 +10,8 @@ import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb
 import { ValueType, PrincipalDisplay, TemporalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
@@ -19,6 +21,29 @@ const invoker: RpcInvoker = { invoke: async () => ({ items: [] }) };
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("ResourceCardPanel (React)", () => {
+  for (const [name, kit] of [["HTML", htmlKit], ["Shadcn", shadcnKit]] as const) {
+    it(`${name} renders the canonical populated resource-card scenario`, async () => {
+      const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
+      const descriptor = fromBinary(
+        PanelDescriptorSchema,
+        toBinary(PanelDescriptorSchema, fixture.descriptor),
+      );
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      await act(async () => root.render(createElement(MeridianProvider, {
+        invoker: { invoke: async () => POPULATED_RESPONSES.resource_cards },
+        kit,
+        adhoc: {},
+      }, createElement(PanelRenderer, { descriptor }))));
+      expect(container.querySelectorAll(".mer-resource-card")).toHaveLength(2);
+      expect(container.textContent).toContain("GitHub");
+      expect(container.textContent).toContain("Source control");
+      expect(container.textContent).toContain("PagerDuty");
+      expect(container.textContent).toContain("Incident response");
+      await act(async () => root.unmount());
+    });
+  }
+
   it("dispatches the resource-card shape through the kit", async () => {
     const descriptor = create(PanelDescriptorSchema, {
       panelId: "workspaces",

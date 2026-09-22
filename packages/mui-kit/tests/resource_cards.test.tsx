@@ -9,11 +9,33 @@ import { ValueType, PrincipalDisplay } from "@savvifi/meridian-proto-ts/proto/va
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { PanelRenderer } from "@savvifi/meridian-web-react";
 
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);
 
 describe("ResourceCardPanel (MUI)", () => {
+  it("renders the canonical populated resource-card scenario", async () => {
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
+    const descriptor = fromBinary(
+      PanelDescriptorSchema,
+      toBinary(PanelDescriptorSchema, fixture.descriptor),
+    );
+    render(
+      <MeridianMuiProvider
+        invoker={{ invoke: async () => POPULATED_RESPONSES.resource_cards }}
+      >
+        <PanelRenderer descriptor={descriptor} />
+      </MeridianMuiProvider>,
+    );
+    expect(await screen.findByText("GitHub")).toBeTruthy();
+    expect(screen.getByText("Source control")).toBeTruthy();
+    expect(screen.getByText("PagerDuty")).toBeTruthy();
+    expect(screen.getByText("Incident response")).toBeTruthy();
+    expect(document.querySelectorAll(".MuiCard-root")).toHaveLength(2);
+  });
+
   it("preserves raw metadata and action IDs while resolving declared links", async () => {
     const row = { created: "2026-03-29", owner: "Ada <ada@example.com>", id: "user/7", url: "https://example.com", unsafe: "javascript:bad()" };
     const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {

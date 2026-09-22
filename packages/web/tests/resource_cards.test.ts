@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { ValueType, PrincipalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { renderPanel } from "../src/uiview/renderer.js";
+import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
+import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 
 const context = {
   currentResourcePath: null,
@@ -55,6 +57,27 @@ const descriptor = create(PanelDescriptorSchema, {
 });
 
 describe("ResourceCardPanel (web-components)", () => {
+  it("renders the canonical populated resource-card scenario after wire decoding", async () => {
+    const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
+    const descriptor = fromBinary(
+      PanelDescriptorSchema,
+      toBinary(PanelDescriptorSchema, fixture.descriptor),
+    );
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor,
+      invoker: { invoke: async () => POPULATED_RESPONSES.resource_cards },
+      context,
+    });
+    expect(root.querySelectorAll(".mer-resource-card")).toHaveLength(2);
+    expect(root.textContent).toContain("GitHub");
+    expect(root.textContent).toContain("Source control");
+    expect(root.textContent).toContain("PagerDuty");
+    expect(root.textContent).toContain("Incident response");
+  });
+
   it("preserves legacy scalars, titles, and host route precedence after wire decoding", async () => {
     const row = { raw: "2026-03-29", missing: null, tags: ["a", "b"], owner: "Ada <ada@example.com>",
       safe: "https://example.com", unsafe: "data:text/html,bad", id: "user/7" };
