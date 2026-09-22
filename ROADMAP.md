@@ -120,10 +120,11 @@ This is a regression baseline, not proof of field-complete parity: populated,
 overflow, interactive, and every-ValueType cases plus native snapshots and a
 Bazel-aware re-record workflow remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
-The first populated slice is now covered: the canonical `resource_cards`
-descriptor is wire-decoded and exercised with the same two-row response across
-HTML, Shadcn, MUI, web-components, and TUI. The remaining populated matrix,
-overflow cases, interactive snapshots, and native golden workflow stay open.
+The first populated slices are now covered: canonical `resource_cards` and
+`gallery` descriptors are wire-decoded and exercised with shared responses
+across HTML, Shadcn, MUI, web-components, and TUI. The remaining populated
+matrix, overflow cases, interactive snapshots, and native golden workflow stay
+open.
 
 ## Track B — One language
 
