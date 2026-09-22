@@ -282,9 +282,13 @@ service/method diagnostic instead of an empty-state message. The ResourceCards
 cases decode the canonical wire fixture and exercise its title/subtitle mapping
 and authored empty message. They retain row order, headers, scalar precision,
 boolean labels, gallery action/destination text, and the Steps frame alternative
-that native surfaces use in place of an image, while normalizing borders and
-whitespace. Table URLs are plain text; these checks do not prove navigation,
-colors, or layout fidelity.
+that native surfaces use in place of an image. The canonical Steps fixture also
+carries a nested affordance: all four browser realizations preserve its link,
+label, and description in semantic snapshots, while the TUI golden retains the
+same action as non-interactive label/destination text. Focused HTML, Shadcn,
+web-components, and TUI tests additionally protect the icon and degradation
+semantics. The native goldens normalize borders and whitespace. Table URLs are
+plain text; these checks do not prove navigation, colors, or layout fidelity.
 Run `cargo test -p meridian-tui --test render_descriptor` to compare them; intentional
 changes require reviewing and editing the inline expected lines.
 

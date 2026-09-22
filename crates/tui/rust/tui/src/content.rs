@@ -72,6 +72,11 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
                 palette.meta(),
             )));
         }
+        // StepsPanel is full-parity content. This read-only rendering cannot
+        // activate a nested affordance, but it must retain its authored intent.
+        if let Some(action) = step.action.as_ref() {
+            lines.push(affordance_line(action, palette));
+        }
     }
     if !panel.outro.is_empty() {
         lines.push(Line::from(""));
@@ -2037,7 +2042,7 @@ mod tests {
 
     #[test]
     fn steps_render_numbered_labels_and_details() {
-        use meridian_uiview::proto::{Step, StepsPanel};
+        use meridian_uiview::proto::{affordance::Invoke, Affordance, Step, StepsPanel};
         use ratatui::{backend::TestBackend, Terminal};
 
         let panel = StepsPanel {
@@ -2052,6 +2057,13 @@ mod tests {
                 },
                 Step {
                     label: "Click deploy".into(),
+                    action: Some(Affordance {
+                        label: "Open deploys".into(),
+                        description: "Watch the rollout".into(),
+                        icon: "open".into(),
+                        invoke: Some(Invoke::Uri("/deploys".into())),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ],
@@ -2072,6 +2084,9 @@ mod tests {
         assert!(text.contains("Choose production"));
         assert!(text.contains("Production settings screen"));
         assert!(text.contains("2. Click deploy"));
+        assert!(text.contains("Open deploys"));
+        assert!(text.contains("/deploys"));
+        assert!(text.contains("Watch the rollout"));
         assert!(text.contains("Deployment started"));
     }
 

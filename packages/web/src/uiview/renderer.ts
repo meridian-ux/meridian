@@ -468,7 +468,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "steps") {
     meta.textContent = "";
-    root.appendChild(buildSteps(body.value));
+    root.appendChild(buildSteps(renderOpts, body.value));
     return;
   }
   if (body.case === "llmPrompt") {
@@ -679,7 +679,7 @@ function buildMedia(panel: MediaPanel): HTMLElement {
   return figure;
 }
 
-function buildSteps(panel: StepsPanel): HTMLElement {
+function buildSteps(opts: RenderPanelOptions, panel: StepsPanel): HTMLElement {
   const section = el("section", "mer-steps");
   if (panel.intro) section.appendChild(el("p", "mer-steps-intro", panel.intro));
   const list = el("ol");
@@ -696,6 +696,7 @@ function buildSteps(panel: StepsPanel): HTMLElement {
       item.appendChild(image);
     }
     if (step.detail || step.mediaAlt) item.appendChild(el("p", "mer-step-detail", step.detail || step.mediaAlt));
+    if (step.action) item.appendChild(buildAffordance(opts, step.action));
     list.appendChild(item);
   });
   section.appendChild(list);

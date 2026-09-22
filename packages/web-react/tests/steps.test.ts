@@ -4,6 +4,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
@@ -20,7 +21,16 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} step media`, () => {
       panelId: "walkthrough", body: { case: "steps", value: {
         intro: "Start here", outro: "All done", steps: [
           { label: "Open Sponsors", detail: "Choose an employer", actor: "Admin", mediaUri, mediaAlt },
-          { label: "Confirm the result" },
+          {
+            label: "Confirm the result",
+            action: {
+              label: "Open Sponsors",
+              description: "Continue in the sponsor list",
+              icon: "open",
+              style: AffordanceStyle.PRIMARY,
+              invoke: { case: "uri", value: "/sponsors" },
+            },
+          },
         ],
       } },
     }) }),
@@ -41,6 +51,11 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} step media`, () => {
       expect(container.querySelectorAll("ol > li")).toHaveLength(2);
       for (const text of ["Start here", "All done", "Admin", "Choose an employer", "Confirm the result"])
         expect(container.textContent).toContain(text);
+      const action = container.querySelector<HTMLAnchorElement>('a[href="/sponsors"]');
+      expect(action?.textContent).toContain("Open Sponsors");
+      expect(action?.title).toBe("Continue in the sponsor list");
+      expect(action?.dataset.icon).toBe("open");
+      expect(container.textContent).toContain("Continue in the sponsor list");
       expect(container.textContent).not.toContain("The sponsors list");
     }
     expect(markup("/frame.png", "").querySelector("img")?.alt).toBe("Open Sponsors");

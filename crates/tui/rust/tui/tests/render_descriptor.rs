@@ -683,6 +683,7 @@ fn canonical_populated_native_text_goldens() {
                 "1. Open the Sponsors page [Admin]",
                 "The list of every employer your organization administers.",
                 "The sponsors list",
+                "↵ ↗ Open Sponsors /sponsors — Continue in the sponsor list",
                 "2. Add a new sponsor [Admin]",
                 "Name it, then set Status to Active and Kind to Customer.",
                 "3. Confirm a colleague sees it [Manager]",

@@ -227,6 +227,7 @@ export const shadcnKit: ComponentKit = {
             </div>
             {step.detail && <p className="mt-1 text-sm text-muted-foreground">{step.detail}</p>}
             <StepMedia step={step} className="mt-3 rounded-md border" fallbackClassName="mt-1 text-sm text-muted-foreground" />
+            {step.action && <AffordanceControl c={c} affordance={step.action} />}
           </li>
         ))}
       </ol>

@@ -505,6 +505,13 @@ export const FIXTURES: Fixture[] = [
               actor: "Admin",
               mediaUri: "/evidence/sponsors.png",
               mediaAlt: "The sponsors list",
+              action: {
+                label: "Open Sponsors",
+                description: "Continue in the sponsor list",
+                icon: "open",
+                style: AffordanceStyle.PRIMARY,
+                invoke: { case: "uri", value: "/sponsors" },
+              },
             },
             {
               label: "Add a new sponsor",

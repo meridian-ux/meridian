@@ -184,6 +184,9 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
   li
     "2"
     h6

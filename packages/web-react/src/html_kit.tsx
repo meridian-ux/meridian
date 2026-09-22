@@ -243,6 +243,7 @@ export const htmlKit: ComponentKit = {
             </div>
             {step.detail && <p className="mer-step-detail">{step.detail}</p>}
             <StepMedia step={step} className="mer-step-media" fallbackClassName="mer-step-detail" />
+            {step.action && <AffordanceControl c={c} affordance={step.action} />}
           </li>
         ))}
       </ol>
