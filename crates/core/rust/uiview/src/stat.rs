@@ -51,7 +51,7 @@ fn group(int: u64) -> String {
     let mut out = String::new();
     let len = s.len();
     for (i, ch) in s.chars().enumerate() {
-        if i > 0 && (len - i).is_multiple_of(3) {
+        if i > 0 && (len - i) % 3 == 0 {
             out.push(',');
         }
         out.push(ch);

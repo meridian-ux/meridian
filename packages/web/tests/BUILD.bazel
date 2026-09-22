@@ -188,6 +188,7 @@ vitest_test(
         "//packages/web:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
+        "//schemas:conformance_fixtures",
         ":src_lib",
     ],
 )
@@ -217,6 +218,7 @@ vitest_test(
         "//packages/web:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
+        "//schemas:conformance_fixtures",
         ":src_lib",
     ],
 )

@@ -286,7 +286,7 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
 
 fn days_in_month(year: u16, month: u8) -> u8 {
     match month {
-        2 if year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400)) => {
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => {
             29
         }
         2 => 28,
@@ -801,6 +801,10 @@ mod tests {
         assert_eq!(
             format_display_value(&json!("2026-03-21T09:14:00Z"), &date_time),
             "Mar 21, 2026, 9:14 AM UTC"
+        );
+        assert_eq!(
+            format_display_value(&json!("2024-02-29"), &date),
+            "Feb 29, 2024"
         );
         assert_eq!(
             format_display_value(&json!("not-a-date"), &date_time),
