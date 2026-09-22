@@ -4,6 +4,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { EnumSelectionSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
@@ -27,6 +28,86 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  const enumPanel = () => create(FormPanelSchema, { mode: 2,
+    submit: { service: "demo.Records", method: "Update" }, fields: [
+      { fieldId: "region", label: "Region", kind: { case: "enumSelection", value: {
+        defaultValue: "west", optionsSource: { service: "demo.Options", method: "List", optionsField: "outer.items", valueField: "id", labelField: "display.label" },
+      } } },
+    ] });
+  it("loads read-tier options after prefill and submits only resolved tokens", async () => {
+    const p = enumPanel();
+    p.prefill = create(FormPanelSchema, { prefill: { service: "demo.Records", method: "Get" } }).prefill;
+    let finish!: (value: unknown) => void;
+    const invoke = vi.fn(async (_s: string, method: string) => method === "Get" ? { region: "east" } : method === "List"
+      ? new Promise(resolve => { finish = resolve; }) : {});
+    const view = await mount(p, invoke);
+    try {
+      expect(invoke.mock.calls).toEqual([["demo.Records", "Get", {}], ["demo.Options", "List", {}]]);
+      expect(view.container.querySelector("select")!.disabled).toBe(true);
+      expect(view.container.textContent).toContain("Loading options");
+      await act(async () => { submit(view.container); });
+      expect(invoke).toHaveBeenCalledTimes(2);
+      await act(async () => finish({ outer: { items: [
+        { id: "west", display: { label: "West" } }, { id: "east", display: { label: "<b>East</b>" } },
+      ] } }));
+      const select = view.container.querySelector("select")!;
+      expect(select.value).toBe("east");
+      expect(select.textContent).toContain("<b>East</b>");
+      expect(select.querySelector("b")).toBeNull();
+      await act(async () => { submit(view.container); });
+      expect(invoke.mock.calls[2]).toEqual(["demo.Records", "Update", { region: "east" }]);
+      select.add(new Option("Forged", "forged")); select.value = "forged";
+      await act(async () => { submit(view.container); });
+      expect(invoke).toHaveBeenCalledTimes(3);
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("select an allowed value");
+    } finally { await view.close(); }
+  });
+  it("keeps failed and malformed dynamic option sources unavailable", async () => {
+    for (const response of [undefined, { outer: { items: "invalid" } }, { outer: { items: [] } }]) {
+      const invoke = vi.fn(async () => { if (!response) throw new Error("<img> offline"); return response; });
+      const view = await mount(enumPanel(), invoke);
+      try {
+        expect(view.container.querySelector("select")!.disabled).toBe(true);
+        expect(view.container.querySelector("img")).toBeNull();
+        expect(view.container.querySelector('[role="alert"], [role="status"]')).not.toBeNull();
+        await act(async () => { submit(view.container); });
+        expect(invoke.mock.calls).toEqual([["demo.Options", "List", {}]]);
+      } finally { await view.close(); }
+    }
+  });
+  it("preserves static options and honors labeled option precedence without reads", async () => {
+    for (const labeled of [false, true]) {
+      const p = enumPanel(); const kind = p.fields[0].kind;
+      if (kind.case !== "enumSelection") throw new Error("expected enum");
+      kind.value.optionsSource = undefined;
+      kind.value.allowedValues = ["west", "east"];
+      if (labeled) kind.value.options = create(EnumSelectionSchema, {
+        options: [{ value: "west", label: "Western region" }],
+      }).options;
+      const invoke = vi.fn(async () => ({})); const view = await mount(p, invoke);
+      try {
+        expect(invoke).not.toHaveBeenCalled();
+        expect(view.container.querySelector("select")!.value).toBe("west");
+        expect(view.container.querySelectorAll("option")).toHaveLength(labeled ? 1 : 2);
+        await act(async () => { submit(view.container); });
+        expect(invoke.mock.calls).toEqual([["demo.Records", "Update", { region: "west" }]]);
+      } finally { await view.close(); }
+    }
+  });
+  it("validates dynamic enums in nested and repeated field paths", async () => {
+    const p = enumPanel(); const field = p.fields[0];
+    p.fields = create(FormPanelSchema, { fields: [
+      { fieldId: "settings", kind: { case: "nested", value: { fields: [field] } } },
+      { fieldId: "regions", kind: { case: "repeated", value: { minItems: 1, element: { case: "scalar", value: field } } } },
+    ] }).fields;
+    const invoke = vi.fn(async (_s: string, method: string) => method === "List"
+      ? { outer: { items: [{ id: "west", display: { label: "West" } }] } } : {});
+    const view = await mount(p, invoke);
+    try {
+      await act(async () => { submit(view.container); });
+      expect(invoke.mock.calls.at(-1)).toEqual(["demo.Records", "Update", { settings: { region: "west" }, regions: ["west"] }]);
+    } finally { await view.close(); }
+  });
   it("submits typed raw values with bindings, blocks duplicate requests, and reports success", async () => {
     let finish!: (value: unknown) => void;
     const invoke = vi.fn(() => new Promise(resolve => { finish = resolve; }));

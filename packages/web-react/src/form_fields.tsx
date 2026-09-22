@@ -14,18 +14,70 @@
 //   The hidden <input> at the end of each RepeatedFieldControl carries the full
 //   JSON-encoded current value at `namePath` so standard FormData round-trips work.
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useId, useState } from "react";
+import { useRpcInvoker } from "./provider.js";
 import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 import type { ReactNode } from "react";
 
 import type {
   FormField,
+  EnumSelection,
   KeyValueMapField,
   NestedForm,
   RepeatedField,
 } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
 export const FormInitialValues = createContext<Record<string, unknown>>({});
+// Runtime-only validation registry; loaded option tokens are never taken from DOM markup.
+export const FormEnumValues = createContext<Map<string, readonly string[]> | undefined>(undefined);
+
+function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: string; raw: unknown; className: string }) {
+  const invoker = useRpcInvoker();
+  const registry = useContext(FormEnumValues);
+  const id = useId();
+  const source = spec.optionsSource;
+  const [result, setResult] = useState<{ options: { value: string; label: string }[]; error?: string }>();
+  const [chosen, setChosen] = useState(String(raw));
+  useEffect(() => {
+    if (!source) return;
+    let active = true;
+    setResult(undefined);
+    const path = (value: unknown, key: string): unknown => key.split(".").reduce<unknown>((item, part) =>
+      item && typeof item === "object" && Object.hasOwn(item, part) ? (item as Record<string, unknown>)[part] : undefined, value);
+    void Promise.resolve().then(() => {
+      if (!source.service || !source.method) throw new Error("Invalid options source.");
+      return invoker.invoke(source.service, source.method, {});
+    }).then(response => {
+      const rows = path(response, source.optionsField);
+      if (!Array.isArray(rows)) throw new Error("Invalid options response.");
+      const options = rows.map(row => {
+        const value = path(row, source.valueField);
+        if (typeof value !== "string" && typeof value !== "number") throw new Error("Invalid option value.");
+        const label = source.labelField ? path(row, source.labelField) : value;
+        return { value: String(value), label: String(label ?? value) };
+      });
+      if (active) setResult({ options });
+    }).catch(reason => { if (active) setResult({ options: [], error: reason instanceof Error ? reason.message : String(reason) }); });
+    return () => { active = false; };
+  }, [source, invoker]);
+  const options = source ? result?.options ?? [] : spec.options.length
+    ? spec.options.map(option => ({ value: option.value, label: option.label || option.value }))
+    : spec.allowedValues.map(value => ({ value, label: value }));
+  const tokens = options.map(option => option.value);
+  const tokenKey = JSON.stringify(tokens);
+  useEffect(() => {
+    registry?.set(name, tokens);
+    return () => { if (registry?.get(name) === tokens) registry.delete(name); };
+  }, [registry, name, tokenKey]);
+  const pending = Boolean(source && !result);
+  const message = pending ? "Loading options…" : result?.error ? `Could not load options: ${result.error}` : options.length === 0 ? "No options available." : "";
+  const value = tokens.includes(chosen) ? chosen : tokens[0] ?? "";
+  return <><select name={name} className={className} value={value} disabled={pending || options.length === 0}
+    aria-busy={pending || undefined} aria-describedby={message ? id : undefined} onChange={event => setChosen(event.target.value)}>
+    {options.length === 0 && <option value="">{pending ? "Loading…" : "No options"}</option>}
+    {options.map((option, index) => <option key={`${option.value}:${index}`} value={option.value}>{option.label}</option>)}
+  </select>{message && <span id={id} role={result?.error ? "alert" : "status"}>{message}</span>}</>;
+}
 function useInitialValue(name: string): unknown {
   const values = useContext(FormInitialValues);
   if (Object.hasOwn(values, name)) return values[name];
@@ -156,19 +208,7 @@ function ScalarInput({
     );
   }
   if (kind.case === "enumSelection") {
-    return (
-      <select
-        className={c.fieldSelect}
-        name={name}
-        defaultValue={String(raw)}
-      >
-        {kind.value.allowedValues.map((v) => (
-          <option key={v} value={v}>
-            {v}
-          </option>
-        ))}
-      </select>
-    );
+    return <EnumInput spec={kind.value} name={name} raw={raw} className={c.fieldSelect} />;
   }
   // text, masked, or unset
   return (

@@ -4,20 +4,20 @@ import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { createAdmissionGate } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
 import { buildBindingRequest, selectionDeps, useMeridianSelection } from "./pagination.js";
-import { FormFieldRow, FormInitialValues, type FormFieldClasses } from "./form_fields.js";
+import { FormEnumValues, FormFieldRow, FormInitialValues, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
-function readField(field: FormField, name: string, data: FormData): unknown {
+function readField(field: FormField, name: string, data: FormData, enums: Map<string, readonly string[]>): unknown {
   const kind = field.kind;
-  if (kind.case === "nested") return readFields(kind.value.fields, data, name);
+  if (kind.case === "nested") return readFields(kind.value.fields, data, enums, name);
   if (kind.case === "repeated") {
     const count = Number(data.get(`${name}.__count`) || 0);
     if (!Number.isSafeInteger(count) || count < kind.value.minItems || (kind.value.maxItems > 0 && count > kind.value.maxItems))
       throw new Error(`${field.label || name}: invalid item count.`);
     const element = kind.value.element;
     return Array.from({ length: count }, (_, i) => element.case === "scalar"
-      ? readField(element.value, `${name}[${i}]`, data)
-      : element.case === "object" ? readFields(element.value.fields, data, `${name}[${i}]`) : null);
+      ? readField(element.value, `${name}[${i}]`, data, enums)
+      : element.case === "object" ? readFields(element.value.fields, data, enums, `${name}[${i}]`) : null);
   }
   if (kind.case === "keyValueMap") {
     const value = JSON.parse(String(data.get(name) || "{}"));
@@ -40,12 +40,12 @@ function readField(field: FormField, name: string, data: FormData): unknown {
       throw new Error(`${field.label || name}: invalid length.`);
     if (spec.pattern && !new RegExp(spec.pattern).test(text)) throw new Error(spec.patternErrorMsg || `${field.label || name}: invalid value.`);
   }
-  if (kind.case === "enumSelection" && !kind.value.allowedValues.includes(text)) throw new Error(`${field.label || name}: select an allowed value.`);
+  if (kind.case === "enumSelection" && !(enums.get(name) ?? []).includes(text)) throw new Error(`${field.label || name}: select an allowed value.`);
   return text;
 }
-function readFields(fields: FormField[], data: FormData, prefix = ""): Record<string, unknown> {
+function readFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
   return Object.fromEntries(fields.map(field => [field.fieldId, readField(field,
-    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data)]));
+    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, enums)]));
 }
 
 function inputValues(fields: FormField[], values: Record<string, unknown>, prefix = ""): Record<string, unknown> {
@@ -89,6 +89,7 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const busy = useRef(false);
+  const enums = useRef(new Map<string, readonly string[]>());
   const alive = useRef(true);
   const call = panel.submit;
   const allowed = Boolean(call?.service && call.method && createAdmissionGate(admission).admits("mutation", call.service, call.method));
@@ -108,7 +109,7 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
     if (!edit || !allowed || !call || loading || busy.current) return;
     setError(""); setStatus("");
     try {
-      const values = readFields(panel.fields, new FormData(event.currentTarget));
+      const values = readFields(panel.fields, new FormData(event.currentTarget), enums.current);
       busy.current = true; setStatus("Saving…");
       await mutationInvoker.invoke(call.service, call.method, { ...buildBindingRequest(call, selection.values), ...values });
       if (alive.current) setStatus("Saved.");
@@ -117,9 +118,9 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
     } finally { busy.current = false; }
   }
   return <form className={className} data-mode={panel.mode} onSubmit={submit}>
-    {loading ? <p role="status">Loading…</p> : <FormInitialValues.Provider value={initial}>
+    {loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormInitialValues.Provider value={initial}>
       {panel.fields.map(field => <FormFieldRow key={field.fieldId} c={c} field={field} mode={panel.mode} />)}
-    </FormInitialValues.Provider>}
+    </FormInitialValues.Provider></FormEnumValues.Provider>}
     {edit && call && <button type="submit" disabled={loading || status === "Saving…" || !allowed}>{`Save ${panel.itemNoun}`.trim()}</button>}
     {edit && call && !allowed && <p role="status">Saving is not permitted.</p>}
     {status && <p role="status">{status}</p>}

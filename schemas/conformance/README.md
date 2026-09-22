@@ -59,8 +59,13 @@ The HTML/Shadcn `form.test.ts` suite verifies FormPanel read-tier prefill,
 typed scalar/nested/repeated/map payloads, submit bindings, mutation admission,
 validation, duplicate-submit prevention, visible failures and retry, and saved
 status. Failed prefill retains defaults. Read-only scalar defaults honor declared
-displays; editable values remain raw. These tests do not establish dynamic enum
-population or browser-native validation/layout parity.
+displays; editable values remain raw. Dynamic enum sources use read-tier RPCs
+with an empty request, resolve dotted option/value/label paths, and preserve
+prefilled tokens. Pending, failed, malformed, and empty option responses cannot
+be submitted; failures are exposed as alerts. Static labeled options take
+precedence over bare allowed values. Tests cover both kits, nested/repeated
+enum fields, and rejection of tokens inserted into the DOM outside the resolved
+option set. These checks do not establish browser-native validation/layout parity.
 
 The canonical `copy_value` fixture contains a long panel title, label, and
 unbroken URL segment. All four browser semantic snapshots and explicit content
