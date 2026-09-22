@@ -89,7 +89,7 @@ exports[`renderPanel (web-components, binary boundary) > renders the canonical d
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical empty fixture > web-components/unset 1`] = `
 ""Blank"
-"(no body set)""
+"Unsupported or unset panel shape""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical form fixture > web-components/form 1`] = `

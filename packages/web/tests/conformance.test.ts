@@ -149,9 +149,9 @@ describe("renderPanel (web-components, binary boundary)", () => {
       );
       const meta = root.querySelector(".meridian-uiview-meta")?.textContent;
       if (fixture.shape === "(unset)") {
-        expect(meta).toBe("(no body set)");
+        expect(meta).toBe("Unsupported or unset panel shape");
       } else {
-        expect(meta).not.toBe("(no body set)");
+        expect(meta).not.toBe("Unsupported or unset panel shape");
       }
       const arm = (fixture.descriptor.body.case || "unset").replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
       expect(normalizeDom(root)).toMatchSnapshot(`web-components/${arm}`);
