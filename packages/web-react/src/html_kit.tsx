@@ -30,6 +30,7 @@ import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
 import { GalleryContent } from "./gallery.js";
+import { TableContent } from "./table.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -84,24 +85,7 @@ export const htmlKit: ComponentKit = {
       {children}
     </section>
   ),
-  Table: ({ panel }) => (
-    <table className="mer-table">
-      <thead>
-        <tr>
-          {panel.columns.map((col, i) => (
-            <th key={i}>{col.header}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="mer-empty" colSpan={panel.columns.length || 1}>
-            {panel.placeholder || "(load to populate)"}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  ),
+  Table: ({ panel, invoker }) => <TableContent panel={panel} invoker={invoker} />,
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="mer-gallery" emptyClassName="mer-empty" />,
   Prompt: ({ panel }) => (
     <form className="mer-prompt">

@@ -15,18 +15,57 @@ import { PanelRenderer } from "../src/panel_renderer.js";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s canonical populated table", (_name, kit) => {
-  it("documents the table placeholder boundary even when populated data is available", async () => {
+  it("renders the canonical populated table in column order", async () => {
     const fixture = FIXTURES.find((candidate) => candidate.shape === "table")!;
     const container = document.createElement("div");
     const root = createRoot(container);
     try {
       await act(async () => root.render(createElement(MeridianProvider, {
-        kit, adhoc: {}, invoker: { invoke: async () => POPULATED_RESPONSES.table },
+        kit, adhoc: {}, resolveHref: (kind, id) => `/${kind}/${id}`, invoker: { invoke: async () => POPULATED_RESPONSES.table },
       }, createElement(PanelRenderer, { descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, fixture.descriptor)) }))));
       expect(container.querySelectorAll("th")).toHaveLength(4);
+      expect(container.querySelectorAll("tbody tr")).toHaveLength(2);
+      expect(container.textContent).toContain("Ada");
+      expect(Array.from(container.querySelectorAll("a"), link => link.getAttribute("href"))).toEqual(["/member/Ada", "https://example.com/ada", "/member/Grace"]);
+      expect(Array.from(container.querySelectorAll("tbody tr:first-child td"), cell => cell.textContent)).toEqual(["Ada", "0012.50", "Yes", "https://example.com/ada"]);
+    } finally { await act(async () => root.unmount()); }
+  });
+
+  it("escapes cell markup and rejects executable host destinations", async () => {
+    const descriptor = FIXTURES.find(candidate => candidate.shape === "table")!.descriptor;
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(createElement(MeridianProvider, {
+        kit, adhoc: {}, resolveHref: () => "javascript:alert(1)",
+        invoker: { invoke: async () => ({ claims: [{ member: "<script>bad()</script>", amount: "0012.50" }] }) },
+      }, createElement(PanelRenderer, { descriptor }))));
+      expect(container.querySelector("tbody td")?.textContent).toBe("<script>bad()</script>");
+      expect(container.querySelector("script")).toBeNull();
+      expect(container.querySelector("a")).toBeNull();
+    } finally { await act(async () => root.unmount()); }
+  });
+
+  it("preserves pending, empty, and failed request states", async () => {
+    const descriptor = FIXTURES.find(candidate => candidate.shape === "table")!.descriptor;
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    let finish!: (value: unknown) => void;
+    const pending = new Promise(resolve => { finish = resolve; });
+    try {
+      await act(async () => root.render(createElement(MeridianProvider, {
+        kit, adhoc: {}, invoker: { invoke: async () => pending },
+      }, createElement(PanelRenderer, { descriptor }))));
+      expect(container.querySelector("table")?.getAttribute("aria-busy")).toBe("true");
       expect(container.textContent).toContain("no claims");
-      expect(container.textContent).not.toContain("Ada");
-      expect(container.querySelectorAll("a")).toHaveLength(0);
+      await act(async () => finish({ claims: [] }));
+      expect(container.querySelector("table")?.hasAttribute("aria-busy")).toBe(false);
+      expect(container.textContent).toContain("no claims");
+      await act(async () => root.render(createElement(MeridianProvider, {
+        kit, adhoc: {}, invoker: { invoke: async () => { throw new Error("private details"); } },
+      }, createElement(PanelRenderer, { descriptor }))));
+      expect(container.textContent).toContain("Failed to load table.");
+      expect(container.textContent).not.toContain("private details");
     } finally { await act(async () => root.unmount()); }
   });
 });

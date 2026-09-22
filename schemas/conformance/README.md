@@ -65,9 +65,11 @@ columns, declared boolean/URL displays, and a host-resolved member link. Focused
 MUI and web-components tests use the shared two-row response; the native test
 decodes the same wire descriptor and exercises the Rust formatter. The browser
 web-components test substitutes the WASM bridge, so it is DOM/link evidence,
-not an end-to-end WASM test. HTML and Shadcn tables remain placeholders, explicitly
-tested as that boundary. URL display alone remains plain text on these populated
-table surfaces; only the host-approved ColumnLink becomes interactive.
+not an end-to-end WASM test. HTML and Shadcn now fetch and render the same populated
+table, including column order, legacy scalar values, declared displays, and safe
+host-resolved links. Their focused tests cover pending, empty, and failed requests
+and escaped markup. These reference kits also link declared HTTP(S) URL values;
+URL display alone remains plain text in the MUI/web-components table realizations.
 
 Epic #9 still owns representative overflow/ValueType fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware

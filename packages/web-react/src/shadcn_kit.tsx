@@ -34,6 +34,7 @@ import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
 import { GalleryContent } from "./gallery.js";
+import { TableContent } from "./table.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -95,32 +96,9 @@ export const shadcnKit: ComponentKit = {
       <div className="p-4">{children}</div>
     </section>
   ),
-  Table: ({ panel }) => (
+  Table: ({ panel, invoker }) => (
     <div className="relative w-full overflow-auto">
-      <table className="w-full caption-bottom text-sm">
-        <thead className="[&_tr]:border-b">
-          <tr className="border-b transition-colors">
-            {panel.columns.map((col, i) => (
-              <th
-                key={i}
-                className="h-10 px-2 text-left align-middle font-medium text-muted-foreground"
-              >
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="[&_tr:last-child]:border-0">
-          <tr className="border-b transition-colors hover:bg-muted/50">
-            <td
-              className="p-2 align-middle text-muted-foreground"
-              colSpan={panel.columns.length || 1}
-            >
-              {panel.placeholder || "(load to populate)"}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <TableContent panel={panel} invoker={invoker} styled />
     </div>
   ),
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="grid grid-cols-2 gap-3 sm:grid-cols-3" emptyClassName="col-span-full text-sm text-muted-foreground" />,
