@@ -11,6 +11,12 @@
       "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
       "floor": 82
     },
+    {
+      "id": "web-wasm-ffi",
+      "kind": "javascript",
+      "roots": ["packages/web/tests"],
+      "floor": 4
+    },
     { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 72 },
     { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 14 },
     { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 79 }
