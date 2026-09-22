@@ -39,6 +39,82 @@
       "entrypoint": "rust/tui/src/widget.rs"
     }
   },
+  "modalities": {
+    "conversation": {
+      "oneof": "Block.kind",
+      "arms": {
+        "markdown": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "context": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "tool": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "list": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "fields": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "code": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "divider": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "table": {
+          "renderers": {
+            "chat-html": { "status": "renders" },
+            "chat-react": { "status": "renders" }
+          }
+        },
+        "view": {
+          "renderers": {
+            "chat-html": {
+              "status": "not-applicable",
+              "reason": "The framework-free HTML tier has no host panel-renderer seam; it intentionally leaves composed ViewDescriptor blocks inert."
+            },
+            "chat-react": {
+              "status": "separate-entrypoint",
+              "reason": "BlockView delegates the nested ViewDescriptor to the host-supplied renderView callback rather than importing a panel renderer."
+            }
+          }
+        }
+      }
+    },
+    "launchpad": {
+      "oneof": "Command.action",
+      "arms": {
+        "rpc": { "renderers": { "launchpad": { "status": "renders" } } },
+        "open_panel": { "renderers": { "launchpad": { "status": "renders" } } },
+        "open_view_id": { "renderers": { "launchpad": { "status": "renders" } } },
+        "navigate": { "renderers": { "launchpad": { "status": "renders" } } }
+      }
+    }
+  },
   "arms": {
     "table": {
       "parity": "standard",

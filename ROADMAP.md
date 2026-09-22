@@ -78,6 +78,33 @@ The table below is **generated** from the coverage manifest by
 | html-kit | 1 |
 | shadcn-kit | 1 |
 | tui | 4 |
+
+### Conversation modality
+
+| arm | chat-html | chat-react |
+|---|---|---|
+| `markdown` | ● | ● |
+| `context` | ● | ● |
+| `tool` | ● | ● |
+| `list` | ● | ● |
+| `fields` | ● | ● |
+| `code` | ● | ● |
+| `divider` | ● | ● |
+| `table` | ● | ● |
+| `view` | – | ◑ |
+
+**9 arms × 2 renderers = 18 cells; 16 render, 2 do not.**
+
+### Launchpad modality
+
+| arm | launchpad |
+|---|---|
+| `rpc` | ● |
+| `open_panel` | ● |
+| `open_view_id` | ● |
+| `navigate` | ● |
+
+**4 arms × 1 renderer = 4 cells; 4 render, 0 do not.**
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.

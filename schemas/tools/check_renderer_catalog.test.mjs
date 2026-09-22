@@ -38,8 +38,11 @@ test("an external preview may be cataloged before local coverage exists", () => 
 test("local entrypoints cannot silently disappear", () => {
   const catalog = read("renderer_catalog.json");
   const coverage = read("coverage.json");
-  catalog.renderers.find((entry) => entry.id === "chat").source.entrypoint = "src/missing.ts";
-  assert.ok(check(catalog, coverage).some((error) => /chat: local entrypoint does not exist/.test(error)));
+  catalog.renderers.find((entry) => entry.id === "chat-html").source.entrypoint = "src/missing-html.ts";
+  catalog.renderers.find((entry) => entry.id === "chat-react").source.entrypoint = "src/missing-react.tsx";
+  const errors = check(catalog, coverage);
+  assert.ok(errors.some((error) => /chat-html: local entrypoint does not exist/.test(error)));
+  assert.ok(errors.some((error) => /chat-react: local entrypoint does not exist/.test(error)));
 });
 
 test("external preview rows explain why they have no local path", () => {

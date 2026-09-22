@@ -11,10 +11,14 @@
       "coverage": "schemas/conformance/coverage.json"
     },
     "conversation": {
-      "schema": "schemas/proto/conversation.proto"
+      "schema": "schemas/proto/conversation.proto",
+      "oneof": "Block.kind",
+      "coverage": "schemas/conformance/coverage.json"
     },
     "launchpad": {
-      "schema": "schemas/proto/command_palette.proto"
+      "schema": "schemas/proto/command_palette.proto",
+      "oneof": "Command.action",
+      "coverage": "schemas/conformance/coverage.json"
     }
   },
   "renderers": [
@@ -65,10 +69,16 @@
       }
     },
     {
-      "id": "chat",
+      "id": "chat-html",
       "modality": "conversation",
       "status": "stable",
-      "source": { "kind": "local", "root": "packages/chat", "entrypoint": "src/index.ts" }
+      "source": { "kind": "local", "root": "packages/chat", "entrypoint": "src/render_html.ts" }
+    },
+    {
+      "id": "chat-react",
+      "modality": "conversation",
+      "status": "stable",
+      "source": { "kind": "local", "root": "packages/chat", "entrypoint": "src/render_react.tsx" }
     },
     {
       "id": "launchpad",
