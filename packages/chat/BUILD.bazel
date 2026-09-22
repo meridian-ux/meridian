@@ -15,7 +15,8 @@ npm_link_all_packages(name = "node_modules")
 
 # @savvifi/meridian-chat — the conversation renderer. Compiles the shared core
 # (wire + model + render_html), the vanilla <m-assistant-panel>, and the React
-# <Conversation>. The wire types are structural (no protobuf-es runtime); react is
+# <Conversation>. The wire types are structural; field displays use the shared
+# schema formatter and protobuf JSON decoding. React is
 # a peer used only by the React tier.
 ts_project(
     name = "chat",
@@ -27,6 +28,9 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
     deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
         ":node_modules/@types/react",
         ":node_modules/@types/react-dom",
         ":node_modules/react",
@@ -57,7 +61,7 @@ npm_package(
 
 # Self-contained browser ESM (the VANILLA web component) for bundler-free hosts
 # (botnoc's static frontend). Bundles the compiled src/browser.js entry; it pulls
-# in no framework (no react, no protobuf-es), so the output stays tiny.
+# in no React components; schema formatting and protobuf decoding are bundled.
 esbuild(
     name = "browser_bundle",
     srcs = [":chat"],

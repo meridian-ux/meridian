@@ -5,6 +5,64 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { renderBlockInner } from "../src/render_html.js";
 import { BlockView, Conversation } from "../src/index.js";
 import type { Block } from "../src/wire.js";
+import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
+import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+
+describe("conversation field displays", () => {
+  const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];
+
+  it("formats wire-decoded temporal and principal strings in both web tiers", () => {
+    const message = create(BlockSchema, { kind: { case: "fields", value: { fields: [
+      { key: "Due", value: "2026-03-29T00:00:00Z", display: { type: ValueType.DATE } },
+      { key: "Owner", value: 'Ada <ada@example.com>', display: { type: ValueType.PRINCIPAL,
+        options: { case: "principal", value: { display: PrincipalDisplay.NAME_WITH_EMAIL_TITLE } } } },
+      { key: "Literal", value: "2026-03-29T00:00:00Z" },
+      { key: "Text", value: "2026-03-29T00:00:00Z", display: { type: ValueType.TEXT } },
+      { key: "Count", value: "0012.50", display: { type: ValueType.DECIMAL,
+        options: { case: "number", value: { fractionDigits: 0 } } } },
+      { key: "Boolean", value: "false", display: { type: ValueType.BOOLEAN } },
+    ] } } });
+    const decoded = fromBinary(BlockSchema, toBinary(BlockSchema, message));
+    for (const enumAsInteger of [false, true]) {
+      const wire = toJson(BlockSchema, decoded, { enumAsInteger }) as unknown as Block;
+      for (const render of renderers) {
+        const html = render(wire);
+        expect(html).toContain("Mar 29, 2026");
+        expect(html).toContain('title="ada@example.com">Ada</div>');
+        expect(html.match(/2026-03-29T00:00:00Z/g)).toHaveLength(2);
+        expect(html).toContain("0012.50");
+        expect(html).toContain(">false</div>");
+      }
+    }
+  });
+
+  it("keeps absent, unspecified, unknown and malformed displays compatible", () => {
+    for (const display of [undefined, {}, { type: 0 }, { type: 999 }, { type: "FUTURE_TYPE" },
+      { type: "DATE", temporal: { precision: [] } }]) {
+      const block: Block = { fields: { fields: [{ key: "Raw", value: '2026-03-29T00:00:00Z', display }] } };
+      for (const render of renderers) expect(render(block)).toContain(">2026-03-29T00:00:00Z</div>");
+    }
+  });
+
+  it("escapes values and email titles and never creates navigation from display metadata", () => {
+    const block: Block = { fields: { fields: [
+      { key: "Owner", value: 'Ada <a" onclick="evil@example.com>', display: {
+        type: "PRINCIPAL", principal: { display: "NAME_WITH_EMAIL_TITLE" } } },
+      { key: "URL", value: "javascript:alert(1)", display: { type: "URL", link: { targetKind: "user" } } },
+      { key: "Empty", value: "", display: { type: "DATE" } },
+      { key: "HTML", value: "<script>bad</script>", display: { type: "TEXT" } },
+    ] } };
+    for (const render of renderers) {
+      const html = render(block);
+      expect(html).not.toContain("<a ");
+      expect(html).not.toContain("<script>");
+      expect(html).not.toContain(' onclick="evil');
+      expect(html).toContain("&lt;script&gt;bad&lt;/script&gt;");
+      expect(html).toContain('class="k">Empty</div><div></div>');
+    }
+  });
+});
 
 describe("renderBlockInner (vanilla HTML)", () => {
   it("renders a tool block with an ok dot + summary", () => {

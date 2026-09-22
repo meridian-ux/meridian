@@ -26,7 +26,7 @@
 //   * divider   → a hairline.
 //   * table     → aligned columns with a header row.
 
-use meridian_uiview::proto::{block, Block, Status};
+use meridian_uiview::proto::{block, Block, Status, ValueType};
 use meridian_uiview::ConversationModel;
 use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
@@ -210,7 +210,28 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
                             format!("  {:width$}  ", f.key, width = width),
                             palette.meta(),
                         ),
-                        Span::styled(f.value.clone(), base),
+                        Span::styled(
+                            match f.display.as_ref() {
+                                Some(display)
+                                    if !f.value.is_empty()
+                                        && matches!(
+                                            ValueType::try_from(display.r#type),
+                                            Ok(ValueType::Date
+                                                | ValueType::DateTime
+                                                | ValueType::Time
+                                                | ValueType::Principal
+                                                | ValueType::Email)
+                                        ) =>
+                                {
+                                    meridian_uiview::format_display_value(
+                                        &serde_json::Value::String(f.value.clone()),
+                                        display,
+                                    )
+                                }
+                                _ => f.value.clone(),
+                            },
+                            base,
+                        ),
                     ])
                 })
                 .collect()
@@ -548,16 +569,85 @@ mod tests {
                 block::Field {
                     key: "id".into(),
                     value: "1".into(),
+                    ..Default::default()
                 },
                 block::Field {
                     key: "longer".into(),
                     value: "2".into(),
+                    ..Default::default()
                 },
             ],
         }));
         let lines = block_lines(&b, &palette());
         assert_eq!(text_of(&lines[0]), "  id      1");
         assert_eq!(text_of(&lines[1]), "  longer  2");
+    }
+
+    #[test]
+    fn fields_display_survives_wire_decode_and_preserves_literal_values() {
+        use meridian_uiview::proto::{
+            value_display, PrincipalDisplay, PrincipalOptions, ValueDisplay,
+        };
+        use prost::Message;
+        let field = |key: &str, value: &str, display| block::Field {
+            key: key.into(),
+            value: value.into(),
+            display,
+        };
+        let display = |kind| {
+            Some(ValueDisplay {
+                r#type: kind as i32,
+                ..Default::default()
+            })
+        };
+        let block = block_of(block::Kind::Fields(block::Fields {
+            fields: vec![
+                field("Due", "2026-03-29T00:00:00Z", display(ValueType::Date)),
+                field(
+                    "Owner",
+                    "Ada <ada@example.com>",
+                    Some(ValueDisplay {
+                        r#type: ValueType::Principal as i32,
+                        options: Some(value_display::Options::Principal(PrincipalOptions {
+                            display: PrincipalDisplay::NameWithEmailTitle as i32,
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }),
+                ),
+                field("Raw", "2026-03-29T00:00:00Z", None),
+                field("Text", "2026-03-29T00:00:00Z", display(ValueType::Text)),
+                field("Count", "0012.50", display(ValueType::Decimal)),
+                field("Boolean", "false", display(ValueType::Boolean)),
+                field("Empty", "", display(ValueType::Date)),
+                field(
+                    "Unknown",
+                    "unchanged",
+                    Some(ValueDisplay {
+                        r#type: 999,
+                        ..Default::default()
+                    }),
+                ),
+            ],
+        }));
+        let decoded = Block::decode(block.encode_to_vec().as_slice()).unwrap();
+        let actual: Vec<String> = block_lines(&decoded, &palette())
+            .iter()
+            .map(text_of)
+            .collect();
+        for (line, expected) in actual.iter().zip([
+            "Mar 29, 2026",
+            "Ada",
+            "2026-03-29T00:00:00Z",
+            "2026-03-29T00:00:00Z",
+            "0012.50",
+            "false",
+            "",
+            "unchanged",
+        ]) {
+            assert_eq!(&line[11..], expected);
+        }
+        assert_eq!(actual.len(), 8);
     }
 
     #[test]

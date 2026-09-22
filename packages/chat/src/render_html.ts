@@ -4,6 +4,7 @@
 
 import { escHtml as esc, mdInline } from "./dom.js";
 import type { Block } from "./wire.js";
+import { displayField } from "./field_display.js";
 
 export function renderBlockInner(b: Block): string {
   if (b.markdown) return `<div class="md">${mdInline(b.markdown.text || "")}</div>`;
@@ -34,7 +35,11 @@ export function renderBlockInner(b: Block): string {
   }
   if (b.fields) {
     const rows = (b.fields.fields || [])
-      .map((f) => `<div class="k">${esc(f.key)}</div><div>${esc(f.value)}</div>`)
+      .map((f) => {
+        const shown = displayField(f);
+        const title = shown.title === undefined ? "" : ` title="${esc(shown.title)}"`;
+        return `<div class="k">${esc(f.key)}</div><div${title}>${esc(shown.text)}</div>`;
+      })
       .join("");
     return `<div class="fields">${rows}</div>`;
   }

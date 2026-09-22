@@ -10,13 +10,20 @@ Two renderer tiers, one wire:
 
 | tier | entry | deps | consumer |
 | --- | --- | --- | --- |
-| vanilla `<m-assistant-panel>` | `@savvifi/meridian-chat/web` + the Bazel `//:browser_bundle` | none (framework-free, ~11 KB) | botnoc's static frontend |
-| React `<Conversation>` | `@savvifi/meridian-chat` | `react` (optional peer) | a Next.js host + React hosts |
+| vanilla `<m-assistant-panel>` | `@savvifi/meridian-chat/web` + the Bazel `//:browser_bundle` | schemas, proto-ts, protobuf (bundled in browser ESM) | botnoc's static frontend |
+| React `<Conversation>` | `@savvifi/meridian-chat` | shared schema dependencies + `react` (optional peer) | a Next.js host + React hosts |
 
 The wire types (`src/wire.ts`) are **structural** (the proto3-JSON of
-`ConversationEvent`), so the runtime has **no protobuf-es dependency** and the
-bundle stays tiny; a conformance test feeds real `toJson(ConversationEventSchema,…)`
+`ConversationEvent`). Optional `Block.Field.display` metadata is decoded with
+protobuf-es and formatted by the shared schema formatter; a conformance test feeds real `toJson(ConversationEventSchema,…)`
 frames through the model to keep them aligned to the canonical proto.
+
+Field values remain strings. Absent, unspecified, unknown, or malformed display
+metadata preserves the original text; numeric and boolean strings are never
+coerced. Relative timestamps use absolute text without a supplied clock, and
+principal email titles are retained on web surfaces. Field links remain text:
+this transcript surface has no host route resolver. Table cells retain their
+existing behavior.
 
 ## Transport
 

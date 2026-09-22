@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 
 import { mdInline } from "./dom.js";
 import type { Block, ViewBlock } from "./wire.js";
+import { displayField } from "./field_display.js";
 
 /**
  * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
  * one needs a full panel renderer (`@savvifi/meridian-web-react` + a ComponentKit)
- * and this package stays dependency-free — a chat transcript should not drag a
+ * and this package stays independent of component kits — a chat transcript should not drag a
  * component library into a host that only wants text.
  *
  * The descriptor arrives as opaque proto3-JSON; the host decodes it against its
@@ -72,12 +73,15 @@ export function BlockView({
   if (block.fields) {
     return (
       <div className="fields">
-        {(block.fields.fields || []).map((f, i) => (
-          <Fragment key={i}>
-            <div className="k">{f.key}</div>
-            <div>{f.value}</div>
-          </Fragment>
-        ))}
+        {(block.fields.fields || []).map((f, i) => {
+          const shown = displayField(f);
+          return (
+            <Fragment key={i}>
+              <div className="k">{f.key}</div>
+              <div title={shown.title}>{shown.text}</div>
+            </Fragment>
+          );
+        })}
       </div>
     );
   }

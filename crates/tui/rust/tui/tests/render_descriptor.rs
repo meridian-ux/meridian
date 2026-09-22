@@ -463,8 +463,9 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
 
 #[test]
 fn canonical_resource_cards_fixture_renders_populated_rows() {
-    let descriptor = PanelDescriptor::decode(read_canonical_fixture("resource_cards.binpb").as_slice())
-        .expect("resource-card fixture decodes");
+    let descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("resource_cards.binpb").as_slice())
+            .expect("resource-card fixture decodes");
     let output = draw_with(&descriptor, 72, 16, &ResourceCardsData);
     assert!(output.contains("GitHub"));
     assert!(output.contains("Source control"));

@@ -44,6 +44,7 @@ package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
 import "proto/view.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -145,6 +146,13 @@ message Block {
   message Field {
     string key = 1 [(google.api.field_behavior) = REQUIRED];
     string value = 2 [(google.api.field_behavior) = OPTIONAL];
+    // Optional read-only formatting of the string value. Absent, unspecified,
+    // or unrecognized types preserve the original text. Temporal and principal
+    // types use the shared formatter; other string values (including empty
+    // strings) remain literal. No numeric/boolean
+    // coercion or host navigation is implied. Relative time degrades to absolute
+    // text without a clock; native surfaces omit tooltip-only information.
+    ValueDisplay display = 3 [(google.api.field_behavior) = OPTIONAL];
   }
 
   message Fields {

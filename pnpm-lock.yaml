@@ -22,13 +22,17 @@ importers:
         version: 5.6.2
 
   packages/chat:
-    devDependencies:
+    dependencies:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
       '@savvifi/meridian-proto-ts':
         specifier: workspace:*
         version: link:../proto-ts
+      '@savvifi/meridian-schemas':
+        specifier: workspace:*
+        version: link:../../schemas
+    devDependencies:
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17

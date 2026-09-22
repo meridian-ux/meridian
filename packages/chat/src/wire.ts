@@ -1,12 +1,14 @@
 // The conversation wire shape — the proto3-JSON of meridian.ui.v1.ConversationEvent
 // (conversation.proto in meridian-schemas, the neutral promotion of botnoc chat.v1).
 //
-// These are STRUCTURAL types (not the protobuf-es messages) so the renderer has no
-// protobuf-es runtime dependency and the web-component bundle stays tiny. They are
+// These are STRUCTURAL types (not the protobuf-es messages). Optional field
+// display declarations are decoded at the shared formatter boundary. They are
 // kept byte-aligned to the canonical proto by a conformance test that feeds real
 // `toJson(ConversationEventSchema, …)` output through the model. Field names are
 // the proto3-JSON localNames (camelCase); `seq` may arrive as a number (botnoc's
 // hand-built JSON) or a string (canonical proto3-JSON for uint64).
+
+import type { JsonObject } from "@bufbuild/protobuf";
 
 export type Role = "user" | "assistant";
 export type StatusState = "STATE_UNSPECIFIED" | "IDLE" | "THINKING" | "WORKING";
@@ -38,6 +40,8 @@ export interface ListBlock {
 export interface Field {
   key?: string;
   value?: string;
+  /** ValueDisplay as proto3 JSON; the underlying value remains a string. */
+  display?: JsonObject;
 }
 export interface Fields {
   fields?: Field[];
@@ -65,8 +69,7 @@ export interface TableBlock {
  *
  * Deliberately OPAQUE. Typing this as the generated `ViewDescriptor` would put
  * `@savvifi/meridian-proto-ts` in this package's public `.d.ts`, turning a
- * dev-only dependency into a real one — and this package's whole point is that a
- * host can drop it in with no protobuf runtime. Worse, protobuf-es types are
+ * generated message dependency into the public view seam. Protobuf-es types are
  * NOMINAL, so a host resolving a different proto-ts minor than this package
  * declared would find two mutually unassignable `ViewDescriptor`s and nothing
  * would typecheck. That has shipped here before.
