@@ -40,16 +40,13 @@ common --registry=https://bcr.bazel.build/
 common --override_repository=aspect_bazel_lib++toolchains+bats_toolchains=%workspace%/bazel/bats_toolchains_stub
 common --override_repository=bazel_lib++toolchains+bats_toolchains=%workspace%/bazel/bats_toolchains_stub
 
-# ⚠ These two arrived from single repos and are now GLOBAL. Both were verified as
-# intentional rather than dropped, but they change behaviour for targets that
-# never asked for them:
-#   --nolegacy_external_runfiles came from //site alone and changes the runfiles
-#     layout for EVERY JS target in the repo.
-#   --action_env=HOME came from //brand alone and enters every action's cache key.
-# If either turns out to be site- or brand-specific rather than repo-wide, the fix
-# is a --config, not silence.
+# This arrived from //site alone and changes the runfiles layout for every JS
+# target, but was verified as intentional during the merge.
 build --nolegacy_external_runfiles
-common --action_env=HOME
+
+# Tectonic touches HOME for its PDF bundle cache. Keep it out of unrelated action
+# environments and cache keys; the catalog workflow opts into this config.
+build:tectonic --action_env=HOME
 
 build --java_runtime_version=remotejdk_17
 build --announce_rc

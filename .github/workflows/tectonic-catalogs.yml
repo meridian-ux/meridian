@@ -31,7 +31,7 @@ jobs:
           repository-cache: true
       - name: Build all Tectonic catalogs
         run: >-
-          bazel build
+          bazel build --config=tectonic
           //packages/mui-kit:catalog
           //packages/mui-kit:proto_catalog
           //packages/mui-kit:studio_catalog
