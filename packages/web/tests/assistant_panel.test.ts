@@ -112,3 +112,34 @@ describe("vanilla assistant table displays", () => {
     expect(html).not.toContain("raw-owner");
   });
 });
+
+describe("vanilla assistant field displays", () => {
+  it("formats supported fields and preserves literal, malformed, and escaped fallbacks", () => {
+    const html = renderBlock({
+      fields: {
+        fields: [
+          { key: "Created", value: "2026-03-29T00:00:00Z", display: { type: "VALUE_TYPE_DATE" } },
+          {
+            key: "Owner",
+            value: "Ada <ada@example.com>",
+            display: {
+              type: "VALUE_TYPE_PRINCIPAL",
+              principal: { display: "PRINCIPAL_DISPLAY_NAME_WITH_EMAIL_TITLE" },
+            },
+          },
+          { key: "Raw", value: "0012.50 <raw>", display: { type: "VALUE_TYPE_DECIMAL" } },
+          { key: "Future", value: "<script>alert(1)</script>", display: { type: "FUTURE_TYPE" } },
+          { key: "Empty", value: "", display: { type: "VALUE_TYPE_DATE" } },
+        ],
+      },
+    });
+
+    expect(html).toContain("<div>Mar 29, 2026</div>");
+    expect(html).toContain('<div title="ada@example.com">Ada</div>');
+    expect(html).toContain("<div>0012.50 &lt;raw&gt;</div>");
+    expect(html).toContain("<div>&lt;script&gt;alert(1)&lt;/script&gt;</div>");
+    expect(html).toContain('<div class="k">Empty</div><div></div>');
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<raw>");
+  });
+});

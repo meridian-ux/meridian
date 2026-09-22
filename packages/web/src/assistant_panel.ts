@@ -33,7 +33,7 @@ interface BlockMsg {
   context?: { icon?: string; text: string };
   tool?: { name: string; argsJson?: string; state: string; summary?: string };
   list?: { title?: string; items: ListItem[] };
-  fields?: { fields: { key: string; value: string }[] };
+  fields?: { fields: AssistantField[] };
   code?: { language?: string; text: string };
   divider?: Record<string, never>;
   table?: {
@@ -44,6 +44,11 @@ interface BlockMsg {
       displayCells?: Record<string, { value?: string; display?: JsonObject }>;
     }[];
   };
+}
+interface AssistantField {
+  key?: string;
+  value?: string;
+  display?: JsonObject;
 }
 interface ListItem {
   title?: string;
@@ -179,7 +184,10 @@ function renderAssistantBlock(b: BlockMsg): string {
     return `<div class="list">${head}${items}</div>`;
   }
   if (b.fields) {
-    const rows = (b.fields.fields || []).map((f) => `<div class="k">${esc(f.key)}</div><div>${esc(f.value)}</div>`).join('');
+    const rows = (b.fields.fields || []).map((f) => {
+      const shown = displayListValue(f.value, f.display);
+      return `<div class="k">${esc(f.key)}</div><div${shown.title ? ` title="${esc(shown.title)}"` : ''}>${esc(shown.text)}</div>`;
+    }).join('');
     return `<div class="fields">${rows}</div>`;
   }
   if (b.code) return `<pre class="code">${esc(b.code.text || '')}</pre>`;
