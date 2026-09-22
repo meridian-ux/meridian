@@ -6,6 +6,15 @@ preserving raw strings. Unsupported types retain literal text; browsers expose
 principal email titles and native output retains the visible name. These slots
 do not coerce numeric strings or introduce navigation.
 
+The TUI conversation unit suite also draws wire-decoded list events through the
+shared conversation model and `TestBackend` at a fixed 100-by-10 viewport. Inline
+text goldens cover date/principal formatting in both slots, literal numeric and
+boolean strings, invalid/unknown displays, an empty subtitle, badges, and replacing
+the same block with display declarations removed. Model assertions preserve raw
+values. These are focused conversation fixtures, separate from the canonical panel
+corpus; they do not prove colors, navigation, wrapping, or layout parity. Run
+`cargo test -p meridian-tui --lib conversation::tests` to compare them.
+
 MUI table and view-level row actions resolve declared literal, selection, row-field,
 and nested request bindings against the clicked row. Unbound row calls retain the
 legacy `{id}` request. Focused tests cover nested false/zero values, admission

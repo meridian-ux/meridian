@@ -741,6 +741,142 @@ mod tests {
     }
 
     #[test]
+    fn list_display_transcript_text_golden_and_replacement() {
+        use meridian_uiview::proto::{
+            value_display, PrincipalDisplay, PrincipalOptions, ValueDisplay,
+        };
+        use prost::Message;
+        use ratatui::{backend::TestBackend, Terminal};
+
+        // Exercise the public draw path at a fixed, unwrapped viewport. Keep
+        // leading/interior whitespace and row boundaries; discard only padding.
+        let draw = |model: &ConversationModel| {
+            let mut terminal = Terminal::new(TestBackend::new(100, 10)).unwrap();
+            terminal
+                .draw(|frame| {
+                    render_conversation(frame, frame.area(), model, &palette(), "No items")
+                })
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            let mut rows: Vec<String> = buffer
+                .content
+                .chunks(100)
+                .map(|row| {
+                    row.iter()
+                        .map(|cell| cell.symbol())
+                        .collect::<String>()
+                        .trim_end()
+                        .to_owned()
+                })
+                .collect();
+            while rows.last().is_some_and(String::is_empty) {
+                rows.pop();
+            }
+            rows
+        };
+        let display = |kind| {
+            Some(ValueDisplay {
+                r#type: kind as i32,
+                ..Default::default()
+            })
+        };
+        let principal = Some(ValueDisplay {
+            r#type: ValueType::Principal as i32,
+            options: Some(value_display::Options::Principal(PrincipalOptions {
+                display: PrincipalDisplay::NameWithEmailTitle as i32,
+                ..Default::default()
+            })),
+            ..Default::default()
+        });
+        let original = block_of(block::Kind::List(block::ListBlock {
+            title: "Review queue".into(),
+            items: vec![
+                block::ListItem {
+                    title: "2026-03-29T00:00:00Z".into(),
+                    subtitle: "Ada <ada@example.com>".into(),
+                    title_display: display(ValueType::Date),
+                    subtitle_display: principal.clone(),
+                    badges: vec!["ready".into()],
+                    ..Default::default()
+                },
+                block::ListItem {
+                    title: "Grace <grace@example.com>".into(),
+                    subtitle: "2026-03-30T00:00:00Z".into(),
+                    title_display: principal,
+                    subtitle_display: display(ValueType::Date),
+                    ..Default::default()
+                },
+                block::ListItem {
+                    title: "0012.50".into(),
+                    subtitle: "false".into(),
+                    title_display: display(ValueType::Decimal),
+                    subtitle_display: display(ValueType::Boolean),
+                    ..Default::default()
+                },
+                block::ListItem {
+                    title: "invalid-date".into(),
+                    title_display: display(ValueType::Date),
+                    subtitle_display: display(ValueType::Date),
+                    badges: vec!["needs review".into()],
+                    ..Default::default()
+                },
+                block::ListItem {
+                    title: "2026-03-29T00:00:00Z".into(),
+                    subtitle: "unknown stays literal".into(),
+                    subtitle_display: Some(ValueDisplay {
+                        r#type: 999,
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            ],
+        }));
+        let event = ConversationEvent {
+            seq: 1,
+            event: Some(conversation_event::Event::Block(original.clone())),
+        };
+        let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+        let mut model = ConversationModel::new();
+        assert!(model.ingest(&decoded));
+        assert_eq!(
+            draw(&model),
+            [
+                "  Review queue",
+                "   • Mar 29, 2026  Ada  [ready]",
+                "   • Grace  Mar 30, 2026",
+                "   • 0012.50  false",
+                "   • invalid-date  [needs review]",
+                "   • 2026-03-29T00:00:00Z  unknown stays literal",
+            ]
+        );
+        // Formatting the drawn text must not rewrite the model's raw values.
+        assert_eq!(model.blocks(), vec![&original]);
+
+        let mut replacement = original.clone();
+        let Some(block::Kind::List(list)) = replacement.kind.as_mut() else {
+            unreachable!()
+        };
+        list.title = "Updated queue".into();
+        list.items.truncate(1);
+        list.items[0].title_display = None;
+        list.items[0].subtitle_display = None;
+        let event = ConversationEvent {
+            seq: 2,
+            event: Some(conversation_event::Event::Block(replacement.clone())),
+        };
+        let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+        assert!(model.ingest(&decoded));
+        assert_eq!(
+            draw(&model),
+            [
+                "  Updated queue",
+                "   • 2026-03-29T00:00:00Z  Ada <ada@example.com>  [ready]",
+            ]
+        );
+        assert_eq!(model.blocks(), vec![&replacement]);
+    }
+
+    #[test]
     fn fields_display_survives_wire_decode_and_preserves_literal_values() {
         use meridian_uiview::proto::{
             value_display, PrincipalDisplay, PrincipalOptions, ValueDisplay,
