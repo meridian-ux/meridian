@@ -2159,7 +2159,6 @@ mod tests {
                         r#type: ValueType::Date as i32,
                         ..Default::default()
                     }),
-                    ..Default::default()
                 }],
                 actions: Some(ActionSet {
                     actions: vec![

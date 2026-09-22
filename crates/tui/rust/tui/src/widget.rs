@@ -1012,42 +1012,6 @@ fn merge_form_request(
     }
 }
 
-#[cfg(test)]
-mod enum_tests {
-    use super::*;
-    use meridian_uiview::proto::{EnumOption, EnumSelection};
-
-    #[test]
-    fn inline_enum_cycles_authored_tokens_instead_of_labels_or_legacy_values() {
-        let field = FormField {
-            field_id: "state".into(),
-            kind: Some(Kind::EnumSelection(EnumSelection {
-                allowed_values: vec!["legacy".into()],
-                options: vec![
-                    EnumOption {
-                        value: "a".into(),
-                        label: "Alpha".into(),
-                        ..Default::default()
-                    },
-                    EnumOption {
-                        value: "b".into(),
-                        label: "Beta".into(),
-                        ..Default::default()
-                    },
-                ],
-                ..Default::default()
-            })),
-            ..Default::default()
-        };
-        let mut values = crate::content::form_defaults(std::slice::from_ref(&field));
-        assert_eq!(values["state"], "a");
-        edit_form_field(&field, &mut values, KeyCode::Right);
-        assert_eq!(values["state"], "b");
-        edit_form_field(&field, &mut values, KeyCode::Right);
-        assert_eq!(values["state"], "a");
-    }
-}
-
 fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) {
     let Some(current) = values
         .as_object_mut()
@@ -1142,5 +1106,41 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
 impl Default for PanelView {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod enum_tests {
+    use super::*;
+    use meridian_uiview::proto::{EnumOption, EnumSelection};
+
+    #[test]
+    fn inline_enum_cycles_authored_tokens_instead_of_labels_or_legacy_values() {
+        let field = FormField {
+            field_id: "state".into(),
+            kind: Some(Kind::EnumSelection(EnumSelection {
+                allowed_values: vec!["legacy".into()],
+                options: vec![
+                    EnumOption {
+                        value: "a".into(),
+                        label: "Alpha".into(),
+                        ..Default::default()
+                    },
+                    EnumOption {
+                        value: "b".into(),
+                        label: "Beta".into(),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut values = crate::content::form_defaults(std::slice::from_ref(&field));
+        assert_eq!(values["state"], "a");
+        edit_form_field(&field, &mut values, KeyCode::Right);
+        assert_eq!(values["state"], "b");
+        edit_form_field(&field, &mut values, KeyCode::Right);
+        assert_eq!(values["state"], "a");
     }
 }
