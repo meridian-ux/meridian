@@ -145,8 +145,11 @@ passive-asset admission rule across all browser renderers, and host asset
 resolvers run only for admitted sources. Theme font files now pass through a
 dedicated font-source admission rule before the MUI kit emits `@font-face` CSS;
 HTTP(S), relative, and narrowly typed embedded fonts remain available while
-active, local, opaque, and arbitrary data sources are omitted. These checks do
-not establish visual layout, every formatter option, or full renderer parity.
+active, local, opaque, and arbitrary data sources are omitted. Declarative
+worker fetch effects now admit only relative or credential-free HTTP(S) targets
+after interpolation, so untrusted action payloads cannot select active, local,
+or credential-bearing schemes. These checks do not establish visual layout,
+every formatter option, or full renderer parity.
 Remaining work is the broader parity and renderer-specific/tooling scope called
 out above.
 
@@ -282,6 +285,11 @@ LRO starts, and Launchpad `rpc` commands use the mutation tier, while automatic
 populate/prefill calls remain read-tier. Browser `TerminalPanel` realizations now
 admit only absolute, credential-free `ws://` and `wss://` broker URLs before any
 WebSocket construction; rejected endpoints remain visible as inert diagnostics.
+Declarative worker `fetch` effects now pass their fully interpolated target through
+the shared HTTP request admission seam before network activity. Relative and
+credential-free HTTP(S) targets remain available; active/local schemes, embedded
+credentials, control characters, and malformed values follow the effect's existing
+error transition without reaching `fetch`.
 
 ## Working the roadmap
 

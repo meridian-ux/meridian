@@ -3,6 +3,7 @@ import {
   MeridianDeclarativeContract,
   MeridianEffect,
 } from './types/global.js';
+import { safeFetchUrl } from '@savvifi/meridian-schemas/uiview';
 
 export function defineDeclarativeMeridianWorker(contract: MeridianDeclarativeContract) {
   let state = contract.initialState ? { ...contract.initialState } : {};
@@ -38,7 +39,9 @@ export function defineDeclarativeMeridianWorker(contract: MeridianDeclarativeCon
     switch (effect.effect) {
       case 'fetch': {
         try {
-          const url = interpolate(effect.params?.url, triggeringAction);
+          const authoredUrl = interpolate(effect.params?.url, triggeringAction);
+          const url = safeFetchUrl(authoredUrl);
+          if (!url) throw new Error('Rejected declarative fetch URL.');
           const body = interpolate(effect.params?.body, triggeringAction);
           const res = await fetch(url, { method: 'POST', body });
           const result = await res.json();

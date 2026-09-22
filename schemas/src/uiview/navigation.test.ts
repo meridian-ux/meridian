@@ -1,7 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { safeAssetSrc, safeFontSrc, safeNavigationHref, safeWebSocketUrl } from "./navigation.js";
+import {
+  safeAssetSrc,
+  safeFetchUrl,
+  safeFontSrc,
+  safeNavigationHref,
+  safeWebSocketUrl,
+} from "./navigation.js";
 
 test("safeNavigationHref retains web, relative, mail, and application deep links", () => {
   for (const href of [
@@ -110,5 +116,33 @@ test("safeWebSocketUrl rejects non-WebSocket, relative, credentialed, fragmented
     "   ",
   ]) {
     assert.equal(safeWebSocketUrl(url), undefined, url);
+  }
+});
+
+test("safeFetchUrl retains relative and credential-free HTTP(S) request targets", () => {
+  for (const url of [
+    "/api/save",
+    "../actions/run",
+    "?operation=refresh",
+    "https://api.example.com/run",
+    "http://localhost:8080/run",
+  ]) {
+    assert.equal(safeFetchUrl(url), url);
+  }
+});
+
+test("safeFetchUrl rejects active, local, credentialed, malformed, and empty targets", () => {
+  for (const url of [
+    "javascript:alert(1)",
+    "data:text/plain,unsafe",
+    "file:///etc/passwd",
+    "blob:https://example.com/opaque",
+    "https://user:secret@example.com/run",
+    "https://example.com/r\nun",
+    "https://[invalid",
+    "",
+    "   ",
+  ]) {
+    assert.equal(safeFetchUrl(url), undefined, url);
   }
 });

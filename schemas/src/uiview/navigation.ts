@@ -85,3 +85,24 @@ export function safeWebSocketUrl(value: unknown): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * Admit a descriptor-authored HTTP request target before browser fetch.
+ *
+ * Declarative workers may interpolate action payloads into a target, so this
+ * boundary is intentionally narrower than navigation: only relative and
+ * HTTP(S) URLs are accepted, and embedded URL credentials are rejected.
+ */
+export function safeFetchUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const url = value.trim();
+  if (!url || /[\u0000-\u001f\u007f]/.test(url)) return undefined;
+  try {
+    const parsed = new URL(url, "https://meridian.invalid/");
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return undefined;
+    if (parsed.username || parsed.password) return undefined;
+    return url;
+  } catch {
+    return undefined;
+  }
+}

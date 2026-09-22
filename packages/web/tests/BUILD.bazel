@@ -13,12 +13,14 @@ js_library(
 vitest_test(
     name = "unit",
     srcs = [
+        "declarative_worker_runtime.test.ts",
         "dom.test.ts",
         "patch.test.ts",
         "proto_json.test.ts",
         "workers.test.ts",
     ],
     deps = [
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
         "//packages/web:node_modules/vitest",
         ":src_lib",
     ],

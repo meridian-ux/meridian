@@ -378,6 +378,15 @@ fallback, and MUI retain the authored value as inert diagnostic text with an
 accessible error. This check establishes URL admission, not broker
 authentication, session ownership, codec behavior, or network connectivity.
 
+Declarative worker `fetch` effects apply a dedicated request-target admission
+rule after payload interpolation and before browser `fetch`. Host-relative and
+credential-free HTTP(S) targets remain available. Active/local schemes,
+embedded URL credentials, control characters, malformed targets, and empty
+values enter the effect's existing `onError` path without network activity.
+Focused seam and worker-runtime tests protect both the pure admission rule and
+the side-effect boundary. This does not define origin allowlists, authentication,
+headers, response schemas, or host network policy.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
