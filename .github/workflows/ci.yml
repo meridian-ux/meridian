@@ -204,5 +204,11 @@ jobs:
       - name: Module graph resolves
         run: bazel mod deps > /dev/null
 
+      # A successful resolution is not enough: default lockfile mode can update
+      # MODULE.bazel.lock. CI must prove the committed lock already covers the
+      # resolved graph and fail instead of repairing it in the runner.
+      - name: Bazel module lock is current
+        run: bazel mod deps --lockfile_mode=error > /dev/null
+
       - name: bazel test //...
         run: bazel test //... --test_output=errors
