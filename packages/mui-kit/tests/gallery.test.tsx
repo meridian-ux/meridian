@@ -81,8 +81,8 @@ const invoker: RpcInvoker = {
     if (method === "get-run") {
       return {
         slides: [
-          { uri: "/evidence/a.png", caption: "open the app root", created: "2026-03-29", owner: "Ada <ada@example.com>", status: true, href: "/runs/a" },
-          { uri: "/evidence/b.png", caption: "assert visible", created: "2026-03-30", owner: "Grace <grace@example.com>", status: false, href: "/runs/b" },
+          { uri: "/evidence/a.png", caption: "open the app root", created: "2026-03-29", owner: "Ada <ada@example.com>", status: true, href: "/runs/a", action: "Review first" },
+          { uri: "/evidence/b.png", caption: "assert visible", created: "2026-03-30", owner: "Grace <grace@example.com>", status: false, href: "/runs/b", action: "Review second" },
         ],
       };
     }
@@ -112,6 +112,7 @@ function galleryView(withImage: boolean, declared = true): ViewDescriptor {
               statusField: "status",
               statusDisplay: declared ? { type: ValueType.BOOLEAN } : undefined,
               hrefField: "href",
+              actionLabelField: "action",
               ...(withImage ? { imageField: "uri" } : {}),
             }),
           }),
@@ -171,12 +172,14 @@ describe("MeridianGallery", () => {
     expect(screen.getByText("Ada").getAttribute("title")).toBe("ada@example.com");
     expect(screen.getByRole("img", { name: "Mar 29, 2026" }).getAttribute("src")).toBe("/tools/e2e/evidence/a.png");
     expect(screen.getByText("Yes")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Review first" }).getAttribute("href")).toBe("/runs/a");
     await screen.findByText("1 / 2"); // counter
     await screen.findByText("Next ›"); // control
     fireEvent.click(screen.getByText("Next ›"));
     expect(screen.getByRole("img", { name: "Mar 30, 2026" })).toBeTruthy();
     expect(screen.getByText("Grace").getAttribute("title")).toBe("grace@example.com");
     expect(screen.getByText("No")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Review second" }).getAttribute("href")).toBe("/runs/b");
     expect(screen.getByText("2 / 2")).toBeTruthy();
   });
 
@@ -222,17 +225,25 @@ describe("MeridianGallery", () => {
   });
 
   it("admits gallery deep links and degrades unsafe destinations to inert cards", async () => {
+    const resolvedAssets: string[] = [];
     render(
       <MeridianMuiProvider invoker={{ invoke: async () => ({ slides: [
-        { created: "Workspace", href: "vscode://file/project" },
-        { created: "Unsafe", href: "javascript:alert(1)" },
-      ] }) }}>
+        { created: "Workspace", href: "vscode://file/project", action: "Open workspace" },
+        { created: "Unsafe", href: "javascript:alert(1)", action: "Blocked action" },
+      ] }) }} resolveAssetSrc={(source) => {
+        resolvedAssets.push(source);
+        return `/mounted${source}`;
+      }}>
         <ViewRenderer view={galleryView(false, false)} />
       </MeridianMuiProvider>,
     );
     await screen.findByText("Workspace");
     expect(screen.getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["vscode://file/project"]);
+    expect(screen.getByText("Open workspace").closest("a")?.getAttribute("href")).toBe("vscode://file/project");
+    expect(screen.getByText("Blocked action").closest("a")).toBeNull();
+    expect(screen.getByText("Blocked action").classList.contains("mer-gallery-card-action")).toBe(true);
     expect(screen.getByText("Unsafe").closest("a")).toBeNull();
+    expect(resolvedAssets).toEqual([]);
   });
 
   it.each([false, true])("preserves legacy output without displays (images=%s)", async (withImage) => {

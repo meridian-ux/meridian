@@ -11,7 +11,7 @@
 
 import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, CircularProgress, Link, Stack, Typography } from "@mui/material";
 
 import { MeridianViewContext, useMeridian, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
@@ -43,6 +43,7 @@ interface Item {
   statusTitle?: string;
   rawStatus: string;
   href: string;
+  action: string;
 }
 
 export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invoker: RpcInvoker }): ReactNode {
@@ -81,6 +82,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
           statusTitle: status.title,
           rawStatus: card?.statusField ? asText(resolvePath(row, card.statusField)) : "",
           href: card?.hrefField ? asText(resolvePath(row, card.hrefField)) : "",
+          action: card?.actionLabelField ? asText(resolvePath(row, card.actionLabelField)) : "",
         };
       });
   }, [record, panel.rowsField, card, now]);
@@ -156,6 +158,8 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
     return (
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
         {items.map((it, idx) => {
+          const href = safeNavigationHref(it.href);
+          const actionLabel = href ? it.action || "Open" : it.action;
           const inner = (
             <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, p: 2, height: "100%" }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
@@ -170,11 +174,22 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
                 {it.status && <Chip title={it.statusTitle} label={it.status} size="small" variant="outlined" color={statusChipColor(it.rawStatus)} />}
               </Stack>
               {it.subtitle && <Typography title={it.subtitleTitle} color="text.secondary" variant="body2">{it.subtitle}</Typography>}
+              {actionLabel && (
+                <Typography
+                  component="span"
+                  className={href ? undefined : "mer-gallery-card-action"}
+                  data-gallery-action={href ? undefined : ""}
+                  color={href ? "primary" : "text.secondary"}
+                  variant="body2"
+                  sx={{ display: "block", mt: 1 }}
+                >
+                  {actionLabel}
+                </Typography>
+              )}
             </Box>
           );
-          const href = safeNavigationHref(withAsset(it.href));
           return href ? (
-            <a key={idx} href={href} style={{ textDecoration: "none", color: "inherit" }}>
+            <a key={idx} className="mer-gallery-card-link" data-gallery-link href={href} style={{ textDecoration: "none", color: "inherit" }}>
               {inner}
             </a>
           ) : (
@@ -187,6 +202,8 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
 
   // Image lightbox: stage + caption/status + controls + filmstrip.
   const it = items[i];
+  const href = safeNavigationHref(it.href);
+  const actionLabel = href ? it.action || "Open" : it.action;
   return (
     <Box>
       <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", bgcolor: "background.paper" }}>
@@ -201,6 +218,15 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
           <Typography title={it.captionTitle} sx={{ flex: 1, fontWeight: 600 }} noWrap>
             {it.caption}
           </Typography>
+          {href ? (
+            <Link className="mer-gallery-card-link" data-gallery-link href={href} underline="hover">
+              {actionLabel}
+            </Link>
+          ) : actionLabel ? (
+            <Typography component="span" className="mer-gallery-card-action" data-gallery-action color="text.secondary" variant="body2">
+              {actionLabel}
+            </Typography>
+          ) : null}
         </Stack>
         {it.subtitle && <Typography title={it.subtitleTitle} color="text.secondary" variant="body2" sx={{ px: 1.5, pb: 1.5 }}>{it.subtitle}</Typography>}
       </Box>

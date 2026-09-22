@@ -146,8 +146,11 @@ dropping rejected auxiliary assets. Gallery image fields now use the same
 passive-asset admission rule across all browser renderers, and host asset
 resolvers run only for admitted sources. Gallery icon fields now use the host
 glyph seam across browser renderers while retaining their authored key as
-`data-icon` when no resolver is installed. Theme font files now pass through a
-dedicated font-source admission rule before the MUI kit emits `@font-face` CSS;
+`data-icon` when no resolver is installed. MUI gallery grids and lightboxes now
+realize authored action labels, preserve safe card destinations, and keep those
+navigation values out of the asset-resolution seam. Theme font files now pass
+through a dedicated font-source admission rule before the MUI kit emits
+`@font-face` CSS;
 HTTP(S), relative, and narrowly typed embedded fonts remain available while
 active, local, opaque, and arbitrary data sources are omitted. Declarative
 worker fetch effects now admit only relative or credential-free HTTP(S) targets
