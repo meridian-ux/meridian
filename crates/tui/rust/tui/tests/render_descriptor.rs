@@ -215,10 +215,11 @@ struct ResourceCardsData;
 impl RpcInvoker for ResourceCardsData {
     fn invoke(
         &self,
-        _service: &str,
-        _method: &str,
+        service: &str,
+        method: &str,
         _request: serde_json::Value,
     ) -> Result<serde_json::Value, RpcError> {
+        assert_eq!((service, method), ("demo.Services", "List"));
         Ok(serde_json::json!({
             "services": [
                 {"name": "GitHub", "description": "Source control"},
@@ -644,12 +645,14 @@ fn terminal_lines(output: &str, width: usize) -> Vec<String> {
 
 #[test]
 fn canonical_populated_native_text_goldens() {
-    for name in ["gallery", "table"] {
+    for name in ["gallery", "table", "resource_cards"] {
         let descriptor =
             PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
                 .unwrap();
         let output = if name == "gallery" {
             draw_with(&descriptor, 160, 20, &GalleryData)
+        } else if name == "resource_cards" {
+            draw_with(&descriptor, 160, 20, &ResourceCardsData)
         } else {
             draw_with(&descriptor, 160, 20, &TableData)
         };
@@ -662,6 +665,14 @@ fn canonical_populated_native_text_goldens() {
                 "2. PagerDuty [Connected]",
                 "Incident response",
                 "[2] Manage https://pagerduty.com",
+            ]
+        } else if name == "resource_cards" {
+            vec![
+                "Services",
+                "▶ 1. GitHub",
+                "Source control",
+                "2. PagerDuty",
+                "Incident response",
             ]
         } else {
             // URLs remain noninteractive scalar text in the native table.
@@ -685,18 +696,20 @@ impl RpcInvoker for EmptyData {
         _: &str,
         _: serde_json::Value,
     ) -> Result<serde_json::Value, RpcError> {
-        Ok(serde_json::json!({"items": [], "claims": []}))
+        Ok(serde_json::json!({"items": [], "claims": [], "services": []}))
     }
 }
 
 #[test]
 fn canonical_native_empty_and_absent_populate_states() {
-    for name in ["gallery", "table"] {
+    for name in ["gallery", "table", "resource_cards"] {
         let mut descriptor =
             PanelDescriptor::decode(read_canonical_fixture(&format!("{name}.binpb")).as_slice())
                 .unwrap();
         let empty = if name == "gallery" {
             vec!["Assets", "no assets"]
+        } else if name == "resource_cards" {
+            vec!["Services", "No services"]
         } else {
             vec!["Claims", "0", "Member Amount Enabled Website"]
         };
@@ -708,10 +721,13 @@ fn canonical_native_empty_and_absent_populate_states() {
         match descriptor.body.as_mut().unwrap() {
             Body::Gallery(panel) => panel.populate = None,
             Body::Table(panel) => panel.populate = None,
+            Body::ResourceCards(panel) => panel.populate = None,
             _ => unreachable!(),
         }
         let absent = if name == "gallery" {
             vec!["Assets", "Gallery panel has no populate RPC."]
+        } else if name == "resource_cards" {
+            vec!["Services", "Resource-card panel has no populate RPC."]
         } else {
             vec!["Claims", "0", "Member Amount Enabled Website"]
         };
@@ -721,6 +737,20 @@ fn canonical_native_empty_and_absent_populate_states() {
             "{name} absent"
         );
     }
+}
+
+#[test]
+fn canonical_resource_cards_transport_failure_text_golden() {
+    let descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("resource_cards.binpb").as_slice())
+            .expect("resource-card fixture decodes");
+    assert_eq!(
+        terminal_lines(&draw(&descriptor, 160, 20), 160),
+        vec![
+            "Services",
+            "Failed to load resources: transport: demo.Services/List: no transport",
+        ]
+    );
 }
 
 #[test]

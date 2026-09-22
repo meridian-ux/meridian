@@ -198,11 +198,15 @@ Money/percent cases record the current scalar precision behavior, not currency
 symbols or percentage scaling. This corpus does not prove renderer decoration,
 layout, all option combinations, or universal Rust/TypeScript parity.
 
-The native descriptor suite now has inline text goldens for populated Gallery
-and Table at a fixed 160-by-20 viewport, plus empty responses and absent populate
-RPCs. They retain row order, headers, scalar precision, boolean labels, and gallery
-action/destination text while normalizing borders and whitespace. Table URLs are
-plain text; these checks do not prove navigation, colors, or layout fidelity.
+The native descriptor suite now has inline text goldens for populated Gallery,
+Table, and ResourceCards at a fixed 160-by-20 viewport, plus empty responses and
+absent populate RPCs for all three. ResourceCards also has a transport-failure
+golden that preserves the service/method diagnostic instead of an empty-state
+message. The ResourceCards cases decode the canonical wire fixture and exercise
+its title/subtitle mapping and authored empty message. They retain row order,
+headers, scalar precision, boolean labels, and gallery action/destination text
+while normalizing borders and whitespace. Table URLs are plain text; these checks
+do not prove navigation, colors, or layout fidelity.
 Run `cargo test -p meridian-tui --test render_descriptor` to compare them; intentional
 changes require reviewing and editing the inline expected lines.
 
@@ -210,7 +214,7 @@ changes require reviewing and editing the inline expected lines.
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
 ValueType renderer fixtures beyond the shared formatter corpus, broader
-interactive snapshots, native snapshots beyond the Gallery/Table text goldens,
+interactive snapshots, native snapshots beyond the Gallery/Table/ResourceCards text goldens,
 and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package
 test job; its Bazel browser harness is a separate set of tests.
