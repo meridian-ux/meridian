@@ -116,15 +116,17 @@ set. All four browser realizations now commit semantic DOM snapshots for the
 24 canonical initial-state fixtures, preserving text, controls, link targets,
 media alternatives, and authored accessibility state. `check_coverage` requires
 every browser arm's golden, and the conformance suites verify its contents.
-This is a regression baseline, not proof of field-complete parity: populated,
-overflow, interactive, and every-ValueType cases plus native snapshots and a
-Bazel-aware re-record workflow remain in [#9](../../issues/9). See the
+This is a regression baseline, not proof of field-complete parity: broader
+populated-shape parity, renderer-specific overflow/layout, broader interactive
+surfaces, native snapshots beyond text goldens, and a Bazel-aware re-record
+workflow remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
-The first populated slices are now covered: canonical `resource_cards` and
-`gallery` descriptors are wire-decoded and exercised with shared responses
-across HTML, Shadcn, MUI, web-components, and TUI. The remaining populated
-matrix, overflow cases, interactive snapshots, and native golden workflow stay
-open.
+Bounded slices now cover canonical `resource_cards`, `gallery`, and `table`
+descriptors with shared responses across HTML, Shadcn, MUI, web-components, and
+TUI where each surface supports the shape. Long-copy preservation, the complete
+ValueType formatter corpus, populated native text goldens, and HTML/Shadcn
+ActionPanel/Form interaction contracts are also checked in. Remaining work is
+the broader parity and renderer-specific/tooling scope called out above.
 
 ## Track B — One language
 
