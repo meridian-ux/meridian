@@ -1414,28 +1414,36 @@ function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
     grid.appendChild(el("p", "mer-empty", "Invalid gallery descriptor."));
     return grid;
   }
+  const displayNow = Date.now();
   for (const raw of rows) {
     const row = plainRow(raw);
     const article = el("article", "mer-gallery-card");
     article.setAttribute("role", "listitem");
-    const title = String(readAt(row, card.titleField) ?? "");
+    const slot = (tag: string, className: string, path: string, display: Parameters<typeof formatByDisplay>[1]) => {
+      const value = path ? readAt(row, path) : undefined;
+      const shown = path && display ? formatByDisplay(value, display, displayNow) : { text: String(value ?? "") };
+      const node = el(tag, className, shown.text);
+      if (shown.title) node.title = shown.title;
+      return node;
+    };
+    const title = slot("h3", "mer-gallery-card-title", card.titleField, card.titleDisplay);
     if (card.imageField) {
       const image = document.createElement("img");
       image.className = "mer-gallery-card-image";
       image.src = String(readAt(row, card.imageField) ?? "");
-      image.alt = title;
+      image.alt = title.textContent ?? "";
       article.appendChild(image);
     }
     const icon = card.iconField ? readAt(row, card.iconField) : undefined;
     if (icon) article.appendChild(el("span", "mer-gallery-card-icon", String(icon)));
-    article.appendChild(el("h3", "mer-gallery-card-title", title));
+    article.appendChild(title);
     const subtitle = card.subtitleField ? readAt(row, card.subtitleField) : undefined;
     if (subtitle != null && subtitle !== "") {
-      article.appendChild(el("p", "mer-gallery-card-subtitle", String(subtitle)));
+      article.appendChild(slot("p", "mer-gallery-card-subtitle", card.subtitleField, card.subtitleDisplay));
     }
     const status = card.statusField ? readAt(row, card.statusField) : undefined;
     if (status != null && status !== "") {
-      article.appendChild(el("span", "mer-gallery-card-status", String(status)));
+      article.appendChild(slot("span", "mer-gallery-card-status", card.statusField, card.statusDisplay));
     }
     const href = card.hrefField ? readAt(row, card.hrefField) : undefined;
     if (href) {

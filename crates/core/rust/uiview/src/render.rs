@@ -57,11 +57,15 @@ pub fn render_gallery(response: &Value, gallery: &GalleryPanel) -> Vec<RenderedC
     let rows = ProtoPaths::rows(response, &gallery.rows_field);
     let card = gallery.card.clone().unwrap_or_default();
     // Read a dotted path as a display string; empty path or null -> "".
-    let slot = |row: &Value, path: &str| -> String {
+    let slot = |row: &Value, path: &str, display: Option<&ValueDisplay>| -> String {
         if path.is_empty() {
             return String::new();
         }
-        match ProtoPaths::get(row, path) {
+        let value = ProtoPaths::get(row, path);
+        if let Some(display) = display {
+            return format_display_value(value, display);
+        }
+        match value {
             Value::String(s) => s.clone(),
             Value::Null => String::new(),
             v => v.to_string(),
@@ -69,12 +73,12 @@ pub fn render_gallery(response: &Value, gallery: &GalleryPanel) -> Vec<RenderedC
     };
     rows.iter()
         .map(|row| RenderedCard {
-            title: slot(row, &card.title_field),
-            subtitle: slot(row, &card.subtitle_field),
-            icon: slot(row, &card.icon_field),
-            status: slot(row, &card.status_field),
-            href: slot(row, &card.href_field),
-            action_label: slot(row, &card.action_label_field),
+            title: slot(row, &card.title_field, card.title_display.as_ref()),
+            subtitle: slot(row, &card.subtitle_field, card.subtitle_display.as_ref()),
+            icon: slot(row, &card.icon_field, None),
+            status: slot(row, &card.status_field, card.status_display.as_ref()),
+            href: slot(row, &card.href_field, None),
+            action_label: slot(row, &card.action_label_field, None),
             raw: (*row).clone(),
         })
         .collect()
@@ -426,6 +430,72 @@ mod tests {
     use super::*;
     use crate::proto::value_display;
     use serde_json::json;
+
+    #[test]
+    fn gallery_wire_displays_preserve_raw_rows_and_navigation() {
+        use crate::proto::CardSpec;
+        use prost::Message;
+
+        let panel = GalleryPanel {
+            rows_field: "items".into(),
+            card: Some(CardSpec {
+                title_field: "created".into(),
+                title_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
+                subtitle_field: "amount".into(),
+                subtitle_display: Some(ValueDisplay {
+                    r#type: ValueType::Decimal as i32,
+                    options: Some(value_display::Options::Number(NumberOptions {
+                        fraction_digits: Some(2),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
+                status_field: "active".into(),
+                status_display: Some(ValueDisplay {
+                    r#type: ValueType::Boolean as i32,
+                    ..Default::default()
+                }),
+                href_field: "href".into(),
+                action_label_field: "action".into(),
+                image_field: "image".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let mut panel = GalleryPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
+        let response = json!({"items": [{
+            "created": "2026-03-29", "amount": -1.125, "active": false,
+            "href": "/runs/123", "action": "Manage", "image": "slide.png"
+        }]});
+        let cards = render_gallery(&response, &panel);
+        assert_eq!(cards[0].title, "Mar 29, 2026");
+        assert_eq!(cards[0].subtitle, "-1.13");
+        assert_eq!(cards[0].status, "No");
+        assert_eq!(cards[0].href, "/runs/123");
+        assert_eq!(cards[0].action_label, "Manage");
+        assert_eq!(cards[0].raw, response["items"][0]);
+        assert_eq!(panel.card.as_ref().unwrap().image_field, "image");
+
+        let card = panel.card.as_mut().unwrap();
+        card.title_display = None;
+        card.subtitle_display = None;
+        card.status_display = None;
+        let legacy = render_gallery(&response, &panel);
+        assert_eq!(legacy[0].title, "2026-03-29");
+        assert_eq!(legacy[0].subtitle, "-1.125");
+        assert_eq!(legacy[0].status, "false");
+
+        let card = panel.card.as_mut().unwrap();
+        card.title_field.clear();
+        card.title_display = Some(ValueDisplay::default());
+        card.subtitle_field = "missing".into();
+        let empty = render_gallery(&response, &panel);
+        assert_eq!(empty[0].title, "");
+        assert_eq!(empty[0].subtitle, "");
+    }
 
     #[test]
     fn formats_float_two_dp() {

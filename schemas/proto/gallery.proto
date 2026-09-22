@@ -13,6 +13,7 @@ package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
 import "proto/rpc.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -52,4 +53,12 @@ message CardSpec {
   // support a lightbox (mui-kit) use it as the replay stage + filmstrip source.
   // Distinct from `icon_field` (a glyph key) — this is a real image src.
   string image_field = 7 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the title slot. When absent, preserve the
+  // renderer's legacy scalar text behavior. Gallery slots format labels only;
+  // navigation remains owned by href_field, not ValueDisplay link declarations.
+  ValueDisplay title_display = 8 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the subtitle slot.
+  ValueDisplay subtitle_display = 9 [(google.api.field_behavior) = OPTIONAL];
+  // Optional semantic display for the status slot.
+  ValueDisplay status_display = 10 [(google.api.field_behavior) = OPTIONAL];
 }

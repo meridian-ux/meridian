@@ -18,6 +18,8 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianAssetContext } from "../asset_context.js";
+import { formatByDisplay } from "../display_format.js";
+import { useDisplayNow } from "../use_display_now.js";
 
 /** status → chip color (kept in sync with the table/detail-header vocabulary). */
 function statusChipColor(value: string): "default" | "success" | "warning" | "error" {
@@ -33,7 +35,12 @@ const asText = (v: unknown): string => (v === null || v === undefined ? "" : typ
 interface Item {
   src: string;
   caption: string;
+  captionTitle?: string;
+  subtitle: string;
+  subtitleTitle?: string;
   status: string;
+  statusTitle?: string;
+  rawStatus: string;
   href: string;
 }
 
@@ -44,18 +51,36 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
   // route resource when subjectId is empty) and resolve rows_field within it.
   const { record, loading } = useRecord(panel.populate, "", subjectId, invoker);
   const card = panel.card;
+  const now = useDisplayNow();
 
   const items = useMemo<Item[]>(() => {
     const rows = (resolvePath(record, panel.rowsField) as unknown[]) ?? [];
     return rows
       .filter(Boolean)
-      .map((row) => ({
-        src: card?.imageField ? asText(resolvePath(row, card.imageField)) : "",
-        caption: card?.titleField ? asText(resolvePath(row, card.titleField)) : "",
-        status: card?.statusField ? asText(resolvePath(row, card.statusField)) : "",
-        href: card?.hrefField ? asText(resolvePath(row, card.hrefField)) : "",
-      }));
-  }, [record, panel.rowsField, card]);
+      .map((row) => {
+        const slot = (path: string | undefined, display: Parameters<typeof formatByDisplay>[1]) => {
+          if (!path) return { text: "" };
+          const value = resolvePath(row, path);
+          return display ? formatByDisplay(value, display, now) : { text: asText(value) };
+        };
+        const caption = slot(card?.titleField, card?.titleDisplay);
+        // Legacy MUI galleries omitted subtitles. Opt in through the new
+        // declaration so existing descriptors retain their exact shape.
+        const subtitle = slot(card?.subtitleDisplay ? card.subtitleField : undefined, card?.subtitleDisplay);
+        const status = slot(card?.statusField, card?.statusDisplay);
+        return {
+          src: card?.imageField ? asText(resolvePath(row, card.imageField)) : "",
+          caption: caption.text,
+          captionTitle: caption.title,
+          subtitle: subtitle.text,
+          subtitleTitle: subtitle.title,
+          status: status.text,
+          statusTitle: status.title,
+          rawStatus: card?.statusField ? asText(resolvePath(row, card.statusField)) : "",
+          href: card?.hrefField ? asText(resolvePath(row, card.hrefField)) : "",
+        };
+      });
+  }, [record, panel.rowsField, card, now]);
 
   const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
   const hasImages = items.some((it) => it.src);
@@ -63,7 +88,8 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(false);
   const timer = useRef<number | null>(null);
-  useEffect(() => setI(0), [items]);
+  // The hydration-safe formatting instant must not reset lightbox selection.
+  useEffect(() => setI(0), [record, panel.rowsField, card]);
 
   const clearTimer = () => {
     if (timer.current !== null) {
@@ -130,11 +156,12 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
           const inner = (
             <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, p: 2, height: "100%" }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                <Typography sx={{ fontWeight: 600, flex: 1 }} noWrap>
+                <Typography title={it.captionTitle} sx={{ fontWeight: 600, flex: 1 }} noWrap>
                   {it.caption}
                 </Typography>
-                {it.status && <Chip label={it.status} size="small" variant="outlined" color={statusChipColor(it.status)} />}
+                {it.status && <Chip title={it.statusTitle} label={it.status} size="small" variant="outlined" color={statusChipColor(it.rawStatus)} />}
               </Stack>
+              {it.subtitle && <Typography title={it.subtitleTitle} color="text.secondary" variant="body2">{it.subtitle}</Typography>}
             </Box>
           );
           return it.href ? (
@@ -156,11 +183,12 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
       <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", bgcolor: "background.paper" }}>
         <Box component="img" src={withAsset(it.src)} alt={it.caption} sx={{ display: "block", width: "100%", height: "auto" }} />
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ p: 1.5, borderTop: 1, borderColor: "divider" }}>
-          {it.status && <Chip label={it.status} size="small" variant="outlined" color={statusChipColor(it.status)} />}
-          <Typography sx={{ flex: 1, fontWeight: 600 }} noWrap>
+          {it.status && <Chip title={it.statusTitle} label={it.status} size="small" variant="outlined" color={statusChipColor(it.rawStatus)} />}
+          <Typography title={it.captionTitle} sx={{ flex: 1, fontWeight: 600 }} noWrap>
             {it.caption}
           </Typography>
         </Stack>
+        {it.subtitle && <Typography title={it.subtitleTitle} color="text.secondary" variant="body2" sx={{ px: 1.5, pb: 1.5 }}>{it.subtitle}</Typography>}
       </Box>
 
       <Stack direction="row" alignItems="center" spacing={1} sx={{ my: 1.5, flexWrap: "wrap" }}>

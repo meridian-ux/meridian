@@ -2180,7 +2180,11 @@ mod tests {
 
     #[test]
     fn gallery_renders_populated_cards_as_selectable_text() {
-        use meridian_uiview::proto::{CardSpec, GalleryPanel, RpcCall};
+        use meridian_uiview::proto::{
+            value_display, CardSpec, GalleryPanel, PrincipalDisplay, PrincipalOptions, RpcCall,
+            ValueDisplay, ValueType,
+        };
+        use prost::Message;
         use ratatui::{backend::TestBackend, Terminal};
 
         let panel = GalleryPanel {
@@ -2192,10 +2196,26 @@ mod tests {
             rows_field: "items".into(),
             placeholder: "No integrations".into(),
             card: Some(CardSpec {
-                title_field: "name".into(),
+                title_field: "created".into(),
+                title_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
                 subtitle_field: "description".into(),
+                subtitle_display: Some(ValueDisplay {
+                    r#type: ValueType::Principal as i32,
+                    options: Some(value_display::Options::Principal(PrincipalOptions {
+                        display: PrincipalDisplay::Name as i32,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
                 icon_field: "icon".into(),
-                status_field: "status".into(),
+                status_field: "created".into(),
+                status_display: Some(ValueDisplay {
+                    r#type: ValueType::Date as i32,
+                    ..Default::default()
+                }),
                 href_field: "href".into(),
                 action_label_field: "action".into(),
                 ..Default::default()
@@ -2204,13 +2224,15 @@ mod tests {
         let response = serde_json::json!({
             "items": [{
                 "name": "GitHub",
-                "description": "Source control",
+                "created": "2026-03-29",
+                "description": "Ada <ada@example.com>",
                 "icon": "github",
                 "status": "Connected",
                 "href": "https://github.com",
                 "action": "Manage"
             }]
         });
+        let panel = GalleryPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
         let cards = meridian_uiview::render_gallery(&response, &panel);
         let palette = Palette::default();
         let mut term = Terminal::new(TestBackend::new(72, 9)).unwrap();
@@ -2223,9 +2245,9 @@ mod tests {
             .iter()
             .map(|c| c.symbol())
             .collect();
-        assert!(text.contains("GitHub"));
-        assert!(text.contains("Source control"));
-        assert!(text.contains("[Connected]"));
+        assert!(text.contains("Mar 29, 2026"));
+        assert!(text.contains("Ada"));
+        assert!(text.contains("[Mar 29, 2026]"));
         assert!(text.contains("Manage"));
         assert!(text.contains("https://github.com"));
     }

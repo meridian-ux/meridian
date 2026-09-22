@@ -125,6 +125,13 @@ fn carries_the_fields_this_crate_reads() {
     for name in ["title_display", "subtitle_display", "status_display"] {
         assert!(card.iter().any(|field| field == name), "missing {name}");
     }
+    let gallery = field_names("CardSpec");
+    for name in ["title_display", "subtitle_display", "status_display"] {
+        assert!(
+            gallery.iter().any(|field| field == name),
+            "missing CardSpec.{name}"
+        );
+    }
     assert!(field_names("ValueDisplay").iter().any(|n| n == "link"));
     assert!(field_names("ValueLink").iter().any(|n| n == "target_kind"));
     assert!(field_names("PrincipalOptions")
