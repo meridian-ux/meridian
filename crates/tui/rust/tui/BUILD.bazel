@@ -8,6 +8,7 @@ rust_library(
     name = "tui",
     srcs = [
         "src/content.rs",
+        "src/enum_options.rs",
         "src/conversation.rs",
         "src/invoker.rs",
         "src/launchpad.rs",

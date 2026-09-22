@@ -1,5 +1,13 @@
 # Renderer conformance
 
+Native prompts and inline form summaries honor static enum `options` labels,
+falling back to each token when its label is empty. Authored options take
+precedence over `allowed_values`; keyboard selection and submission retain raw
+tokens. Option tones use native palette roles (warning uses bold emphasis because
+the terminal palette has no warning role). Wire-decoded prompt tests cover
+selection, cycling, text/style rendering, and raw submission. Dynamic
+`options_source` loading remains host-owned on native surfaces.
+
 MUI FormPanel dynamic enum tests cover read-tier `options_source` requests,
 dotted response/value/label paths, prefill token preservation, and validation
 against resolved tokens (including nested and repeated values). While option

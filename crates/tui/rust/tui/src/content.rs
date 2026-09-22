@@ -552,6 +552,14 @@ fn form_value_text(field: &FormField, value: &Value) -> String {
         return format_display_value(value, display);
     }
     match field.kind.as_ref() {
+        Some(Kind::EnumSelection(spec)) => {
+            let raw = value.as_str().unwrap_or_default();
+            crate::enum_options::options(spec)
+                .into_iter()
+                .find(|o| o.0 == raw)
+                .map_or(raw, |o| o.1)
+                .to_string()
+        }
         Some(Kind::Masked(_)) => {
             if value.as_str().is_some_and(|text| !text.is_empty()) {
                 "••••••".to_string()
@@ -620,7 +628,16 @@ fn render_form_fields(
             Span::styled(format!("{prefix}{marker}{label}: "), style),
             Span::styled(
                 form_value_text(field, form_value(values, &field.field_id)),
-                palette.text(),
+                match field.kind.as_ref() {
+                    Some(Kind::EnumSelection(spec)) => crate::enum_options::style(
+                        crate::enum_options::options(spec)
+                            .into_iter()
+                            .find(|o| Some(o.0) == form_value(values, &field.field_id).as_str())
+                            .map_or(0, |o| o.2),
+                        palette,
+                    ),
+                    _ => palette.text(),
+                },
             ),
         ]));
         if !field.description.is_empty() {

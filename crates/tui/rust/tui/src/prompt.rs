@@ -20,8 +20,8 @@ use crossterm::{
     execute, terminal,
 };
 use meridian_uiview::proto::{
-    form_field::Kind, BooleanToggle, EnumSelection, FormField, IntegerSpinner, MaskedInput,
-    NumberInput, PromptPanel, TextInput,
+    form_field::Kind, BooleanToggle, FormField, IntegerSpinner, MaskedInput, NumberInput,
+    PromptPanel, TextInput,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -275,7 +275,7 @@ struct FieldState {
     number: f64,
     /// Checked state (BooleanToggle).
     boolean: bool,
-    /// Selected index into EnumSelection.allowed_values.
+    /// Selected index into the resolved static enum options.
     selection_index: usize,
     /// Last validation error, displayed under the field.
     error: Option<String>,
@@ -356,14 +356,10 @@ fn initial_state(f: &FormField) -> FieldState {
         Some(Kind::Boolean(BooleanToggle { default_value })) => {
             state.boolean = *default_value;
         }
-        Some(Kind::EnumSelection(EnumSelection {
-            allowed_values,
-            default_value,
-            ..
-        })) => {
-            state.selection_index = allowed_values
+        Some(Kind::EnumSelection(spec)) => {
+            state.selection_index = crate::enum_options::options(spec)
                 .iter()
-                .position(|v| v == default_value)
+                .position(|v| v.0 == spec.default_value)
                 .unwrap_or(0);
         }
         // Nested is rejected in render_prompt before any state is built.
@@ -438,7 +434,8 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
             }
             _ => {}
         },
-        Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
+        Some(Kind::EnumSelection(spec)) => {
+            let allowed_values = crate::enum_options::options(spec);
             if allowed_values.is_empty() {
                 return;
             }
@@ -567,14 +564,12 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
             Some(Kind::Integer(_)) => FieldValue::Integer(s.integer),
             Some(Kind::Number(_)) => FieldValue::Number(s.number),
             Some(Kind::Boolean(_)) => FieldValue::Boolean(s.boolean),
-            Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
-                FieldValue::Selection(
-                    allowed_values
-                        .get(s.selection_index)
-                        .cloned()
-                        .unwrap_or_default(),
-                )
-            }
+            Some(Kind::EnumSelection(spec)) => FieldValue::Selection(
+                crate::enum_options::options(spec)
+                    .get(s.selection_index)
+                    .map(|option| option.0.to_string())
+                    .unwrap_or_default(),
+            ),
             Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | None => {
                 FieldValue::Text(String::new())
             }
@@ -701,10 +696,11 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
         Some(Kind::Boolean(_)) => {
             format!("[{}]  (space)", if s.boolean { "x" } else { " " })
         }
-        Some(Kind::EnumSelection(EnumSelection { allowed_values, .. })) => {
+        Some(Kind::EnumSelection(spec)) => {
+            let allowed_values = crate::enum_options::options(spec);
             let current = allowed_values
                 .get(s.selection_index)
-                .cloned()
+                .map(|option| option.1)
                 .unwrap_or_default();
             format!(
                 "{current}    [{}/{}]",
@@ -729,7 +725,18 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
         ]),
         Line::from(vec![
             Span::raw("    "),
-            Span::styled(value_str, palette.value()),
+            Span::styled(
+                value_str,
+                match s.field.kind.as_ref() {
+                    Some(Kind::EnumSelection(spec)) => crate::enum_options::style(
+                        crate::enum_options::options(spec)
+                            .get(s.selection_index)
+                            .map_or(0, |o| o.2),
+                        palette,
+                    ),
+                    _ => palette.value(),
+                },
+            ),
         ]),
     ];
     if let Some(err) = &s.error {
@@ -740,4 +747,110 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
     }
 
     f.render_widget(Paragraph::new(lines), area);
+}
+
+#[cfg(test)]
+mod enum_tests {
+    use super::*;
+    use meridian_uiview::proto::{EnumOption, EnumSelection, FormPanel, ValueTone};
+    use prost::Message;
+    use ratatui::{backend::TestBackend, Terminal};
+
+    #[test]
+    fn labeled_enum_wire_selection_renders_labels_and_submits_tokens() {
+        let field = FormField {
+            field_id: "state".into(),
+            label: "State".into(),
+            kind: Some(Kind::EnumSelection(EnumSelection {
+                allowed_values: vec!["ignored".into()],
+                default_value: "ok".into(),
+                options: vec![
+                    EnumOption {
+                        value: "bad".into(),
+                        label: "Needs attention".into(),
+                        tone: ValueTone::Danger as i32,
+                    },
+                    EnumOption {
+                        value: "ok".into(),
+                        label: "Approved".into(),
+                        tone: ValueTone::Success as i32,
+                    },
+                    EnumOption {
+                        value: "other".into(),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let field = FormField::decode(field.encode_to_vec().as_slice()).unwrap();
+        let mut state = initial_state(&field);
+        assert_eq!(state.selection_index, 1);
+        let palette = Palette::default();
+        let mut terminal = Terminal::new(TestBackend::new(60, 8)).unwrap();
+        terminal
+            .draw(|f| draw_field(f, f.area(), &state, true, &palette))
+            .unwrap();
+        assert_eq!(terminal.backend().buffer()[(4, 1)].fg, palette.success);
+        let text = format!("{:?}", terminal.backend().buffer());
+        assert!(text.contains("Approved"));
+        assert_eq!(
+            collect(std::slice::from_ref(&state))["state"].as_string(),
+            "ok"
+        );
+        apply_field_input(&mut state, KeyCode::Right);
+        assert_eq!(
+            collect(std::slice::from_ref(&state))["state"].as_string(),
+            "other"
+        );
+        apply_field_input(&mut state, KeyCode::Right);
+        assert_eq!(
+            collect(std::slice::from_ref(&state))["state"].as_string(),
+            "bad"
+        );
+        apply_field_input(&mut state, KeyCode::Left);
+        assert_eq!(state.selection_index, 2);
+        let panel = FormPanel {
+            fields: vec![field],
+            ..Default::default()
+        };
+        terminal
+            .draw(|f| {
+                crate::content::render_form(
+                    f,
+                    f.area(),
+                    &panel,
+                    &serde_json::json!({"state":"bad"}),
+                    &palette,
+                    0,
+                )
+            })
+            .unwrap();
+        assert!(format!("{:?}", terminal.backend().buffer()).contains("Needs attention"));
+    }
+
+    #[test]
+    fn legacy_and_empty_enum_options_remain_supported() {
+        let mut field = FormField {
+            field_id: "state".into(),
+            kind: Some(Kind::EnumSelection(EnumSelection {
+                allowed_values: vec!["a".into(), "b".into()],
+                default_value: "b".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut state = initial_state(&field);
+        assert_eq!(
+            collect(std::slice::from_ref(&state))["state"].as_string(),
+            "b"
+        );
+        apply_field_input(&mut state, KeyCode::Right);
+        assert_eq!(collect(&[state])["state"].as_string(), "a");
+        field.kind = Some(Kind::EnumSelection(EnumSelection::default()));
+        let mut state = initial_state(&field);
+        apply_field_input(&mut state, KeyCode::Left);
+        assert_eq!(collect(&[state])["state"].as_string(), "");
+    }
 }

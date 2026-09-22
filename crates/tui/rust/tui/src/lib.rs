@@ -37,6 +37,7 @@
 
 mod content;
 mod conversation;
+mod enum_options;
 mod invoker;
 mod launchpad;
 mod llm_prompt;
