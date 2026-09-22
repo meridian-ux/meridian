@@ -673,7 +673,25 @@ function buildMedia(panel: MediaPanel): HTMLElement {
   if (details) figure.appendChild(el("figcaption", "mer-media-caption", details));
   if (panel.chapters.length) {
     const list = el("ol", "mer-media-chapters");
-    for (const chapter of panel.chapters) list.appendChild(el("li", undefined, chapter.label));
+    for (const chapter of panel.chapters) {
+      const item = el("li");
+      const timestamp = formatChapterOffset(chapter.startMs);
+      const seek = el("button", "mer-media-chapter");
+      (seek as HTMLButtonElement).type = "button";
+      seek.dataset.startMs = String(chapter.startMs);
+      seek.setAttribute("aria-label", `Seek to ${chapter.label} at ${timestamp}`);
+      const time = el("time", undefined, timestamp);
+      time.setAttribute("datetime", `PT${chapter.startMs / 1000}S`);
+      seek.appendChild(time);
+      seek.appendChild(document.createTextNode(` ${chapter.label}`));
+      if (media instanceof HTMLMediaElement) {
+        seek.addEventListener("click", () => {
+          media.currentTime = chapter.startMs / 1000;
+        });
+      }
+      item.appendChild(seek);
+      list.appendChild(item);
+    }
     figure.appendChild(list);
   }
   return figure;
@@ -731,6 +749,11 @@ function buildLlmPrompt(panel: LlmPromptPanel): HTMLElement {
 
 function formatDuration(durationMs: number): string {
   const seconds = Math.round(durationMs / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function formatChapterOffset(startMs: number): string {
+  const seconds = Math.floor(startMs / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 

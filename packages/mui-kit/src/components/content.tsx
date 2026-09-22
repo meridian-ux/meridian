@@ -13,7 +13,7 @@
 // Copy uses navigator.clipboard (guarded); selection + reveal are real React
 // state (this is a client kit, jsdom-tested). Look comes from the MUI theme.
 
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 
 import {
@@ -564,6 +564,7 @@ function formatDuration(ms: number): string {
 
 export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
   const resolveAsset = useContext(MeridianAssetContext);
+  const playerRef = useRef<HTMLMediaElement>(null);
   const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
   const src = withAsset(panel.srcUri);
   const poster = withAsset(panel.posterUri);
@@ -606,6 +607,7 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
       ) : (
         <Box
           component={isAudio ? "audio" : "video"}
+          ref={playerRef}
           src={src}
           poster={!isAudio && poster ? poster : undefined}
           {...common}
@@ -644,17 +646,29 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
           spacing={0.5}
           sx={{ listStyle: "none", m: 0, mt: 1, p: 0 }}
         >
-          {/* A surface that cannot seek still gets a readable contents. */}
+          {/* Buttons seek the player; timestamps preserve a readable contents. */}
           {panel.chapters.map((chapter, index) => (
             <Box component="li" key={`${index}-${chapter.startMs}`} sx={{ display: "flex", gap: 1 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ fontVariantNumeric: "tabular-nums", minWidth: 40 }}
+              <Button
+                type="button"
+                size="small"
+                className="mer-media-chapter"
+                data-start-ms={chapter.startMs}
+                aria-label={`Seek to ${chapter.label} at ${formatDuration(chapter.startMs) || "0:00"}`}
+                onClick={() => {
+                  if (playerRef.current) playerRef.current.currentTime = chapter.startMs / 1000;
+                }}
+                sx={{ justifyContent: "flex-start", gap: 1, textTransform: "none" }}
               >
-                {formatDuration(chapter.startMs) || "0:00"}
-              </Typography>
-              <Typography variant="caption">{chapter.label}</Typography>
+                <Box
+                  component="time"
+                  dateTime={`PT${chapter.startMs / 1000}S`}
+                  sx={{ color: "text.secondary", fontVariantNumeric: "tabular-nums", minWidth: 40 }}
+                >
+                  {formatDuration(chapter.startMs) || "0:00"}
+                </Box>
+                {chapter.label}
+              </Button>
             </Box>
           ))}
         </Stack>

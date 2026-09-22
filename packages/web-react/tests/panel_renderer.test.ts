@@ -353,12 +353,16 @@ for (const shape of ["recordCard", "detailHeader"] as const) {
         captionsUri: "/demo.vtt",
         alt: "A demo walkthrough",
         caption: "Product demo",
+        chapters: [{ startMs: 65_000, label: "Add the sponsor" }],
       }) },
     }));
     expect(html).toContain('class="mer-media"');
     expect(html).toContain('poster="/poster.jpg"');
     expect(html).toContain('src="/demo.vtt"');
     expect(html).toContain("Product demo");
+    expect(html).toContain('data-start-ms="65000"');
+    expect(html).toContain('dateTime="PT65S"');
+    expect(html).toContain("1:05</time> Add the sponsor");
   });
 
   it("renders shadcn media with captions and poster semantics", () => {
@@ -367,11 +371,14 @@ for (const shape of ["recordCard", "detailHeader"] as const) {
       body: { case: "media", value: create(MediaPanelSchema, {
         kind: MediaKind.VIDEO, srcUri: "/demo.mp4", posterUri: "/poster.jpg",
         captionsUri: "/demo.vtt", alt: "A demo walkthrough", caption: "Product demo",
+        chapters: [{ startMs: 65_000, label: "Add the sponsor" }],
       }) },
     }), shadcnKit);
     expect(html).toContain('poster="/poster.jpg"');
     expect(html).toContain('src="/demo.vtt"');
     expect(html).toContain("Product demo");
+    expect(html).toContain('data-start-ms="65000"');
+    expect(html).toContain("1:05</time> Add the sponsor");
   });
 
   it("renders HTML steps as an ordered accessible list", () => {

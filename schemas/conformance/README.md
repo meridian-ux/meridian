@@ -292,6 +292,15 @@ plain text; these checks do not prove navigation, colors, or layout fidelity.
 Run `cargo test -p meridian-tui --test render_descriptor` to compare them; intentional
 changes require reviewing and editing the inline expected lines.
 
+The canonical Media fixture preserves chapter offsets as visible timestamps on
+every renderer. The four browser realizations expose those chapters as labeled
+seek controls that update the active audio or video player's current time; their
+semantic snapshots retain the control, timestamp, and machine-readable offset.
+Focused interaction tests exercise web-components, HTML, Shadcn, and MUI seek
+behavior. The TUI continues to realize the schema's non-playable degradation
+rung by listing the same timestamps, labels, source, captions URI, and alt text.
+These checks do not simulate codec loading, playback policy, or WebVTT parsing.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and

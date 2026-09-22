@@ -46,6 +46,7 @@ vitest_test(
         "conformance.test.ts",
         "conformance_normalizer.test.ts",
         "form.test.ts",
+        "media.test.ts",
         "__snapshots__/conformance.test.ts.snap",
         "fixtures.ts",
     ],

@@ -450,8 +450,8 @@ describe("muiKit renders MediaPanel", () => {
     await screen.findByAltText("Sponsor status flow");
   });
 
-  it("lists chapters as a readable contents", async () => {
-    renderPanel(
+  it("lists chapters as readable seek controls", async () => {
+    const { container } = renderPanel(
       create(PanelDescriptorSchema, {
         panelId: "chaptered",
         title: "Chaptered",
@@ -470,5 +470,9 @@ describe("muiKit renders MediaPanel", () => {
     );
     await screen.findByText("Add the sponsor");
     await screen.findByText("1:05");
+    const seek = screen.getByRole("button", { name: "Seek to Add the sponsor at 1:05" });
+    expect(seek.getAttribute("data-start-ms")).toBe("65000");
+    fireEvent.click(seek);
+    expect(container.querySelector("video")?.currentTime).toBe(65);
   });
 });

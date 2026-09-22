@@ -127,11 +127,15 @@ exports[`muiKit canonical panel conformance > renders the media fixture without 
 "4:12"
 ol
   li
-    "0:00"
-    "Open the page"
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
   li
-    "1:05"
-    "Add the sponsor""
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor""
 `;
 
 exports[`muiKit canonical panel conformance > renders the prompt fixture without crashing > mui-kit/prompt 1`] = `

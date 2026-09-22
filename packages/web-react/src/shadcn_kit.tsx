@@ -37,6 +37,7 @@ import { StepMedia } from "./step_media.js";
 import { GalleryContent } from "./gallery.js";
 import { TableContent } from "./table.js";
 import { ReferenceActionBar } from "./reference_action_bar.js";
+import { MediaContent } from "./media.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -241,16 +242,12 @@ export const shadcnKit: ComponentKit = {
       </p>
     </section>
   ),
-  Media: ({ panel }) => {
-    const details = panel.durationMs ? ` (${Math.round(panel.durationMs / 1000)}s)` : "";
-    if (panel.kind === 3) {
-      return <figure className="grid gap-2"><img src={panel.srcUri} alt={panel.alt} /><figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt}{details}</figcaption></figure>;
-    }
-    const player = panel.kind === 2
-      ? <audio controls src={panel.srcUri} aria-label={panel.alt || panel.caption} />
-      : <video controls src={panel.srcUri} poster={panel.posterUri || undefined} aria-label={panel.alt || panel.caption}>{panel.captionsUri && <track kind="captions" src={panel.captionsUri} />}</video>;
-    return <figure className="grid gap-2">{player}<figcaption className="text-sm text-muted-foreground">{panel.caption || panel.alt || panel.srcUri}{details}</figcaption>{panel.chapters.length > 0 && <ol className="text-sm">{panel.chapters.map((chapter, i) => <li key={i}>{chapter.label}</li>)}</ol>}</figure>;
-  },
+  Media: ({ panel }) => <MediaContent panel={panel} classes={{
+    figure: "grid gap-2",
+    caption: "text-sm text-muted-foreground",
+    chapters: "text-sm",
+    chapterButton: "underline",
+  }} />,
   Terminal: ({ panel }) => (
     <section className="grid gap-1 rounded-md border p-3 text-sm" aria-label={panel.tool || "Terminal"}>
       <span className="font-medium">Interactive terminal connection</span>

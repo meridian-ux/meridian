@@ -168,9 +168,15 @@ figure
     "Narrated from a live run. (252s)"
   ol
     li
-      "Open the page"
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
     li
-      "Add the sponsor""
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor""
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the prompt shape and shows its title > shadcn-kit/prompt 1`] = `
@@ -461,9 +467,15 @@ figure
     "Narrated from a live run. (252s)"
   ol
     li
-      "Open the page"
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
     li
-      "Add the sponsor""
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor""
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the prompt shape without crashing and shows its title > html-kit/prompt 1`] = `

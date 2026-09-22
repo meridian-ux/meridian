@@ -36,4 +36,28 @@ describe("web-components MediaPanel", () => {
       if (tag === "video") expect(root.querySelector("track")?.getAttribute("src")).toBe("captions.vtt");
     }
   });
+
+  it("renders chapter offsets as seek controls and seeks the active player", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm: noWasm, root,
+      descriptor: create(PanelDescriptorSchema, {
+        title: "Chaptered video",
+        body: { case: "media", value: create(MediaPanelSchema, {
+          kind: MediaKind.VIDEO,
+          srcUri: "/walkthrough.mp4",
+          chapters: [{ startMs: 65_500, label: "Add the sponsor" }],
+        }) },
+      }),
+      invoker: { invoke: async () => ({}) },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+
+    const video = root.querySelector("video")!;
+    const seek = root.querySelector<HTMLButtonElement>('button[data-start-ms="65500"]')!;
+    expect(seek.textContent).toBe("1:05 Add the sponsor");
+    expect(seek.querySelector("time")?.getAttribute("datetime")).toBe("PT65.5S");
+    seek.click();
+    expect(video.currentTime).toBe(65.5);
+  });
 });

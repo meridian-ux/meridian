@@ -128,8 +128,9 @@ descriptors with shared responses across HTML, Shadcn, MUI, web-components, and
 TUI in focused populated-data tests, separately from the initial-state browser
 snapshots. Long-copy text preservation, a shared formatter corpus covering all
 18 semantic ValueTypes, populated Gallery/Table native text goldens, nested
-Steps affordances across all renderers, and HTML/Shadcn ActionPanel/Form
-interaction contracts are also checked in. These checks do not establish visual
+Steps affordances across all renderers, playable Media chapter seek controls
+across all browser renderers, and HTML/Shadcn ActionPanel/Form interaction
+contracts are also checked in. These checks do not establish visual
 layout, every formatter option, or full renderer parity. Remaining work is
 the broader parity and renderer-specific/tooling scope called out above.
 
