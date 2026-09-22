@@ -477,6 +477,24 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
 }
 
 #[test]
+fn canonical_long_copy_value_preserves_text_at_sufficient_width() {
+    let descriptor =
+        PanelDescriptor::decode(read_canonical_fixture("copy_value.binpb").as_slice()).unwrap();
+    let Some(Body::CopyValue(panel)) = &descriptor.body else {
+        panic!("expected copy value")
+    };
+    let value = panel.value.as_ref().unwrap();
+    assert!(value.value.len() > 160);
+    let output = draw(&descriptor, 512, 16);
+    assert!(output.contains(&descriptor.title));
+    assert!(output.contains(&value.label));
+    assert!(output.contains(&value.value));
+    // Narrow terminals may clip or wrap. Their viewport must remain renderable;
+    // full content preservation is asserted above, not inferred from clipping.
+    assert!(!draw(&descriptor, 32, 8).is_empty());
+}
+
+#[test]
 fn canonical_resource_cards_fixture_renders_populated_rows() {
     let descriptor =
         PanelDescriptor::decode(read_canonical_fixture("resource_cards.binpb").as_slice())

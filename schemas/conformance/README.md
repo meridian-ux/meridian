@@ -37,6 +37,13 @@ conformance targets include the normalizer and goldens as runfiles.
 
 ## What these fixtures do not prove
 
+The canonical `copy_value` fixture contains a long panel title, label, and
+unbroken URL segment. All four browser semantic snapshots and explicit content
+assertions preserve the full label and scalar. The native wire fixture preserves
+the same text at sufficient terminal width and renders at a narrow width without
+panicking. This keeps 24 fixtures and 96 browser snapshots. CSS overflow, clipping,
+and wrapping remain renderer-specific; these checks do not prove visual layout.
+
 These are initial-state regression snapshots. Several fixtures have no populate
 RPC, and React snapshots are server-rendered, so loading/empty/degraded output is
 recorded where appropriate. A snapshot of a loading message does not prove that

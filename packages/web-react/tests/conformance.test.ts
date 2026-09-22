@@ -65,6 +65,10 @@ describe("web-react conformance over the canonical fixtures (htmlKit)", () => {
   for (const fx of FIXTURES) {
     it(`renders the ${fx.name} shape without crashing and shows its title`, () => {
       const html = render(fx.descriptor);
+      if (fx.descriptor.body.case === "copyValue") {
+        expect(normalizeMarkup(html)).toContain(fx.descriptor.body.value.value!.value);
+        expect(normalizeMarkup(html)).toContain(fx.descriptor.body.value.value!.label);
+      }
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);
@@ -115,6 +119,10 @@ describe("Swap B — shadcnKit renders the same fixtures, different look", () =>
   for (const fx of FIXTURES) {
     it(`shadcnKit renders the ${fx.name} shape and shows its title`, () => {
       const html = renderWith(shadcnKit, fx.descriptor);
+      if (fx.descriptor.body.case === "copyValue") {
+        expect(normalizeMarkup(html)).toContain(fx.descriptor.body.value.value!.value);
+        expect(normalizeMarkup(html)).toContain(fx.descriptor.body.value.value!.label);
+      }
       expect(html.length).toBeGreaterThan(0);
       expect(html).toContain(fx.descriptor.title);
       expect(html).toContain(`data-panel="${fx.descriptor.panelId}"`);

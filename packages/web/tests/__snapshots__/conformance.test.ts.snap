@@ -75,11 +75,11 @@ figure
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical copyValue fixture > web-components/copy_value 1`] = `
-""Endpoint"
-"Endpoint"
+""Endpoint configuration for the production workspace and its regional integration service"
+"Primary integration endpoint for the production workspace across all supported regions"
 button type="button"
   code
-    "mcp.example.com/mcp""
+    "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical detail header fixture > web-components/detail_header 1`] = `

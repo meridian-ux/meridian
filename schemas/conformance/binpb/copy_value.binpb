@@ -1,4 +1,4 @@
 
-endpointEndpointr!
-
-mcp.example.com/mcpEndpoint
+endpointXEndpoint configuration for the production workspace and its regional integration servicerš
+—
+¼https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streamingVPrimary integration endpoint for the production workspace across all supported regions

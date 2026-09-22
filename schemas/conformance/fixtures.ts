@@ -330,11 +330,14 @@ export const FIXTURES: Fixture[] = [
     shape: "copyValue",
     descriptor: create(PanelDescriptorSchema, {
       panelId: "endpoint",
-      title: "Endpoint",
+      title: "Endpoint configuration for the production workspace and its regional integration service",
       body: {
         case: "copyValue",
         value: create(CopyValuePanelSchema, {
-          value: { label: "Endpoint", value: "mcp.example.com/mcp" },
+          value: {
+            label: "Primary integration endpoint for the production workspace across all supported regions",
+            value: "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming",
+          },
         }),
       },
     }),

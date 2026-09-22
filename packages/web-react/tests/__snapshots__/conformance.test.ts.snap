@@ -85,11 +85,11 @@ figure
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the copyValue shape and shows its title > shadcn-kit/copy_value 1`] = `
 "h3
-  "Endpoint"
-"Endpoint"
+  "Endpoint configuration for the production workspace and its regional integration service"
+"Primary integration endpoint for the production workspace across all supported regions"
 button type="button"
   code
-    "mcp.example.com/mcp""
+    "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the detail header shape and shows its title > shadcn-kit/detail_header 1`] = `
@@ -374,11 +374,11 @@ figure
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the copyValue shape without crashing and shows its title > html-kit/copy_value 1`] = `
 "h2
-  "Endpoint"
-"Endpoint"
+  "Endpoint configuration for the production workspace and its regional integration service"
+"Primary integration endpoint for the production workspace across all supported regions"
 button type="button"
   code
-    "mcp.example.com/mcp""
+    "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the detail header shape without crashing and shows its title > html-kit/detail_header 1`] = `

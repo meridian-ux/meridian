@@ -139,6 +139,10 @@ describe("renderPanel (web-components, binary boundary)", () => {
       });
 
       expect(root.dataset.panel).toBe(fixture.descriptor.panelId);
+      if (fixture.descriptor.body.case === "copyValue") {
+        expect(root.textContent).toContain(fixture.descriptor.body.value.value!.value);
+        expect(root.textContent).toContain(fixture.descriptor.body.value.value!.label);
+      }
       expect(root.dataset.panelShape).toBe(fixture.descriptor.body.case || "unset");
       expect(root.querySelector(".meridian-uiview-header")?.textContent).toBe(
         fixture.descriptor.title,

@@ -38,6 +38,10 @@ describe("muiKit canonical panel conformance", () => {
   for (const fixture of FIXTURES) {
     it(`renders the ${fixture.name} fixture without crashing`, () => {
       const html = renderFixture(fixture);
+      if (fixture.descriptor.body.case === "copyValue") {
+        expect(normalizeMarkup(html)).toContain(fixture.descriptor.body.value.value!.value);
+        expect(normalizeMarkup(html)).toContain(fixture.descriptor.body.value.value!.label);
+      }
       expect(html.length).toBeGreaterThan(0);
       // Panel titles are not required to be repeated by every kit's shape
       // component (some use the descriptor only for the outer panel identity),
