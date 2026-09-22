@@ -20,6 +20,7 @@ js_library(
     srcs = [
         "conformance/fixtures.ts",
         "conformance/normalize_dom.ts",
+        "conformance/populated.ts",
         "conformance/coverage.json",
     ] + glob(["conformance/binpb/*.binpb"]),
     deps = [

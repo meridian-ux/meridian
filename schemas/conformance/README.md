@@ -107,19 +107,19 @@ which compare actual renderer output against the committed goldens. Changing onl
 a title wrapper while dropping the body now fails a snapshot comparison. The
 HTML/Shadcn no-fallback checks also derive their expectations from `coverage.json`.
 
-Run the suites from the repository root:
+Run every suite and the snapshot-presence gate from the repository root:
 
 ```sh
-pnpm --dir packages/web-react exec vitest run tests/conformance.test.ts
-pnpm --dir packages/mui-kit exec vitest run tests/conformance.test.tsx
-pnpm --dir packages/web exec vitest run tests/conformance.test.ts tests/conformance_normalizer.test.ts
-node schemas/tools/check_coverage.mjs
+pnpm conformance:snapshots
 ```
 
-To record an intentional behavior change, append `--update` to the relevant
-Vitest command and review the golden diff. Do not re-record to hide a missing
-field or unexpected fallback. The existing React and web-components Bazel
-conformance targets include the normalizer and goldens as runfiles.
+To record an intentional behavior change, run
+`pnpm conformance:snapshots:update` and review every golden diff. Do not
+re-record to hide a missing field or unexpected fallback. Pass `--bazel` to
+`schemas/tools/conformance_snapshots.mjs` to also verify the React and
+web-components Bazel conformance targets, which include the normalizer and
+goldens as runfiles. MUI remains covered by its package Vitest suite because its
+browser Bazel harness is a separate test tier.
 
 ## Focused interaction and content coverage
 
@@ -286,7 +286,8 @@ changes require reviewing and editing the inline expected lines.
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
 ValueType renderer fixtures beyond the shared formatter corpus, broader
-interactive snapshots, native snapshots beyond the Gallery/Table/ResourceCards text goldens,
-and a common Bazel-aware
-re-record workflow. MUI's semantic suite currently runs through the package
-test job; its Bazel browser harness is a separate set of tests.
+interactive snapshots, and native snapshots beyond the
+Gallery/Table/ResourceCards text goldens. The common snapshot command now
+supports intentional re-recording and optional verification of the Bazel targets
+that own semantic goldens. MUI's semantic suite runs through the package test
+job; its Bazel browser harness is a separate set of tests.

@@ -14,8 +14,11 @@ test("the committed test floor is met", () => {
 
 test("a suite below its floor fails", () => {
   const manifest = readManifest();
-  manifest.suites.find((suite) => suite.id === "chat").floor = 15;
-  assert.ok(check(manifest).some((error) => /chat: test floor 15 not met; found 14/.test(error)));
+  const chat = manifest.suites.find((suite) => suite.id === "chat");
+  const actual = countSuite(chat).count;
+  chat.floor = actual + 1;
+  assert.ok(check(manifest).some((error) => error ===
+    `chat: test floor ${actual + 1} not met; found ${actual} declared tests`));
 });
 
 test("missing test roots fail instead of counting zero silently", () => {

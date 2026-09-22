@@ -7,6 +7,8 @@
   "packageManager": "pnpm@10.25.0",
   "scripts": {
     "codegen": "buf generate",
+    "conformance:snapshots": "node schemas/tools/conformance_snapshots.mjs",
+    "conformance:snapshots:update": "node schemas/tools/conformance_snapshots.mjs --update",
     "prepare": "pnpm codegen"
   },
   "devDependencies": {
