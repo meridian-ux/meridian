@@ -592,8 +592,8 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
         );
         if *expected == "(unset)" {
             assert!(
-                output.contains("(no body set)"),
-                "empty fixture lost its degradation"
+                output.contains("Unsupported or unset panel shape"),
+                "empty/unknown body lost its visible degradation"
             );
         } else {
             assert!(
@@ -602,6 +602,29 @@ fn canonical_binpb_corpus_reaches_every_tui_dispatch_arm() {
             );
         }
     }
+}
+
+#[test]
+fn unknown_future_oneof_arm_degrades_to_visible_fallback() {
+    // Field 100 is deliberately outside the current PanelDescriptor body
+    // range. prost preserves the known descriptor fields and drops the unknown
+    // oneof value, as it must for forward compatibility.
+    let mut bytes = PanelDescriptor {
+        panel_id: "future-panel".into(),
+        title: "Future panel".into(),
+        body: None,
+    }
+    .encode_to_vec();
+    bytes.extend_from_slice(&[0xa2, 0x06, 0x00]); // field 100, length-delimited, empty message
+    let descriptor = PanelDescriptor::decode(bytes.as_slice()).unwrap();
+    assert!(descriptor.body.is_none());
+
+    let output = draw(&descriptor, 64, 8);
+    assert!(output.contains("Future panel"), "title missing:\n{output}");
+    assert!(
+        output.contains("Unsupported or unset"),
+        "unknown future arm was not visibly degraded:\n{output}"
+    );
 }
 
 #[test]

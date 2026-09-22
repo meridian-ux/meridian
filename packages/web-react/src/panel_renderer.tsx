@@ -208,6 +208,10 @@ export function PanelRenderer({
       inner = <kit.Fallback descriptor={descriptor} />;
   }
 
+  // A decoder drops an unknown future oneof tag and exposes the body as unset.
+  // The kit fallback renders the same visible, non-throwing degradation as it
+  // does for known-but-unsupported arms; do not special-case it into silence.
+
   const Chrome = kit.Chrome;
   return Chrome ? <Chrome descriptor={descriptor}>{inner}</Chrome> : inner;
 }

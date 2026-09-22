@@ -521,7 +521,10 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     root.appendChild(buildCatalog(renderOpts, body.value));
     return;
   }
-  meta.textContent = "(no body set)";
+  // protobuf-es and prost discard unknown oneof tags on decode. A missing body
+  // can therefore mean either an unset body or a future arm; keep the safe
+  // degradation visible without claiming we know which case was sent.
+  meta.textContent = "Unsupported or unset panel shape";
 }
 
 // Fill `{field}` placeholders in a URL template from the render context — the

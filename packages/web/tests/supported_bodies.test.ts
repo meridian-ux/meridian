@@ -10,7 +10,7 @@
 // These tests pin it in both directions: every listed case must really render,
 // and an unlisted case must really not.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
@@ -150,5 +150,19 @@ describe("SUPPORTED_BODIES cannot drift from the dispatch", () => {
     expect(supportsBody("prompt")).toBe(true);
     expect(supportsBody("nope")).toBe(false);
     expect(supportsBody(undefined)).toBe(false);
+  });
+
+  it("shows a visible fallback after decoding an unknown future oneof arm", async () => {
+    const known = create(PanelDescriptorSchema, {
+      panelId: "future-panel",
+      title: "Future panel",
+    });
+    const bytes = toBinary(PanelDescriptorSchema, known);
+    // Field 100 is outside the current body oneof. Decoders discard that tag;
+    // the web renderer must still fail visibly and safely.
+    const descriptor = fromBinary(PanelDescriptorSchema, new Uint8Array([...bytes, 0xa2, 0x06, 0x00]));
+    expect(descriptor.body.case).toBeUndefined();
+    const root = await draw(descriptor);
+    expect(root.textContent).toContain("Unsupported or unset panel shape");
   });
 });

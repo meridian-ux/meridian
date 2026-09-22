@@ -600,7 +600,16 @@ impl PanelView {
                 self.content_len = 0;
                 content::render_media(frame, content_area, panel, &self.palette);
             }
-            None => self.render_placeholder(frame, chunks[1], chunks[2], "(no body set)"),
+            // prost discards unknown oneof tags while preserving the rest of
+            // the descriptor. A missing body after wire decode can therefore
+            // mean either an unset body or a future arm; make the safe
+            // degradation explicit instead of looking like an empty panel.
+            None => self.render_placeholder(
+                frame,
+                chunks[1],
+                chunks[2],
+                "Unsupported or unset panel shape",
+            ),
         }
     }
 

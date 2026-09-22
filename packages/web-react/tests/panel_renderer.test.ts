@@ -4,7 +4,7 @@
 // conformance idea: the same descriptor that the web-components renderer hosts
 // renders here through htmlKit.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -79,7 +79,20 @@ describe("meridian-web-react renderer", () => {
 
   it("falls back for an unset panel body", () => {
     const descriptor = create(PanelDescriptorSchema, { panelId: "x", title: "X" });
-    expect(render(descriptor)).toContain("empty panel");
+    expect(render(descriptor)).toContain("(empty panel)");
+  });
+
+  it("visibly falls back after decoding an unknown future oneof arm", () => {
+    const bytes = toBinary(PanelDescriptorSchema, create(PanelDescriptorSchema, {
+      panelId: "future-panel",
+      title: "Future panel",
+    }));
+    // Field 100 is outside the current oneof. The generated decoder safely
+    // drops the unknown tag, so dispatch must degrade exactly like an unset arm.
+    const wire = new Uint8Array([...bytes, 0xa2, 0x06, 0x00]);
+    const descriptor = fromBinary(PanelDescriptorSchema, wire);
+    expect(descriptor.body.case).toBeUndefined();
+    expect(render(descriptor)).toContain("(empty panel)");
   });
 
   it("renders a StreamPanel through htmlKit with an accessible placeholder", () => {
