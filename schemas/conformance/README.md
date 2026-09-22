@@ -52,7 +52,11 @@ with accessible alternatives, falling back to text for invalid or failed sources
 Focused tests cover both kits and replacement frames after a failed load.
 The first populated scenario now runs through the canonical `resource_cards`
 descriptor and the same two-row response in HTML, Shadcn, MUI, web-components,
-and TUI tests. Epic #9 still owns representative overflow/ValueType fixtures,
+and TUI tests. Focused gallery tests cover declared `CardSpec` title, subtitle,
+and status displays in MUI, web-components, and native rendering. HTML and
+Shadcn galleries remain placeholders, so their snapshots do not establish
+populated card or slot-formatting support.
+Epic #9 still owns representative overflow/ValueType fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package
 test job; its Bazel browser harness is a separate set of tests.
