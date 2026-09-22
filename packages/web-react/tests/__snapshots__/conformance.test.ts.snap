@@ -37,7 +37,7 @@ figure
   figcaption
     "Requests by day"
   p
-    "requests by day""
+    "bar of requests by day""
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the choice shape and shows its title > shadcn-kit/choice 1`] = `
@@ -335,7 +335,7 @@ figure
   figcaption
     "Requests by day"
   p
-    "requests by day""
+    "bar of requests by day""
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the choice shape without crashing and shows its title > html-kit/choice 1`] = `

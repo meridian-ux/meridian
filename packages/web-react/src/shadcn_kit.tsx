@@ -38,6 +38,7 @@ import { GalleryContent } from "./gallery.js";
 import { TableContent } from "./table.js";
 import { ReferenceActionBar } from "./reference_action_bar.js";
 import { MediaContent } from "./media.js";
+import { ChartContent } from "./chart.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -206,14 +207,13 @@ export const shadcnKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
-  Chart: ({ panel }) => (
-    <figure className="rounded-md border p-4" data-mark={panel.chart?.mark}>
-      {panel.chart?.title && <figcaption className="text-sm font-semibold">{panel.chart.title}</figcaption>}
-      <p className="text-sm text-muted-foreground">
-        {panel.chart?.y?.fieldName || "value"} by {panel.chart?.x?.fieldName || "category"}
-      </p>
-    </figure>
-  ),
+  Chart: ({ panel, invoker }) => <ChartContent panel={panel} invoker={invoker} classes={{
+    figure: "rounded-md border p-4",
+    title: "text-sm font-semibold",
+    summary: "text-sm text-muted-foreground",
+    status: "text-sm text-muted-foreground",
+    table: "w-full text-sm",
+  }} />,
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Steps: ({ panel }) => (
     <section className="grid gap-3" aria-label="Steps">

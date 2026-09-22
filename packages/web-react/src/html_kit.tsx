@@ -34,6 +34,7 @@ import { GalleryContent } from "./gallery.js";
 import { TableContent } from "./table.js";
 import { ReferenceActionBar } from "./reference_action_bar.js";
 import { MediaContent } from "./media.js";
+import { ChartContent } from "./chart.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -184,14 +185,13 @@ export const htmlKit: ComponentKit = {
   CopyValue: ({ panel }) => (panel.value ? <CopyValueContent c={c} value={panel.value} /> : null),
   ConnectFlow: ({ panel }) => <ConnectFlowContent c={c} panel={panel} />,
   Catalog: ({ panel }) => <CatalogContent c={c} panel={panel} />,
-  Chart: ({ panel }) => (
-    <figure className="mer-chart" data-mark={panel.chart?.mark}>
-      {panel.chart?.title && <figcaption className="mer-chart-title">{panel.chart.title}</figcaption>}
-      <p className="mer-chart-summary">
-        {panel.chart?.y?.fieldName || "value"} by {panel.chart?.x?.fieldName || "category"}
-      </p>
-    </figure>
-  ),
+  Chart: ({ panel, invoker }) => <ChartContent panel={panel} invoker={invoker} classes={{
+    figure: "mer-chart",
+    title: "mer-chart-title",
+    summary: "mer-chart-summary",
+    status: "mer-chart-status",
+    table: "mer-chart-data",
+  }} />,
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
   Stream: ({ panel }) => (
     <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>

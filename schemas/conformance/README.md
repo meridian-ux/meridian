@@ -301,6 +301,13 @@ behavior. The TUI continues to realize the schema's non-playable degradation
 rung by listing the same timestamps, labels, source, captions URI, and alt text.
 These checks do not simulate codec loading, playback policy, or WebVTT parsing.
 
+Chart population has focused coverage beyond the canonical initial-state fixture.
+Web-components, HTML, Shadcn, and MUI invoke the declared read call, resolve
+`rows_field`, and preserve x/y/series field order in a readable table fallback
+when no richer host chart is available. The React reference kits also apply live
+selection bindings and expose bounded loading, empty, and error states. These
+tests establish portable data semantics, not chart-library visuals or layout.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
