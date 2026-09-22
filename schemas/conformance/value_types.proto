@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package meridian.conformance;
+
+import "google/protobuf/struct.proto";
+
+// Test-only cross-language fixture envelope. value_types.json is its proto3 JSON
+// representation. Numeric type IDs also admit future/unknown enum values.
+message ValueTypeCorpus {
+  repeated ValueTypeCase cases = 1;
+}
+
+message ValueTypeCase {
+  string name = 1;
+  int32 type = 2;
+  google.protobuf.Value raw = 3;
+  optional int32 digits = 4;
+  string expected = 5;
+}

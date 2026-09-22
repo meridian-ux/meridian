@@ -4,6 +4,8 @@ load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(["conformance/value_types.json"])
+
 # schemas is a pnpm workspace package with its own dependencies, so it needs its
 # own node_modules tree — //:node_modules can only hold the ROOT package.json's
 # four toolchain packages. Every other workspace package already had this; this

@@ -78,7 +78,18 @@ host-resolved links. Their focused tests cover pending, empty, and failed reques
 and escaped markup. These reference kits also link declared HTTP(S) URL values;
 URL display alone remains plain text in the MUI/web-components table realizations.
 
-Epic #9 still owns representative overflow/ValueType fixtures,
+`value_types.json` (the proto3-JSON representation of the test-only
+`value_types.proto` envelope) supplies 29 cases to the TypeScript shared formatter
+and Rust core formatter tests. All 18 declared semantic types are represented;
+UNSPECIFIED and an unknown type are additional fallback cases. The tests round-trip
+each ValueDisplay through protobuf, assert deterministic text without a clock,
+check null fallback, and preserve raw inputs and descriptor bytes. Invalid dates,
+times, principal labels, precision, and mismatched options have explicit cases.
+Money/percent cases record the current scalar precision behavior, not currency
+symbols or percentage scaling. This corpus does not prove renderer decoration,
+layout, all option combinations, or universal Rust/TypeScript parity.
+
+Epic #9 still owns broader overflow/ValueType renderer fixtures,
 broader interactive snapshots, native snapshots, and a common Bazel-aware
 re-record workflow. MUI's semantic suite currently runs through the package
 test job; its Bazel browser harness is a separate set of tests.

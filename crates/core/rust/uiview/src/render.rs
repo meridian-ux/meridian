@@ -428,6 +428,48 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shared_value_type_conformance_corpus() {
+        use prost::Message;
+        let corpus: Value = serde_json::from_str(include_str!(
+            "../../../../../schemas/conformance/value_types.json"
+        ))
+        .unwrap();
+        let mut covered = std::collections::BTreeSet::new();
+        for entry in corpus["cases"].as_array().unwrap() {
+            let kind = entry["type"].as_i64().unwrap() as i32;
+            let display = ValueDisplay {
+                r#type: kind,
+                options: entry["digits"].as_i64().map(|digits| {
+                    value_display::Options::Number(crate::proto::NumberOptions {
+                        fraction_digits: Some(digits as i32),
+                        ..Default::default()
+                    })
+                }),
+                ..Default::default()
+            };
+            let bytes = display.encode_to_vec();
+            let decoded = ValueDisplay::decode(bytes.as_slice()).unwrap();
+            let raw = entry["raw"].clone();
+            assert_eq!(
+                format_display_value(&raw, &decoded),
+                entry["expected"].as_str().unwrap(),
+                "{}",
+                entry["name"]
+            );
+            assert_eq!(format_display_value(&Value::Null, &decoded), "—");
+            assert_eq!(raw, entry["raw"]);
+            assert_eq!(decoded.encode_to_vec(), bytes);
+            if kind > 0 && ValueType::try_from(kind).is_ok() {
+                covered.insert(kind);
+            }
+        }
+        let declared: std::collections::BTreeSet<_> = (1..)
+            .take_while(|kind| ValueType::try_from(*kind).is_ok())
+            .collect();
+        assert_eq!(covered, declared);
+    }
     use crate::proto::value_display;
     use serde_json::json;
 

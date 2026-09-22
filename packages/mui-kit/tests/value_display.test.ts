@@ -6,6 +6,7 @@
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
+import fixture from "../../../schemas/conformance/value_types.json";
 
 import {
   PrincipalDisplay,
@@ -22,6 +23,32 @@ import {
   resolvePrincipalLink,
   resolveValueLink,
 } from "../src/display_format.js";
+
+const corpus = fixture.cases;
+
+describe("shared ValueType conformance corpus", () => {
+  it("covers every declared semantic type", () => {
+    const declared = Object.values(ValueType).filter((value) => typeof value === "number" && value !== 0);
+    expect(new Set(corpus.filter((entry) => declared.includes(entry.type)).map((entry) => entry.type)))
+      .toEqual(new Set(declared));
+  });
+
+  it.each(corpus)("formats $name without changing its raw value", (entry) => {
+    const display = create(ValueDisplaySchema, {
+      type: entry.type,
+      ...(entry.digits === undefined ? {} : {
+        options: { case: "number" as const, value: { fractionDigits: entry.digits } },
+      }),
+    });
+    const bytes = toBinary(ValueDisplaySchema, display);
+    const decoded = fromBinary(ValueDisplaySchema, bytes);
+    const rawBefore = JSON.stringify(entry.raw);
+    expect(formatByDisplay(entry.raw, decoded).text).toBe(entry.expected);
+    expect(formatByDisplay(null, decoded).text).toBe("—");
+    expect(JSON.stringify(entry.raw)).toBe(rawBefore);
+    expect(toBinary(ValueDisplaySchema, decoded)).toEqual(bytes);
+  });
+});
 
 describe("principal record routing inputs", () => {
   const linked = (type = ValueType.PRINCIPAL, targetKind = "identity.user", linkToRecord = true) =>
