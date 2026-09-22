@@ -20,7 +20,7 @@ import { formatByDisplay, type DisplayedValue } from '@savvifi/meridian-schemas/
 import { escHtml as esc } from './dom.js';
 
 interface HostEvent {
-  seq: number;
+  seq: number | string;
   block?: BlockMsg;
   status?: { state: string; detail?: string };
   done?: { stopReason: string };
@@ -278,9 +278,10 @@ export class MAssistantPanel extends HTMLElement {
   }
 
   private handle(ev: HostEvent): void {
-    if (typeof ev.seq === 'number') {
-      if (this.seen.has(ev.seq)) return;
-      this.seen.add(ev.seq);
+    const seq = typeof ev.seq === 'number' ? ev.seq : Number(ev.seq);
+    if (!Number.isNaN(seq)) {
+      if (this.seen.has(seq)) return;
+      this.seen.add(seq);
     }
     if (ev.block) this.upsertBlock(ev.block);
     else if (ev.status) this.renderStatus(ev.status.state, ev.status.detail || '');

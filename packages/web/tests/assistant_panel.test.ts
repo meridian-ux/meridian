@@ -143,3 +143,33 @@ describe("vanilla assistant field displays", () => {
     expect(html).not.toContain("<raw>");
   });
 });
+
+describe("vanilla assistant event sequencing", () => {
+  it("deduplicates canonical string uint64 sequences with numeric legacy frames", () => {
+    registerAssistantPanel();
+    const panel = document.createElement("m-assistant-panel") as HTMLElement;
+    const internals = panel as unknown as {
+      render(): void;
+      handle(event: unknown): void;
+    };
+    internals.render();
+    Object.defineProperty(panel.querySelector("[data-log]"), "scrollTo", { value: () => undefined });
+
+    internals.handle({
+      seq: "42",
+      block: { blockId: "stable", markdown: { text: "first" } },
+    });
+    internals.handle({
+      seq: 42,
+      block: { blockId: "stable", markdown: { text: "duplicate" } },
+    });
+    internals.handle({
+      seq: "43",
+      block: { blockId: "stable", markdown: { text: "updated" } },
+    });
+
+    expect(panel.querySelectorAll(".asst-row")).toHaveLength(1);
+    expect(panel.querySelector(".asst-row")?.textContent).toBe("updated");
+    expect(panel.textContent).not.toContain("duplicate");
+  });
+});
