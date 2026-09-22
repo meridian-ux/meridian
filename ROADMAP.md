@@ -134,7 +134,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 |---|---|---|
 | **Tone** — how serious, how it looks | `ValueTone` (6) · `Status.State` / `ToolBlock.State` · `AffordanceStyle` · `Palette` roles | one `Tone` enum; `Palette` keyed by it — [#10](../../issues/10) |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
-| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, and `Conversation.Block.Field` | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
+| **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` is empty; four layout modes with no per-modality realization; `NestedForm.element` is an empty oneof | `Metrics` defined; a degradation ladder per layout like `panel.proto` gives each arm; `schemas/DESIGN_LANGUAGE.md` as the glossary — [#13](../../issues/13) |
 
 The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): every
@@ -179,6 +179,9 @@ declaration at one boundary, while the TUI realizes temporal and principal
 labels and preserves literal string semantics for unsupported or malformed
 declarations. Chat fields intentionally do not coerce numeric/boolean strings
 or invent navigation routes.
+`Conversation.Block.Table` now has an additive per-cell display map: legacy
+string cells remain the fallback, declared cells format in browser chat kits and
+the TUI, and the raw wire value is preserved for actions and other consumers.
 `FormField.display` now reaches the MUI and native TUI form
 read surfaces: disabled MUI scalar controls render semantic text, edit controls
 retain their raw input values, and TUI form summaries use the same core
