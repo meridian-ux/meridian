@@ -10,7 +10,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { check, checkModalities, parseBodyArms, parseScopedOneofArms } from "./check_coverage.mjs";
+import {
+  check,
+  checkModalities,
+  checkPanelRendererCoverage,
+  parseBodyArms,
+  parseScopedOneofArms,
+} from "./check_coverage.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const realManifest = () =>
@@ -44,6 +50,19 @@ test("the scoped parser finds every Conversation.Block.kind arm", () => {
 
 test("the committed non-panel modality coverage and catalog agree", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
+});
+
+test("every catalog panel renderer, including an external preview, has a coverage row", () => {
+  const manifest = realManifest();
+  delete manifest.renderers.swiftui;
+  const errors = checkPanelRendererCoverage(manifest, realCatalog());
+  assert.deepEqual(errors, ['catalog panel renderer "swiftui" has no coverage row']);
+});
+
+test("coverage cannot contain a renderer absent from the panel catalog", () => {
+  const manifest = realManifest();
+  manifest.renderers.ghost = { repo: "elsewhere", entrypoint: "unknown" };
+  assert.ok(checkPanelRendererCoverage(manifest, realCatalog()).some((error) => /ghost/.test(error)));
 });
 
 test("the Launchpad manifest covers every Command.action arm", () => {
@@ -108,6 +127,16 @@ test("an UNWAIVED full-parity gap fails", () => {
     errors.some((e) => /stream\.web-react/.test(e) && /FULL-PARITY/.test(e)),
     `expected a full-parity violation, got: ${errors.join(" | ")}`,
   );
+});
+
+test("an unverified full-parity cell requires a waiver", () => {
+  const m = realManifest();
+  m.arms.stream.renderers.swiftui = {
+    status: "unverified",
+    reason: "The external preview implementation was not verified here.",
+  };
+  const errors = check(m, realArms());
+  assert.ok(errors.some((error) => /stream\.swiftui/.test(error) && /FULL-PARITY/.test(error)));
 });
 
 test("a specialized shape may have gaps without a waiver", () => {

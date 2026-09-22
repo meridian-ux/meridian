@@ -2,7 +2,7 @@
 /**
  * Renderer-coverage gate: conformance/coverage.json vs proto/panel.proto.
  *
- * WHY THIS EXISTS. `PanelDescriptor.body` is a 21-arm oneof and no renderer
+ * WHY THIS EXISTS. `PanelDescriptor.body` is a 23-arm oneof and no renderer
  * implements all of it — which is fine and deliberate, because panel.proto
  * designs for degradation. What is NOT fine is that the coverage was, until
  * now, only knowable by reading six dispatch sites in four repositories and
@@ -11,14 +11,13 @@
  *   • a new arm can be added to the proto and simply never reach a renderer,
  *     with nothing anywhere reporting the hole;
  *   • an arm the proto declares FULL-PARITY ("every modality realizes them at
- *     full fidelity") can be unrenderable in practice, and has been — no React
- *     kit can draw `stream`, because ComponentKit has no Stream member at all;
- *   • and any tool that wants to say "this descriptor will not draw on your
- *     other surface" has no ground truth to say it from.
+ *     full fidelity") can be unrenderable in practice; and
+ *   • a renderer advertised by the catalog can be omitted from the matrix,
+ *     leaving every panel arm's status unknown.
  *
  * So coverage becomes a declared artifact that drifts loudly. This gate asserts
- * the manifest and the proto agree, that every gap is explained, and that a
- * full-parity gap is explicitly waived rather than silently tolerated.
+ * the manifest, proto, and renderer catalog agree, that every gap is explained,
+ * and that a full-parity gap or unverified cell is explicitly waived.
  *
  * Deliberately parses the .proto TEXT rather than a FileDescriptorSet. The
  * canonical descriptor set is produced by Bazel, and ci.yml's gates job is
@@ -38,8 +37,8 @@ import { checkSnapshotFiles } from "./check_conformance_snapshots.mjs";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPO_ROOT = join(ROOT, "..");
 
-/** Statuses that mean "the shape does not draw here". */
-const GAP_STATUSES = new Set(["missing", "structural-gap"]);
+/** Statuses that are gaps or have not been verified for full parity. */
+const GAP_STATUSES = new Set(["missing", "structural-gap", "unverified"]);
 /** Statuses that need an explanation. Everything except the happy one. */
 const NEEDS_REASON = (s) => s !== "renders";
 
@@ -189,10 +188,27 @@ export function checkModalities(manifest, catalog, { repoRoot = REPO_ROOT } = {}
   return errors;
 }
 
+/** Require a coverage row for every panel renderer advertised by the catalog. */
+export function checkPanelRendererCoverage(manifest, catalog) {
+  const errors = [];
+  const catalogIds = new Set(
+    (catalog.renderers ?? []).filter((entry) => entry.modality === "panel").map((entry) => entry.id),
+  );
+  const coverageIds = new Set(Object.keys(manifest.renderers ?? {}));
+
+  for (const id of catalogIds) {
+    if (!coverageIds.has(id)) errors.push(`catalog panel renderer "${id}" has no coverage row`);
+  }
+  for (const id of coverageIds) {
+    if (!catalogIds.has(id)) errors.push(`coverage renderer "${id}" is not a panel renderer in renderer_catalog.json`);
+  }
+  return errors;
+}
+
 function renderMatrix(manifest, arms) {
   const renderers = Object.keys(manifest.renderers);
   const glyph = {
-    renders: "  ●  ", placeholder: "  ○  ", "separate-entrypoint": " sep ",
+    renders: "  ●  ", placeholder: "  ○  ", "separate-entrypoint": " sep ", unverified: "  ?  ",
     missing: "  —  ", "structural-gap": "  ✗  ", "not-applicable": " n/a ",
   };
   const w = Math.max(...arms.map((a) => a.name.length)) + 1;
@@ -256,7 +272,7 @@ export function check(manifest, arms) {
         errors.push(
           `${name}.${r}: ${name} is declared FULL-PARITY by panel.proto ("every modality ` +
           `realizes them at full fidelity") but is "${status}" here with no waiver. ` +
-          `Either implement it, or add a waiver saying who owes it.`,
+          `Implement or verify it, or add a waiver saying who owes that proof.`,
         );
       }
     }
@@ -274,16 +290,22 @@ function main() {
 
   if (process.argv.includes("--matrix")) {
     console.log(renderMatrix(manifest, arms));
+    console.log("\nLegend: ● renders · ○ placeholder · sep separate entrypoint · ? unverified · — missing · ✗ structural gap · n/a not applicable");
     return;
   }
 
-  const errors = [...check(manifest, arms), ...checkModalities(manifest, catalog), ...checkSnapshotFiles(manifest)];
+  const errors = [
+    ...check(manifest, arms),
+    ...checkPanelRendererCoverage(manifest, catalog),
+    ...checkModalities(manifest, catalog),
+    ...checkSnapshotFiles(manifest),
+  ];
   if (errors.length === 0) {
     const waived = Object.entries(manifest.arms).flatMap(([n, a]) =>
       Object.entries(a.renderers).filter(([, c]) => c.waiver).map(([r]) => `${n}.${r}`));
     console.log(
       `coverage OK — ${arms.length} arms × ${Object.keys(manifest.renderers).length} renderers` +
-      (waived.length ? `, ${waived.length} waived full-parity gaps: ${waived.join(", ")}` : ""),
+      (waived.length ? `, ${waived.length} waived full-parity cells: ${waived.join(", ")}` : ""),
     );
     return;
   }

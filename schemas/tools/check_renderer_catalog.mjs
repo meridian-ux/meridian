@@ -72,21 +72,14 @@ export function check(catalog, coverage, { repoRoot = REPO_ROOT } = {}) {
     } else {
       errors.push(`${id}: source kind must be "local" or "external"`);
     }
-    // Coverage is local to this repository. An external preview renderer may
-    // consume the same panel schema without having a row in the local matrix.
-    if (entry.modality === "panel" && source?.kind === "local") catalogPanelIds.add(id);
+    if (entry.modality === "panel") catalogPanelIds.add(id);
   }
 
   for (const id of panelIds) {
     if (!catalogPanelIds.has(id)) errors.push(`coverage renderer "${id}" has no panel row in renderer_catalog.json`);
   }
   for (const id of catalogPanelIds) {
-    if (panelIds.has(id)) continue;
-    const entry = renderers.find((candidate) => candidate.id === id);
-    const isExplicitExternalPreview = entry?.status === "preview" && entry.source?.kind === "external";
-    if (!isExplicitExternalPreview) {
-      errors.push(`catalog panel renderer "${id}" is not declared by coverage.json`);
-    }
+    if (!panelIds.has(id)) errors.push(`catalog panel renderer "${id}" is not declared by coverage.json`);
   }
   for (const modality of Object.keys(modalities)) {
     if (!renderers.some((entry) => entry.modality === modality)) errors.push(`modality "${modality}" has no renderer entry`);

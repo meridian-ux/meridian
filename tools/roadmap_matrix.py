@@ -17,7 +17,8 @@ from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GLYPH = {"renders": "●", "placeholder": "◐", "separate-entrypoint": "◑",
-         "missing": "○", "structural-gap": "✕", "not-applicable": "–"}
+         "missing": "○", "structural-gap": "✕", "not-applicable": "–",
+         "unverified": "?"}
 MATRIX_PATTERN = re.compile(
     r"(<!-- matrix:start -->\n).*?(<!-- matrix:end -->)", re.S
 )
@@ -35,10 +36,16 @@ def render() -> str:
             if s != "renders":
                 gaps[s] += 1; by_r[r] += 1
         out.append(f"| `{a}` | {v['parity']} | " + " | ".join(cells) + " |")
-    total = len(arms) * len(R); n = sum(gaps.values())
-    out += ["", f"**{len(arms)} arms × {len(R)} renderers = {total} cells; {total - n} render, {n} do not.**", "",
+    total = len(arms) * len(R)
+    render_count = sum(1 for arm in arms.values() for cell in arm["renderers"].values()
+                       if cell["status"] == "renders")
+    unverified_count = gaps["unverified"]
+    other_count = total - render_count - unverified_count
+    out += ["", f"**{len(arms)} arms × {len(R)} renderers = {total} cells; "
+            f"{render_count} marked renders, {other_count} other declared states, "
+            f"{unverified_count} unverified.**", "",
             "| status | cells |", "|---|---|"] + [f"| {GLYPH[k]} `{k}` | {c} |" for k, c in gaps.most_common()]
-    out += ["", "| renderer | gaps |", "|---|---|"] + [f"| {r} | {by_r[r]} |" for r in R]
+    out += ["", "| renderer | cells not marked renders |", "|---|---|"] + [f"| {r} | {by_r[r]} |" for r in R]
     for modality, section in d.get("modalities", {}).items():
         modality_arms = section.get("arms", {})
         if not modality_arms:

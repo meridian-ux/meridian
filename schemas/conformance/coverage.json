@@ -1,11 +1,12 @@
 {
-  "$schema-note": "Coverage of meridian.ui.v1.PanelDescriptor's `body` oneof, per renderer. Checked against proto/panel.proto by tools/check_coverage.mjs: the arm set must match exactly, every non-'renders' cell must carry a reason, and a full-parity arm that is missing or structurally unrenderable must carry a waiver. Adding an arm to the proto without declaring its coverage fails.",
+  "$schema-note": "Coverage of meridian.ui.v1.PanelDescriptor's `body` oneof, per renderer. Checked against proto/panel.proto and renderer_catalog.json by tools/check_coverage.mjs: renderer and arm sets must match exactly, every non-'renders' cell must carry a reason, and full-parity gaps or unverified cells must carry a waiver. Adding a renderer or arm without declaring its coverage fails.",
   "statuses": {
     "renders": "The renderer draws the shape.",
     "placeholder": "The renderer draws an explanatory placeholder instead of the shape.",
     "separate-entrypoint": "Drawn, but by a dedicated entrypoint outside the main dispatch.",
     "missing": "Not implemented.",
-    "structural-gap": "Cannot be implemented without an API change \u2014 no seam exists.",
+    "structural-gap": "Cannot be implemented without an API change — no seam exists.",
+    "unverified": "The renderer is public, but its behavior has not been verified in this repository.",
     "not-applicable": "This tier does not own the shape."
   },
   "parity": {
@@ -37,6 +38,10 @@
     "tui": {
       "repo": "meridian-tui",
       "entrypoint": "rust/tui/src/widget.rs"
+    },
+    "swiftui": {
+      "repo": "meridian-ui",
+      "entrypoint": "External preview; source is not available in this repository."
     }
   },
   "modalities": {
@@ -136,6 +141,10 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -160,6 +169,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders LRO inputs and run affordance text; hosts handle the long-running operation transport."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -187,6 +200,10 @@
         "tui": {
           "status": "placeholder",
           "reason": "AdhocPanel is dispatched by the core via the handler registry, not by a kit."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -212,6 +229,10 @@
         "tui": {
           "status": "separate-entrypoint",
           "reason": "Rendered by a dedicated one-shot entrypoint (render_prompt / render_llm_prompt) rather than by PanelView's dispatch."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -240,6 +261,10 @@
         "tui": {
           "status": "separate-entrypoint",
           "reason": "Rendered by a dedicated one-shot entrypoint (render_prompt / render_llm_prompt) rather than by PanelView's dispatch."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -265,6 +290,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders populated gallery cards as selectable text, retaining title, subtitle, status, links, and actions."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -289,6 +318,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders form fields as labeled terminal controls with read-only and editable modes plus defaults."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -312,6 +345,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -335,6 +373,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -358,6 +401,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -381,6 +429,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -404,6 +457,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -427,6 +485,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -455,6 +518,10 @@
         "tui": {
           "status": "placeholder",
           "reason": "The TUI keeps an explanatory placeholder because terminal.proto defines this arm as web-specific."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -478,6 +545,10 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -501,6 +572,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -527,6 +603,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI fetches the record once and renders detail titles, descriptor rows, and read-only fields as text."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -553,6 +633,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI fetches the record once and renders read-only fields as labeled text."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -578,6 +662,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders resource-card rows as selectable numbered text cards with metadata and visible actions."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -604,6 +692,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders portable chart intent and populated rows as a bounded terminal table."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -631,6 +723,11 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI renders ordered labels, actor labels, details, intro/outro, and media-alt degradation as terminal text."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     },
@@ -658,6 +755,10 @@
         "tui": {
           "status": "renders",
           "reason": "The TUI realizes MediaPanel's terminal degradation rung with alt text, duration, captions, chapters, and source URI."
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
         }
       }
     },
@@ -681,6 +782,11 @@
         },
         "tui": {
           "status": "renders"
+        },
+        "swiftui": {
+          "status": "unverified",
+          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
     }

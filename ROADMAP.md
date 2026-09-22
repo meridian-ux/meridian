@@ -36,41 +36,42 @@ The table below is **generated** from the coverage manifest by
 `tools/roadmap_matrix.py --check`.
 
 <!-- matrix:start -->
-| arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui |
-|---|---|---|---|---|---|---|---|
-| `table` | standard | ● | ● | ● | ● | ● | ● |
-| `lro` | standard | ● | ● | ● | ● | ● | ● |
-| `adhoc` | standard | ● | ● | – | – | – | ◐ |
-| `prompt` | standard | ● | ● | ● | ● | ● | ◑ |
-| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ |
-| `gallery` | standard | ● | ● | ● | ● | ● | ● |
-| `form` | standard | ● | ● | ● | ● | ● | ● |
-| `choice` | full | ● | ● | ● | ● | ● | ● |
-| `snippet` | full | ● | ● | ● | ● | ● | ● |
-| `action` | full | ● | ● | ● | ● | ● | ● |
-| `connect_flow` | full | ● | ● | ● | ● | ● | ● |
-| `copy_value` | full | ● | ● | ● | ● | ● | ● |
-| `catalog` | full | ● | ● | ● | ● | ● | ● |
-| `terminal` | specialized | ● | ● | ● | ● | ● | ◐ |
-| `grammar` | specialized | ● | ● | ● | ● | ● | ● |
-| `stat` | full | ● | ● | ● | ● | ● | ● |
-| `detail_header` | standard | ● | ● | ● | ● | ● | ● |
-| `record_card` | standard | ● | ● | ● | ● | ● | ● |
-| `resource_cards` | standard | ● | ● | ● | ● | ● | ● |
-| `chart` | specialized | ● | ● | ● | ● | ● | ● |
-| `steps` | full | ● | ● | ● | ● | ● | ● |
-| `media` | specialized | ● | ● | ● | ● | ● | ● |
-| `stream` | full | ● | ● | ● | ● | ● | ● |
+| arm | parity | web-components | web-react | mui-kit | html-kit | shadcn-kit | tui | swiftui |
+|---|---|---|---|---|---|---|---|---|
+| `table` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `lro` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `adhoc` | standard | ● | ● | – | – | – | ◐ | ? |
+| `prompt` | standard | ● | ● | ● | ● | ● | ◑ | ? |
+| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ | ? |
+| `gallery` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `form` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `choice` | full | ● | ● | ● | ● | ● | ● | ? |
+| `snippet` | full | ● | ● | ● | ● | ● | ● | ? |
+| `action` | full | ● | ● | ● | ● | ● | ● | ? |
+| `connect_flow` | full | ● | ● | ● | ● | ● | ● | ? |
+| `copy_value` | full | ● | ● | ● | ● | ● | ● | ? |
+| `catalog` | full | ● | ● | ● | ● | ● | ● | ? |
+| `terminal` | specialized | ● | ● | ● | ● | ● | ◐ | ? |
+| `grammar` | specialized | ● | ● | ● | ● | ● | ● | ? |
+| `stat` | full | ● | ● | ● | ● | ● | ● | ? |
+| `detail_header` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `record_card` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `resource_cards` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `chart` | specialized | ● | ● | ● | ● | ● | ● | ? |
+| `steps` | full | ● | ● | ● | ● | ● | ● | ? |
+| `media` | specialized | ● | ● | ● | ● | ● | ● | ? |
+| `stream` | full | ● | ● | ● | ● | ● | ● | ? |
 
-**23 arms × 6 renderers = 138 cells; 131 render, 7 do not.**
+**23 arms × 7 renderers = 161 cells; 131 marked renders, 7 other declared states, 23 unverified.**
 
 | status | cells |
 |---|---|
+| ? `unverified` | 23 |
 | – `not-applicable` | 3 |
 | ◐ `placeholder` | 2 |
 | ◑ `separate-entrypoint` | 2 |
 
-| renderer | gaps |
+| renderer | cells not marked renders |
 |---|---|
 | web-components | 0 |
 | web-react | 0 |
@@ -78,6 +79,7 @@ The table below is **generated** from the coverage manifest by
 | html-kit | 1 |
 | shadcn-kit | 1 |
 | tui | 4 |
+| swiftui | 23 |
 
 ### Conversation modality
 
@@ -107,7 +109,7 @@ The table below is **generated** from the coverage manifest by
 **4 arms × 1 renderer = 4 cells; 4 render, 0 do not.**
 <!-- matrix:end -->
 
-Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · – not applicable.
+Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · ? unverified · – not applicable.
 
 Three facts shape the order of work:
 
@@ -121,11 +123,11 @@ Three facts shape the order of work:
   The TUI stream pane now subscribes through a host-owned `StreamInvoker`, keeps a
   bounded tail, and lets readers scroll back without losing their place as frames
   arrive. Its follow behavior is covered with `TestBackend`.
-- **The renderer catalog is now complete at the tier level.** The panel matrix remains
-  intentionally scoped to `PanelDescriptor.body`; the catalog separately declares the
-  SwiftUI preview tier and the conversation and launchpad modalities, with local
-  entrypoints checked in CI. [#5](../../issues/5) remains the owner of expanding the
-  catalog into per-modality conformance evidence.
+- **The renderer catalog is now complete at the tier level.** The panel matrix includes
+  every catalog panel renderer, including SwiftUI. Its external preview cells are marked
+  `unverified`, with explicit waivers on full-parity arms; conversation and launchpad
+  retain their separate modality rows. [#5](../../issues/5) still owns publishing this
+  evidence through the Pages conformance view.
 
 Declared is not proven. [#9](../../issues/9) builds the conformance corpus — fixtures per
 arm, a normalizer per renderer, snapshots gated in CI — so `renders` becomes a property
@@ -360,8 +362,9 @@ error transition without reaching `fetch`.
 
 ## What is deliberately not here
 
-- A `swiftui` row in the matrix. `meridian-swift` lives outside this monorepo; its
-  maintainers own the declaration. [#5](../../issues/5) tracks the ask.
+- Verified SwiftUI rendering. Its public preview is now represented in the matrix as
+  `unverified`; implementation evidence remains with the external `meridian-ui` project.
+  [#5](../../issues/5) tracks the remaining conformance-page work.
 - Dates beyond M4. A 1.0 is the *criterion* of M4, not a date.
 - Anything the compiler has not yet found. The monorepo merge surfaced two unimplemented
   RPCs and a formatting field simply by unifying pins; M3's proto changes will surface
