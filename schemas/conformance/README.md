@@ -170,18 +170,22 @@ The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
 link, an admitted unbound view action's exact service/method and empty request, and
 mutation denial before transport with a host denial callback. ActionPanel
-affordances retain their URI/command contracts, separate from RPC actions.
-The HTML/Shadcn view-action fallback also resolves literal, current selection,
-and ambient repeated-view record fields into declared request paths, including
-nested bindings. Missing sources are omitted; raw false/zero values survive.
-This does not cover custom kit ActionBars or row-action controls, nor supply
-form, signal, or host runtime context when those sources are unavailable.
-The shared view action fallback exposes denied calls with `aria-disabled` and
-an unavailable description while remaining focusable; attempted activation
-reports the denial through the gated invoker without transport. Pending actions
-disable duplicate activation. Failures render a `role="alert"` message and allow
-retry; successful retries clear the error. This evidence covers HTML/Shadcn's
-fallback, not custom kit ActionBar implementations or row actions.
+affordances retain their URI/command contracts, separate from view Actions: the
+current `Action` message carries an RPC call or a host-resolved id, not a URI or
+command payload.
+
+Both reference kits now provide an ActionBar. The suite verifies PRIMARY and
+HEADER controls, an accessible OVERFLOW menu, ROW placement exclusion from the
+view header, host callbacks for call-less actions, and literal request bindings.
+The bars also resolve current selection and ambient repeated-view record fields
+into declared request paths, including nested bindings. Missing sources are
+omitted; raw false/zero values survive. They expose denied calls with
+`aria-disabled` and an unavailable description while remaining focusable;
+attempted activation reports the denial through the gated invoker without
+transport. Pending actions disable duplicate activation. Failures render a
+`role="alert"` message and allow retry; successful retries clear the error.
+This does not supply form, signal, or host runtime context when those sources are
+unavailable, and does not establish third-party kit or visual menu parity.
 The HTML/Shadcn `form.test.ts` suite verifies FormPanel read-tier prefill,
 typed scalar/nested/repeated/map payloads, submit bindings, mutation admission,
 validation, duplicate-submit prevention, visible failures and retry, and saved
@@ -200,8 +204,8 @@ form saving, saved, submit failure, and successful retry with prefilled values;
 and dynamic enum loading, resolved options after a blocked submit, failed,
 malformed, and empty responses. They use the same normalizer as the initial-state
 corpus, preserving visible feedback, authored roles, disabled controls, and
-resolved description text. These action states belong to the shared view-action
-fallback, not ActionPanel's URI/command affordances. Live selected values and RPC
+resolved description text. These action states belong to the HTML/Shadcn
+ActionBars, not ActionPanel's URI/command affordances. Live selected values and RPC
 payloads remain explicit assertions: the normalizer records DOM attributes, not
 all live control properties. The 28 snapshots supplement the 96 initial-state
 browser snapshots; they do not expand the canonical fixture count or prove

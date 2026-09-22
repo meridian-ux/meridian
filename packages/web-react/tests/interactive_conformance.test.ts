@@ -30,6 +30,47 @@ async function mounted(node: ReactNode, check: (container: HTMLElement) => Promi
 }
 
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action interaction contract", (_name, kit) => {
+  it("realizes primary, header, and overflow placements while keeping row actions out of the header", async () => {
+    const invoke = vi.fn(async () => ({}));
+    const onAction = vi.fn();
+    const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", actions: [
+      { id: "run", label: "Run now", placement: ActionPlacement.PRIMARY,
+        call: { service: "demo.Reports", method: "Run" } },
+      { id: "edit", label: "Edit report", placement: ActionPlacement.HEADER },
+      { id: "export", label: "Export CSV", placement: ActionPlacement.OVERFLOW,
+        call: { service: "demo.Reports", method: "Export", bindings: [
+          { requestField: "format", source: { case: "literal", value: "csv" } },
+        ] } },
+      { id: "row-delete", label: "Delete row", placement: ActionPlacement.ROW },
+    ] });
+    await mounted(createElement(MeridianProvider, {
+      kit, adhoc: {}, invoker: { invoke }, onAction, admission: "unrestricted",
+    }, createElement(ViewRenderer, { view })), async container => {
+      expect(kit.ActionBar).toBeDefined();
+      expect(container.querySelector("[data-action-bar]")?.getAttribute("data-action-bar")).toBe(kit.id);
+      const labels = [...container.querySelectorAll("button")].map((button) => button.textContent?.trim());
+      expect(labels).toEqual(["Run now", "Edit report", "⋮"]);
+      expect(container.textContent).not.toContain("Delete row");
+
+      const button = (label: string) => [...container.querySelectorAll("button")]
+        .find((candidate) => candidate.textContent?.trim() === label)!;
+      await act(async () => button("Run now").click());
+      await act(async () => button("Edit report").click());
+      expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
+      expect(onAction).toHaveBeenCalledWith("edit", "report");
+
+      const overflow = container.querySelector<HTMLButtonElement>('[aria-label="More actions"]')!;
+      await act(async () => overflow.click());
+      expect(overflow.getAttribute("aria-expanded")).toBe("true");
+      expect(container.querySelector('[role="menu"]')).not.toBeNull();
+      const exportAction = container.querySelector<HTMLButtonElement>('[role="menuitem"]')!;
+      expect(exportAction.textContent).toBe("Export CSV");
+      await act(async () => exportAction.click());
+      expect(invoke).toHaveBeenLastCalledWith("demo.Reports", "Export", { format: "csv" });
+      expect(container.querySelector('[role="menu"]')).toBeNull();
+    });
+  });
+
   it("preserves the canonical ActionPanel's named navigation control without dialing an RPC", async () => {
     const source = FIXTURES.find(fixture => fixture.shape === "action")!.descriptor;
     const descriptor = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, source));

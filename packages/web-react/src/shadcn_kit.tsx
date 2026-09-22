@@ -36,6 +36,7 @@ import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
 import { GalleryContent } from "./gallery.js";
 import { TableContent } from "./table.js";
+import { ReferenceActionBar } from "./reference_action_bar.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -82,6 +83,7 @@ function themeToStyle(theme: Theme | undefined): CSSProperties {
 
 export const shadcnKit: ComponentKit = {
   id: "shadcn",
+  ActionBar: (props) => <ReferenceActionBar {...props} variant="shadcn" />,
   themeToStyle,
   Chrome: ({ descriptor, children }) => (
     <section

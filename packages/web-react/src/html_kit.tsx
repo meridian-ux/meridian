@@ -32,6 +32,7 @@ import { LlmPromptContent } from "./llm_prompt.js";
 import { StepMedia } from "./step_media.js";
 import { GalleryContent } from "./gallery.js";
 import { TableContent } from "./table.js";
+import { ReferenceActionBar } from "./reference_action_bar.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -74,6 +75,7 @@ function themeToStyle(theme: Theme | undefined): CSSProperties {
 
 export const htmlKit: ComponentKit = {
   id: "html",
+  ActionBar: (props) => <ReferenceActionBar {...props} variant="html" />,
   themeToStyle,
   Chrome: ({ descriptor, children }) => (
     <section
