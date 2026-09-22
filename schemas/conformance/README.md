@@ -328,6 +328,11 @@ web-components, HTML, Shadcn, MUI, and framework-neutral seam tests protect the
 same rule. Native surfaces continue to expose URI intent as text for host-owned
 activation.
 
+The MUI Launchpad applies that same rule to authored `Command.deep_link` values
+before document navigation. Safe application deep links retain precedence over
+the command action; rejected executable or local-document schemes render as
+disabled commands and never fall through to the alternate action.
+
 ## Remaining coverage and tooling
 
 Epic #9 still owns broader populated-shape coverage, visual overflow/layout and

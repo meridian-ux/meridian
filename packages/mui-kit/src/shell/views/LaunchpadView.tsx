@@ -30,6 +30,7 @@ import {
 import * as React from "react";
 
 import type { Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import { PanelRenderer, useIcon, useMutationRpcInvoker } from "@savvifi/meridian-web-react";
 
 import { useShell } from "../context.js";
@@ -88,8 +89,11 @@ export function LaunchpadView() {
       // A deep link wins over the action: a host that encodes palette state in the URL wants
       // the navigation, so that a refresh or a shared link reopens the same step.
       if (command.deepLink) {
-        window.location.assign(command.deepLink);
-        close();
+        const href = safeNavigationHref(command.deepLink);
+        if (href) {
+          window.location.assign(href);
+          close();
+        }
         return;
       }
       const action = command.action;
@@ -187,10 +191,13 @@ export function LaunchpadView() {
                     ) : null}
                     {group.commands.map((command) => {
                       const position = flat.indexOf(command);
+                      const deepLinkDisabled = Boolean(command.deepLink && !safeNavigationHref(command.deepLink));
                       return (
                         <ListItemButton
                           key={command.id}
                           {...feedback.props(!command.deepLink && command.action.case === "rpc" ? command.action.value : undefined)}
+                          {...(deepLinkDisabled ? { "aria-disabled": true } : {})}
+                          disabled={deepLinkDisabled}
                           selected={position === index}
                           onMouseEnter={() => setIndex(position)}
                           onClick={() => run(command)}

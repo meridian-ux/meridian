@@ -133,7 +133,8 @@ across all browser renderers, populated Chart fallbacks across all browser
 renderers plus native populated/empty/failure text goldens, bounded native
 Stream snapshot retention, safe declared Table URL links across all browser
 renderers, browser Affordance URI admission that preserves safe application
-deep links while disabling executable/local-document schemes, and HTML/Shadcn
+deep links while disabling executable/local-document schemes, matching MUI
+Launchpad admission for authored command deep links, and HTML/Shadcn
 ActionPanel/Form interaction contracts are also checked in. These checks do not establish visual
 layout, every formatter option, or full renderer parity. Remaining work is
 the broader parity and renderer-specific/tooling scope called out above.

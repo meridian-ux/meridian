@@ -227,6 +227,57 @@ describe("the launchpad navigates through the host's router", () => {
   });
 });
 
+describe("the launchpad admits authored deep links", () => {
+  function withDeepLink(deepLink: string) {
+    return shellWith({
+      launchpad: create(LaunchpadSchema, {
+        groups: [
+          create(CommandGroupSchema, {
+            id: "deep-links",
+            title: "Deep links",
+            commands: [
+              create(CommandSchema, {
+                id: "open-editor",
+                title: "Open editor",
+                deepLink,
+                action: { case: "navigate", value: { route: "/must-not-run" } },
+              }),
+            ],
+          }),
+        ],
+      }),
+    });
+  }
+
+  it("preserves an admitted application deep link instead of running its fallback action", () => {
+    const navigate = vi.fn();
+    const location = spyOnAssign();
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("cursor://file/workspace/readme"));
+
+    fireEvent.click(screen.getByLabelText("Open the launchpad"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByText("Open editor"));
+
+    expect(location.assign).toHaveBeenCalledWith("cursor://file/workspace/readme");
+    expect(navigate).not.toHaveBeenCalled();
+    location.restore();
+  });
+
+  it("disables an executable deep link without falling through to its action", () => {
+    const navigate = vi.fn();
+    const location = spyOnAssign();
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("javascript:alert(1)"));
+
+    fireEvent.click(screen.getByLabelText("Open the launchpad"));
+    const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Open editor" });
+
+    expect(command.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(command);
+    expect(location.assign).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+    location.restore();
+  });
+});
+
 describe("displayKeys", () => {
   it("⛔ defaults to the non-Apple glyph, so the server and the hydrating render agree", () => {
     // The platform is a client-only fact. `useIsApplePlatform` upgrades this after mount;
