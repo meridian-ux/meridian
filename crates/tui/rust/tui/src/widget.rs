@@ -232,9 +232,12 @@ impl PanelView {
                 .subscribe
                 .as_ref()
                 .and_then(|call| invoker.subscribe(call, request).ok());
+            if let Some(session) = self.stream_session.as_mut() {
+                session.apply_limits(0, 0);
+            }
         }
         let mut appended = 0usize;
-        if let Some(session) = self.stream_session.as_ref() {
+        if let Some(session) = self.stream_session.as_mut() {
             while let Ok(Some(frame)) = session.try_recv() {
                 if let Some(line) = stream_line(&frame, &panel.line_field) {
                     self.stream_lines.push(line);

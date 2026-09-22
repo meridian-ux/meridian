@@ -74,6 +74,13 @@ message StreamPanel {
   string placeholder = 5 [(google.api.field_behavior) = OPTIONAL];
   // Noun for the meta line ("lines", "events", "frames").
   string item_noun = 6 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum cumulative bytes accepted from this subscription. 0 selects the
+  // shared-core default (64 MiB); a nonzero value can only tighten that ceiling.
+  // Exceeding it ends the subscription.
+  uint32 max_bytes = 7 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum bytes accepted in any rolling one-second window. 0 selects the
+  // shared-core default (1 MiB/s). Exceeding it ends the subscription.
+  uint32 max_rate = 8 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // One transport-independent server-streaming event. Hosts encode the structured

@@ -137,6 +137,10 @@ export function plainValue(v: unknown): unknown {
  *  the host; we don't ship the wasm in this package. Descriptors / sub-messages
  *  cross as protobuf binary (Uint8Array); responses + context are JSON. */
 export interface UiviewWasm {
+  PayloadBudget?: new (maxBytes: number, maxRate: number) => {
+    /** 0 admitted, 1 total-byte ceiling, 2 rolling-rate ceiling, 3 bad clock. */
+    admit(payloadBytes: number, nowMs: number): number;
+  };
   renderTable(descriptor: Uint8Array, response: object): RenderedRow[];
   buildPopulateRequest(descriptor: Uint8Array, context: RenderContext): object;
   readPath(value: object, path: string): unknown;
@@ -418,6 +422,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
       tool: spec.tool,
       cols: spec.cols,
       rows: spec.rows,
+      createBudget: () => makePayloadBudget(wasm, spec.maxBytes, spec.maxRate),
     });
     // The handle owns a live WebSocket; without this it outlived the panel.
     onDispose(root, () => handle.dispose());
@@ -2138,6 +2143,7 @@ function renderStreamPanel(
   }
 
   const follow = panel.followMode !== FollowMode.MANUAL; // UNSPECIFIED ⇒ FOLLOW
+  const budget = makePayloadBudget(wasm, panel.maxBytes, panel.maxRate);
   const maxLines = panel.maxLines || STREAM_DEFAULT_MAX_LINES;
   let count = 0;
 
@@ -2227,12 +2233,28 @@ function renderStreamPanel(
   }
 
   try {
+    let subscription: { close(): void } | undefined;
+    let rejected = false;
+    const rejectPayload = () => {
+      rejected = true;
+      metaEl.textContent = `${count} ${noun} — payload limit exceeded; stream stopped`;
+      subscription?.close();
+    };
     const sub = opts.streamInvoker.subscribe(
       subscribe.service,
       subscribe.method,
       request,
       {
-        onFrame: (frame) => append(textOf(frame)),
+        onFrame: (frame) => {
+          if (rejected) return;
+          const encoded = typeof frame === "string" ? frame : JSON.stringify(frame);
+          const bytes = new TextEncoder().encode(encoded ?? "").byteLength;
+          if (budget.admit(bytes, performance.now()) !== 0) {
+            rejectPayload();
+            return;
+          }
+          append(textOf(frame));
+        },
         onError: (err) => {
           metaEl.textContent = `${count} ${noun} — stream failed: ${err.message}`;
         },
@@ -2241,10 +2263,23 @@ function renderStreamPanel(
         },
       },
     );
+    subscription = sub;
+    if (rejected) sub.close();
     onDispose(root, () => sub.close());
   } catch (err) {
     metaEl.textContent = `Failed: ${(err as Error).message}`;
   }
+}
+
+function makePayloadBudget(
+  wasm: UiviewWasm,
+  maxBytes: number,
+  maxRate: number,
+): { admit(payloadBytes: number, nowMs: number): number } {
+  if (wasm.PayloadBudget) return new wasm.PayloadBudget(maxBytes, maxRate);
+  // Older hosts can still render non-streaming panels. Live untrusted payloads
+  // fail closed when the shared Rust guard is unavailable.
+  return { admit: () => 1 };
 }
 
 // ---------------------------------------------------------------------------

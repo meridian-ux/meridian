@@ -41,4 +41,11 @@ message TerminalPanel {
   uint32 cols = 3 [(google.api.field_behavior) = OPTIONAL];
   // Pre-fit row count; 0 = the xterm default.
   uint32 rows = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum bytes accepted per direction for this terminal session. 0 selects
+  // the shared-core default (64 MiB). Exceeding it closes the session.
+  uint32 max_bytes = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Maximum bytes accepted in any rolling one-second window, independently per
+  // direction. 0 selects the shared-core default (1 MiB/s). Exceeding it closes
+  // the session.
+  uint32 max_rate = 6 [(google.api.field_behavior) = OPTIONAL];
 }

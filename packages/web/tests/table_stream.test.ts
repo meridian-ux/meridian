@@ -38,6 +38,7 @@ const readPath = (value: object, path: string): unknown =>
 
 function wasmWith(rows: RenderedRow[]): UiviewWasm {
   return {
+    PayloadBudget: class { admit() { return 0; } },
     renderTable: () => rows,
     buildPopulateRequest: () => ({}),
     readPath,

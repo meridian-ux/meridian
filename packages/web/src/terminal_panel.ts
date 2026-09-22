@@ -28,6 +28,12 @@ export interface TerminalSpec {
   /** Pre-fit dimensions; 0/undefined → xterm defaults, then FitAddon fits. */
   cols?: number;
   rows?: number;
+  /** Shared-core budget handle, independently allocated for each direction. */
+  createBudget: () => PayloadBudgetHandle;
+}
+
+export interface PayloadBudgetHandle {
+  admit(payloadBytes: number, nowMs: number): number;
 }
 
 /** Handle returned by `renderTerminalPanel` so hosts can tear a session down. */
@@ -164,6 +170,8 @@ export function renderTerminalPanel(
   // `onFit` -> sendResize, which reads `ws`. With the declaration below the
   // mount that is a temporal-dead-zone throw on every terminal open.
   let ws: WebSocket | null = null;
+  let outboundBudget = spec.createBudget();
+  let inboundBudget = spec.createBudget();
 
   const mount = mountXterm(
     screen,
@@ -186,13 +194,28 @@ export function renderTerminalPanel(
 
   function sendResize(): void {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+      sendPayload(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
     }
+  }
+
+  function sendPayload(payload: string | Uint8Array): void {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const bytes =
+      typeof payload === "string"
+        ? new TextEncoder().encode(payload).byteLength
+        : payload.byteLength;
+    if (outboundBudget.admit(bytes, performance.now()) !== 0) {
+      setStatus("payload limit exceeded", "closed");
+      reconnect.style.display = "";
+      ws.close(1009, "payload limit exceeded");
+      return;
+    }
+    ws.send(payload);
   }
 
   const onData = term.onData((data: string) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(new TextEncoder().encode(data));
+      sendPayload(new TextEncoder().encode(data));
     }
   });
   const onResize = term.onResize(() => sendResize());
@@ -200,6 +223,8 @@ export function renderTerminalPanel(
   function connect(): void {
     if (disposed) return;
     reconnect.style.display = "none";
+    outboundBudget = spec.createBudget();
+    inboundBudget = spec.createBudget();
     setStatus("connecting…", "");
     let sock: WebSocket;
     try {
@@ -220,6 +245,13 @@ export function renderTerminalPanel(
     };
     sock.onmessage = (ev: MessageEvent) => {
       if (typeof ev.data === "string") {
+        const bytes = new TextEncoder().encode(ev.data).byteLength;
+        if (inboundBudget.admit(bytes, performance.now()) !== 0) {
+          setStatus("payload limit exceeded", "closed");
+          reconnect.style.display = "";
+          sock.close(1009, "payload limit exceeded");
+          return;
+        }
         // JSON control frame from the broker (e.g. exit notice). Best-effort.
         try {
           const msg = JSON.parse(ev.data) as { type?: string; code?: number };
@@ -233,7 +265,14 @@ export function renderTerminalPanel(
         }
         return;
       }
-      term.write(new Uint8Array(ev.data as ArrayBuffer));
+      const bytes = new Uint8Array(ev.data as ArrayBuffer);
+      if (inboundBudget.admit(bytes.byteLength, performance.now()) !== 0) {
+        setStatus("payload limit exceeded", "closed");
+        reconnect.style.display = "";
+        sock.close(1009, "payload limit exceeded");
+        return;
+      }
+      term.write(bytes);
     };
     sock.onclose = () => {
       if (disposed) return;

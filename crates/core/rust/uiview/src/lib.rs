@@ -60,6 +60,7 @@ pub mod proto {
 mod conversation;
 mod launchpad;
 mod paths;
+mod payload_budget;
 mod render;
 mod request;
 mod stat;
@@ -68,6 +69,9 @@ mod stream;
 pub use conversation::{is_active_status, ConversationModel};
 pub use launchpad::{command_haystack, filter_launchpad, flatten, match_score, FilteredGroup};
 pub use paths::ProtoPaths;
+pub use payload_budget::{
+    PayloadBudget, PayloadLimitExceeded, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_RATE,
+};
 pub use render::{
     format_cell, format_display_value, format_value, render_gallery, render_table, RenderedCard,
     RenderedRow,

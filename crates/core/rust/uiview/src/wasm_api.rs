@@ -14,13 +14,53 @@
 // values too.
 
 use crate::paths::ProtoPaths;
+use crate::payload_budget::PayloadBudget;
 use crate::proto::{GalleryPanel, PanelDescriptor, RpcCall, TablePanel};
 use crate::render::{render_gallery, render_table};
 use crate::request::{Context, RequestBuilder};
 use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::time::Duration;
 use wasm_bindgen::prelude::*;
+
+/// Stateful JavaScript handle backed by the same payload policy used by native
+/// stream consumers. A separate instance is used for each direction/session.
+#[wasm_bindgen(js_name = PayloadBudget)]
+pub struct WasmPayloadBudget {
+    inner: PayloadBudget,
+    started_at_ms: Option<f64>,
+}
+
+#[wasm_bindgen]
+impl WasmPayloadBudget {
+    #[wasm_bindgen(constructor)]
+    pub fn new(max_bytes: u32, max_rate: u32) -> Self {
+        Self {
+            inner: PayloadBudget::new(u64::from(max_bytes), u64::from(max_rate)),
+            started_at_ms: None,
+        }
+    }
+
+    /// Returns 0 when admitted, 1 for the session-byte ceiling, 2 for the
+    /// rolling one-second rate ceiling, and 3 for an invalid monotonic clock.
+    pub fn admit(&mut self, payload_bytes: u32, now_ms: f64) -> u8 {
+        if !now_ms.is_finite() || now_ms < 0.0 {
+            return 3;
+        }
+        let started_at_ms = *self.started_at_ms.get_or_insert(now_ms);
+        let elapsed_ms = now_ms - started_at_ms;
+        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 {
+            return 3;
+        }
+        let elapsed = Duration::from_secs_f64(elapsed_ms / 1000.0);
+        match self.inner.admit(payload_bytes as usize, elapsed) {
+            Ok(()) => 0,
+            Err(crate::PayloadLimitExceeded::SessionBytes) => 1,
+            Err(crate::PayloadLimitExceeded::Rate) => 2,
+        }
+    }
+}
 
 /// Serialize a Rust value for JS as PLAIN OBJECTS, not `Map`s.
 ///
