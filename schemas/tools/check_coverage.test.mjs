@@ -46,6 +46,13 @@ test("the committed non-panel modality coverage and catalog agree", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 
+test("the Launchpad manifest covers every Command.action arm", () => {
+  const proto = readFileSync(join(ROOT, "proto/command_palette.proto"), "utf8");
+  const arms = parseScopedOneofArms(proto, "Command.action");
+  assert.deepEqual(arms.map((arm) => arm.name), ["rpc", "open_panel", "open_view_id", "navigate"]);
+  assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
+});
+
 test("a modality proto arm with no renderer coverage fails", () => {
   const manifest = realManifest();
   delete manifest.modalities.conversation.arms.view;

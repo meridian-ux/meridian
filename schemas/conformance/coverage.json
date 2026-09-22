@@ -104,6 +104,15 @@
           }
         }
       }
+    },
+    "launchpad": {
+      "oneof": "Command.action",
+      "arms": {
+        "rpc": { "renderers": { "launchpad": { "status": "renders" } } },
+        "open_panel": { "renderers": { "launchpad": { "status": "renders" } } },
+        "open_view_id": { "renderers": { "launchpad": { "status": "renders" } } },
+        "navigate": { "renderers": { "launchpad": { "status": "renders" } } }
+      }
     }
   },
   "arms": {

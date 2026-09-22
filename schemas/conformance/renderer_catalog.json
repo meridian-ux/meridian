@@ -16,7 +16,9 @@
       "coverage": "schemas/conformance/coverage.json"
     },
     "launchpad": {
-      "schema": "schemas/proto/command_palette.proto"
+      "schema": "schemas/proto/command_palette.proto",
+      "oneof": "Command.action",
+      "coverage": "schemas/conformance/coverage.json"
     }
   },
   "renderers": [
