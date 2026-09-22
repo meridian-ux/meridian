@@ -94,6 +94,30 @@ it("routes declared table value links by their raw value and suppresses URL fall
 });
 
 describe("web-components GalleryPanel", () => {
+  it("admits passive gallery image sources and omits rejected sources", async () => {
+    const root = document.createElement("div");
+    await renderPanel({
+      wasm,
+      root,
+      descriptor: create(PanelDescriptorSchema, {
+        body: { case: "gallery", value: create(GalleryPanelSchema, {
+          populate: { service: "demo.Catalog", method: "List" },
+          rowsField: "items",
+          card: { titleField: "name", imageField: "image" },
+        }) },
+      }),
+      invoker: { invoke: async () => ({ items: [
+        { name: "Safe", image: "/evidence/safe.png" },
+        { name: "Unsafe", image: "data:image/png;base64,unsafe" },
+      ] }) },
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+    });
+    expect(Array.from(root.querySelectorAll("img"), image => image.getAttribute("src"))).toEqual([
+      "/evidence/safe.png",
+    ]);
+    expect(root.textContent).toContain("Unsafe");
+  });
+
   it("admits gallery deep links and degrades unsafe destinations to action text", async () => {
     const root = document.createElement("div");
     await renderPanel({

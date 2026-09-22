@@ -159,6 +159,34 @@ describe("MeridianGallery", () => {
     expect(screen.getByText("2 / 2")).toBeTruthy();
   });
 
+  it("admits image sources before invoking the host asset resolver", async () => {
+    const resolved: string[] = [];
+    const { container } = render(
+      <MeridianMuiProvider
+        invoker={{ invoke: async () => ({ slides: [
+          { created: "Safe", uri: "/evidence/safe.png" },
+          { created: "Unsafe", uri: "data:image/png;base64,unsafe" },
+        ] }) }}
+        resolveAssetSrc={(source) => {
+          resolved.push(source);
+          return `/mounted${source}`;
+        }}
+      >
+        <ViewRenderer view={galleryView(true, false)} />
+      </MeridianMuiProvider>,
+    );
+    await screen.findByText("Safe");
+    expect(Array.from(container.querySelectorAll("img"), image => image.getAttribute("src"))).toEqual([
+      "/mounted/evidence/safe.png",
+      "/mounted/evidence/safe.png",
+    ]);
+    expect(resolved.length).toBeGreaterThan(0);
+    expect(new Set(resolved)).toEqual(new Set(["/evidence/safe.png"]));
+    fireEvent.click(screen.getByText("Next ›"));
+    expect(screen.getByText("Unsafe")).toBeTruthy();
+    expect(screen.queryByRole("img", { name: "Unsafe" })).toBeNull();
+  });
+
   it("degrades to a card grid when there is no image_field", async () => {
     render(
       <MeridianMuiProvider invoker={invoker}>

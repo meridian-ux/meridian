@@ -6,7 +6,7 @@ import { useContext, type ReactNode } from "react";
 
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { formatByDisplay, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay, safeAssetSrc, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 
 import { useDisplayNow } from "./display_now.js";
 import { resolvePath, useRecord } from "./pagination.js";
@@ -28,17 +28,6 @@ function rowsFromRecord(record: Row | undefined, rowsField: string): Row[] {
   return Array.isArray(value)
     ? value.filter((row): row is Row => !!row && typeof row === "object" && !Array.isArray(row))
     : [];
-}
-
-function safeAssetSrc(value: unknown): string | undefined {
-  const src = asText(value).trim();
-  if (!src || /[\u0000-\u001f\u007f]/.test(src)) return undefined;
-  try {
-    const url = new URL(src, "https://meridian.invalid/");
-    if (["http:", "https:"].includes(url.protocol)) return src;
-  } catch { /* Invalid sources degrade to the card's text. */ }
-  if (/^data:image\/(?:gif|jpeg|jpg|png|webp);base64,/i.test(src)) return src;
-  return undefined;
 }
 
 export function GalleryContent({

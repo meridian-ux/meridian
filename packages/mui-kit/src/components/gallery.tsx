@@ -15,7 +15,7 @@ import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/mat
 
 import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { safeNavigationHref, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { safeAssetSrc, safeNavigationHref, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianAssetContext } from "../asset_context.js";
 import { formatByDisplay } from "../display_format.js";
@@ -69,7 +69,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
         const subtitle = slot(card?.subtitleDisplay ? card.subtitleField : undefined, card?.subtitleDisplay);
         const status = slot(card?.statusField, card?.statusDisplay);
         return {
-          src: card?.imageField ? asText(resolvePath(row, card.imageField)) : "",
+          src: card?.imageField ? safeAssetSrc(resolvePath(row, card.imageField)) ?? "" : "",
           caption: caption.text,
           captionTitle: caption.title,
           subtitle: subtitle.text,
@@ -182,7 +182,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
   return (
     <Box>
       <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", bgcolor: "background.paper" }}>
-        <Box component="img" src={withAsset(it.src)} alt={it.caption} sx={{ display: "block", width: "100%", height: "auto" }} />
+        {it.src && <Box component="img" src={withAsset(it.src)} alt={it.caption} sx={{ display: "block", width: "100%", height: "auto" }} />}
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ p: 1.5, borderTop: 1, borderColor: "divider" }}>
           {it.status && <Chip title={it.statusTitle} label={it.status} size="small" variant="outlined" color={statusChipColor(it.rawStatus)} />}
           <Typography title={it.captionTitle} sx={{ flex: 1, fontWeight: 600 }} noWrap>
@@ -208,7 +208,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
       </Stack>
 
       <Stack direction="row" spacing={1} sx={{ overflowX: "auto", py: 1 }}>
-        {items.map((t, idx) => (
+        {items.map((t, idx) => t.src ? (
           <Box
             key={idx}
             component="img"
@@ -225,7 +225,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
               flex: "0 0 auto",
             }}
           />
-        ))}
+        ) : null)}
       </Stack>
     </Box>
   );

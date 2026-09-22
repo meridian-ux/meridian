@@ -1482,11 +1482,14 @@ function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
     };
     const title = slot("h3", "mer-gallery-card-title", card.titleField, card.titleDisplay);
     if (card.imageField) {
-      const image = document.createElement("img");
-      image.className = "mer-gallery-card-image";
-      image.src = String(readAt(row, card.imageField) ?? "");
-      image.alt = title.textContent ?? "";
-      article.appendChild(image);
+      const source = safeAssetSrc(readAt(row, card.imageField));
+      if (source) {
+        const image = document.createElement("img");
+        image.className = "mer-gallery-card-image";
+        image.src = source;
+        image.alt = title.textContent ?? "";
+        article.appendChild(image);
+      }
     }
     const icon = card.iconField ? readAt(row, card.iconField) : undefined;
     if (icon) article.appendChild(el("span", "mer-gallery-card-icon", String(icon)));

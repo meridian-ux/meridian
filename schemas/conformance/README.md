@@ -358,6 +358,11 @@ alt/caption text as the degradation rung. Rejected poster and caption sources
 are omitted independently while a safe primary player remains available. Host
 asset resolvers run only after each authored source is admitted.
 
+Gallery `image_field` values also pass through passive-asset admission before
+web-components, HTML, Shadcn, or MUI create an image. Rejected sources leave the
+card's authored text and actions intact without emitting an image; MUI invokes
+the host asset resolver only after the authored source is admitted.
+
 `TerminalPanel.url` uses a separate, narrower transport admission rule: only
 absolute `ws://` and `wss://` broker URLs without embedded credentials or URL
 fragments can reach the browser's WebSocket constructor. Rejected endpoints do

@@ -140,7 +140,9 @@ shared Step frame source admission with text degradation, and HTML/Shadcn
 ActionPanel/Form interaction contracts are also checked in. Full Media sources,
 posters, and caption tracks now share that passive-asset admission rule across
 all browser renderers, degrading rejected primary sources to authored text and
-dropping rejected auxiliary assets. These checks do not establish visual
+dropping rejected auxiliary assets. Gallery image fields now use the same
+passive-asset admission rule across all browser renderers, and host asset
+resolvers run only for admitted sources. These checks do not establish visual
 layout, every formatter option, or full renderer parity. Remaining work is
 the broader parity and renderer-specific/tooling scope called out above.
 
