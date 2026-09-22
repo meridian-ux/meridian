@@ -107,6 +107,7 @@ vitest_test(
 vitest_test(
     name = "table_stream",
     srcs = [
+        "__snapshots__/table_stream.test.ts.snap",
         "fixtures.ts",
         "table_stream.test.ts",
     ],
@@ -116,6 +117,7 @@ vitest_test(
         "//packages/web:node_modules/@savvifi/meridian-schemas",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
+        "//schemas:conformance_fixtures",
         ":src_lib",
     ],
 )

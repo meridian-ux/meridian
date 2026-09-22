@@ -1,0 +1,190 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/completed-refreshed 1`] = `
+""Builds"
+"1 builds"
+button aria-disabled="false" type="button" aria-describedby="Completed." disabled
+  "Targets"
+span role="status"
+  "Completed."
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/updated"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/failed 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" title="<b>Targets unavailable</b>" type="button" aria-describedby="<b>Targets unavailable</b>"
+  "Targets"
+span role="alert"
+  "<b>Targets unavailable</b>"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="true"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/pending 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Targets"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="true"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/retry-pending 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Targets"
+span role="alert"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="true"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/selected-enabled 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Targets"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="true"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/selected-filtered 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" type="button" aria-describedby=""
+  "Targets"
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="true"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;
+
+exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/unselected 1`] = `
+""Builds"
+"2 builds"
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Targets"
+button aria-disabled="false" type="button" aria-describedby="" disabled
+  "Artifacts"
+table
+  thead
+    tr
+      th
+        "Repo"
+      th
+        "Phase"
+  tbody
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/botnoc"
+      td
+        "Building"
+    tr role="row" aria-selected="false"
+      td
+        "fastverk/badge"
+      td
+        "Succeeded""
+`;

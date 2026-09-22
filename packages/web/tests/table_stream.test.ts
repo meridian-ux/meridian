@@ -8,7 +8,8 @@
 // that is authored, shipped, and silently never drawn. fastverk's builds table
 // declared three RowActions that no user could ever reach.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary } from "@bufbuild/protobuf";
+import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import {
   DetailHeaderPanelSchema,
   PanelDescriptorSchema,
@@ -21,6 +22,7 @@ import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { streamFixture, tableWithActionsFixture } from "./fixtures.js";
+import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 
 const ROWS: RenderedRow[] = [
   { raw: { name: "botnoc-abc", repo: "fastverk/botnoc", phase: "Building" }, cells: ["fastverk/botnoc", "Building"] },
@@ -100,6 +102,111 @@ if (!("ResizeObserver" in globalThis)) {
 }
 
 describe("TablePanel row selection + actions", () => {
+  it("preserves semantic selection and feedback through failure, retry, and refresh", async () => {
+    const root = document.createElement("div");
+    // The normalizer resolves generated aria-describedby IDs against the document.
+    document.body.appendChild(root);
+    const refreshedRows: RenderedRow[] = [
+      { raw: { name: "new-build", repo: "fastverk/updated", phase: "Succeeded" }, cells: ["fastverk/updated", "Succeeded"] },
+    ];
+    const attempts: Array<{ resolve: (value: object) => void; reject: (reason: Error) => void }> = [];
+    const invoke = vi.fn((_service: string, method: string, _request: object): Promise<object> => {
+      if (method === "ListBuilds") return Promise.resolve({});
+      return new Promise((resolve, reject) => attempts.push({ resolve, reject }));
+    });
+    let renders = 0;
+    // Verify the wire request and raw selection handed to the WASM seam. This
+    // double supplies the resolved request; it does not test Rust binding evaluation.
+    const buildRequest = vi.fn((bytes: Uint8Array, context: Parameters<UiviewWasm["buildRequest"]>[1]) => {
+      const rpc = fromBinary(RpcCallSchema, bytes);
+      expect(rpc.service).toBe("acme.Builds");
+      expect(rpc.method).toBe("ListBuildTargets");
+      expect(rpc.bindings).toHaveLength(1);
+      expect(rpc.bindings[0].requestField).toBe("name");
+      expect(rpc.bindings[0].source).toEqual({ case: "rowField", value: "name" });
+      expect(context.selectedRow).toEqual(ROWS[1].raw);
+      return { name: readPath(context.selectedRow!, "name") };
+    });
+    try {
+      await renderPanel({
+        root, descriptor: tableWithActionsFixture, context: CTX,
+        wasm: { ...wasmWith(ROWS), renderTable: () => ++renders === 1 ? ROWS : refreshedRows, buildRequest },
+        admission: { mutations: ["acme.Builds/ListBuildTargets", "acme.Builds/ListBuildArtifacts"] },
+        invoker: { invoke },
+      });
+      const [targets, artifacts] = [...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions button")];
+      const rows = [...root.querySelectorAll<HTMLTableRowElement>("tbody tr[data-row]")];
+      const snapshot = (state: string) => expect(normalizeDom(root)).toMatchSnapshot(`web-components/table-row-actions/${state}`);
+      const selection = () => [...root.querySelectorAll("tbody tr[data-row]")].map(row => row.getAttribute("aria-selected"));
+
+      expect([targets.textContent, artifacts.textContent]).toEqual(["Targets", "Artifacts"]);
+      expect([targets.disabled, artifacts.disabled]).toEqual([true, true]);
+      expect(selection()).toEqual(["false", "false"]);
+      snapshot("unselected");
+      targets.click();
+      expect(buildRequest).not.toHaveBeenCalled();
+
+      rows[0].click();
+      expect([targets.disabled, artifacts.disabled]).toEqual([false, true]);
+      expect(selection()).toEqual(["true", "false"]);
+      snapshot("selected-filtered");
+
+      expect(rows[1].tabIndex).toBe(0);
+      rows[1].focus();
+      rows[1].dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      expect(document.activeElement).toBe(rows[1]);
+      expect([targets.disabled, artifacts.disabled]).toEqual([false, false]);
+      expect(selection()).toEqual(["false", "true"]);
+      snapshot("selected-enabled");
+
+      targets.click();
+      await vi.waitFor(() => expect(attempts).toHaveLength(1));
+      expect(targets.disabled).toBe(true);
+      expect(targets.getAttribute("aria-busy")).toBe("true");
+      snapshot("pending");
+      targets.click();
+      expect(invoke).toHaveBeenCalledTimes(2); // Initial read and one mutation.
+
+      attempts[0].reject(new Error("<b>Targets unavailable</b>"));
+      await vi.waitFor(() => expect(targets.disabled).toBe(false));
+      expect(root.querySelector('[role="alert"]')?.textContent).toBe("<b>Targets unavailable</b>");
+      expect(root.querySelector('[role="alert"] b')).toBeNull();
+      expect(targets.hasAttribute("aria-busy")).toBe(false);
+      expect(selection()).toEqual(["false", "true"]);
+      expect(renders).toBe(1); // Failure must not refresh away the selected row.
+      snapshot("failed");
+
+      targets.click();
+      await vi.waitFor(() => expect(attempts).toHaveLength(2));
+      expect(targets.disabled).toBe(true);
+      expect(targets.getAttribute("aria-busy")).toBe("true");
+      expect(root.querySelector('[role="alert"]')?.textContent).toBe("");
+      snapshot("retry-pending");
+
+      attempts[1].resolve({});
+      await vi.waitFor(() => expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed."));
+      expect(buildRequest).toHaveBeenCalledTimes(2);
+      expect(invoke.mock.calls).toEqual([
+        ["acme.Builds", "ListBuilds", {}],
+        ["acme.Builds", "ListBuildTargets", { name: "badge-def" }],
+        ["acme.Builds", "ListBuildTargets", { name: "badge-def" }],
+        ["acme.Builds", "ListBuilds", {}],
+      ]);
+      expect(renders).toBe(2);
+      expect(root.querySelector("tbody")?.textContent).toBe("fastverk/updatedSucceeded");
+      expect(selection()).toEqual(["false"]); // Removed selection cannot target the replacement row.
+      expect([targets.disabled, artifacts.disabled]).toEqual([true, true]);
+      expect(targets.hasAttribute("aria-busy")).toBe(false);
+      expect(root.querySelector('[role="alert"]')).toBeNull();
+      snapshot("completed-refreshed");
+      targets.click();
+      expect(invoke).toHaveBeenCalledTimes(4);
+    } finally {
+      disposePanel(root);
+      root.remove();
+    }
+  });
+
   it("reports a failed row action and refreshes after retry", async () => {
     const root = document.createElement("div");
     let mutations = 0;

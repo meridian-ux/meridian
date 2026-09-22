@@ -118,6 +118,25 @@ conformance targets include the normalizer and goldens as runfiles.
 
 ## Focused interaction and content coverage
 
+The web-components `table_stream.test.ts` suite also records seven semantic DOM
+snapshots for TablePanel row actions: unselected, selected with an `enabled_when`
+filter, selected with both actions enabled, pending, failed, retry pending, and
+completed after refresh. It mounts the panel in the document so generated
+`aria-describedby` references resolve to feedback text. Explicit assertions cover
+keyboard selection, live disabled state, `aria-busy` (which the normalizer omits),
+duplicate-click prevention on the pending button, escaped error text, and the
+exact mutation/read sequence. A shortened refresh response clears an out-of-range
+selection and disables its actions. The test decodes the authored row-field binding
+at the WASM seam and checks raw selected-row context and outgoing request values;
+its request-builder double does not prove Rust binding evaluation.
+
+Run `pnpm --dir packages/web exec vitest run tests/table_stream.test.ts` to compare
+these snapshots; append `--update` only for intentional changes and review
+`packages/web/tests/__snapshots__/table_stream.test.ts.snap`. The Bazel
+`//packages/web/tests:table_stream` target includes the normalizer and snapshots.
+This is evidence for the single web-components TablePanel implementation, not
+HTML/Shadcn table row actions, MUI, CSS/layout, or a computed accessibility tree.
+
 The HTML/Shadcn `interactive_conformance.test.ts` suite mounts both kits and
 activates real DOM controls. It verifies the canonical ActionPanel's named URI
 link, an admitted unbound view action's exact service/method and empty request, and
