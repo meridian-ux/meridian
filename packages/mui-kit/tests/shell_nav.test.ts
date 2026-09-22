@@ -46,6 +46,18 @@ const TREE = create(NavTreeSchema, {
 describe("what a node links to", () => {
   it("answers a route leaf without asking the host", () => {
     expect(hrefForNode(leaf("s", "Sponsors", "/sponsors"), SEAMS)).toBe("/sponsors");
+    expect(hrefForNode(leaf("editor", "Editor", "vscode://file/project"), SEAMS))
+      .toBe("vscode://file/project");
+  });
+
+  it.each([
+    "javascript:alert(1)",
+    "data:text/html,boom",
+    "file:///etc/passwd",
+    "blob:https://example.test/id",
+    "/safe\nunsafe",
+  ])("rejects an unsafe authored route: %s", (route) => {
+    expect(hrefForNode(leaf("unsafe", "Unsafe", route), SEAMS)).toBeUndefined();
   });
 
   it("asks the host for a panel or view leaf, which has no URL of its own", () => {
@@ -56,6 +68,8 @@ describe("what a node links to", () => {
     });
     expect(hrefForNode(node, SEAMS)).toBeUndefined();
     expect(hrefForNode(node, { ...SEAMS, hrefFor: (n) => `/p/${n.id}` })).toBe("/p/p");
+    expect(hrefForNode(node, { ...SEAMS, hrefFor: () => "javascript:alert(1)" }))
+      .toBeUndefined();
   });
 
   it("⛔ gives a group no href, rather than a dead one", () => {

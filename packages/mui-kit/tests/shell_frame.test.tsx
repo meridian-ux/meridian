@@ -154,6 +154,18 @@ describe("header actions", () => {
     mount({ headerActions: <button type="button">Dark mode</button> });
     expect(screen.getByText("Dark mode")).toBeTruthy();
   });
+
+  it("keeps unsafe authored navigation inert across shell chrome", () => {
+    const unsafe = leaf("unsafe", "Unsafe", "javascript:alert(1)");
+    const { container } = mount({}, undefined, shellWith({
+      nav: create(NavTreeSchema, { roots: [unsafe] }),
+      headerLinks: [unsafe],
+      userMenu: [unsafe],
+    }));
+
+    expect(container.querySelector('a[href^="javascript:"]')).toBeNull();
+    expect(screen.getByText("Unsafe").closest("a")).toBeNull();
+  });
 });
 
 /**

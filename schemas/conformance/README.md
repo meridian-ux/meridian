@@ -339,6 +339,12 @@ either the host router or `window.location`. Rejected routes remain disabled and
 cannot reach either navigation boundary. The standalone interaction suite is
 owned by a Bazel target as well as the package test command.
 
+MUI AppShell applies the same admission rule at its central `hrefForNode` seam.
+Authored `NavNode.route` values and host-resolved panel/view destinations are
+admitted before header links, sidebar leaves, user-menu items, or active-route
+matching can consume them. Rejected destinations remain absent or disabled, so
+every shell navigation surface shares one degradation behavior.
+
 Gallery `href_field` values use the same admission rule in web-components,
 HTML, Shadcn, and MUI. Safe application deep links remain interactive;
 rejected destinations degrade to the authored action label or an inert card.

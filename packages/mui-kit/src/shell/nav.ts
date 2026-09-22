@@ -5,6 +5,7 @@
 // `isActive`), and it is far easier to pin with a table of paths than by mounting a drawer.
 
 import type { NavNode, NavTree } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
+import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 
 import type { AppShellSeams, NavNodeLike } from "./config.js";
 
@@ -23,11 +24,10 @@ import type { AppShellSeams, NavNodeLike } from "./config.js";
  */
 export function hrefForNode(node: NavNodeLike, seams: AppShellSeams): string | undefined {
   if (node.target?.case === "route") {
-    const route = node.target.value;
-    return typeof route === "string" && route.length > 0 ? route : undefined;
+    return safeNavigationHref(node.target.value);
   }
   if (!node.target?.case) return undefined; // a group, or an inert label
-  return seams.hrefFor?.(node);
+  return safeNavigationHref(seams.hrefFor?.(node));
 }
 
 /** A leaf is a node with a target; a group is a node with children and no target. */

@@ -136,8 +136,10 @@ renderers, browser Affordance URI admission that preserves safe application
 deep links while disabling executable/local-document schemes, matching MUI
 and standalone Launchpad admission for authored command deep links and raw
 navigate routes, shared Gallery href admission across all browser renderers,
-shared Step frame source admission with text degradation, and HTML/Shadcn
-ActionPanel/Form interaction contracts are also checked in. Full Media sources,
+MUI AppShell navigation admission for authored NavTree routes and host-resolved
+panel/view destinations, shared Step frame source admission with text
+degradation, and HTML/Shadcn ActionPanel/Form interaction contracts are also
+checked in. Full Media sources,
 posters, and caption tracks now share that passive-asset admission rule across
 all browser renderers, degrading rejected primary sources to authored text and
 dropping rejected auxiliary assets. Gallery image fields now use the same
