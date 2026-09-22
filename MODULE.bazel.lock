@@ -1213,7 +1213,7 @@
           "FILE:@@//Cargo.toml 5976ad7896d73cede3caf3e1e2e332b61b59aa63274fb0cfe12627220b5dbf58",
           "FILE:@@//crates/core/rust/uiview/Cargo.toml bf9e8b6245093c6e1ac06ee16cd1370f15bf5733ebe89f224ab3c98e94be40f7",
           "FILE:@@//crates/core/rust/theme-proto/Cargo.toml bae283d13b0e91cc037dda83f3e7148d55039b86e61fba46c88236f55a4f91b4",
-          "FILE:@@//crates/tui/rust/tui/Cargo.toml 5889aa04045fc1577c00b1f4fe696e8d7b68127382b03c6ce4b384262802fea5"
+          "FILE:@@//crates/tui/rust/tui/Cargo.toml fb9a33b10437506671b25519e92e594e8867ef10229f1dd0eea3c66034a51a17"
         ],
         "generatedRepoSpecs": {
           "meridian_crates": {

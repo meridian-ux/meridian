@@ -14,6 +14,11 @@
     "and verify the build still resolves a single proto-ts."
   ],
   "description": "The MUI ComponentKit for the meridian React renderer \u2014 paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI (its own table + form components, with CLIENT/OFFSET/CURSOR pagination) over the meridian-web-react WebRenderer seam. Standalone \u2014 no host-library dependency.",
+  "meridian": {
+    "rendererIds": [
+      "mui-kit"
+    ]
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

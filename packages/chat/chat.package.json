@@ -3,6 +3,12 @@
   "version": "0.25.1",
   "type": "module",
   "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream over SSE + POST. Ships the vanilla <m-assistant-panel> web component and a React <Conversation>, with shared schema value formatting.",
+  "meridian": {
+    "rendererIds": [
+      "chat-html",
+      "chat-react"
+    ]
+  },
   "license": "MIT",
   "publishConfig": {
     "access": "public"
