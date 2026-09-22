@@ -122,6 +122,27 @@ function galleryView(withImage: boolean, declared = true): ViewDescriptor {
 }
 
 describe("MeridianGallery", () => {
+  it("realizes card icon keys through the host glyph seam", async () => {
+    const descriptor = create(PanelDescriptorSchema, {
+      body: { case: "gallery", value: create(GalleryPanelSchema, {
+        populate: { service: "demo.Catalog", method: "List" },
+        rowsField: "items",
+        card: { titleField: "name", iconField: "icon" },
+      }) },
+    });
+    const { container } = render(
+      <MeridianMuiProvider
+        invoker={{ invoke: async () => ({ items: [{ name: "GitHub", icon: "github" }] }) }}
+        renderIcon={(key) => <i data-testid={`glyph-${key}`} />}
+      >
+        <PanelRenderer descriptor={descriptor} />
+      </MeridianMuiProvider>,
+    );
+    await screen.findByText("GitHub");
+    expect(screen.getByTestId("glyph-github")).toBeTruthy();
+    expect(container.querySelector(".mer-gallery-card-icon")?.getAttribute("data-icon")).toBe("github");
+  });
+
   it("renders the canonical populated gallery descriptor", async () => {
     const fixture = FIXTURES.find((candidate) => candidate.shape === "gallery")!;
     render(

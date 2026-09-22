@@ -183,6 +183,11 @@ describe("web-components GalleryPanel", () => {
         }),
       },
       context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
+      renderIcon: (key) => {
+        const glyph = document.createElement("i");
+        glyph.textContent = `glyph:${key}`;
+        return glyph;
+      },
     });
     expect(root.querySelector(".mer-gallery-card-title")?.textContent).toBe(declared ? "Mar 29, 2026" : "2026-03-29");
     expect(root.querySelector(".mer-gallery-card-subtitle")?.textContent).toBe(declared ? "Ada" : "Ada <ada@example.com>");
@@ -191,6 +196,8 @@ describe("web-components GalleryPanel", () => {
     expect(root.querySelector("a")?.getAttribute("href")).toBe("https://github.com");
     expect(root.querySelector("img")?.getAttribute("src")).toBe("github.png");
     expect(root.querySelector("img")?.getAttribute("alt")).toBe(declared ? "Mar 29, 2026" : "2026-03-29");
+    expect(root.querySelector(".mer-gallery-card-icon")?.getAttribute("data-icon")).toBe("github");
+    expect(root.querySelector(".mer-gallery-card-icon .mer-icon")?.textContent).toBe("glyph:github");
     expect(root.querySelectorAll("a")).toHaveLength(1);
     expect(root.textContent).toContain("Manage");
   });

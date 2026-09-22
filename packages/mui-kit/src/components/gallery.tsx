@@ -13,7 +13,7 @@ import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from
 
 import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useRecord, resolvePath } from "@savvifi/meridian-web-react";
+import { MeridianViewContext, useMeridian, useRecord, resolvePath } from "@savvifi/meridian-web-react";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { safeAssetSrc, safeNavigationHref, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
@@ -34,6 +34,7 @@ const asText = (v: unknown): string => (v === null || v === undefined ? "" : typ
 
 interface Item {
   src: string;
+  icon: string;
   caption: string;
   captionTitle?: string;
   subtitle: string;
@@ -47,6 +48,7 @@ interface Item {
 export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invoker: RpcInvoker }): ReactNode {
   const { subjectId } = useContext(MeridianViewContext);
   const resolveAsset = useContext(MeridianAssetContext);
+  const resolveIcon = useMeridian().renderIcon;
   // GalleryPanel has no id_field; fetch the populate record (the invoker injects the
   // route resource when subjectId is empty) and resolve rows_field within it.
   const { record, loading } = useRecord(panel.populate, "", subjectId, invoker);
@@ -70,6 +72,7 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
         const status = slot(card?.statusField, card?.statusDisplay);
         return {
           src: card?.imageField ? safeAssetSrc(resolvePath(row, card.imageField)) ?? "" : "",
+          icon: card?.iconField ? asText(resolvePath(row, card.iconField)) : "",
           caption: caption.text,
           captionTitle: caption.title,
           subtitle: subtitle.text,
@@ -156,6 +159,11 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
           const inner = (
             <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, p: 2, height: "100%" }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                {it.icon && (
+                  <Box component="span" className="mer-gallery-card-icon" data-gallery-icon data-icon={it.icon} aria-hidden="true" sx={{ display: "inline-flex" }}>
+                    {resolveIcon?.(it.icon)}
+                  </Box>
+                )}
                 <Typography title={it.captionTitle} sx={{ fontWeight: 600, flex: 1 }} noWrap>
                   {it.caption}
                 </Typography>
@@ -184,6 +192,11 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
       <Box sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", bgcolor: "background.paper" }}>
         {it.src && <Box component="img" src={withAsset(it.src)} alt={it.caption} sx={{ display: "block", width: "100%", height: "auto" }} />}
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ p: 1.5, borderTop: 1, borderColor: "divider" }}>
+          {it.icon && (
+            <Box component="span" className="mer-gallery-card-icon" data-gallery-icon data-icon={it.icon} aria-hidden="true" sx={{ display: "inline-flex" }}>
+              {resolveIcon?.(it.icon)}
+            </Box>
+          )}
           {it.status && <Chip title={it.statusTitle} label={it.status} size="small" variant="outlined" color={statusChipColor(it.rawStatus)} />}
           <Typography title={it.captionTitle} sx={{ flex: 1, fontWeight: 600 }} noWrap>
             {it.caption}

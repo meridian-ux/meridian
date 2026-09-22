@@ -460,7 +460,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "gallery") {
     return renderFetchDriven(renderOpts, body.value, meta, (data) =>
-      buildGallery(body.value, data),
+      buildGallery(renderOpts, body.value, data),
     );
   }
   if (body.case === "media") {
@@ -1454,7 +1454,7 @@ function resourceActionStyle(style: ActionStyle): "default" | "primary" | "dange
 // GalleryPanel — a fetch-driven card grid. This is deliberately separate from
 // ResourceCardPanel: galleries have display-only cards and href navigation,
 // while resource cards own row-scoped lifecycle actions and confirmations.
-function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
+function buildGallery(opts: RenderPanelOptions, panel: GalleryPanel, response?: object): HTMLElement {
   const grid = el("div", "mer-gallery");
   grid.setAttribute("role", "list");
   const rawRows = response && panel.rowsField ? readAt(response, panel.rowsField) : [];
@@ -1492,7 +1492,13 @@ function buildGallery(panel: GalleryPanel, response?: object): HTMLElement {
       }
     }
     const icon = card.iconField ? readAt(row, card.iconField) : undefined;
-    if (icon) article.appendChild(el("span", "mer-gallery-card-icon", String(icon)));
+    if (icon) {
+      const iconSlot = el("span", "mer-gallery-card-icon");
+      iconSlot.setAttribute("aria-hidden", "true");
+      iconSlot.dataset.galleryIcon = "";
+      appendGlyph(opts, iconSlot, String(icon));
+      article.appendChild(iconSlot);
+    }
     article.appendChild(title);
     const subtitle = card.subtitleField ? readAt(row, card.subtitleField) : undefined;
     if (subtitle != null && subtitle !== "") {

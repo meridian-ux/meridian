@@ -144,7 +144,9 @@ posters, and caption tracks now share that passive-asset admission rule across
 all browser renderers, degrading rejected primary sources to authored text and
 dropping rejected auxiliary assets. Gallery image fields now use the same
 passive-asset admission rule across all browser renderers, and host asset
-resolvers run only for admitted sources. Theme font files now pass through a
+resolvers run only for admitted sources. Gallery icon fields now use the host
+glyph seam across browser renderers while retaining their authored key as
+`data-icon` when no resolver is installed. Theme font files now pass through a
 dedicated font-source admission rule before the MUI kit emits `@font-face` CSS;
 HTTP(S), relative, and narrowly typed embedded fonts remain available while
 active, local, opaque, and arbitrary data sources are omitted. Declarative

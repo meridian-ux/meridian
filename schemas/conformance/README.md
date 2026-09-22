@@ -252,6 +252,9 @@ snapshots alone record loading, empty, or degraded output.
 The canonical Gallery fixture now also carries its populate and card mapping;
 the same two-row response is exercised through HTML, Shadcn, MUI,
 web-components, and TUI, closing the first populated gallery matrix slice.
+Gallery `icon_field` values pass through the host glyph seam in each browser
+renderer. The authored key remains available as `data-icon` when the host does
+not provide a glyph, so renderer styling and diagnostics retain the declaration.
 The canonical Table descriptor now includes its populate RPC, legacy scalar
 columns, declared boolean/URL displays, and a host-resolved member link. Focused
 MUI and web-components tests use the shared two-row response; the native test
