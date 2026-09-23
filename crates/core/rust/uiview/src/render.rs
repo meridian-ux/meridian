@@ -840,6 +840,18 @@ mod tests {
             format_display_value(&json!("2026-02-29"), &date),
             "2026-02-29"
         );
+        assert_eq!(
+            format_display_value(&json!("2024-02-29"), &date),
+            "Feb 29, 2024"
+        );
+        assert_eq!(
+            format_display_value(&json!("1900-02-29"), &date),
+            "1900-02-29"
+        );
+        assert_eq!(
+            format_display_value(&json!("2000-02-29"), &date),
+            "Feb 29, 2000"
+        );
     }
 
     #[test]

@@ -250,6 +250,7 @@ mod tests {
         assert_eq!(format_stat_number(1200.0, 4), "1.2K");
         assert_eq!(format_stat_number(-5.0, 3), "-$5.00");
         assert_eq!(format_stat_number(12.567, 1), "12.57"); // rounds to 2dp
+        assert_eq!(format_stat_number(1234567.0, 1), "1,234,567");
     }
 
     #[test]
