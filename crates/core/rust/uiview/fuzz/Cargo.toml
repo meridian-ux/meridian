@@ -7,6 +7,10 @@ edition = "2021"
 [package.metadata]
 cargo-fuzz = true
 
+# This harness consumes the renderer core but is not itself a renderer surface.
+[package.metadata.meridian]
+renderer_ids = []
+
 [dependencies]
 libfuzzer-sys = "0.4"
 meridian-uiview = { path = ".." }
