@@ -23,9 +23,10 @@ use ratatui::{backend::TestBackend, Terminal};
 
 use meridian_tui::{Palette, PanelView, RpcError, RpcInvoker};
 use meridian_uiview::proto::{
-    form_field::Kind, panel_descriptor::Body, CardSpec, DescriptorRow, DetailHeaderPanel,
-    FormField, FormMode, FormPanel, GalleryPanel, IntegerSpinner, LroPanel, MediaChapter,
-    MediaPanel, PanelDescriptor, RecordCardPanel, RpcCall, StatPanel, TextInput,
+    form_field::Kind, panel_descriptor::Body, BooleanToggle, CardSpec, DescriptorRow,
+    DetailHeaderPanel, EnumOption, EnumSelection, FormField, FormMode, FormPanel, GalleryPanel,
+    IntegerSpinner, LroPanel, MediaChapter, MediaPanel, PanelDescriptor, RecordCardPanel, RpcCall,
+    StatPanel, TextInput,
 };
 use meridian_uiview::Context;
 
@@ -477,6 +478,38 @@ fn form_descriptor() -> PanelDescriptor {
                         default_value: 1,
                         min: 1,
                         max: 10,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "enabled".into(),
+                    label: "Enabled".into(),
+                    request_field: "enabled".into(),
+                    kind: Some(Kind::Boolean(BooleanToggle {
+                        default_value: true,
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                },
+                FormField {
+                    field_id: "region".into(),
+                    label: "Region".into(),
+                    request_field: "region".into(),
+                    kind: Some(Kind::EnumSelection(EnumSelection {
+                        default_value: "east".into(),
+                        options: vec![
+                            EnumOption {
+                                value: "east".into(),
+                                label: "East".into(),
+                                ..Default::default()
+                            },
+                            EnumOption {
+                                value: "west".into(),
+                                label: "West".into(),
+                                ..Default::default()
+                            },
+                        ],
                         ..Default::default()
                     })),
                     ..Default::default()
@@ -1596,8 +1629,21 @@ fn form_prefill_renders_and_submit_contains_edited_values() {
         output.contains("Replicas: 2"),
         "integer prefill missing:\n{output}"
     );
+    assert!(
+        output.contains("Enabled: true"),
+        "boolean control missing:\n{output}"
+    );
+    assert!(
+        output.contains("Region: East"),
+        "enum selection missing:\n{output}"
+    );
 
     view.handle_form_key(form, &ctx, KeyCode::Char('x'));
+    view.handle_form_key(form, &ctx, KeyCode::Down);
+    view.handle_form_key(form, &ctx, KeyCode::Down);
+    view.handle_form_key(form, &ctx, KeyCode::Char(' '));
+    view.handle_form_key(form, &ctx, KeyCode::Down);
+    view.handle_form_key(form, &ctx, KeyCode::Right);
     let submission = view
         .handle_form_key(form, &ctx, KeyCode::Enter)
         .expect("editable form should submit");
@@ -1605,6 +1651,8 @@ fn form_prefill_renders_and_submit_contains_edited_values() {
     assert_eq!(submission.method, "Apply");
     assert_eq!(submission.request["name"], "workerx");
     assert_eq!(submission.request["replicas"], 2);
+    assert_eq!(submission.request["enabled"], false);
+    assert_eq!(submission.request["region"], "west");
 }
 
 #[test]

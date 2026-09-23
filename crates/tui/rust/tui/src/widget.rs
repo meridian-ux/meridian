@@ -849,6 +849,11 @@ impl PanelView {
             return None;
         }
         let selected = self.content_selected.min(panel.fields.len() - 1);
+        let selected_field = panel.fields.get(selected);
+        let boolean_edit = selected_field.is_some_and(|field| {
+            matches!(field.kind.as_ref(), Some(Kind::Boolean(_)))
+                && matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right)
+        });
         match key {
             KeyCode::Down | KeyCode::Tab => {
                 self.content_selected = (selected + 1) % panel.fields.len();
@@ -868,11 +873,17 @@ impl PanelView {
                     request,
                 });
             }
-            code => {
-                if let Some(field) = panel.fields.get(selected) {
+            code if boolean_edit
+                || !matches!(
+                    code,
+                    KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab
+                ) =>
+            {
+                if let Some(field) = selected_field {
                     edit_form_field(field, &mut cached.values, code);
                 }
             }
+            _ => {}
         }
         None
     }
@@ -1232,10 +1243,7 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             *current = serde_json::Value::from(number);
         }
         Some(Kind::Boolean(_))
-            if matches!(
-                key,
-                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down
-            ) =>
+            if matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) =>
         {
             *current = serde_json::Value::Bool(!current.as_bool().unwrap_or(false));
         }
