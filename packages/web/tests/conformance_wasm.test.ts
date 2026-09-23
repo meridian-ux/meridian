@@ -169,4 +169,47 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(invalidClock.admit(1, 10)).toBe(0);
     expect(invalidClock.admit(1, 9)).toBe(3);
   });
+
+  it("rejects malformed and future descriptors without trapping across the real wasm boundary", () => {
+    const boundary = wasm as UiviewWasm & {
+      renderTablePanel(table: Uint8Array, response: object): unknown;
+      renderGalleryPanel(gallery: Uint8Array, response: object): unknown;
+    };
+    // A tag with a truncated varint is invalid wire data for every descriptor
+    // decoder used by the WebAssembly API.
+    const malformed = new Uint8Array([0x0a, 0x80]);
+    const malformedCalls = [
+      () => wasm.renderTable(malformed, {}),
+      () => wasm.buildPopulateRequest(malformed, CTX),
+      () => wasm.buildRequest(malformed, CTX),
+      () => boundary.renderTablePanel(malformed, {}),
+      () => boundary.renderGalleryPanel(malformed, {}),
+    ];
+    for (const call of malformedCalls) {
+      let failure: unknown;
+      try {
+        call();
+      } catch (error) {
+        failure = error;
+      }
+      expect(failure).toBeInstanceOf(Error);
+      expect(failure).not.toBeInstanceOf(WebAssembly.RuntimeError);
+      expect((failure as Error).message).toMatch(/decode|varint|buffer|length/i);
+    }
+
+    // Unknown fields are legal protobuf wire data. The descriptor decoder must
+    // discard this future oneof tag and the typed helper must return an ordinary
+    // shape error rather than trap or misinterpret it.
+    const futureArm = new Uint8Array([0xa2, 0x06, 0x00]); // field 100, empty bytes
+    let failure: unknown;
+    try {
+      wasm.renderTable(futureArm, {});
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    expect(failure).not.toBeInstanceOf(WebAssembly.RuntimeError);
+    expect((failure as Error).message).toContain("descriptor body is not TABLE");
+
+  });
 });
