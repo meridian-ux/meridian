@@ -1,0 +1,23 @@
+[package]
+name = "meridian-uiview-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+meridian-uiview = { path = "../crates/core/rust/uiview" }
+serde_json = "1"
+
+[[bin]]
+name = "panel_descriptor"
+path = "fuzz_targets/panel_descriptor.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]

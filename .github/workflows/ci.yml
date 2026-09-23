@@ -169,6 +169,12 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --all-targets
 
+      # Keep the cargo-fuzz target and its standalone lockfile buildable in
+      # ordinary CI. The actual coverage-guided campaign uses the E6 corpus on
+      # demand; it is not a time-bounded substitute for the deterministic suites.
+      - name: Descriptor fuzz target compiles
+        run: cargo check --locked --manifest-path fuzz/Cargo.toml --bin panel_descriptor
+
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
 
