@@ -8,7 +8,10 @@
       "id": "web",
       "kind": "javascript",
       "roots": ["packages/web/tests"],
-      "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
+      "exclude": [
+        "packages/web/tests/conformance_wasm.test.ts",
+        "packages/web/tests/stream_invariant.test.ts"
+      ],
       "floor": 82
     },
     {

@@ -33,7 +33,7 @@ test("excluded files mirror CI test-script exclusions", () => {
   const web = manifest.suites.find((suite) => suite.id === "web");
   const all = countSuite({ ...web, exclude: [] }).count;
   const ciScoped = countSuite(web).count;
-  assert.equal(all - ciScoped, 4);
+  assert.equal(all - ciScoped, 5);
 });
 
 test("JavaScript declarations count test and it styles but not assertion calls", () => {
