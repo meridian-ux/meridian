@@ -152,4 +152,21 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(wasm.readPath(RESPONSE.builds[0], "repo")).toBe("fastverk/botnoc");
     expect(wasm.readPath({ a: { b: { c: 7 } } }, "a.b.c")).toBe(7);
   });
+
+  it("exports the shared payload budget policy across the real wasm boundary", () => {
+    expect(wasm.WasmPayloadBudget).toBeTypeOf("function");
+    const Budget = wasm.WasmPayloadBudget!;
+
+    const session = new Budget(8, 5);
+    expect(session.admit(3, 100)).toBe(0);
+    expect(session.admit(3, 500)).toBe(2);
+    expect(session.admit(3, 1_101)).toBe(0);
+    expect(session.admit(3, 1_102)).toBe(1);
+
+    const invalidClock = new Budget(8, 8);
+    expect(invalidClock.admit(1, Number.NaN)).toBe(3);
+    expect(invalidClock.admit(1, -1)).toBe(3);
+    expect(invalidClock.admit(1, 10)).toBe(0);
+    expect(invalidClock.admit(1, 9)).toBe(3);
+  });
 });

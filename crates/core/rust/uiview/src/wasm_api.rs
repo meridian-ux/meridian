@@ -25,7 +25,7 @@ use wasm_bindgen::prelude::*;
 
 /// Stateful JavaScript handle backed by the same payload policy used by native
 /// stream consumers. A separate instance is used for each direction/session.
-#[wasm_bindgen(js_name = PayloadBudget)]
+#[wasm_bindgen]
 pub struct WasmPayloadBudget {
     inner: PayloadBudget,
     started_at_ms: Option<f64>,
@@ -43,6 +43,7 @@ impl WasmPayloadBudget {
 
     /// Returns 0 when admitted, 1 for the session-byte ceiling, 2 for the
     /// rolling one-second rate ceiling, and 3 for an invalid monotonic clock.
+    #[wasm_bindgen(js_name = admit)]
     pub fn admit(&mut self, payload_bytes: u32, now_ms: f64) -> u8 {
         if !now_ms.is_finite() || now_ms < 0.0 {
             return 3;

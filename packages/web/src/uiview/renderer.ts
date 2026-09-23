@@ -138,7 +138,7 @@ export function plainValue(v: unknown): unknown {
  *  the host; we don't ship the wasm in this package. Descriptors / sub-messages
  *  cross as protobuf binary (Uint8Array); responses + context are JSON. */
 export interface UiviewWasm {
-  PayloadBudget?: new (maxBytes: number, maxRate: number) => {
+  WasmPayloadBudget?: new (maxBytes: number, maxRate: number) => {
     /** 0 admitted, 1 total-byte ceiling, 2 rolling-rate ceiling, 3 bad clock. */
     admit(payloadBytes: number, nowMs: number): number;
   };
@@ -2282,7 +2282,7 @@ function makePayloadBudget(
   maxBytes: number,
   maxRate: number,
 ): { admit(payloadBytes: number, nowMs: number): number } {
-  if (wasm.PayloadBudget) return new wasm.PayloadBudget(maxBytes, maxRate);
+  if (wasm.WasmPayloadBudget) return new wasm.WasmPayloadBudget(maxBytes, maxRate);
   // Older hosts can still render non-streaming panels. Live untrusted payloads
   // fail closed when the shared Rust guard is unavailable.
   return { admit: () => 1 };

@@ -41,7 +41,7 @@ function wasmWith(
   admitPayload: (payloadBytes: number, nowMs: number) => number = () => 0,
 ): UiviewWasm {
   return {
-    PayloadBudget: class { admit(payloadBytes: number, nowMs: number) {
+    WasmPayloadBudget: class { admit(payloadBytes: number, nowMs: number) {
       return admitPayload(payloadBytes, nowMs);
     } },
     renderTable: () => rows,
