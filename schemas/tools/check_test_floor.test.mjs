@@ -31,9 +31,10 @@ test("missing test roots fail instead of counting zero silently", () => {
 test("excluded files mirror CI test-script exclusions", () => {
   const manifest = readManifest();
   const web = manifest.suites.find((suite) => suite.id === "web");
-  const all = countSuite({ ...web, exclude: [] }).count;
-  const ciScoped = countSuite(web).count;
-  assert.equal(all - ciScoped, 5);
+  const webPackage = JSON.parse(readFileSync(join(ROOT, "../packages/web/package.json"), "utf8"));
+  const ciExclusions = [...webPackage.scripts.test.matchAll(/--exclude\s+([^\s]+)/g)]
+    .map(([, path]) => `packages/web/${path}`);
+  assert.deepEqual([...web.exclude].sort(), ciExclusions.sort());
 });
 
 test("JavaScript declarations count test and it styles but not assertion calls", () => {
