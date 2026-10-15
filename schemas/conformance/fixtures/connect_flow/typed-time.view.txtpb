@@ -1,0 +1,27 @@
+id: "connect_flow-typed-time"
+title: "typed-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-time"
+    title: "time"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "13:45:00"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

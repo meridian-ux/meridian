@@ -91,3 +91,15 @@ test("every unrestricted value surface requires its own browser and native forma
   assert.deepEqual(checkNativeSnapshots(manifest, values, native, arms), []);
   assert.match(checkNativeSnapshots(manifest, values, native.filter(key => key !== "record_card/value-null-96x28.txt"), arms).join("\n"), /missing native snapshot record_card\/value-null-96x28.txt/);
 });
+
+test("constrained typed cases require independent browser and native goldens", () => {
+  const manifest = { arms: { copy_value: {}, stat: {} } };
+  const constrained = { stringArms: ["copy_value"], strings: [{ name: "boolean" }], numberArms: ["stat"], numbers: [{ name: "zero" }] };
+  const keys = ["copy_value/empty", "copy_value/typical", "copy_value/overflow", "stat/empty", "stat/typical", "stat/overflow", "copy_value/typed-boolean", "stat/typed-zero"];
+  const browser = keys.map(key => `exports[\`suite > html/${key} 1\`] = \`"body"\`;`).join("\n");
+  assert.deepEqual(checkStatefulSnapshots(manifest, [], browser, ["html"], [], constrained), []);
+  assert.match(checkStatefulSnapshots(manifest, [], browser.replace(/^.*html\/stat\/typed-zero.*$/m, ""), ["html"], [], constrained).join("\n"), /missing stateful snapshot html\/stat\/typed-zero/);
+  const native = keys.flatMap(key => ["96x28", "40x10"].map(size => `${key}-${size}.txt`));
+  assert.deepEqual(checkNativeSnapshots(manifest, [], native, [], constrained), []);
+  assert.match(checkNativeSnapshots(manifest, [], native.filter(key => key !== "copy_value/typed-boolean-40x10.txt"), [], constrained).join("\n"), /missing native snapshot copy_value\/typed-boolean-40x10.txt/);
+});

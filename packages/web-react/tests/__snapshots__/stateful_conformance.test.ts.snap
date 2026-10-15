@@ -602,6 +602,422 @@ figure
       "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-boolean' > html/connect_flow/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+"Typed value"
+button type="button"
+  code
+    "false"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-date' > html/connect_flow/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h2
+  "date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-date-time' > html/connect_flow/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-decimal' > html/connect_flow/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-duration' > html/connect_flow/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h2
+  "duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-email' > html/connect_flow/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h2
+  "email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-empty' > html/connect_flow/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+h2
+  "empty"
+"Typed value"
+button type="button"
+  code
+    "—"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-enum' > html/connect_flow/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h2
+  "enum"
+"Typed value"
+button type="button"
+  code
+    "READY"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-identifier' > html/connect_flow/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+"Typed value"
+button type="button"
+  code
+    "000123"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-integer' > html/connect_flow/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h2
+  "integer"
+"Typed value"
+button type="button"
+  code
+    "0042"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-date' > html/connect_flow/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-principal' > html/connect_flow/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-time' > html/connect_flow/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-json' > html/connect_flow/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h2
+  "json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-list' > html/connect_flow/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h2
+  "list"
+"Typed value"
+button type="button"
+  code
+    "one,two"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-mismatched-options' > html/connect_flow/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+h2
+  "mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-money' > html/connect_flow/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h2
+  "money"
+"Typed value"
+button type="button"
+  code
+    "12.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-multiline' > html/connect_flow/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+"Typed value"
+button type="button"
+  code
+    "first second"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-numeric-string-pre…' > html/connect_flow/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+h2
+  "numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-percent' > html/connect_flow/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h2
+  "percent"
+"Typed value"
+button type="button"
+  code
+    "0.125"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-principal' > html/connect_flow/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h2
+  "principal"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-text' > html/connect_flow/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h2
+  "text"
+"Typed value"
+button type="button"
+  code
+    "plain text"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-time' > html/connect_flow/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h2
+  "time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-unknown-type' > html/connect_flow/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-unspecified' > html/connect_flow/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'connect_flow/typed-url' > html/connect_flow/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h2
+  "url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'connect_flow/typical' > html/connect_flow/typical 1`] = `
 "h2
   "Conformance: connect_flow · typical"
@@ -662,6 +1078,344 @@ h2
 button type="button"
   code
     "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-boolean' > html/copy_value/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+"Typed value"
+button type="button"
+  code
+    "false""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-date' > html/copy_value/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h2
+  "date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-date-time' > html/copy_value/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-decimal' > html/copy_value/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-duration' > html/copy_value/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h2
+  "duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-email' > html/copy_value/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h2
+  "email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-empty' > html/copy_value/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+h2
+  "empty"
+"Typed value"
+button type="button"
+  code
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-enum' > html/copy_value/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h2
+  "enum"
+"Typed value"
+button type="button"
+  code
+    "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-identifier' > html/copy_value/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+"Typed value"
+button type="button"
+  code
+    "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-integer' > html/copy_value/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h2
+  "integer"
+"Typed value"
+button type="button"
+  code
+    "0042""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-invalid-date' > html/copy_value/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-invalid-principal' > html/copy_value/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-invalid-time' > html/copy_value/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-json' > html/copy_value/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h2
+  "json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-list' > html/copy_value/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h2
+  "list"
+"Typed value"
+button type="button"
+  code
+    "one,two""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-mismatched-options' > html/copy_value/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+h2
+  "mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-money' > html/copy_value/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h2
+  "money"
+"Typed value"
+button type="button"
+  code
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-multiline' > html/copy_value/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+"Typed value"
+button type="button"
+  code
+    "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-numeric-string-preci…' > html/copy_value/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+h2
+  "numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-percent' > html/copy_value/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h2
+  "percent"
+"Typed value"
+button type="button"
+  code
+    "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-principal' > html/copy_value/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h2
+  "principal"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-text' > html/copy_value/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h2
+  "text"
+"Typed value"
+button type="button"
+  code
+    "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-time' > html/copy_value/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h2
+  "time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-unknown-type' > html/copy_value/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-unspecified' > html/copy_value/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'copy_value/typed-url' > html/copy_value/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h2
+  "url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'copy_value/typical' > html/copy_value/typical 1`] = `
@@ -4902,6 +5656,292 @@ h2
 "+60""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-boolean' > html/stat/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-date' > html/stat/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h2
+  "date"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-date-time' > html/stat/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-decimal' > html/stat/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+"Typed metric"
+"12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-duration' > html/stat/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h2
+  "duration"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-email' > html/stat/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h2
+  "email"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-enum' > html/stat/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h2
+  "enum"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-excessive-precision' > html/stat/typed-excessive-precision 1`] = `
+"h2
+  "typed-excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "excessive-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-identifier' > html/stat/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-integer' > html/stat/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h2
+  "integer"
+"Typed metric"
+"42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-json' > html/stat/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h2
+  "json"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-legacy-currency' > html/stat/typed-legacy-currency 1`] = `
+"h2
+  "typed-legacy-currency"
+h3
+  "legacy-currency"
+h2
+  "legacy-currency"
+"Typed metric"
+"$12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-list' > html/stat/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h2
+  "list"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-money' > html/stat/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h2
+  "money"
+"Typed metric"
+"12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-multiline' > html/stat/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-negative' > html/stat/typed-negative 1`] = `
+"h2
+  "typed-negative"
+h3
+  "negative"
+h2
+  "negative"
+"Typed metric"
+"-12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-negative-precision' > html/stat/typed-negative-precision 1`] = `
+"h2
+  "typed-negative-precision"
+h3
+  "negative-precision"
+h2
+  "negative-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-percent' > html/stat/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h2
+  "percent"
+"Typed metric"
+"0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-principal' > html/stat/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h2
+  "principal"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-server-display' > html/stat/typed-server-display 1`] = `
+"h2
+  "typed-server-display"
+h3
+  "server-display"
+h2
+  "server-display"
+"Typed metric"
+"Server amount""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-text' > html/stat/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h2
+  "text"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-time' > html/stat/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h2
+  "time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-unknown-type' > html/stat/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-unspecified' > html/stat/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-url' > html/stat/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h2
+  "url"
+"Typed metric"
+"42.25""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'stat/typed-zero' > html/stat/typed-zero 1`] = `
+"h2
+  "typed-zero"
+h3
+  "zero"
+h2
+  "zero"
+"Typed metric"
+"0""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'stat/typical' > html/stat/typical 1`] = `
 "h2
   "Conformance: stat · typical"
@@ -6974,6 +8014,422 @@ figure
       "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-boolean' > shadcn/connect_flow/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+"Typed value"
+button type="button"
+  code
+    "false"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-date' > shadcn/connect_flow/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h3
+  "date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-date-time' > shadcn/connect_flow/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-decimal' > shadcn/connect_flow/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-duration' > shadcn/connect_flow/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h3
+  "duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-email' > shadcn/connect_flow/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h3
+  "email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-empty' > shadcn/connect_flow/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+h3
+  "empty"
+"Typed value"
+button type="button"
+  code
+    "—"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-enum' > shadcn/connect_flow/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h3
+  "enum"
+"Typed value"
+button type="button"
+  code
+    "READY"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-identifier' > shadcn/connect_flow/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+"Typed value"
+button type="button"
+  code
+    "000123"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-integer' > shadcn/connect_flow/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h3
+  "integer"
+"Typed value"
+button type="button"
+  code
+    "0042"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-date' > shadcn/connect_flow/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-principal' > shadcn/connect_flow/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-time' > shadcn/connect_flow/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-json' > shadcn/connect_flow/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h3
+  "json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-list' > shadcn/connect_flow/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h3
+  "list"
+"Typed value"
+button type="button"
+  code
+    "one,two"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-mismatched-options' > shadcn/connect_flow/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+h3
+  "mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-money' > shadcn/connect_flow/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h3
+  "money"
+"Typed value"
+button type="button"
+  code
+    "12.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-multiline' > shadcn/connect_flow/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+"Typed value"
+button type="button"
+  code
+    "first second"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-numeric-string-pre…' > shadcn/connect_flow/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+h3
+  "numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-percent' > shadcn/connect_flow/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h3
+  "percent"
+"Typed value"
+button type="button"
+  code
+    "0.125"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-principal' > shadcn/connect_flow/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h3
+  "principal"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-text' > shadcn/connect_flow/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h3
+  "text"
+"Typed value"
+button type="button"
+  code
+    "plain text"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-time' > shadcn/connect_flow/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h3
+  "time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-unknown-type' > shadcn/connect_flow/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-unspecified' > shadcn/connect_flow/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typed-url' > shadcn/connect_flow/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h3
+  "url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typical' > shadcn/connect_flow/typical 1`] = `
 "h2
   "Conformance: connect_flow · typical"
@@ -7034,6 +8490,344 @@ h3
 button type="button"
   code
     "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-boolean' > shadcn/copy_value/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+"Typed value"
+button type="button"
+  code
+    "false""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-date' > shadcn/copy_value/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h3
+  "date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-date-time' > shadcn/copy_value/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-decimal' > shadcn/copy_value/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-duration' > shadcn/copy_value/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h3
+  "duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-email' > shadcn/copy_value/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h3
+  "email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-empty' > shadcn/copy_value/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+h3
+  "empty"
+"Typed value"
+button type="button"
+  code
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-enum' > shadcn/copy_value/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h3
+  "enum"
+"Typed value"
+button type="button"
+  code
+    "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-identifier' > shadcn/copy_value/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+"Typed value"
+button type="button"
+  code
+    "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-integer' > shadcn/copy_value/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h3
+  "integer"
+"Typed value"
+button type="button"
+  code
+    "0042""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-invalid-date' > shadcn/copy_value/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-invalid-principal' > shadcn/copy_value/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-invalid-time' > shadcn/copy_value/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-json' > shadcn/copy_value/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h3
+  "json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-list' > shadcn/copy_value/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h3
+  "list"
+"Typed value"
+button type="button"
+  code
+    "one,two""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-mismatched-options' > shadcn/copy_value/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+h3
+  "mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-money' > shadcn/copy_value/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h3
+  "money"
+"Typed value"
+button type="button"
+  code
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-multiline' > shadcn/copy_value/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+"Typed value"
+button type="button"
+  code
+    "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-numeric-string-preci…' > shadcn/copy_value/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+h3
+  "numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-percent' > shadcn/copy_value/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h3
+  "percent"
+"Typed value"
+button type="button"
+  code
+    "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-principal' > shadcn/copy_value/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h3
+  "principal"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-text' > shadcn/copy_value/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h3
+  "text"
+"Typed value"
+button type="button"
+  code
+    "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-time' > shadcn/copy_value/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h3
+  "time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-unknown-type' > shadcn/copy_value/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-unspecified' > shadcn/copy_value/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typed-url' > shadcn/copy_value/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h3
+  "url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'copy_value/typical' > shadcn/copy_value/typical 1`] = `
@@ -11272,6 +13066,292 @@ h3
 "1,240"
 "↑"
 "+60""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-boolean' > shadcn/stat/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-date' > shadcn/stat/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+h3
+  "date"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-date-time' > shadcn/stat/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-decimal' > shadcn/stat/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+"Typed metric"
+"12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-duration' > shadcn/stat/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+h3
+  "duration"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-email' > shadcn/stat/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+h3
+  "email"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-enum' > shadcn/stat/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+h3
+  "enum"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-excessive-precision' > shadcn/stat/typed-excessive-precision 1`] = `
+"h2
+  "typed-excessive-precision"
+h3
+  "excessive-precision"
+h3
+  "excessive-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-identifier' > shadcn/stat/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-integer' > shadcn/stat/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+h3
+  "integer"
+"Typed metric"
+"42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-json' > shadcn/stat/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+h3
+  "json"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-legacy-currency' > shadcn/stat/typed-legacy-currency 1`] = `
+"h2
+  "typed-legacy-currency"
+h3
+  "legacy-currency"
+h3
+  "legacy-currency"
+"Typed metric"
+"$12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-list' > shadcn/stat/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+h3
+  "list"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-money' > shadcn/stat/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+h3
+  "money"
+"Typed metric"
+"12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-multiline' > shadcn/stat/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-negative' > shadcn/stat/typed-negative 1`] = `
+"h2
+  "typed-negative"
+h3
+  "negative"
+h3
+  "negative"
+"Typed metric"
+"-12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-negative-precision' > shadcn/stat/typed-negative-precision 1`] = `
+"h2
+  "typed-negative-precision"
+h3
+  "negative-precision"
+h3
+  "negative-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-percent' > shadcn/stat/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+h3
+  "percent"
+"Typed metric"
+"0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-principal' > shadcn/stat/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+h3
+  "principal"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-server-display' > shadcn/stat/typed-server-display 1`] = `
+"h2
+  "typed-server-display"
+h3
+  "server-display"
+h3
+  "server-display"
+"Typed metric"
+"Server amount""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-text' > shadcn/stat/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+h3
+  "text"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-time' > shadcn/stat/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+h3
+  "time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-unknown-type' > shadcn/stat/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-unspecified' > shadcn/stat/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-url' > shadcn/stat/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+h3
+  "url"
+"Typed metric"
+"42.25""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-zero' > shadcn/stat/typed-zero 1`] = `
+"h2
+  "typed-zero"
+h3
+  "zero"
+h3
+  "zero"
+"Typed metric"
+"0""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'stat/typical' > shadcn/stat/typical 1`] = `

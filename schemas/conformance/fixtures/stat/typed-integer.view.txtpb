@@ -1,0 +1,21 @@
+id: "stat-typed-integer"
+title: "typed-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-integer"
+    title: "integer"
+    stat {
+      label: "Typed metric"
+      value: 42.0
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: VALUE_TYPE_INTEGER
+      }
+    }
+  }
+}

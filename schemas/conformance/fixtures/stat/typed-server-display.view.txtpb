@@ -1,0 +1,29 @@
+id: "stat-typed-server-display"
+title: "typed-server-display"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-server-display"
+    title: "server-display"
+    stat {
+      label: "Typed metric"
+      value: 12.5
+      format: VALUE_FORMAT_PLAIN
+      populate {
+        service: "fixture.Metrics"
+        method: "Get"
+      }
+      display_field: "shown"
+      value_display {
+        type: VALUE_TYPE_DECIMAL
+        number {
+          fraction_digits: 2
+        }
+      }
+    }
+  }
+}

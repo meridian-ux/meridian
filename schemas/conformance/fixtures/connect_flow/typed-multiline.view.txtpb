@@ -1,0 +1,27 @@
+id: "connect_flow-typed-multiline"
+title: "typed-multiline"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-multiline"
+    title: "multiline"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "first\nsecond"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_MULTILINE_TEXT
+        }
+      }
+    }
+  }
+}

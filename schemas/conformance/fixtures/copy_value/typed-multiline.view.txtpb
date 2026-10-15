@@ -1,0 +1,22 @@
+id: "copy_value-typed-multiline"
+title: "typed-multiline"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-multiline"
+    title: "multiline"
+    copy_value {
+      value {
+        value: "first\nsecond"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_MULTILINE_TEXT
+        }
+      }
+    }
+  }
+}

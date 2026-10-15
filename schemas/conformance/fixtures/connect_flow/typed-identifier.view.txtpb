@@ -1,0 +1,27 @@
+id: "connect_flow-typed-identifier"
+title: "typed-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-identifier"
+    title: "identifier"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "000123"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+    }
+  }
+}

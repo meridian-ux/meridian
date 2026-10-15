@@ -1,0 +1,27 @@
+id: "connect_flow-typed-integer"
+title: "typed-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-integer"
+    title: "integer"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "0042"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+    }
+  }
+}

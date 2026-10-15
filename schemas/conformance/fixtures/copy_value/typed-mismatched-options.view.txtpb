@@ -1,0 +1,25 @@
+id: "copy_value-typed-mismatched-options"
+title: "typed-mismatched-options"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-mismatched-options"
+    title: "mismatched-options"
+    copy_value {
+      value {
+        value: "Ada <ada@example.com>"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

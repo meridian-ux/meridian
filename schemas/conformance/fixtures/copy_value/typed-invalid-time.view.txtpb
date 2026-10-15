@@ -1,0 +1,22 @@
+id: "copy_value-typed-invalid-time"
+title: "typed-invalid-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-invalid-time"
+    title: "invalid-time"
+    copy_value {
+      value {
+        value: "25:91"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

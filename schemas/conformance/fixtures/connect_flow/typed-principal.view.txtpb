@@ -1,0 +1,27 @@
+id: "connect_flow-typed-principal"
+title: "typed-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-principal"
+    title: "principal"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "Ada <ada@example.com>"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+    }
+  }
+}

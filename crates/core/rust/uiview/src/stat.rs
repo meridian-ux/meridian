@@ -12,6 +12,41 @@
 use crate::proto::{StatPanel, ValueType};
 use crate::render::format_display_value;
 
+/// Resolve numeric populate fields without coercing strings or trusting a
+/// server-supplied trend. The optional display string overrides only the value.
+pub fn compute_stat_with_response(
+    authored: &StatPanel,
+    fetched: Option<&serde_json::Value>,
+) -> StatComputed {
+    let Some(fetched) = fetched else {
+        return compute_stat(authored);
+    };
+    let at = |path: &str, fallback: &str| {
+        crate::ProtoPaths::get(fetched, if path.is_empty() { fallback } else { path })
+    };
+    let finite = |value: &serde_json::Value| value.as_f64().filter(|number| number.is_finite());
+    let mut panel = authored.clone();
+    if let Some(value) = finite(at(&panel.value_field, "value")) {
+        panel.value = value;
+    }
+    if let Some(previous) = finite(at(&panel.previous_field, "previous")) {
+        panel.previous = Some(previous);
+    }
+    if let Some(series) = at(&panel.series_field, "series").as_array() {
+        panel.series = series.iter().filter_map(finite).collect();
+    }
+    let mut computed = compute_stat(&panel);
+    if !panel.display_field.is_empty() {
+        if let Some(display) = crate::ProtoPaths::get(fetched, &panel.display_field)
+            .as_str()
+            .filter(|value| !value.is_empty())
+        {
+            computed.formatted_value = display.to_owned();
+        }
+    }
+    computed
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StatTrend {
     Up,
@@ -221,6 +256,58 @@ pub fn compute_stat(panel: &StatPanel) -> StatComputed {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fetched_fields_keep_zero_and_compute_direction_independently_of_display_text() {
+        let panel = StatPanel {
+            value: 7.0,
+            previous: Some(3.0),
+            format: 5,
+            higher_is_better: Some(true),
+            value_field: "metric.current".into(),
+            previous_field: "metric.prior".into(),
+            series_field: "metric.history".into(),
+            display_field: "shown".into(),
+            ..Default::default()
+        };
+        let actual = compute_stat_with_response(
+            &panel,
+            Some(
+                &serde_json::json!({"metric": {"current": 0, "prior": 2, "history": [2, 0, "99", false, null]}, "shown": "Server amount", "trend": "up"}),
+            ),
+        );
+        assert_eq!(actual.formatted_value, "Server amount");
+        assert_eq!(actual.formatted_delta.as_deref(), Some("-2"));
+        assert_eq!(actual.trend, StatTrend::Down);
+        assert_eq!(actual.semantics, StatSemantics::Bad);
+        assert_eq!(actual.series, vec![2.0, 0.0]);
+        assert_eq!(panel.value, 7.0);
+    }
+
+    #[test]
+    fn malformed_fetched_fields_and_empty_display_preserve_authored_values() {
+        let panel = StatPanel {
+            value: 7.0,
+            previous: Some(3.0),
+            series: vec![3.0, 7.0],
+            format: 5,
+            value_field: "metric.current".into(),
+            previous_field: "metric.prior".into(),
+            series_field: "metric.history".into(),
+            display_field: "shown".into(),
+            ..Default::default()
+        };
+        let actual = compute_stat_with_response(
+            &panel,
+            Some(
+                &serde_json::json!({"metric": {"current": "99", "prior": false, "history": "not an array"}, "shown": ""}),
+            ),
+        );
+        assert_eq!(actual.formatted_value, "7");
+        assert_eq!(actual.formatted_delta.as_deref(), Some("+4"));
+        assert_eq!(actual.trend, StatTrend::Up);
+        assert_eq!(actual.series, vec![3.0, 7.0]);
+    }
     use crate::proto::{value_display, NumberOptions, StatPanel, ValueDisplay, ValueType};
     use prost::Message;
 

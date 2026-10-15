@@ -38,6 +38,7 @@ import {
   useGrammarResolver,
   useIcon,
   useMeridian,
+  useStatData,
 } from "@savvifi/meridian-web-react";
 import {
   computeStat,
@@ -397,13 +398,16 @@ export function GrammarView({ panel }: { panel: GrammarPanel }): ReactNode {
 // good/bad color ONLY when higher_is_better is set. Hand-drawn SVG sparkline via
 // the shared statSparklinePoints (no chart library).
 export function StatView({ panel }: { panel: StatPanel }): ReactNode {
-  const s = computeStat(panel);
+  const { record, loading, error } = useStatData(panel);
+  const s = computeStat(panel, record);
   const arrow = trendArrow(s.trend);
   const deltaColor =
     s.semantics === "good" ? "success.main" : s.semantics === "bad" ? "error.main" : "text.secondary";
   const points = statSparklinePoints(s.series);
   return (
     <Card variant="outlined" sx={{ display: "inline-block" }} data-trend={s.trend} data-semantics={s.semantics}>
+      {loading && <span role="status">Loading metric…</span>}
+      {error && <span role="alert">Failed to load metric.</span>}
       <CardContent>
         <Typography variant="overline" color="text.secondary" className="mer-stat-label">
           {panel.label}

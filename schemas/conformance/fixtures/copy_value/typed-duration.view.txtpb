@@ -1,0 +1,22 @@
+id: "copy_value-typed-duration"
+title: "typed-duration"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-duration"
+    title: "duration"
+    copy_value {
+      value {
+        value: "4 min 12 s"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DURATION
+        }
+      }
+    }
+  }
+}

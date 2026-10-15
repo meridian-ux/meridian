@@ -41,6 +41,12 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescrip
         const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resource_cards" ? 4 : 1;
         expect((container.textContent ?? "").split(fixture.expectedValue).length - 1).toBeGreaterThanOrEqual(slots);
       }
+      if (typeof fixture.typedRaw === "string") {
+        const button = container.querySelector<HTMLElement>("button[data-copy]");
+        expect(button?.textContent).toBe(fixture.expectedValue);
+        expect(button?.getAttribute("data-copy")).toBe(fixture.typedRaw);
+        expect(button?.querySelector("a")).toBeNull();
+      }
       for (const call of Object.keys(fixture.responses).filter(key => !key.startsWith("__"))) {
         expect(invoke.mock.calls.some(([service, method]) => `${service}.${method}` === call), `${fixture.name} must consume ${call}`).toBe(true);
       }
@@ -48,7 +54,7 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescrip
       if (fixture.arm === "detail_header" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Fixture record");
       if (fixture.arm === "form" && fixture.state !== "empty") expect(tree).toContain("Section 0");
       if (fixture.arm === "chart" && fixture.state !== "empty") expect(tree).toContain("2026-10-01");
-      if (fixture.arm === "connect_flow" && fixture.state !== "empty") expect(tree).toContain("~/.cursor/mcp.json");
+      if (fixture.arm === "connect_flow" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("~/.cursor/mcp.json");
       if (fixture.arm === "stream" && fixture.state === "overflow") {
         expect(container.textContent).toContain("Stream line 139");
         expect(container.textContent).not.toContain("Stream line 000");

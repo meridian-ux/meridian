@@ -1,0 +1,12 @@
+viewport 40x10
+server-display
+┌──────────────────────────────────────┐
+│Typed metric                          │
+│Server amount                         │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

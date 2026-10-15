@@ -1,0 +1,21 @@
+id: "stat-typed-time"
+title: "typed-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-time"
+    title: "time"
+    stat {
+      label: "Typed metric"
+      value: 42.25
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: VALUE_TYPE_TIME
+      }
+    }
+  }
+}

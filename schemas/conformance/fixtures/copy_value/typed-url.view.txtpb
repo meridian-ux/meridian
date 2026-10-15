@@ -1,0 +1,22 @@
+id: "copy_value-typed-url"
+title: "typed-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-url"
+    title: "url"
+    copy_value {
+      value {
+        value: "https://example.com/a?b=1"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_URL
+        }
+      }
+    }
+  }
+}

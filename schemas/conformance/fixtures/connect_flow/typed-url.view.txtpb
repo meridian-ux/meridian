@@ -1,0 +1,27 @@
+id: "connect_flow-typed-url"
+title: "typed-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-url"
+    title: "url"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "https://example.com/a?b=1"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_URL
+        }
+      }
+    }
+  }
+}

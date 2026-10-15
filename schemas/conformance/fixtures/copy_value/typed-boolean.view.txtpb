@@ -1,0 +1,22 @@
+id: "copy_value-typed-boolean"
+title: "typed-boolean"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-boolean"
+    title: "boolean"
+    copy_value {
+      value {
+        value: "false"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_BOOLEAN
+        }
+      }
+    }
+  }
+}

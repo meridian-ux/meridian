@@ -562,6 +562,396 @@ figure
       "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-boolean' > web-components/connect_flow/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+"boolean"
+"Typed value"
+button type="button"
+  code
+    "false"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-date' > web-components/connect_flow/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+"date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-date-time' > web-components/connect_flow/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+"date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-decimal' > web-components/connect_flow/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+"decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-duration' > web-components/connect_flow/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+"duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-email' > web-components/connect_flow/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+"email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-empty' > web-components/connect_flow/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+"empty"
+"Typed value"
+button type="button"
+  code
+    "—"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-enum' > web-components/connect_flow/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+"enum"
+"Typed value"
+button type="button"
+  code
+    "READY"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-identifier' > web-components/connect_flow/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+"identifier"
+"Typed value"
+button type="button"
+  code
+    "000123"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-integer' > web-components/connect_flow/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+"integer"
+"Typed value"
+button type="button"
+  code
+    "0042"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-invalid-date' > web-components/connect_flow/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-invalid-principal' > web-components/connect_flow/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-invalid-time' > web-components/connect_flow/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-json' > web-components/connect_flow/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+"json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-list' > web-components/connect_flow/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+"list"
+"Typed value"
+button type="button"
+  code
+    "one,two"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-mismatched-options' > web-components/connect_flow/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+"mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-money' > web-components/connect_flow/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+"money"
+"Typed value"
+button type="button"
+  code
+    "12.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-multiline' > web-components/connect_flow/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+"multiline"
+"Typed value"
+button type="button"
+  code
+    "first second"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-numeric-string-pre…' > web-components/connect_flow/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+"numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-percent' > web-components/connect_flow/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+"percent"
+"Typed value"
+button type="button"
+  code
+    "0.125"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-principal' > web-components/connect_flow/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+"principal"
+"Typed value"
+button type="button"
+  code
+    "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-text' > web-components/connect_flow/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+"text"
+"Typed value"
+button type="button"
+  code
+    "plain text"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-time' > web-components/connect_flow/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+"time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-unknown-type' > web-components/connect_flow/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-unspecified' > web-components/connect_flow/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+"unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typed-url' > web-components/connect_flow/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+"url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typical' > web-components/connect_flow/typical 1`] = `
 "h2
   "Conformance: connect_flow · typical"
@@ -617,6 +1007,318 @@ h3
 button type="button"
   code
     "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-boolean' > web-components/copy_value/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+"boolean"
+"Typed value"
+button type="button"
+  code
+    "false""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-date' > web-components/copy_value/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+"date"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-date-time' > web-components/copy_value/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+"date-time"
+"Typed value"
+button type="button"
+  code
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-decimal' > web-components/copy_value/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+"decimal"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-duration' > web-components/copy_value/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+"duration"
+"Typed value"
+button type="button"
+  code
+    "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-email' > web-components/copy_value/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+"email"
+"Typed value"
+button type="button"
+  code
+    "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-empty' > web-components/copy_value/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+"empty"
+"Typed value"
+button type="button"
+  code
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-enum' > web-components/copy_value/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+"enum"
+"Typed value"
+button type="button"
+  code
+    "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-identifier' > web-components/copy_value/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+"identifier"
+"Typed value"
+button type="button"
+  code
+    "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-integer' > web-components/copy_value/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+"integer"
+"Typed value"
+button type="button"
+  code
+    "0042""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-invalid-date' > web-components/copy_value/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+"Typed value"
+button type="button"
+  code
+    "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-invalid-principal' > web-components/copy_value/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+"Typed value"
+button type="button"
+  code
+    "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-invalid-time' > web-components/copy_value/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+"Typed value"
+button type="button"
+  code
+    "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-json' > web-components/copy_value/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+"json"
+"Typed value"
+button type="button"
+  code
+    "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-list' > web-components/copy_value/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+"list"
+"Typed value"
+button type="button"
+  code
+    "one,two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-mismatched-options' > web-components/copy_value/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+"mismatched-options"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-money' > web-components/copy_value/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+"money"
+"Typed value"
+button type="button"
+  code
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-multiline' > web-components/copy_value/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+"multiline"
+"Typed value"
+button type="button"
+  code
+    "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-numeric-string-preci…' > web-components/copy_value/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+"numeric-string-precision"
+"Typed value"
+button type="button"
+  code
+    "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-percent' > web-components/copy_value/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+"percent"
+"Typed value"
+button type="button"
+  code
+    "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-principal' > web-components/copy_value/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+"principal"
+"Typed value"
+button type="button"
+  code
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-text' > web-components/copy_value/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+"text"
+"Typed value"
+button type="button"
+  code
+    "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-time' > web-components/copy_value/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+"time"
+"Typed value"
+button type="button"
+  code
+    "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-unknown-type' > web-components/copy_value/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-unspecified' > web-components/copy_value/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+"unspecified"
+"Typed value"
+button type="button"
+  code
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typed-url' > web-components/copy_value/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+"url"
+"Typed value"
+button type="button"
+  code
+    "https://example.com/a?b=1""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typical' > web-components/copy_value/typical 1`] = `
@@ -4410,6 +5112,266 @@ h3
 "1,240"
 "↑ +60"
 svg"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-boolean' > web-components/stat/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+"boolean"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-date' > web-components/stat/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+"date"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-date-time' > web-components/stat/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+"date-time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-decimal' > web-components/stat/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+"decimal"
+"Typed metric"
+"12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-duration' > web-components/stat/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+"duration"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-email' > web-components/stat/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+"email"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-enum' > web-components/stat/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+"enum"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-excessive-precision' > web-components/stat/typed-excessive-precision 1`] = `
+"h2
+  "typed-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-identifier' > web-components/stat/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+"identifier"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-integer' > web-components/stat/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+"integer"
+"Typed metric"
+"42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-json' > web-components/stat/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+"json"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-legacy-currency' > web-components/stat/typed-legacy-currency 1`] = `
+"h2
+  "typed-legacy-currency"
+h3
+  "legacy-currency"
+"legacy-currency"
+"Typed metric"
+"$12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-list' > web-components/stat/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+"list"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-money' > web-components/stat/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+"money"
+"Typed metric"
+"12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-multiline' > web-components/stat/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+"multiline"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-negative' > web-components/stat/typed-negative 1`] = `
+"h2
+  "typed-negative"
+h3
+  "negative"
+"negative"
+"Typed metric"
+"-12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-negative-precision' > web-components/stat/typed-negative-precision 1`] = `
+"h2
+  "typed-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+"Typed metric"
+"12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-percent' > web-components/stat/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+"percent"
+"Typed metric"
+"0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-principal' > web-components/stat/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+"principal"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-server-display' > web-components/stat/typed-server-display 1`] = `
+"h2
+  "typed-server-display"
+h3
+  "server-display"
+"server-display"
+"Typed metric"
+"Server amount""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-text' > web-components/stat/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+"text"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-time' > web-components/stat/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+"time"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-unknown-type' > web-components/stat/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-unspecified' > web-components/stat/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+"unspecified"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-url' > web-components/stat/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+"url"
+"Typed metric"
+"42.25""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-zero' > web-components/stat/typed-zero 1`] = `
+"h2
+  "typed-zero"
+h3
+  "zero"
+"zero"
+"Typed metric"
+"0""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typical' > web-components/stat/typical 1`] = `

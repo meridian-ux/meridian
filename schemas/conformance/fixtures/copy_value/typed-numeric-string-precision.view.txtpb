@@ -1,0 +1,25 @@
+id: "copy_value-typed-numeric-string-precision"
+title: "typed-numeric-string-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-numeric-string-precision"
+    title: "numeric-string-precision"
+    copy_value {
+      value {
+        value: "0012.50"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

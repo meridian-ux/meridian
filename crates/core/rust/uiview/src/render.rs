@@ -121,7 +121,7 @@ pub fn format_cell(value: &Value, column: &TableColumn) -> String {
 /// value's meaning.
 pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
     const EMPTY: &str = "—";
-    if value.is_null() {
+    if value.is_null() || value.as_str() == Some("") {
         return EMPTY.to_string();
     }
 
@@ -449,6 +449,32 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn declared_empty_strings_use_the_shared_read_placeholder_without_boolean_coercion() {
+        for kind in [0, 1, 5, 999] {
+            assert_eq!(
+                format_display_value(
+                    &serde_json::json!(""),
+                    &ValueDisplay {
+                        r#type: kind,
+                        ..Default::default()
+                    }
+                ),
+                "—"
+            );
+        }
+        assert_eq!(
+            format_display_value(
+                &serde_json::json!("false"),
+                &ValueDisplay {
+                    r#type: ValueType::Boolean as i32,
+                    ..Default::default()
+                }
+            ),
+            "false"
+        );
+    }
 
     #[test]
     fn shared_value_type_conformance_corpus() {

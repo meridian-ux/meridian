@@ -12,13 +12,13 @@ host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
 
 There are also all 29 value cases from `value_types.json` through each of five
 unrestricted read arms (`panelArms`): table, record_card, detail_header, gallery,
-and resource_cards. The corpus has 214 cases total, including nulls,
+and resource_cards. The corpus has 292 cases total, including nulls,
 invalid declarations, and unknown types. HTML, shadcn, MUI, and web-components load these
 exact wire messages, render `ViewRenderer`, resolve the shared responses through
 their invokers, and compare committed semantic DOM goldens. Explicit assertions
 check populated/empty tables, formatter outputs, and bounded stream tails.
 Web-components runs these views through `renderView` and the actual compiled
-WASM bridge (228 tests including the earlier 14 core-boundary checks). Its
+WASM bridge (306 tests including the earlier 14 core-boundary checks). Its
 stream goldens deliberately select the plain-DOM fallback; Terminal uses real
 xterm with a non-network test socket, not a live PTY. Both resources are disposed
 after every case. Form prefill waits for loading to finish and checks live input
@@ -27,9 +27,9 @@ mutable control properties.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 
-The native consumer decodes the same 214 views and protobuf Struct responses,
+The native consumer decodes the same 292 views and protobuf Struct responses,
 extracts each view's single panel, and drives the real `PanelView` RPC/stream
-seams. It compares 428 terminal-buffer goldens under `native/` at 96×28 and
+seams. It compares 584 terminal-buffer goldens under `native/` at 96×28 and
 40×10, with explicit fetched-content, formatter, repeated-form-count, stream-tail,
 and cancellation checks. This covers native panel dispatch, not a general view
 layout tier. Prompt/LLM-prompt retain their documented standalone-entrypoint
@@ -42,10 +42,24 @@ All gallery/card display slots are checked, including null placeholders.
 
 The unrestricted arm list is verified against reachable ValueDisplay fields in
 the canonical descriptor set, with explicit exceptions for constrained payloads
-and form input/default semantics. This does not claim string-only CopyValue /
-ConnectFlow, numeric-only Stat, or Form/Prompt/LRO/LLM-prompt inputs accept the
-same raw payloads. Those require dedicated typed fixtures and remain outstanding;
-no coercion of strings, booleans, arrays, or objects was added to these cases.
+and form input/default semantics. `constrained_value_types.json` supplies 26
+string cases each for CopyValue/ConnectFlow and 26 numeric Stat cases, including
+every declared ValueType, invalid/unknown declarations, and precision edges.
+Raw values retain their canonical string/double field types. Copy metadata or
+jsdom clipboard assertions preserve the original string, including empty strings
+and leading zeros, independently of visible formatting. Native copy behavior
+remains host-owned; these buffers do not claim a real clipboard integration.
+
+These cases exposed and fixed string booleans being coerced by truthiness,
+empty declared strings diverging between languages, and ConnectFlow endpoint
+newlines being joined in native output. Stat now populates through each host's
+invoker, caches native data until invalidation, and shares strict numeric-field
+resolution plus the schema-defined display override. Computed delta/direction
+do not trust server trend metadata. React guards late responses, changed
+descriptors/requests/transports, and failures. Dedicated lifecycle tests cover
+those paths; the hook also resolves nested bindings from repeated-view records.
+Form/Prompt/LRO/LLM-prompt input/default cases and native standalone prompt
+entrypoints still require their own fixtures and remain outstanding.
 
 Compare or intentionally re-record native buffers from the source workspace:
 

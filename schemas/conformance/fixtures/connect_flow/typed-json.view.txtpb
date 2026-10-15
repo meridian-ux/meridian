@@ -1,0 +1,27 @@
+id: "connect_flow-typed-json"
+title: "typed-json"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-json"
+    title: "json"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "{\"ready\":true}"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_JSON
+        }
+      }
+    }
+  }
+}

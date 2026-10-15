@@ -1,0 +1,12 @@
+viewport 40x10
+mismatched-options
+┌──────────────────────────────────────┐
+│Typed value: Ada   [c] copy           │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

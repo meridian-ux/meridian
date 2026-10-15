@@ -1,0 +1,24 @@
+id: "stat-typed-decimal"
+title: "typed-decimal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-decimal"
+    title: "decimal"
+    stat {
+      label: "Typed metric"
+      value: 12.5
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: VALUE_TYPE_DECIMAL
+        number {
+          fraction_digits: 2
+        }
+      }
+    }
+  }
+}

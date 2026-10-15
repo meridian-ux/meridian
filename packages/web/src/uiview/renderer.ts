@@ -1134,7 +1134,7 @@ function inlineMd(host: HTMLElement, text: string): HTMLElement {
 // data-semantics) only when higher_is_better is set. Hand-drawn SVG sparkline
 // via the shared statSparklinePoints (no chart library).
 function buildStat(panel: StatPanel, fetched?: object): HTMLElement {
-  const s = computeStat(statWithFetched(panel, fetched));
+  const s = computeStat(panel, fetched);
   const wrap = el("div", "mer-stat");
   wrap.dataset.trend = s.trend;
   wrap.dataset.semantics = s.semantics;
@@ -1171,46 +1171,6 @@ function buildStat(panel: StatPanel, fetched?: object): HTMLElement {
   }
   if (panel.caption) wrap.appendChild(el("div", "mer-stat-caption", panel.caption));
   return wrap;
-}
-
-/**
- * Overlay a `populate` response onto a StatPanel's authored numbers.
- *
- * The authored `value` is the PRE-FETCH PLACEHOLDER (stat.proto), so a fetched
- * value replaces it and a missing one leaves it alone. Field paths default to
- * the response's own `value` / `previous` / `series`, which is the shape a
- * server naturally returns.
- *
- * Crucially the merged panel is then handed to the SAME `computeStat` — so
- * delta and trend stay COMPUTED from the data, never taken from the wire. That
- * is this shape's founding rule (a hand-marked direction is the classic
- * dashboard bug), and a fetch must not become a way around it. `display_field`
- * is the one sanctioned override, for values only the server can format
- * honestly.
- */
-function statWithFetched(panel: StatPanel, fetched?: object): StatPanel {
-  if (!fetched) return panel;
-  const num = (path: string, fallback: string): number | undefined => {
-    const v = readAt(fetched, path || fallback);
-    const n = typeof v === "number" ? v : Number(v);
-    return v == null || Number.isNaN(n) ? undefined : n;
-  };
-  const value = num(panel.valueField, "value");
-  const previous = num(panel.previousField, "previous");
-  const rawSeries = readAt(fetched, panel.seriesField || "series");
-  const series = Array.isArray(rawSeries)
-    ? rawSeries.map(Number).filter((n) => !Number.isNaN(n))
-    : undefined;
-  const display = readAt(fetched, panel.displayField || "");
-  return {
-    ...panel,
-    value: value ?? panel.value,
-    previous: previous ?? panel.previous,
-    series: series ?? panel.series,
-    // A server-formatted display string is surfaced through the existing
-    // delta/format machinery's escape hatch rather than a new one.
-    ...(typeof display === "string" && display ? { deltaOverride: panel.deltaOverride } : {}),
-  } as StatPanel;
 }
 
 /** Dotted-path read over a plain JSON object. Empty path ⇒ undefined. */

@@ -34,6 +34,7 @@ const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
 pub struct PanelView {
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
+    cached_stat: Option<CachedRecord>,
     cached_gallery: Option<CachedGallery>,
     cached_record: Option<CachedRecord>,
     cached_resource_cards: Option<CachedResourceCards>,
@@ -112,6 +113,7 @@ impl PanelView {
         Self {
             cached: None,
             cached_chart: None,
+            cached_stat: None,
             cached_gallery: None,
             cached_record: None,
             cached_resource_cards: None,
@@ -138,6 +140,7 @@ impl PanelView {
         Self {
             cached: None,
             cached_chart: None,
+            cached_stat: None,
             cached_gallery: None,
             cached_record: None,
             cached_resource_cards: None,
@@ -301,6 +304,7 @@ impl PanelView {
     pub fn invalidate(&mut self) {
         self.cached = None;
         self.cached_chart = None;
+        self.cached_stat = None;
         self.cached_gallery = None;
         self.cached_record = None;
         self.cached_resource_cards = None;
@@ -550,7 +554,23 @@ impl PanelView {
                 content::render_grammar(frame, content_area, panel, &self.palette);
             }
             Some(Body::Stat(panel)) => {
-                content::render_stat(frame, content_area, panel, &self.palette);
+                if self.cached_stat.is_none() {
+                    let fetched = panel.populate.as_ref().map(|call| invoker.invoke(&call.service, &call.method, RequestBuilder::build(call, context)));
+                    self.cached_stat = Some(match fetched {
+                        Some(Ok(record)) if record.is_object() => CachedRecord { record: Some(record), error: None },
+                        Some(Ok(_)) => CachedRecord { record: None, error: Some("Invalid metric response.".into()) },
+                        Some(Err(error)) => CachedRecord { record: None, error: Some(format!("Failed to load metric: {error}")) },
+                        None => CachedRecord { record: None, error: None },
+                    });
+                }
+                let cached = self.cached_stat.as_ref().unwrap();
+                if let Some(error) = &cached.error {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                } else if cached.record.is_some() {
+                    content::render_stat_with_response(frame, content_area, panel, &self.palette, cached.record.as_ref());
+                } else {
+                    content::render_stat(frame, content_area, panel, &self.palette);
+                }
             }
             Some(Body::Chart(panel)) => {
                 self.populate_chart_if_needed(panel, context, invoker);

@@ -1,0 +1,22 @@
+id: "copy_value-typed-invalid-principal"
+title: "typed-invalid-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-invalid-principal"
+    title: "invalid-principal"
+    copy_value {
+      value {
+        value: "Ada <bad email>"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+    }
+  }
+}

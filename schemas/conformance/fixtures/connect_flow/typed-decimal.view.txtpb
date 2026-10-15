@@ -1,0 +1,27 @@
+id: "connect_flow-typed-decimal"
+title: "typed-decimal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-decimal"
+    title: "decimal"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "0012.50"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DECIMAL
+        }
+      }
+    }
+  }
+}

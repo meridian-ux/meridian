@@ -1,0 +1,19 @@
+fields {
+  key: "fixture.Metrics.Get"
+  value {
+    struct_value {
+      fields {
+        key: "shown"
+        value {
+          string_value: "Server amount"
+        }
+      }
+      fields {
+        key: "value"
+        value {
+          number_value: 12.5
+        }
+      }
+    }
+  }
+}

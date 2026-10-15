@@ -7,6 +7,31 @@ from tools.stateful_corpus import ROOT, STATES, artifacts, check, classes
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_constrained_cases_cover_every_declared_type_without_coercing_the_payload(self):
+        files = artifacts()
+        View = classes()["meridian.ui.v1.ViewDescriptor"]
+        kinds = {value.number for value in View.DESCRIPTOR.file.pool.FindEnumTypeByName("meridian.ui.v1.ValueType").values}
+        corpus = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        self.assertEqual(corpus["stringArms"], ["copy_value", "connect_flow"])
+        self.assertEqual(corpus["numberArms"], ["stat"])
+        for arm_key, case_key, raw_type in (("stringArms", "strings", str), ("numberArms", "numbers", (int, float))):
+            cases = corpus[case_key]
+            self.assertTrue(kinds <= {case["type"] for case in cases})
+            self.assertIn(999, {case["type"] for case in cases})
+            self.assertEqual(len(cases), len({case["name"] for case in cases}))
+            for arm in corpus[arm_key]:
+                for case in cases:
+                    self.assertIsInstance(case["raw"], raw_type)
+                    self.assertIsNot(type(case["raw"]), bool)
+                    panel = View.FromString(files[f"{arm}/typed-{case['name']}.view.binpb"]).slots[0].panel
+                    if arm == "stat":
+                        self.assertEqual(panel.stat.value, case["raw"])
+                        self.assertEqual(panel.stat.value_display.type, case["type"])
+                    else:
+                        value = panel.copy_value.value if arm == "copy_value" else panel.connect_flow.endpoint
+                        self.assertEqual(value.value, case["raw"])
+                        self.assertEqual(value.display.type, case["type"])
+
     def test_every_unrestricted_surface_preserves_raw_response_types(self):
         files = artifacts()
         Response = classes()["google.protobuf.Struct"]
@@ -66,7 +91,9 @@ class StatefulCorpusTest(unittest.TestCase):
         for arm in corpus["panelArms"]:
             for value in corpus["cases"]:
                 self.assertIn(f"{arm}/value-{value['name']}.view.binpb", files)
-        self.assertEqual(len(files), (len(arms) * 3 + len(corpus["cases"]) * len(corpus["panelArms"])) * 4)
+        constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        typed_count = len(constrained["stringArms"]) * len(constrained["strings"]) + len(constrained["numberArms"]) * len(constrained["numbers"])
+        self.assertEqual(len(files), (len(arms) * 3 + len(corpus["cases"]) * len(corpus["panelArms"]) + typed_count) * 4)
 
     def test_text_twins_parse_to_the_exact_binary_messages(self):
         types = classes()

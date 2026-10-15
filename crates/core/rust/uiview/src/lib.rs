@@ -81,7 +81,8 @@ pub use render::{
 };
 pub use request::{Context, RequestBuilder};
 pub use stat::{
-    compute_stat, format_stat_number, trend_arrow, StatComputed, StatSemantics, StatTrend,
+    compute_stat, compute_stat_with_response, format_stat_number, trend_arrow, StatComputed,
+    StatSemantics, StatTrend,
 };
 pub use stream::{
     stream_frame_data, stream_frame_from_json, StreamError, StreamInvoker, StreamSession,

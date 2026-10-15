@@ -1,0 +1,20 @@
+id: "stat-typed-unspecified"
+title: "typed-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-unspecified"
+    title: "unspecified"
+    stat {
+      label: "Typed metric"
+      value: 42.25
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+      }
+    }
+  }
+}
