@@ -171,6 +171,37 @@ test("an unverified full-parity cell requires a waiver", () => {
   assert.ok(errors.some((error) => /stream\.swiftui/.test(error) && /FULL-PARITY/.test(error)));
 });
 
+test("a waiver cannot revive a retired full-parity structural gap", () => {
+  const manifest = realManifest();
+  manifest.arms.stream.renderers["web-react"] = {
+    status: "structural-gap",
+    reason: "The stream slot was removed.",
+    waiver: "An old seam waiver must not bypass the ratchet.",
+  };
+  assert.ok(check(manifest, realArms()).some((error) =>
+    /stream\.web-react: status "structural-gap" is retired/.test(error)));
+});
+
+test("specialized arms cannot revive structural gaps either", () => {
+  const manifest = realManifest();
+  manifest.arms.terminal.renderers["html-kit"] = {
+    status: "structural-gap",
+    reason: "The terminal slot was removed.",
+  };
+  assert.ok(check(manifest, realArms()).some((error) =>
+    /terminal\.html-kit: status "structural-gap" is retired/.test(error)));
+});
+
+test("non-panel modalities cannot introduce structural gaps", () => {
+  const manifest = realManifest();
+  manifest.modalities.conversation.arms.markdown.renderers["chat-html"] = {
+    status: "structural-gap",
+    reason: "No content dispatch seam.",
+  };
+  assert.ok(checkModalities(manifest, realCatalog()).some((error) =>
+    /conversation\.markdown\.chat-html: status "structural-gap" is retired/.test(error)));
+});
+
 test("a specialized shape may have gaps without a waiver", () => {
   // terminal/grammar/media document degradation ladders instead of parity, so
   // the gate must not demand waivers there — otherwise it cries wolf and gets

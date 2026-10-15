@@ -7,11 +7,10 @@
 
 import type { ReactNode } from "react";
 
-import { Card, CardContent, Typography } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
+import { StreamContent, type StreamPanelProps } from "@savvifi/meridian-web-react";
 
-import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-
-export function MeridianStream({ panel }: { panel: StreamPanel }): ReactNode {
+export function MeridianStream({ panel, descriptor }: Pick<StreamPanelProps, "panel"> & Partial<Pick<StreamPanelProps, "descriptor">>): ReactNode {
   return (
     <Card
       variant="outlined"
@@ -20,9 +19,7 @@ export function MeridianStream({ panel }: { panel: StreamPanel }): ReactNode {
       data-follow-mode={panel.followMode}
     >
       <CardContent>
-        <Typography className="mer-stream-placeholder" color="text.secondary">
-          {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
-        </Typography>
+        <StreamContent panel={panel} descriptor={descriptor} />
       </CardContent>
     </Card>
   );

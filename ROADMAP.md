@@ -121,6 +121,11 @@ Three facts shape the order of work:
   Interactive Terminal support remains the web-components specialization:
   React kits preserve safe connection metadata but declare the four interactive
   PTY cells `not-applicable`, rather than counting that degradation as PTY parity.
+  HTML, Shadcn, and MUI also share a protobuf-backed static stream transcript:
+  hosts supply `StreamFrame` snapshots by panel ID through `streamSnapshots`.
+  The kits retain the bounded tail, honor `line_field` and the byte ceiling,
+  and preserve placeholder copy when no valid frames are available. This is
+  the static degradation rung; live React subscriptions remain host-owned.
 - **The remaining intentional parity gaps are bounded:** two TUI placeholders
   (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
   and the TUI terminal transport boundary documented in its degradation ladder.

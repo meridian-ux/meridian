@@ -42,6 +42,15 @@ const GAP_STATUSES = new Set(["missing", "structural-gap", "unverified"]);
 /** Statuses that need an explanation. Everything except the happy one. */
 const NEEDS_REASON = (s) => s !== "renders";
 
+// ComponentKit now exposes both Stream and Terminal. Keep the historical status
+// readable, but never allow a waiver to reintroduce the closed API-seam gap.
+function checkRetiredStatus(path, status, errors) {
+  if (status === "structural-gap") {
+    errors.push(`${path}: status "structural-gap" is retired. Implement the renderer seam, ` +
+      `or declare an honest missing, unverified, or not-applicable status with a reason.`);
+  }
+}
+
 /**
  * Extract the `body` oneof's arm names from panel.proto.
  *
@@ -174,6 +183,7 @@ export function checkModalities(manifest, catalog, { repoRoot = REPO_ROOT } = {}
           continue;
         }
         const { status, reason } = cells[renderer];
+        checkRetiredStatus(`${modality}.${name}.${renderer}`, status, errors);
         if (!Object.hasOwn(manifest.statuses ?? {}, status)) {
           errors.push(`${modality}.${name}.${renderer}: unknown status "${status}"`);
         } else if (NEEDS_REASON(status) && !reason) {
@@ -335,6 +345,7 @@ export function check(manifest, arms) {
     for (const r of renderers) {
       if (!(r in cells)) { errors.push(`${name}: no entry for renderer "${r}"`); continue; }
       const { status, reason, waiver } = cells[r];
+      checkRetiredStatus(`${name}.${r}`, status, errors);
       if (!validStatuses.has(status)) {
         errors.push(`${name}.${r}: unknown status "${status}"`);
         continue;

@@ -39,6 +39,7 @@ import { TableContent } from "./table.js";
 import { ReferenceActionBar } from "./reference_action_bar.js";
 import { MediaContent } from "./media.js";
 import { ChartContent } from "./chart.js";
+import { StreamContent } from "./stream.js";
 
 // The six content shapes delegate to the shared, field-complete content_shapes
 // module (same code as htmlKit) with shadcn's Tailwind class table — so the two
@@ -235,11 +236,9 @@ export const shadcnKit: ComponentKit = {
       {panel.outro && <p className="text-sm text-muted-foreground">{panel.outro}</p>}
     </section>
   ),
-  Stream: ({ panel }) => (
+  Stream: ({ panel, descriptor }) => (
     <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
-      <p className="text-sm text-muted-foreground">
-        {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
-      </p>
+      <StreamContent panel={panel} descriptor={descriptor} />
     </section>
   ),
   Media: ({ panel }) => <MediaContent panel={panel} classes={{

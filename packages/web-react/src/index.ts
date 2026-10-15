@@ -53,6 +53,7 @@ export {
   type MeridianHrefResolver,
 } from "./provider.js";
 export { PanelRenderer } from "./panel_renderer.js";
+export { StreamContent } from "./stream.js";
 export {
   ViewRenderer,
   MeridianRowActionsContext,

@@ -5,7 +5,7 @@
     "placeholder": "The renderer draws an explanatory placeholder instead of the shape.",
     "separate-entrypoint": "Drawn, but by a dedicated entrypoint outside the main dispatch.",
     "missing": "Not implemented.",
-    "structural-gap": "Cannot be implemented without an API change — no seam exists.",
+    "structural-gap": "Retired historical status: no renderer cell may use it; the gate rejects it even with a waiver.",
     "unverified": "The renderer is public, but its behavior has not been verified in this repository.",
     "not-applicable": "This tier does not own the shape."
   },

@@ -22,6 +22,7 @@ import type {
   MeridianGrammarResolver,
   MeridianHrefResolver,
   MeridianIconResolver,
+  MeridianContextValue,
   ReactAdhocFactory,
 } from "@savvifi/meridian-web-react";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
@@ -47,6 +48,7 @@ function isProduction(): boolean {
 
 export interface MeridianMuiProviderProps {
   invoker: RpcInvoker;
+  streamSnapshots?: MeridianContextValue["streamSnapshots"];
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
   /** The meridian skin. Optional — falls back to neutral MUI defaults. */
@@ -78,6 +80,7 @@ export interface MeridianMuiProviderProps {
 
 export function MeridianMuiProvider({
   invoker,
+  streamSnapshots,
   admission,
   theme,
   mode = "light",
@@ -131,6 +134,7 @@ export function MeridianMuiProvider({
         <MeridianProvider
           theme={theme}
           invoker={invoker}
+          streamSnapshots={streamSnapshots}
           admission={admission}
           kit={muiKit}
           adhoc={adhoc}
