@@ -23,6 +23,18 @@ The design language reaches this repo purely as **npm packages**
 (`@savvifi/meridian-schemas`, `@savvifi/meridian-proto-ts`) — there is no Bazel
 module dependency on meridian-schemas. React is a peer dependency.
 
+### Specialized Terminal support
+
+`Terminal` is an optional kit slot. The bundled HTML, shadcn, and MUI kits
+display safe connection metadata, not an interactive PTY. Their Terminal cells
+are therefore explicitly `not-applicable` for the interactive specialization;
+web-components owns the xterm.js implementation. This preserves useful
+degradation without counting a connection link as PTY parity.
+
+If a host omits `Terminal` or `Stream`, `PanelRenderer` invokes that kit's
+`Fallback` with the original descriptor. It does not bypass a host's fallback
+policy with a renderer-owned terminal view.
+
 ### Stream transcripts
 
 Pass `streamSnapshots` to `MeridianProvider` or `MeridianMuiProvider`, keyed by

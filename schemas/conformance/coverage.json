@@ -500,20 +500,20 @@
           "status": "renders"
         },
         "web-react": {
-          "status": "renders",
-          "reason": "PanelRenderer provides an accessible connection-metadata fallback when a React kit omits the specialized terminal component."
+          "reason": "Interactive PTY support is web-components-specific per terminal.proto. React dispatches an optional Terminal slot or the host kit's Fallback; connection metadata is degradation, not interactive PTY support.",
+          "status": "not-applicable"
         },
         "mui-kit": {
-          "status": "renders",
-          "reason": "The MUI kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
+          "reason": "Interactive PTY support is web-components-specific per terminal.proto. The MUI kit preserves accessible connection metadata as a fallback, not an interactive PTY.",
+          "status": "not-applicable"
         },
         "html-kit": {
-          "status": "renders",
-          "reason": "The HTML kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
+          "reason": "Interactive PTY support is web-components-specific per terminal.proto. The HTML kit preserves accessible connection metadata as a fallback, not an interactive PTY.",
+          "status": "not-applicable"
         },
         "shadcn-kit": {
-          "status": "renders",
-          "reason": "The shadcn kit renders an accessible terminal connection fallback with tool, URL, and dimensions."
+          "reason": "Interactive PTY support is web-components-specific per terminal.proto. The shadcn kit preserves accessible connection metadata as a fallback, not an interactive PTY.",
+          "status": "not-applicable"
         },
         "tui": {
           "status": "placeholder",

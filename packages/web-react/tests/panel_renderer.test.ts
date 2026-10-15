@@ -428,15 +428,26 @@ for (const shape of ["recordCard", "detailHeader"] as const) {
     expect(html).toContain("80 × 24");
   });
 
-  it("uses the core terminal degradation when a kit omits the specialized renderer", () => {
-    const html = render(create(PanelDescriptorSchema, {
+  it("uses the host kit fallback when the optional Terminal slot is omitted", () => {
+    const descriptor = create(PanelDescriptorSchema, {
       panelId: "shell",
       body: { case: "terminal", value: create(TerminalPanelSchema, { url: "wss://example.test/pty", tool: "bash", cols: 80, rows: 24 }) },
-    }), { ...htmlKit, Terminal: undefined });
-    expect(html).toContain('class="mer-terminal"');
-    expect(html).toContain('aria-label="bash"');
-    expect(html).toContain("wss://example.test/pty");
-    expect(html).toContain("80 × 24");
+    });
+    const Fallback = vi.fn((_props: { descriptor: PanelDescriptor }) => createElement("p", null, "Host terminal unavailable"));
+    const html = render(descriptor, { ...htmlKit, Terminal: undefined, Fallback });
+    expect(html).toContain("Host terminal unavailable");
+    expect(Fallback).toHaveBeenCalled();
+    expect(Fallback.mock.calls[0][0]).toEqual({ descriptor });
+    expect(html).not.toContain("Interactive terminal connection");
+  });
+
+  it("uses the host kit fallback when the optional Stream slot is omitted", () => {
+    const descriptor = create(PanelDescriptorSchema, {
+      panelId: "log", body: { case: "stream", value: create(StreamPanelSchema) },
+    });
+    const Fallback = vi.fn((_props: { descriptor: PanelDescriptor }) => createElement("p", null, "Host stream unavailable"));
+    expect(render(descriptor, { ...htmlKit, Stream: undefined, Fallback })).toContain("Host stream unavailable");
+    expect(Fallback.mock.calls[0][0]).toEqual({ descriptor });
   });
 
   it("degrades rejected terminal broker URLs across reference and fallback renderers", () => {
@@ -448,12 +459,15 @@ for (const shape of ["recordCard", "detailHeader"] as const) {
       }) },
     });
 
-    for (const kit of [htmlKit, shadcnKit, { ...htmlKit, Terminal: undefined }]) {
+    for (const kit of [htmlKit, shadcnKit]) {
       const html = render(descriptor, kit);
       expect(html).not.toContain('href="javascript:alert(1)"');
       expect(html).toContain('aria-invalid="true"');
       expect(html).toContain("expected a ws:// or wss:// broker URL");
       expect(html).toContain("javascript:alert(1)");
     }
+    const unsupported = render(descriptor, { ...htmlKit, Terminal: undefined });
+    expect(unsupported).toContain("mer-fallback");
+    expect(unsupported).not.toContain('href="javascript:alert(1)"');
   });
 });

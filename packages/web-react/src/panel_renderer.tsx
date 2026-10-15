@@ -6,30 +6,8 @@
 import type { ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
-import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import { useMeridian } from "./provider.js";
-
-function TerminalFallback({ panel }: { panel: TerminalPanel }): ReactNode {
-  const href = safeWebSocketUrl(panel.url);
-  return (
-    <section className="mer-terminal" role="region" aria-label={panel.tool || "Terminal"}>
-      <p className="mer-terminal-note">Interactive terminal connection</p>
-      {href ? (
-        <a href={href}>{panel.url}</a>
-      ) : (
-        <>
-          <code className="mer-terminal-url" aria-invalid="true">{panel.url}</code>
-          <p className="mer-terminal-error" role="alert">Connection unavailable: expected a ws:// or wss:// broker URL</p>
-        </>
-      )}
-      {(panel.cols || panel.rows) ? (
-        <p className="mer-terminal-size">{panel.cols || "auto"} × {panel.rows || "auto"}</p>
-      ) : null}
-    </section>
-  );
-}
 
 export function PanelRenderer({
   descriptor,
@@ -192,7 +170,7 @@ export function PanelRenderer({
       inner = kit.Terminal ? (
         <kit.Terminal panel={body.value} descriptor={descriptor} invoker={invoker} />
       ) : (
-        <TerminalFallback panel={body.value} />
+        <kit.Fallback descriptor={descriptor} />
       );
       break;
     case "adhoc": {

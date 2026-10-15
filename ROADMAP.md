@@ -51,7 +51,7 @@ The table below is **generated** from the coverage manifest by
 | `connect_flow` | full | ● | ● | ● | ● | ● | ● | ? |
 | `copy_value` | full | ● | ● | ● | ● | ● | ● | ? |
 | `catalog` | full | ● | ● | ● | ● | ● | ● | ? |
-| `terminal` | specialized | ● | ● | ● | ● | ● | ◐ | ? |
+| `terminal` | specialized | ● | – | – | – | – | ◐ | ? |
 | `grammar` | specialized | ● | ● | ● | ● | ● | ● | ? |
 | `stat` | full | ● | ● | ● | ● | ● | ● | ? |
 | `detail_header` | standard | ● | ● | ● | ● | ● | ● | ? |
@@ -62,22 +62,22 @@ The table below is **generated** from the coverage manifest by
 | `media` | specialized | ● | ● | ● | ● | ● | ● | ? |
 | `stream` | full | ● | ● | ● | ● | ● | ● | ? |
 
-**23 arms × 7 renderers = 161 cells; 131 marked renders, 7 other declared states, 23 unverified.**
+**23 arms × 7 renderers = 161 cells; 127 marked renders, 11 other declared states, 23 unverified.**
 
 | status | cells |
 |---|---|
 | ? `unverified` | 23 |
-| – `not-applicable` | 3 |
+| – `not-applicable` | 7 |
 | ◐ `placeholder` | 2 |
 | ◑ `separate-entrypoint` | 2 |
 
 | renderer | cells not marked renders |
 |---|---|
 | web-components | 0 |
-| web-react | 0 |
-| mui-kit | 1 |
-| html-kit | 1 |
-| shadcn-kit | 1 |
+| web-react | 1 |
+| mui-kit | 2 |
+| html-kit | 2 |
+| shadcn-kit | 2 |
 | tui | 4 |
 | swiftui | 23 |
 
@@ -117,6 +117,10 @@ Three facts shape the order of work:
   exposes optional `Stream` and `Terminal` members. Semantic snapshots exposed
   the missing HTML/Shadcn `LlmPrompt` implementations; both now share typed
   parameter controls and local textual preview, with focused interaction tests.
+  Omitted `Stream` and `Terminal` slots dispatch to the host kit's `Fallback`.
+  Interactive Terminal support remains the web-components specialization:
+  React kits preserve safe connection metadata but declare the four interactive
+  PTY cells `not-applicable`, rather than counting that degradation as PTY parity.
   HTML, Shadcn, and MUI also share a protobuf-backed static stream transcript:
   hosts supply `StreamFrame` snapshots by panel ID through `streamSnapshots`.
   The kits retain the bounded tail, honor `line_field` and the byte ceiling,
