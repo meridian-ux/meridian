@@ -963,7 +963,7 @@ h3
   "copy_value · empty"
 p
   "Primary integration endpoint for the production workspace across all supported regions"
-div role="button""
+div role="button" aria-label="Copy Primary integration endpoint for the production workspace across all supported regions""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'copy_value/overflow' > mui-kit/copy_value/overflow 1`] = `
@@ -1685,11 +1685,14 @@ form
     "Navigation groups"
   fieldset
     legend
+      "Navigation groups item 1"
     label
       "Label"
     input type="text" value="Section 0"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1697,6 +1700,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1714,11 +1719,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 2"
     label
       "Label"
     input type="text" value="Section 1"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1726,6 +1734,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1743,11 +1753,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 3"
     label
       "Label"
     input type="text" value="Section 2"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1755,6 +1768,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1772,11 +1787,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 4"
     label
       "Label"
     input type="text" value="Section 3"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1784,6 +1802,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1801,11 +1821,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 5"
     label
       "Label"
     input type="text" value="Section 4"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1813,6 +1836,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1830,11 +1855,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 6"
     label
       "Label"
     input type="text" value="Section 5"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1842,6 +1870,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1859,11 +1889,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 7"
     label
       "Label"
     input type="text" value="Section 6"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1871,6 +1904,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1888,11 +1923,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 8"
     label
       "Label"
     input type="text" value="Section 7"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1900,6 +1938,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1917,11 +1957,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 9"
     label
       "Label"
     input type="text" value="Section 8"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1929,6 +1972,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1946,11 +1991,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 10"
     label
       "Label"
     input type="text" value="Section 9"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1958,6 +2006,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -1975,11 +2025,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 11"
     label
       "Label"
     input type="text" value="Section 10"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -1987,6 +2040,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2004,11 +2059,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 12"
     label
       "Label"
     input type="text" value="Section 11"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2016,6 +2074,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2033,11 +2093,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 13"
     label
       "Label"
     input type="text" value="Section 12"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2045,6 +2108,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2062,11 +2127,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 14"
     label
       "Label"
     input type="text" value="Section 13"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2074,6 +2142,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2091,11 +2161,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 15"
     label
       "Label"
     input type="text" value="Section 14"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2103,6 +2176,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2120,11 +2195,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 16"
     label
       "Label"
     input type="text" value="Section 15"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2132,6 +2210,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2149,11 +2229,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 17"
     label
       "Label"
     input type="text" value="Section 16"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2161,6 +2244,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2178,11 +2263,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 18"
     label
       "Label"
     input type="text" value="Section 17"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2190,6 +2278,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2207,11 +2297,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 19"
     label
       "Label"
     input type="text" value="Section 18"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2219,6 +2312,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2236,11 +2331,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 20"
     label
       "Label"
     input type="text" value="Section 19"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2248,6 +2346,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2265,11 +2365,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 21"
     label
       "Label"
     input type="text" value="Section 20"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2277,6 +2380,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2294,11 +2399,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 22"
     label
       "Label"
     input type="text" value="Section 21"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2306,6 +2414,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2323,11 +2433,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 23"
     label
       "Label"
     input type="text" value="Section 22"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2335,6 +2448,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2352,11 +2467,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 24"
     label
       "Label"
     input type="text" value="Section 23"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2364,6 +2482,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2381,11 +2501,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 25"
     label
       "Label"
     input type="text" value="Section 24"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2393,6 +2516,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2410,11 +2535,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 26"
     label
       "Label"
     input type="text" value="Section 25"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2422,6 +2550,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2439,11 +2569,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 27"
     label
       "Label"
     input type="text" value="Section 26"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2451,6 +2584,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2468,11 +2603,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 28"
     label
       "Label"
     input type="text" value="Section 27"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2480,6 +2618,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2497,11 +2637,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 29"
     label
       "Label"
     input type="text" value="Section 28"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2509,6 +2652,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2526,11 +2671,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 30"
     label
       "Label"
     input type="text" value="Section 29"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2538,6 +2686,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2569,11 +2719,14 @@ form
     "Navigation groups"
   fieldset
     legend
+      "Navigation groups item 1"
     label
       "Label"
     input type="text" value="Section 0"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2581,6 +2734,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"
@@ -2598,11 +2753,14 @@ form
     "✕"
   fieldset
     legend
+      "Navigation groups item 2"
     label
       "Label"
     input type="text" value="Section 1"
     h6
       "Kinds"
+    label
+      "Kinds item 1"
     input type="text" value="service"
     button aria-label="move item up" type="button" disabled
       "↑"
@@ -2610,6 +2768,8 @@ form
       "↓"
     button aria-label="remove item" type="button"
       "✕"
+    label
+      "Kinds item 2"
     input type="text" value="environment"
     button aria-label="move item up" type="button"
       "↑"

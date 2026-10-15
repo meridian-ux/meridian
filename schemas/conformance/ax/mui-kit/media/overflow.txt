@@ -1,0 +1,134 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: media · overflow" level=2
+        StaticText name="Conformance: media · overflow"
+    heading name="media · overflow" level=3
+      StaticText name="media · overflow"
+    paragraph name=""
+      StaticText name="A four-minute walkthrough of creating a sponsor."
+    link name="Open media source" focusable=true
+      StaticText name="Open media source"
+    StaticText name="Narrated from a live run."
+    StaticText name="4:12"
+    list name=""
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"
+      listitem name="" level=1
+        button name="Seek to Open the page at 0:00" disabled=true invalid="false"
+          time name=""
+            StaticText name="0:00"
+          StaticText name="Open the page"
+      listitem name="" level=1
+        button name="Seek to Add the sponsor at 1:05" disabled=true invalid="false"
+          time name=""
+            StaticText name="1:05"
+          StaticText name="Add the sponsor"

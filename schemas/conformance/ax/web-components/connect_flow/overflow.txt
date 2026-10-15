@@ -1,0 +1,77 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: connect_flow · overflow" level=2
+        StaticText name="Conformance: connect_flow · overflow"
+    heading name="connect_flow · overflow" level=3
+      StaticText name="connect_flow · overflow"
+    StaticText name="connect_flow · overflow"
+    paragraph name=""
+      StaticText name="Every agent points at the same endpoint."
+    StaticText name="Endpoint"
+    button name="mcp.example.com/mcp" focusable=true invalid="false"
+      code name=""
+        StaticText name="mcp.example.com/mcp"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Cursor" focusable=true invalid="false" selected=true
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+      tab name="Cursor" focusable=true invalid="false" selected=false
+        StaticText name="Cursor"
+      tab name="Codex" focusable=true invalid="false" selected=false
+        StaticText name="Codex"
+    heading name="Cursor" level=3
+      StaticText name="Cursor"
+    paragraph name=""
+      StaticText name="One click installs it."
+    link name="Add to Cursor" focusable=true
+      StaticText name="Add to Cursor"
+    figure name=""
+      Figcaption name=""
+        StaticText name="~/.cursor/mcp.json"
+        StaticText name=" (json)"
+      button name="Copy" focusable=true invalid="false"
+        StaticText name="Copy"
+      code name=""
+        StaticText name="{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"

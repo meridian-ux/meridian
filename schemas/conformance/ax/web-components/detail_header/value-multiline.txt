@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-multiline" level=2
+        StaticText name="value-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    StaticText name="multiline"
+    heading name="Fixture record" level=2
+      StaticText name="Fixture record"
+    DescriptionList name=""
+      term name="Declared value"
+        StaticText name="Declared value"
+      definition name=""
+        StaticText name="first second"

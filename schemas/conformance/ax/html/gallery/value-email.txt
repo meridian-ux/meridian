@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-email" level=2
+        StaticText name="value-email"
+    heading name="email" level=3
+      StaticText name="email"
+    heading name="email" level=2
+      StaticText name="email"
+    list name=""
+      listitem name="" level=1
+        heading name="ada@example.com" level=3
+          StaticText name="ada@example.com"
+        paragraph name=""
+          StaticText name="ada@example.com"
+        status name="" atomic=true live="polite"
+          StaticText name="ada@example.com"

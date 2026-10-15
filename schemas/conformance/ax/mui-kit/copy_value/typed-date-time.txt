@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-date-time" level=2
+        StaticText name="typed-date-time"
+    heading name="date-time" level=3
+      StaticText name="date-time"
+    paragraph name=""
+      StaticText name="Typed value"
+    button name="Mar 29, 2026, 1:45 PM UTC" focusable=true
+      StaticText name="Mar 29, 2026, 1:45 PM UTC"

@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-url" level=2
+        StaticText name="value-url"
+    heading name="url" level=3
+      StaticText name="url"
+    heading name="https://example.com/a?b=1" level=6
+      StaticText name="https://example.com/a?b=1"
+    paragraph name=""
+      StaticText name="https://example.com/a?b=1"
+    StaticText name="https://example.com/a?b=1"
+    StaticText name="Declared value"
+    link name="https://example.com/a?b=1" focusable=true
+      StaticText name="https://example.com/a?b=1"

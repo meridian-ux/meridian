@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-duration" level=2
+        StaticText name="typed-duration"
+    heading name="duration" level=3
+      StaticText name="duration"
+    heading name="duration" level=2
+      StaticText name="duration"
+    StaticText name="Typed value"
+    button name="4 min 12 s" focusable=true invalid="false"
+      code name=""
+        StaticText name="4 min 12 s"

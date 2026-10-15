@@ -1,0 +1,19 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: snippet · overflow" level=2
+        StaticText name="Conformance: snippet · overflow"
+    heading name="snippet · overflow" level=3
+      StaticText name="snippet · overflow"
+    heading name="snippet · overflow" level=2
+      StaticText name="snippet · overflow"
+    figure name=""
+      Figcaption name=""
+        StaticText name="~/.cursor/mcp.json"
+        StaticText name=" ("
+        StaticText name="json"
+        StaticText name=")"
+      button name="Copy" focusable=true invalid="false"
+        StaticText name="Copy"
+      code name=""
+        StaticText name="{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"

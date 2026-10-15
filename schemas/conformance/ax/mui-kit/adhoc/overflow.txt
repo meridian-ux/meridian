@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: adhoc · overflow" level=2
+        StaticText name="Conformance: adhoc · overflow"
+    heading name="adhoc · overflow" level=3
+      StaticText name="adhoc · overflow"
+    alert name="" atomic=true live="assertive"
+      StaticText name="unsupported panel shape: adhoc"

@@ -108,6 +108,14 @@ const emptyFlow = create(PanelDescriptorSchema, {
 });
 
 describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
+  it.each(["", "  "])("names an empty copy control without changing its raw payload %j", raw => {
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+      value: { label: "Token", value: raw },
+    } } });
+    const html = render(kit, descriptor);
+    expect(html).toContain('aria-label="Copy Token"');
+    expect(html).toContain(`data-copy="${raw}"`);
+  });
   it("Choice renders per-option description", () => {
     expect(render(kit, choice)).toContain("the AI editor");
   });

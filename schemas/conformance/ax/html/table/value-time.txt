@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-time" level=2
+        StaticText name="value-time"
+    heading name="time" level=3
+      StaticText name="time"
+    heading name="time" level=2
+      StaticText name="time"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="1:45 PM UTC"
+          StaticText name="1:45 PM UTC"

@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-excessive-precision" level=2
+        StaticText name="value-excessive-precision"
+    heading name="excessive-precision" level=3
+      StaticText name="excessive-precision"
+    StaticText name="Declared value"
+    paragraph name=""
+      StaticText name="12.5"

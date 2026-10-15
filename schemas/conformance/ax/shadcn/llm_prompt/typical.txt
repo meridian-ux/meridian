@@ -1,0 +1,26 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: llm_prompt · typical" level=2
+        StaticText name="Conformance: llm_prompt · typical"
+    heading name="llm_prompt · typical" level=3
+      StaticText name="llm_prompt · typical"
+    sectionheader name=""
+      heading name="llm_prompt · typical" level=3
+        StaticText name="llm_prompt · typical"
+    paragraph name=""
+      StaticText name="Summarize the document"
+    LabelText name=""
+      StaticText name="Source text"
+      textbox name="Source text" value="A fixture document." editable="plaintext" focusable=true invalid="false" multiline=true readonly=false required=false
+        generic name="" editable="plaintext"
+          StaticText name="A fixture document." editable="plaintext"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Summarize {{text}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="text"

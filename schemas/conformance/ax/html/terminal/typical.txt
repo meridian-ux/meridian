@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: terminal · typical" level=2
+        StaticText name="Conformance: terminal · typical"
+    heading name="terminal · typical" level=3
+      StaticText name="terminal · typical"
+    heading name="terminal · typical" level=2
+      StaticText name="terminal · typical"
+    region name="bash"
+      paragraph name=""
+        StaticText name="Interactive terminal connection"
+      link name="wss://example.test/pty" focusable=true
+        StaticText name="wss://example.test/pty"
+      paragraph name=""
+        StaticText name="80"
+        StaticText name=" × "
+        StaticText name="24"

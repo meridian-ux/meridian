@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-money" level=2
+        StaticText name="typed-money"
+    heading name="money" level=3
+      StaticText name="money"
+    StaticText name="TYPED METRIC"
+    heading name="12.50" level=5
+      StaticText name="12.50"

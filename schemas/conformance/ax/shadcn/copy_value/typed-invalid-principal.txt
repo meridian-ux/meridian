@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-invalid-principal" level=2
+        StaticText name="typed-invalid-principal"
+    heading name="invalid-principal" level=3
+      StaticText name="invalid-principal"
+    sectionheader name=""
+      heading name="invalid-principal" level=3
+        StaticText name="invalid-principal"
+    StaticText name="Typed value"
+    button name="Ada <bad email>" focusable=true invalid="false"
+      code name=""
+        StaticText name="Ada <bad email>"

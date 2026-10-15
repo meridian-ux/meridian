@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: terminal · overflow" level=2
+        StaticText name="Conformance: terminal · overflow"
+    heading name="terminal · overflow" level=3
+      StaticText name="terminal · overflow"
+    StaticText name="terminal · overflow"
+    StaticText name="Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title — connecting…"
+    textbox name="Terminal input" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"

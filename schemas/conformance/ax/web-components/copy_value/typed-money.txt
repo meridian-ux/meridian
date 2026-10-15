@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-money" level=2
+        StaticText name="typed-money"
+    heading name="money" level=3
+      StaticText name="money"
+    StaticText name="money"
+    StaticText name="Typed value"
+    button name="12.50" focusable=true invalid="false"
+      code name=""
+        StaticText name="12.50"

@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-enum" level=2
+        StaticText name="typed-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    StaticText name="enum"
+    StaticText name="Typed metric"
+    StaticText name="42.25"

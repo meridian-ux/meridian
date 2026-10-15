@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: detail_header · empty" level=2
+        StaticText name="Conformance: detail_header · empty"
+    heading name="detail_header · empty" level=3
+      StaticText name="detail_header · empty"
+    heading name="detail_header · empty" level=2
+      StaticText name="detail_header · empty"
+    sectionheader name=""
+      heading name="" level=3
+      DescriptionList name=""
+        term name="Type"
+          StaticText name="Type"
+        definition name=""
+          StaticText name="—"

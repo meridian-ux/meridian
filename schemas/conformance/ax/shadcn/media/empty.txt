@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: media · empty" level=2
+        StaticText name="Conformance: media · empty"
+    heading name="media · empty" level=3
+      StaticText name="media · empty"
+    sectionheader name=""
+      heading name="media · empty" level=3
+        StaticText name="media · empty"
+    figure name=""
+      paragraph name=""
+        StaticText name="A four-minute walkthrough of creating a sponsor."
+      Figcaption name=""
+        StaticText name="Narrated from a live run."
+        StaticText name=" (252s)"
+      link name="Open media source" focusable=true
+        StaticText name="Open media source"

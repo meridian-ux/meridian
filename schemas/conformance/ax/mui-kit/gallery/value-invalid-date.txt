@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-invalid-date" level=2
+        StaticText name="value-invalid-date"
+    heading name="invalid-date" level=3
+      StaticText name="invalid-date"
+    paragraph name=""
+      StaticText name="not-a-date"
+    StaticText name="not-a-date"
+    paragraph name=""
+      StaticText name="not-a-date"

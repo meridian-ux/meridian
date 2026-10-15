@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-server-display" level=2
+        StaticText name="typed-server-display"
+    heading name="server-display" level=3
+      StaticText name="server-display"
+    StaticText name="server-display"
+    StaticText name="Typed metric"
+    StaticText name="Server amount"

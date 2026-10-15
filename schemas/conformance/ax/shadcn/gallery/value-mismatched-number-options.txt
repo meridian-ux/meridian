@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-mismatched-number-options" level=2
+        StaticText name="value-mismatched-number-options"
+    heading name="mismatched-number-options" level=3
+      StaticText name="mismatched-number-options"
+    sectionheader name=""
+      heading name="mismatched-number-options" level=3
+        StaticText name="mismatched-number-options"
+    list name=""
+      listitem name="" level=1
+        heading name="Ada" level=3
+          StaticText name="Ada"
+        paragraph name=""
+          StaticText name="Ada"
+        status name="" atomic=true live="polite"
+          StaticText name="Ada"

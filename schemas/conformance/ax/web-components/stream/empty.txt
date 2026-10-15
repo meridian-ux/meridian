@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: stream · empty" level=2
+        StaticText name="Conformance: stream · empty"
+    heading name="stream · empty" level=3
+      StaticText name="stream · empty"
+    StaticText name="stream · empty"
+    StaticText name="Loading…"
+    log name="" atomic=false live="polite"
+      StaticText name="Waiting for build events..."

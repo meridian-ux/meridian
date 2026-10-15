@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: action · overflow" level=2
+        StaticText name="Conformance: action · overflow"
+    heading name="action · overflow" level=3
+      StaticText name="action · overflow"
+    paragraph name=""
+      StaticText name="One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
+    link name="ADD TO CURSOR" focusable=true
+      StaticText name="ADD TO CURSOR"

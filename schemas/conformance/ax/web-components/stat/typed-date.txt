@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-date" level=2
+        StaticText name="typed-date"
+    heading name="date" level=3
+      StaticText name="date"
+    StaticText name="date"
+    StaticText name="Typed metric"
+    StaticText name="42.25"

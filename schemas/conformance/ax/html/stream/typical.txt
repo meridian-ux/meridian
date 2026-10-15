@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: stream · typical" level=2
+        StaticText name="Conformance: stream · typical"
+    heading name="stream · typical" level=3
+      StaticText name="stream · typical"
+    heading name="stream · typical" level=2
+      StaticText name="stream · typical"
+    generic name="" atomic=false live="polite"
+      log name="stream · typical" atomic=false focusable=true live="polite"
+        StaticText name="Stream line 000\nStream line 001\nStream line 002"

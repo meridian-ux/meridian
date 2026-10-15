@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: prompt · empty" level=2
+        StaticText name="Conformance: prompt · empty"
+    heading name="prompt · empty" level=3
+      StaticText name="prompt · empty"
+    StaticText name="prompt · empty"
+    group name="" invalid="false"
+      group name="Reason" invalid="false"
+        Legend name=""
+          StaticText name="Reason"
+        textbox name="Reason" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

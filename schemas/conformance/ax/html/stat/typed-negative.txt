@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-negative" level=2
+        StaticText name="typed-negative"
+    heading name="negative" level=3
+      StaticText name="negative"
+    heading name="negative" level=2
+      StaticText name="negative"
+    StaticText name="Typed metric"
+    StaticText name="-12.50"

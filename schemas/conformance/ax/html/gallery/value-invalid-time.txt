@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-invalid-time" level=2
+        StaticText name="value-invalid-time"
+    heading name="invalid-time" level=3
+      StaticText name="invalid-time"
+    heading name="invalid-time" level=2
+      StaticText name="invalid-time"
+    list name=""
+      listitem name="" level=1
+        heading name="25:91" level=3
+          StaticText name="25:91"
+        paragraph name=""
+          StaticText name="25:91"
+        status name="" atomic=true live="polite"
+          StaticText name="25:91"

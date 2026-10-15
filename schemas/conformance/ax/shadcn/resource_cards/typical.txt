@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: resource_cards · typical" level=2
+        StaticText name="Conformance: resource_cards · typical"
+    heading name="resource_cards · typical" level=3
+      StaticText name="resource_cards · typical"
+    sectionheader name=""
+      heading name="resource_cards · typical" level=3
+        StaticText name="resource_cards · typical"
+    list name=""
+      listitem name="" level=1
+        heading name="Resource 00" level=3
+          StaticText name="Resource 00"
+        paragraph name=""
+          StaticText name="A shared response"
+      listitem name="" level=1
+        heading name="Resource 01" level=3
+          StaticText name="Resource 01"
+        paragraph name=""
+          StaticText name="A shared response"

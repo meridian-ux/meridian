@@ -100,9 +100,47 @@ The original panel corpus remains intact for native and existing browser users.
 
 This expands real coverage but does not complete the conformance epic: the
 stateful wire corpus still needs ValueType scenarios in the remaining
-value-bearing arms and computed browser
-accessibility-tree normalization. The present DOM normalizer is not that tree;
-SwiftUI preview behavior remains explicitly unverified.
+value-bearing arms. Computed browser accessibility trees have a separate gate
+below; the semantic DOM normalizer is not relabeled as that evidence. SwiftUI
+preview behavior remains explicitly unverified.
+
+## Computed browser accessibility trees
+
+`ax/<kit>/<arm>/<case>.txt` records Chrome's actual accessibility tree for all
+292 canonical wire cases in HTML, shadcn, MUI, and web-components: 1,168 trees.
+The hermetic Chrome target loads the real compiled WASM bridge for web-components
+and the same ViewDescriptor/Struct bytes as the other consumers. RPC responses
+and Terminal's socket are local test transports; this is not a live PTY test.
+
+The harness uses the DevTools Protocol's
+[`Accessibility.getFullAXTree`](https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Accessibility.pdl).
+`normalize_ax.cjs` preserves computed roles, names, descriptions, values, widget
+states, and hierarchy. It discards backend/node IDs, transient focus, inline text
+layout boxes, and empty layout wrappers. Ignored nodes do not become accessible
+content; their exposed descendants remain. Duplicate/cyclic/missing tree nodes
+fail, and unnamed interactive controls fail rather than being filtered out.
+
+The fixture environment is explicit: 1100×800, English, UTC, reduced motion,
+unavailable external assets. Lazy images are requested eagerly for this test so
+offscreen frames share that condition. Media waits for its real player → poster
+→ text failure ladder to finish before capture; Steps may retain native broken
+images with accessible alternative text. This does not prove successful playback,
+production transport behavior, keyboard order, contrast, or full WCAG compliance.
+Native buffer normalization and external SwiftUI evidence remain separate.
+
+```sh
+bazel test --announce_rc=false //packages/mui-kit:computed_accessibility_test
+bazel run --announce_rc=false //packages/mui-kit:record_computed_accessibility
+node --test schemas/tools/normalize_ax.test.mjs
+```
+
+Recording requires Bazel's explicit source workspace, never a runfiles directory.
+Normal verification is read-only and rejects missing, changed, or extra goldens;
+the test target explicitly overrides any inherited writer flag to zero.
+unexpected files are never deleted. The target runs under the existing `//...`
+CI gate. The original semantic DOM goldens are retained, not relabeled as computed
+accessibility evidence. The first real-tree audit exposed unnamed empty copy
+controls and repeated scalar inputs; their labels were fixed in the renderers.
 
 ## Native and WASM core fixtures
 

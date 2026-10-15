@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-enum" level=2
+        StaticText name="value-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    heading name="enum" level=2
+      StaticText name="enum"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="READY"
+          StaticText name="READY"

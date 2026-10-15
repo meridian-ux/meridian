@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-time" level=2
+        StaticText name="value-time"
+    heading name="time" level=3
+      StaticText name="time"
+    paragraph name=""
+      StaticText name="1:45 PM UTC"
+    StaticText name="1:45 PM UTC"
+    paragraph name=""
+      StaticText name="1:45 PM UTC"

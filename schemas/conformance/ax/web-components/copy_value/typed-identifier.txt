@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-identifier" level=2
+        StaticText name="typed-identifier"
+    heading name="identifier" level=3
+      StaticText name="identifier"
+    StaticText name="identifier"
+    StaticText name="Typed value"
+    button name="000123" focusable=true invalid="false"
+      code name=""
+        StaticText name="000123"

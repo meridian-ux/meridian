@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-duration" level=2
+        StaticText name="value-duration"
+    heading name="duration" level=3
+      StaticText name="duration"
+    sectionheader name=""
+      heading name="duration" level=3
+        StaticText name="duration"
+    sectionheader name=""
+      heading name="Fixture record" level=2
+        StaticText name="Fixture record"
+      DescriptionList name="Record summary"
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="4 min 12 s"

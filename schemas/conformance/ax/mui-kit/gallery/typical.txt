@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: gallery · typical" level=2
+        StaticText name="Conformance: gallery · typical"
+    heading name="gallery · typical" level=3
+      StaticText name="gallery · typical"
+    link name="Resource 00 Connected Manage" focusable=true
+      paragraph name=""
+        StaticText name="Resource 00"
+      StaticText name="Connected"
+      StaticText name="Manage"
+    link name="Resource 01 Connected Manage" focusable=true
+      paragraph name=""
+        StaticText name="Resource 01"
+      StaticText name="Connected"
+      StaticText name="Manage"

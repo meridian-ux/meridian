@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-invalid-date" level=2
+        StaticText name="value-invalid-date"
+    heading name="invalid-date" level=3
+      StaticText name="invalid-date"
+    sectionheader name=""
+      heading name="invalid-date" level=3
+        StaticText name="invalid-date"
+    sectionheader name=""
+      heading name="Fixture record" level=2
+        StaticText name="Fixture record"
+      DescriptionList name="Record summary"
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="not-a-date"

@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-legacy-currency" level=2
+        StaticText name="typed-legacy-currency"
+    heading name="legacy-currency" level=3
+      StaticText name="legacy-currency"
+    StaticText name="TYPED METRIC"
+    heading name="$12.50" level=5
+      StaticText name="$12.50"

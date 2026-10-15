@@ -153,6 +153,15 @@ describe("muiKit renders the brand-neutral content shapes", () => {
 
 // The adversarial-audit field-completeness fixes, in MUI.
 describe("muiKit content field-completeness", () => {
+  it.each(["", "  "])("names an empty copy chip while copying its raw value %j", async raw => {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    renderPanel(create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+      value: { label: "Token", value: raw },
+    } } }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy Token" }));
+    expect(writeText).toHaveBeenCalledWith(raw);
+  });
   it("Choice shows per-option description + resolves the icon glyph", async () => {
     render(
       <MeridianMuiProvider invoker={invoker} renderIcon={(k) => <i data-testid={`g-${k}`} />}>

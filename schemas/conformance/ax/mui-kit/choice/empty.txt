@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: choice · empty" level=2
+        StaticText name="Conformance: choice · empty"
+    heading name="choice · empty" level=3
+      StaticText name="choice · empty"
+    paragraph name=""
+      StaticText name="Which client?"
+    tablist name="" multiselectable=false orientation="horizontal"

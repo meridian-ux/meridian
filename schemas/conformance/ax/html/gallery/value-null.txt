@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-null" level=2
+        StaticText name="value-null"
+    heading name="null" level=3
+      StaticText name="null"
+    heading name="null" level=2
+      StaticText name="null"
+    list name=""
+      listitem name="" level=1
+        heading name="—" level=3
+          StaticText name="—"
+        paragraph name=""
+          StaticText name="—"
+        status name="" atomic=true live="polite"
+          StaticText name="—"

@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-integer" level=2
+        StaticText name="typed-integer"
+    heading name="integer" level=3
+      StaticText name="integer"
+    StaticText name="TYPED METRIC"
+    heading name="42" level=5
+      StaticText name="42"

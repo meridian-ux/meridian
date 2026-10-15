@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: record_card · overflow" level=2
+        StaticText name="Conformance: record_card · overflow"
+    heading name="record_card · overflow" level=3
+      StaticText name="record_card · overflow"
+    StaticText name="Name"
+    paragraph name=""
+      StaticText name="Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title"

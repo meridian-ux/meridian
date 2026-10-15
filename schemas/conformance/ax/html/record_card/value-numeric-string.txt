@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-numeric-string" level=2
+        StaticText name="value-numeric-string"
+    heading name="numeric-string" level=3
+      StaticText name="numeric-string"
+    heading name="numeric-string" level=2
+      StaticText name="numeric-string"
+    DescriptionList name="Record details"
+      term name="Declared value"
+        StaticText name="Declared value"
+      definition name=""
+        StaticText name="0012.50"

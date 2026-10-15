@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-money-current-scalar" level=2
+        StaticText name="value-money-current-scalar"
+    heading name="money-current-scalar" level=3
+      StaticText name="money-current-scalar"
+    StaticText name="money-current-scalar"
+    list name=""
+      listitem name="" level=1
+        heading name="12.50" level=3
+          StaticText name="12.50"
+        paragraph name=""
+          StaticText name="12.50"
+        StaticText name="12.50"
+        DescriptionList name=""
+          term name="Declared value"
+            StaticText name="Declared value"
+          definition name=""
+            StaticText name="12.50"

@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-empty" level=2
+        StaticText name="typed-empty"
+    heading name="empty" level=3
+      StaticText name="empty"
+    paragraph name=""
+      StaticText name="Typed value"
+    button name="—" focusable=true
+      StaticText name="—"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="FIXTURE TARGET" focusable=true invalid="false" selected=true
+        StaticText name="FIXTURE TARGET"

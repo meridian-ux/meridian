@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-decimal" level=2
+        StaticText name="value-decimal"
+    heading name="decimal" level=3
+      StaticText name="decimal"
+    sectionheader name=""
+      heading name="decimal" level=3
+        StaticText name="decimal"
+    DescriptionList name="Record details"
+      term name="Declared value"
+        StaticText name="Declared value"
+      definition name=""
+        StaticText name="12.50"

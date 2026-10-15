@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: table · empty" level=2
+        StaticText name="Conformance: table · empty"
+    heading name="table · empty" level=3
+      StaticText name="table · empty"
+    paragraph name=""
+      StaticText name="no claims"

@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: detail_header · typical" level=2
+        StaticText name="Conformance: detail_header · typical"
+    heading name="detail_header · typical" level=3
+      StaticText name="detail_header · typical"
+    sectionheader name=""
+      heading name="detail_header · typical" level=3
+        StaticText name="detail_header · typical"
+    sectionheader name=""
+      heading name="Fixture record" level=2
+        StaticText name="Fixture record"
+      paragraph name=""
+        StaticText name="Ada"
+      DescriptionList name="Record summary"
+        term name="Type"
+          StaticText name="Type"
+        definition name=""
+          StaticText name="Service"

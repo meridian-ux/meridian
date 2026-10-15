@@ -21,7 +21,7 @@ import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.j
 import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValue, CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { actionFeedback } from "./action_feedback.js";
@@ -43,7 +43,7 @@ import type {
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { Snippet, SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
+import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
@@ -649,6 +649,7 @@ function buildCopyValue(value: CopyValue): HTMLElement {
     ? formatByDisplay(value.value, value.display).text : value.value;
   const btn = el("button", "mer-copy mer-copyvalue-btn");
   (btn as HTMLButtonElement).type = "button";
+  if (!value.secret && !displayValue.trim()) btn.setAttribute("aria-label", value.label ? `Copy ${value.label}` : "Copy value");
   const code = el("code", "mer-copyvalue-value", value.secret ? "••••••••" : displayValue);
   btn.appendChild(code);
   copyOnClick(btn, value.value); // copy always yields plaintext
@@ -661,6 +662,10 @@ function buildCopyValue(value: CopyValue): HTMLElement {
     reveal.addEventListener("click", () => {
       revealed = !revealed;
       code.textContent = revealed ? displayValue : "••••••••";
+      if (!displayValue.trim()) {
+        if (revealed) btn.setAttribute("aria-label", value.label ? `Copy ${value.label}` : "Copy value");
+        else btn.removeAttribute("aria-label");
+      }
       reveal.textContent = revealed ? "Hide" : "Reveal";
       reveal.setAttribute("aria-pressed", String(revealed));
     });

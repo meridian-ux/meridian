@@ -1,0 +1,24 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: table · empty" level=2
+        StaticText name="Conformance: table · empty"
+    heading name="table · empty" level=3
+      StaticText name="table · empty"
+    sectionheader name=""
+      heading name="table · empty" level=3
+        StaticText name="table · empty"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Member" readonly=false required=false
+            StaticText name="Member"
+          columnheader name="Amount" readonly=false required=false
+            StaticText name="Amount"
+          columnheader name="Enabled" readonly=false required=false
+            StaticText name="Enabled"
+          columnheader name="Website" readonly=false required=false
+            StaticText name="Website"
+      row name=""
+        cell name="no claims"
+          StaticText name="no claims"

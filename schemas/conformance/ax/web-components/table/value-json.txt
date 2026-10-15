@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-json" level=2
+        StaticText name="value-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    StaticText name="1 items"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="{\"ready\":true}"
+          StaticText name="{\"ready\":true}"

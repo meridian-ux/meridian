@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-integer" level=2
+        StaticText name="value-integer"
+    heading name="integer" level=3
+      StaticText name="integer"
+    sectionheader name=""
+      heading name="integer" level=3
+        StaticText name="integer"
+    list name=""
+      listitem name="" level=1
+        heading name="42" level=3
+          StaticText name="42"
+        paragraph name=""
+          StaticText name="42"
+        status name="" atomic=true live="polite"
+          StaticText name="42"

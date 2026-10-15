@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: prompt · typical" level=2
+        StaticText name="Conformance: prompt · typical"
+    heading name="prompt · typical" level=3
+      StaticText name="prompt · typical"
+    heading name="prompt · typical" level=2
+      StaticText name="prompt · typical"
+    paragraph name=""
+      StaticText name="Delete this resource?"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Reason"
+        textbox name="Reason" value="Fixture reason" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="Fixture reason" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

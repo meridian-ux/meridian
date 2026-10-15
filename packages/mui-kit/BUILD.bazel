@@ -32,6 +32,7 @@ vitest_test(
         "tests/prompt.test.tsx",
         "tests/llm_prompt.test.tsx",
         "tests/content.test.tsx",
+        "tests/form_repeat.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
@@ -80,6 +81,69 @@ esbuild(
         ":node_modules/react",
         ":node_modules/react-dom",
     ],
+)
+
+# Actual browser-computed AX over the canonical wire corpus, including the DOM
+# renderer's real WASM bridge. No accessibility behavior is mocked.
+esbuild(
+    name = "accessibility_bundle",
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/accessibility.tsx", "//packages/web/tests:src_lib"],
+    entry_point = "harness/accessibility.tsx",
+    bundle = True,
+    format = "iife",
+    output = "accessibility.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        "//packages/web:node_modules/@xterm/addon-fit",
+        "//packages/web:node_modules/@xterm/xterm",
+    ],
+)
+
+_AX_ARGS = [
+    "$(rootpath @chrome//:chrome)",
+    "$(rootpath :accessibility.bundle.js)",
+    "$(rootpath //packages/web/tests:meridian_uiview.js)",
+    "$(rootpath //packages/web/tests:meridian_uiview_bg.wasm)",
+    "$(rootpath //packages/web/theme:css)",
+]
+
+_AX_DATA = [
+    ":accessibility.bundle.js",
+    ":node_modules/playwright",
+    "//packages/web/tests:meridian_uiview.js",
+    "//packages/web/tests:meridian_uiview_bg.wasm",
+    "//packages/web/theme:css",
+    "//schemas:computed_accessibility_data",
+    "@chrome//:chrome",
+]
+
+js_test(
+    name = "computed_accessibility_test",
+    args = _AX_ARGS,
+    data = _AX_DATA,
+    entry_point = "tests_browser/accessibility.cjs",
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1", "UPDATE_AX_SNAPSHOTS": "0"},
+    env_inherit = ["PATH", "HOME"],
+    size = "large",
+)
+
+js_binary(
+    name = "record_computed_accessibility",
+    args = _AX_ARGS,
+    data = _AX_DATA,
+    entry_point = "tests_browser/accessibility.cjs",
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1", "UPDATE_AX_SNAPSHOTS": "1"},
 )
 
 # Real-browser UI test (0 tolerance): renders every fixture in hermetic Chrome

@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-identifier" level=2
+        StaticText name="value-identifier"
+    heading name="identifier" level=3
+      StaticText name="identifier"
+    heading name="identifier" level=2
+      StaticText name="identifier"
+    list name=""
+      listitem name="" level=1
+        heading name="000123" level=3
+          StaticText name="000123"
+        paragraph name=""
+          StaticText name="000123"
+        StaticText name="000123"
+        DescriptionList name=""
+          term name="Declared value"
+            StaticText name="Declared value"
+          definition name=""
+            StaticText name="000123"

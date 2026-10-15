@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: terminal · overflow" level=2
+        StaticText name="Conformance: terminal · overflow"
+    heading name="terminal · overflow" level=3
+      StaticText name="terminal · overflow"
+    sectionheader name=""
+      heading name="terminal · overflow" level=3
+        StaticText name="terminal · overflow"
+    region name="Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title "
+      StaticText name="Interactive terminal connection"
+      link name="wss://example.test/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/" focusable=true
+        StaticText name="wss://example.test/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/"
+      StaticText name="240"
+      StaticText name=" × "
+      StaticText name="80"

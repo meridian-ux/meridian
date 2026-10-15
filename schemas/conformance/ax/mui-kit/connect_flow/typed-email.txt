@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-email" level=2
+        StaticText name="typed-email"
+    heading name="email" level=3
+      StaticText name="email"
+    paragraph name=""
+      StaticText name="Typed value"
+    button name="ada@example.com" focusable=true
+      StaticText name="ada@example.com"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="FIXTURE TARGET" focusable=true invalid="false" selected=true
+        StaticText name="FIXTURE TARGET"

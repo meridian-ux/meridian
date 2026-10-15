@@ -165,6 +165,7 @@ export function CopyValueView({ value }: { value: CopyValue }): ReactNode {
       )}
       <Chip
         label={shown}
+        aria-label={!shown.trim() ? value.label ? `Copy ${value.label}` : "Copy value" : undefined}
         variant="outlined"
         onClick={() => copyText(value.value)} // copy always yields plaintext
         sx={{ fontFamily: "monospace" }}

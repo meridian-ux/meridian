@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: grammar · typical" level=2
+        StaticText name="Conformance: grammar · typical"
+    heading name="grammar · typical" level=3
+      StaticText name="grammar · typical"
+    sectionheader name=""
+      heading name="grammar · typical" level=3
+        StaticText name="grammar · typical"
+    heading name="Hello" level=3
+      StaticText name="Hello"
+    paragraph name=""
+      StaticText name="A small rendered document."

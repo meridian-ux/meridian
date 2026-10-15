@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-mismatched-options" level=2
+        StaticText name="typed-mismatched-options"
+    heading name="mismatched-options" level=3
+      StaticText name="mismatched-options"
+    paragraph name=""
+      StaticText name="Typed value"
+    button name="Ada" focusable=true
+      StaticText name="Ada"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="FIXTURE TARGET" focusable=true invalid="false" selected=true
+        StaticText name="FIXTURE TARGET"

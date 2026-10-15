@@ -144,6 +144,7 @@ function renderNumeric(field: NumericFormField): ReactNode {
 }
 
 function renderField(field: MeridianFormField, nowMs: number | undefined): ReactNode {
+  field = field.label ? field : { ...field, label: field.key || "Value" };
   const displayed = readOnlyDisplay(field, nowMs);
   if (displayed) return displayed;
 
@@ -184,7 +185,9 @@ function renderField(field: MeridianFormField, nowMs: number | undefined): React
         <Stack spacing={1}>
           {field.items.map((item, index) => (
             <Stack key={item.key} direction="row" spacing={1} alignItems="flex-start">
-              <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item, nowMs)}</Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item.label ? item : {
+                ...item, label: `${field.label} item ${index + 1}`,
+              }, nowMs)}</Box>
               {showControls ? (
                 <Stack direction="column" spacing={0} sx={{ mt: 0.5 }}>
                   <IconButton

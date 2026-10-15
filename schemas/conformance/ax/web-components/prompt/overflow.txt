@@ -1,0 +1,23 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: prompt · overflow" level=2
+        StaticText name="Conformance: prompt · overflow"
+    heading name="prompt · overflow" level=3
+      StaticText name="prompt · overflow"
+    StaticText name="prompt · overflow"
+    paragraph name=""
+      StaticText name="Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+    group name="" invalid="false"
+      group name="Reason" invalid="false"
+        Legend name=""
+          StaticText name="Reason"
+        textbox name="Reason" value="Fixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reason" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="Fixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reason" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"
