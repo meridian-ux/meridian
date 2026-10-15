@@ -174,12 +174,14 @@ test("an unverified full-parity cell requires a waiver", () => {
 test("a specialized shape may have gaps without a waiver", () => {
   // terminal/grammar/media document degradation ladders instead of parity, so
   // the gate must not demand waivers there — otherwise it cries wolf and gets
-  // switched off. Terminal's web-react fallback is now rendered, while the
-  // specialized shape remains valid for the remaining degradation statuses.
+  // switched off. Connection metadata is useful degradation, not an interactive
+  // PTY: the React kits explicitly declare that specialization not applicable.
   const m = realManifest();
   assert.equal(m.arms.terminal.parity, "specialized");
-  assert.equal(m.arms.terminal.renderers["web-react"].status, "renders");
-  assert.match(m.arms.terminal.renderers["web-react"].reason, /fallback/);
+  for (const renderer of ["web-react", "html-kit", "shadcn-kit", "mui-kit"]) {
+    assert.equal(m.arms.terminal.renderers[renderer].status, "not-applicable");
+    assert.match(m.arms.terminal.renderers[renderer].reason, /terminal\.proto/);
+  }
   assert.deepEqual(check(m, realArms()), []);
 });
 
