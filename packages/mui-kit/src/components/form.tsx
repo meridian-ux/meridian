@@ -42,7 +42,7 @@ interface NumericField {
 }
 export type MeridianFormField =
   | (BaseField & { type?: "text"; value: string; onChange: (value: string) => void })
-  // `number` = integer spinner (parseInt); `decimal` = floating-point (parseFloat).
+  // Both keep the actual numeric input; validation rejects integer fractions.
   | (BaseField & { type: "number" } & NumericField)
   | (BaseField & { type: "decimal" } & NumericField)
   | (BaseField & { type: "boolean"; value: boolean; onChange: (value: boolean) => void })
@@ -119,7 +119,7 @@ function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): R
   );
 }
 
-/** Integer (`number`, parseInt) and decimal (`decimal`, parseFloat) share a spinner. */
+/** Empty input stays an invalid local NaN sentinel, never an invented zero. */
 function renderNumeric(field: NumericFormField): ReactNode {
   const integer = field.type === "number";
   return (
@@ -128,15 +128,13 @@ function renderNumeric(field: NumericFormField): ReactNode {
       fullWidth
       type="number"
       label={field.label}
-      value={field.value}
+      value={Number.isNaN(field.value) ? "" : field.value}
       helperText={field.helperText}
       disabled={field.disabled}
       slotProps={{ htmlInput: { min: field.min, max: field.max, step: field.step ?? (integer ? 1 : "any") } }}
       onChange={(event) => {
-        const parsed = integer
-          ? Number.parseInt(event.target.value, 10)
-          : Number.parseFloat(event.target.value);
-        field.onChange(Number.isNaN(parsed) ? 0 : parsed);
+        const raw = event.target.value;
+        field.onChange(raw.trim() === "" ? Number.NaN : Number(raw));
       }}
     />
   );

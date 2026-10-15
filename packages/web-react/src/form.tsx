@@ -9,7 +9,8 @@ import { FormEnumValues, FormFieldRow, FormInitialValues, type FormFieldClasses 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
 function readField(field: FormField, name: string, data: FormData, enums: Map<string, readonly string[]>): unknown {
   const kind = field.kind;
-  if (kind.case === "nested") return readFields(kind.value.fields, data, enums, name);
+  if (!kind.case) throw new Error(`${field.label || name}: unsupported field kind.`);
+  if (kind.case === "nested") return readFormFields(kind.value.fields, data, enums, name);
   if (kind.case === "repeated") {
     const count = Number(data.get(`${name}.__count`) || 0);
     if (!Number.isSafeInteger(count) || count < kind.value.minItems || (kind.value.maxItems > 0 && count > kind.value.maxItems))
@@ -17,7 +18,7 @@ function readField(field: FormField, name: string, data: FormData, enums: Map<st
     const element = kind.value.element;
     return Array.from({ length: count }, (_, i) => element.case === "scalar"
       ? readField(element.value, `${name}[${i}]`, data, enums)
-      : element.case === "object" ? readFields(element.value.fields, data, enums, `${name}[${i}]`) : null);
+      : element.case === "object" ? readFormFields(element.value.fields, data, enums, `${name}[${i}]`) : null);
   }
   if (kind.case === "keyValueMap") {
     const value = JSON.parse(String(data.get(name) || "{}"));
@@ -30,11 +31,11 @@ function readField(field: FormField, name: string, data: FormData, enums: Map<st
   if (kind.case === "integer" || kind.case === "number") {
     const value = Number(text);
     const { min, max } = kind.value;
-    if (!text || !Number.isFinite(value) || (kind.case === "integer" && !Number.isInteger(value)) ||
+    if (!text || !Number.isFinite(value) || (kind.case === "integer" && !Number.isSafeInteger(value)) ||
         (min !== 0 && value < min) || (max !== 0 && value > max)) throw new Error(`${field.label || name}: invalid number.`);
     return value;
   }
-  if (kind.case === "text") {
+  if (kind.case === "text" || kind.case === "masked") {
     const spec = kind.value;
     if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength))
       throw new Error(`${field.label || name}: invalid length.`);
@@ -43,7 +44,7 @@ function readField(field: FormField, name: string, data: FormData, enums: Map<st
   if (kind.case === "enumSelection" && !(enums.get(name) ?? []).includes(text)) throw new Error(`${field.label || name}: select an allowed value.`);
   return text;
 }
-function readFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
+export function readFormFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
   return Object.fromEntries(fields.map(field => [field.fieldId, readField(field,
     `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, enums)]));
 }
@@ -109,7 +110,7 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
     if (!edit || !allowed || !call || loading || busy.current) return;
     setError(""); setStatus("");
     try {
-      const values = readFields(panel.fields, new FormData(event.currentTarget), enums.current);
+      const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current);
       busy.current = true; setStatus("Saving…");
       await mutationInvoker.invoke(call.service, call.method, { ...buildBindingRequest(call, selection.values), ...values });
       if (alive.current) setStatus("Saved.");

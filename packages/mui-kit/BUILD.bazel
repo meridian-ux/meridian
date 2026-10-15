@@ -29,6 +29,7 @@ vitest_test(
     name = "stateful_conformance",
     srcs = [
         "tests/conformance.test.tsx",
+        "tests/prompt.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
@@ -39,6 +40,7 @@ vitest_test(
         ":stateful_test_sources",
         ":node_modules/jsdom",
         ":node_modules/vitest",
+        ":node_modules/@testing-library/react",
         "//schemas:conformance_fixtures",
     ],
 )

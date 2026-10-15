@@ -32,6 +32,7 @@ export function reactWebRenderer(
             theme={opts.theme}
             invoker={opts.invoker}
             admission={opts.admission}
+            onPromptResponse={opts.onPromptResponse}
             kit={kit}
             adhoc={opts.adhoc ?? {}}
             renderIcon={opts.renderIcon as ((key: string) => ReactNode) | undefined}

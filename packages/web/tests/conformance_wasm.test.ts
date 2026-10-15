@@ -23,7 +23,8 @@
 // interface claims. If the core ever reverts to Maps, this fails here rather
 // than in a browser three repos downstream.
 
-import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
+import { StructSchema } from "@bufbuild/protobuf/wkt";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
@@ -104,6 +105,7 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
     document.body.append(container);
     const invoke = vi.fn(async (service: string, method: string) =>
       (fixture.responses[`${service}.${method}`] ?? {}) as object);
+    const onPromptResponse = vi.fn();
     const close = vi.fn();
     const subscribe = vi.fn((...[_service, _method, _request, observer]: Parameters<StreamInvoker["subscribe"]>) => {
       for (const frame of (fixture.responses.__streamFrames ?? []) as object[]) observer.onFrame(frame);
@@ -124,7 +126,7 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
     vi.stubGlobal("WebSocket", CorpusSocket);
     try {
       await renderView({ root: container, view: fixture.view, wasm, context: CTX,
-        invoker: { invoke }, streamInvoker: { subscribe } });
+        invoker: { invoke }, streamInvoker: { subscribe }, onPromptResponse });
       if (fixture.arm === "form") await vi.waitFor(() => {
         expect(container.textContent).not.toContain("Loading…");
       });
@@ -181,6 +183,14 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
         }
       }
       expect(tree).toMatchSnapshot(`web-components/${fixture.name}`);
+      if (fixture.arm === "prompt") {
+        const body = fixture.view.slots[0].panel!.body; if (body.case !== "prompt" || body.value.fields[0].kind.case !== "text") throw new Error("Typed prompt fixture required");
+        const raw = body.value.fields[0].kind.value.defaultValue;
+        expect(container.querySelector<HTMLInputElement>('[name="reason"]')!.value).toBe(raw);
+        container.querySelector("form")!.dispatchEvent(new Event("submit", { cancelable: true }));
+        expect(onPromptResponse).toHaveBeenCalledTimes(1);
+        expect(toJson(StructSchema, onPromptResponse.mock.calls[0][1])).toEqual({ reason: raw });
+      }
       if (fixture.arm === "llm_prompt") {
         const slot = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Source text"]');
         if (fixture.state === "empty") expect(slot).toBeNull();

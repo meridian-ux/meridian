@@ -24,6 +24,7 @@ import {
 import { ResourceCardsView } from "./resource_cards.js";
 import { HTML_FORM_CLASSES } from "./form_fields.js";
 import { FormContent } from "./form.js";
+import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
@@ -93,15 +94,7 @@ export const htmlKit: ComponentKit = {
   ),
   Table: ({ panel, invoker }) => <TableContent panel={panel} invoker={invoker} />,
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="mer-gallery" emptyClassName="mer-empty" />,
-  Prompt: ({ panel }) => (
-    <form className="mer-prompt">
-      {panel.fields.map((field) => (
-        <label key={field.fieldId} className="mer-field">
-          <span>{field.label}</span>
-        </label>
-      ))}
-    </form>
-  ),
+  Prompt: ({ panel, descriptor }) => <PromptContent panel={panel} panelId={descriptor.panelId} c={HTML_FORM_CLASSES} />,
   LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={HTML_FORM_CLASSES} />,
   Lro: ({ panel }) => (
     <div className="mer-lro">

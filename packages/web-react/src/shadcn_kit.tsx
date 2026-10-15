@@ -28,6 +28,7 @@ import {
 import { ResourceCardsView } from "./resource_cards.js";
 import { SHADCN_FORM_CLASSES } from "./form_fields.js";
 import { FormContent } from "./form.js";
+import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { useHrefResolver } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
@@ -108,15 +109,7 @@ export const shadcnKit: ComponentKit = {
     </div>
   ),
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="grid grid-cols-2 gap-3 sm:grid-cols-3" emptyClassName="col-span-full text-sm text-muted-foreground" />,
-  Prompt: ({ panel }) => (
-    <form className="grid gap-4">
-      {panel.fields.map((field) => (
-        <div key={field.fieldId} className="grid gap-2">
-          <label className="text-sm font-medium leading-none">{field.label}</label>
-        </div>
-      ))}
-    </form>
-  ),
+  Prompt: ({ panel, descriptor }) => <PromptContent panel={panel} panelId={descriptor.panelId} c={SHADCN_FORM_CLASSES} />,
   LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={SHADCN_FORM_CLASSES} />,
   Lro: ({ panel }) => (
     <div className="flex items-center gap-2">

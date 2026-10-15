@@ -3790,11 +3790,17 @@ h3
   "prompt · empty"
 "prompt · empty"
 form
-  label
-    "Reason"
-    input type="text"
+  fieldset
+    fieldset
+      legend
+        "Reason"
+      input aria-label="Reason" type="text"
   button type="submit"
-    "Submit""
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/overflow' > web-components/prompt/overflow 1`] = `
@@ -3806,11 +3812,17 @@ h3
 form
   p
     "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
-  label
-    "Reason"
-    input type="text"
+  fieldset
+    fieldset
+      legend
+        "Reason"
+      input aria-label="Reason" type="text"
   button type="submit"
-    "Submit""
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/typical' > web-components/prompt/typical 1`] = `
@@ -3822,11 +3834,17 @@ h3
 form
   p
     "Delete this resource?"
-  label
-    "Reason"
-    input type="text"
+  fieldset
+    fieldset
+      legend
+        "Reason"
+      input aria-label="Reason" type="text"
   button type="submit"
-    "Submit""
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/empty' > web-components/record_card/empty 1`] = `

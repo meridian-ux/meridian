@@ -183,8 +183,18 @@ exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcn
 "h3
   "Confirm deletion"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?"
+  fieldset disabled
+    label
+      "Reason"
+      input type="text" value="Fixture reason"
+  button type="submit" disabled
+    "Submit"
+  button type="button" disabled
+    "Cancel"
+  p role="status"
+    "No prompt handler configured.""
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the record card shape and shows its title > shadcn-kit/record_card 1`] = `
@@ -482,8 +492,18 @@ exports[`web-react conformance over the canonical fixtures (htmlKit) > renders t
 "h2
   "Confirm deletion"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?"
+  fieldset disabled
+    label
+      "Reason"
+      input type="text" value="Fixture reason"
+  button type="submit" disabled
+    "Submit"
+  button type="button" disabled
+    "Cancel"
+  p role="status"
+    "No prompt handler configured.""
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the record card shape without crashing and shows its title > html-kit/record_card 1`] = `

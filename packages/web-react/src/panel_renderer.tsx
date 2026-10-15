@@ -26,7 +26,7 @@ export function PanelRenderer({
       break;
     case "prompt":
       inner = (
-        <kit.Prompt panel={body.value} descriptor={descriptor} invoker={invoker} />
+        <kit.Prompt key={JSON.stringify(descriptor)} panel={body.value} descriptor={descriptor} invoker={invoker} />
       );
       break;
     case "lro":

@@ -1,6 +1,18 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
 
 package(default_visibility = ["//visibility:public"])
+
+vitest_test(
+    name = "prompt_response_test",
+    srcs = ["prompt_response.test.ts"],
+    deps = [
+        ":seam",
+        "//schemas:node_modules/@bufbuild/protobuf",
+        "//schemas:node_modules/@savvifi/meridian-proto-ts",
+        "//schemas:node_modules/vitest",
+    ],
+)
 
 # @savvifi/meridian-schemas/uiview — the framework-neutral WebRenderer seam. Pure
 # interfaces over the canonical @savvifi/meridian-proto-ts PanelDescriptor + Theme; no
@@ -14,6 +26,8 @@ ts_project(
         "admission.ts",
         "index.ts",
         "navigation.ts",
+        "prompt_response.ts",
+        "form_values.ts",
         "stat.ts",
         "transport.ts",
         "value_display.ts",
@@ -24,6 +38,7 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
     deps = [
+        "//schemas:node_modules/@bufbuild/protobuf",
         "//schemas:node_modules/@savvifi/meridian-proto-ts",
     ],
 )

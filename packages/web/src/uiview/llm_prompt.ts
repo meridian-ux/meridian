@@ -94,7 +94,7 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   return { element, dispose: () => { alive = false; } };
 }
 
-function hasOptionsSource(field: FormField): boolean {
+export function hasOptionsSource(field: FormField): boolean {
   const kind = field.kind;
   if (kind.case === "enumSelection") return !!kind.value.optionsSource;
   if (kind.case === "nested") return kind.value.fields.some(hasOptionsSource);
@@ -106,7 +106,7 @@ function hasOptionsSource(field: FormField): boolean {
   return false;
 }
 
-async function resolveOptions(authored: FormField, invoker: RpcInvoker): Promise<FormField> {
+export async function resolveOptions(authored: FormField, invoker: RpcInvoker): Promise<FormField> {
   const field = clone(FormFieldSchema, authored), kind = field.kind;
   if (kind.case === "nested") kind.value.fields = await Promise.all(kind.value.fields.map(child => resolveOptions(child, invoker)));
   if (kind.case === "repeated") {

@@ -13,6 +13,8 @@ slots {
       fields {
         field_id: "reason"
         label: "Reason"
+        text {
+        }
       }
     }
   }

@@ -1,0 +1,80 @@
+import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
+import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { describe, expect, it, vi } from "vitest";
+import { createPromptResponder, promptValues } from "./prompt_response.js";
+import { validateFormValues } from "./form_values.js";
+
+describe("canonical prompt responses", () => {
+  it("round-trips false, zero, empty, nested, array, and map values as protobuf", () => {
+    const values = { enabled: false, count: 0, text: "", nested: { ratio: -1.5 }, items: [false, 0], map: { team: "core" } };
+    expect(toJson(StructSchema, fromBinary(StructSchema, toBinary(StructSchema, promptValues(values))))).toEqual(values);
+  });
+  it("admits one in-flight response and completes one-shot after host acceptance", async () => {
+    const response = createPromptResponder(); let resolve!: () => void;
+    const handler = vi.fn(() => new Promise<void>(done => { resolve = done; }));
+    const pending = response.respond(handler, "prompt", promptValues({ count: 0 }));
+    await response.respond(handler, "prompt", null);
+    expect(handler).toHaveBeenCalledTimes(1); expect(response.getSnapshot().busy).toBe(true);
+    resolve(); await pending;
+    expect(response.getSnapshot()).toEqual({ busy: false, done: true, error: "", status: "Submitted." });
+    await response.respond(handler, "prompt", null); expect(handler).toHaveBeenCalledTimes(1);
+  });
+  it("reports host failures and permits retry with the original values", async () => {
+    const response = createPromptResponder(), values = promptValues({ text: "Keep this" });
+    const handler = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(undefined);
+    await response.respond(handler, "prompt", values); expect(response.getSnapshot().error).toBe("offline");
+    expect(response.getSnapshot().done).toBe(false);
+    await response.respond(handler, "prompt", values); expect(handler.mock.calls[1][1]).toBe(values);
+    expect(response.getSnapshot().done).toBe(true);
+  });
+  it("ignores pre-disposal replies even after StrictMode-style reactivation", async () => {
+    const response = createPromptResponder(); let oldResolve!: () => void, nextResolve!: () => void;
+    const old = response.respond(() => new Promise<void>(done => { oldResolve = done; }), "prompt", null);
+    response.dispose(); response.activate();
+    const next = response.respond(() => new Promise<void>(done => { nextResolve = done; }), "prompt", promptValues({ count: 1 }));
+    oldResolve(); await old; expect(response.getSnapshot().busy).toBe(true); expect(response.getSnapshot().done).toBe(false);
+    nextResolve(); await next; expect(response.getSnapshot().status).toBe("Submitted.");
+  });
+  it("keeps cancellation distinct from a false confirmation", async () => {
+    const handler = vi.fn();
+    await createPromptResponder().respond(handler, "confirm", promptValues({ confirm: false }));
+    await createPromptResponder().respond(handler, "confirm", null);
+    expect(toJson(StructSchema, handler.mock.calls[0][1])).toEqual({ confirm: false }); expect(handler.mock.calls[1][1]).toBeNull();
+  });
+  it("makes missing handlers explicit and never responds after disposal", async () => {
+    const response = createPromptResponder(); await response.respond(undefined, "prompt", null);
+    expect(response.getSnapshot().error).toContain("No prompt handler");
+    response.dispose(); const handler = vi.fn(); await response.respond(handler, "prompt", null); expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+describe("typed local form validation", () => {
+  const fields = [
+    create(FormFieldSchema, { fieldId: "integer", kind: { case: "integer", value: { min: -2, max: 2 } } }),
+    create(FormFieldSchema, { fieldId: "number", kind: { case: "number", value: {} } }),
+    create(FormFieldSchema, { fieldId: "boolean", kind: { case: "boolean", value: {} } }),
+    create(FormFieldSchema, { fieldId: "masked", kind: { case: "masked", value: { minLength: 2, pattern: "^[a-z]+$" } } }),
+    create(FormFieldSchema, { fieldId: "enum", kind: { case: "enumSelection", value: { options: [{ value: "token", label: "Label" }] } } }),
+    create(FormFieldSchema, { fieldId: "items", kind: { case: "repeated", value: { minItems: 1, maxItems: 2, element: { case: "scalar", value: { kind: { case: "number", value: {} } } } } } }),
+    create(FormFieldSchema, { fieldId: "nested", kind: { case: "nested", value: { fields: [{ fieldId: "text", kind: { case: "text", value: {} } }] } } }),
+    create(FormFieldSchema, { fieldId: "map", kind: { case: "keyValueMap", value: { maxItems: 1 } } }),
+  ];
+  const valid = () => ({ integer: 0, number: -1.5, boolean: false, masked: "secret", enum: "token", items: [0], nested: { text: "" }, map: { team: "core" } });
+  it("accepts typed defaults without truthiness coercion", () => { expect(validateFormValues(fields, valid())).toBeUndefined(); });
+  it.each([
+    ["integer", 1.5], ["integer", 3], ["number", "1.5"], ["number", NaN], ["boolean", "false"],
+    ["masked", "x"], ["masked", "123"], ["enum", "Label"], ["items", []], ["items", [1, 2, 3]],
+    ["nested", []], ["map", { team: 1 }], ["map", { a: "1", b: "2" }],
+  ])("rejects invalid %s = %j", (key, value) => { expect(validateFormValues(fields, { ...valid(), [key as string]: value })).toBeTypeOf("string"); });
+  it("rejects unset kinds and malformed patterns without throwing", () => {
+    expect(validateFormValues([create(FormFieldSchema, { fieldId: "missing" })], { missing: "" })).toContain("unsupported");
+    expect(validateFormValues([create(FormFieldSchema, { fieldId: "text", kind: { case: "text", value: { pattern: "[" } } })], { text: "value" })).toContain("invalid pattern");
+    expect(validateFormValues([create(FormFieldSchema, { fieldId: "items", kind: { case: "repeated", value: {} } })], { items: [] })).toContain("unsupported repeated element");
+  });
+  it("rejects unsafe integers rather than sending rounded input", () => {
+    const field = create(FormFieldSchema, { fieldId: "integer", kind: { case: "integer", value: {} } });
+    expect(validateFormValues([field], { integer: Number.MAX_SAFE_INTEGER })).toBeUndefined();
+    expect(validateFormValues([field], { integer: Number.MAX_SAFE_INTEGER + 1 })).toContain("invalid number");
+  });
+});

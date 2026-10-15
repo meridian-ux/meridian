@@ -44,8 +44,17 @@ Remote enum options use the host's read-tier admission policy. Loading and faile
 option requests disable preview; failures remain visible with a retry action.
 Disposing or replacing a panel ignores late option responses and prevents stale
 forms from updating their preview. Preview itself makes no RPC and never invokes
-an LLM provider. Standalone `PromptPanel` host response collection remains a
-separate roadmap obligation.
+an LLM provider.
+
+Standalone `PromptPanel` uses the optional `onPromptResponse(panelId, values)`
+host callback on `renderPanel`, `renderView`, or `WebRenderer.mount`. Values are
+a canonical protobuf `Struct`, keyed by field ID; a confirmation returns a bool
+keyed by panel ID. Cancellation returns `null`, not a false confirmation. The
+callback may return a promise. Pending responses block duplicates; acceptance
+finishes the mounted prompt, while failure preserves inputs for retry. Missing
+handlers are explicit and cannot submit. Replacing/disposal isolates old replies.
+This is a local host callback, not an RPC grant: the host must authorize any
+external action it chooses to perform with the collected values.
 
 ```bash
 bazel build //src:core

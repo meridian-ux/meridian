@@ -22,6 +22,7 @@
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { AdmissionPolicy } from "./admission.js";
+import type { PromptResponseHandler } from "./prompt_response.js";
 import type {
   RenderContext,
   RpcInvoker,
@@ -74,6 +75,8 @@ export interface MountOptions<TTheme = Theme, TFactory = AdhocDomFactory> {
    * Pass `"unrestricted"` to opt out explicitly. See ./admission.ts.
    */
   admission?: AdmissionPolicy;
+  /** Standalone input/confirmation response; no handler means no submission. */
+  onPromptResponse?: PromptResponseHandler;
   /**
    * Host transport for SERVER-STREAMING methods — what a StreamPanel subscribes
    * through. Optional and separate from {@link invoker} because streaming is a

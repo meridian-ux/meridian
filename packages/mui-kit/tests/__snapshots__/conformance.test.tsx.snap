@@ -139,13 +139,18 @@ ol
 `;
 
 exports[`muiKit canonical panel conformance > renders the prompt fixture without crashing > mui-kit/prompt 1`] = `
-"form
+"p
   "Delete this resource?"
+form
   label
     "Reason"
-  input type="text" value=""
-  button type="submit"
-    "Submit""
+  input type="text" value="Fixture reason" disabled
+  button type="submit" disabled
+    "Submit"
+button type="button" disabled
+  "Cancel"
+p role="status"
+  "No prompt handler configured.""
 `;
 
 exports[`muiKit canonical panel conformance > renders the record card fixture without crashing > mui-kit/record_card 1`] = `

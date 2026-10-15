@@ -1,4 +1,5 @@
-import { create } from "@bufbuild/protobuf";
+import { create, toJson } from "@bufbuild/protobuf";
+import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -19,9 +20,10 @@ describe("MUI stateful ViewDescriptor corpus", () => {
     const frames = (fixture.responses.__streamFrames ?? []) as object[];
     const invoke = vi.fn(async (service: string, method: string) =>
       (fixture.responses[`${service}.${method}`] ?? {}) as object);
+    const onPromptResponse = vi.fn();
     try {
       await act(async () => root.render(createElement(MeridianProvider, {
-        kit: muiKit, adhoc: {}, invoker: { invoke }, streamSnapshots: { [panelId]: frames.map(frame =>
+        kit: muiKit, adhoc: {}, invoker: { invoke }, onPromptResponse, streamSnapshots: { [panelId]: frames.map(frame =>
           create(StreamFrameSchema, { dataJson: new TextEncoder().encode(JSON.stringify(frame)) })) },
         children: createElement(ViewRenderer, { view: fixture.view }),
       })));
@@ -62,6 +64,14 @@ describe("MUI stateful ViewDescriptor corpus", () => {
         expect(tree).not.toContain("Stream line 000");
       }
       expect(tree).toMatchSnapshot(`mui-kit/${fixture.name}`);
+      if (fixture.arm === "prompt") {
+        const body = fixture.view.slots[0].panel!.body; if (body.case !== "prompt" || body.value.fields[0].kind.case !== "text") throw new Error("Typed prompt fixture required");
+        const raw = body.value.fields[0].kind.value.defaultValue;
+        expect(container.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe(raw);
+        await act(async () => { container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+        expect(onPromptResponse).toHaveBeenCalledTimes(1); expect(onPromptResponse.mock.calls[0][0]).toBe(panelId);
+        expect(toJson(StructSchema, onPromptResponse.mock.calls[0][1])).toEqual({ reason: raw });
+      }
     } finally {
       await act(async () => root.unmount());
       container.remove();
