@@ -493,7 +493,14 @@ impl PanelView {
                 panel
                     .start
                     .as_ref()
-                    .map(|start| RequestBuilder::build(start, context))
+                    .map(|start| {
+                        // handle_lro_key supplies this panel's collected form
+                        // values, not the host's form map. Track only external
+                        // bindings here so edits never reset their own form.
+                        let mut external = context.clone();
+                        external.form_values.clear();
+                        RequestBuilder::build(start, &external)
+                    })
                     .unwrap_or_default(),
             )),
             _ => None,

@@ -2724,6 +2724,11 @@ mod lro_progress {
             source: Some(Source::Context(ContextSource::CurrentResourcePath as i32)),
             ..Default::default()
         });
+        lro.start.as_mut().unwrap().bindings.push(FieldBinding {
+            request_field: "replicas".into(),
+            source: Some(Source::FormField("replicas".into())),
+            ..Default::default()
+        });
         let mut context = Context {
             current_resource_path: Some("resource/one".into()),
             ..Default::default()
@@ -2734,6 +2739,16 @@ mod lro_progress {
             .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
             .unwrap();
         assert_eq!(run.request["resource"], "resource/one");
+        assert_eq!(run.request["replicas"], 1);
+        // This input is owned by the LRO form, not the host context map.
+        context
+            .form_values
+            .insert("replicas".into(), serde_json::json!(777));
+        draw(&mut view, &descriptor, &context, 80);
+        assert!(
+            view.update_lro_progress(&run.run_id, "operations/current", &Struct::default()),
+            "host form values must not invalidate an internally owned form input"
+        );
         context.current_resource_path = Some("resource/two".into());
         draw(&mut view, &descriptor, &context, 80);
         assert!(!view.fail_lro(&run.run_id, "old resource"));
