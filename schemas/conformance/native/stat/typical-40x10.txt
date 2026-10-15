@@ -1,3 +1,4 @@
+viewport 40x10
 stat · typical
 ┌──────────────────────────────────────┐
 │Active employees                      │
@@ -8,3 +9,4 @@ stat · typical
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

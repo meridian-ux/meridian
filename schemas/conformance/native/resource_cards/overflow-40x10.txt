@@ -1,3 +1,4 @@
+viewport 40x10
 resource_cards · overflow
 ┌──────────────────────────────────────┐
 │▶ 1. Resource 00                      │
@@ -8,3 +9,4 @@ resource_cards · overflow
 │overflowing content with overflowing  │
 │content with overflowing content with │
 └──────────────────────────────────────┘
+end viewport

@@ -216,9 +216,12 @@ fn shared_stateful_panels_match_native_buffers() {
             let golden = format!("{arm}/{state}-{width}x{height}.txt");
             expected_goldens.insert(golden.clone());
             let target = golden_root.join(&golden);
+            // Keep every viewport row, including blank tail rows, without
+            // confusing a meaningful fixed-height buffer with blank EOF noise.
+            let snapshot = format!("viewport {width}x{height}\n{output}end viewport\n");
             if recording {
                 std::fs::create_dir_all(target.parent().unwrap()).unwrap();
-                std::fs::write(&target, &output).unwrap();
+                std::fs::write(&target, &snapshot).unwrap();
             } else {
                 let expected = std::fs::read_to_string(&target).unwrap_or_else(|error| {
                     panic!(
@@ -226,7 +229,7 @@ fn shared_stateful_panels_match_native_buffers() {
                     )
                 });
                 assert_eq!(
-                    output, expected,
+                    snapshot, expected,
                     "native buffer differs: {name} at {width}x{height}"
                 );
             }

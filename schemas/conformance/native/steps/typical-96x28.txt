@@ -1,3 +1,4 @@
+viewport 96x28
 steps · typical
 
 Add an employer and confirm a colleague can see it.
@@ -26,3 +27,4 @@ The sponsor is now visible to your whole team.
 
 
 
+end viewport

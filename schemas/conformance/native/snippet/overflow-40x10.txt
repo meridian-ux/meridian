@@ -1,3 +1,4 @@
+viewport 40x10
 snippet · overflow
 ┌──────────────────────────────────────┐
 │~/.cursor/mcp.json  (json)            │
@@ -8,3 +9,4 @@ snippet · overflow
 │"mcpServers": { "demo": { "url":      │
 │"https://mcp.example/mcp" } } }{      │
 └──────────────────────────────────────┘
+end viewport

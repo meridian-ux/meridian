@@ -1,3 +1,4 @@
+viewport 40x10
 gallery · typical
 ┌──────────────────────────────────────┐
 │▶ 1. Resource 00  [Connected]         │
@@ -8,3 +9,4 @@ gallery · typical
 │  2. Resource 01  [Connected]         │
 │    A shared response                 │
 └──────────────────────────────────────┘
+end viewport

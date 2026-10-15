@@ -1,3 +1,4 @@
+viewport 40x10
 detail_header · overflow
 ┌──────────────────────────────────────┐
 │Fixture record with a long title with │
@@ -8,3 +9,4 @@ detail_header · overflow
 │long title with a long title with a   │
 │long title with a long title with a   │
 └──────────────────────────────────────┘
+end viewport

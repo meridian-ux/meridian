@@ -1,3 +1,4 @@
+viewport 40x10
 resource_cards · empty
 ┌──────────────────────────────────────┐
 │No services                           │
@@ -8,3 +9,4 @@ resource_cards · empty
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

@@ -1,3 +1,4 @@
+viewport 40x10
 connect_flow · empty
 ┌──────────────────────────────────────┐
 │Every agent points at the same        │
@@ -8,3 +9,4 @@ connect_flow · empty
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

@@ -1,3 +1,4 @@
+viewport 96x28
 copy_value · typical
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │Primary integration endpoint for the production workspace across all supported regions:       │
@@ -26,3 +27,4 @@ copy_value · typical
 │                                                                                              │
 │                                                                                              │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

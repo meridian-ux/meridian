@@ -1,3 +1,4 @@
+viewport 40x10
 percent-current-scalar
 1
 ┌──────────────────────────────────────┐
@@ -8,3 +9,4 @@ percent-current-scalar
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

@@ -1,3 +1,4 @@
+viewport 96x28
 connect_flow · overflow
 Every agent points at the same endpoint.
 Endpoint: mcp.example.com/mcp   [c] copy
@@ -26,3 +27,4 @@ Endpoint: mcp.example.com/mcp   [c] copy
 │  Cursor          ││                                                                          │
 │  Codex           ││                                                                          │
 └──────────────────┘└──────────────────────────────────────────────────────────────────────────┘
+end viewport

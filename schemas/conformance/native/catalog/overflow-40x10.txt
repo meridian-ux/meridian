@@ -1,3 +1,4 @@
+viewport 40x10
 catalog · overflow
 ┌──────────────────────────────────────┐
 │▶ list_instances  tool                │
@@ -8,3 +9,4 @@ catalog · overflow
 │                                      │
 │  list_instances  tool                │
 └──────────────────────────────────────┘
+end viewport

@@ -1,3 +1,4 @@
+viewport 40x10
 steps · overflow
 
 Add an employer and confirm a colleague
@@ -8,3 +9,4 @@ employer and confirm a colleague can see
 it.Add an employer and confirm a
 colleague can see it.Add an employer and
 confirm a colleague can see it.Add an
+end viewport

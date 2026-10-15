@@ -1,3 +1,4 @@
+viewport 40x10
 action · empty
 ┌──────────────────────────────────────┐
 │ ↵ Add to Cursor                      │
@@ -8,3 +9,4 @@ action · empty
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

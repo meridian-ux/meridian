@@ -1,3 +1,4 @@
+viewport 96x28
 steps · empty
 
 
@@ -26,3 +27,4 @@ steps · empty
 
 
 
+end viewport

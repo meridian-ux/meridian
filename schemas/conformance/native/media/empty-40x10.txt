@@ -1,3 +1,4 @@
+viewport 40x10
 media · empty
 ┌──────────────────────────────────────┐
 │Narrated from a live run.             │
@@ -8,3 +9,4 @@ media · empty
 │Source: /evidence/golden-path.mp4     │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

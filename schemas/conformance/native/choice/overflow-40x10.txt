@@ -1,3 +1,4 @@
+viewport 40x10
 choice · overflow
 ┌──────────────────────────────────────┐
 │Which client?                         │
@@ -8,3 +9,4 @@ choice · overflow
 │  VS Code                             │
 │  Cursor                              │
 └──────────────────────────────────────┘
+end viewport

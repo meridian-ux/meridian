@@ -1,3 +1,4 @@
+viewport 40x10
 record_card · overflow
 ┌──────────────────────────────────────┐
 │Name: Fixture record with a long title│
@@ -8,3 +9,4 @@ record_card · overflow
 │with a long title with a long title   │
 │with a long title with a long title   │
 └──────────────────────────────────────┘
+end viewport

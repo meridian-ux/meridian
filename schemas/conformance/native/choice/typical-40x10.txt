@@ -1,3 +1,4 @@
+viewport 40x10
 choice · typical
 ┌──────────────────────────────────────┐
 │Which client?                         │
@@ -8,3 +9,4 @@ choice · typical
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

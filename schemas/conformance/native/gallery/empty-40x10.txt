@@ -1,3 +1,4 @@
+viewport 40x10
 gallery · empty
 ┌──────────────────────────────────────┐
 │no assets                             │
@@ -8,3 +9,4 @@ gallery · empty
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

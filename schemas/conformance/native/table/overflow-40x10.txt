@@ -1,3 +1,4 @@
+viewport 40x10
 table · overflow
 40
 ┌──────────────────────────────────────┐
@@ -8,3 +9,4 @@ table · overflow
 │Member 03 3.25      No       https://e│
 │Member 04 4.25      Yes      https://e│
 └──────────────────────────────────────┘
+end viewport

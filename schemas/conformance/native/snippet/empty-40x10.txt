@@ -1,3 +1,4 @@
+viewport 40x10
 snippet · empty
 ┌──────────────────────────────────────┐
 │~/.cursor/mcp.json  (json)            │
@@ -8,3 +9,4 @@ snippet · empty
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

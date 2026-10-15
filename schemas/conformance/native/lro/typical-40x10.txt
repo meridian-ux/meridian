@@ -1,3 +1,4 @@
+viewport 40x10
 lro · typical
 ┌──────────────────────────────────────┐
 │Run reindex                           │
@@ -8,3 +9,4 @@ lro · typical
 │  Job input 1: Fixture job input      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

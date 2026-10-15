@@ -1,3 +1,4 @@
+viewport 40x10
 llm_prompt · typical
 
 ┌──────────────────────────────────────┐
@@ -8,3 +9,4 @@ llm_prompt · typical
 │                                      │
 │                                      │
 └──────────────────────────────────────┘
+end viewport

@@ -1,3 +1,4 @@
+viewport 40x10
 steps · typical
 
 Add an employer and confirm a colleague
@@ -8,3 +9,4 @@ The list of every employer your
 organization administers.
 The sponsors list
 ↵ ↗ Open Sponsors  /sponsors  — Continue
+end viewport
