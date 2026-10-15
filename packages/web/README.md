@@ -46,6 +46,14 @@ Disposing or replacing a panel ignores late option responses and prevents stale
 forms from updating their preview. Preview itself makes no RPC and never invokes
 an LLM provider.
 
+Multiline masked slots use one native password input per line, with Enter,
+boundary Backspace/Delete, and multiline paste support. Raw values retain their
+original line separators and trailing blank lines; long values are paged, not
+truncated. Preview conceals masked slots (including aggregates with masked
+children) until **Show masked values in preview** is selected. Each successful
+new preview starts concealed. Masking prevents casual visual disclosure; it is
+not encryption or protection from code running in the host page.
+
 Standalone `PromptPanel` uses the optional `onPromptResponse(panelId, values)`
 host callback on `renderPanel`, `renderView`, or `WebRenderer.mount`. Values are
 a canonical protobuf `Struct`, keyed by field ID; a confirmation returns a bool

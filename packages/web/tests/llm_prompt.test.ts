@@ -6,8 +6,53 @@ import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb
 import { describe, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
+import { buildMaskedMultiline } from "../src/uiview/masked_multiline.js";
 
 const wasm: UiviewWasm = { renderTable: () => [] as RenderedRow[], buildPopulateRequest: () => ({}), readPath: () => null, buildRequest: () => ({}), renderTablePanel: () => [] as RenderedRow[], formatLroMetadata: () => "" };
+
+describe("native DOM masked multiline editor", () => {
+  it("edits exact separators with password inputs, paste, drop, Enter and boundary deletion", () => {
+    const editor = buildMaskedMultiline("secret", "Secret", "ab\r\ncd\r\n", 4);
+    const form = document.createElement("form"); form.append(editor.element); document.body.append(form);
+    const input = (index: number) => form.querySelectorAll<HTMLInputElement>('input[type="password"]')[index];
+    const key = (index: number, name: string, position: number, composing = false) => {
+      input(index).setSelectionRange(position, position);
+      input(index).dispatchEvent(new KeyboardEvent("keydown", { key: name, isComposing: composing, bubbles: true, cancelable: true }));
+    };
+    try {
+      expect(form.querySelector("textarea")).toBeNull(); expect(form.textContent).not.toContain("ab");
+      key(0, "Enter", 1, true); expect(editor.read()).toBe("ab\r\ncd\r\n");
+      key(0, "Enter", 1); expect(editor.read()).toBe("a\r\nb\r\ncd\r\n"); expect(document.activeElement).toBe(input(1));
+      key(1, "Backspace", 0); expect(editor.read()).toBe("ab\r\ncd\r\n");
+      key(0, "Delete", 2); expect(editor.read()).toBe("abcd\r\n");
+      input(0).setSelectionRange(1, 3);
+      const paste = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(paste, "clipboardData", { value: { getData: () => "🦀\nX" } }); input(0).dispatchEvent(paste);
+      expect(editor.read()).toBe("a🦀\nXd\r\n");
+      input(1).value = "changed"; input(1).dispatchEvent(new Event("input", { bubbles: true }));
+      expect(editor.read()).toBe("a🦀\nchanged\r\n");
+      const drop = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(drop, "dataTransfer", { value: { getData: () => "Z\rY" } });
+      input(1).setSelectionRange(0, 7); input(1).dispatchEvent(drop);
+      expect(editor.read()).toBe("a🦀\nZ\rY\r\n");
+      expect(new FormData(form).get("secret")).toBe(editor.read());
+      input(3).value = "new trailing content"; input(3).dispatchEvent(new Event("input", { bubbles: true }));
+      Array.from(form.querySelectorAll("button")).find(button => button.textContent === "Add line")!.click();
+      expect(editor.read()).toBe("a🦀\nZ\rY\r\nnew trailing content\n");
+    } finally { form.remove(); }
+  });
+  it("pages through long secrets without truncating the raw value or mounting every line", () => {
+    const raw = Array.from({ length: 102 }, (_, index) => `secret-${index}`).join("\r\n");
+    const editor = buildMaskedMultiline("secret", "Secret", raw, 2147483647); document.body.append(editor.element);
+    try {
+      expect(editor.element.querySelectorAll('input[type="password"]')).toHaveLength(100);
+      Array.from(editor.element.querySelectorAll("button")).find(button => button.textContent === "Next lines")!.click();
+      expect(editor.element.querySelectorAll('input[type="password"]')).toHaveLength(2);
+      expect(document.activeElement?.getAttribute("aria-label")).toBe("Secret, line 101");
+      expect(editor.read()).toBe(raw);
+    } finally { editor.element.remove(); }
+  });
+});
 
 it("renders LLM prompt templates, model metadata, and slots", async () => {
   const root = document.createElement("div");
@@ -44,6 +89,20 @@ const submit = (root: HTMLElement) => root.querySelector("form")!.dispatchEvent(
 const user = (root: HTMLElement) => root.querySelector('[aria-label="User prompt"] pre')!.textContent;
 
 describe("web-components LLM prompt interaction", () => {
+  it("keeps multiline masked values lossless and conceals nested masked values in each new preview", async () => {
+    const descriptor = create(PanelDescriptorSchema, { panelId: "masked", body: { case: "llmPrompt", value: {
+      userTemplate: "{{secret}} {{nested}}", slots: [
+        { name: "secret", multiLine: true, field: { label: "Secret", kind: { case: "masked", value: { defaultValue: "first\r\n\r\nlast\n" } } } },
+        { name: "nested", field: { kind: { case: "nested", value: { fields: [{ fieldId: "token", kind: { case: "masked", value: { defaultValue: "nested-secret" } } }] } } } },
+      ],
+    } } });
+    const root = document.createElement("div"), invoke = vi.fn();
+    await renderPanel({ root, wasm, context, descriptor, invoker: { invoke } });
+    expect(root.querySelector("textarea")).toBeNull(); submit(root); expect(user(root)).toBe("•••••• ••••••");
+    Array.from(root.querySelectorAll("button")).find(button => button.textContent === "Show masked values in preview")!.click();
+    expect(user(root)).toBe('first\r\n\r\nlast\n {"token":"nested-secret"}');
+    submit(root); expect(user(root)).toBe("•••••• ••••••"); expect(invoke).not.toHaveBeenCalled(); disposePanel(root);
+  });
   it("previews scalar defaults/edits once as text, keeps unknown tokens, and never executes an RPC", async () => {
     const root = document.createElement("div"), invoke = vi.fn(async () => ({}));
     const descriptor = fixture();
@@ -55,7 +114,10 @@ describe("web-components LLM prompt interaction", () => {
     expect(root.querySelector<HTMLInputElement>('input[type="checkbox"]')!.checked).toBe(false);
     textarea.value = '<script>unsafe</script>\n{{style}} $&';
     root.querySelector("select")!.value = "detailed"; submit(root);
-    expect(user(root)).toBe('<script>unsafe</script>\n{{style}} $& / 0 / false / hidden /  / {{missing}}');
+    expect(user(root)).toBe('<script>unsafe</script>\n{{style}} $& / 0 / false / •••••• /  / {{missing}}');
+    Array.from(root.querySelectorAll("button")).find(button => button.textContent === "Show masked values in preview")!.click();
+    expect(user(root)).toContain("/ hidden /");
+    submit(root); expect(user(root)).not.toContain("hidden");
     expect(root.querySelector('[aria-label="System prompt"] pre')!.textContent).toBe("Use detailed.");
     expect(root.querySelector("script")).toBeNull(); expect(root.textContent).toContain("Unresolved slots: missing");
     expect(invoke).not.toHaveBeenCalled();

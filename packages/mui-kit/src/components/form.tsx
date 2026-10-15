@@ -25,6 +25,7 @@ import { ValueTone, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.
 
 import { formatByDisplay } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
+import { MaskedMultiline } from "@savvifi/meridian-web-react";
 
 interface BaseField {
   key: string;
@@ -109,6 +110,8 @@ function enumTone(tone: ValueTone | undefined): { name: string; color: string } 
 }
 
 function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): ReactNode | undefined {
+  if (field.disabled && (field.type === "text" || field.type === undefined) && field.masked)
+    return <Typography key={field.key} data-field-display={field.key}>••••••</Typography>;
   if (!field.disabled || !field.display || field.display.type === ValueType.UNSPECIFIED) return undefined;
   if (field.type === "group" || field.type === "list" || field.type === "map") return undefined;
   const shown = formatByDisplay(field.value, field.display, nowMs);
@@ -340,6 +343,11 @@ function renderField(field: MeridianFormField, nowMs: number | undefined): React
     return renderNumeric(field);
   }
   return (
+    field.masked && field.multilineRows ? <Box key={field.key}>
+      <MaskedMultiline label={field.label} value={field.value} onChange={field.onChange}
+        rows={field.multilineRows} disabled={field.disabled} />
+      {field.helperText && <Typography variant="caption">{field.helperText}</Typography>}
+    </Box> :
     <TextField
       key={field.key}
       fullWidth

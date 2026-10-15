@@ -86,6 +86,15 @@ cannot be selected by descriptor data.
 
 ## Build & test
 
+HTML and Shadcn LLM previews conceal masked slots, including nested and repeated
+aggregates containing masked fields, until **Show masked values in preview** is
+selected. Each new preview starts concealed. Multiline masked slots use native
+password controls per line: Enter splits, boundary Backspace/Delete joins, and
+paste preserves exact separators and trailing blank lines. Long values are
+paged without truncating the value. The shared `MaskedMultiline` component also
+supports controlled values and hidden form data. Masking protects against casual
+visual disclosure, not host-page code or inspection of local form state.
+
 ```bash
 bazel build //:web_react
 bazel test //:test //:conformance   # conformance = the cross-shape crank seed
