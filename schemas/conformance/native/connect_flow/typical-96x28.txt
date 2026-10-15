@@ -1,0 +1,30 @@
+viewport 96x28
+connect_flow · typical
+Every agent points at the same endpoint.
+Endpoint: mcp.example.com/mcp   [c] copy
+
+┌──────────────────┐┌──────────────────────────────────────────────────────────────────────────┐
+│▶ Cursor          ││Cursor                                                                    │
+│  Codex           ││One click installs it.                                                    │
+│                  ││ ↵ Add to Cursor  cursor://install                                        │
+│                  ││                                                                          │
+│                  ││~/.cursor/mcp.json  (json)                                                │
+│                  ││{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }        │
+│                  ││[c] copy (OSC52)                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+│                  ││                                                                          │
+└──────────────────┘└──────────────────────────────────────────────────────────────────────────┘
+end viewport

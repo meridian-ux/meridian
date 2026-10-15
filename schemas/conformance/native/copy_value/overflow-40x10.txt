@@ -1,0 +1,12 @@
+viewport 40x10
+copy_value · overflow
+┌──────────────────────────────────────┐
+│Primary integration endpoint for the  │
+│production workspace across all       │
+│supported regions:                    │
+│https://mcp.example.com/workspaces/pro│
+│duction/integrations/regional-service/│
+│abcdefghijklmnopqrstuvwxyz0123456789AB│
+│CDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?regi│
+└──────────────────────────────────────┘
+end viewport

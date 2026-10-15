@@ -1,0 +1,12 @@
+viewport 40x10
+lro · overflow
+┌──────────────────────────────────────┐
+│Run reindex                           │
+│↑/↓ select · edit scalar · Enter start│
+│operation                             │
+│                                      │
+│▶ Job input 0: Fixture job input      │
+│  Job input 1: Fixture job input      │
+│  Job input 2: Fixture job input      │
+└──────────────────────────────────────┘
+end viewport

@@ -1,0 +1,12 @@
+viewport 40x10
+terminal · empty
+
+┌──────────────────────────────────────┐
+│Terminal panels are web-specific (xter│
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

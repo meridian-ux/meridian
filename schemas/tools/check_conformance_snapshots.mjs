@@ -1,7 +1,7 @@
 // Presence gate for the browser semantic goldens. Runtime conformance suites
 // prove their contents; this check prevents missing snapshots from silently
 // being auto-recorded by a local Vitest run.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const SNAPSHOT_SUITES = {
@@ -10,10 +10,15 @@ export const SNAPSHOT_SUITES = {
   "packages/web/tests/__snapshots__/conformance.test.ts.snap": ["web-components"],
 };
 
-export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"]) {
-  if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
+function statefulCases(coverage, valueCases) {
   const cases = Object.keys(coverage.arms).flatMap(arm => ["empty", "typical", "overflow"].map(state => `${arm}/${state}`));
   cases.push(...valueCases.map(value => `table/value-${value.name}`));
+  return cases;
+}
+
+export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"]) {
+  if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
+  const cases = statefulCases(coverage, valueCases);
   const expected = new Set(renderers.flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
   const actual = [...source.matchAll(/exports\[`[^`\n]* > ([a-z-]+\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
   const errors = [];
@@ -21,6 +26,16 @@ export function checkStatefulSnapshots(coverage, valueCases, source, renderers =
   for (const key of actual) if (!expected.has(key)) errors.push(`unexpected stateful snapshot ${key}`);
   if (new Set(actual).size !== actual.length) errors.push("duplicate stateful snapshot key");
   return errors;
+}
+
+export function checkNativeSnapshots(coverage, valueCases, paths) {
+  const expected = new Set(statefulCases(coverage, valueCases).flatMap(name =>
+    ["96x28", "40x10"].map(size => `${name}-${size}.txt`)));
+  const actual = new Set(paths);
+  return [
+    ...[...expected].filter(path => !actual.has(path)).map(path => `missing native snapshot ${path}`),
+    ...[...actual].filter(path => !expected.has(path)).map(path => `unexpected native snapshot ${path}`),
+  ];
 }
 
 export function checkSnapshots(coverage, sources) {
@@ -60,7 +75,18 @@ export function checkSnapshotFiles(coverage) {
     catch (error) { if (error.code !== "ENOENT") throw error; }
     statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers).map(error => `${path}: ${error}`));
   }
-  return [...checkSnapshots(coverage, sources), ...statefulErrors];
+  const native = [];
+  function walkNative(prefix = "") {
+    let entries;
+    try { entries = readdirSync(new URL(`schemas/conformance/native/${prefix}`, root), { withFileTypes: true }); }
+    catch (error) { if (error.code === "ENOENT") return; throw error; }
+    for (const entry of entries) {
+      if (entry.isDirectory()) walkNative(`${prefix}${entry.name}/`);
+      else native.push(`${prefix}${entry.name}`);
+    }
+  }
+  walkNative();
+  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -69,5 +95,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (errors.length) {
     console.error(errors.join("\n"));
     process.exitCode = 1;
-  } else console.log("browser semantic snapshots OK");
+  } else console.log("browser semantic and native buffer snapshots OK");
 }

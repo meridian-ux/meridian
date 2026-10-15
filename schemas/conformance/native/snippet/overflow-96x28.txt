@@ -1,0 +1,30 @@
+viewport 96x28
+snippet · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│~/.cursor/mcp.json  (json)                                                                    │
+│{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { │
+│"url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url":                      │
+│"https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } │
+│} }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo":│
+│{ "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url":                    │
+│"https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } │
+│} }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo":│
+│{ "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url":                    │
+│"https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } │
+│} }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo":│
+│{ "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url":                    │
+│"https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } │
+│} }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo":│
+│{ "url": "https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url":                    │
+│"https://mcp.example/mcp" } } }{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } │
+│} }                                                                                           │
+│[c] copy (OSC52)                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

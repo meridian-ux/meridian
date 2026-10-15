@@ -1,0 +1,12 @@
+viewport 40x10
+table · empty
+0
+┌──────────────────────────────────────┐
+│Member    Amount    Enabled  Website  │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

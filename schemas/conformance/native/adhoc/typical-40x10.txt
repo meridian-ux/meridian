@@ -1,0 +1,12 @@
+viewport 40x10
+adhoc · typical
+
+┌──────────────────────────────────────┐
+│Adhoc panel — handler_id: overview-das│
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

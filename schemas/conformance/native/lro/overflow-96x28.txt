@@ -1,0 +1,30 @@
+viewport 96x28
+lro · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Run reindex                                                                                   │
+│↑/↓ select · edit scalar · Enter start operation                                              │
+│                                                                                              │
+│▶ Job input 0: Fixture job input                                                              │
+│  Job input 1: Fixture job input                                                              │
+│  Job input 2: Fixture job input                                                              │
+│  Job input 3: Fixture job input                                                              │
+│  Job input 4: Fixture job input                                                              │
+│  Job input 5: Fixture job input                                                              │
+│  Job input 6: Fixture job input                                                              │
+│  Job input 7: Fixture job input                                                              │
+│  Job input 8: Fixture job input                                                              │
+│  Job input 9: Fixture job input                                                              │
+│  Job input 10: Fixture job input                                                             │
+│  Job input 11: Fixture job input                                                             │
+│  Job input 12: Fixture job input                                                             │
+│  Job input 13: Fixture job input                                                             │
+│  Job input 14: Fixture job input                                                             │
+│  Job input 15: Fixture job input                                                             │
+│  Job input 16: Fixture job input                                                             │
+│  Job input 17: Fixture job input                                                             │
+│  Job input 18: Fixture job input                                                             │
+│  Job input 19: Fixture job input                                                             │
+│  Job input 20: Fixture job input                                                             │
+│  Job input 21: Fixture job input                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

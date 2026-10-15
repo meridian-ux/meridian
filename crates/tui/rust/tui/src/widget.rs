@@ -960,6 +960,15 @@ impl PanelView {
                 .map(|col| Cell::from(col.header.clone()))
                 .collect::<Vec<_>>(),
         )
+        .height(
+            table_panel
+                .columns
+                .iter()
+                .map(|col| col.header.lines().count())
+                .max()
+                .unwrap_or(1)
+                .clamp(1, u16::MAX as usize) as u16,
+        )
         .style(self.palette.header());
 
         let rows: Vec<Row> = cached
@@ -978,6 +987,14 @@ impl PanelView {
                             ))
                         })
                         .collect::<Vec<_>>(),
+                )
+                .height(
+                    r.cells
+                        .iter()
+                        .map(|cell| cell.lines().count())
+                        .max()
+                        .unwrap_or(1)
+                        .clamp(1, u16::MAX as usize) as u16,
                 )
             })
             .collect();

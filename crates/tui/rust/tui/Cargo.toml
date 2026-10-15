@@ -32,3 +32,6 @@ thiserror = { workspace = true }
 [[bin]]
 name = "meridian-tui"
 path = "src/main.rs"
+
+[dev-dependencies]
+prost-types = { workspace = true }

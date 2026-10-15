@@ -1,0 +1,12 @@
+viewport 40x10
+stream · typical
+
+┌──────────────────────────────────────┐
+│Stream line 000                       │
+│Stream line 001                       │
+│Stream line 002                       │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

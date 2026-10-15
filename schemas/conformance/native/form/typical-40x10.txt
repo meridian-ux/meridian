@@ -1,0 +1,12 @@
+viewport 40x10
+form · typical
+┌──────────────────────────────────────┐
+│Edit item                             │
+│↑/↓ select · edit scalar · Enter      │
+│submit                                │
+│                                      │
+│▶ Navigation groups: 2 items          │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

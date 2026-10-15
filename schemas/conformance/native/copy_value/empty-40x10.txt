@@ -1,0 +1,12 @@
+viewport 40x10
+copy_value · empty
+┌──────────────────────────────────────┐
+│Primary integration endpoint for the  │
+│production workspace across all       │
+│supported regions:    [c] copy        │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

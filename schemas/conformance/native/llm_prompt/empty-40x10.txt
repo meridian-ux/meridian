@@ -1,0 +1,12 @@
+viewport 40x10
+llm_prompt · empty
+
+┌──────────────────────────────────────┐
+│LLM-prompt panels: drive via the stand│
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

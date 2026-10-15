@@ -1,0 +1,12 @@
+viewport 40x10
+form · overflow
+┌──────────────────────────────────────┐
+│Edit item                             │
+│↑/↓ select · edit scalar · Enter      │
+│submit                                │
+│                                      │
+│▶ Navigation groups: 30 items         │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

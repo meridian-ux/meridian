@@ -1,0 +1,12 @@
+viewport 40x10
+resource_cards · typical
+┌──────────────────────────────────────┐
+│▶ 1. Resource 00                      │
+│    A shared response                 │
+│                                      │
+│  2. Resource 01                      │
+│    A shared response                 │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

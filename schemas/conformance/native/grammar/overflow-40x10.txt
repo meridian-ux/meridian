@@ -1,0 +1,12 @@
+viewport 40x10
+grammar · overflow
+┌──────────────────────────────────────┐
+│Hello                                 │
+│                                      │
+│A small rendered document.# Hello     │
+│                                      │
+│A small rendered document.# Hello     │
+│                                      │
+│A small rendered document.# Hello     │
+└──────────────────────────────────────┘
+end viewport

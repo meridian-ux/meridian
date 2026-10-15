@@ -1,0 +1,12 @@
+viewport 40x10
+prompt · empty
+
+┌──────────────────────────────────────┐
+│Prompt panels: drive via the standalon│
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

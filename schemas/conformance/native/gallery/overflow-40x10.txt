@@ -1,0 +1,12 @@
+viewport 40x10
+gallery · overflow
+┌──────────────────────────────────────┐
+│▶ 1. Resource 00  [Connected]         │
+│    A shared response with overflowing│
+│content with overflowing content with │
+│overflowing content with overflowing  │
+│content with overflowing content with │
+│overflowing content with overflowing  │
+│content with overflowing content with │
+└──────────────────────────────────────┘
+end viewport

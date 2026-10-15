@@ -48,6 +48,7 @@ test("argument parsing rejects misspelled destructive update flags", () => {
     update: true,
     bazel: true,
     wasm: false,
+    native: false,
     dryRun: true,
     help: false,
   });
@@ -63,4 +64,12 @@ test("WASM recording builds and copies the real bridge before running its suite"
     ["run", "tests/conformance_wasm.test.ts", "--update"],
   ]);
   assert.equal(parseArgs(["--wasm"]).wasm, true);
+});
+
+test("native golden recording is explicit and read-only mode overrides an inherited writer flag", () => {
+  const recording = buildCommands({ native: true, update: true }).at(-2);
+  assert.deepEqual(recording.args, ["run", "--announce_rc=false", "//crates/tui/rust/tui:stateful_conformance_test"]);
+  assert.deepEqual(recording.env, { UPDATE_SNAPSHOTS: "1" });
+  assert.deepEqual(buildCommands({ native: true }).at(-2).env, { UPDATE_SNAPSHOTS: "0" });
+  assert.equal(parseArgs(["--native"]).native, true);
 });

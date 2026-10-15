@@ -1,0 +1,12 @@
+viewport 40x10
+snippet · typical
+┌──────────────────────────────────────┐
+│~/.cursor/mcp.json  (json)            │
+│{ "mcpServers": { "demo": { "url":    │
+│"https://mcp.example/mcp" } } }       │
+│[c] copy (OSC52)                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

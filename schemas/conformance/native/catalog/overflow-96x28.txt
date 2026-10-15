@@ -1,0 +1,30 @@
+viewport 96x28
+catalog · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│▶ list_instances  tool                                                                        │
+│    The instances you can address.                                                            │
+│                                                                                              │
+│  graph_*  [Next]                                                                             │
+│    RLS-respecting reads.                                                                     │
+│                                                                                              │
+│  list_instances  tool                                                                        │
+│    The instances you can address.                                                            │
+│                                                                                              │
+│  graph_*  [Next]                                                                             │
+│    RLS-respecting reads.                                                                     │
+│                                                                                              │
+│  list_instances  tool                                                                        │
+│    The instances you can address.                                                            │
+│                                                                                              │
+│  graph_*  [Next]                                                                             │
+│    RLS-respecting reads.                                                                     │
+│                                                                                              │
+│  list_instances  tool                                                                        │
+│    The instances you can address.                                                            │
+│                                                                                              │
+│  graph_*  [Next]                                                                             │
+│    RLS-respecting reads.                                                                     │
+│                                                                                              │
+│  list_instances  tool                                                                        │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

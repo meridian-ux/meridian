@@ -1,0 +1,12 @@
+viewport 40x10
+grammar · typical
+┌──────────────────────────────────────┐
+│Hello                                 │
+│                                      │
+│A small rendered document.            │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

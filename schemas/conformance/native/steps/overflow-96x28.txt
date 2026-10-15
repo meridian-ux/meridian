@@ -1,0 +1,30 @@
+viewport 96x28
+steps · overflow
+
+Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can
+see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a
+colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and
+confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an
+employer and confirm a colleague can see it.Add an employer and confirm a colleague can see
+it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague
+can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a
+colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and
+confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an
+employer and confirm a colleague can see it.Add an employer and confirm a colleague can see
+it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague
+can see it.
+
+1. Open the Sponsors page [Admin]
+The list of every employer your organization administers.
+The sponsors list
+↵ ↗ Open Sponsors  /sponsors  — Continue in the sponsor list
+2. Add a new sponsor [Admin]
+Name it, then set Status to Active and Kind to Customer.
+3. Confirm a colleague sees it [Manager]
+Everyone in your organization shares one sponsor list.
+4. Open the Sponsors page [Admin]
+The list of every employer your organization administers.
+The sponsors list
+↵ ↗ Open Sponsors  /sponsors  — Continue in the sponsor list
+5. Add a new sponsor [Admin]
+end viewport

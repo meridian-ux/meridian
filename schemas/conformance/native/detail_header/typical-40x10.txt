@@ -1,0 +1,12 @@
+viewport 40x10
+detail_header · typical
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Ada                                   │
+│Type: Service                         │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

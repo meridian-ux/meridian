@@ -1,0 +1,30 @@
+viewport 96x28
+resource_cards · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│▶ 1. Resource 00                                                                              │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│                                                                                              │
+│  2. Resource 01                                                                              │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│                                                                                              │
+│  3. Resource 02                                                                              │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│                                                                                              │
+│  4. Resource 03                                                                              │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│                                                                                              │
+│  5. Resource 04                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

@@ -1,0 +1,30 @@
+viewport 96x28
+record_card · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Name: Fixture record with a long title with a long title with a long title with a long title  │
+│with a long title with a long title with a long title with a long title with a long title with│
+│a long title with a long title with a long title with a long title with a long title with a   │
+│long title with a long title with a long title with a long title with a long title with a long│
+│title                                                                                         │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+end viewport

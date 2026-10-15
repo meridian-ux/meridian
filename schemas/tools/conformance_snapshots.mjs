@@ -26,9 +26,10 @@ export const BAZEL_TARGETS = [
   "//packages/mui-kit:stateful_conformance",
   "//packages/web/tests:conformance",
   "//packages/web/tests:conformance_wasm",
+  "//crates/tui/rust/tui:stateful_conformance_test",
 ];
 
-export function buildCommands({ update = false, bazel = false, wasm = false } = {}) {
+export function buildCommands({ update = false, bazel = false, wasm = false, native = false } = {}) {
   const commands = VITEST_SUITES.map(({ cwd, files }) => ({
     command: "./node_modules/.bin/vitest",
     args: ["run", ...files, ...(update ? ["--update"] : [])],
@@ -40,6 +41,12 @@ export function buildCommands({ update = false, bazel = false, wasm = false } = 
     { command: process.execPath, args: ["schemas/tools/prepare_wasm_conformance.mjs"], cwd: ROOT },
     { command: "./node_modules/.bin/vitest", args: ["run", "tests/conformance_wasm.test.ts", ...(update ? ["--update"] : [])], cwd: resolve(ROOT, "packages/web") },
   );
+  if (native) commands.push({
+    command: "bazel",
+    args: ["run", "--announce_rc=false", "//crates/tui/rust/tui:stateful_conformance_test"],
+    cwd: ROOT,
+    env: { UPDATE_SNAPSHOTS: update ? "1" : "0" },
+  });
 
   commands.push({
     command: process.execPath,
@@ -59,13 +66,14 @@ export function buildCommands({ update = false, bazel = false, wasm = false } = 
 }
 
 export function parseArgs(argv, env = process.env) {
-  const known = new Set(["--update", "--bazel", "--wasm", "--dry-run", "--help"]);
+  const known = new Set(["--update", "--bazel", "--wasm", "--native", "--dry-run", "--help"]);
   const unknown = argv.filter((arg) => !known.has(arg));
   if (unknown.length > 0) throw new Error(`unknown argument${unknown.length === 1 ? "" : "s"}: ${unknown.join(", ")}`);
   return {
     update: argv.includes("--update") || env.UPDATE_SNAPSHOTS === "1",
     bazel: argv.includes("--bazel"),
     wasm: argv.includes("--wasm"),
+    native: argv.includes("--native"),
     dryRun: argv.includes("--dry-run"),
     help: argv.includes("--help"),
   };
@@ -82,7 +90,7 @@ export function run(commands, { dryRun = false } = {}) {
     const result = spawnSync(step.command, step.args, {
       cwd: step.cwd,
       stdio: "inherit",
-      env: process.env,
+      env: { ...process.env, ...step.env },
     });
     if (result.error) throw result.error;
     if (result.status !== 0) return result.status ?? 1;
@@ -91,12 +99,13 @@ export function run(commands, { dryRun = false } = {}) {
 }
 
 function usage() {
-  console.log(`Usage: node schemas/tools/conformance_snapshots.mjs [--update] [--wasm] [--bazel] [--dry-run]
+  console.log(`Usage: node schemas/tools/conformance_snapshots.mjs [--update] [--wasm] [--native] [--bazel] [--dry-run]
 
 Runs every browser semantic conformance suite and the snapshot coverage gate.
   --update   Re-record intentional Vitest snapshot changes (also UPDATE_SNAPSHOTS=1).
   --bazel    Also run the Bazel conformance targets that own browser snapshots.
   --wasm     Build the pinned real WASM bridge and compare/re-record its DOM suite.
+  --native   Compare/re-record native buffers through the real PanelView renderer.
   --dry-run  Print the commands without executing them.`);
 }
 

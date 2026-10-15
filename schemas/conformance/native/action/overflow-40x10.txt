@@ -1,0 +1,12 @@
+viewport 40x10
+action · overflow
+┌──────────────────────────────────────┐
+│One click adds it to Cursor.One click │
+│adds it to Cursor.One click adds it to│
+│Cursor.One click adds it to Cursor.One│
+│click adds it to Cursor.One click adds│
+│it to Cursor.One click adds it to     │
+│Cursor.One click adds it to Cursor.One│
+│click adds it to Cursor.One click adds│
+└──────────────────────────────────────┘
+end viewport

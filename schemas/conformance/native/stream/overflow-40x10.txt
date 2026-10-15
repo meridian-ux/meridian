@@ -1,0 +1,12 @@
+viewport 40x10
+stream · overflow
+
+┌──────────────────────────────────────┐
+│Stream line 134                       │
+│Stream line 135                       │
+│Stream line 136                       │
+│Stream line 137                       │
+│Stream line 138                       │
+│Stream line 139                       │
+└──────────────────────────────────────┘
+end viewport
