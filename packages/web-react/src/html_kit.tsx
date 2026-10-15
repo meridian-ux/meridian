@@ -35,6 +35,7 @@ import { TableContent } from "./table.js";
 import { ReferenceActionBar } from "./reference_action_bar.js";
 import { MediaContent } from "./media.js";
 import { ChartContent } from "./chart.js";
+import { StreamContent } from "./stream.js";
 
 // The six content shapes are rendered by the shared, field-complete
 // content_shapes module (icon / description / language / secret-reveal /
@@ -193,11 +194,9 @@ export const htmlKit: ComponentKit = {
     table: "mer-chart-data",
   }} />,
   ResourceCard: ({ panel, invoker }) => <ResourceCardsView panel={panel} invoker={invoker} />,
-  Stream: ({ panel }) => (
+  Stream: ({ panel, descriptor }) => (
     <section className="mer-stream" aria-live="polite" data-follow-mode={panel.followMode}>
-      <p className="mer-stream-placeholder">
-        {panel.placeholder || `Waiting for ${panel.itemNoun || "stream"}...`}
-      </p>
+      <StreamContent panel={panel} descriptor={descriptor} />
     </section>
   ),
   Media: ({ panel }) => <MediaContent panel={panel} classes={{

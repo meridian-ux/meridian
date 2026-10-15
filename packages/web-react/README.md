@@ -23,6 +23,20 @@ The design language reaches this repo purely as **npm packages**
 (`@savvifi/meridian-schemas`, `@savvifi/meridian-proto-ts`) — there is no Bazel
 module dependency on meridian-schemas. React is a peer dependency.
 
+### Stream transcripts
+
+Pass `streamSnapshots` to `MeridianProvider` or `MeridianMuiProvider`, keyed by
+`PanelDescriptor.panel_id`. Each snapshot is an array of generated `StreamFrame`
+protobuf messages whose `data_json` contains a JSON string or structured event.
+All three kits render the same bounded transcript, including during server-side
+rendering: `line_field` selects structured text, `max_lines` retains the tail,
+and `max_bytes` tightens the 64 MiB ceiling. Invalid events are ignored; content
+is escaped, not interpreted as HTML. Replacing the snapshot updates the content.
+Without a snapshot, the authored placeholder remains visible.
+
+This is the static degradation rung, not a live subscription API. Live transport
+still requires a host-provided Stream component; snapshots do not invoke RPCs.
+
 ### Admission
 
 Descriptor reads remain open by default so populate calls continue to work, but
