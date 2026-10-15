@@ -41,8 +41,8 @@ The table below is **generated** from the coverage manifest by
 | `table` | standard | ● | ● | ● | ● | ● | ● | ? |
 | `lro` | standard | ● | ● | ● | ● | ● | ● | ? |
 | `adhoc` | standard | ● | ● | – | – | – | ◐ | ? |
-| `prompt` | standard | ● | ● | ● | ● | ● | ◑ | ? |
-| `llm_prompt` | standard | ● | ● | ● | ● | ● | ◑ | ? |
+| `prompt` | standard | ● | ● | ● | ● | ● | ● | ? |
+| `llm_prompt` | standard | ● | ● | ● | ● | ● | ● | ? |
 | `gallery` | standard | ● | ● | ● | ● | ● | ● | ? |
 | `form` | standard | ● | ● | ● | ● | ● | ● | ? |
 | `choice` | full | ● | ● | ● | ● | ● | ● | ? |
@@ -62,14 +62,13 @@ The table below is **generated** from the coverage manifest by
 | `media` | specialized | ● | ● | ● | ● | ● | ● | ? |
 | `stream` | full | ● | ● | ● | ● | ● | ● | ? |
 
-**23 arms × 7 renderers = 161 cells; 127 marked renders, 11 other declared states, 23 unverified.**
+**23 arms × 7 renderers = 161 cells; 129 marked renders, 9 other declared states, 23 unverified.**
 
 | status | cells |
 |---|---|
 | ? `unverified` | 23 |
 | – `not-applicable` | 7 |
 | ◐ `placeholder` | 2 |
-| ◑ `separate-entrypoint` | 2 |
 
 | renderer | cells not marked renders |
 |---|---|
@@ -78,7 +77,7 @@ The table below is **generated** from the coverage manifest by
 | mui-kit | 2 |
 | html-kit | 2 |
 | shadcn-kit | 2 |
-| tui | 4 |
+| tui | 2 |
 | swiftui | 23 |
 
 ### Conversation modality

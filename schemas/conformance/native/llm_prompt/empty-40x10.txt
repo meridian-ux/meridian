@@ -1,12 +1,12 @@
 viewport 40x10
 llm_prompt · empty
 
-┌──────────────────────────────────────┐
-│LLM-prompt panels: drive via the stand│
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-└──────────────────────────────────────┘
+System prompt:
+
+User prompt:
+
+Preview [Enter] · multiline
+[Shift+Enter] · clear [Ctrl+U] · scroll
+[PageUp/PageDown] · cancel [Esc]
+
 end viewport

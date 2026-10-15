@@ -219,6 +219,21 @@ fn event_loop(
             continue;
         }
         match event::read().map_err(|e| format!("reading input: {e}"))? {
+            Event::Key(k)
+                if k.kind == KeyEventKind::Press
+                    && matches!(
+                        descriptor.body,
+                        Some(meridian_uiview::proto::panel_descriptor::Body::Prompt(_))
+                            | Some(meridian_uiview::proto::panel_descriptor::Body::LlmPrompt(_))
+                    ) =>
+            {
+                if k.code == KeyCode::Esc {
+                    return Ok(());
+                }
+                // This offline viewer displays submitted/preview state only.
+                // Embedders consume the returned protobuf response themselves.
+                let _ = view.handle_prompt_key(descriptor, k);
+            }
             Event::Key(k) if k.kind == KeyEventKind::Press => match k.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
                 KeyCode::Down | KeyCode::Char('j') => {

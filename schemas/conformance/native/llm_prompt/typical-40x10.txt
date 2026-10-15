@@ -1,12 +1,12 @@
 viewport 40x10
 llm_prompt · typical
+Summarize the document
+▶ Source text
+    A fixture document.
 
-┌──────────────────────────────────────┐
-│LLM-prompt panels: drive via the stand│
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-└──────────────────────────────────────┘
+ Preview [Enter]   Cancel [Esc]   Naviga
+Summarize the document
+System prompt:
+
+User prompt:
 end viewport

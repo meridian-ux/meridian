@@ -38,6 +38,7 @@
 mod content;
 mod conversation;
 mod enum_options;
+mod inline_prompt;
 mod invoker;
 mod launchpad;
 mod llm_prompt;
@@ -53,6 +54,7 @@ pub use content::{
     selected_affordance,
 };
 pub use conversation::{block_lines, conversation_lines, render_conversation, status_line};
+pub use inline_prompt::PanelPromptResponse;
 pub use invoker::{RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession};
 pub use launchpad::{
     command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState, AGENT_GROUP_ID,
@@ -71,6 +73,9 @@ pub use widget::{FormSubmission, LroSubmission, PanelView};
 // from cli into PanelView::draw fails to type-check.
 pub use crossterm;
 pub use ratatui;
+// The embedded prompt response's canonical WKT payload must be the same Rust
+// crate instance for a Bazel host and its renderer, like ratatui above.
+pub use prost_types;
 // serde_json::Value appears in the RpcInvoker trait signature, so
 // downstream impls must use meridian's serde_json — re-export it.
 pub use serde_json;
