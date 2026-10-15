@@ -1,0 +1,12 @@
+viewport 40x10
+principal
+┌──────────────────────────────────────┐
+│▶ 1. Ada                              │
+│    Ada                               │
+│    status: Ada                       │
+│    Declared value: Ada               │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

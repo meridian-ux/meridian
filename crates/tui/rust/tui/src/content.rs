@@ -1648,8 +1648,36 @@ impl JsonDisplayValue for Value {
     }
 }
 
+// A ratatui Line cannot contain a newline: drawing it silently joins words.
+// Split authored/formatted multiline spans into real lines before wrapping,
+// preserving each span's styling and the parent line's style/alignment.
+fn expand_embedded_lines(lines: Vec<Line<'static>>) -> Vec<Line<'static>> {
+    let mut expanded = Vec::new();
+    for line in lines {
+        let fresh = || Line {
+            style: line.style,
+            alignment: line.alignment,
+            ..Line::default()
+        };
+        let mut current = fresh();
+        for span in line.spans {
+            for (index, part) in span.content.split('\n').enumerate() {
+                if index > 0 {
+                    expanded.push(current);
+                    current = fresh();
+                }
+                current
+                    .spans
+                    .push(Span::styled(part.to_owned(), span.style));
+            }
+        }
+        expanded.push(current);
+    }
+    expanded
+}
+
 fn bordered(lines: Vec<Line<'static>>, palette: &Palette) -> Paragraph<'static> {
-    Paragraph::new(lines)
+    Paragraph::new(expand_embedded_lines(lines))
         .wrap(Wrap { trim: false })
         .style(palette.text())
         .block(
@@ -1696,6 +1724,38 @@ fn base64_encode(input: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn embedded_line_breaks_preserve_words_blank_lines_styles_and_following_spans() {
+        use ratatui::{
+            layout::Alignment,
+            style::{Color, Style},
+        };
+        let parent = Style::default().bg(Color::Blue);
+        let emphasis = Style::default().fg(Color::Red);
+        let lines = expand_embedded_lines(vec![Line::from(vec![
+            Span::raw("Label: "),
+            Span::styled("first\n\nsecond\n", emphasis),
+            Span::raw("tail"),
+        ])
+        .style(parent)
+        .alignment(Alignment::Right)]);
+        let text = lines
+            .iter()
+            .map(|line| {
+                line.spans
+                    .iter()
+                    .map(|span| span.content.as_ref())
+                    .collect::<String>()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(text, ["Label: first", "", "second", "tail"]);
+        assert!(lines
+            .iter()
+            .all(|line| line.style == parent && line.alignment == Some(Alignment::Right)));
+        assert_eq!(lines[2].spans[0].style, emphasis);
+        assert_eq!(lines[3].spans.last().unwrap().style, Style::default());
+    }
 
     #[test]
     fn base64_matches_known_vectors() {

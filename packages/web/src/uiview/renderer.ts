@@ -1352,9 +1352,9 @@ async function renderResourceCards(
     const title = readAt(row, panel.template.titleField);
     card.appendChild(slot("h3", "mer-resource-card-title", title, panel.template.titleDisplay));
     const subtitle = readAt(row, panel.template.subtitleField);
-    if (subtitle != null && subtitle !== "") card.appendChild(slot("p", "mer-resource-card-subtitle", subtitle, panel.template.subtitleDisplay));
+    if ((panel.template.subtitleField && panel.template.subtitleDisplay) || (subtitle != null && subtitle !== "")) card.appendChild(slot("p", "mer-resource-card-subtitle", subtitle, panel.template.subtitleDisplay));
     const status = readAt(row, panel.template.statusField);
-    if (status != null && status !== "") card.appendChild(slot("span", "mer-resource-card-status", status, panel.template.statusDisplay));
+    if ((panel.template.statusField && panel.template.statusDisplay) || (status != null && status !== "")) card.appendChild(slot("span", "mer-resource-card-status", status, panel.template.statusDisplay));
     if (panel.template.meta.length > 0) {
       const meta = el("dl", "mer-resource-card-meta");
       for (const field of panel.template.meta) {
@@ -1510,11 +1510,11 @@ function buildGallery(opts: RenderPanelOptions, panel: GalleryPanel, response?: 
     }
     article.appendChild(title);
     const subtitle = card.subtitleField ? readAt(row, card.subtitleField) : undefined;
-    if (subtitle != null && subtitle !== "") {
+    if ((card.subtitleField && card.subtitleDisplay) || (subtitle != null && subtitle !== "")) {
       article.appendChild(slot("p", "mer-gallery-card-subtitle", card.subtitleField, card.subtitleDisplay));
     }
     const status = card.statusField ? readAt(row, card.statusField) : undefined;
-    if (status != null && status !== "") {
+    if ((card.statusField && card.statusDisplay) || (status != null && status !== "")) {
       article.appendChild(slot("span", "mer-gallery-card-status", card.statusField, card.statusDisplay));
     }
     const rawHref = card.hrefField ? readAt(row, card.hrefField) : undefined;

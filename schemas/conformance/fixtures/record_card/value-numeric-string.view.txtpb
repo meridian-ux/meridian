@@ -1,0 +1,31 @@
+id: "record_card-value-numeric-string"
+title: "value-numeric-string"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-numeric-string"
+    title: "numeric-string"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

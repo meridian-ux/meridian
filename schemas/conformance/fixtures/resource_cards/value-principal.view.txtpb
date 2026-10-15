@@ -1,0 +1,41 @@
+id: "resource_cards-value-principal"
+title: "value-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-principal"
+    title: "principal"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_PRINCIPAL
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+        subtitle_display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+        status_display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+    }
+  }
+}

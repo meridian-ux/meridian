@@ -728,6 +728,471 @@ dl
     "Service""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-boolean' > html/detail_header/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-date' > html/detail_header/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h2
+  "date"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-date-time' > html/detail_header/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-decimal' > html/detail_header/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-duration' > html/detail_header/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h2
+  "duration"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-email' > html/detail_header/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h2
+  "email"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-empty-list' > html/detail_header/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-enum' > html/detail_header/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h2
+  "enum"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-excessive-precisi…' > html/detail_header/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "excessive-precision"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-identifier' > html/detail_header/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-integer' > html/detail_header/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h2
+  "integer"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-invalid-date' > html/detail_header/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-invalid-principal' > html/detail_header/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-invalid-time' > html/detail_header/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-json' > html/detail_header/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h2
+  "json"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-list' > html/detail_header/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h2
+  "list"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-mismatched-number…' > html/detail_header/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h2
+  "mismatched-number-options"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-money-current-sca…' > html/detail_header/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h2
+  "money-current-scalar"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-multiline' > html/detail_header/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-negative-precision' > html/detail_header/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h2
+  "negative-precision"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-null' > html/detail_header/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h2
+  "null"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-numeric-string' > html/detail_header/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-percent-current-s…' > html/detail_header/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h2
+  "percent-current-scalar"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-principal' > html/detail_header/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h2
+  "principal"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-text' > html/detail_header/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h2
+  "text"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-time' > html/detail_header/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h2
+  "time"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-unknown-type' > html/detail_header/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-unspecified' > html/detail_header/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'detail_header/value-url' > html/detail_header/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h2
+  "url"
+h3
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'form/empty' > html/form/empty 1`] = `
 "h2
   "Conformance: form · empty"
@@ -2174,6 +2639,499 @@ div role="list"
       "Manage""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-boolean' > html/gallery/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    span role="status"
+      "No""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-date' > html/gallery/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h2
+  "date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    span role="status"
+      "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-date-time' > html/gallery/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    span role="status"
+      "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-decimal' > html/gallery/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    span role="status"
+      "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-duration' > html/gallery/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h2
+  "duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    span role="status"
+      "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-email' > html/gallery/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h2
+  "email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    span role="status"
+      "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-empty-list' > html/gallery/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    span role="status"
+      "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-enum' > html/gallery/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h2
+  "enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    span role="status"
+      "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-excessive-precision' > html/gallery/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    span role="status"
+      "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-identifier' > html/gallery/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    span role="status"
+      "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-integer' > html/gallery/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h2
+  "integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    span role="status"
+      "42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-invalid-date' > html/gallery/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    span role="status"
+      "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-invalid-principal' > html/gallery/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    span role="status"
+      "Ada <bad email>""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-invalid-time' > html/gallery/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    span role="status"
+      "25:91""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-json' > html/gallery/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h2
+  "json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    span role="status"
+      "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-list' > html/gallery/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h2
+  "list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    span role="status"
+      "one, two""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-mismatched-number-optio…' > html/gallery/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h2
+  "mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    span role="status"
+      "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-money-current-scalar' > html/gallery/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h2
+  "money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    span role="status"
+      "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-multiline' > html/gallery/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    span role="status"
+      "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-negative-precision' > html/gallery/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h2
+  "negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    span role="status"
+      "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-null' > html/gallery/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h2
+  "null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    span role="status"
+      "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-numeric-string' > html/gallery/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    span role="status"
+      "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-percent-current-scalar' > html/gallery/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h2
+  "percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    span role="status"
+      "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-principal' > html/gallery/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h2
+  "principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    span role="status"
+      "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-text' > html/gallery/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h2
+  "text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    span role="status"
+      "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-time' > html/gallery/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h2
+  "time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    span role="status"
+      "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-unknown-type' > html/gallery/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    span role="status"
+      "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-unspecified' > html/gallery/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    span role="status"
+      "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'gallery/value-url' > html/gallery/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h2
+  "url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    span role="status"
+      "https://example.com/a?b=1""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'grammar/empty' > html/grammar/empty 1`] = `
 "h2
   "Conformance: grammar · empty"
@@ -2601,6 +3559,413 @@ dl aria-label="sponsor"
     "Fixture record""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-boolean' > html/record_card/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-date' > html/record_card/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h2
+  "date"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-date-time' > html/record_card/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-decimal' > html/record_card/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-duration' > html/record_card/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h2
+  "duration"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-email' > html/record_card/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h2
+  "email"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-empty-list' > html/record_card/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-enum' > html/record_card/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h2
+  "enum"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-excessive-precision' > html/record_card/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "excessive-precision"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-identifier' > html/record_card/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-integer' > html/record_card/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h2
+  "integer"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-invalid-date' > html/record_card/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-invalid-principal' > html/record_card/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-invalid-time' > html/record_card/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-json' > html/record_card/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h2
+  "json"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-list' > html/record_card/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h2
+  "list"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-mismatched-number-o…' > html/record_card/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h2
+  "mismatched-number-options"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-money-current-scalar' > html/record_card/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h2
+  "money-current-scalar"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-multiline' > html/record_card/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-negative-precision' > html/record_card/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h2
+  "negative-precision"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-null' > html/record_card/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h2
+  "null"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-numeric-string' > html/record_card/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-percent-current-sca…' > html/record_card/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h2
+  "percent-current-scalar"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-principal' > html/record_card/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h2
+  "principal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-text' > html/record_card/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h2
+  "text"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-time' > html/record_card/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h2
+  "time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-unknown-type' > html/record_card/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-unspecified' > html/record_card/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'record_card/value-url' > html/record_card/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h2
+  "url"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'resource_cards/empty' > html/resource_cards/empty 1`] = `
 "h2
   "Conformance: resource_cards · empty"
@@ -2840,6 +4205,616 @@ div role="list"
       "Resource 01"
     p
       "A shared response""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-boolean' > html/resource_cards/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    "No"
+    dl
+      dt
+        "Declared value"
+      dd
+        "No""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-date' > html/resource_cards/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h2
+  "date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    "Mar 29, 2026"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-date-time' > html/resource_cards/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    "Mar 29, 2026, 1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-decimal' > html/resource_cards/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-duration' > html/resource_cards/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h2
+  "duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    "4 min 12 s"
+    dl
+      dt
+        "Declared value"
+      dd
+        "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-email' > html/resource_cards/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h2
+  "email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    "ada@example.com"
+    dl
+      dt
+        "Declared value"
+      dd
+        "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-empty-list' > html/resource_cards/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-enum' > html/resource_cards/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h2
+  "enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    "READY"
+    dl
+      dt
+        "Declared value"
+      dd
+        "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-excessive-precis…' > html/resource_cards/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-identifier' > html/resource_cards/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    "000123"
+    dl
+      dt
+        "Declared value"
+      dd
+        "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-integer' > html/resource_cards/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h2
+  "integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    "42"
+    dl
+      dt
+        "Declared value"
+      dd
+        "42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-invalid-date' > html/resource_cards/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    "not-a-date"
+    dl
+      dt
+        "Declared value"
+      dd
+        "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-invalid-principal' > html/resource_cards/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    "Ada <bad email>"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada <bad email>""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-invalid-time' > html/resource_cards/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h2
+  "invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    "25:91"
+    dl
+      dt
+        "Declared value"
+      dd
+        "25:91""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-json' > html/resource_cards/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h2
+  "json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    "{\\"ready\\":true}"
+    dl
+      dt
+        "Declared value"
+      dd
+        "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-list' > html/resource_cards/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h2
+  "list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    "one, two"
+    dl
+      dt
+        "Declared value"
+      dd
+        "one, two""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-mismatched-numbe…' > html/resource_cards/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h2
+  "mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-money-current-sc…' > html/resource_cards/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h2
+  "money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-multiline' > html/resource_cards/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    "first second"
+    dl
+      dt
+        "Declared value"
+      dd
+        "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-negative-precisi…' > html/resource_cards/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h2
+  "negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-null' > html/resource_cards/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h2
+  "null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-numeric-string' > html/resource_cards/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    "0012.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-percent-current-…' > html/resource_cards/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h2
+  "percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    "0.125"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-principal' > html/resource_cards/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h2
+  "principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-text' > html/resource_cards/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h2
+  "text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    "plain text"
+    dl
+      dt
+        "Declared value"
+      dd
+        "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-time' > html/resource_cards/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h2
+  "time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    "1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-unknown-type' > html/resource_cards/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h2
+  "unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-unspecified' > html/resource_cards/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-url' > html/resource_cards/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h2
+  "url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    "https://example.com/a?b=1"
+    dl
+      dt
+        "Declared value"
+      dd
+        a href="https://example.com/a?b=1"
+          "https://example.com/a?b=1""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'snippet/empty' > html/snippet/empty 1`] = `
@@ -5125,6 +7100,471 @@ dl aria-label="Record summary"
     "Service""
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-boolean' > shadcn/detail_header/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-date' > shadcn/detail_header/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h3
+  "date"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-date-time' > shadcn/detail_header/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-decimal' > shadcn/detail_header/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-duration' > shadcn/detail_header/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h3
+  "duration"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-email' > shadcn/detail_header/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h3
+  "email"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-empty-list' > shadcn/detail_header/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-enum' > shadcn/detail_header/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h3
+  "enum"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-excessive-precisi…' > shadcn/detail_header/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h3
+  "excessive-precision"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-identifier' > shadcn/detail_header/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-integer' > shadcn/detail_header/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h3
+  "integer"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-invalid-date' > shadcn/detail_header/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-invalid-principal' > shadcn/detail_header/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-invalid-time' > shadcn/detail_header/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-json' > shadcn/detail_header/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h3
+  "json"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-list' > shadcn/detail_header/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h3
+  "list"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-mismatched-number…' > shadcn/detail_header/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h3
+  "mismatched-number-options"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-money-current-sca…' > shadcn/detail_header/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h3
+  "money-current-scalar"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-multiline' > shadcn/detail_header/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-negative-precision' > shadcn/detail_header/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h3
+  "negative-precision"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-null' > shadcn/detail_header/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h3
+  "null"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-numeric-string' > shadcn/detail_header/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-percent-current-s…' > shadcn/detail_header/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h3
+  "percent-current-scalar"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-principal' > shadcn/detail_header/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h3
+  "principal"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-text' > shadcn/detail_header/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h3
+  "text"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-time' > shadcn/detail_header/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h3
+  "time"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-unknown-type' > shadcn/detail_header/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-unspecified' > shadcn/detail_header/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-url' > shadcn/detail_header/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h3
+  "url"
+h2
+  "Fixture record"
+dl aria-label="Record summary"
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'form/empty' > shadcn/form/empty 1`] = `
 "h2
   "Conformance: form · empty"
@@ -6571,6 +9011,499 @@ div role="list"
       "Manage""
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-boolean' > shadcn/gallery/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    span role="status"
+      "No""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-date' > shadcn/gallery/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h3
+  "date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    span role="status"
+      "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-date-time' > shadcn/gallery/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    span role="status"
+      "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-decimal' > shadcn/gallery/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    span role="status"
+      "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-duration' > shadcn/gallery/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h3
+  "duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    span role="status"
+      "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-email' > shadcn/gallery/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h3
+  "email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    span role="status"
+      "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-empty-list' > shadcn/gallery/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    span role="status"
+      "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-enum' > shadcn/gallery/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h3
+  "enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    span role="status"
+      "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-excessive-precision' > shadcn/gallery/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h3
+  "excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    span role="status"
+      "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-identifier' > shadcn/gallery/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    span role="status"
+      "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-integer' > shadcn/gallery/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h3
+  "integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    span role="status"
+      "42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-invalid-date' > shadcn/gallery/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    span role="status"
+      "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-invalid-principal' > shadcn/gallery/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    span role="status"
+      "Ada <bad email>""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-invalid-time' > shadcn/gallery/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    span role="status"
+      "25:91""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-json' > shadcn/gallery/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h3
+  "json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    span role="status"
+      "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-list' > shadcn/gallery/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h3
+  "list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    span role="status"
+      "one, two""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-mismatched-number-optio…' > shadcn/gallery/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h3
+  "mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    span role="status"
+      "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-money-current-scalar' > shadcn/gallery/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h3
+  "money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    span role="status"
+      "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-multiline' > shadcn/gallery/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    span role="status"
+      "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-negative-precision' > shadcn/gallery/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h3
+  "negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    span role="status"
+      "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-null' > shadcn/gallery/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h3
+  "null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    span role="status"
+      "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-numeric-string' > shadcn/gallery/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    span role="status"
+      "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-percent-current-scalar' > shadcn/gallery/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h3
+  "percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    span role="status"
+      "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-principal' > shadcn/gallery/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h3
+  "principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    span role="status"
+      "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-text' > shadcn/gallery/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h3
+  "text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    span role="status"
+      "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-time' > shadcn/gallery/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h3
+  "time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    span role="status"
+      "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-unknown-type' > shadcn/gallery/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    span role="status"
+      "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-unspecified' > shadcn/gallery/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    span role="status"
+      "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-url' > shadcn/gallery/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h3
+  "url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    span role="status"
+      "https://example.com/a?b=1""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'grammar/empty' > shadcn/grammar/empty 1`] = `
 "h2
   "Conformance: grammar · empty"
@@ -6998,6 +9931,413 @@ dl aria-label="sponsor"
     "Fixture record""
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-boolean' > shadcn/record_card/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-date' > shadcn/record_card/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h3
+  "date"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-date-time' > shadcn/record_card/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-decimal' > shadcn/record_card/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-duration' > shadcn/record_card/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h3
+  "duration"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-email' > shadcn/record_card/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h3
+  "email"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-empty-list' > shadcn/record_card/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-enum' > shadcn/record_card/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h3
+  "enum"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-excessive-precision' > shadcn/record_card/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h3
+  "excessive-precision"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-identifier' > shadcn/record_card/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-integer' > shadcn/record_card/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h3
+  "integer"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-invalid-date' > shadcn/record_card/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-invalid-principal' > shadcn/record_card/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-invalid-time' > shadcn/record_card/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-json' > shadcn/record_card/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h3
+  "json"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-list' > shadcn/record_card/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h3
+  "list"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-mismatched-number-o…' > shadcn/record_card/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h3
+  "mismatched-number-options"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-money-current-scalar' > shadcn/record_card/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h3
+  "money-current-scalar"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-multiline' > shadcn/record_card/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-negative-precision' > shadcn/record_card/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h3
+  "negative-precision"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-null' > shadcn/record_card/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h3
+  "null"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-numeric-string' > shadcn/record_card/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-percent-current-sca…' > shadcn/record_card/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h3
+  "percent-current-scalar"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-principal' > shadcn/record_card/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h3
+  "principal"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-text' > shadcn/record_card/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h3
+  "text"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-time' > shadcn/record_card/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h3
+  "time"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-unknown-type' > shadcn/record_card/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-unspecified' > shadcn/record_card/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-url' > shadcn/record_card/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h3
+  "url"
+dl aria-label="Record details"
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/empty' > shadcn/resource_cards/empty 1`] = `
 "h2
   "Conformance: resource_cards · empty"
@@ -7237,6 +10577,616 @@ div role="list"
       "Resource 01"
     p
       "A shared response""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-boolean' > shadcn/resource_cards/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    "No"
+    dl
+      dt
+        "Declared value"
+      dd
+        "No""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-date' > shadcn/resource_cards/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h3
+  "date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    "Mar 29, 2026"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-date-time' > shadcn/resource_cards/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    "Mar 29, 2026, 1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-decimal' > shadcn/resource_cards/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-duration' > shadcn/resource_cards/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h3
+  "duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    "4 min 12 s"
+    dl
+      dt
+        "Declared value"
+      dd
+        "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-email' > shadcn/resource_cards/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h3
+  "email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    "ada@example.com"
+    dl
+      dt
+        "Declared value"
+      dd
+        "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-empty-list' > shadcn/resource_cards/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-enum' > shadcn/resource_cards/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h3
+  "enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    "READY"
+    dl
+      dt
+        "Declared value"
+      dd
+        "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-excessive-precis…' > shadcn/resource_cards/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h3
+  "excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-identifier' > shadcn/resource_cards/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    "000123"
+    dl
+      dt
+        "Declared value"
+      dd
+        "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-integer' > shadcn/resource_cards/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h3
+  "integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    "42"
+    dl
+      dt
+        "Declared value"
+      dd
+        "42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-invalid-date' > shadcn/resource_cards/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    "not-a-date"
+    dl
+      dt
+        "Declared value"
+      dd
+        "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-invalid-principal' > shadcn/resource_cards/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h3
+  "invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    "Ada <bad email>"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada <bad email>""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-invalid-time' > shadcn/resource_cards/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h3
+  "invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    "25:91"
+    dl
+      dt
+        "Declared value"
+      dd
+        "25:91""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-json' > shadcn/resource_cards/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h3
+  "json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    "{\\"ready\\":true}"
+    dl
+      dt
+        "Declared value"
+      dd
+        "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-list' > shadcn/resource_cards/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h3
+  "list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    "one, two"
+    dl
+      dt
+        "Declared value"
+      dd
+        "one, two""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-mismatched-numbe…' > shadcn/resource_cards/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h3
+  "mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-money-current-sc…' > shadcn/resource_cards/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h3
+  "money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-multiline' > shadcn/resource_cards/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    "first second"
+    dl
+      dt
+        "Declared value"
+      dd
+        "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-negative-precisi…' > shadcn/resource_cards/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h3
+  "negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-null' > shadcn/resource_cards/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h3
+  "null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-numeric-string' > shadcn/resource_cards/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    "0012.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-percent-current-…' > shadcn/resource_cards/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h3
+  "percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    "0.125"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-principal' > shadcn/resource_cards/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h3
+  "principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-text' > shadcn/resource_cards/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h3
+  "text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    "plain text"
+    dl
+      dt
+        "Declared value"
+      dd
+        "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-time' > shadcn/resource_cards/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h3
+  "time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    "1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-unknown-type' > shadcn/resource_cards/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h3
+  "unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-unspecified' > shadcn/resource_cards/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-url' > shadcn/resource_cards/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h3
+  "url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    "https://example.com/a?b=1"
+    dl
+      dt
+        "Declared value"
+      dd
+        a href="https://example.com/a?b=1"
+          "https://example.com/a?b=1""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'snippet/empty' > shadcn/snippet/empty 1`] = `

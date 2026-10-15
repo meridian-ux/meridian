@@ -102,10 +102,14 @@ fn shared_stateful_panels_match_native_buffers() {
         }
     }
     cases.sort();
+    let coverage: Json =
+        serde_json::from_slice(&std::fs::read(root.join("coverage.json")).unwrap()).unwrap();
     assert_eq!(
         cases.len(),
-        98,
-        "all 23 arms × 3 states and 29 formatter cases"
+        coverage["arms"].as_object().unwrap().len() * 3
+            + values["panelArms"].as_array().unwrap().len()
+                * values["cases"].as_array().unwrap().len(),
+        "every arm/state and every declared value surface/case"
     );
     let recording = std::env::var("UPDATE_SNAPSHOTS").as_deref() == Ok("1");
     let golden_root = if recording {
@@ -175,10 +179,12 @@ fn shared_stateful_panels_match_native_buffers() {
                 if arm == "table" && ["typical", "overflow"].contains(&state) {
                     assert!(output.contains("Member 00"), "{name}\n{output}");
                 }
-                if ["gallery", "resource_cards"].contains(&arm) && state != "empty" {
+                if ["gallery", "resource_cards"].contains(&arm)
+                    && ["typical", "overflow"].contains(&state)
+                {
                     assert!(output.contains("Resource 00"), "{name}\n{output}");
                 }
-                if arm == "detail_header" && state != "empty" {
+                if arm == "detail_header" && ["typical", "overflow"].contains(&state) {
                     assert!(output.contains("Fixture record"), "{name}\n{output}");
                 }
                 if arm == "chart" && state != "empty" {
@@ -203,7 +209,21 @@ fn shared_stateful_panels_match_native_buffers() {
                         .find(|v| format!("value-{}", v["name"].as_str().unwrap()) == state)
                         .unwrap();
                     let mut remaining = output.as_str();
+                    let expected = value["expected"].as_str().unwrap();
+                    if expected.contains('\n') {
+                        assert!(!output.contains(&expected.replace('\n', "")),
+                            "{name}: multiline components must not be concatenated into one row\n{output}");
+                    }
+                    let slots = match arm {
+                        "gallery" => 3,
+                        "resource_cards" => 4,
+                        _ => 1,
+                    };
                     for line in value["expected"].as_str().unwrap().lines() {
+                        assert!(
+                            output.matches(line).count() >= slots,
+                            "{name}: every declared slot must retain {line:?}\n{output}"
+                        );
                         let offset = remaining.find(line).unwrap_or_else(|| panic!("{name}: formatter line missing or out of order: {line:?}\n{output}"));
                         remaining = &remaining[offset + line.len()..];
                     }

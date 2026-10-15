@@ -78,3 +78,16 @@ test("native buffers require both viewports, all states, and every formatter cas
   for (const missing of paths) assert.match(checkNativeSnapshots(manifest, values, paths.filter(path => path !== missing)).join("\n"), /missing native snapshot/);
   assert.match(checkNativeSnapshots(manifest, values, [...paths, "table/stale.txt"]).join("\n"), /unexpected native snapshot table\/stale.txt/);
 });
+
+test("every unrestricted value surface requires its own browser and native formatter goldens", () => {
+  const manifest = { arms: { table: {}, record_card: {} } };
+  const values = [{ name: "null" }];
+  const arms = ["table", "record_card"];
+  const keys = arms.flatMap(arm => ["empty", "typical", "overflow", "value-null"].map(state => `${arm}/${state}`));
+  const browser = keys.map(key => `exports[\`suite > html/${key} 1\`] = \`"body"\`;`).join("\n");
+  assert.deepEqual(checkStatefulSnapshots(manifest, values, browser, ["html"], arms), []);
+  assert.match(checkStatefulSnapshots(manifest, values, browser.replace(/^.*html\/record_card\/value-null.*$/m, ""), ["html"], arms).join("\n"), /missing stateful snapshot html\/record_card\/value-null/);
+  const native = keys.flatMap(key => ["96x28", "40x10"].map(size => `${key}-${size}.txt`));
+  assert.deepEqual(checkNativeSnapshots(manifest, values, native, arms), []);
+  assert.match(checkNativeSnapshots(manifest, values, native.filter(key => key !== "record_card/value-null-96x28.txt"), arms).join("\n"), /missing native snapshot record_card\/value-null-96x28.txt/);
+});

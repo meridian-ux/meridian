@@ -1,0 +1,12 @@
+viewport 40x10
+json
+┌──────────────────────────────────────┐
+│▶ 1. {"ready":true}                   │
+│    {"ready":true}                    │
+│    status: {"ready":true}            │
+│    Declared value: {"ready":true}    │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

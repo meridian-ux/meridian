@@ -1,0 +1,31 @@
+id: "gallery-value-unspecified"
+title: "value-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-value-unspecified"
+    title: "unspecified"
+    gallery {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      card {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        title_display {
+        }
+        subtitle_display {
+        }
+        status_display {
+        }
+      }
+    }
+  }
+}

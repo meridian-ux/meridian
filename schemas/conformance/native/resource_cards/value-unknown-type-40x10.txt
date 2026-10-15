@@ -1,0 +1,12 @@
+viewport 40x10
+unknown-type
+┌──────────────────────────────────────┐
+│▶ 1. literal                          │
+│    literal                           │
+│    status: literal                   │
+│    Declared value: literal           │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

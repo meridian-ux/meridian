@@ -1,0 +1,43 @@
+id: "gallery-value-negative-precision"
+title: "value-negative-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-value-negative-precision"
+    title: "negative-precision"
+    gallery {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      card {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        title_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: -1
+          }
+        }
+        subtitle_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: -1
+          }
+        }
+        status_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: -1
+          }
+        }
+      }
+    }
+  }
+}

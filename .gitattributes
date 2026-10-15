@@ -1,0 +1,3 @@
+# Protobuf wire artifacts are binary even when a particular message contains
+# no NUL bytes. Review their readable .txtpb twins instead of a guessed text diff.
+*.binpb binary

@@ -2,11 +2,44 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from google.protobuf import text_format
+from google.protobuf import json_format, text_format
 from tools.stateful_corpus import ROOT, STATES, artifacts, check, classes
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_every_unrestricted_surface_preserves_raw_response_types(self):
+        files = artifacts()
+        Response = classes()["google.protobuf.Struct"]
+        corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        for arm in corpus["panelArms"]:
+            for case in corpus["cases"]:
+                response = json_format.MessageToDict(Response.FromString(
+                    files[f"{arm}/value-{case['name']}.responses.binpb"]))["fixture.Values.List"]
+                raw = response["value"] if arm in ("record_card", "detail_header") else response["rows"][0]["value"]
+                self.assertEqual(raw, case["raw"], f"{arm}/{case['name']}")
+                if isinstance(case["raw"], bool):
+                    self.assertIs(type(raw), bool)
+
+    def test_unrestricted_value_surface_list_matches_the_canonical_schema(self):
+        def carries_display(descriptor, seen):
+            if descriptor.full_name == "meridian.ui.v1.ValueDisplay":
+                return True
+            if descriptor.full_name in seen:
+                return False
+            seen = seen | {descriptor.full_name}
+            return any(field.message_type and carries_display(field.message_type, seen)
+                       for field in descriptor.fields)
+        panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
+        declared = {field.name for field in panel.oneofs_by_name["body"].fields
+                    if carries_display(field.message_type, set())}
+        # These surfaces have string/numeric-only payloads or form input/default
+        # semantics. They require dedicated typed fixtures, not coerced copies of
+        # the unrestricted fetched-value cases. Keep their remaining work explicit.
+        constrained = {"stat", "copy_value", "connect_flow", "form", "lro", "prompt", "llm_prompt"}
+        corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        self.assertEqual(set(corpus["panelArms"]), declared - constrained)
+        self.assertEqual(len(corpus["panelArms"]), len(set(corpus["panelArms"])))
+
     def test_default_ids_reference_unique_authored_options_after_state_expansion(self):
         files = artifacts()
         View = classes()["meridian.ui.v1.ViewDescriptor"]
@@ -29,8 +62,11 @@ class StatefulCorpusTest(unittest.TestCase):
                 for kind in ("view", "responses"):
                     for extension in ("binpb", "txtpb"):
                         self.assertIn(f"{arm}/{state}.{kind}.{extension}", files)
-        values = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())["cases"]
-        self.assertEqual(len(files), (len(arms) * 3 + len(values)) * 4)
+        corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        for arm in corpus["panelArms"]:
+            for value in corpus["cases"]:
+                self.assertIn(f"{arm}/value-{value['name']}.view.binpb", files)
+        self.assertEqual(len(files), (len(arms) * 3 + len(corpus["cases"]) * len(corpus["panelArms"])) * 4)
 
     def test_text_twins_parse_to_the_exact_binary_messages(self):
         types = classes()

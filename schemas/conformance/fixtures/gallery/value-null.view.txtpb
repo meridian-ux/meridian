@@ -1,0 +1,34 @@
+id: "gallery-value-null"
+title: "value-null"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-value-null"
+    title: "null"
+    gallery {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      card {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        title_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+        subtitle_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+        status_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+      }
+    }
+  }
+}

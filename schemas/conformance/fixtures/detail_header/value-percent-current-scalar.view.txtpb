@@ -1,0 +1,30 @@
+id: "detail_header-value-percent-current-scalar"
+title: "value-percent-current-scalar"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-value-percent-current-scalar"
+    title: "percent-current-scalar"
+    detail_header {
+      title: "Fixture record"
+      descriptor_rows {
+        label: "Declared value"
+        source_path: "value"
+        display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+viewport 40x10
+numeric-string
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Declared value: 0012.50               │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

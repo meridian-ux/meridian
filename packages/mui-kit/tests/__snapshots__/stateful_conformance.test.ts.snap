@@ -661,6 +661,354 @@ p
   "Service""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-boolean' > mui-kit/detail_header/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "No""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-date' > mui-kit/detail_header/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "Mar 29, 2026""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-date-time' > mui-kit/detail_header/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-decimal' > mui-kit/detail_header/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-duration' > mui-kit/detail_header/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "4 min 12 s""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-email' > mui-kit/detail_header/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "ada@example.com""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-empty-list' > mui-kit/detail_header/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-enum' > mui-kit/detail_header/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "READY""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-excessive-precisi…' > mui-kit/detail_header/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-identifier' > mui-kit/detail_header/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "000123""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-integer' > mui-kit/detail_header/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "42""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-invalid-date' > mui-kit/detail_header/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "not-a-date""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-invalid-principal' > mui-kit/detail_header/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "Ada <bad email>""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-invalid-time' > mui-kit/detail_header/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "25:91""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-json' > mui-kit/detail_header/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "{\\"ready\\":true}""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-list' > mui-kit/detail_header/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "one, two""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-mismatched-number…' > mui-kit/detail_header/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-money-current-sca…' > mui-kit/detail_header/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-multiline' > mui-kit/detail_header/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "first second""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-negative-precision' > mui-kit/detail_header/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-null' > mui-kit/detail_header/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-numeric-string' > mui-kit/detail_header/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-percent-current-s…' > mui-kit/detail_header/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-principal' > mui-kit/detail_header/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-text' > mui-kit/detail_header/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "plain text""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-time' > mui-kit/detail_header/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-unknown-type' > mui-kit/detail_header/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-unspecified' > mui-kit/detail_header/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h1
+  "Fixture record"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-url' > mui-kit/detail_header/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h1
+  "Fixture record"
+"Declared value"
+a href="https://example.com/a?b=1"
+  "https://example.com/a?b=1""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'form/empty' > mui-kit/form/empty 1`] = `
 "h2
   "Conformance: form · empty"
@@ -1866,6 +2214,354 @@ a href="https://example.test/resource"
   "Manage""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-boolean' > mui-kit/gallery/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+p
+  "No"
+"No"
+p
+  "No""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-date' > mui-kit/gallery/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+p
+  "Mar 29, 2026"
+"Mar 29, 2026"
+p
+  "Mar 29, 2026""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-date-time' > mui-kit/gallery/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+p
+  "Mar 29, 2026, 1:45 PM UTC"
+"Mar 29, 2026, 1:45 PM UTC"
+p
+  "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-decimal' > mui-kit/gallery/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+p
+  "12.50"
+"12.50"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-duration' > mui-kit/gallery/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+p
+  "4 min 12 s"
+"4 min 12 s"
+p
+  "4 min 12 s""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-email' > mui-kit/gallery/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+p
+  "ada@example.com"
+"ada@example.com"
+p
+  "ada@example.com""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-empty-list' > mui-kit/gallery/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+p
+  "—"
+"—"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-enum' > mui-kit/gallery/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+p
+  "READY"
+"READY"
+p
+  "READY""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-excessive-precision' > mui-kit/gallery/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+p
+  "12.5"
+"12.5"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-identifier' > mui-kit/gallery/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+p
+  "000123"
+"000123"
+p
+  "000123""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-integer' > mui-kit/gallery/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+p
+  "42"
+"42"
+p
+  "42""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-invalid-date' > mui-kit/gallery/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+p
+  "not-a-date"
+"not-a-date"
+p
+  "not-a-date""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-invalid-principal' > mui-kit/gallery/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+p
+  "Ada <bad email>"
+"Ada <bad email>"
+p
+  "Ada <bad email>""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-invalid-time' > mui-kit/gallery/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+p
+  "25:91"
+"25:91"
+p
+  "25:91""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-json' > mui-kit/gallery/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+p
+  "{\\"ready\\":true}"
+"{\\"ready\\":true}"
+p
+  "{\\"ready\\":true}""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-list' > mui-kit/gallery/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+p
+  "one, two"
+"one, two"
+p
+  "one, two""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-mismatched-number-optio…' > mui-kit/gallery/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+p
+  "Ada"
+"Ada"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-money-current-scalar' > mui-kit/gallery/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+p
+  "12.50"
+"12.50"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-multiline' > mui-kit/gallery/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+p
+  "first second"
+"first second"
+p
+  "first second""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-negative-precision' > mui-kit/gallery/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+p
+  "12.5"
+"12.5"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-null' > mui-kit/gallery/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+p
+  "—"
+"—"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-numeric-string' > mui-kit/gallery/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+p
+  "0012.50"
+"0012.50"
+p
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-percent-current-scalar' > mui-kit/gallery/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+p
+  "0.125"
+"0.125"
+p
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-principal' > mui-kit/gallery/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+p
+  "Ada"
+"Ada"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-text' > mui-kit/gallery/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+p
+  "plain text"
+"plain text"
+p
+  "plain text""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-time' > mui-kit/gallery/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+p
+  "1:45 PM UTC"
+"1:45 PM UTC"
+p
+  "1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-unknown-type' > mui-kit/gallery/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+p
+  "literal"
+"literal"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-unspecified' > mui-kit/gallery/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+p
+  "literal"
+"literal"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-url' > mui-kit/gallery/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+p
+  "https://example.com/a?b=1"
+"https://example.com/a?b=1"
+p
+  "https://example.com/a?b=1""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'grammar/empty' > mui-kit/grammar/empty 1`] = `
 "h2
   "Conformance: grammar · empty"
@@ -2339,6 +3035,296 @@ p
   "Fixture record""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-boolean' > mui-kit/record_card/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"Declared value"
+p
+  "No""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-date' > mui-kit/record_card/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"Declared value"
+p
+  "Mar 29, 2026""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-date-time' > mui-kit/record_card/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"Declared value"
+p
+  "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-decimal' > mui-kit/record_card/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-duration' > mui-kit/record_card/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"Declared value"
+p
+  "4 min 12 s""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-email' > mui-kit/record_card/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"Declared value"
+p
+  "ada@example.com""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-empty-list' > mui-kit/record_card/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-enum' > mui-kit/record_card/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"Declared value"
+p
+  "READY""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-excessive-precision' > mui-kit/record_card/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-identifier' > mui-kit/record_card/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"Declared value"
+p
+  "000123""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-integer' > mui-kit/record_card/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"Declared value"
+p
+  "42""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-invalid-date' > mui-kit/record_card/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"Declared value"
+p
+  "not-a-date""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-invalid-principal' > mui-kit/record_card/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"Declared value"
+p
+  "Ada <bad email>""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-invalid-time' > mui-kit/record_card/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"Declared value"
+p
+  "25:91""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-json' > mui-kit/record_card/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"Declared value"
+p
+  "{\\"ready\\":true}""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-list' > mui-kit/record_card/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"Declared value"
+p
+  "one, two""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-mismatched-number-o…' > mui-kit/record_card/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-money-current-scalar' > mui-kit/record_card/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-multiline' > mui-kit/record_card/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"Declared value"
+p
+  "first second""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-negative-precision' > mui-kit/record_card/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-null' > mui-kit/record_card/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-numeric-string' > mui-kit/record_card/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"Declared value"
+p
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-percent-current-sca…' > mui-kit/record_card/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"Declared value"
+p
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-principal' > mui-kit/record_card/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-text' > mui-kit/record_card/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"Declared value"
+p
+  "plain text""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-time' > mui-kit/record_card/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"Declared value"
+p
+  "1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-unknown-type' > mui-kit/record_card/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-unspecified' > mui-kit/record_card/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-url' > mui-kit/record_card/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"Declared value"
+a href="https://example.com/a?b=1"
+  "https://example.com/a?b=1""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/empty' > mui-kit/resource_cards/empty 1`] = `
 "h2
   "Conformance: resource_cards · empty"
@@ -2528,6 +3514,441 @@ h6
   "Resource 01"
 p
   "A shared response""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-boolean' > mui-kit/resource_cards/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+h6
+  "No"
+p
+  "No"
+"No"
+"Declared value"
+p
+  "No""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-date' > mui-kit/resource_cards/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+h6
+  "Mar 29, 2026"
+p
+  "Mar 29, 2026"
+"Mar 29, 2026"
+"Declared value"
+p
+  "Mar 29, 2026""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-date-time' > mui-kit/resource_cards/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+h6
+  "Mar 29, 2026, 1:45 PM UTC"
+p
+  "Mar 29, 2026, 1:45 PM UTC"
+"Mar 29, 2026, 1:45 PM UTC"
+"Declared value"
+p
+  "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-decimal' > mui-kit/resource_cards/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+h6
+  "12.50"
+p
+  "12.50"
+"12.50"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-duration' > mui-kit/resource_cards/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+h6
+  "4 min 12 s"
+p
+  "4 min 12 s"
+"4 min 12 s"
+"Declared value"
+p
+  "4 min 12 s""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-email' > mui-kit/resource_cards/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+h6
+  "ada@example.com"
+p
+  "ada@example.com"
+"ada@example.com"
+"Declared value"
+p
+  "ada@example.com""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-empty-list' > mui-kit/resource_cards/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+h6
+  "—"
+p
+  "—"
+"—"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-enum' > mui-kit/resource_cards/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+h6
+  "READY"
+p
+  "READY"
+"READY"
+"Declared value"
+p
+  "READY""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-excessive-precis…' > mui-kit/resource_cards/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+h6
+  "12.5"
+p
+  "12.5"
+"12.5"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-identifier' > mui-kit/resource_cards/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+h6
+  "000123"
+p
+  "000123"
+"000123"
+"Declared value"
+p
+  "000123""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-integer' > mui-kit/resource_cards/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+h6
+  "42"
+p
+  "42"
+"42"
+"Declared value"
+p
+  "42""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-invalid-date' > mui-kit/resource_cards/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+h6
+  "not-a-date"
+p
+  "not-a-date"
+"not-a-date"
+"Declared value"
+p
+  "not-a-date""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-invalid-principal' > mui-kit/resource_cards/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+h6
+  "Ada <bad email>"
+p
+  "Ada <bad email>"
+"Ada <bad email>"
+"Declared value"
+p
+  "Ada <bad email>""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-invalid-time' > mui-kit/resource_cards/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+h6
+  "25:91"
+p
+  "25:91"
+"25:91"
+"Declared value"
+p
+  "25:91""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-json' > mui-kit/resource_cards/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+h6
+  "{\\"ready\\":true}"
+p
+  "{\\"ready\\":true}"
+"{\\"ready\\":true}"
+"Declared value"
+p
+  "{\\"ready\\":true}""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-list' > mui-kit/resource_cards/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+h6
+  "one, two"
+p
+  "one, two"
+"one, two"
+"Declared value"
+p
+  "one, two""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-mismatched-numbe…' > mui-kit/resource_cards/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+h6
+  "Ada"
+p
+  "Ada"
+"Ada"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-money-current-sc…' > mui-kit/resource_cards/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+h6
+  "12.50"
+p
+  "12.50"
+"12.50"
+"Declared value"
+p
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-multiline' > mui-kit/resource_cards/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+h6
+  "first second"
+p
+  "first second"
+"first second"
+"Declared value"
+p
+  "first second""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-negative-precisi…' > mui-kit/resource_cards/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+h6
+  "12.5"
+p
+  "12.5"
+"12.5"
+"Declared value"
+p
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-null' > mui-kit/resource_cards/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+h6
+  "—"
+p
+  "—"
+"—"
+"Declared value"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-numeric-string' > mui-kit/resource_cards/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+h6
+  "0012.50"
+p
+  "0012.50"
+"0012.50"
+"Declared value"
+p
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-percent-current-…' > mui-kit/resource_cards/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+h6
+  "0.125"
+p
+  "0.125"
+"0.125"
+"Declared value"
+p
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-principal' > mui-kit/resource_cards/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+h6
+  "Ada"
+p
+  "Ada"
+"Ada"
+"Declared value"
+p
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-text' > mui-kit/resource_cards/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+h6
+  "plain text"
+p
+  "plain text"
+"plain text"
+"Declared value"
+p
+  "plain text""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-time' > mui-kit/resource_cards/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+h6
+  "1:45 PM UTC"
+p
+  "1:45 PM UTC"
+"1:45 PM UTC"
+"Declared value"
+p
+  "1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-unknown-type' > mui-kit/resource_cards/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+h6
+  "literal"
+p
+  "literal"
+"literal"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-unspecified' > mui-kit/resource_cards/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+h6
+  "literal"
+p
+  "literal"
+"literal"
+"Declared value"
+p
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-url' > mui-kit/resource_cards/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+h6
+  "https://example.com/a?b=1"
+p
+  "https://example.com/a?b=1"
+"https://example.com/a?b=1"
+"Declared value"
+a href="https://example.com/a?b=1"
+  "https://example.com/a?b=1""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'snippet/empty' > mui-kit/snippet/empty 1`] = `

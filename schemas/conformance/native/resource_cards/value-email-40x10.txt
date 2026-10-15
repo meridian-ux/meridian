@@ -1,0 +1,12 @@
+viewport 40x10
+email
+┌──────────────────────────────────────┐
+│▶ 1. ada@example.com                  │
+│    ada@example.com                   │
+│    status: ada@example.com           │
+│    Declared value: ada@example.com   │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

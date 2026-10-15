@@ -678,6 +678,442 @@ dl
     "Service""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-boolean' > web-components/detail_header/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"boolean"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-date' > web-components/detail_header/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"date"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-date-time' > web-components/detail_header/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"date-time"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-decimal' > web-components/detail_header/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"decimal"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-duration' > web-components/detail_header/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"duration"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-email' > web-components/detail_header/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"email"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-empty-list' > web-components/detail_header/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"empty-list"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-enum' > web-components/detail_header/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"enum"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-excessive-precisi…' > web-components/detail_header/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-identifier' > web-components/detail_header/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"identifier"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-integer' > web-components/detail_header/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"integer"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-invalid-date' > web-components/detail_header/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-invalid-principal' > web-components/detail_header/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-invalid-time' > web-components/detail_header/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-json' > web-components/detail_header/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"json"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-list' > web-components/detail_header/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"list"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-mismatched-number…' > web-components/detail_header/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"mismatched-number-options"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-money-current-sca…' > web-components/detail_header/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"money-current-scalar"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-multiline' > web-components/detail_header/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"multiline"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-negative-precision' > web-components/detail_header/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-null' > web-components/detail_header/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"null"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-numeric-string' > web-components/detail_header/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-percent-current-s…' > web-components/detail_header/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"percent-current-scalar"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-principal' > web-components/detail_header/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"principal"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-text' > web-components/detail_header/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"text"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-time' > web-components/detail_header/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"time"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-unknown-type' > web-components/detail_header/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-unspecified' > web-components/detail_header/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"unspecified"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-url' > web-components/detail_header/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"url"
+h2
+  "Fixture record"
+dl
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/empty' > web-components/form/empty 1`] = `
 "h2
   "Conformance: form · empty"
@@ -1769,6 +2205,441 @@ div role="list"
       "Manage""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-boolean' > web-components/gallery/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    "No""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-date' > web-components/gallery/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-date-time' > web-components/gallery/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-decimal' > web-components/gallery/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-duration' > web-components/gallery/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-email' > web-components/gallery/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-empty-list' > web-components/gallery/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-enum' > web-components/gallery/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-excessive-precision' > web-components/gallery/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-identifier' > web-components/gallery/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-integer' > web-components/gallery/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    "42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-invalid-date' > web-components/gallery/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-invalid-principal' > web-components/gallery/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-invalid-time' > web-components/gallery/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-json' > web-components/gallery/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-list' > web-components/gallery/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    "one, two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-mismatched-number-optio…' > web-components/gallery/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-money-current-scalar' > web-components/gallery/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-multiline' > web-components/gallery/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-negative-precision' > web-components/gallery/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-null' > web-components/gallery/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-numeric-string' > web-components/gallery/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-percent-current-scalar' > web-components/gallery/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-principal' > web-components/gallery/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-text' > web-components/gallery/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-time' > web-components/gallery/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-unknown-type' > web-components/gallery/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-unspecified' > web-components/gallery/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-url' > web-components/gallery/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    "https://example.com/a?b=1""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'grammar/empty' > web-components/grammar/empty 1`] = `
 "h2
   "Conformance: grammar · empty"
@@ -2270,6 +3141,384 @@ dl
     "Fixture record""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-boolean' > web-components/record_card/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"boolean"
+dl
+  dt
+    "Declared value"
+  dd
+    "No""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-date' > web-components/record_card/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"date"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-date-time' > web-components/record_card/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"date-time"
+dl
+  dt
+    "Declared value"
+  dd
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-decimal' > web-components/record_card/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"decimal"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-duration' > web-components/record_card/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"duration"
+dl
+  dt
+    "Declared value"
+  dd
+    "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-email' > web-components/record_card/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"email"
+dl
+  dt
+    "Declared value"
+  dd
+    "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-empty-list' > web-components/record_card/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"empty-list"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-enum' > web-components/record_card/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"enum"
+dl
+  dt
+    "Declared value"
+  dd
+    "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-excessive-precision' > web-components/record_card/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-identifier' > web-components/record_card/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"identifier"
+dl
+  dt
+    "Declared value"
+  dd
+    "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-integer' > web-components/record_card/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"integer"
+dl
+  dt
+    "Declared value"
+  dd
+    "42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-invalid-date' > web-components/record_card/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+dl
+  dt
+    "Declared value"
+  dd
+    "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-invalid-principal' > web-components/record_card/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-invalid-time' > web-components/record_card/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+dl
+  dt
+    "Declared value"
+  dd
+    "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-json' > web-components/record_card/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"json"
+dl
+  dt
+    "Declared value"
+  dd
+    "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-list' > web-components/record_card/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"list"
+dl
+  dt
+    "Declared value"
+  dd
+    "one, two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-mismatched-number-o…' > web-components/record_card/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"mismatched-number-options"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-money-current-scalar' > web-components/record_card/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"money-current-scalar"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-multiline' > web-components/record_card/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"multiline"
+dl
+  dt
+    "Declared value"
+  dd
+    "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-negative-precision' > web-components/record_card/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+dl
+  dt
+    "Declared value"
+  dd
+    "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-null' > web-components/record_card/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"null"
+dl
+  dt
+    "Declared value"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-numeric-string' > web-components/record_card/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+dl
+  dt
+    "Declared value"
+  dd
+    "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-percent-current-sca…' > web-components/record_card/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"percent-current-scalar"
+dl
+  dt
+    "Declared value"
+  dd
+    "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-principal' > web-components/record_card/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"principal"
+dl
+  dt
+    "Declared value"
+  dd
+    "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-text' > web-components/record_card/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"text"
+dl
+  dt
+    "Declared value"
+  dd
+    "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-time' > web-components/record_card/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"time"
+dl
+  dt
+    "Declared value"
+  dd
+    "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-unknown-type' > web-components/record_card/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-unspecified' > web-components/record_card/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"unspecified"
+dl
+  dt
+    "Declared value"
+  dd
+    "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-url' > web-components/record_card/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"url"
+dl
+  dt
+    "Declared value"
+  dd
+    a href="https://example.com/a?b=1"
+      "https://example.com/a?b=1""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/empty' > web-components/resource_cards/empty 1`] = `
 "h2
   "Conformance: resource_cards · empty"
@@ -2507,6 +3756,587 @@ div role="list"
       "Resource 01"
     p
       "A shared response""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-boolean' > web-components/resource_cards/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"boolean"
+div role="list"
+  article role="listitem"
+    h3
+      "No"
+    p
+      "No"
+    "No"
+    dl
+      dt
+        "Declared value"
+      dd
+        "No""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-date' > web-components/resource_cards/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"date"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026"
+    p
+      "Mar 29, 2026"
+    "Mar 29, 2026"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-date-time' > web-components/resource_cards/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"date-time"
+div role="list"
+  article role="listitem"
+    h3
+      "Mar 29, 2026, 1:45 PM UTC"
+    p
+      "Mar 29, 2026, 1:45 PM UTC"
+    "Mar 29, 2026, 1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-decimal' > web-components/resource_cards/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"decimal"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-duration' > web-components/resource_cards/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"duration"
+div role="list"
+  article role="listitem"
+    h3
+      "4 min 12 s"
+    p
+      "4 min 12 s"
+    "4 min 12 s"
+    dl
+      dt
+        "Declared value"
+      dd
+        "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-email' > web-components/resource_cards/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"email"
+div role="list"
+  article role="listitem"
+    h3
+      "ada@example.com"
+    p
+      "ada@example.com"
+    "ada@example.com"
+    dl
+      dt
+        "Declared value"
+      dd
+        "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-empty-list' > web-components/resource_cards/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"empty-list"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-enum' > web-components/resource_cards/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"enum"
+div role="list"
+  article role="listitem"
+    h3
+      "READY"
+    p
+      "READY"
+    "READY"
+    dl
+      dt
+        "Declared value"
+      dd
+        "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-excessive-precis…' > web-components/resource_cards/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-identifier' > web-components/resource_cards/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"identifier"
+div role="list"
+  article role="listitem"
+    h3
+      "000123"
+    p
+      "000123"
+    "000123"
+    dl
+      dt
+        "Declared value"
+      dd
+        "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-integer' > web-components/resource_cards/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"integer"
+div role="list"
+  article role="listitem"
+    h3
+      "42"
+    p
+      "42"
+    "42"
+    dl
+      dt
+        "Declared value"
+      dd
+        "42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-invalid-date' > web-components/resource_cards/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+div role="list"
+  article role="listitem"
+    h3
+      "not-a-date"
+    p
+      "not-a-date"
+    "not-a-date"
+    dl
+      dt
+        "Declared value"
+      dd
+        "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-invalid-principal' > web-components/resource_cards/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada <bad email>"
+    p
+      "Ada <bad email>"
+    "Ada <bad email>"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-invalid-time' > web-components/resource_cards/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+div role="list"
+  article role="listitem"
+    h3
+      "25:91"
+    p
+      "25:91"
+    "25:91"
+    dl
+      dt
+        "Declared value"
+      dd
+        "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-json' > web-components/resource_cards/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"json"
+div role="list"
+  article role="listitem"
+    h3
+      "{\\"ready\\":true}"
+    p
+      "{\\"ready\\":true}"
+    "{\\"ready\\":true}"
+    dl
+      dt
+        "Declared value"
+      dd
+        "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-list' > web-components/resource_cards/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"list"
+div role="list"
+  article role="listitem"
+    h3
+      "one, two"
+    p
+      "one, two"
+    "one, two"
+    dl
+      dt
+        "Declared value"
+      dd
+        "one, two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-mismatched-numbe…' > web-components/resource_cards/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"mismatched-number-options"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-money-current-sc…' > web-components/resource_cards/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"money-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "12.50"
+    p
+      "12.50"
+    "12.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-multiline' > web-components/resource_cards/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"multiline"
+div role="list"
+  article role="listitem"
+    h3
+      "first second"
+    p
+      "first second"
+    "first second"
+    dl
+      dt
+        "Declared value"
+      dd
+        "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-negative-precisi…' > web-components/resource_cards/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+div role="list"
+  article role="listitem"
+    h3
+      "12.5"
+    p
+      "12.5"
+    "12.5"
+    dl
+      dt
+        "Declared value"
+      dd
+        "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-null' > web-components/resource_cards/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"null"
+div role="list"
+  article role="listitem"
+    h3
+      "—"
+    p
+      "—"
+    "—"
+    dl
+      dt
+        "Declared value"
+      dd
+        "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-numeric-string' > web-components/resource_cards/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+div role="list"
+  article role="listitem"
+    h3
+      "0012.50"
+    p
+      "0012.50"
+    "0012.50"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-percent-current-…' > web-components/resource_cards/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"percent-current-scalar"
+div role="list"
+  article role="listitem"
+    h3
+      "0.125"
+    p
+      "0.125"
+    "0.125"
+    dl
+      dt
+        "Declared value"
+      dd
+        "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-principal' > web-components/resource_cards/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"principal"
+div role="list"
+  article role="listitem"
+    h3
+      "Ada"
+    p
+      "Ada"
+    "Ada"
+    dl
+      dt
+        "Declared value"
+      dd
+        "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-text' > web-components/resource_cards/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"text"
+div role="list"
+  article role="listitem"
+    h3
+      "plain text"
+    p
+      "plain text"
+    "plain text"
+    dl
+      dt
+        "Declared value"
+      dd
+        "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-time' > web-components/resource_cards/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"time"
+div role="list"
+  article role="listitem"
+    h3
+      "1:45 PM UTC"
+    p
+      "1:45 PM UTC"
+    "1:45 PM UTC"
+    dl
+      dt
+        "Declared value"
+      dd
+        "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-unknown-type' > web-components/resource_cards/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-unspecified' > web-components/resource_cards/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"unspecified"
+div role="list"
+  article role="listitem"
+    h3
+      "literal"
+    p
+      "literal"
+    "literal"
+    dl
+      dt
+        "Declared value"
+      dd
+        "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-url' > web-components/resource_cards/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"url"
+div role="list"
+  article role="listitem"
+    h3
+      "https://example.com/a?b=1"
+    p
+      "https://example.com/a?b=1"
+    "https://example.com/a?b=1"
+    dl
+      dt
+        "Declared value"
+      dd
+        a href="https://example.com/a?b=1"
+          "https://example.com/a?b=1""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'snippet/empty' > web-components/snippet/empty 1`] = `

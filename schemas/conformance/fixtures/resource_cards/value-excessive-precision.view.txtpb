@@ -1,0 +1,53 @@
+id: "resource_cards-value-excessive-precision"
+title: "value-excessive-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-excessive-precision"
+    title: "excessive-precision"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_DECIMAL
+            number {
+              fraction_digits: 101
+            }
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 101
+          }
+        }
+        subtitle_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 101
+          }
+        }
+        status_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 101
+          }
+        }
+      }
+    }
+  }
+}

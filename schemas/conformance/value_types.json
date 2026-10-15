@@ -1,4 +1,4 @@
-{"cases":[
+{"panelArms":["table","record_card","detail_header","gallery","resource_cards"],"cases":[
   {"name":"text","type":1,"raw":"plain text","expected":"plain text"},
   {"name":"multiline","type":2,"raw":"first\nsecond","expected":"first\nsecond"},
   {"name":"integer","type":3,"raw":42,"expected":"42"},

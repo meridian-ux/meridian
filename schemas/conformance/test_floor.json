@@ -19,9 +19,9 @@
     },
     { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 162 },
     { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 24 },
-    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 167 },
+    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 168 },
     { "id": "rust-core", "kind": "rust", "roots": ["crates/core/rust/uiview"], "floor": 65 },
     { "id": "rust-theme-proto", "kind": "rust", "roots": ["crates/core/rust/theme-proto"], "floor": 3 },
-    { "id": "rust-tui", "kind": "rust", "roots": ["crates/tui/rust/tui"], "floor": 99 }
+    { "id": "rust-tui", "kind": "rust", "roots": ["crates/tui/rust/tui"], "floor": 100 }
   ]
 }
