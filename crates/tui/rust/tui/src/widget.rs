@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
@@ -7,6 +7,7 @@ use meridian_uiview::proto::{
 use meridian_uiview::{
     render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder,
 };
+use prost::Message as _;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
@@ -15,6 +16,7 @@ use ratatui::Frame;
 use crate::content;
 use crate::inline_prompt::{InlinePrompt, PanelPromptResponse};
 use crate::invoker::{RpcInvoker, StreamInvoker, StreamSession};
+use crate::prompt::{PromptResponse, PromptState};
 use crate::theme::Palette;
 
 // Keep an unspecified StreamPanel bounded just like the browser renderer. The
@@ -87,8 +89,71 @@ struct CachedResourceCards {
 }
 
 struct CachedForm {
+    descriptor: Vec<u8>,
     values: serde_json::Value,
     error: Option<String>,
+    validation_error: Option<String>,
+    editor: Option<(String, PromptState)>,
+}
+
+impl CachedForm {
+    fn compound_key(&mut self, fields: &[FormField], selected: usize, key: KeyCode) -> bool {
+        if let Some((id, state)) = &mut self.editor {
+            if key == KeyCode::Delete {
+                state.clear_text();
+                return true;
+            }
+            let response = state.handle_key(KeyEvent::new(key, KeyModifiers::NONE));
+            match response {
+                Some(PromptResponse::Submitted(values)) => {
+                    if let Some(value) = values.get(id).and_then(|value| {
+                        serde_json::from_str::<serde_json::Value>(&value.as_string()).ok()
+                    }) {
+                        self.values[id.as_str()] = value;
+                        self.validation_error = None;
+                    }
+                    self.editor = None;
+                }
+                Some(PromptResponse::Cancelled) => self.editor = None,
+                _ => {}
+            }
+            return true;
+        }
+        if key != KeyCode::F(2) {
+            return false;
+        }
+        if let Some(field) = fields.get(selected) {
+            if matches!(
+                field.kind,
+                Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_))
+            ) {
+                match PromptState::edit_compound(field, &self.values[&field.field_id]) {
+                    Ok(state) => self.editor = Some((field.field_id.clone(), state)),
+                    Err(error) => self.validation_error = Some(error.to_string()),
+                }
+            }
+        }
+        true
+    }
+
+    fn validate(&mut self, fields: &[FormField]) -> bool {
+        self.validation_error = meridian_uiview::validate_form_values(fields, &self.values).err();
+        self.error.is_none() && self.validation_error.is_none()
+    }
+
+    fn draw_overlay(&self, frame: &mut Frame, area: ratatui::layout::Rect, palette: &Palette) {
+        if let Some((_, state)) = &self.editor {
+            frame.render_widget(ratatui::widgets::Clear, area);
+            state.draw(frame, area, palette);
+        } else if let Some(error) = &self.validation_error {
+            let line = ratatui::layout::Rect {
+                y: area.y + area.height.saturating_sub(1),
+                height: area.height.min(1),
+                ..area
+            };
+            frame.render_widget(Paragraph::new(error.as_str()).style(palette.meta()), line);
+        }
+    }
 }
 
 /// Result emitted when an inline editable FormPanel is submitted. The host
@@ -445,6 +510,7 @@ impl PanelView {
                     &self.palette,
                     self.content_selected,
                 );
+                cached.draw_overlay(frame, content_area, &self.palette);
             }
             Some(Body::Adhoc(adhoc)) => self.render_placeholder(
                 frame,
@@ -489,6 +555,7 @@ impl PanelView {
                         &self.palette,
                         self.content_selected,
                     );
+                    cached.draw_overlay(frame, content_area, &self.palette);
                 }
             }
             Some(Body::DetailHeader(panel)) => {
@@ -891,7 +958,12 @@ impl PanelView {
         context: &Context,
         invoker: &I,
     ) {
-        if self.cached_form.is_some() {
+        let descriptor = panel.encode_to_vec();
+        if self
+            .cached_form
+            .as_ref()
+            .is_some_and(|cached| cached.descriptor == descriptor)
+        {
             return;
         }
         let mut values = content::form_defaults(&panel.fields);
@@ -905,8 +977,11 @@ impl PanelView {
                     Ok(_) => {}
                     Err(error) => {
                         self.cached_form = Some(CachedForm {
+                            descriptor,
                             values,
                             error: Some(format!("Failed to prefill form: {error}")),
+                            validation_error: None,
+                            editor: None,
                         });
                         return;
                     }
@@ -914,8 +989,11 @@ impl PanelView {
             }
         }
         self.cached_form = Some(CachedForm {
+            descriptor,
             values,
             error: None,
+            validation_error: None,
+            editor: None,
         });
     }
 
@@ -929,23 +1007,34 @@ impl PanelView {
         key: KeyCode,
     ) -> Option<FormSubmission> {
         let cached = self.cached_form.as_mut()?;
-        if panel.fields.is_empty() {
+        if cached.descriptor != panel.encode_to_vec() {
             return None;
         }
-        let selected = self.content_selected.min(panel.fields.len() - 1);
+        if panel.mode != FormMode::Edit as i32 || cached.error.is_some() {
+            return None;
+        }
+        let selected = self
+            .content_selected
+            .min(panel.fields.len().saturating_sub(1));
+        if cached.compound_key(&panel.fields, selected, key) {
+            return None;
+        }
         let selected_field = panel.fields.get(selected);
         let boolean_edit = selected_field.is_some_and(|field| {
             matches!(field.kind.as_ref(), Some(Kind::Boolean(_)))
                 && matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right)
         });
         match key {
-            KeyCode::Down | KeyCode::Tab => {
+            KeyCode::Down | KeyCode::Tab if !panel.fields.is_empty() => {
                 self.content_selected = (selected + 1) % panel.fields.len();
             }
-            KeyCode::Up | KeyCode::BackTab => {
+            KeyCode::Up | KeyCode::BackTab if !panel.fields.is_empty() => {
                 self.content_selected = (selected + panel.fields.len() - 1) % panel.fields.len();
             }
             KeyCode::Enter if panel.mode == FormMode::Edit as i32 => {
+                if !cached.validate(&panel.fields) {
+                    return None;
+                }
                 let submit = panel.submit.as_ref()?;
                 let mut submit_context = context.clone();
                 submit_context.form_values = form_values_by_id(&panel.fields, &cached.values);
@@ -973,10 +1062,18 @@ impl PanelView {
     }
 
     fn populate_lro_if_needed(&mut self, panel: &LroPanel) {
-        if self.cached_lro.is_none() {
+        let descriptor = panel.encode_to_vec();
+        if self
+            .cached_lro
+            .as_ref()
+            .is_none_or(|cached| cached.descriptor != descriptor)
+        {
             self.cached_lro = Some(CachedForm {
+                descriptor,
                 values: content::form_defaults(&panel.inputs),
                 error: None,
+                validation_error: None,
+                editor: None,
             });
         }
     }
@@ -994,6 +1091,9 @@ impl PanelView {
         let cached = self.cached_lro.as_mut()?;
         let field_count = panel.inputs.len();
         let selected = self.content_selected.min(field_count.saturating_sub(1));
+        if cached.compound_key(&panel.inputs, selected, key) {
+            return None;
+        }
         match key {
             KeyCode::Down | KeyCode::Tab if field_count > 0 => {
                 self.content_selected = (selected + 1) % field_count;
@@ -1002,6 +1102,9 @@ impl PanelView {
                 self.content_selected = (selected + field_count - 1) % field_count;
             }
             KeyCode::Enter => {
+                if !cached.validate(&panel.inputs) {
+                    return None;
+                }
                 let start = panel.start.as_ref()?;
                 let mut start_context = context.clone();
                 start_context.form_values = form_values_by_id(&panel.inputs, &cached.values);
@@ -1315,8 +1418,8 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             let step = if input.step == 0 { 1 } else { input.step } as i64;
             let mut number = current.as_i64().unwrap_or(input.default_value as i64);
             match key {
-                KeyCode::Up => number = number.saturating_add(step),
-                KeyCode::Down => number = number.saturating_sub(step),
+                KeyCode::Up | KeyCode::Right => number = number.saturating_add(step),
+                KeyCode::Down | KeyCode::Left => number = number.saturating_sub(step),
                 _ => return,
             }
             if input.max != 0 {
@@ -1331,8 +1434,8 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             let step = if input.step == 0.0 { 1.0 } else { input.step };
             let mut number = current.as_f64().unwrap_or(input.default_value);
             match key {
-                KeyCode::Up => number += step,
-                KeyCode::Down => number -= step,
+                KeyCode::Up | KeyCode::Right => number += step,
+                KeyCode::Down | KeyCode::Left => number -= step,
                 _ => return,
             }
             if input.max != 0.0 {

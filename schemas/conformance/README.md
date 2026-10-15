@@ -29,8 +29,7 @@ All four browser realizations submit these wire values to the host and assert
 canonical protobuf Struct responses after their initial-state snapshots. A
 shared protobuf interaction fixture additionally covers all nine input kinds,
 confirmation/cancellation, callback failure/retry, and stale response isolation.
-This is not yet the every-ValueType input/default corpus or native standalone
-prompt coverage; those remain open obligations.
+This is not yet the every-ValueType input/default corpus; that remains open.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 
@@ -39,8 +38,9 @@ extracts each view's single panel, and drives the real `PanelView` RPC/stream
 seams. It compares 584 terminal-buffer goldens under `native/` at 96×28 and
 40×10, with explicit fetched-content, formatter, repeated-form-count, stream-tail,
 and cancellation checks. This covers native panel dispatch, not a general view
-layout tier. Prompt/LLM-prompt retain their documented standalone-entrypoint
-degradation in `PanelView`, while Terminal remains a web-specific surface.
+layout tier. Prompt/LLM-prompt are owned by `PanelView`, with separate wire-decoded
+dispatcher interaction tests for typed responses and local previews. Terminal
+remains a web-specific surface.
 Table rows and headers now reserve their declared multiline text height; the
 corpus and a focused regression verify lines and following records aren't lost.
 Native paragraphs also expand embedded newlines into real styled terminal
@@ -65,8 +65,12 @@ resolution plus the schema-defined display override. Computed delta/direction
 do not trust server trend metadata. React guards late responses, changed
 descriptors/requests/transports, and failures. Dedicated lifecycle tests cover
 those paths; the hook also resolves nested bindings from repeated-view records.
-Form/Prompt/LRO/LLM-prompt input/default cases and native standalone prompt
-entrypoints still require their own fixtures and remain outstanding.
+Form/Prompt/LRO/LLM-prompt every-ValueType input/default cases still require their
+own fixtures and remain outstanding. Native Form/LRO inputs now validate through
+the platform-neutral core before returning host-owned requests, with focused
+wire tests for all nine input kinds, compound JSON editors, invalid/recovering
+values, read-only immutability, descriptor replacement, and empty forms. Legacy
+prompt validation and regex-dialect consolidation remain separate work.
 
 Compare or intentionally re-record native buffers from the source workspace:
 
@@ -95,8 +99,8 @@ are tested; the updater refuses to delete unexpected files automatically.
 The original panel corpus remains intact for native and existing browser users.
 
 This expands real coverage but does not complete the conformance epic: the
-stateful wire corpus still needs native standalone-prompt coverage,
-ValueType scenarios in the remaining value-bearing arms, and computed browser
+stateful wire corpus still needs ValueType scenarios in the remaining
+value-bearing arms and computed browser
 accessibility-tree normalization. The present DOM normalizer is not that tree;
 SwiftUI preview behavior remains explicitly unverified.
 

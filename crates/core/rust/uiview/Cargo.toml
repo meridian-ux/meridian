@@ -11,6 +11,7 @@ prost-types = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+regex = { workspace = true }
 # wasm-bindgen + JS interop deps. The wasm_api module is gated on
 # `#[cfg(target_arch = "wasm32")]` so these only get used when
 # compiling for the browser; on native builds they're inert deps

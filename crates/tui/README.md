@@ -53,6 +53,27 @@ The offline executable displays these local states without executing responses.
 The legacy one-shot helpers remain available; their established `FieldValue`
 API retains compound JSON as text, while the embedded API returns typed protobuf.
 
+## Inline forms and LRO inputs
+
+Forward Form keys to `handle_form_key` and LRO keys to `handle_lro_key`.
+Up/Down or Tab selects a top-level field; Left/Right changes numeric and enum
+values, Space toggles booleans, and ordinary text keys edit strings. F2 opens
+nested objects, scalar/object arrays, or string maps in the existing prompt JSON
+editor. Delete clears its buffer, Enter validates and saves locally, and Esc
+discards the editor without submitting. Masked descendants remain concealed.
+
+Enter outside the editor validates every declared field through the
+platform-neutral core before returning a host-owned submit/start request.
+Invalid types, lengths, patterns, numeric bounds, enum tokens, collection bounds,
+and missing kinds block submission with a visible error. Values retain their raw
+types, including false, zero, empty strings, and nested collections. The core
+validator uses UTF-16 string lengths and unanchored pattern matching like the
+browser validator; unsupported Rust-regex syntax fails closed. Full regex-dialect
+parity and consolidation with legacy prompt validation remain separate work.
+Read-only forms ignore editing keys. Replacing a descriptor discards cached form
+edits and open JSON editors; resizing preserves them. Hosts own authorization,
+RPC execution, and operation polling; rendering or editing never starts an RPC.
+
 ## Build
 
 Hosts can call `PanelView::selected_row_request(&call, &context, legacy_id_fallback)`

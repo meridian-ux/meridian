@@ -2,7 +2,7 @@ viewport 96x28
 form · overflow
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │Edit item                                                                                     │
-│↑/↓ select · edit scalar · Enter submit                                                       │
+│↑/↓ select · ←/→ numeric · F2 JSON · Enter submit                                             │
 │                                                                                              │
 │▶ Navigation groups: 30 items                                                                 │
 │                                                                                              │

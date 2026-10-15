@@ -705,8 +705,7 @@ fn render_form_fields(
 
 /// Render a FormPanel as a selectable terminal form. Scalar defaults are
 /// visible and editable through `PanelView::handle_form_key`; nested, repeated,
-/// and map fields remain visible as honest summaries until their richer row
-/// editors are added to the shared TUI interaction model.
+/// and map summaries open the shared JSON editor with F2.
 pub fn render_form(
     frame: &mut Frame,
     area: Rect,
@@ -732,7 +731,7 @@ pub fn render_form(
     )));
     lines.push(Line::from(Span::styled(
         if panel.mode == FormMode::Edit as i32 {
-            "↑/↓ select · edit scalar · Enter submit"
+            "↑/↓ select · ←/→ numeric · F2 JSON · Enter submit"
         } else {
             "read-only form"
         },
@@ -774,7 +773,7 @@ pub fn render_lro(
         palette.title(),
     ))];
     lines.push(Line::from(Span::styled(
-        "↑/↓ select · edit scalar · Enter start operation",
+        "↑/↓ select · ←/→ numeric · F2 JSON · Enter start",
         palette.meta(),
     )));
     if panel.inputs.is_empty() {
