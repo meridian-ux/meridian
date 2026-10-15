@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -151,7 +153,9 @@ jobs:
         run: pnpm conformance:snapshots
 
       - name: Test floor
-        run: node schemas/tools/check_test_floor.mjs
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+        run: node schemas/tools/check_test_floor.mjs --base-ref "$BASE_REF"
 
   cargo:
     runs-on: ubuntu-latest
