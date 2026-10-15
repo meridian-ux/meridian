@@ -46,6 +46,10 @@ corpus and a focused regression verify lines and following records aren't lost.
 Native paragraphs also expand embedded newlines into real styled terminal
 lines, preserving blank lines and following spans rather than joining words.
 All gallery/card display slots are checked, including null placeholders.
+Native DetailHeader and RecordCard values share a column sized to the widest
+label using terminal display cells, including CJK and combining characters.
+Explicit multiline value continuations retain that column. A focused TestBackend
+regression checks both panels and the RecordCard field-ID fallback.
 
 The unrestricted arm list is verified against reachable ValueDisplay fields in
 the canonical descriptor set, with explicit exceptions for constrained payloads
