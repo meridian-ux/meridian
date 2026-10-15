@@ -85,7 +85,7 @@ export const FIXTURES: Fixture[] = [
         case: "prompt",
         value: create(PromptPanelSchema, {
           description: "Delete this resource?",
-          fields: [create(FormFieldSchema, { fieldId: "reason", label: "Reason" })],
+          fields: [create(FormFieldSchema, { fieldId: "reason", label: "Reason", kind: { case: "text", value: { defaultValue: "Fixture reason" } } })],
         }),
       },
     }),

@@ -24,6 +24,13 @@ xterm with a non-network test socket, not a live PTY. Both resources are dispose
 after every case. Form prefill waits for loading to finish and checks live input
 values separately, because the DOM normalizer preserves attributes, not all
 mutable control properties.
+Prompt fixtures now declare a real text kind and empty/typical/overflow defaults.
+All four browser realizations submit these wire values to the host and assert
+canonical protobuf Struct responses after their initial-state snapshots. A
+shared protobuf interaction fixture additionally covers all nine input kinds,
+confirmation/cancellation, callback failure/retry, and stale response isolation.
+This is not yet the every-ValueType input/default corpus or native standalone
+prompt coverage; those remain open obligations.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 

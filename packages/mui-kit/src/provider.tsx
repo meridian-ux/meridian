@@ -47,6 +47,7 @@ function isProduction(): boolean {
 }
 
 export interface MeridianMuiProviderProps {
+  onPromptResponse?: MeridianContextValue["onPromptResponse"];
   invoker: RpcInvoker;
   streamSnapshots?: MeridianContextValue["streamSnapshots"];
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
@@ -86,6 +87,7 @@ export function MeridianMuiProvider({
   mode = "light",
   adhoc = {},
   onAction,
+  onPromptResponse,
   renderIcon,
   renderGrammar,
   resolveHref,
@@ -139,6 +141,7 @@ export function MeridianMuiProvider({
           kit={muiKit}
           adhoc={adhoc}
           onAction={onAction}
+          onPromptResponse={onPromptResponse}
           renderIcon={renderIcon}
           renderGrammar={renderGrammar}
           resolveHref={resolveHref}

@@ -4243,8 +4243,14 @@ h3
 h2
   "prompt · empty"
 form
-  label
-    "Reason""
+  fieldset
+    label
+      "Reason"
+      input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'prompt/overflow' > html/prompt/overflow 1`] = `
@@ -4255,8 +4261,16 @@ h3
 h2
   "prompt · overflow"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+  fieldset
+    label
+      "Reason"
+      input type="text" value="Fixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reason"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'prompt/typical' > html/prompt/typical 1`] = `
@@ -4267,8 +4281,16 @@ h3
 h2
   "prompt · typical"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?"
+  fieldset
+    label
+      "Reason"
+      input type="text" value="Fixture reason"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'record_card/empty' > html/record_card/empty 1`] = `
@@ -11655,8 +11677,14 @@ h3
 h3
   "prompt · empty"
 form
-  label
-    "Reason""
+  fieldset
+    label
+      "Reason"
+      input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'prompt/overflow' > shadcn/prompt/overflow 1`] = `
@@ -11667,8 +11695,16 @@ h3
 h3
   "prompt · overflow"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+  fieldset
+    label
+      "Reason"
+      input type="text" value="Fixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reason"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'prompt/typical' > shadcn/prompt/typical 1`] = `
@@ -11679,8 +11715,16 @@ h3
 h3
   "prompt · typical"
 form
-  label
-    "Reason""
+  p
+    "Delete this resource?"
+  fieldset
+    label
+      "Reason"
+      input type="text" value="Fixture reason"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'record_card/empty' > shadcn/record_card/empty 1`] = `

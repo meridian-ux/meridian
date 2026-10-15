@@ -1,5 +1,14 @@
 # meridian-web-react
 
+Standalone prompts return values through the optional `onPromptResponse` prop
+on `MeridianProvider` (also forwarded by `reactWebRenderer` mount options).
+The callback receives `(panelId, Struct | null)`: canonical protobuf field values,
+or a confirmation bool keyed by panel ID; `null` means cancellation. It may
+return a promise. Inputs survive failed callbacks, duplicate pending submissions
+are blocked, and descriptor changes/unmounts isolate late replies. A prompt is
+one-shot after host acceptance. Missing handlers are visible, not silent no-ops.
+The host remains responsible for authorizing any external follow-up action.
+
 The **kit-agnostic React renderer tier** of the meridian design language — a
 public peer renderer implementing the framework-neutral
 [`WebRenderer` seam](https://github.com/meridian-ux/meridian-schemas) over a

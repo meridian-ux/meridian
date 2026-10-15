@@ -146,7 +146,7 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
     if (kind.case === "boolean") return (input as HTMLInputElement).checked;
     if (kind.case === "integer" || kind.case === "number") {
       const number = Number(text), { min, max } = kind.value;
-      if (!text.trim() || !Number.isFinite(number) || (kind.case === "integer" && !Number.isInteger(number)) || (min !== 0 && number < min) || (max !== 0 && number > max)) fail("invalid number");
+      if (!text.trim() || !Number.isFinite(number) || (kind.case === "integer" && !Number.isSafeInteger(number)) || (min !== 0 && number < min) || (max !== 0 && number > max)) fail("invalid number");
       return number;
     }
     if (kind.case === "text" || kind.case === "masked") {

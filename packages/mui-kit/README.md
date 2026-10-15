@@ -19,6 +19,13 @@ MUI instead of plain HTML.
 
 ## How it fits
 
+`MeridianMuiProvider` forwards the shared `onPromptResponse(panelId, values)`
+callback for standalone prompts. `values` is a protobuf `Struct` keyed by field
+ID (or by panel ID for a boolean confirmation); `null` means cancellation.
+Pending callbacks block duplicates; failures preserve typed edits for retry.
+Numeric edits are validated before callbacks/RPCs: empty input is not zero,
+integer fractions are not truncated, and unsafe integers are rejected.
+
 ```
 ViewDescriptor / PanelDescriptor  (meridian-schemas, neutral protos)
         │

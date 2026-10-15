@@ -81,6 +81,7 @@ vitest_test(
         "tests/chart.test.ts",
         "tests/interactive_conformance.test.ts",
         "tests/form.test.ts",
+        "tests/prompt.test.ts",
         "tests/llm_prompt.test.ts",
         "tests/media.test.ts",
         "tests/steps.test.ts",

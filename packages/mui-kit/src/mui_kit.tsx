@@ -15,7 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
+import { safeWebSocketUrl, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -34,6 +34,7 @@ import {
   PaginationMode,
   selectionDeps,
   useActionHandler,
+  usePromptResponse,
   useHrefResolver,
   useMutationRpcInvoker,
   useMeridianSelection,
@@ -450,6 +451,8 @@ function initField(field: FormField): FormValue {
       return field.kind.value.defaultValue ?? "";
     case "nested":
       return initValues(field.kind.value.fields);
+    case "keyValueMap":
+      return {};
     case "repeated": {
       const { element, minItems } = field.kind.value;
       if (element.case === "scalar") {
@@ -467,9 +470,7 @@ function initField(field: FormField): FormValue {
 }
 
 function initValues(fields: FormField[]): FormObject {
-  const values: FormObject = {};
-  for (const field of fields) values[field.fieldId] = initField(field);
-  return values;
+  return Object.fromEntries(fields.map(field => [field.fieldId, initField(field)]));
 }
 
 function mergeFormValues(fields: FormField[], prefill: FormObject | undefined): FormObject {
@@ -761,7 +762,7 @@ function FieldForm({
   // them. A rejected submit keeps the text so it can be retried.
   const handleSubmit = () => {
     if (options.pending || options.error) return;
-    const error = enumInvoker ? validateFormOptions(options.fields, values) : undefined;
+    const error = (enumInvoker ? validateFormOptions(options.fields, values) : undefined) || validateFormValues(options.fields, values);
     setOptionError(error);
     if (error) return;
     const result = onSubmit?.(values);
@@ -909,15 +910,24 @@ function TerminalShape({ panel }: { panel: TerminalPanel }): ReactNode {
   );
 }
 
-function PromptShape({ panel }: { panel: PromptPanel }): ReactNode {
-  return (
-    <FieldForm
-      fields={panel.fields}
-      disabled={false}
-      description={panel.description || undefined}
-      submitLabel={panel.acceptLabel || "Submit"}
-    />
-  );
+function PromptShape({ panel, descriptor }: ShapeProps<PromptPanel>): ReactNode {
+  const response = usePromptResponse(descriptor.panelId);
+  return <Stack spacing={2} onKeyDown={event => {
+    if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); void response.cancel(); }
+  }}>
+    {panel.description && <Typography>{panel.description}</Typography>}
+    {panel.detail && <Box component="pre" sx={{ whiteSpace: "pre-wrap" }}>{panel.detail}</Box>}
+    {panel.isConfirmation ? <Stack direction="row" spacing={1}>
+      <Button disabled={response.disabled} onClick={() => { void response.confirm(true); }}>{panel.acceptLabel || "Yes"}</Button>
+      <Button disabled={response.disabled} onClick={() => { void response.confirm(false); }}>{panel.cancelLabel || "No"}</Button>
+    </Stack> : <>
+      <FieldForm fields={panel.fields} disabled={response.disabled} submitDisabled={response.disabled}
+        submitLabel={panel.acceptLabel || "Submit"} onSubmit={response.submit} enumInvoker={response.invoker} />
+      <Button disabled={response.disabled} onClick={() => { void response.cancel(); }}>{panel.cancelLabel || "Cancel"}</Button>
+    </>}
+    {response.status && <Typography role="status">{response.status}</Typography>}
+    {response.error && <Alert severity="error">{response.error}</Alert>}
+  </Stack>;
 }
 
 function LroShape({ panel }: { panel: LroPanel }): ReactNode {
@@ -1059,7 +1069,7 @@ export const muiKit: ComponentKit = {
   Table: ({ panel, invoker }: ShapeProps<TablePanel>) => (
     <TableShape panel={panel} invoker={invoker} />
   ),
-  Prompt: ({ panel }: ShapeProps<PromptPanel>) => <PromptShape panel={panel} />,
+  Prompt: props => <PromptShape {...props} />,
   LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
   Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
   Lro: ({ panel }: ShapeProps<LroPanel>) => <LroShape panel={panel} />,

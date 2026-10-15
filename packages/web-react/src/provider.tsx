@@ -73,6 +73,7 @@ export type MeridianGrammarResolver = (opts: {
 }) => ReactNode;
 
 export interface MeridianContextValue {
+  onPromptResponse?: import("@savvifi/meridian-schemas/uiview").PromptResponseHandler;
   theme?: Theme;
   /** Bounded static stream snapshots keyed by panel ID; frames use the canonical proto envelope. */
   streamSnapshots?: Readonly<Record<string, readonly StreamFrame[]>>;
@@ -183,6 +184,7 @@ export function MeridianProvider({
       value.kit,
       value.adhoc,
       value.onAction,
+      value.onPromptResponse,
       value.renderIcon,
       value.renderGrammar,
       value.resolveHref,

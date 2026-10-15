@@ -108,6 +108,10 @@ def scenario(panel_json, arm, state):
         body["userTemplate"] = "" if state == "empty" else "Summarize {{text}}" * (20 if state == "overflow" else 1)
         body["slots"] = [] if state == "empty" else [{"name": "text", "field": {
             "fieldId": "text", "label": "Source text", "text": {"defaultValue": "A fixture document."}}, "multiLine": True}]
+    if arm == "prompt":
+        for field in body.get("fields", []):
+            if "text" in field:
+                field["text"]["defaultValue"] = "" if state == "empty" else field["text"].get("defaultValue", "") * (20 if state == "overflow" else 1)
     if arm == "form":
         body["prefill"] = {"service": "fixture.Forms", "method": "Get"}
         responses["fixture.Forms.Get"] = {"groups": [] if state == "empty" else [

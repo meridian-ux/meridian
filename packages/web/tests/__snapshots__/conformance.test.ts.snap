@@ -167,11 +167,18 @@ exports[`renderPanel (web-components, binary boundary) > renders the canonical p
 form
   p
     "Delete this resource?"
-  label
-    "Reason"
-    input type="text"
-  button type="submit"
-    "Submit""
+  fieldset disabled
+    fieldset
+      legend
+        "Reason"
+      input aria-label="Reason" type="text"
+  button type="submit" disabled
+    "Submit"
+  button type="button" disabled
+    "Cancel"
+  p role="status"
+    "No prompt handler configured."
+  p role="alert""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical record card fixture > web-components/record_card 1`] = `

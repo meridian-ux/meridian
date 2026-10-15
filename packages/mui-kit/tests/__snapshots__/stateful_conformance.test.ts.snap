@@ -3624,7 +3624,9 @@ form
     "Reason"
   input type="text" value=""
   button type="submit"
-    "Submit""
+    "Submit"
+button type="button"
+  "Cancel""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'prompt/overflow' > mui-kit/prompt/overflow 1`] = `
@@ -3632,13 +3634,16 @@ exports[`MUI stateful ViewDescriptor corpus > 'prompt/overflow' > mui-kit/prompt
   "Conformance: prompt · overflow"
 h3
   "prompt · overflow"
-form
+p
   "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+form
   label
     "Reason"
-  input type="text" value=""
+  input type="text" value="Fixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reasonFixture reason"
   button type="submit"
-    "Submit""
+    "Submit"
+button type="button"
+  "Cancel""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'prompt/typical' > mui-kit/prompt/typical 1`] = `
@@ -3646,13 +3651,16 @@ exports[`MUI stateful ViewDescriptor corpus > 'prompt/typical' > mui-kit/prompt/
   "Conformance: prompt · typical"
 h3
   "prompt · typical"
-form
+p
   "Delete this resource?"
+form
   label
     "Reason"
-  input type="text" value=""
+  input type="text" value="Fixture reason"
   button type="submit"
-    "Submit""
+    "Submit"
+button type="button"
+  "Cancel""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'record_card/empty' > mui-kit/record_card/empty 1`] = `
