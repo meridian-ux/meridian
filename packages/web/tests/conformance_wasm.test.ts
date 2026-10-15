@@ -181,6 +181,19 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
         }
       }
       expect(tree).toMatchSnapshot(`web-components/${fixture.name}`);
+      if (fixture.arm === "llm_prompt") {
+        const slot = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Source text"]');
+        if (fixture.state === "empty") expect(slot).toBeNull();
+        else {
+          expect(slot?.value).toBe("A fixture document.");
+          slot!.value = "Edited {{text}}\n<script>literal</script>";
+          container.querySelector("form")!.dispatchEvent(new Event("submit", { cancelable: true }));
+          const expected = "Summarize Edited {{text}}\n<script>literal</script>".repeat(fixture.state === "overflow" ? 20 : 1);
+          expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toBe(expected);
+          expect(container.querySelector("script")).toBeNull();
+          expect(invoke).not.toHaveBeenCalled();
+        }
+      }
     } finally {
       container.querySelectorAll<HTMLElement>(".meridian-uiview-panel").forEach(disposePanel);
       // Include every panel root regardless of its presentation class.
