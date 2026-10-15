@@ -270,6 +270,9 @@ pub(crate) struct PromptState {
     show_details: bool,
     detail_scroll: u16,
     multiline_rows: HashMap<String, u32>,
+    // Form/LRO compound editors must use the same validator as their submit
+    // boundary. Legacy standalone prompts retain their existing contract.
+    core_compound_validation: bool,
 }
 
 impl PromptState {
@@ -285,6 +288,7 @@ impl PromptState {
         };
         let mut state = Self::new(&panel)?;
         state.states[0].text = value.to_string();
+        state.core_compound_validation = true;
         Ok(state)
     }
 
@@ -356,6 +360,7 @@ impl PromptState {
             show_details: false,
             detail_scroll: 0,
             multiline_rows: HashMap::new(),
+            core_compound_validation: false,
         })
     }
 
@@ -410,7 +415,12 @@ impl PromptState {
                     self.focus = (self.focus + self.states.len() - 1) % self.states.len()
                 }
                 KeyCode::Enter => {
-                    if validate_all(&mut self.states) {
+                    let valid = if self.core_compound_validation {
+                        validate_core_compounds(&mut self.states)
+                    } else {
+                        validate_all(&mut self.states)
+                    };
+                    if valid {
                         self.finished = Some("Submitted.");
                         return Some(PromptResponse::Submitted(collect(&self.states)));
                     }
@@ -667,6 +677,24 @@ fn validate_all(states: &mut [FieldState]) -> bool {
         }
     }
     all_ok
+}
+
+fn validate_core_compounds(states: &mut [FieldState]) -> bool {
+    let mut valid = true;
+    for state in states {
+        state.error = serde_json::from_str::<serde_json::Value>(&state.text)
+            .map_err(|error| format!("invalid JSON: {error}"))
+            .and_then(|value| {
+                let values = serde_json::Value::Object(serde_json::Map::from_iter([(
+                    state.field.field_id.clone(),
+                    value,
+                )]));
+                meridian_uiview::validate_form_values(std::slice::from_ref(&state.field), &values)
+            })
+            .err();
+        valid &= state.error.is_none();
+    }
+    valid
 }
 
 fn validate_one(s: &FieldState) -> Option<String> {

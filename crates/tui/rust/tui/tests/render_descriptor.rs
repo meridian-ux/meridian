@@ -219,7 +219,7 @@ mod inline_form_validation {
         let mut view = PanelView::new();
         draw(&mut view, &original);
         edit(&mut view, form(&original), r#"{"bad":false}"#);
-        assert!(draw(&mut view, &original).contains("must be a string"));
+        assert!(draw(&mut view, &original).contains("invalid map"));
         let replacement = descriptor(vec![field(
             "name",
             Kind::Text(TextInput {
@@ -236,6 +236,44 @@ mod inline_form_validation {
                 .unwrap()
                 .request,
             json!({"name":"replacement"})
+        );
+    }
+    #[test]
+    fn compound_editor_uses_the_same_core_constraints_as_submission() {
+        let descriptor = descriptor(vec![field(
+            "nested",
+            Kind::Nested(NestedForm {
+                fields: vec![
+                    field(
+                        "unicode",
+                        Kind::Text(TextInput {
+                            min_length: 2,
+                            max_length: 2,
+                            ..Default::default()
+                        }),
+                    ),
+                    field(
+                        "pattern",
+                        Kind::Text(TextInput {
+                            pattern: "ready".into(),
+                            ..Default::default()
+                        }),
+                    ),
+                ],
+            }),
+        )]);
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor);
+        edit(
+            &mut view,
+            form(&descriptor),
+            r#"{"unicode":"🦀","pattern":"already ready"}"#,
+        );
+        assert_eq!(
+            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request,
+            json!({"nested":{"unicode":"🦀","pattern":"already ready"}})
         );
     }
     #[test]
