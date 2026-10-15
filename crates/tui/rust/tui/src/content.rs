@@ -492,10 +492,17 @@ pub fn render_detail_header(
             palette.title(),
         )));
     }
+    let label_width = panel
+        .descriptor_rows
+        .iter()
+        .map(|row| Span::raw(row.label.as_str()).width())
+        .max()
+        .unwrap_or(0);
     for row in &panel.descriptor_rows {
-        lines.push(labeled_value(
+        lines.extend(labeled_value(
             &row.label,
             &value_at_display(record, &row.source_path, row.display.as_ref()),
+            label_width,
             palette,
         ));
     }
@@ -511,17 +518,27 @@ pub fn render_record_card(
     palette: &Palette,
 ) {
     let record = record.unwrap_or(&Value::Null);
+    let label = |field: &FormField| {
+        if field.label.is_empty() {
+            field.field_id.clone()
+        } else {
+            field.label.clone()
+        }
+    };
+    let label_width = panel
+        .fields
+        .iter()
+        .map(|field| Span::raw(label(field)).width())
+        .max()
+        .unwrap_or(0);
     let lines = panel
         .fields
         .iter()
-        .map(|field| {
+        .flat_map(|field| {
             labeled_value(
-                if field.label.is_empty() {
-                    &field.field_id
-                } else {
-                    &field.label
-                },
+                &label(field),
                 &value_at_display(record, &field.field_id, field.display.as_ref()),
+                label_width,
                 palette,
             )
         })
@@ -529,11 +546,30 @@ pub fn render_record_card(
     frame.render_widget(bordered(lines, palette), area);
 }
 
-fn labeled_value(label: &str, value: &str, palette: &Palette) -> Line<'static> {
-    Line::from(vec![
-        Span::styled(format!("{label}: "), palette.meta()),
-        Span::styled(value.to_string(), palette.text()),
-    ])
+fn labeled_value(
+    label: &str,
+    value: &str,
+    label_width: usize,
+    palette: &Palette,
+) -> Vec<Line<'static>> {
+    // Measure terminal cells rather than UTF-8 bytes or code points. Keep each
+    // authored value line in the same column, including blank/trailing lines.
+    let padding = label_width.saturating_sub(Span::raw(label).width());
+    value
+        .split('\n')
+        .enumerate()
+        .map(|(index, part)| {
+            let prefix = if index == 0 {
+                format!("{}{label}: ", " ".repeat(padding))
+            } else {
+                " ".repeat(label_width + 2)
+            };
+            Line::from(vec![
+                Span::styled(prefix, palette.meta()),
+                Span::styled(part.to_owned(), palette.text()),
+            ])
+        })
+        .collect()
 }
 
 /// Build the initial values for a FormPanel from its declared field defaults.
@@ -2646,6 +2682,78 @@ mod tests {
         assert!(card_text.contains("Name: Build 42"));
         assert!(card_text.contains("Region: us-east"));
         assert!(card_text.contains("Score: 1.24"));
+    }
+
+    #[test]
+    fn record_panels_align_values_by_terminal_width_including_continuations() {
+        use meridian_uiview::proto::DescriptorRow;
+        use ratatui::{backend::TestBackend, Terminal};
+
+        // CJK occupies two cells; the combining accent occupies no extra cell.
+        let labels = ["ID", "Owner", "地域", "e\u{301}", ""];
+        let record =
+            serde_json::json!({"a": "A\nNEXT", "b": "B", "c": "C", "d": "D", "alias": "E"});
+        let keys = ["a", "b", "c", "d", "alias"];
+        let header = DetailHeaderPanel {
+            title: "Record".into(),
+            descriptor_rows: labels
+                .iter()
+                .zip(keys)
+                .map(|(label, key)| DescriptorRow {
+                    label: (*label).into(),
+                    source_path: key.into(),
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        };
+        let card = RecordCardPanel {
+            fields: labels
+                .iter()
+                .zip(keys)
+                .map(|(label, key)| FormField {
+                    label: (*label).into(),
+                    field_id: key.into(),
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        };
+        for detail in [true, false] {
+            let mut terminal = Terminal::new(TestBackend::new(40, 12)).unwrap();
+            terminal
+                .draw(|frame| {
+                    if detail {
+                        render_detail_header(
+                            frame,
+                            frame.area(),
+                            &header,
+                            Some(&record),
+                            &Palette::default(),
+                        );
+                    } else {
+                        render_record_card(
+                            frame,
+                            frame.area(),
+                            &card,
+                            Some(&record),
+                            &Palette::default(),
+                        );
+                    }
+                })
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            for (row, text) in ["A", "NEXT", "B", "C", "D", "E"].iter().enumerate() {
+                let y = row as u16 + if detail { 2 } else { 1 };
+                for (offset, character) in text.chars().enumerate() {
+                    assert_eq!(
+                        buffer[(8 + offset as u16, y)].symbol(),
+                        character.to_string(),
+                        "detail={detail}, row={row}: values must share the widest label column"
+                    );
+                }
+            }
+        }
     }
 
     #[test]

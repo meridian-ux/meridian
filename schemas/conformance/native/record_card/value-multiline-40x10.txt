@@ -2,7 +2,7 @@ viewport 40x10
 multiline
 ┌──────────────────────────────────────┐
 │Declared value: first                 │
-│second                                │
+│                second                │
 │                                      │
 │                                      │
 │                                      │
