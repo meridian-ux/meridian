@@ -10,9 +10,57 @@ import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
+import { MaskedMultiline } from "../src/masked_multiline.js";
 
 beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterAll(() => vi.unstubAllGlobals());
+
+describe("masked multiline editor", () => {
+  it("keeps raw CRLF form data in native password controls and supports split, join, paste, drop, and IME", async () => {
+    const container = document.createElement("div"); document.body.append(container);
+    const root = createRoot(container);
+    const input = (index: number) => container.querySelectorAll<HTMLInputElement>('input[type="password"]')[index];
+    const raw = () => new FormData(container.querySelector("form")!).get("secret");
+    const key = async (index: number, name: string, position: number, composing = false) => {
+      input(index).setSelectionRange(position, position);
+      await act(async () => input(index).dispatchEvent(new KeyboardEvent("keydown", { key: name, isComposing: composing, bubbles: true, cancelable: true })));
+    };
+    try {
+      await act(async () => root.render(createElement("form", null, createElement(MaskedMultiline, { name: "secret", label: "Secret", defaultValue: "ab\r\ncd\r\n" }))));
+      expect(container.querySelector("textarea")).toBeNull(); expect(container.textContent).not.toContain("ab");
+      expect(raw()).toBe("ab\r\ncd\r\n");
+      await key(0, "Enter", 1, true); expect(raw()).toBe("ab\r\ncd\r\n");
+      await key(0, "Enter", 1); expect(raw()).toBe("a\r\nb\r\ncd\r\n");
+      expect(document.activeElement).toBe(input(1)); expect(input(1).selectionStart).toBe(0);
+      await key(1, "Backspace", 0); expect(raw()).toBe("ab\r\ncd\r\n");
+      await key(0, "Delete", 2); expect(raw()).toBe("abcd\r\n");
+      input(0).setSelectionRange(1, 3);
+      const paste = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(paste, "clipboardData", { value: { getData: () => "🦀\nX" } });
+      await act(async () => input(0).dispatchEvent(paste)); expect(raw()).toBe("a🦀\nXd\r\n");
+      const drop = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(drop, "dataTransfer", { value: { getData: () => "Z\rY" } });
+      input(1).setSelectionRange(0, 1);
+      await act(async () => input(1).dispatchEvent(drop)); expect(raw()).toBe("a🦀\nZ\rYd\r\n");
+    } finally { await act(async () => root.unmount()); container.remove(); }
+  });
+  it("pages without truncating values, focuses hidden-page lines, and handles controlled shrink", async () => {
+    const container = document.createElement("div"); document.body.append(container); const root = createRoot(container);
+    const raw = Array.from({ length: 102 }, (_, index) => `secret-${index}`).join("\r\n");
+    try {
+      await act(async () => root.render(createElement(MaskedMultiline, { label: "Secret", name: "secret", value: raw, rows: 2147483647 })));
+      expect(container.querySelectorAll('input[type="password"]')).toHaveLength(100);
+      expect(container.querySelector<HTMLInputElement>('input[type="hidden"]')!.value).toBe(raw);
+      await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Next lines")!.click());
+      expect(container.querySelectorAll('input[type="password"]')).toHaveLength(2);
+      expect(document.activeElement?.getAttribute("aria-label")).toBe("Secret, line 101");
+      await act(async () => root.render(createElement(MaskedMultiline, { label: "Secret", name: "secret", value: "short", disabled: true })));
+      expect(container.querySelectorAll('input[type="password"]')).toHaveLength(1);
+      expect(container.querySelector<HTMLInputElement>('input[type="password"]')!.value).toBe("short");
+      expect(container.querySelector("fieldset")!.disabled).toBe(true);
+    } finally { await act(async () => root.unmount()); container.remove(); }
+  });
+});
 
 const fixture = () => create(PanelDescriptorSchema, {
   panelId: "preview", title: "Prompt preview",
@@ -36,6 +84,23 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} LlmPrompt`, () => {
   const invoke = vi.fn(async () => ({}));
   const view = (descriptor = fixture()) => createElement(MeridianProvider,
     { kit, invoker: { invoke }, adhoc: {} }, createElement(PanelRenderer, { descriptor }));
+
+  it("preserves multiline masked slots while concealing each new preview", async () => {
+    const descriptor = create(PanelDescriptorSchema, { panelId: "masked", body: { case: "llmPrompt", value: {
+      userTemplate: "{{secret}}", slots: [{ name: "secret", multiLine: true, field: { label: "Secret", kind: { case: "masked", value: { defaultValue: "first\r\n\r\nlast\n" } } } }],
+    } } });
+    const container = document.createElement("div"), root = createRoot(container);
+    try {
+      await act(async () => root.render(view(descriptor)));
+      expect(container.querySelector("textarea")).toBeNull(); expect(container.querySelectorAll('input[type="password"]')).toHaveLength(4);
+      await act(async () => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+      expect(container.querySelector('[aria-label="User prompt"] pre')!.textContent).toBe("••••••");
+      await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Show masked values in preview")!.click());
+      expect(container.querySelector('[aria-label="User prompt"] pre')!.textContent).toBe("first\r\n\r\nlast\n");
+      await act(async () => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+      expect(container.querySelector('[aria-label="User prompt"] pre')!.textContent).toBe("••••••");
+    } finally { await act(async () => root.unmount()); }
+  });
 
   it("renders model metadata, templates, schema, and typed accessible slot inputs", () => {
     const container = document.createElement("div");
@@ -122,8 +187,12 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} LlmPrompt`, () => {
       await act(async () => root.render(view(descriptor)));
       await act(async () => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
       expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toBe(
-        "{{b}} / {{a}} / [] 0 -1.5 false stored-token secret / Ada $& <tag> 🦀 / literal.name / {{missing}}",
+        "{{b}} / {{a}} / [] 0 -1.5 false stored-token •••••• / Ada $& <tag> 🦀 / literal.name / {{missing}}",
       );
+      await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Show masked values in preview")!.click());
+      expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toContain("stored-token secret");
+      await act(async () => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+      expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).not.toContain("secret");
       expect(container.querySelector("tag")).toBeNull();
       expect(container.textContent).toContain("Unresolved slots: missing");
     } finally { await act(async () => root.unmount()); }

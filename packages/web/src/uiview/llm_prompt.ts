@@ -3,7 +3,7 @@ import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/prot
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { buildFormField } from "./form.js";
-import { renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 // All state here is local DOM state. The descriptor stays a canonical protobuf;
 // preview does not execute an LLM, invoke mutations, or serialize a new DTO.
@@ -31,6 +31,9 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   if (panel.slots.some(slot => slot.field)) form.append(preview);
   form.append(retry); element.append(form);
   const values = new Map<string, string>();
+  const masked = new Set(panel.slots.filter(slot => hasMaskedField(slot.field)).map(slot => slot.name));
+  let reveal = false;
+  const revealButton = document.createElement("button"); revealButton.type = "button"; revealButton.hidden = true; element.append(revealButton);
   const templates: Array<{ source: string; output: HTMLElement }> = [];
   for (const [label, source] of [["System prompt", panel.systemTemplate], ["User prompt", panel.userTemplate]]) {
     if (!source && label === "System prompt") continue;
@@ -46,10 +49,12 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   const updatePreview = () => {
     const missing = new Set<string>();
     for (const { source, output } of templates) {
-      const rendered = renderPromptTemplate(source, values); output.textContent = rendered.text;
+      const rendered = renderPromptTemplate(source, values, reveal ? undefined : masked); output.textContent = rendered.text;
       rendered.unresolved.forEach(name => missing.add(name));
     }
     unresolved.textContent = missing.size ? `Unresolved slots: ${[...missing].join(", ")}` : "";
+    revealButton.hidden = ![...masked].some(name => values.has(name));
+    revealButton.textContent = reveal ? "Hide masked values in preview" : "Show masked values in preview";
   };
   updatePreview();
   let alive = true, pending = false, ready = false;
@@ -88,10 +93,12 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
       const next = readers.map(({ name, read }) => { const value = read(); return [name,
         typeof value === "string" ? value : JSON.stringify(value)] as const; });
       values.clear(); for (const [name, value] of next) values.set(name, value);
+      reveal = false;
       error.textContent = ""; updatePreview();
     } catch (reason) { error.textContent = reason instanceof Error ? reason.message : String(reason); }
   });
   retry.addEventListener("click", () => { void load(); });
+  revealButton.addEventListener("click", () => { if (alive) { reveal = !reveal; updatePreview(); } });
   if (panel.slots.some(slot => slot.field && hasOptionsSource(slot.field))) void load();
   else ready = true;
   return { element, dispose: () => { alive = false; } };

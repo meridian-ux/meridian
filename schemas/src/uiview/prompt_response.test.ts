@@ -4,9 +4,51 @@ import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { createPromptResponder, promptValues } from "./prompt_response.js";
 import { validateFormValues } from "./form_values.js";
-import { renderPromptTemplate } from "./prompt_template.js";
+import { hasMaskedField, renderPromptTemplate } from "./prompt_template.js";
+import { editMaskedSelection, maskedLines, replaceMaskedLine } from "./masked_multiline.js";
+
+describe("lossless masked multiline editing", () => {
+  it("preserves mixed separators, blank lines, trailing lines, and Unicode", () => {
+    const raw = "🦀\r\n\rnext\n";
+    expect(maskedLines(raw).map(line => line.value)).toEqual(["🦀", "", "next", ""]);
+    expect(replaceMaskedLine(raw, 2, "変更")).toBe("🦀\r\n\r変更\n");
+    expect(maskedLines("")).toEqual([{ start: 0, end: 0, value: "" }]);
+    expect(replaceMaskedLine(raw, 99, "ignored")).toBe(raw);
+  });
+  it.each(["\n", "\r\n", "\r"])("inherits %j for inserted breaks and joins only separator bytes", separator => {
+    const raw = `ab${separator}cd`;
+    expect(editMaskedSelection(raw, 0, 1, 1, "break")).toEqual({ value: `a${separator}b${separator}cd`, line: 1, column: 0 });
+    expect(editMaskedSelection(raw, 1, 0, 0, "backspace")).toEqual({ value: "abcd", line: 0, column: 2 });
+    expect(editMaskedSelection(raw, 0, 2, 2, "delete")).toEqual({ value: "abcd", line: 0, column: 2 });
+  });
+  it("replaces selected text with exact pasted separators and places the cursor after it", () => {
+    expect(editMaskedSelection("a🦀z\r\nend", 0, 1, 3, "insert", "X\rY\n")).toEqual({ value: "aX\rY\nz\r\nend", line: 2, column: 0 });
+    expect(editMaskedSelection("a\nb", 0, 1, 1, "insert", "\r")).toEqual({ value: "a\r\nb", line: 1, column: 0 });
+  });
+  it("delegates in-line deletion to native password input editing", () => {
+    expect(editMaskedSelection("abc\ndef", 0, 1, 1, "backspace")).toBeUndefined();
+    expect(editMaskedSelection("abc\ndef", 0, 1, 2, "delete")).toBeUndefined();
+    expect(editMaskedSelection("abc", 0, 3, 3, "delete")).toBeUndefined();
+    expect(editMaskedSelection("abc", 0, 0, 0, "backspace")).toBeUndefined();
+  });
+});
 
 describe("shared browser prompt templates", () => {
+  it("finds masked descendants in nested fields and both repeated element kinds", () => {
+    const secret = create(FormFieldSchema, { kind: { case: "masked", value: {} } });
+    const nested = create(FormFieldSchema, { kind: { case: "nested", value: { fields: [secret] } } });
+    expect(hasMaskedField(nested)).toBe(true);
+    expect(hasMaskedField(create(FormFieldSchema, { kind: { case: "repeated", value: { element: { case: "scalar", value: nested } } } }))).toBe(true);
+    expect(hasMaskedField(create(FormFieldSchema, { kind: { case: "repeated", value: { element: { case: "object", value: { fields: [nested] } } } } }))).toBe(true);
+    expect(hasMaskedField(create(FormFieldSchema, { kind: { case: "text", value: {} } }))).toBe(false);
+    expect(hasMaskedField(undefined)).toBe(false);
+  });
+  it("conceals known masked slots without mutating raw values or hiding unresolved names", () => {
+    const values = new Map([["secret", "a\r\nb"], ["empty", ""]]);
+    expect(renderPromptTemplate("{{secret}} {{empty}} {{unknown}}", values, new Set(["secret", "empty", "unknown"]))).toEqual({ text: "•••••• •••••• {{unknown}}", unresolved: ["unknown"] });
+    expect(renderPromptTemplate("{{secret}}", values).text).toBe("a\r\nb");
+    expect(values.get("secret")).toBe("a\r\nb");
+  });
   it("never recursively expands token-shaped slot values", () => {
     expect(renderPromptTemplate("{{a}} / {{b}}", new Map([["a", "{{b}}"], ["b", "{{a}}"]]))).toEqual({ text: "{{b}} / {{a}}", unresolved: [] });
   });

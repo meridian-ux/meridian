@@ -1,52 +1,36 @@
-import { useState, type FormEvent } from "react";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import { FormFieldRow, type FormFieldClasses } from "./form_fields.js";
-import { renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { FormEnumValues, FormFieldRow, type FormFieldClasses } from "./form_fields.js";
+import { readFormFields } from "./form.js";
+import { hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { MaskedMultiline } from "./masked_multiline.js";
 
-// Read the shared FormField controls using their documented FormData paths.
-// Runtime values stay local to this preview; they never cross an RPC boundary.
-function readField(field: FormField, name: string, data: FormData): unknown {
-  const kind = field.kind;
-  if (kind.case === "boolean") return data.has(name);
-  if (kind.case === "nested") return Object.fromEntries(kind.value.fields.map((child) => {
-    const key = child.requestField || child.fieldId;
-    return [key, readField(child, `${name}.${key}`, data)];
-  }));
-  if (kind.case === "repeated") {
-    const count = Number(data.get(`${name}.__count`) || 0);
-    const element = kind.value.element;
-    return Array.from({ length: count }, (_, index) => {
-      const path = `${name}[${index}]`;
-      if (element.case === "scalar") return readField(element.value, path, data);
-      if (element.case === "object") return Object.fromEntries(element.value.fields.map((child) => {
-        const key = child.requestField || child.fieldId;
-        return [key, readField(child, `${path}.${key}`, data)];
-      }));
-      return null;
-    });
-  }
-  if (kind.case === "keyValueMap") return JSON.parse(String(data.get(name) || "{}"));
-  const value = String(data.get(name) ?? "");
-  return (kind.case === "integer" || kind.case === "number") && value !== "" ? Number(value) : value;
-}
 
 /** Preview-only realization shared by the two reference kits. */
 export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormFieldClasses }) {
   const [values, setValues] = useState<Map<string, string>>(new Map());
-  const system = renderPromptTemplate(panel.systemTemplate, values);
-  const user = renderPromptTemplate(panel.userTemplate, values);
+  const [error, setError] = useState("");
+  const [reveal, setReveal] = useState(false);
+  const masked = new Set(panel.slots.filter(slot => hasMaskedField(slot.field)).map(slot => slot.name));
+  const enums = useRef(new Map<string, readonly string[]>());
+  const fields = useMemo(() => panel.slots.flatMap((slot, index) => slot.field ? [{ ...slot.field,
+    fieldId: `slot-${index}`, requestField: `slot-${index}`, label: slot.field.label || slot.name }] : []), [panel.slots]);
+  const system = renderPromptTemplate(panel.systemTemplate, values, reveal ? undefined : masked);
+  const user = renderPromptTemplate(panel.userTemplate, values, reveal ? undefined : masked);
   const unresolved = [...new Set([...system.unresolved, ...user.unresolved])];
   const model = panel.modelHint;
 
   function preview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    setValues(new Map(panel.slots.flatMap((slot, index) => {
-      if (!slot.field) return [];
-      const value = readField(slot.field, `slot-${index}`, data);
-      return [[slot.name, typeof value === "string" ? value : JSON.stringify(value)] as const];
-    })));
+    setReveal(false);
+    try {
+      const input = readFormFields(fields, new FormData(event.currentTarget), enums.current);
+      setValues(new Map(panel.slots.flatMap((slot, index) => {
+        if (!slot.field) return [];
+        const value = input[`slot-${index}`];
+        return [[slot.name, typeof value === "string" ? value : JSON.stringify(value)] as const];
+      }))); setError("");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); }
   }
 
   return (
@@ -59,10 +43,16 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
         {model.temperature !== 0 && <><dt>Temperature</dt><dd>{model.temperature}</dd></>}
       </dl>}
       <form className={c.nested} onSubmit={preview}>
+        <FormEnumValues.Provider value={enums.current}>
         {panel.slots.map((slot, index) => {
           const field = slot.field;
           if (!field) return <p key={index} role="status">No input declared for {slot.name}.</p>;
           const multiline = slot.multiLine && (field.kind.case === "text" || field.kind.case === "masked");
+          if (multiline && field.kind.case === "masked") return <div key={index}>
+            {field.description && <p>{field.description}</p>}
+            <MaskedMultiline name={`slot-${index}`} label={field.label || slot.name} defaultValue={field.kind.value.defaultValue}
+              rows={slot.rows > 0 ? slot.rows : 4} className={c.field} inputClassName={c.fieldInput} />
+          </div>;
           return multiline ? (
             <label key={index} className={c.field}>
               <span className={c.fieldLabel}>{field.label || slot.name}</span>
@@ -75,11 +65,14 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
               field={{ ...field, fieldId: `slot-${index}`, requestField: `slot-${index}`, label: field.label || slot.name }} />
           );
         })}
+        </FormEnumValues.Provider>
         {panel.slots.some((slot) => slot.field) && <button type="submit" className={c.addBtn}>Preview</button>}
       </form>
+      {[...masked].some(name => values.has(name)) && <button type="button" onClick={() => setReveal(value => !value)}>{reveal ? "Hide masked values in preview" : "Show masked values in preview"}</button>}
       {panel.systemTemplate && <section aria-label="System prompt"><h4>System prompt</h4><pre>{system.text}</pre></section>}
       <section aria-label="User prompt"><h4>User prompt</h4><pre>{user.text}</pre></section>
       {unresolved.length > 0 && <p role="status">Unresolved slots: {unresolved.join(", ")}</p>}
+      {error && <p role="alert">{error}</p>}
       {panel.outputJsonSchema && <section aria-label="Output JSON schema"><h4>Output JSON schema</h4><pre>{panel.outputJsonSchema}</pre></section>}
     </div>
   );

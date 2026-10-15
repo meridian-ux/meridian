@@ -55,6 +55,24 @@ async function main() {
       }
     };
 
+    await check("masked multiline: native typing, split/join, and opt-in preview preserve exact raw data", async () => {
+      await render("llm-masked-multiline");
+      const line = number => page.getByLabel(`Secret, line ${number}`, { exact: true });
+      if (await page.locator("textarea").count()) throw new Error("Masked secret rendered in plaintext textarea");
+      await line(1).fill("edited");
+      await line(1).press("Home"); await line(1).press("ArrowRight"); await line(1).press("Enter");
+      if (await line(1).inputValue() !== "e" || await line(2).inputValue() !== "dited") throw new Error("Enter did not split the password line");
+      await line(2).press("Backspace");
+      if (await line(1).inputValue() !== "edited") throw new Error("Backspace did not join lines");
+      await page.getByRole("button", { name: "Preview", exact: true }).click();
+      const output = page.locator('[aria-label="User prompt"] pre');
+      if (await output.textContent() !== "••••••") throw new Error("Preview exposed masked data without consent");
+      await page.getByRole("button", { name: "Show masked values in preview", exact: true }).click();
+      if (await output.textContent() !== "edited\r\nlast\r\n") throw new Error("Preview lost original CRLF or trailing line");
+      await page.getByRole("button", { name: "Preview", exact: true }).click();
+      if (await output.textContent() !== "••••••") throw new Error("New preview retained reveal consent");
+    });
+
     // ── Table · client pagination ──
     await check("table-client: MUI headers + populated rows", async () => {
       await render("table-client");

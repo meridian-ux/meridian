@@ -124,6 +124,7 @@ js_binary(
 # capture action is served from cache, which restores only the declared outputs and
 # then \includegraphics halts on the missing file. Keep this list in sync.
 FIXTURES = [
+    "llm-masked-multiline",
     "table-client",
     "table-offset",
     "table-cursor",

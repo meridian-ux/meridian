@@ -28,6 +28,14 @@ never HTML. The shared browser template helper substitutes original tokens once,
 leaves unresolved tokens visible, and keeps token-shaped slot values literal.
 This surface does not execute a model or invoke a provider API.
 
+Multiline masked slots use native password inputs per line, retaining exact
+line separators and trailing blank lines. Enter splits a line; boundary
+Backspace/Delete joins lines. Multiline paste is supported, and long values are
+paged without truncation. Masked slots and aggregates containing masked fields
+stay concealed in preview until **Show masked values in preview** is selected;
+each successful new preview resets concealment. Masking is visual protection,
+not encryption or isolation from host-page code.
+
 `MeridianMuiProvider` forwards the shared `onPromptResponse(panelId, values)`
 callback for standalone prompts. `values` is a protobuf `Struct` keyed by field
 ID (or by panel ID for a boolean confirmation); `null` means cancellation.

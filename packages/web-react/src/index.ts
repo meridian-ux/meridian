@@ -84,6 +84,7 @@ export { reactWebRenderer } from "./react_web_renderer.js";
 export { useDisplayNow } from "./display_now.js";
 export { useStatData } from "./stat_data.js";
 export { usePromptResponse } from "./prompt.js";
+export { MaskedMultiline } from "./masked_multiline.js";
 export { ResourceCardsView, useResourceCardRows, type ResourceCardState } from "./resource_cards.js";
 export { htmlKit } from "./html_kit.js";
 export { shadcnKit } from "./shadcn_kit.js";

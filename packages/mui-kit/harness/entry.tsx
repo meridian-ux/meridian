@@ -50,7 +50,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";
@@ -454,6 +454,17 @@ interface Fixture {
 }
 
 const fixtures: Fixture[] = [
+  {
+    name: "llm-masked-multiline",
+    label: "LLM · masked multiline preview",
+    group: "Primitives",
+    invoker: { invoke: async () => { throw new Error("Preview must not invoke RPCs"); } },
+    element: () => createElement(PanelRenderer, { descriptor: create(PanelDescriptorSchema, {
+      panelId: "masked-preview", body: { case: "llmPrompt", value: {
+        userTemplate: "{{secret}}", slots: [{ name: "secret", multiLine: true, field: { label: "Secret", kind: { case: "masked", value: { defaultValue: "first\r\nlast\r\n" } } } }],
+      } },
+    }) }),
+  },
   {
     name: "table-client",
     label: "Table · client pagination",

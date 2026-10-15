@@ -9,6 +9,15 @@ import { MeridianForm } from "../src/components/form.js";
 afterEach(cleanup);
 
 describe("MeridianForm FormField.display", () => {
+  it("never formats disabled masked values as plaintext, even with a TEXT display", () => {
+    const { container } = render(<MeridianForm fields={[{
+      key: "secret", label: "Secret", value: "first\r\nlast", masked: true, multilineRows: 4,
+      disabled: true, display: create(ValueDisplaySchema, { type: ValueType.TEXT }), onChange: () => {},
+    }]} submit={{ label: "Save", onSubmit: () => {}, disabled: true }} />);
+    expect(container.textContent).not.toContain("first"); expect(container.textContent).not.toContain("last");
+    expect(container.textContent).toContain("••••••");
+    expect(container.querySelector("textarea")).toBeNull();
+  });
   it("formats disabled scalar values without leaving an inert input", () => {
     const display = create(ValueDisplaySchema, {
       type: ValueType.DATE,

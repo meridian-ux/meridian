@@ -15,7 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { safeWebSocketUrl, validateFormValues, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -878,7 +878,9 @@ function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
   const multilineRows = useMemo(() => new Map(panel.slots.flatMap((slot, index) => slot.multiLine &&
     (slot.field?.kind.case === "text" || slot.field?.kind.case === "masked") ? [[`slot-${index}`, slot.rows > 0 ? slot.rows : 4] as const] : [])), [panel.slots]);
   const [values, setValues] = useState<ReadonlyMap<string, string>>(() => new Map());
-  const system = renderPromptTemplate(panel.systemTemplate, values), user = renderPromptTemplate(panel.userTemplate, values);
+  const [reveal, setReveal] = useState(false);
+  const masked = new Set(panel.slots.filter(slot => hasMaskedField(slot.field)).map(slot => slot.name));
+  const system = renderPromptTemplate(panel.systemTemplate, values, reveal ? undefined : masked), user = renderPromptTemplate(panel.userTemplate, values, reveal ? undefined : masked);
   const unresolved = [...new Set([...system.unresolved, ...user.unresolved])];
   const model = panel.modelHint;
   return (
@@ -900,14 +902,15 @@ function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
           submitLabel="Preview"
           enumInvoker={invoker}
           multilineRows={multilineRows}
-          onSubmit={input => setValues(new Map(panel.slots.flatMap((slot, index) => {
+          onSubmit={input => { setReveal(false); setValues(new Map(panel.slots.flatMap((slot, index) => {
             if (!slot.field) return [];
             const value = input[`slot-${index}`];
             return [[slot.name, typeof value === "string" ? value : JSON.stringify(value)] as const];
-          })))}
+          }))); }}
         />
       )}
       {unresolved.length > 0 && <Typography role="status">Unresolved slots: {unresolved.join(", ")}</Typography>}
+      {[...masked].some(name => values.has(name)) && <Button onClick={() => setReveal(value => !value)}>{reveal ? "Hide masked values in preview" : "Show masked values in preview"}</Button>}
       {panel.outputJsonSchema && <Box component="section" aria-label="Output JSON schema"><Typography component="h4">Output JSON schema</Typography><Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.outputJsonSchema}</Box></Box>}
     </Stack>
   );

@@ -2,6 +2,7 @@ import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { buildMaskedMultiline } from "./masked_multiline.js";
 
 // Native option styling is platform-dependent; expose semantic roles without literal colors.
 const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: "info", 3: "success", 4: "warning", 5: "danger", 6: "accent" };
@@ -106,7 +107,18 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
     span.textContent = kind.case === "masked" ? "••••••" : field.display ? formatByDisplay(value, field.display).text : String(value);
     box.append(span); return () => value;
   }
-  const input = kind.case === "keyValueMap" || (multilineRows > 0 && (kind.case === "text" || kind.case === "masked")) ? document.createElement("textarea")
+  if (kind.case === "masked" && multilineRows > 0) {
+    const editor = buildMaskedMultiline(field.fieldId, field.label || field.fieldId, String(value), multilineRows);
+    box.append(editor.element);
+    if (field.description) { const help = document.createElement("p"); help.textContent = field.description; box.append(help); }
+    return () => {
+      const text = editor.read(), spec = kind.value;
+      if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength)) throw new Error(`${field.label}: invalid length.`);
+      if (spec.pattern && !new RegExp(spec.pattern).test(text)) throw new Error(spec.patternErrorMsg || `${field.label}: invalid value.`);
+      return text;
+    };
+  }
+  const input = kind.case === "keyValueMap" || (multilineRows > 0 && kind.case === "text") ? document.createElement("textarea")
     : kind.case === "enumSelection" ? document.createElement("select") : document.createElement("input");
   input.name = field.fieldId; input.setAttribute("aria-label", field.label || field.fieldId);
   if (input instanceof HTMLTextAreaElement && multilineRows > 0) input.rows = multilineRows;

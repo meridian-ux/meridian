@@ -67,6 +67,22 @@ const user = (container: HTMLElement) => container.querySelector('[aria-label="U
 const submit = (container: HTMLElement) => fireEvent.submit(container.querySelector("form")!);
 
 describe("MUI local LLM preview", () => {
+  it("edits multiline masked values without plaintext controls and conceals every new preview", () => {
+    const descriptor = create(PanelDescriptorSchema, { panelId: "masked", body: { case: "llmPrompt", value: {
+      userTemplate: "{{secret}} {{nested}}", slots: [
+        { name: "secret", multiLine: true, rows: 6, field: { label: "Secret", kind: { case: "masked", value: { defaultValue: "first\r\n\r\nlast\n" } } } },
+        { name: "nested", field: { kind: { case: "nested", value: { fields: [{ fieldId: "token", kind: { case: "masked", value: { defaultValue: "nested-secret" } } }] } } } },
+      ],
+    } } });
+    const invoke = vi.fn(), { container } = render(view(descriptor, invoke));
+    expect(container.querySelector("textarea")).toBeNull();
+    expect(container.textContent).not.toContain("first");
+    fireEvent.change(screen.getByLabelText("Secret, line 1"), { target: { value: "edited" } });
+    submit(container); expect(user(container)).toBe("•••••• ••••••");
+    fireEvent.click(screen.getByRole("button", { name: "Show masked values in preview" }));
+    expect(user(container)).toBe('edited\r\n\r\nlast\n {"token":"nested-secret"}');
+    submit(container); expect(user(container)).toBe("•••••• ••••••"); expect(invoke).not.toHaveBeenCalled();
+  });
   it("previews all typed defaults and multiline edits literally without executing a provider or mutating the descriptor", () => {
     const descriptor = fixture(), before = JSON.stringify(descriptor), invoke = vi.fn(async () => ({}));
     const { container } = render(view(descriptor, invoke));
@@ -74,8 +90,11 @@ describe("MUI local LLM preview", () => {
     expect((screen.getByLabelText("Secret") as HTMLInputElement).type).toBe("password");
     for (const value of ["local", "test-model", "256", "0.5", '{"type":"object"}']) expect(container.textContent).toContain(value);
     submit(container);
-    expect(user(container)).toBe('Keep this / [] / 0 / -1.5 / false / token / secret / {"name":"Ada"} / [1.5] / {} / A document / {{missing}}');
+    expect(user(container)).toBe('Keep this / [] / 0 / -1.5 / false / token / •••••• / {"name":"Ada"} / [1.5] / {} / A document / {{missing}}');
+    fireEvent.click(screen.getByRole("button", { name: "Show masked values in preview" }));
+    expect(user(container)).toContain("/ secret /");
     fireEvent.change(screen.getByLabelText("Document"), { target: { value: '<script>literal</script>\n{{text}} $&' } }); submit(container);
+    expect(user(container)).not.toContain("secret");
     expect(user(container)).toContain('<script>literal</script>\n{{text}} $& / {{missing}}');
     expect(container.querySelector("script")).toBeNull(); expect(screen.getByText("Unresolved slots: missing")).toBeTruthy();
     expect(invoke).not.toHaveBeenCalled(); expect(JSON.stringify(descriptor)).toBe(before);
