@@ -1,0 +1,12 @@
+viewport 40x10
+integer
+Typed value: 0042   [c] copy
+
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

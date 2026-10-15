@@ -1,0 +1,22 @@
+id: "copy_value-typed-text"
+title: "typed-text"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-text"
+    title: "text"
+    copy_value {
+      value {
+        value: "plain text"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+    }
+  }
+}

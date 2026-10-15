@@ -1,0 +1,27 @@
+id: "connect_flow-typed-text"
+title: "typed-text"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-text"
+    title: "text"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "plain text"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+    }
+  }
+}

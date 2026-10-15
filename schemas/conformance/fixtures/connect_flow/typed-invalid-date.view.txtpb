@@ -1,0 +1,27 @@
+id: "connect_flow-typed-invalid-date"
+title: "typed-invalid-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-invalid-date"
+    title: "invalid-date"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "not-a-date"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+    }
+  }
+}

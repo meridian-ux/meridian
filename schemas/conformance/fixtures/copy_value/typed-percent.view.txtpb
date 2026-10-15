@@ -1,0 +1,22 @@
+id: "copy_value-typed-percent"
+title: "typed-percent"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-percent"
+    title: "percent"
+    copy_value {
+      value {
+        value: "0.125"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_PERCENT
+        }
+      }
+    }
+  }
+}

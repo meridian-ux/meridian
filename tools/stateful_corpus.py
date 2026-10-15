@@ -181,6 +181,33 @@ def artifacts():
             raw = {"value": case["raw"]}
             response = raw if arm in ("record_card", "detail_header") else {"rows": [raw]}
             add(arm, name, view, {"fixture.Values.List": response})
+    constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+    for arms, cases in ((constrained["stringArms"], constrained["strings"]),
+                        (constrained["numberArms"], constrained["numbers"])):
+        for arm in arms:
+            for case in cases:
+                if not re.fullmatch(r"[a-z][a-z0-9-]*", case["name"]):
+                    raise ValueError(f"Invalid constrained value filename: {case['name']}")
+                name = f"typed-{case['name']}"
+                display = {"type": case["type"]}
+                if "digits" in case:
+                    display["number"] = {"fractionDigits": case["digits"]}
+                responses = {}
+                if arm == "stat":
+                    body = {"label": "Typed metric", "value": case["raw"], "format": case.get("format", 5), "valueDisplay": display}
+                    if "serverDisplay" in case:
+                        body.update({"populate": {"service": "fixture.Metrics", "method": "Get"}, "displayField": "shown"})
+                        responses["fixture.Metrics.Get"] = {"value": case["raw"], "shown": case["serverDisplay"]}
+                    key = "stat"
+                else:
+                    value = {"value": case["raw"], "label": "Typed value", "display": display}
+                    if arm == "copy_value":
+                        key, body = "copyValue", {"value": value}
+                    else:
+                        key, body = "connectFlow", {"endpoint": value, "targets": [{"id": "fixture", "label": "Fixture target"}], "defaultTargetId": "fixture"}
+                identity = f"{arm}-{name}"
+                view = {"id": identity, "title": name, "layout": {"stacked": {}}, "slots": [{"id": "content", "panel": {"panelId": identity, "title": case["name"], key: body}}]}
+                add(arm, name, view, responses)
     return files
 
 

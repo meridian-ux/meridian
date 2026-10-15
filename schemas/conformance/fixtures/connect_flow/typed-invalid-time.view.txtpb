@@ -1,0 +1,27 @@
+id: "connect_flow-typed-invalid-time"
+title: "typed-invalid-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-invalid-time"
+    title: "invalid-time"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "25:91"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

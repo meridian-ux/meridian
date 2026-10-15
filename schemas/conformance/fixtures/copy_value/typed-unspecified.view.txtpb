@@ -1,0 +1,21 @@
+id: "copy_value-typed-unspecified"
+title: "typed-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-unspecified"
+    title: "unspecified"
+    copy_value {
+      value {
+        value: "literal"
+        label: "Typed value"
+        display {
+        }
+      }
+    }
+  }
+}

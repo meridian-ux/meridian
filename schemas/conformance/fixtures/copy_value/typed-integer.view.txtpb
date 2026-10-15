@@ -1,0 +1,22 @@
+id: "copy_value-typed-integer"
+title: "typed-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-integer"
+    title: "integer"
+    copy_value {
+      value {
+        value: "0042"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+    }
+  }
+}

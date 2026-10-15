@@ -1,0 +1,12 @@
+viewport 40x10
+url
+Typed value: https://example.com/a?b=1
+[c] copy
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

@@ -1,0 +1,22 @@
+id: "copy_value-typed-json"
+title: "typed-json"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-json"
+    title: "json"
+    copy_value {
+      value {
+        value: "{\"ready\":true}"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_JSON
+        }
+      }
+    }
+  }
+}

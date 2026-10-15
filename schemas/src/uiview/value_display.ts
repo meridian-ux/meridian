@@ -270,7 +270,7 @@ export function formatByDisplay(
     case ValueType.IDENTIFIER:
       return { text: String(value) };
     case ValueType.BOOLEAN:
-      return { text: value ? "Yes" : "No" };
+      return { text: typeof value === "boolean" ? (value ? "Yes" : "No") : formatDisplayValue(value) };
     case ValueType.LIST:
       return { text: displayValueList(value).join(", ") || EMPTY_DISPLAY };
     default:

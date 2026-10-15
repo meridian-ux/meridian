@@ -13,8 +13,9 @@
 //     reveal affordance (host JS toggles; copy always yields plaintext).
 //   • ConnectFlowPanel.placeholder / CatalogPanel.placeholder          → empty state.
 //
-// SSR-safe: no client state here (the demo/host wires copy + tab + reveal via the
-// data-* attributes). mui-kit is a separate, stateful MUI implementation.
+// SSR-safe content: hosts wire copy/tab/reveal through data-* attributes.
+// Stat additionally fetches through the provider after hydration, preserving
+// its authored pre-fetch value. MUI shares the same guarded Stat fetch hook.
 
 import type { ReactNode } from "react";
 
@@ -37,6 +38,7 @@ import {
 } from "@savvifi/meridian-schemas/uiview";
 
 import { useGrammarResolver, useIcon } from "./provider.js";
+import { useStatData } from "./stat_data.js";
 
 /** Which reference kit's class vocabulary to paint with. */
 export type KitStyle = "html" | "shadcn";
@@ -574,10 +576,13 @@ function Sparkline({ series, className }: { series: number[]; className: string 
 }
 
 export function StatContent({ c, panel }: { c: ContentClasses; panel: StatPanel }): ReactNode {
-  const s = computeStat(panel);
+  const { record, loading, error } = useStatData(panel);
+  const s = computeStat(panel, record);
   const arrow = trendArrow(s.trend);
   return (
     <div className={c.stat} data-trend={s.trend} data-semantics={s.semantics}>
+      {loading && <span role="status">Loading metric…</span>}
+      {error && <span role="alert">Failed to load metric.</span>}
       <div className={c.statLabel}>{panel.label}</div>
       <div className={c.statValueRow}>
         <span className={c.statValue}>{s.formattedValue}</span>

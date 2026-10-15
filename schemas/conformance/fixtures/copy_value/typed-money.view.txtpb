@@ -1,0 +1,22 @@
+id: "copy_value-typed-money"
+title: "typed-money"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-money"
+    title: "money"
+    copy_value {
+      value {
+        value: "12.50"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_MONEY
+        }
+      }
+    }
+  }
+}

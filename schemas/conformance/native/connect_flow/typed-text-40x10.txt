@@ -1,0 +1,12 @@
+viewport 40x10
+text
+Typed value: plain text   [c] copy
+
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

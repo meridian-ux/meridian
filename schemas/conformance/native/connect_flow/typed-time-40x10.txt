@@ -1,0 +1,12 @@
+viewport 40x10
+time
+Typed value: 1:45 PM UTC   [c] copy
+
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

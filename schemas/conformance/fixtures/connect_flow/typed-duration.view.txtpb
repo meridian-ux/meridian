@@ -1,0 +1,27 @@
+id: "connect_flow-typed-duration"
+title: "typed-duration"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-duration"
+    title: "duration"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "4 min 12 s"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DURATION
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+viewport 40x10
+json
+Typed value: {"ready":true}   [c] copy
+
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

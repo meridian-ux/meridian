@@ -1,0 +1,22 @@
+id: "copy_value-typed-email"
+title: "typed-email"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-email"
+    title: "email"
+    copy_value {
+      value {
+        value: "Ada <ada@example.com>"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_EMAIL
+        }
+      }
+    }
+  }
+}

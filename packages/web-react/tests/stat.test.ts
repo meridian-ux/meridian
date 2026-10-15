@@ -44,6 +44,22 @@ describe("formatStatNumber parity vectors (must match the Rust formatter)", () =
 
 const stat = (v: Parameters<typeof create<typeof StatPanelSchema>>[1]) => create(StatPanelSchema, v);
 
+describe("fetched stat computation", () => {
+  it("reads dotted numeric fields, keeps zero, and computes direction independently of display text", () => {
+    const panel = stat({ value: 7, previous: 3, format: 5, higherIsBetter: true,
+      valueField: "metric.current", previousField: "metric.prior", seriesField: "metric.history", displayField: "shown" });
+    const actual = computeStat(panel, { metric: { current: 0, prior: 2, history: [2, 0, "99", false, null] }, shown: "Server amount", trend: "up" });
+    expect(actual).toMatchObject({ formattedValue: "Server amount", formattedDelta: "-2", trend: "down", semantics: "bad", series: [2, 0] });
+    expect(panel.value).toBe(7);
+  });
+  it("does not coerce malformed numeric fields or replace authored values with empty display text", () => {
+    const panel = stat({ value: 7, previous: 3, series: [3, 7], format: 5,
+      valueField: "metric.current", previousField: "metric.prior", seriesField: "metric.history", displayField: "shown" });
+    expect(computeStat(panel, { metric: { current: "99", prior: false, history: "not an array" }, shown: "" }))
+      .toMatchObject({ formattedValue: "7", formattedDelta: "+4", trend: "up", series: [3, 7] });
+  });
+});
+
 describe("computeStat — computed delta/trend/semantics (parity with Rust)", () => {
   it("rounds declared value and delta ties away from zero after wire decode", () => {
     for (const [value, previous, digits, expectedValue, expectedDelta] of [

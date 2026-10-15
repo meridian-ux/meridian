@@ -24,9 +24,7 @@ use meridian_uiview::proto::{
     ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel, ValueType,
 };
 use meridian_uiview::RenderedCard;
-use meridian_uiview::{
-    compute_stat, format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics,
-};
+use meridian_uiview::{format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
@@ -1198,7 +1196,10 @@ pub fn render_connect_flow(
     if let Some(v) = panel.endpoint.as_ref() {
         top.push(copy_value_line(v, palette, revealed));
     }
-    frame.render_widget(Paragraph::new(top).wrap(Wrap { trim: false }), chunks[0]);
+    frame.render_widget(
+        Paragraph::new(expand_embedded_lines(top)).wrap(Wrap { trim: false }),
+        chunks[0],
+    );
 
     // Bottom: target list | selected target detail.
     let cols = Layout::horizontal([Constraint::Length(20), Constraint::Min(1)]).split(chunks[1]);
@@ -1498,7 +1499,17 @@ fn fmt_num(n: f64) -> String {
 /// sparkline. Delta/trend/formatting come from the shared `compute_stat`
 /// (meridian-uiview-core), identical to the web renderers — no divergence.
 pub fn render_stat(frame: &mut Frame, area: Rect, panel: &StatPanel, palette: &Palette) {
-    let c = compute_stat(panel);
+    render_stat_with_response(frame, area, panel, palette, None);
+}
+
+pub(crate) fn render_stat_with_response(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &StatPanel,
+    palette: &Palette,
+    fetched: Option<&Value>,
+) {
+    let c = meridian_uiview::compute_stat_with_response(panel, fetched);
     let mut lines: Vec<Line> = Vec::new();
     // Label.
     lines.push(Line::from(Span::styled(

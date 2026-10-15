@@ -1,0 +1,22 @@
+id: "copy_value-typed-invalid-date"
+title: "typed-invalid-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-invalid-date"
+    title: "invalid-date"
+    copy_value {
+      value {
+        value: "not-a-date"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+    }
+  }
+}

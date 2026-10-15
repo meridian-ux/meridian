@@ -1,0 +1,21 @@
+id: "stat-typed-unknown-type"
+title: "typed-unknown-type"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-unknown-type"
+    title: "unknown-type"
+    stat {
+      label: "Typed metric"
+      value: 42.25
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: 999
+      }
+    }
+  }
+}

@@ -561,6 +561,370 @@ pre
     "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-boolean' > mui-kit/connect_flow/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+p
+  "Typed value"
+div role="button"
+  "false"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-date' > mui-kit/connect_flow/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+p
+  "Typed value"
+div role="button"
+  "Mar 29, 2026"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-date-time' > mui-kit/connect_flow/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+p
+  "Typed value"
+div role="button"
+  "Mar 29, 2026, 1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-decimal' > mui-kit/connect_flow/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+p
+  "Typed value"
+div role="button"
+  "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-duration' > mui-kit/connect_flow/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+p
+  "Typed value"
+div role="button"
+  "4 min 12 s"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-email' > mui-kit/connect_flow/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+p
+  "Typed value"
+div role="button"
+  "ada@example.com"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-empty' > mui-kit/connect_flow/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+p
+  "Typed value"
+div role="button"
+  "—"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-enum' > mui-kit/connect_flow/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+p
+  "Typed value"
+div role="button"
+  "READY"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-identifier' > mui-kit/connect_flow/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+p
+  "Typed value"
+div role="button"
+  "000123"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-integer' > mui-kit/connect_flow/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+p
+  "Typed value"
+div role="button"
+  "0042"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-date' > mui-kit/connect_flow/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+p
+  "Typed value"
+div role="button"
+  "not-a-date"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-principal' > mui-kit/connect_flow/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+p
+  "Typed value"
+div role="button"
+  "Ada <bad email>"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-invalid-time' > mui-kit/connect_flow/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+p
+  "Typed value"
+div role="button"
+  "25:91"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-json' > mui-kit/connect_flow/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+p
+  "Typed value"
+div role="button"
+  "{\\"ready\\":true}"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-list' > mui-kit/connect_flow/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+p
+  "Typed value"
+div role="button"
+  "one,two"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-mismatched-options' > mui-kit/connect_flow/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+p
+  "Typed value"
+div role="button"
+  "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-money' > mui-kit/connect_flow/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+p
+  "Typed value"
+div role="button"
+  "12.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-multiline' > mui-kit/connect_flow/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+p
+  "Typed value"
+div role="button"
+  "first second"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-numeric-string-pre…' > mui-kit/connect_flow/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+p
+  "Typed value"
+div role="button"
+  "0012.50"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-percent' > mui-kit/connect_flow/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+p
+  "Typed value"
+div role="button"
+  "0.125"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-principal' > mui-kit/connect_flow/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+p
+  "Typed value"
+div role="button"
+  "Ada"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-text' > mui-kit/connect_flow/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+p
+  "Typed value"
+div role="button"
+  "plain text"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-time' > mui-kit/connect_flow/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+p
+  "Typed value"
+div role="button"
+  "1:45 PM UTC"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-unknown-type' > mui-kit/connect_flow/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+p
+  "Typed value"
+div role="button"
+  "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-unspecified' > mui-kit/connect_flow/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+p
+  "Typed value"
+div role="button"
+  "literal"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typed-url' > mui-kit/connect_flow/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+p
+  "Typed value"
+div role="button"
+  "https://example.com/a?b=1"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Fixture target""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typical' > mui-kit/connect_flow/typical 1`] = `
 "h2
   "Conformance: connect_flow · typical"
@@ -611,6 +975,292 @@ p
   "Primary integration endpoint for the production workspace across all supported regions"
 div role="button"
   "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-boolean' > mui-kit/copy_value/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+p
+  "Typed value"
+div role="button"
+  "false""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-date' > mui-kit/copy_value/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+p
+  "Typed value"
+div role="button"
+  "Mar 29, 2026""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-date-time' > mui-kit/copy_value/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+p
+  "Typed value"
+div role="button"
+  "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-decimal' > mui-kit/copy_value/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+p
+  "Typed value"
+div role="button"
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-duration' > mui-kit/copy_value/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+p
+  "Typed value"
+div role="button"
+  "4 min 12 s""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-email' > mui-kit/copy_value/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+p
+  "Typed value"
+div role="button"
+  "ada@example.com""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-empty' > mui-kit/copy_value/typed-empty 1`] = `
+"h2
+  "typed-empty"
+h3
+  "empty"
+p
+  "Typed value"
+div role="button"
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-enum' > mui-kit/copy_value/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+p
+  "Typed value"
+div role="button"
+  "READY""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-identifier' > mui-kit/copy_value/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+p
+  "Typed value"
+div role="button"
+  "000123""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-integer' > mui-kit/copy_value/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+p
+  "Typed value"
+div role="button"
+  "0042""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-invalid-date' > mui-kit/copy_value/typed-invalid-date 1`] = `
+"h2
+  "typed-invalid-date"
+h3
+  "invalid-date"
+p
+  "Typed value"
+div role="button"
+  "not-a-date""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-invalid-principal' > mui-kit/copy_value/typed-invalid-principal 1`] = `
+"h2
+  "typed-invalid-principal"
+h3
+  "invalid-principal"
+p
+  "Typed value"
+div role="button"
+  "Ada <bad email>""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-invalid-time' > mui-kit/copy_value/typed-invalid-time 1`] = `
+"h2
+  "typed-invalid-time"
+h3
+  "invalid-time"
+p
+  "Typed value"
+div role="button"
+  "25:91""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-json' > mui-kit/copy_value/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+p
+  "Typed value"
+div role="button"
+  "{\\"ready\\":true}""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-list' > mui-kit/copy_value/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+p
+  "Typed value"
+div role="button"
+  "one,two""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-mismatched-options' > mui-kit/copy_value/typed-mismatched-options 1`] = `
+"h2
+  "typed-mismatched-options"
+h3
+  "mismatched-options"
+p
+  "Typed value"
+div role="button"
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-money' > mui-kit/copy_value/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+p
+  "Typed value"
+div role="button"
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-multiline' > mui-kit/copy_value/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+p
+  "Typed value"
+div role="button"
+  "first second""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-numeric-string-preci…' > mui-kit/copy_value/typed-numeric-string-precision 1`] = `
+"h2
+  "typed-numeric-string-precision"
+h3
+  "numeric-string-precision"
+p
+  "Typed value"
+div role="button"
+  "0012.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-percent' > mui-kit/copy_value/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+p
+  "Typed value"
+div role="button"
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-principal' > mui-kit/copy_value/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+p
+  "Typed value"
+div role="button"
+  "Ada""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-text' > mui-kit/copy_value/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+p
+  "Typed value"
+div role="button"
+  "plain text""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-time' > mui-kit/copy_value/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+p
+  "Typed value"
+div role="button"
+  "1:45 PM UTC""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-unknown-type' > mui-kit/copy_value/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+p
+  "Typed value"
+div role="button"
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-unspecified' > mui-kit/copy_value/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+p
+  "Typed value"
+div role="button"
+  "literal""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typed-url' > mui-kit/copy_value/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+p
+  "Typed value"
+div role="button"
+  "https://example.com/a?b=1""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typical' > mui-kit/copy_value/typical 1`] = `
@@ -4016,6 +4666,266 @@ h5
 p
   "↑"
   "+60""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-boolean' > mui-kit/stat/typed-boolean 1`] = `
+"h2
+  "typed-boolean"
+h3
+  "boolean"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-date' > mui-kit/stat/typed-date 1`] = `
+"h2
+  "typed-date"
+h3
+  "date"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-date-time' > mui-kit/stat/typed-date-time 1`] = `
+"h2
+  "typed-date-time"
+h3
+  "date-time"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-decimal' > mui-kit/stat/typed-decimal 1`] = `
+"h2
+  "typed-decimal"
+h3
+  "decimal"
+"Typed metric"
+h5
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-duration' > mui-kit/stat/typed-duration 1`] = `
+"h2
+  "typed-duration"
+h3
+  "duration"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-email' > mui-kit/stat/typed-email 1`] = `
+"h2
+  "typed-email"
+h3
+  "email"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-enum' > mui-kit/stat/typed-enum 1`] = `
+"h2
+  "typed-enum"
+h3
+  "enum"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-excessive-precision' > mui-kit/stat/typed-excessive-precision 1`] = `
+"h2
+  "typed-excessive-precision"
+h3
+  "excessive-precision"
+"Typed metric"
+h5
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-identifier' > mui-kit/stat/typed-identifier 1`] = `
+"h2
+  "typed-identifier"
+h3
+  "identifier"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-integer' > mui-kit/stat/typed-integer 1`] = `
+"h2
+  "typed-integer"
+h3
+  "integer"
+"Typed metric"
+h5
+  "42""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-json' > mui-kit/stat/typed-json 1`] = `
+"h2
+  "typed-json"
+h3
+  "json"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-legacy-currency' > mui-kit/stat/typed-legacy-currency 1`] = `
+"h2
+  "typed-legacy-currency"
+h3
+  "legacy-currency"
+"Typed metric"
+h5
+  "$12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-list' > mui-kit/stat/typed-list 1`] = `
+"h2
+  "typed-list"
+h3
+  "list"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-money' > mui-kit/stat/typed-money 1`] = `
+"h2
+  "typed-money"
+h3
+  "money"
+"Typed metric"
+h5
+  "12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-multiline' > mui-kit/stat/typed-multiline 1`] = `
+"h2
+  "typed-multiline"
+h3
+  "multiline"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-negative' > mui-kit/stat/typed-negative 1`] = `
+"h2
+  "typed-negative"
+h3
+  "negative"
+"Typed metric"
+h5
+  "-12.50""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-negative-precision' > mui-kit/stat/typed-negative-precision 1`] = `
+"h2
+  "typed-negative-precision"
+h3
+  "negative-precision"
+"Typed metric"
+h5
+  "12.5""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-percent' > mui-kit/stat/typed-percent 1`] = `
+"h2
+  "typed-percent"
+h3
+  "percent"
+"Typed metric"
+h5
+  "0.125""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-principal' > mui-kit/stat/typed-principal 1`] = `
+"h2
+  "typed-principal"
+h3
+  "principal"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-server-display' > mui-kit/stat/typed-server-display 1`] = `
+"h2
+  "typed-server-display"
+h3
+  "server-display"
+"Typed metric"
+h5
+  "Server amount""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-text' > mui-kit/stat/typed-text 1`] = `
+"h2
+  "typed-text"
+h3
+  "text"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-time' > mui-kit/stat/typed-time 1`] = `
+"h2
+  "typed-time"
+h3
+  "time"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-unknown-type' > mui-kit/stat/typed-unknown-type 1`] = `
+"h2
+  "typed-unknown-type"
+h3
+  "unknown-type"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-unspecified' > mui-kit/stat/typed-unspecified 1`] = `
+"h2
+  "typed-unspecified"
+h3
+  "unspecified"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-url' > mui-kit/stat/typed-url 1`] = `
+"h2
+  "typed-url"
+h3
+  "url"
+"Typed metric"
+h5
+  "42.25""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-zero' > mui-kit/stat/typed-zero 1`] = `
+"h2
+  "typed-zero"
+h3
+  "zero"
+"Typed metric"
+h5
+  "0""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'stat/typical' > mui-kit/stat/typical 1`] = `

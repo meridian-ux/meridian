@@ -1,0 +1,12 @@
+viewport 40x10
+date-time
+Typed value: Mar 29, 2026, 1:45 PM UTC
+[c] copy
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

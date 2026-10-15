@@ -1,0 +1,27 @@
+id: "connect_flow-typed-money"
+title: "typed-money"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-money"
+    title: "money"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "12.50"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_MONEY
+        }
+      }
+    }
+  }
+}

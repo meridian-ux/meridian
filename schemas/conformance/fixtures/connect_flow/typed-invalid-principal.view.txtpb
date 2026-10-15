@@ -1,0 +1,27 @@
+id: "connect_flow-typed-invalid-principal"
+title: "typed-invalid-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-invalid-principal"
+    title: "invalid-principal"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "Ada <bad email>"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+    }
+  }
+}

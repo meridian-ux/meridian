@@ -1,0 +1,22 @@
+id: "copy_value-typed-list"
+title: "typed-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-list"
+    title: "list"
+    copy_value {
+      value {
+        value: "one,two"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_LIST
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+id: "copy_value-typed-unknown-type"
+title: "typed-unknown-type"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-unknown-type"
+    title: "unknown-type"
+    copy_value {
+      value {
+        value: "literal"
+        label: "Typed value"
+        display {
+          type: 999
+        }
+      }
+    }
+  }
+}

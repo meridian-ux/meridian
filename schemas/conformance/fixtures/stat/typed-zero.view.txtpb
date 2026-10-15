@@ -1,0 +1,20 @@
+id: "stat-typed-zero"
+title: "typed-zero"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-zero"
+    title: "zero"
+    stat {
+      label: "Typed metric"
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: VALUE_TYPE_INTEGER
+      }
+    }
+  }
+}

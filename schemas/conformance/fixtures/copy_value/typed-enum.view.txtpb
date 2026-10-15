@@ -1,0 +1,22 @@
+id: "copy_value-typed-enum"
+title: "typed-enum"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-enum"
+    title: "enum"
+    copy_value {
+      value {
+        value: "READY"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_ENUM
+        }
+      }
+    }
+  }
+}

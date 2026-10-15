@@ -1,0 +1,12 @@
+viewport 40x10
+unspecified
+Typed value: literal   [c] copy
+
+
+┌──────────────────┐┌──────────────────┐
+│▶ Fixture target  ││Fixture target    │
+│                  ││                  │
+│                  ││                  │
+│                  ││                  │
+└──────────────────┘└──────────────────┘
+end viewport

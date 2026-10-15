@@ -36,6 +36,7 @@ js_library(
         "conformance/populated.ts",
         "conformance/state_cases.ts",
         "conformance/value_types.json",
+        "conformance/constrained_value_types.json",
         "conformance/coverage.json",
     ] + glob(["conformance/binpb/*.binpb", "conformance/fixtures/**/*.binpb", "conformance/fixtures/**/*.txtpb"]),
     deps = [
@@ -54,7 +55,7 @@ filegroup(
 
 filegroup(
     name = "stateful_conformance_data",
-    srcs = ["conformance/value_types.json", "conformance/coverage.json"] + glob([
+    srcs = ["conformance/value_types.json", "conformance/constrained_value_types.json", "conformance/coverage.json"] + glob([
         "conformance/fixtures/**/*.binpb",
         "conformance/native/**/*.txt",
     ], allow_empty = True),  # The test rejects missing goldens; permits first recording.

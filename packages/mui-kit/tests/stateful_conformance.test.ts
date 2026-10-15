@@ -38,11 +38,25 @@ describe("MUI stateful ViewDescriptor corpus", () => {
         const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resource_cards" ? 4 : 1;
         expect((container.textContent ?? "").split(fixture.expectedValue).length - 1).toBeGreaterThanOrEqual(slots);
       }
+      if (typeof fixture.typedRaw === "string") {
+        const chip = container.querySelector<HTMLElement>(".MuiChip-root[role=button]");
+        expect(chip?.textContent).toBe(fixture.expectedValue);
+        const prior = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+        const writeText = vi.fn(async (_value: string) => {});
+        Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+        try {
+          await act(async () => chip!.click());
+          expect(writeText).toHaveBeenCalledWith(fixture.typedRaw);
+        } finally {
+          if (prior) Object.defineProperty(navigator, "clipboard", prior);
+          else Reflect.deleteProperty(navigator, "clipboard");
+        }
+      }
       if (["gallery", "resource_cards"].includes(fixture.arm) && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Resource 00");
       if (fixture.arm === "detail_header" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Fixture record");
       if (fixture.arm === "form" && fixture.state !== "empty") expect(tree).toContain("Section 0");
       if (fixture.arm === "chart" && fixture.state !== "empty") expect(tree).toContain("2026-10-01");
-      if (fixture.arm === "connect_flow" && fixture.state !== "empty") expect(tree).toContain("~/.cursor/mcp.json");
+      if (fixture.arm === "connect_flow" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("~/.cursor/mcp.json");
       if (fixture.arm === "stream" && fixture.state === "overflow") {
         expect(tree).toContain("Stream line 139");
         expect(tree).not.toContain("Stream line 000");

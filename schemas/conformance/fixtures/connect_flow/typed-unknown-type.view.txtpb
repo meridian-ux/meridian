@@ -1,0 +1,27 @@
+id: "connect_flow-typed-unknown-type"
+title: "typed-unknown-type"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-unknown-type"
+    title: "unknown-type"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "literal"
+        label: "Typed value"
+        display {
+          type: 999
+        }
+      }
+    }
+  }
+}

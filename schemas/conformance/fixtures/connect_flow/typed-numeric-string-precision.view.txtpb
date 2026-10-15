@@ -1,0 +1,30 @@
+id: "connect_flow-typed-numeric-string-precision"
+title: "typed-numeric-string-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-typed-numeric-string-precision"
+    title: "numeric-string-precision"
+    connect_flow {
+      targets {
+        id: "fixture"
+        label: "Fixture target"
+      }
+      default_target_id: "fixture"
+      endpoint {
+        value: "0012.50"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

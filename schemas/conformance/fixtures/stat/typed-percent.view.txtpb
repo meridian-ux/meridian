@@ -1,0 +1,24 @@
+id: "stat-typed-percent"
+title: "typed-percent"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-percent"
+    title: "percent"
+    stat {
+      label: "Typed metric"
+      value: 0.125
+      format: VALUE_FORMAT_PLAIN
+      value_display {
+        type: VALUE_TYPE_PERCENT
+        number {
+          fraction_digits: 3
+        }
+      }
+    }
+  }
+}

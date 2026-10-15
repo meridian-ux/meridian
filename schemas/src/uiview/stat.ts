@@ -139,8 +139,24 @@ function mapTrend(override: number): StatTrend {
   return override === 1 ? "up" : override === 2 ? "down" : override === 3 ? "flat" : "none";
 }
 
-/** Compute a StatPanel's value/delta/trend/semantics — the parity-critical core. */
-export function computeStat(panel: StatPanel): StatComputed {
+/** Compute value/delta/trend/semantics, optionally overlaying a populate response.
+ * Only finite numeric fields replace authored numbers; display_field overrides
+ * only the visible value. Direction remains computed, and inputs stay intact. */
+export function computeStat(authored: StatPanel, fetched?: object): StatComputed {
+  const at = (path: string): unknown => path.split(".").reduce<unknown>((value, part) =>
+    value !== null && typeof value === "object" ? (value as Record<string, unknown>)[part] : undefined, fetched);
+  const numberAt = (path: string): number | undefined => {
+    const value = at(path);
+    return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  };
+  const rawSeries = fetched ? at(authored.seriesField || "series") : undefined;
+  const panel = fetched ? {
+    ...authored,
+    value: numberAt(authored.valueField || "value") ?? authored.value,
+    previous: numberAt(authored.previousField || "previous") ?? authored.previous,
+    series: Array.isArray(rawSeries) ? rawSeries.filter((value): value is number => typeof value === "number" && Number.isFinite(value)) : authored.series,
+  } : authored;
+  const displayText = fetched && authored.displayField ? at(authored.displayField) : undefined;
   const display = numericDisplay(panel.valueDisplay);
   const unitSuppressed = display
     ? display.type === ValueType.PERCENT || display.type === ValueType.MONEY
@@ -148,7 +164,8 @@ export function computeStat(panel: StatPanel): StatComputed {
   const formatValue = (value: number) =>
     display ? formatByDisplay(value, display).text : formatStatNumber(value, panel.format);
   const unitSuffix = panel.unit && !unitSuppressed ? ` ${panel.unit}` : "";
-  const formattedValue = formatValue(panel.value) + unitSuffix;
+  const formattedValue = typeof displayText === "string" && displayText !== ""
+    ? displayText : formatValue(panel.value) + unitSuffix;
 
   // Raw delta: value − previous, else last − first of series.
   let raw: number | undefined;

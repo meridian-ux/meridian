@@ -1,0 +1,22 @@
+id: "copy_value-typed-time"
+title: "typed-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-time"
+    title: "time"
+    copy_value {
+      value {
+        value: "13:45:00"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

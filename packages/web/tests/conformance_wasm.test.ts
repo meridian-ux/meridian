@@ -139,6 +139,23 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
         const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resource_cards" ? 4 : 1;
         expect((container.textContent ?? "").split(fixture.expectedValue).length - 1).toBeGreaterThanOrEqual(slots);
       }
+      if (typeof fixture.typedRaw === "string") {
+        const button = container.querySelector<HTMLElement>("button.mer-copyvalue-btn");
+        expect(button?.textContent).toBe(fixture.expectedValue);
+        const prior = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+        const writeText = vi.fn(async (_value: string) => {});
+        Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+        vi.useFakeTimers();
+        try {
+          button!.click();
+          expect(writeText).toHaveBeenCalledWith(fixture.typedRaw);
+          vi.advanceTimersByTime(1200);
+        } finally {
+          vi.useRealTimers();
+          if (prior) Object.defineProperty(navigator, "clipboard", prior);
+          else Reflect.deleteProperty(navigator, "clipboard");
+        }
+      }
       if (fixture.arm === "table") {
         if (["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Member 00");
         else if (fixture.state === "empty") expect(tree).not.toContain("Member 00");

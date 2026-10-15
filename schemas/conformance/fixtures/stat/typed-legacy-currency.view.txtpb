@@ -1,0 +1,21 @@
+id: "stat-typed-legacy-currency"
+title: "typed-legacy-currency"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typed-legacy-currency"
+    title: "legacy-currency"
+    stat {
+      label: "Typed metric"
+      value: 12.5
+      format: VALUE_FORMAT_CURRENCY
+      value_display {
+        type: VALUE_TYPE_TEXT
+      }
+    }
+  }
+}

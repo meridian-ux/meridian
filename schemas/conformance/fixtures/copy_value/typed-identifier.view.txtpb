@@ -1,0 +1,22 @@
+id: "copy_value-typed-identifier"
+title: "typed-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typed-identifier"
+    title: "identifier"
+    copy_value {
+      value {
+        value: "000123"
+        label: "Typed value"
+        display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+    }
+  }
+}

@@ -92,6 +92,9 @@ fn shared_stateful_panels_match_native_buffers() {
     let root = data_root();
     let values: Json =
         serde_json::from_slice(&std::fs::read(root.join("value_types.json")).unwrap()).unwrap();
+    let constrained: Json =
+        serde_json::from_slice(&std::fs::read(root.join("constrained_value_types.json")).unwrap())
+            .unwrap();
     let mut cases = Vec::new();
     for arm in std::fs::read_dir(root.join("fixtures")).unwrap() {
         for entry in std::fs::read_dir(arm.unwrap().path()).unwrap() {
@@ -108,7 +111,11 @@ fn shared_stateful_panels_match_native_buffers() {
         cases.len(),
         coverage["arms"].as_object().unwrap().len() * 3
             + values["panelArms"].as_array().unwrap().len()
-                * values["cases"].as_array().unwrap().len(),
+                * values["cases"].as_array().unwrap().len()
+            + constrained["stringArms"].as_array().unwrap().len()
+                * constrained["strings"].as_array().unwrap().len()
+            + constrained["numberArms"].as_array().unwrap().len()
+                * constrained["numbers"].as_array().unwrap().len(),
         "every arm/state and every declared value surface/case"
     );
     let recording = std::env::var("UPDATE_SNAPSHOTS").as_deref() == Ok("1");
@@ -201,12 +208,29 @@ fn shared_stateful_panels_match_native_buffers() {
                         "{name}\n{output}"
                     );
                 }
-                if state.starts_with("value-") {
-                    let value = values["cases"]
+                if state.starts_with("value-") || state.starts_with("typed-") {
+                    let source = if state.starts_with("value-") {
+                        &values["cases"]
+                    } else if constrained["stringArms"]
                         .as_array()
                         .unwrap()
                         .iter()
-                        .find(|v| format!("value-{}", v["name"].as_str().unwrap()) == state)
+                        .any(|a| a.as_str() == Some(arm))
+                    {
+                        &constrained["strings"]
+                    } else {
+                        &constrained["numbers"]
+                    };
+                    let prefix = if state.starts_with("value-") {
+                        "value"
+                    } else {
+                        "typed"
+                    };
+                    let value = source
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|v| format!("{prefix}-{}", v["name"].as_str().unwrap()) == state)
                         .unwrap();
                     let mut remaining = output.as_str();
                     let expected = value["expected"].as_str().unwrap();
@@ -345,4 +369,84 @@ fn multiline_table_headers_and_cells_reserve_rows_without_losing_following_recor
             "row {row} must retain {expected:?}: {line}"
         );
     }
+}
+
+#[test]
+fn fetched_stat_is_cached_invalidated_and_reports_transport_failure() {
+    use meridian_uiview::proto::{field_binding::Source, FieldBinding};
+    use std::cell::Cell;
+    struct Metrics {
+        count: Cell<usize>,
+    }
+    impl RpcInvoker for Metrics {
+        fn invoke(&self, service: &str, method: &str, request: Json) -> Result<Json, RpcError> {
+            assert_eq!((service, method), ("fixture.Metrics", "Get"));
+            assert_eq!(request, json!({"tenant": "native"}));
+            self.count.set(self.count.get() + 1);
+            match self.count.get() {
+                1 => {
+                    Ok(json!({"value": 0, "previous": 2, "shown": "Server metric", "trend": "up"}))
+                }
+                2 => Ok(json!({"value": 20, "previous": 5, "shown": "Refreshed metric"})),
+                4 => Ok(json!([])),
+                _ => Err(RpcError::Transport("unavailable".into())),
+            }
+        }
+    }
+    let mut view = ViewDescriptor::decode(
+        std::fs::read(data_root().join("fixtures/stat/typed-server-display.view.binpb"))
+            .unwrap()
+            .as_slice(),
+    )
+    .unwrap();
+    let descriptor = view.slots[0].panel.as_mut().unwrap();
+    let Some(Body::Stat(panel)) = descriptor.body.as_mut() else {
+        panic!("stat fixture")
+    };
+    panel
+        .populate
+        .as_mut()
+        .unwrap()
+        .bindings
+        .push(FieldBinding {
+            request_field: "tenant".into(),
+            source: Some(Source::Literal("native".into())),
+        });
+    let host = Metrics {
+        count: Cell::new(0),
+    };
+    let mut widget = PanelView::new();
+    let mut terminal = Terminal::new(TestBackend::new(96, 14)).unwrap();
+    let mut draw = |widget: &mut PanelView| {
+        terminal
+            .draw(|frame| {
+                widget.render(frame, frame.area(), descriptor, &Context::default(), &host)
+            })
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<String>()
+    };
+    let first = draw(&mut widget);
+    assert!(
+        first.contains("Server metric") && first.contains("↓ -2.00"),
+        "{first}"
+    );
+    assert!(draw(&mut widget).contains("Server metric"));
+    assert_eq!(host.count.get(), 1);
+    widget.invalidate();
+    assert!(draw(&mut widget).contains("Refreshed metric"));
+    assert_eq!(host.count.get(), 2);
+    widget.invalidate();
+    let failed = draw(&mut widget);
+    assert!(failed.contains("Failed to load metric"));
+    assert!(!failed.contains("Refreshed metric"));
+    assert_eq!(host.count.get(), 3);
+    widget.invalidate();
+    assert!(draw(&mut widget).contains("Invalid metric response."));
+    assert_eq!(host.count.get(), 4);
 }
