@@ -55,6 +55,31 @@ async function main() {
       }
     };
 
+    await check("media: real decoding failures fall through poster to readable alt and chapter contents", async () => {
+      await page.route("https://media.meridian.invalid/**", async route => {
+        try { await route.fulfill({ status: 200, contentType: route.request().url().endsWith("poster.png") ? "image/png" : "video/webm", body: "intentionally undecodable fixture" }); }
+        catch (error) { if (!route.request().failure()) throw error; } // Removed players can abort their poster request.
+      });
+      await page.evaluate(() => {
+        window.mediaRungs = [];
+        window.mediaObserver = new MutationObserver(() => {
+          const media = document.querySelector(".mer-media");
+          if (media) window.mediaRungs.push(media.getAttribute("data-media-kind"));
+        });
+        window.mediaObserver.observe(document.getElementById("root"), { childList: true, subtree: true, attributes: true, attributeFilter: ["data-media-kind"] });
+      });
+      try {
+        await render("media-failure-ladder");
+        await page.locator('[data-media-kind="none"]').waitFor({ state: "visible", timeout: 8000 });
+        const rungs = await page.evaluate(() => window.mediaRungs);
+        for (const rung of ["VIDEO", "poster", "none"]) if (!rungs.includes(rung)) throw new Error(`Missing media rung ${rung}: ${rungs.join(", ")}`);
+        if (!(await page.getByRole("button", { name: "Seek to First chapter at 0:01" }).isDisabled())) throw new Error("Fallback still offers a seek action");
+        await seen("A walkthrough summary"); await seen("Walkthrough"); await seen("1:05"); await seen("First chapter");
+        if (await page.getByRole("link", { name: "Open media source" }).getAttribute("href") !== "https://media.meridian.invalid/play.webm") throw new Error("Fallback lost the safe source");
+        if (await page.locator("video, audio, img").count()) throw new Error("Failed media remained mounted");
+      } finally { await page.evaluate(() => window.mediaObserver.disconnect()); await page.unrouteAll({ behavior: "wait" }); }
+    });
+
     await check("masked multiline: native typing, split/join, and opt-in preview preserve exact raw data", async () => {
       await render("llm-masked-multiline");
       const line = number => page.getByLabel(`Secret, line ${number}`, { exact: true });

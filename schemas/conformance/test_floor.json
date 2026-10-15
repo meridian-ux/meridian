@@ -3,13 +3,13 @@
   "suites": [
     { "id": "chat", "kind": "javascript", "roots": ["packages/chat/tests"], "floor": 22 },
     { "id": "launchpad", "kind": "javascript", "roots": ["packages/launchpad/tests"], "floor": 16 },
-    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 209 },
+    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 212 },
     {
       "id": "web",
       "kind": "javascript",
       "roots": ["packages/web/tests"],
       "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
-      "floor": 162
+      "floor": 165
     },
     {
       "id": "web-wasm-ffi",
@@ -17,7 +17,7 @@
       "roots": ["packages/web/tests/conformance_wasm.test.ts"],
       "floor": 15
     },
-    { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 177 },
+    { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 181 },
     { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 44 },
     { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 176 },
     { "id": "rust-core", "kind": "rust", "roots": ["crates/core/rust/uiview"], "floor": 68 },

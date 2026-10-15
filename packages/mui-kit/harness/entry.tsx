@@ -34,6 +34,7 @@ import {
   PanelDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
+import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import {
@@ -454,6 +455,18 @@ interface Fixture {
 }
 
 const fixtures: Fixture[] = [
+  {
+    name: "media-failure-ladder",
+    label: "Media · playback failure ladder",
+    group: "Primitives",
+    invoker: { invoke: async () => { throw new Error("Media must not invoke RPCs"); } },
+    element: () => createElement(PanelRenderer, { descriptor: create(PanelDescriptorSchema, {
+      panelId: "media-failure", body: { case: "media", value: {
+        kind: MediaKind.VIDEO, srcUri: "https://media.meridian.invalid/play.webm", posterUri: "https://media.meridian.invalid/poster.png",
+        alt: "A walkthrough summary", caption: "Walkthrough", durationMs: 65000, chapters: [{ startMs: 1000, label: "First chapter" }],
+      } },
+    }) }),
+  },
   {
     name: "llm-masked-multiline",
     label: "LLM · masked multiline preview",

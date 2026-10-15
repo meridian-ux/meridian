@@ -31,6 +31,7 @@ vitest_test(
         "tests/conformance.test.tsx",
         "tests/prompt.test.tsx",
         "tests/llm_prompt.test.tsx",
+        "tests/content.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
@@ -124,6 +125,7 @@ js_binary(
 # capture action is served from cache, which restores only the declared outputs and
 # then \includegraphics halts on the missing file. Keep this list in sync.
 FIXTURES = [
+    "media-failure-ladder",
     "llm-masked-multiline",
     "table-client",
     "table-offset",

@@ -28,6 +28,43 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
+describe("MUI media failure ladder", () => {
+  const fixture = (kind = MediaKind.VIDEO, srcUri = "/movie.asset", posterUri = "/poster.png") => create(PanelDescriptorSchema, {
+    panelId: "fallback", body: { case: "media", value: { kind, srcUri, posterUri, captionsUri: "/captions.vtt", alt: "Media summary", caption: "A caption", durationMs: 65000, chapters: [{ startMs: 1000, label: "First chapter" }] } },
+  });
+  it("degrades player errors to poster then alt and retains caption, duration, chapters, and safe source", () => {
+    for (const kind of [MediaKind.VIDEO, MediaKind.AUDIO]) {
+      const { container, unmount } = renderPanel(fixture(kind));
+      const player = container.querySelector("video, audio")!;
+      if (player.querySelector("track")) fireEvent.error(player.querySelector("track")!);
+      expect(container.querySelector("video, audio")).toBe(player);
+      fireEvent.error(player); expect(container.querySelector("video, audio")).toBeNull();
+      expect(container.querySelector("img")!.getAttribute("src")).toBe("/poster.png");
+      expect(container.querySelector<HTMLButtonElement>("button[data-start-ms]")!.disabled).toBe(true);
+      expect(container.querySelector("a")!.getAttribute("href")).toBe("/movie.asset");
+      fireEvent.error(container.querySelector("img")!); expect(container.querySelector("img")).toBeNull();
+      for (const text of ["Media summary", "A caption", "1:05", "First chapter"]) expect(container.textContent).toContain(text);
+      unmount();
+    }
+  });
+  it("uses safe posters for absent/rejected sources and resets error state on replacement", () => {
+    const { container, rerender } = renderPanel(fixture(MediaKind.VIDEO, "javascript:alert(1)"));
+    expect(container.querySelector("video, audio, track, a")).toBeNull(); expect(container.querySelector("img")!.getAttribute("src")).toBe("/poster.png");
+    fireEvent.error(container.querySelector("img")!); expect(container.textContent).toContain("Media summary");
+    rerender(<MeridianMuiProvider invoker={invoker}><PanelRenderer descriptor={fixture(MediaKind.VIDEO, "/fresh.mp4")} /></MeridianMuiProvider>);
+    expect(container.querySelector("video")!.getAttribute("src")).toBe("/fresh.mp4");
+  });
+  it("infers image sources, ignores IMAGE posters on failure, and contains seek exceptions", () => {
+    const { container, rerender } = renderPanel(fixture(MediaKind.UNSPECIFIED, "/picture.PNG?size=2"));
+    expect(container.querySelector("img")!.getAttribute("src")).toBe("/picture.PNG?size=2");
+    fireEvent.error(container.querySelector("img")!); expect(container.querySelector("img")).toBeNull();
+    rerender(<MeridianMuiProvider invoker={invoker}><PanelRenderer descriptor={fixture()} /></MeridianMuiProvider>);
+    Object.defineProperty(container.querySelector("video")!, "currentTime", { set() { throw new Error("not seekable"); } });
+    fireEvent.click(container.querySelector<HTMLButtonElement>("button[data-start-ms]")!);
+    expect(container.querySelector('[role="status"]')!.textContent).toBe("Seeking is unavailable.");
+  });
+});
+
 function renderPanel(descriptor: Parameters<typeof PanelRenderer>[0]["descriptor"]) {
   return render(
     <MeridianMuiProvider invoker={invoker}>

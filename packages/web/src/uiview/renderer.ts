@@ -29,6 +29,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { resolveMediaKind } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -674,59 +675,75 @@ function buildMedia(panel: MediaPanel): HTMLElement {
   const source = safeAssetSrc(panel.srcUri);
   const poster = safeAssetSrc(panel.posterUri);
   const captions = safeAssetSrc(panel.captionsUri);
-  let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement | undefined;
-  if (!source) {
-    figure.dataset.mediaKind = "none";
-    figure.appendChild(el("figcaption", "mer-media-caption", panel.alt || panel.caption || "No media available."));
-    return figure;
-  }
-  if (panel.kind === MediaKind.IMAGE) {
-    media = document.createElement("img");
-    media.alt = panel.alt;
-  } else if (panel.kind === MediaKind.AUDIO) {
-    media = document.createElement("audio");
-    media.controls = true;
-    media.setAttribute("aria-label", panel.alt || "Audio");
-  } else {
-    media = document.createElement("video");
-    media.controls = true;
-    media.setAttribute("aria-label", panel.alt || "Video");
-    if (poster) (media as HTMLVideoElement).poster = poster;
-    if (captions) {
-      const track = document.createElement("track");
-      track.kind = "captions";
-      track.src = captions;
-      media.appendChild(track);
-    }
-  }
-  media.src = source;
-  media.className = `mer-media-${panel.kind === MediaKind.IMAGE ? "image" : panel.kind === MediaKind.AUDIO ? "audio" : "video"}`;
-  figure.appendChild(media);
-  const details = [panel.caption, panel.durationMs ? formatDuration(panel.durationMs) : ""].filter(Boolean).join(" · ");
-  if (details) figure.appendChild(el("figcaption", "mer-media-caption", details));
-  if (panel.chapters.length) {
-    const list = el("ol", "mer-media-chapters");
-    for (const chapter of panel.chapters) {
-      const item = el("li");
-      const timestamp = formatChapterOffset(chapter.startMs);
-      const seek = el("button", "mer-media-chapter");
-      (seek as HTMLButtonElement).type = "button";
-      seek.dataset.startMs = String(chapter.startMs);
-      seek.setAttribute("aria-label", `Seek to ${chapter.label} at ${timestamp}`);
-      const time = el("time", undefined, timestamp);
-      time.setAttribute("datetime", `PT${chapter.startMs / 1000}S`);
-      seek.appendChild(time);
-      seek.appendChild(document.createTextNode(` ${chapter.label}`));
-      if (media instanceof HTMLMediaElement) {
-        seek.addEventListener("click", () => {
-          media.currentTime = chapter.startMs / 1000;
-        });
+  const kind = resolveMediaKind(panel.kind, panel.srcUri);
+  let sourceFailed = false, posterFailed = false;
+  const draw = () => {
+    figure.replaceChildren(); delete figure.dataset.mediaKind;
+    const primary = !!source && !sourceFailed && kind !== MediaKind.UNSPECIFIED;
+    const still = !primary && kind !== MediaKind.IMAGE && !!poster && !posterFailed;
+    const playable = primary && kind !== MediaKind.IMAGE;
+    let media: HTMLImageElement | HTMLAudioElement | HTMLVideoElement | undefined;
+    if (!primary) figure.dataset.mediaKind = still ? "poster" : "none";
+    if ((primary && kind === MediaKind.IMAGE) || still) {
+      media = document.createElement("img"); media.alt = panel.alt || panel.caption || "Media";
+    } else if (playable) {
+      if (kind === MediaKind.AUDIO) {
+        media = document.createElement("audio"); media.controls = true;
+        media.setAttribute("aria-label", panel.alt || "Audio");
+      } else {
+        media = document.createElement("video"); media.controls = true;
+        media.setAttribute("aria-label", panel.alt || "Video");
+        if (poster) (media as HTMLVideoElement).poster = poster;
+        if (captions) {
+          const track = document.createElement("track"); track.kind = "captions"; track.src = captions; media.appendChild(track);
+        }
       }
-      item.appendChild(seek);
-      list.appendChild(item);
     }
-    figure.appendChild(list);
-  }
+    if (media) {
+      media.src = (primary ? source : poster)!;
+      media.className = `mer-media-${media.tagName === "IMG" ? "image" : kind === MediaKind.AUDIO ? "audio" : "video"}`;
+      const current = media;
+      current.addEventListener("error", event => {
+        // A captions failure is not a player failure; stale removed nodes cannot
+        // degrade an already-redrawn surface or start an image retry loop.
+        if (event.target !== current || current.parentNode !== figure) return;
+        if (primary) sourceFailed = true; else posterFailed = true;
+        draw();
+      });
+      figure.appendChild(media);
+    }
+    if (!primary && !still && panel.alt) figure.appendChild(el("p", undefined, panel.alt));
+    const caption = !primary ? panel.caption || (!panel.alt ? "No media available." : "") : panel.caption;
+    const details = [caption, panel.durationMs ? formatDuration(panel.durationMs) : ""].filter(Boolean).join(" · ");
+    if (details) figure.appendChild(el("figcaption", "mer-media-caption", details));
+    if (!primary && source) {
+      const link = el("a", undefined, "Open media source"); link.setAttribute("href", source); figure.appendChild(link);
+    } else if (!primary && panel.srcUri) figure.appendChild(el("code", undefined, panel.srcUri));
+    const status = el("p"); status.setAttribute("role", "status");
+    if (panel.chapters.length) {
+      const list = el("ol", "mer-media-chapters");
+      for (const chapter of panel.chapters) {
+        const item = el("li");
+        const timestamp = formatChapterOffset(chapter.startMs);
+        const seek = document.createElement("button"); seek.className = "mer-media-chapter";
+        seek.type = "button"; seek.disabled = !playable;
+        seek.dataset.startMs = String(chapter.startMs);
+        seek.setAttribute("aria-label", `Seek to ${chapter.label} at ${timestamp}`);
+        const time = el("time", undefined, timestamp); time.setAttribute("datetime", `PT${chapter.startMs / 1000}S`);
+        seek.appendChild(time); seek.appendChild(document.createTextNode(` ${chapter.label}`));
+        if (media instanceof HTMLMediaElement) {
+          const player = media;
+          seek.addEventListener("click", () => {
+            try { player.currentTime = chapter.startMs / 1000; }
+            catch { status.textContent = "Seeking is unavailable."; if (!status.parentNode) figure.appendChild(status); }
+          });
+        }
+        item.appendChild(seek); list.appendChild(item);
+      }
+      figure.appendChild(list);
+    }
+  };
+  draw();
   return figure;
 }
 
