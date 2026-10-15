@@ -1,6 +1,6 @@
 # Meridian roadmap
 
-Three tracks, four milestones, seventeen epics, sixty-three tasks — tracked as GitHub
+The initial scope: three tracks, four milestones, seventeen epics, sixty-three tasks — tracked as GitHub
 issues in this repository and in `meridian-internal`, grouped by milestone. This file
 is the narrative; the issues are the state. **Where the two disagree, the issues win.**
 
@@ -16,7 +16,7 @@ The roadmap exists to make three things true:
 
 | milestone | due | epics |
 |---|---|---|
-| **M1 · Seam & truth** | 2026‑10‑31 | [#4](../../issues/4) ComponentKit seam · [#5](../../issues/5) manifest completeness · [#14](../../issues/14) test floor · [#15](../../issues/15) release engineering · internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests |
+| **M1 · Seam & truth** | 2026‑10‑31 | [#4](../../issues/4) ComponentKit seam · [#5](../../issues/5) manifest completeness · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | [#6](../../issues/6) TUI · [#7](../../issues/7) web-components · [#8](../../issues/8) kits · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
@@ -329,9 +329,13 @@ surface and moves the registry admission ratchet into CI, where 0.25.0's regress
 would have failed a pull request instead of a release. [#17](../../issues/17) treats
 the descriptor boundary as untrusted, because the playground's own README says it is.
 
-`meridian-internal` carries the service-side hardening: the 43 integration tests no
-target runs ([#9](https://github.com/meridian-ux/meridian-internal/issues/9)), the
-contract items the merge shipped with notes attached
+`meridian-internal` now runs all 43 formerly orphaned integration tests through
+seven explicit Bazel targets, alongside the full pinned Cargo workspace/all-target
+suite. Its merged [PR #23](https://github.com/meridian-ux/meridian-internal/pull/23)
+also supplies deliberate Bazel-native golden recorders for both k8s and projector;
+ordinary tests only compare committed expectations. Clean-runner CI provisions
+the same pinned `protoc` version as Bazel instead of relying on a developer's PATH.
+The remaining service-side hardening includes the contract items the merge shipped with notes attached
 ([#10](https://github.com/meridian-ux/meridian-internal/issues/10)), and the playground
 as the place parity is *seen* ([#11](https://github.com/meridian-ux/meridian-internal/issues/11)).
 
@@ -369,13 +373,20 @@ error transition without reaching `fetch`.
     inherit their epic's priority.
   - `Effort` — scope: **High** for seam, widget, corpus, proto-migration and
     publish-surface work; **Low** for decisions, waiver lifts and docstrings.
-  Filter `label:roadmap` by `Priority:Urgent` to see the critical path (21 issues).
+  Filter `label:roadmap` by `Priority:Urgent` to see the current critical path.
 - **A project board.** [Meridian roadmap](https://github.com/orgs/meridian-ux/projects/1)
-  carries all 80 roadmap issues from both repos in four views: **Board** grouped by
-  milestone, **Timeline** over the `Start date`→`Target date` window, **Critical path**
-  filtered to `Priority:Urgent` (21 issues), and **By track**. An issue opened in either
-  repo with `label:roadmap` is added to it automatically. Everything the board shows is
-  already on the issues, so the board is disposable and the issues are not.
+  carries roadmap issues from both repos. **Board** uses Status columns and Milestone
+  swimlanes; GitHub does not offer milestones as board columns. **Timeline** uses
+  `Start date`→`Target date`, grouped by milestone. **Critical path** filters to
+  `Priority:Urgent`, sorts by target date ascending, and shows tasks individually.
+  Three label-filtered boards — **Track: Parity**, **Track: Design language**, and
+  **Track: Hardening** — keep the existing track labels authoritative without
+  introducing a duplicate project field.
+  Native auto-add is enabled for open `roadmap` issues in the public repository.
+  The organization's current plan permits only one auto-add rule, with a single
+  repository per rule; internal standalone issues still need explicit addition.
+  The enabled sub-issue workflow does not replace that missing standalone rule.
+  Issue fields and labels remain authoritative; the board is a projection.
 - **Refreshing this file.** `tools/roadmap_matrix.py --write` regenerates the parity
   table from the manifest. The milestone and epic tables are hand-maintained; when an
   epic closes, strike it here.
