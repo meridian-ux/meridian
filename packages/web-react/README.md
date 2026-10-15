@@ -86,6 +86,13 @@ cannot be selected by descriptor data.
 
 ## Build & test
 
+HTML and Shadcn media players degrade on playback errors to a safe poster, then
+alt text. Caption, duration, chapter contents, and safe source links remain;
+seek controls disable without a player. Unknown media kinds use recognized
+source extensions or degrade. IMAGE ignores a separate poster. Error state
+resets when the asset identity changes, and caption-track errors do not discard
+an otherwise working player.
+
 HTML and Shadcn LLM previews conceal masked slots, including nested and repeated
 aggregates containing masked fields, until **Show masked values in preview** is
 selected. Each new preview starts concealed. Multiline masked slots use native

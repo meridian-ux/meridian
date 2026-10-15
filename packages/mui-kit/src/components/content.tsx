@@ -14,7 +14,7 @@
 // state (this is a client kit, jsdom-tested). Look comes from the MUI theme.
 
 import { useContext, useRef, useState } from "react";
-import type { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode, SyntheticEvent } from "react";
 
 import {
   Box,
@@ -62,6 +62,7 @@ import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { resolveMediaKind } from "@savvifi/meridian-schemas/uiview";
 import { MeridianAssetContext } from "../asset_context.js";
 
 function copyText(text: string): void {
@@ -581,29 +582,29 @@ function formatDuration(ms: number): string {
 
 export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
   const resolveAsset = useContext(MeridianAssetContext);
-  const playerRef = useRef<HTMLMediaElement>(null);
   const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
   const admittedSrc = safeAssetSrc(panel.srcUri);
   const admittedPoster = safeAssetSrc(panel.posterUri);
   const admittedCaptions = safeAssetSrc(panel.captionsUri);
   const src = admittedSrc ? withAsset(admittedSrc) : "";
   const poster = admittedPoster ? withAsset(admittedPoster) : "";
+  const captions = admittedCaptions ? withAsset(admittedCaptions) : "";
+  return <MediaSurface key={JSON.stringify([panel.kind, panel.srcUri, src, poster, captions])} panel={panel} src={src} poster={poster} captions={captions} />;
+}
+
+function MediaSurface({ panel, src, poster, captions }: { panel: MediaPanel; src: string; poster: string; captions: string }): ReactNode {
+  const playerRef = useRef<HTMLMediaElement>(null);
+  const [sourceFailed, setSourceFailed] = useState(false);
+  const [posterFailed, setPosterFailed] = useState(false);
+  const [seekError, setSeekError] = useState("");
   const duration = formatDuration(panel.durationMs);
-
-  // Ladder step 3: nothing to play. Say what it was and offer the source, rather
-  // than rendering an empty box.
-  if (!src) {
-    return (
-      <Box className="mer-media" data-media-kind="none">
-        <Typography variant="body2" color="text.secondary">
-          {panel.alt || "No media available."}
-        </Typography>
-      </Box>
-    );
-  }
-
-  const isImage = panel.kind === MediaKind.IMAGE;
-  const isAudio = panel.kind === MediaKind.AUDIO;
+  const kind = resolveMediaKind(panel.kind, panel.srcUri);
+  const primary = !!src && !sourceFailed && kind !== MediaKind.UNSPECIFIED;
+  const still = !primary && kind !== MediaKind.IMAGE && !!poster && !posterFailed;
+  const isImage = kind === MediaKind.IMAGE;
+  const isAudio = kind === MediaKind.AUDIO;
+  const playable = primary && !isImage;
+  const alternative = panel.alt || (!panel.caption ? "No media available." : "");
   const common = {
     className: "mer-media-player",
     controls: true,
@@ -612,34 +613,38 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
   };
 
   return (
-    <Box className="mer-media" data-media-kind={MediaKind[panel.kind] ?? "UNSPECIFIED"}>
-      {isImage ? (
+    <Box className="mer-media" data-media-kind={primary ? MediaKind[kind] : still ? "poster" : "none"}>
+      {(primary && isImage) || still ? (
         <Box
           component="img"
           className="mer-media-image"
-          src={src}
+          src={primary ? src : poster}
+          onError={() => primary ? setSourceFailed(true) : setPosterFailed(true)}
           // `alt` is required for an image; falling back to "" would hide a
           // missing description from every audit rather than surfacing it.
           alt={panel.alt || panel.caption || "image"}
           loading="lazy"
           sx={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 1 }}
         />
-      ) : (
+      ) : playable ? (
         <Box
           component={isAudio ? "audio" : "video"}
           ref={playerRef}
           src={src}
           poster={!isAudio && poster ? poster : undefined}
+          onError={(event: SyntheticEvent<HTMLMediaElement>) => { if (event.target === event.currentTarget) setSourceFailed(true); }}
           {...common}
         >
           {/* Captions are the accessible path for anything with speech, and the
               only way the content is searchable. Rendered as a real <track>. */}
-          {admittedCaptions && (
-            <track kind="captions" src={withAsset(admittedCaptions)} default />
+          {captions && (
+            <track kind="captions" src={captions} default />
           )}
           {panel.alt}
         </Box>
-      )}
+      ) : alternative && alternative !== panel.caption ? <Typography variant="body2" color="text.secondary">{alternative}</Typography> : null}
+      {!primary && (src ? <Link href={src}>Open media source</Link> : panel.srcUri && <Box component="code">{panel.srcUri}</Box>)}
+      {seekError && <Typography role="status">{seekError}</Typography>}
       {(panel.caption || duration) && (
         <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 1 }}>
           {panel.caption && (
@@ -675,8 +680,10 @@ export function MediaView({ panel }: { panel: MediaPanel }): ReactNode {
                 className="mer-media-chapter"
                 data-start-ms={chapter.startMs}
                 aria-label={`Seek to ${chapter.label} at ${formatDuration(chapter.startMs) || "0:00"}`}
+                disabled={!playable}
                 onClick={() => {
-                  if (playerRef.current) playerRef.current.currentTime = chapter.startMs / 1000;
+                  try { if (playerRef.current) playerRef.current.currentTime = chapter.startMs / 1000; }
+                  catch { setSeekError("Seeking is unavailable."); }
                 }}
                 sx={{ justifyContent: "flex-start", gap: 1, textTransform: "none" }}
               >

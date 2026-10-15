@@ -32,6 +32,13 @@ modules.
 
 ## Build & test
 
+Media playback errors degrade to a safe poster image, then to alt text if the
+poster fails. Captions, duration, chapter contents, and a safe source link remain
+available; seek controls disable without a player. An unspecified media kind is
+inferred only from recognized image/audio/video extensions; other sources
+degrade. Rejected URLs never become active media or links. Image media ignores
+the separate poster, as specified by the schema.
+
 `LlmPromptPanel` is a local parameter-fill and preview surface, not an LLM
 execution client. Slots use their canonical `FormField` controls, including
 nested objects, repeated values, string maps, and multiline text. Preview

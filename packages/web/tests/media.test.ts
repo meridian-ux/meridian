@@ -14,6 +14,47 @@ const noWasm: UiviewWasm = {
 };
 
 describe("web-components MediaPanel", () => {
+  const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+  const fallback = async (root: HTMLElement, kind = MediaKind.VIDEO, srcUri = "/movie.asset", posterUri = "/poster.png") => renderPanel({
+    root, wasm: noWasm, context, invoker: { invoke: async () => ({}) }, descriptor: create(PanelDescriptorSchema, {
+      panelId: "fallback", body: { case: "media", value: { kind, srcUri, posterUri, captionsUri: "/captions.vtt", alt: "Media summary", caption: "A caption", durationMs: 65000, chapters: [{ startMs: 1000, label: "First chapter" }] } },
+    }),
+  });
+  it("degrades video/audio errors to poster then alt, retaining metadata and ignoring stale errors", async () => {
+    for (const kind of [MediaKind.VIDEO, MediaKind.AUDIO]) {
+      const root = document.createElement("div"); await fallback(root, kind);
+      const player = root.querySelector("video, audio")!;
+      player.querySelector("track")?.dispatchEvent(new Event("error", { bubbles: true }));
+      expect(root.querySelector("video, audio")).toBe(player);
+      player.dispatchEvent(new Event("error"));
+      const poster = root.querySelector("img")!; expect(poster.getAttribute("src")).toBe("/poster.png");
+      player.dispatchEvent(new Event("error")); expect(root.querySelector("img")).toBe(poster);
+      expect(root.querySelector<HTMLButtonElement>("button[data-start-ms]")!.disabled).toBe(true);
+      expect(root.querySelector("a")!.getAttribute("href")).toBe("/movie.asset");
+      poster.dispatchEvent(new Event("error")); expect(root.querySelector("video, audio, img")).toBeNull();
+      for (const text of ["Media summary", "A caption", "1:05", "First chapter"]) expect(root.textContent).toContain(text);
+      await fallback(root, kind, "/fresh.asset"); expect(root.querySelector("video, audio")!.getAttribute("src")).toBe("/fresh.asset");
+    }
+  });
+  it("uses safe posters for missing/rejected sources, never links rejected URLs, and ignores IMAGE posters", async () => {
+    const root = document.createElement("div");
+    for (const source of ["", "javascript:alert(1)"]) {
+      await fallback(root, MediaKind.VIDEO, source);
+      expect(root.querySelector("video, audio, track, a")).toBeNull(); expect(root.querySelector("img")!.getAttribute("src")).toBe("/poster.png");
+      root.querySelector("img")!.dispatchEvent(new Event("error")); expect(root.textContent).toContain("Media summary");
+    }
+    await fallback(root, MediaKind.IMAGE, "/picture.png"); root.querySelector("img")!.dispatchEvent(new Event("error"));
+    expect(root.querySelector("img")).toBeNull();
+  });
+  it("infers known extensions, degrades unknown media, and contains seek exceptions", async () => {
+    const root = document.createElement("div"); await fallback(root, MediaKind.UNSPECIFIED, "/image.PNG?size=2");
+    expect(root.querySelector("img")!.getAttribute("src")).toBe("/image.PNG?size=2");
+    await fallback(root, MediaKind.UNSPECIFIED); expect(root.querySelector("video, audio")).toBeNull();
+    await fallback(root);
+    Object.defineProperty(root.querySelector("video")!, "currentTime", { set() { throw new Error("not seekable"); } });
+    root.querySelector<HTMLButtonElement>("button[data-start-ms]")!.click();
+    expect(root.querySelector('[role="status"]')!.textContent).toBe("Seeking is unavailable.");
+  });
   it("renders native image, audio, and video elements with metadata", async () => {
     for (const [kind, tag] of [[MediaKind.IMAGE, "img"], [MediaKind.AUDIO, "audio"], [MediaKind.VIDEO, "video"]] as const) {
       const root = document.createElement("div");

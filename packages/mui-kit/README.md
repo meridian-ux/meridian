@@ -19,6 +19,12 @@ MUI instead of plain HTML.
 
 ## How it fits
 
+Media playback failures degrade to a safe poster, then alt text. Caption,
+duration, chapter contents, and safe source links remain available; seek
+controls disable without a player. Unknown media kinds use recognized source
+extensions or degrade. IMAGE ignores a separate poster. Asset replacement
+resets failure state; a caption-track error does not discard working playback.
+
 `LlmPromptPanel` supports local parameter fill and preview with the kit's own
 typed controls, including multiline slot editors. Preview validates input and
 preserves the last valid output after invalid edits. Remote enum choices use
