@@ -4,8 +4,8 @@
 // degrades to a card grid.
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { CardSpecSchema, GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -14,13 +14,60 @@ import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
+// Exercise the actual provider instance used by the installed React adapter,
+// without adding a test-only context to its public exports.
+import { MeridianRecordContext } from "../node_modules/@savvifi/meridian-web-react/src/pagination.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
+import { MeridianGallery } from "../src/components/gallery.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 
 afterEach(cleanup);
+
+const noGalleryCalls: RpcInvoker = { invoke: async () => { throw new Error("Ambient gallery must not fetch"); } };
+const replayPanel = () => create(GalleryPanelSchema, { rowsField: "slides", card: { titleField: "caption", imageField: "uri" } });
+const replayRecord = (captions: string[]) => ({ slides: captions.map(caption => ({ caption, uri: `/images/${caption}.png` })) });
+function AmbientReplay({ record, panel = replayPanel() }: { record: Record<string, unknown>; panel?: ReturnType<typeof replayPanel> }) {
+  return <MeridianMuiProvider invoker={noGalleryCalls}><MeridianRecordContext.Provider value={record}>
+    <MeridianGallery panel={panel} invoker={noGalleryCalls} />
+  </MeridianRecordContext.Provider></MeridianMuiProvider>;
+}
+
+it("preserves the selected frame across semantically identical descriptor objects", () => {
+  const record = replayRecord(["First", "Second"]);
+  const { rerender } = render(<AmbientReplay record={record} />);
+  fireEvent.click(screen.getByRole("button", { name: "Next ›" }));
+  expect(screen.getByRole("img", { name: "Second" })).toBeTruthy();
+  rerender(<AmbientReplay record={record} />);
+  expect(screen.getByRole("img", { name: "Second" })).toBeTruthy();
+  expect(screen.getByText("2 / 2")).toBeTruthy();
+});
+
+it("resets a replaced shorter dataset before rendering its selected frame", () => {
+  const { rerender } = render(<AmbientReplay record={replayRecord(["First", "Second"])} />);
+  fireEvent.click(screen.getByRole("button", { name: "Next ›" }));
+  expect(screen.getByRole("img", { name: "Second" })).toBeTruthy();
+  expect(() => rerender(<AmbientReplay record={replayRecord(["Replacement"])} />)).not.toThrow();
+  expect(screen.getByRole("img", { name: "Replacement" })).toBeTruthy();
+  expect(screen.getByText("1 / 1")).toBeTruthy();
+});
+
+it("stops playback on dataset replacement and ignores an already queued old tick", () => {
+  const timer = vi.spyOn(window, "setInterval");
+  try {
+    const { rerender } = render(<AmbientReplay record={replayRecord(["Old", "Other"])} />);
+    fireEvent.click(screen.getByRole("button", { name: "▶ Play" }));
+    const callback = timer.mock.calls.at(-1)![0];
+    expect(typeof callback).toBe("function");
+    rerender(<AmbientReplay record={replayRecord(["New", "Next"])} />);
+    act(() => (callback as () => void)());
+    expect(screen.getByRole("img", { name: "New" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "▶ Play" })).toBeTruthy();
+    expect(screen.getByText("1 / 2")).toBeTruthy();
+  } finally { timer.mockRestore(); }
+});
 
 it("renders canonical table rows with legacy scalars, declared displays, and safe links", async () => {
   const fixture = FIXTURES.find((candidate) => candidate.shape === "table")!;
