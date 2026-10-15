@@ -14,6 +14,7 @@ from google.protobuf import descriptor_pb2, descriptor_pool, json_format, messag
 
 ROOT = Path(__file__).resolve().parents[1]
 STATES = ("empty", "typical", "overflow")
+INPUT_ARMS = ("form", "prompt", "lro", "llm_prompt")
 
 
 def classes():
@@ -23,7 +24,77 @@ def classes():
     for file in descriptors.file:
         pool.Add(file)
     return {name: message_factory.GetMessageClass(pool.FindMessageTypeByName(name)) for name in (
-        "meridian.ui.v1.PanelDescriptor", "meridian.ui.v1.ViewDescriptor", "google.protobuf.Struct")}
+        "meridian.ui.v1.PanelDescriptor", "meridian.ui.v1.ViewDescriptor",
+        "meridian.ui.v1.FormField", "google.protobuf.Struct")}
+
+
+def input_cases():
+    """In-memory authoring only; persisted index and fixtures are protobufs.
+
+    Input kinds keep their actual scalar/collection types. ValueDisplay changes
+    read-only presentation, never submitted data or an LLM slot's stored value.
+    """
+    text = lambda value: {"text": {"defaultValue": value}}
+    number = lambda value: {"number": {"defaultValue": value, "min": -100, "max": 100}}
+    cases = [
+        ("unspecified", 0, text("literal"), "literal", "literal"),
+        ("text", 1, text("plain text"), "plain text", "plain text"),
+        ("multiline", 2, text("first\nsecond"), "first\nsecond", "first\nsecond"),
+        ("integer", 3, {"integer": {"defaultValue": -42, "min": -100, "max": 100}}, -42, "-42"),
+        ("decimal", 4, number(12.5), 12.5, "12.50"),
+        ("boolean", 5, {"boolean": {"defaultValue": False}}, False, "No"),
+        ("enum", 6, {"enumSelection": {"allowedValues": ["READY", "DONE"], "defaultValue": "READY"}}, "READY", "READY"),
+        ("list", 7, {"repeated": {"minItems": 2, "maxItems": 4, "scalar": {
+            "label": "Item", "text": {"defaultValue": "one"}}}}, ["one", "one"], "one, one"),
+        ("date", 8, text("2026-03-29"), "2026-03-29", "Mar 29, 2026"),
+        ("date-time", 9, text("2026-03-29T13:45:00Z"), "2026-03-29T13:45:00Z", "Mar 29, 2026, 1:45 PM UTC"),
+        ("time", 10, text("13:45:00"), "13:45:00", "1:45 PM UTC"),
+        ("duration", 11, text("4 min 12 s"), "4 min 12 s", "4 min 12 s"),
+        ("principal", 12, text("Ada <ada@example.com>"), "Ada <ada@example.com>", "Ada"),
+        ("email", 13, text("Ada <ada@example.com>"), "Ada <ada@example.com>", "ada@example.com"),
+        ("url", 14, text("https://example.com/a?b=1"), "https://example.com/a?b=1", "https://example.com/a?b=1"),
+        ("identifier", 15, text("000123"), "000123", "000123"),
+        ("money", 16, number(12.5), 12.5, "12.50"),
+        ("percent", 17, number(.125), .125, "0.125"),
+        ("json", 18, {"nested": {"fields": [{"fieldId": "ready", "label": "Ready",
+            "boolean": {"defaultValue": True}}]}}, {"ready": True}, '{"ready":true}'),
+        ("map", 18, {"keyValueMap": {}}, {}, "{}"),
+        ("empty-list", 7, {"repeated": {"scalar": {"label": "Item", "text": {}}}}, [], "—"),
+        ("empty", 1, text(""), "", "—"),
+        ("zero", 3, {"integer": {"min": -100, "max": 100}}, 0, "0"),
+        ("numeric-string", 4, text("0012.50"), "0012.50", "0012.50"),
+        ("unknown", 999, text("literal"), "literal", "literal"),
+        ("invalid-date", 8, text("not-a-date"), "not-a-date", "not-a-date"),
+        ("masked", 1, {"masked": {"defaultValue": "fixture-secret"}}, "fixture-secret", ""),
+    ]
+    result = []
+    Field = classes()["meridian.ui.v1.FormField"]
+    for name, value_type, kind, raw, expected in cases:
+        display = {"type": value_type}
+        if name in ("decimal", "money", "numeric-string"):
+            display["number"] = {"fractionDigits": 2}
+        if name == "percent":
+            display["number"] = {"fractionDigits": 3}
+        field = {"fieldId": "value", "requestField": "value", "label": "Declared input", "display": display, **kind}
+        # Validate authoring against the actual canonical FormField descriptor.
+        json_format.ParseDict(field, Field())
+        result.append({"name": name, "field": field, "raw": raw, "expectedRead": expected, "masked": name == "masked"})
+    return result
+
+
+def input_index():
+    message = json_format.ParseDict({"arms": list(INPUT_ARMS), "cases": input_cases()}, classes()["google.protobuf.Struct"]())
+    return {"input_values.binpb": message.SerializeToString(deterministic=True),
+            "input_values.txtpb": text_format.MessageToString(message, as_utf8=True).encode()}
+
+
+def check_input_index(write=False):
+    for name, content in input_index().items():
+        path = ROOT / "schemas/conformance" / name
+        if write:
+            path.write_bytes(content)
+        elif not path.is_file() or path.read_bytes() != content:
+            raise ValueError(f"Missing/stale {name}; run tools/stateful_corpus.py --write and review")
 
 
 def response_rows(state):
@@ -212,6 +283,28 @@ def artifacts():
                 identity = f"{arm}-{name}"
                 view = {"id": identity, "title": name, "layout": {"stacked": {}}, "slots": [{"id": "content", "panel": {"panelId": identity, "title": case["name"], key: body}}]}
                 add(arm, name, view, responses)
+    for case in input_cases():
+        field = case["field"]
+        for arm in (*INPUT_ARMS, "readonly-form"):
+            readonly = arm == "readonly-form"
+            arm = "form" if readonly else arm
+            state = ("read-" if readonly else "input-") + case["name"]
+            key = {"llm_prompt": "llmPrompt"}.get(arm, arm)
+            if arm == "form":
+                body = {"fields": [field], "mode": 1 if readonly else 2,
+                        "submit": {"service": "fixture.Inputs", "method": "Submit"}}
+            elif arm == "prompt":
+                body = {"fields": [field], "acceptLabel": "Submit"}
+            elif arm == "lro":
+                body = {"inputs": [field], "start": {"service": "fixture.Inputs", "method": "Start"},
+                        "metadataType": "fixture.Metadata", "responseType": "fixture.Response"}
+            else:
+                body = {"userTemplate": "Value={{value}}", "slots": [{"name": "value", "field": field,
+                        "multiLine": case["name"] == "multiline"}]}
+            identity = f"{arm}-{state}"
+            view = {"id": identity, "title": identity, "layout": {"stacked": {}},
+                    "slots": [{"id": "content", "panel": {"panelId": identity, "title": case["name"], key: body}}]}
+            add(arm, state, view, {})
     return files
 
 
@@ -234,6 +327,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
+    check_input_index(args.write)
     count = check(ROOT / "schemas/conformance/fixtures", artifacts(), args.write)
     print(f"Stateful corpus OK: {count} ViewDescriptor/response cases, binary/text twins")
 

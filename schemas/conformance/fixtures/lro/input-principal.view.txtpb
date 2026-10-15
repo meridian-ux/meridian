@@ -1,0 +1,32 @@
+id: "lro-input-principal"
+title: "lro-input-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-principal"
+    title: "principal"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "Ada <ada@example.com>"
+        }
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+    }
+  }
+}

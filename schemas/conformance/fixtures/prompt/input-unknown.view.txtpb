@@ -1,0 +1,27 @@
+id: "prompt-input-unknown"
+title: "prompt-input-unknown"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-unknown"
+    title: "unknown"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "literal"
+        }
+        display {
+          type: 999
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

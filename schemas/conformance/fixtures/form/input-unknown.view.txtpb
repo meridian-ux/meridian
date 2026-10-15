@@ -1,0 +1,31 @@
+id: "form-input-unknown"
+title: "form-input-unknown"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-unknown"
+    title: "unknown"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "literal"
+        }
+        display {
+          type: 999
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

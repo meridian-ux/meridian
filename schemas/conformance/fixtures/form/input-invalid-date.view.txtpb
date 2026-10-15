@@ -1,0 +1,31 @@
+id: "form-input-invalid-date"
+title: "form-input-invalid-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-invalid-date"
+    title: "invalid-date"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "not-a-date"
+        }
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

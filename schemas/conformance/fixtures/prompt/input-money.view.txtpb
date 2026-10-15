@@ -1,0 +1,32 @@
+id: "prompt-input-money"
+title: "prompt-input-money"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-money"
+    title: "money"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        number {
+          min: -100.0
+          max: 100.0
+          default_value: 12.5
+        }
+        display {
+          type: VALUE_TYPE_MONEY
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

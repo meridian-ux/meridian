@@ -1,0 +1,31 @@
+id: "form-read-url"
+title: "form-read-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-url"
+    title: "url"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "https://example.com/a?b=1"
+        }
+        display {
+          type: VALUE_TYPE_URL
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

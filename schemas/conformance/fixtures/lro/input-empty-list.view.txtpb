@@ -1,0 +1,36 @@
+id: "lro-input-empty-list"
+title: "lro-input-empty-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-empty-list"
+    title: "empty-list"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        repeated {
+          scalar {
+            label: "Item"
+            text {
+            }
+          }
+        }
+        display {
+          type: VALUE_TYPE_LIST
+        }
+      }
+    }
+  }
+}

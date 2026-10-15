@@ -1,0 +1,31 @@
+id: "form-input-email"
+title: "form-input-email"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-email"
+    title: "email"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "Ada <ada@example.com>"
+        }
+        display {
+          type: VALUE_TYPE_EMAIL
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

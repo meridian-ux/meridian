@@ -1,0 +1,32 @@
+id: "lro-input-masked"
+title: "lro-input-masked"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-masked"
+    title: "masked"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        masked {
+          default_value: "fixture-secret"
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+    }
+  }
+}

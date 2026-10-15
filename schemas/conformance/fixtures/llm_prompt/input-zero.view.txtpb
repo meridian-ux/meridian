@@ -1,0 +1,31 @@
+id: "llm_prompt-input-zero"
+title: "llm_prompt-input-zero"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-zero"
+    title: "zero"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          integer {
+            min: -100
+            max: 100
+          }
+          display {
+            type: VALUE_TYPE_INTEGER
+          }
+        }
+      }
+    }
+  }
+}

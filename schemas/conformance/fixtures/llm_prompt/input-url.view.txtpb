@@ -1,0 +1,30 @@
+id: "llm_prompt-input-url"
+title: "llm_prompt-input-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-url"
+    title: "url"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "https://example.com/a?b=1"
+          }
+          display {
+            type: VALUE_TYPE_URL
+          }
+        }
+      }
+    }
+  }
+}

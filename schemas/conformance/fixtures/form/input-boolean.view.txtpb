@@ -1,0 +1,30 @@
+id: "form-input-boolean"
+title: "form-input-boolean"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-boolean"
+    title: "boolean"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        boolean {
+        }
+        display {
+          type: VALUE_TYPE_BOOLEAN
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

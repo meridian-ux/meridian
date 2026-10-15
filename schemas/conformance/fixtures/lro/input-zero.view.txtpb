@@ -1,0 +1,33 @@
+id: "lro-input-zero"
+title: "lro-input-zero"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-zero"
+    title: "zero"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        integer {
+          min: -100
+          max: 100
+        }
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+    }
+  }
+}

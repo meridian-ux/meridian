@@ -1,0 +1,27 @@
+id: "prompt-input-url"
+title: "prompt-input-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-url"
+    title: "url"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "https://example.com/a?b=1"
+        }
+        display {
+          type: VALUE_TYPE_URL
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

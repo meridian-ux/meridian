@@ -1,0 +1,32 @@
+id: "prompt-input-percent"
+title: "prompt-input-percent"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-percent"
+    title: "percent"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        number {
+          min: -100.0
+          max: 100.0
+          default_value: 0.125
+        }
+        display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

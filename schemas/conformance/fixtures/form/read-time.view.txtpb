@@ -1,0 +1,31 @@
+id: "form-read-time"
+title: "form-read-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-time"
+    title: "time"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "13:45:00"
+        }
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

@@ -9,6 +9,9 @@ import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.j
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 const valueCases = JSON.parse(readFileSync(join(root, "../value_types.json"), "utf8")).cases as Array<{ name: string; expected: string }>;
+const inputIndex = toJson(StructSchema, fromBinary(StructSchema, readFileSync(join(root, "../input_values.binpb")))) as unknown as {
+  arms: string[]; cases: Array<{ name: string; raw: unknown; expectedRead: string; masked: boolean }>;
+};
 const constrained = JSON.parse(readFileSync(join(root, "../constrained_value_types.json"), "utf8")) as {
   stringArms: string[]; numberArms: string[];
   strings: Array<{ name: string; raw: string; expected: string }>;
@@ -22,6 +25,8 @@ export const STATE_CASES = readdirSync(root).sort().flatMap(arm =>
       readFileSync(join(root, arm, `${state}.responses.binpb`)))) as Record<string, unknown>;
     const typed = (constrained.stringArms.includes(arm) ? constrained.strings :
       constrained.numberArms.includes(arm) ? constrained.numbers : []).find(c => `typed-${c.name}` === state);
+    const input = inputIndex.cases.find(c => `input-${c.name}` === state || arm === "form" && `read-${c.name}` === state);
     return { name: `${arm}/${state}`, arm, state, view, responses, typedRaw: typed?.raw,
+      input: input ? { ...input, readonly: state.startsWith("read-") } : undefined,
       expectedValue: typed?.expected ?? (state.startsWith("value-") ? valueCases.find(c => `value-${c.name}` === state)?.expected : undefined) };
   }));

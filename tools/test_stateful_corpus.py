@@ -3,10 +3,43 @@ from pathlib import Path
 import tempfile
 import unittest
 from google.protobuf import json_format, text_format
-from tools.stateful_corpus import ROOT, STATES, artifacts, check, classes
+from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, classes, input_cases, input_index
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_input_index_covers_every_value_type_and_input_kind_as_protobuf(self):
+        cases = input_cases()
+        Field = classes()["meridian.ui.v1.FormField"]
+        types = {v.number for v in Field.DESCRIPTOR.file.pool.FindEnumTypeByName("meridian.ui.v1.ValueType").values}
+        self.assertTrue(types <= {case["field"]["display"]["type"] for case in cases})
+        self.assertIn(999, {case["field"]["display"]["type"] for case in cases})
+        self.assertEqual(len(cases), len({case["name"] for case in cases}))
+        kinds = {json_format.ParseDict(case["field"], Field()).WhichOneof("kind") for case in cases}
+        self.assertEqual(kinds, {field.name for field in Field.DESCRIPTOR.oneofs_by_name["kind"].fields})
+        files = input_index()
+        Struct = classes()["google.protobuf.Struct"]
+        binary = Struct.FromString(files["input_values.binpb"])
+        self.assertEqual(binary, text_format.Parse(files["input_values.txtpb"].decode(), Struct()))
+        index = json_format.MessageToDict(binary)
+        self.assertEqual(index["arms"], list(INPUT_ARMS))
+        for case, twin in zip(cases, index["cases"]):
+            self.assertEqual(case["raw"], twin["raw"])
+            if isinstance(case["raw"], bool):
+                self.assertIs(type(twin["raw"]), bool)
+
+    def test_input_cases_cross_every_input_arm_and_readonly_form_without_formatting_defaults(self):
+        files = artifacts()
+        View = classes()["meridian.ui.v1.ViewDescriptor"]
+        for case in input_cases():
+            for arm in INPUT_ARMS:
+                view = View.FromString(files[f"{arm}/input-{case['name']}.view.binpb"])
+                body = getattr(view.slots[0].panel, arm)
+                field = body.fields[0] if arm in ("form", "prompt") else body.inputs[0] if arm == "lro" else body.slots[0].field
+                expected = json_format.ParseDict(case["field"], type(field)())
+                self.assertEqual(field, expected, f"{arm}/{case['name']}")
+            read = View.FromString(files[f"form/read-{case['name']}.view.binpb"])
+            self.assertEqual(read.slots[0].panel.form.mode, 1)
+
     def test_constrained_cases_cover_every_declared_type_without_coercing_the_payload(self):
         files = artifacts()
         View = classes()["meridian.ui.v1.ViewDescriptor"]
@@ -93,7 +126,8 @@ class StatefulCorpusTest(unittest.TestCase):
                 self.assertIn(f"{arm}/value-{value['name']}.view.binpb", files)
         constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
         typed_count = len(constrained["stringArms"]) * len(constrained["strings"]) + len(constrained["numberArms"]) * len(constrained["numbers"])
-        self.assertEqual(len(files), (len(arms) * 3 + len(corpus["cases"]) * len(corpus["panelArms"]) + typed_count) * 4)
+        self.assertEqual(len(files), (len(arms) * 3 + len(corpus["cases"]) * len(corpus["panelArms"]) + typed_count
+                                     + len(input_cases()) * (len(INPUT_ARMS) + 1)) * 4)
 
     def test_text_twins_parse_to_the_exact_binary_messages(self):
         types = classes()

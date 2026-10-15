@@ -1,0 +1,37 @@
+id: "lro-input-percent"
+title: "lro-input-percent"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-percent"
+    title: "percent"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        number {
+          min: -100.0
+          max: 100.0
+          default_value: 0.125
+        }
+        display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+      }
+    }
+  }
+}

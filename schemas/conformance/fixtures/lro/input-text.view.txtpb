@@ -1,0 +1,32 @@
+id: "lro-input-text"
+title: "lro-input-text"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-text"
+    title: "text"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "plain text"
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+    }
+  }
+}

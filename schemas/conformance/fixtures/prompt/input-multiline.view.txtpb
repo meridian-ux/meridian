@@ -1,0 +1,27 @@
+id: "prompt-input-multiline"
+title: "prompt-input-multiline"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-multiline"
+    title: "multiline"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "first\nsecond"
+        }
+        display {
+          type: VALUE_TYPE_MULTILINE_TEXT
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

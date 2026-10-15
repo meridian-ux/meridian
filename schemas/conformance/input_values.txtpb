@@ -1,0 +1,2364 @@
+fields {
+  key: "arms"
+  value {
+    list_value {
+      values {
+        string_value: "form"
+      }
+      values {
+        string_value: "prompt"
+      }
+      values {
+        string_value: "lro"
+      }
+      values {
+        string_value: "llm_prompt"
+      }
+    }
+  }
+}
+fields {
+  key: "cases"
+  value {
+    list_value {
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "literal"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 0.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "literal"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "unspecified"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "literal"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "plain text"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 1.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "plain text"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "text"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "plain text"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "first\nsecond"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 2.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "first\nsecond"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "multiline"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "first\nsecond"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "-42"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 3.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "integer"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          number_value: -42.0
+                        }
+                      }
+                      fields {
+                        key: "max"
+                        value {
+                          number_value: 100.0
+                        }
+                      }
+                      fields {
+                        key: "min"
+                        value {
+                          number_value: -100.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "integer"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              number_value: -42.0
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "12.50"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "number"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "fractionDigits"
+                              value {
+                                number_value: 2.0
+                              }
+                            }
+                          }
+                        }
+                      }
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 4.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "number"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          number_value: 12.5
+                        }
+                      }
+                      fields {
+                        key: "max"
+                        value {
+                          number_value: 100.0
+                        }
+                      }
+                      fields {
+                        key: "min"
+                        value {
+                          number_value: -100.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "decimal"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              number_value: 12.5
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "No"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "boolean"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          bool_value: false
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 5.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "boolean"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              bool_value: false
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "READY"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 6.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "enumSelection"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "allowedValues"
+                        value {
+                          list_value {
+                            values {
+                              string_value: "READY"
+                            }
+                            values {
+                              string_value: "DONE"
+                            }
+                          }
+                        }
+                      }
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "READY"
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "enum"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "READY"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "one, one"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 7.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "repeated"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "maxItems"
+                        value {
+                          number_value: 4.0
+                        }
+                      }
+                      fields {
+                        key: "minItems"
+                        value {
+                          number_value: 2.0
+                        }
+                      }
+                      fields {
+                        key: "scalar"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "label"
+                              value {
+                                string_value: "Item"
+                              }
+                            }
+                            fields {
+                              key: "text"
+                              value {
+                                struct_value {
+                                  fields {
+                                    key: "defaultValue"
+                                    value {
+                                      string_value: "one"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "list"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              list_value {
+                values {
+                  string_value: "one"
+                }
+                values {
+                  string_value: "one"
+                }
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "Mar 29, 2026"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 8.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "2026-03-29"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "date"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "2026-03-29"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "Mar 29, 2026, 1:45 PM UTC"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 9.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "2026-03-29T13:45:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "date-time"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "2026-03-29T13:45:00Z"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "1:45 PM UTC"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 10.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "13:45:00"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "time"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "13:45:00"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "4 min 12 s"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 11.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "4 min 12 s"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "duration"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "4 min 12 s"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "Ada"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 12.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "Ada <ada@example.com>"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "principal"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "Ada <ada@example.com>"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "ada@example.com"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 13.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "Ada <ada@example.com>"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "email"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "Ada <ada@example.com>"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "https://example.com/a?b=1"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 14.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "https://example.com/a?b=1"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "url"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "https://example.com/a?b=1"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "000123"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 15.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "000123"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "identifier"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "000123"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "12.50"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "number"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "fractionDigits"
+                              value {
+                                number_value: 2.0
+                              }
+                            }
+                          }
+                        }
+                      }
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 16.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "number"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          number_value: 12.5
+                        }
+                      }
+                      fields {
+                        key: "max"
+                        value {
+                          number_value: 100.0
+                        }
+                      }
+                      fields {
+                        key: "min"
+                        value {
+                          number_value: -100.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "money"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              number_value: 12.5
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "0.125"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "number"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "fractionDigits"
+                              value {
+                                number_value: 3.0
+                              }
+                            }
+                          }
+                        }
+                      }
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 17.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "number"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          number_value: 0.125
+                        }
+                      }
+                      fields {
+                        key: "max"
+                        value {
+                          number_value: 100.0
+                        }
+                      }
+                      fields {
+                        key: "min"
+                        value {
+                          number_value: -100.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "percent"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              number_value: 0.125
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "{\"ready\":true}"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 18.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "nested"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "fields"
+                        value {
+                          list_value {
+                            values {
+                              struct_value {
+                                fields {
+                                  key: "boolean"
+                                  value {
+                                    struct_value {
+                                      fields {
+                                        key: "defaultValue"
+                                        value {
+                                          bool_value: true
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                fields {
+                                  key: "fieldId"
+                                  value {
+                                    string_value: "ready"
+                                  }
+                                }
+                                fields {
+                                  key: "label"
+                                  value {
+                                    string_value: "Ready"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "json"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              struct_value {
+                fields {
+                  key: "ready"
+                  value {
+                    bool_value: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "{}"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 18.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "keyValueMap"
+                  value {
+                    struct_value {
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "map"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              struct_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "—"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 7.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "repeated"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "scalar"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "label"
+                              value {
+                                string_value: "Item"
+                              }
+                            }
+                            fields {
+                              key: "text"
+                              value {
+                                struct_value {
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "empty-list"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "—"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 1.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: ""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "empty"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: ""
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "0"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 3.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "integer"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "max"
+                        value {
+                          number_value: 100.0
+                        }
+                      }
+                      fields {
+                        key: "min"
+                        value {
+                          number_value: -100.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "zero"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              number_value: 0.0
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "0012.50"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "number"
+                        value {
+                          struct_value {
+                            fields {
+                              key: "fractionDigits"
+                              value {
+                                number_value: 2.0
+                              }
+                            }
+                          }
+                        }
+                      }
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 4.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "0012.50"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "numeric-string"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "0012.50"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "literal"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 999.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "literal"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "unknown"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "literal"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: "not-a-date"
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 8.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "text"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "not-a-date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "invalid-date"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "not-a-date"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "expectedRead"
+            value {
+              string_value: ""
+            }
+          }
+          fields {
+            key: "field"
+            value {
+              struct_value {
+                fields {
+                  key: "display"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "type"
+                        value {
+                          number_value: 1.0
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "fieldId"
+                  value {
+                    string_value: "value"
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Declared input"
+                  }
+                }
+                fields {
+                  key: "masked"
+                  value {
+                    struct_value {
+                      fields {
+                        key: "defaultValue"
+                        value {
+                          string_value: "fixture-secret"
+                        }
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "requestField"
+                  value {
+                    string_value: "value"
+                  }
+                }
+              }
+            }
+          }
+          fields {
+            key: "masked"
+            value {
+              bool_value: true
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "masked"
+            }
+          }
+          fields {
+            key: "raw"
+            value {
+              string_value: "fixture-secret"
+            }
+          }
+        }
+      }
+    }
+  }
+}

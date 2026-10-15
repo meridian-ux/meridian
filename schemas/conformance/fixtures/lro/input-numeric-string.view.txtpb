@@ -1,0 +1,35 @@
+id: "lro-input-numeric-string"
+title: "lro-input-numeric-string"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-numeric-string"
+    title: "numeric-string"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "0012.50"
+        }
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

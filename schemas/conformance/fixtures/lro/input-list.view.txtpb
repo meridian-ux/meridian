@@ -1,0 +1,39 @@
+id: "lro-input-list"
+title: "lro-input-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-list"
+    title: "list"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        repeated {
+          scalar {
+            label: "Item"
+            text {
+              default_value: "one"
+            }
+          }
+          min_items: 2
+          max_items: 4
+        }
+        display {
+          type: VALUE_TYPE_LIST
+        }
+      }
+    }
+  }
+}

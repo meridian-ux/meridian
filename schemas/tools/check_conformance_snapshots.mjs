@@ -3,6 +3,8 @@
 // being auto-recorded by a local Vitest run.
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { fromBinary, toJson } from "@bufbuild/protobuf";
+import { StructSchema } from "@bufbuild/protobuf/wkt";
 
 export const SNAPSHOT_SUITES = {
   "packages/web-react/tests/__snapshots__/conformance.test.ts.snap": ["html-kit", "shadcn-kit"],
@@ -10,18 +12,21 @@ export const SNAPSHOT_SUITES = {
   "packages/web/tests/__snapshots__/conformance.test.ts.snap": ["web-components"],
 };
 
-function statefulCases(coverage, valueCases, valueArms = ["table"], constrained = {}) {
+function statefulCases(coverage, valueCases, valueArms = ["table"], constrained = {}, inputs = {}) {
   const cases = Object.keys(coverage.arms).flatMap(arm => ["empty", "typical", "overflow"].map(state => `${arm}/${state}`));
   cases.push(...valueArms.flatMap(arm => valueCases.map(value => `${arm}/value-${value.name}`)));
   for (const [arms, values] of [[constrained.stringArms ?? [], constrained.strings ?? []], [constrained.numberArms ?? [], constrained.numbers ?? []]]) {
     cases.push(...arms.flatMap(arm => values.map(value => `${arm}/typed-${value.name}`)));
   }
+  for (const value of inputs.cases ?? []) {
+    cases.push(...(inputs.arms ?? []).map(arm => `${arm}/input-${value.name}`), `form/read-${value.name}`);
+  }
   return cases;
 }
 
-export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"], valueArms = ["table"], constrained = {}) {
+export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"], valueArms = ["table"], constrained = {}, inputs = {}) {
   if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
-  const cases = statefulCases(coverage, valueCases, valueArms, constrained);
+  const cases = statefulCases(coverage, valueCases, valueArms, constrained, inputs);
   const expected = new Set(renderers.flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
   const actual = [...source.matchAll(/exports\[`[^`\n]* > ([a-z-]+\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
   const errors = [];
@@ -31,8 +36,8 @@ export function checkStatefulSnapshots(coverage, valueCases, source, renderers =
   return errors;
 }
 
-export function checkNativeSnapshots(coverage, valueCases, paths, valueArms = ["table"], constrained = {}) {
-  const expected = new Set(statefulCases(coverage, valueCases, valueArms, constrained).flatMap(name =>
+export function checkNativeSnapshots(coverage, valueCases, paths, valueArms = ["table"], constrained = {}, inputs = {}) {
+  const expected = new Set(statefulCases(coverage, valueCases, valueArms, constrained, inputs).flatMap(name =>
     ["96x28", "40x10"].map(size => `${name}-${size}.txt`)));
   const actual = new Set(paths);
   return [
@@ -69,6 +74,7 @@ export function checkSnapshotFiles(coverage) {
   const valueCorpus = JSON.parse(readFileSync(new URL("schemas/conformance/value_types.json", root), "utf8"));
   const valueCases = valueCorpus.cases;
   const constrained = JSON.parse(readFileSync(new URL("schemas/conformance/constrained_value_types.json", root), "utf8"));
+  const inputs = toJson(StructSchema, fromBinary(StructSchema, readFileSync(new URL("schemas/conformance/input_values.binpb", root))));
   const statefulErrors = [];
   for (const [path, renderers] of [
     ["packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", ["html", "shadcn"]],
@@ -78,7 +84,7 @@ export function checkSnapshotFiles(coverage) {
     let source;
     try { source = readFileSync(new URL(path, root), "utf8"); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
-    statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers, valueCorpus.panelArms, constrained).map(error => `${path}: ${error}`));
+    statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers, valueCorpus.panelArms, constrained, inputs).map(error => `${path}: ${error}`));
   }
   const native = [];
   function walkNative(prefix = "") {
@@ -91,7 +97,7 @@ export function checkSnapshotFiles(coverage) {
     }
   }
   walkNative();
-  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained)];
+  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained, inputs)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

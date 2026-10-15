@@ -1,0 +1,26 @@
+id: "prompt-input-empty"
+title: "prompt-input-empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-empty"
+    title: "empty"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

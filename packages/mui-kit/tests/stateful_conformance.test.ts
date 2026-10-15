@@ -18,17 +18,52 @@ describe("MUI stateful ViewDescriptor corpus", () => {
     const root = createRoot(container);
     const panelId = fixture.view.slots[0].panel!.panelId;
     const frames = (fixture.responses.__streamFrames ?? []) as object[];
-    const invoke = vi.fn(async (service: string, method: string) =>
-      (fixture.responses[`${service}.${method}`] ?? {}) as object);
+    const invoke = vi.fn(async (service: string, method: string, _request: unknown) =>
+      service === "fixture.Inputs" && method === "Start" ? { name: "operations/fixture", done: true, response: {} }
+      : (fixture.responses[`${service}.${method}`] ?? {}) as object);
     const onPromptResponse = vi.fn();
     try {
       await act(async () => root.render(createElement(MeridianProvider, {
-        kit: muiKit, adhoc: {}, invoker: { invoke }, onPromptResponse, streamSnapshots: { [panelId]: frames.map(frame =>
+        kit: muiKit, adhoc: {}, invoker: { invoke }, onPromptResponse,
+        admission: { mutations: ["fixture.Inputs/Submit", "fixture.Inputs/Start"] }, streamSnapshots: { [panelId]: frames.map(frame =>
           create(StreamFrameSchema, { dataJson: new TextEncoder().encode(JSON.stringify(frame)) })) },
         children: createElement(ViewRenderer, { view: fixture.view }),
       })));
       const tree = normalizeDom(container);
       expect(container.textContent).toContain(fixture.view.title);
+      if (fixture.input) {
+        const input = fixture.input;
+        if (input.readonly) {
+          if (input.masked) expect(container.textContent).not.toContain(String(input.raw));
+          else expect((container.textContent ?? "").includes(input.expectedRead) || [...container.querySelectorAll<HTMLInputElement>("input,textarea,select")].some(control => control.value === input.expectedRead)).toBe(true);
+        } else {
+          if (typeof input.raw === "string" || typeof input.raw === "number") {
+            const control = container.querySelector<HTMLInputElement>("select,textarea,input:not([type=hidden])");
+            expect(control, "declared scalar input must exist").not.toBeNull();
+            expect(control!.value).toBe(String(input.raw));
+          } else if (typeof input.raw === "boolean") expect(container.querySelector<HTMLInputElement>('input[type=checkbox]')!.checked).toBe(input.raw);
+          await act(async () => {
+            if (fixture.arm === "lro") {
+              const run = [...container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Run");
+              expect(run, "LRO must expose its run gesture").toBeDefined(); run!.click();
+            } else {
+              expect(container.querySelector("form"), "input surface must collect values").not.toBeNull();
+              container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+            }
+          });
+          if (fixture.arm === "prompt") {
+            expect(onPromptResponse).toHaveBeenCalledTimes(1);
+            expect(toJson(StructSchema, onPromptResponse.mock.calls[0][1])).toEqual({ value: input.raw });
+          } else if (fixture.arm === "llm_prompt") {
+            const preview = container.querySelector('[aria-label="User prompt"] pre')!.textContent ?? "";
+            if (input.masked) { expect(preview).not.toContain(String(input.raw)); expect(preview).not.toContain("{{value}}"); }
+            else expect(preview).toBe(`Value=${typeof input.raw === "string" ? input.raw : JSON.stringify(input.raw)}`);
+            expect(invoke).not.toHaveBeenCalled();
+          } else expect(invoke).toHaveBeenCalledWith("fixture.Inputs", fixture.arm === "lro" ? "Start" : "Submit", { value: input.raw });
+        }
+        expect(tree).toMatchSnapshot(`mui-kit/${fixture.name}`);
+        return;
+      }
       for (const call of Object.keys(fixture.responses).filter(key => !key.startsWith("__"))) {
         expect(invoke.mock.calls.some(([service, method]) => `${service}.${method}` === call), `${fixture.name} must consume ${call}`).toBe(true);
       }

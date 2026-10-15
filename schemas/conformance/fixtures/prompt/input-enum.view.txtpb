@@ -1,0 +1,29 @@
+id: "prompt-input-enum"
+title: "prompt-input-enum"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-enum"
+    title: "enum"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        enum_selection {
+          allowed_values: "READY"
+          allowed_values: "DONE"
+          default_value: "READY"
+        }
+        display {
+          type: VALUE_TYPE_ENUM
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

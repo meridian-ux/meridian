@@ -1,0 +1,31 @@
+id: "form-read-date"
+title: "form-read-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-date"
+    title: "date"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "2026-03-29"
+        }
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

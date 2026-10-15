@@ -1,0 +1,34 @@
+id: "llm_prompt-input-empty-list"
+title: "llm_prompt-input-empty-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-empty-list"
+    title: "empty-list"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          repeated {
+            scalar {
+              label: "Item"
+              text {
+              }
+            }
+          }
+          display {
+            type: VALUE_TYPE_LIST
+          }
+        }
+      }
+    }
+  }
+}

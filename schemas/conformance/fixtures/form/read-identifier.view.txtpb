@@ -1,0 +1,31 @@
+id: "form-read-identifier"
+title: "form-read-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-identifier"
+    title: "identifier"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "000123"
+        }
+        display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

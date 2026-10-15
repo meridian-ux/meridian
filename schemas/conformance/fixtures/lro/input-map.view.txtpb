@@ -1,0 +1,31 @@
+id: "lro-input-map"
+title: "lro-input-map"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-map"
+    title: "map"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        display {
+          type: VALUE_TYPE_JSON
+        }
+        key_value_map {
+        }
+      }
+    }
+  }
+}
