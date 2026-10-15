@@ -156,6 +156,24 @@ CI gate. The original semantic DOM goldens are retained, not relabeled as comput
 accessibility evidence. The first real-tree audit exposed unnamed empty copy
 controls and repeated scalar inputs; their labels were fixed in the renderers.
 
+## External conversation consumer
+
+The catalog tracks the private `meridian-internal` playground as a development
+consumer of the conversation modality, not a new public panel-renderer package.
+Its eight primitive Block kinds use the pinned published Conversation renderer;
+View is explicitly `separate-entrypoint` because it delegates through a transcript
+chip to the composed canvas. These rows do not establish current-source renderer
+parity or change any SwiftUI verification status.
+
+Internal issue #21 owns its producer-to-renderer evidence: all nine canonical
+Block fixtures have protobuf binary and proto3-JSON twins, and the playground CI
+gate starts the actual local host, emits each fixture through authenticated
+HTTP/SSE, checks its rendered output, and compares committed computed
+accessibility goldens (including the composed canvas for View). Fixture mode is
+explicit and default-off; it does not invoke models or MCP backends. The private
+gate owns execution evidence; the public catalog/coverage gates enforce complete
+declarations and explicit delegation rather than claiming to execute private code.
+
 ## Native and WASM core fixtures
 
 `core.proto` defines the test-only envelope for `core.json`. Its 31 cases cover

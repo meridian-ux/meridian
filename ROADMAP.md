@@ -82,19 +82,19 @@ The table below is **generated** from the coverage manifest by
 
 ### Conversation modality
 
-| arm | chat-html | chat-react |
-|---|---|---|
-| `markdown` | ● | ● |
-| `context` | ● | ● |
-| `tool` | ● | ● |
-| `list` | ● | ● |
-| `fields` | ● | ● |
-| `code` | ● | ● |
-| `divider` | ● | ● |
-| `table` | ● | ● |
-| `view` | – | ◑ |
+| arm | chat-html | chat-react | playground |
+|---|---|---|---|
+| `markdown` | ● | ● | ● |
+| `context` | ● | ● | ● |
+| `tool` | ● | ● | ● |
+| `list` | ● | ● | ● |
+| `fields` | ● | ● | ● |
+| `code` | ● | ● | ● |
+| `divider` | ● | ● | ● |
+| `table` | ● | ● | ● |
+| `view` | – | ◑ | ◑ |
 
-**9 arms × 2 renderers = 18 cells; 16 render, 2 do not.**
+**9 arms × 3 renderers = 27 cells; 24 render, 3 do not.**
 
 ### Launchpad modality
 
