@@ -1,0 +1,12 @@
+viewport 40x10
+time
+┌──────────────────────────────────────┐
+│Read-only item                        │
+│read-only form                        │
+│                                      │
+│▶ Declared input: 1:45 PM UTC         │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

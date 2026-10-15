@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-boolean" level=2
+        StaticText name="form-input-boolean"
+    heading name="boolean" level=3
+      StaticText name="boolean"
+    sectionheader name=""
+      heading name="boolean" level=3
+        StaticText name="boolean"
+    LabelText name=""
+      StaticText name="Declared input"
+      checkbox name="Declared input" checked="false" focusable=true invalid="false"
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."

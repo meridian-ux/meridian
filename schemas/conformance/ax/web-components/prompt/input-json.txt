@@ -1,0 +1,22 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-json" level=2
+        StaticText name="prompt-input-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        group name="Ready" invalid="false"
+          Legend name=""
+            StaticText name="Ready"
+          checkbox name="Ready" checked="true" focusable=true invalid="false"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

@@ -1,0 +1,12 @@
+viewport 40x10
+boolean
+┌──────────────────────────────────────┐
+│Read-only item                        │
+│read-only form                        │
+│                                      │
+│▶ Declared input: No                  │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

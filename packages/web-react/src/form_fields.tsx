@@ -16,7 +16,8 @@
 
 import { createContext, useContext, useEffect, useId, useState } from "react";
 import { useRpcInvoker } from "./provider.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { defaultFormValue, formatByDisplay, hasMaskedField } from "@savvifi/meridian-schemas/uiview";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ReactNode } from "react";
 
 import type {
@@ -213,7 +214,7 @@ function ScalarInput({
         name={name}
         min={kind.value.min !== 0 ? kind.value.min : undefined}
         max={kind.value.max !== 0 ? kind.value.max : undefined}
-        step={kind.value.step !== 0 ? kind.value.step : undefined}
+        step={kind.value.step !== 0 ? kind.value.step : "any"}
         defaultValue={String(raw)}
       />
     );
@@ -222,6 +223,9 @@ function ScalarInput({
     return <EnumInput spec={kind.value} name={name} raw={raw} className={c.fieldSelect} label={accessibleLabel} />;
   }
   // text, masked, or unset
+  if (kind.case === "text" && field.display?.type === ValueType.MULTILINE_TEXT) {
+    return <textarea aria-label={accessibleLabel} className={c.fieldInput} name={name} rows={4} defaultValue={String(raw)} />;
+  }
   return (
     <input
       type={kind.case === "masked" ? "password" : "text"}
@@ -285,6 +289,17 @@ export function FormFieldRow({
   const namePath = pathPrefix ? `${pathPrefix}.${seg}` : seg;
 
   const kind = field.kind;
+
+  const initial = useInitialValue(namePath);
+  if (mode !== 2 && field.display && field.display.type !== ValueType.UNSPECIFIED &&
+      (kind.case === "nested" || kind.case === "repeated" || kind.case === "keyValueMap")) {
+    try {
+      const raw = initial === undefined ? defaultFormValue(field) : initial;
+      const text = hasMaskedField(field) ? "••••••" : formatByDisplay(raw, field.display).text;
+      return <div className={c.field}><span className={c.fieldLabel}>{field.label}</span>
+        <span className={c.fieldValue} data-field={namePath}>{text}</span></div>;
+    } catch (reason) { return <p role="alert">{reason instanceof Error ? reason.message : String(reason)}</p>; }
+  }
 
   if (kind.case === "nested") {
     return (

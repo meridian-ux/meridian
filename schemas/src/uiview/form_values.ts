@@ -1,5 +1,43 @@
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
+/** Canonical local defaults. Bound recursive minimum-row expansion rather than
+ * allocating producer-controlled arrays or silently truncating their values. */
+export function defaultFormValues(fields: readonly FormField[]): Record<string, unknown> {
+  let remaining = 1000;
+  const defaults = (fields: readonly FormField[], depth: number): Record<string, unknown> => {
+    if (depth > 64) throw new Error("Default expansion exceeds 64 nested levels.");
+    return Object.fromEntries(fields.map(field => [field.fieldId, value(field, depth)]));
+  };
+  const value = (field: FormField, depth: number): unknown => {
+    if (depth > 64 || --remaining < 0) throw new Error("Default expansion exceeds 1000 value nodes or 64 nested levels.");
+    const kind = field.kind;
+    switch (kind.case) {
+      case "integer": case "number": case "boolean": case "text": case "masked": return kind.value.defaultValue;
+      case "enumSelection": return kind.value.defaultValue || kind.value.options[0]?.value || kind.value.allowedValues[0] || "";
+      case "keyValueMap": return {};
+      case "nested": return defaults(kind.value.fields, depth + 1);
+      case "repeated": {
+        if (kind.value.minItems > remaining) throw new Error("Default expansion exceeds 1000 value nodes.");
+        const element = kind.value.element;
+        return Array.from({ length: kind.value.minItems }, () => {
+          if (element.case === "scalar") return value(element.value, depth + 1);
+          if (element.case === "object") {
+            if (--remaining < 0) throw new Error("Default expansion exceeds 1000 value nodes.");
+            return defaults(element.value.fields, depth + 1);
+          }
+          throw new Error("Missing repeated element kind.");
+        });
+      }
+      default: throw new Error(`${field.label || field.fieldId}: unsupported field kind.`);
+    }
+  };
+  return defaults(fields, 0);
+}
+
+export function defaultFormValue(field: FormField): unknown {
+  return defaultFormValues([field])[field.fieldId];
+}
+
 /** Validate local form values before any host callback/RPC. No coercion: empty
  * numbers, fractions in integer fields, and string booleans are not defaults. */
 export function validateFormValues(fields: readonly FormField[], values: unknown): string | undefined {

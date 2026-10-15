@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-empty-list" level=2
+        StaticText name="form-read-empty-list"
+    heading name="empty-list" level=3
+      StaticText name="empty-list"
+    StaticText name="empty-list"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="—"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

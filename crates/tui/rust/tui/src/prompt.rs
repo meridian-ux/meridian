@@ -496,6 +496,20 @@ impl PromptState {
 
 // Bound default expansion, especially repeated-of-repeated min_items. Reject
 // rather than silently truncating or allocating producer-controlled billions.
+pub(crate) fn input_defaults(fields: &[FormField]) -> Result<serde_json::Value, String> {
+    let mut remaining = 1_000usize;
+    fields
+        .iter()
+        .map(|field| {
+            Ok((
+                field.field_id.clone(),
+                prompt_default(field, &mut remaining)?,
+            ))
+        })
+        .collect::<Result<serde_json::Map<_, _>, String>>()
+        .map(serde_json::Value::Object)
+}
+
 fn prompt_default(field: &FormField, remaining: &mut usize) -> Result<serde_json::Value, String> {
     *remaining = remaining
         .checked_sub(1)

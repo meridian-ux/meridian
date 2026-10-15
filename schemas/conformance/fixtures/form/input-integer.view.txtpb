@@ -1,0 +1,33 @@
+id: "form-input-integer"
+title: "form-input-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-integer"
+    title: "integer"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        integer {
+          min: -100
+          max: 100
+          default_value: -42
+        }
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

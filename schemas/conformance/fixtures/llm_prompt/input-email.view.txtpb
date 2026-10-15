@@ -1,0 +1,30 @@
+id: "llm_prompt-input-email"
+title: "llm_prompt-input-email"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-email"
+    title: "email"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "Ada <ada@example.com>"
+          }
+          display {
+            type: VALUE_TYPE_EMAIL
+          }
+        }
+      }
+    }
+  }
+}

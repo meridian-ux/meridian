@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-enum" level=2
+        StaticText name="form-read-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    heading name="enum" level=2
+      StaticText name="enum"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="READY"

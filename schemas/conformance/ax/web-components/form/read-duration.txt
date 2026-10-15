@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-duration" level=2
+        StaticText name="form-read-duration"
+    heading name="duration" level=3
+      StaticText name="duration"
+    StaticText name="duration"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="4 min 12 s"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

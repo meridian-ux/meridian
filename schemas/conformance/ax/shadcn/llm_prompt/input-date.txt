@@ -1,0 +1,24 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-date" level=2
+        StaticText name="llm_prompt-input-date"
+    heading name="date" level=3
+      StaticText name="date"
+    sectionheader name=""
+      heading name="date" level=3
+        StaticText name="date"
+    LabelText name=""
+      StaticText name="Declared input"
+      textbox name="Declared input" value="2026-03-29" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+        generic name="" editable="plaintext"
+          StaticText name="2026-03-29" editable="plaintext"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

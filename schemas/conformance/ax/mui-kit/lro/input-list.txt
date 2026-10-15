@@ -1,0 +1,35 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-list" level=2
+        StaticText name="lro-input-list"
+    heading name="list" level=3
+      StaticText name="list"
+    heading name="Declared input" level=6
+      StaticText name="Declared input"
+    LabelText name=""
+      StaticText name="Item"
+    textbox name="Item" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"
+        StaticText name="one" editable="plaintext"
+    button name="move item up" disabled=true invalid="false"
+      StaticText name="↑"
+    button name="move item down" focusable=true invalid="false"
+      StaticText name="↓"
+    button name="remove item" disabled=true invalid="false"
+      StaticText name="✕"
+    LabelText name=""
+      StaticText name="Item"
+    textbox name="Item" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"
+        StaticText name="one" editable="plaintext"
+    button name="move item up" focusable=true invalid="false"
+      StaticText name="↑"
+    button name="move item down" disabled=true invalid="false"
+      StaticText name="↓"
+    button name="remove item" disabled=true invalid="false"
+      StaticText name="✕"
+    button name="ADD" focusable=true invalid="false"
+      StaticText name="ADD"
+    button name="RUN" focusable=true invalid="false"
+      StaticText name="RUN"

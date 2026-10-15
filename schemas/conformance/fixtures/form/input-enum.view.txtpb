@@ -1,0 +1,33 @@
+id: "form-input-enum"
+title: "form-input-enum"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-enum"
+    title: "enum"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        enum_selection {
+          allowed_values: "READY"
+          allowed_values: "DONE"
+          default_value: "READY"
+        }
+        display {
+          type: VALUE_TYPE_ENUM
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

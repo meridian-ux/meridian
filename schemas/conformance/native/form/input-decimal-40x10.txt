@@ -1,0 +1,12 @@
+viewport 40x10
+decimal
+┌──────────────────────────────────────┐
+│Edit item                             │
+│↑/↓ select · ←/→ numeric · F2 JSON ·  │
+│Enter submit                          │
+│                                      │
+│▶ Declared input: 12.50               │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

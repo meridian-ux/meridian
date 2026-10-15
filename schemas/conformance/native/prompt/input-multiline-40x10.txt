@@ -1,0 +1,12 @@
+viewport 40x10
+multiline
+▶ Declared input
+    first
+    second
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

@@ -1,0 +1,12 @@
+viewport 40x10
+json
+▶ Declared input
+    {"ready":true}  (JSON object)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

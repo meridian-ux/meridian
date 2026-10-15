@@ -1,0 +1,33 @@
+id: "llm_prompt-input-numeric-string"
+title: "llm_prompt-input-numeric-string"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-numeric-string"
+    title: "numeric-string"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "0012.50"
+          }
+          display {
+            type: VALUE_TYPE_DECIMAL
+            number {
+              fraction_digits: 2
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1961,6 +1961,438 @@ form
     "Add section""
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'form/input-boolean' > html/form/input-boolean 1`] = `
+"h2
+  "form-input-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-date' > html/form/input-date 1`] = `
+"h2
+  "form-input-date"
+h3
+  "date"
+h2
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-date-time' > html/form/input-date-time 1`] = `
+"h2
+  "form-input-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-decimal' > html/form/input-decimal 1`] = `
+"h2
+  "form-input-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-duration' > html/form/input-duration 1`] = `
+"h2
+  "form-input-duration"
+h3
+  "duration"
+h2
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-email' > html/form/input-email 1`] = `
+"h2
+  "form-input-email"
+h3
+  "email"
+h2
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-empty' > html/form/input-empty 1`] = `
+"h2
+  "form-input-empty"
+h3
+  "empty"
+h2
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-empty-list' > html/form/input-empty-list 1`] = `
+"h2
+  "form-input-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-enum' > html/form/input-enum 1`] = `
+"h2
+  "form-input-enum"
+h3
+  "enum"
+h2
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-identifier' > html/form/input-identifier 1`] = `
+"h2
+  "form-input-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-integer' > html/form/input-integer 1`] = `
+"h2
+  "form-input-integer"
+h3
+  "integer"
+h2
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-invalid-date' > html/form/input-invalid-date 1`] = `
+"h2
+  "form-input-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-json' > html/form/input-json 1`] = `
+"h2
+  "form-input-json"
+h3
+  "json"
+h2
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-list' > html/form/input-list 1`] = `
+"h2
+  "form-input-list"
+h3
+  "list"
+h2
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-map' > html/form/input-map 1`] = `
+"h2
+  "form-input-map"
+h3
+  "map"
+h2
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-masked' > html/form/input-masked 1`] = `
+"h2
+  "form-input-masked"
+h3
+  "masked"
+h2
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-money' > html/form/input-money 1`] = `
+"h2
+  "form-input-money"
+h3
+  "money"
+h2
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-multiline' > html/form/input-multiline 1`] = `
+"h2
+  "form-input-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-numeric-string' > html/form/input-numeric-string 1`] = `
+"h2
+  "form-input-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-percent' > html/form/input-percent 1`] = `
+"h2
+  "form-input-percent"
+h3
+  "percent"
+h2
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-principal' > html/form/input-principal 1`] = `
+"h2
+  "form-input-principal"
+h3
+  "principal"
+h2
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-text' > html/form/input-text 1`] = `
+"h2
+  "form-input-text"
+h3
+  "text"
+h2
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-time' > html/form/input-time 1`] = `
+"h2
+  "form-input-time"
+h3
+  "time"
+h2
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-unknown' > html/form/input-unknown 1`] = `
+"h2
+  "form-input-unknown"
+h3
+  "unknown"
+h2
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-unspecified' > html/form/input-unspecified 1`] = `
+"h2
+  "form-input-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-url' > html/form/input-url 1`] = `
+"h2
+  "form-input-url"
+h3
+  "url"
+h2
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/input-zero' > html/form/input-zero 1`] = `
+"h2
+  "form-input-zero"
+h3
+  "zero"
+h2
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'form/overflow' > html/form/overflow 1`] = `
 "h2
   "Conformance: form · overflow"
@@ -2904,6 +3336,353 @@ form
   input type="hidden" value="30"
   button aria-label="Add section" type="button"
     "Add section""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-boolean' > html/form/read-boolean 1`] = `
+"h2
+  "form-read-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+form
+  label
+    "Declared input"
+    "No""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-date' > html/form/read-date 1`] = `
+"h2
+  "form-read-date"
+h3
+  "date"
+h2
+  "date"
+form
+  label
+    "Declared input"
+    "Mar 29, 2026""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-date-time' > html/form/read-date-time 1`] = `
+"h2
+  "form-read-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+form
+  label
+    "Declared input"
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-decimal' > html/form/read-decimal 1`] = `
+"h2
+  "form-read-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+form
+  label
+    "Declared input"
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-duration' > html/form/read-duration 1`] = `
+"h2
+  "form-read-duration"
+h3
+  "duration"
+h2
+  "duration"
+form
+  label
+    "Declared input"
+    "4 min 12 s""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-email' > html/form/read-email 1`] = `
+"h2
+  "form-read-email"
+h3
+  "email"
+h2
+  "email"
+form
+  label
+    "Declared input"
+    "ada@example.com""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-empty' > html/form/read-empty 1`] = `
+"h2
+  "form-read-empty"
+h3
+  "empty"
+h2
+  "empty"
+form
+  label
+    "Declared input"
+    "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-empty-list' > html/form/read-empty-list 1`] = `
+"h2
+  "form-read-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+form
+  "Declared input"
+  "—""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-enum' > html/form/read-enum 1`] = `
+"h2
+  "form-read-enum"
+h3
+  "enum"
+h2
+  "enum"
+form
+  label
+    "Declared input"
+    "READY""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-identifier' > html/form/read-identifier 1`] = `
+"h2
+  "form-read-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+form
+  label
+    "Declared input"
+    "000123""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-integer' > html/form/read-integer 1`] = `
+"h2
+  "form-read-integer"
+h3
+  "integer"
+h2
+  "integer"
+form
+  label
+    "Declared input"
+    "-42""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-invalid-date' > html/form/read-invalid-date 1`] = `
+"h2
+  "form-read-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+form
+  label
+    "Declared input"
+    "not-a-date""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-json' > html/form/read-json 1`] = `
+"h2
+  "form-read-json"
+h3
+  "json"
+h2
+  "json"
+form
+  "Declared input"
+  "{\\"ready\\":true}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-list' > html/form/read-list 1`] = `
+"h2
+  "form-read-list"
+h3
+  "list"
+h2
+  "list"
+form
+  "Declared input"
+  "one, one""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-map' > html/form/read-map 1`] = `
+"h2
+  "form-read-map"
+h3
+  "map"
+h2
+  "map"
+form
+  "Declared input"
+  "{}""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-masked' > html/form/read-masked 1`] = `
+"h2
+  "form-read-masked"
+h3
+  "masked"
+h2
+  "masked"
+form
+  label
+    "Declared input"
+    "••••••""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-money' > html/form/read-money 1`] = `
+"h2
+  "form-read-money"
+h3
+  "money"
+h2
+  "money"
+form
+  label
+    "Declared input"
+    "12.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-multiline' > html/form/read-multiline 1`] = `
+"h2
+  "form-read-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+form
+  label
+    "Declared input"
+    "first second""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-numeric-string' > html/form/read-numeric-string 1`] = `
+"h2
+  "form-read-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+form
+  label
+    "Declared input"
+    "0012.50""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-percent' > html/form/read-percent 1`] = `
+"h2
+  "form-read-percent"
+h3
+  "percent"
+h2
+  "percent"
+form
+  label
+    "Declared input"
+    "0.125""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-principal' > html/form/read-principal 1`] = `
+"h2
+  "form-read-principal"
+h3
+  "principal"
+h2
+  "principal"
+form
+  label
+    "Declared input"
+    "Ada""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-text' > html/form/read-text 1`] = `
+"h2
+  "form-read-text"
+h3
+  "text"
+h2
+  "text"
+form
+  label
+    "Declared input"
+    "plain text""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-time' > html/form/read-time 1`] = `
+"h2
+  "form-read-time"
+h3
+  "time"
+h2
+  "time"
+form
+  label
+    "Declared input"
+    "1:45 PM UTC""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-unknown' > html/form/read-unknown 1`] = `
+"h2
+  "form-read-unknown"
+h3
+  "unknown"
+h2
+  "unknown"
+form
+  label
+    "Declared input"
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-unspecified' > html/form/read-unspecified 1`] = `
+"h2
+  "form-read-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+form
+  label
+    "Declared input"
+    "literal""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-url' > html/form/read-url 1`] = `
+"h2
+  "form-read-url"
+h3
+  "url"
+h2
+  "url"
+form
+  label
+    "Declared input"
+    "https://example.com/a?b=1""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'form/read-zero' > html/form/read-zero 1`] = `
+"h2
+  "form-read-zero"
+h3
+  "zero"
+h2
+  "zero"
+form
+  label
+    "Declared input"
+    "0""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'form/typical' > html/form/typical 1`] = `
@@ -3973,6 +4752,654 @@ section aria-label="User prompt"
   pre"
 `;
 
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-boolean' > html/llm_prompt/input-boolean 1`] = `
+"h2
+  "llm_prompt-input-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-date' > html/llm_prompt/input-date 1`] = `
+"h2
+  "llm_prompt-input-date"
+h3
+  "date"
+h2
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-date-time' > html/llm_prompt/input-date-time 1`] = `
+"h2
+  "llm_prompt-input-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-decimal' > html/llm_prompt/input-decimal 1`] = `
+"h2
+  "llm_prompt-input-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-duration' > html/llm_prompt/input-duration 1`] = `
+"h2
+  "llm_prompt-input-duration"
+h3
+  "duration"
+h2
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-email' > html/llm_prompt/input-email 1`] = `
+"h2
+  "llm_prompt-input-email"
+h3
+  "email"
+h2
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-empty' > html/llm_prompt/input-empty 1`] = `
+"h2
+  "llm_prompt-input-empty"
+h3
+  "empty"
+h2
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-empty-list' > html/llm_prompt/input-empty-list 1`] = `
+"h2
+  "llm_prompt-input-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-enum' > html/llm_prompt/input-enum 1`] = `
+"h2
+  "llm_prompt-input-enum"
+h3
+  "enum"
+h2
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-identifier' > html/llm_prompt/input-identifier 1`] = `
+"h2
+  "llm_prompt-input-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-integer' > html/llm_prompt/input-integer 1`] = `
+"h2
+  "llm_prompt-input-integer"
+h3
+  "integer"
+h2
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-invalid-date' > html/llm_prompt/input-invalid-date 1`] = `
+"h2
+  "llm_prompt-input-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-json' > html/llm_prompt/input-json 1`] = `
+"h2
+  "llm_prompt-input-json"
+h3
+  "json"
+h2
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-list' > html/llm_prompt/input-list 1`] = `
+"h2
+  "llm_prompt-input-list"
+h3
+  "list"
+h2
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-map' > html/llm_prompt/input-map 1`] = `
+"h2
+  "llm_prompt-input-map"
+h3
+  "map"
+h2
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-masked' > html/llm_prompt/input-masked 1`] = `
+"h2
+  "llm_prompt-input-masked"
+h3
+  "masked"
+h2
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-money' > html/llm_prompt/input-money 1`] = `
+"h2
+  "llm_prompt-input-money"
+h3
+  "money"
+h2
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-multiline' > html/llm_prompt/input-multiline 1`] = `
+"h2
+  "llm_prompt-input-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-numeric-string' > html/llm_prompt/input-numeric-string 1`] = `
+"h2
+  "llm_prompt-input-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-percent' > html/llm_prompt/input-percent 1`] = `
+"h2
+  "llm_prompt-input-percent"
+h3
+  "percent"
+h2
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-principal' > html/llm_prompt/input-principal 1`] = `
+"h2
+  "llm_prompt-input-principal"
+h3
+  "principal"
+h2
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-text' > html/llm_prompt/input-text 1`] = `
+"h2
+  "llm_prompt-input-text"
+h3
+  "text"
+h2
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-time' > html/llm_prompt/input-time 1`] = `
+"h2
+  "llm_prompt-input-time"
+h3
+  "time"
+h2
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-unknown' > html/llm_prompt/input-unknown 1`] = `
+"h2
+  "llm_prompt-input-unknown"
+h3
+  "unknown"
+h2
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-unspecified' > html/llm_prompt/input-unspecified 1`] = `
+"h2
+  "llm_prompt-input-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-url' > html/llm_prompt/input-url 1`] = `
+"h2
+  "llm_prompt-input-url"
+h3
+  "url"
+h2
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'llm_prompt/input-zero' > html/llm_prompt/input-zero 1`] = `
+"h2
+  "llm_prompt-input-zero"
+h3
+  "zero"
+h2
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
 exports[`html stateful ViewDescriptor corpus > 'llm_prompt/overflow' > html/llm_prompt/overflow 1`] = `
 "h2
   "Conformance: llm_prompt · overflow"
@@ -4032,8 +5459,443 @@ h3
   "lro · empty"
 h2
   "lro · empty"
-button type="button"
-  "Run reindex""
+form
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-boolean' > html/lro/input-boolean 1`] = `
+"h2
+  "lro-input-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-date' > html/lro/input-date 1`] = `
+"h2
+  "lro-input-date"
+h3
+  "date"
+h2
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-date-time' > html/lro/input-date-time 1`] = `
+"h2
+  "lro-input-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-decimal' > html/lro/input-decimal 1`] = `
+"h2
+  "lro-input-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-duration' > html/lro/input-duration 1`] = `
+"h2
+  "lro-input-duration"
+h3
+  "duration"
+h2
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-email' > html/lro/input-email 1`] = `
+"h2
+  "lro-input-email"
+h3
+  "email"
+h2
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-empty' > html/lro/input-empty 1`] = `
+"h2
+  "lro-input-empty"
+h3
+  "empty"
+h2
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-empty-list' > html/lro/input-empty-list 1`] = `
+"h2
+  "lro-input-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-enum' > html/lro/input-enum 1`] = `
+"h2
+  "lro-input-enum"
+h3
+  "enum"
+h2
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-identifier' > html/lro/input-identifier 1`] = `
+"h2
+  "lro-input-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-integer' > html/lro/input-integer 1`] = `
+"h2
+  "lro-input-integer"
+h3
+  "integer"
+h2
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-invalid-date' > html/lro/input-invalid-date 1`] = `
+"h2
+  "lro-input-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-json' > html/lro/input-json 1`] = `
+"h2
+  "lro-input-json"
+h3
+  "json"
+h2
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-list' > html/lro/input-list 1`] = `
+"h2
+  "lro-input-list"
+h3
+  "list"
+h2
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-map' > html/lro/input-map 1`] = `
+"h2
+  "lro-input-map"
+h3
+  "map"
+h2
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-masked' > html/lro/input-masked 1`] = `
+"h2
+  "lro-input-masked"
+h3
+  "masked"
+h2
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-money' > html/lro/input-money 1`] = `
+"h2
+  "lro-input-money"
+h3
+  "money"
+h2
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-multiline' > html/lro/input-multiline 1`] = `
+"h2
+  "lro-input-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-numeric-string' > html/lro/input-numeric-string 1`] = `
+"h2
+  "lro-input-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-percent' > html/lro/input-percent 1`] = `
+"h2
+  "lro-input-percent"
+h3
+  "percent"
+h2
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-principal' > html/lro/input-principal 1`] = `
+"h2
+  "lro-input-principal"
+h3
+  "principal"
+h2
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-text' > html/lro/input-text 1`] = `
+"h2
+  "lro-input-text"
+h3
+  "text"
+h2
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-time' > html/lro/input-time 1`] = `
+"h2
+  "lro-input-time"
+h3
+  "time"
+h2
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-unknown' > html/lro/input-unknown 1`] = `
+"h2
+  "lro-input-unknown"
+h3
+  "unknown"
+h2
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-unspecified' > html/lro/input-unspecified 1`] = `
+"h2
+  "lro-input-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-url' > html/lro/input-url 1`] = `
+"h2
+  "lro-input-url"
+h3
+  "url"
+h2
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'lro/input-zero' > html/lro/input-zero 1`] = `
+"h2
+  "lro-input-zero"
+h3
+  "zero"
+h2
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'lro/overflow' > html/lro/overflow 1`] = `
@@ -4043,8 +5905,101 @@ h3
   "lro · overflow"
 h2
   "lro · overflow"
-button type="button"
-  "Run reindex""
+form
+  label
+    "Job input 0"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 2"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 3"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 4"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 5"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 6"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 7"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 8"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 9"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 10"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 11"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 12"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 13"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 14"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 15"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 16"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 17"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 18"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 19"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 20"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 21"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 22"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 23"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 24"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 25"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 26"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 27"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 28"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 29"
+    input type="text" value="Fixture job input"
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'lro/typical' > html/lro/typical 1`] = `
@@ -4054,8 +6009,17 @@ h3
   "lro · typical"
 h2
   "lro · typical"
-button type="button"
-  "Run reindex""
+form
+  label
+    "Job input 0"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+    input type="text" value="Fixture job input"
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'media/empty' > html/media/empty 1`] = `
@@ -4247,6 +6211,519 @@ form
     label
       "Reason"
       input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-boolean' > html/prompt/input-boolean 1`] = `
+"h2
+  "prompt-input-boolean"
+h3
+  "boolean"
+h2
+  "boolean"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="checkbox"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-date' > html/prompt/input-date 1`] = `
+"h2
+  "prompt-input-date"
+h3
+  "date"
+h2
+  "date"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="2026-03-29"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-date-time' > html/prompt/input-date-time 1`] = `
+"h2
+  "prompt-input-date-time"
+h3
+  "date-time"
+h2
+  "date-time"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-decimal' > html/prompt/input-decimal 1`] = `
+"h2
+  "prompt-input-decimal"
+h3
+  "decimal"
+h2
+  "decimal"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-duration' > html/prompt/input-duration 1`] = `
+"h2
+  "prompt-input-duration"
+h3
+  "duration"
+h2
+  "duration"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="4 min 12 s"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-email' > html/prompt/input-email 1`] = `
+"h2
+  "prompt-input-email"
+h3
+  "email"
+h2
+  "email"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-empty' > html/prompt/input-empty 1`] = `
+"h2
+  "prompt-input-empty"
+h3
+  "empty"
+h2
+  "empty"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-empty-list' > html/prompt/input-empty-list 1`] = `
+"h2
+  "prompt-input-empty-list"
+h3
+  "empty-list"
+h2
+  "empty-list"
+form
+  fieldset
+    "Declared input"
+    ol
+    button aria-label="Add" type="button"
+      "Add"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-enum' > html/prompt/input-enum 1`] = `
+"h2
+  "prompt-input-enum"
+h3
+  "enum"
+h2
+  "enum"
+form
+  fieldset
+    label
+      "Declared input"
+      select
+        option value="READY"
+          "READY"
+        option value="DONE"
+          "DONE"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-identifier' > html/prompt/input-identifier 1`] = `
+"h2
+  "prompt-input-identifier"
+h3
+  "identifier"
+h2
+  "identifier"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="000123"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-integer' > html/prompt/input-integer 1`] = `
+"h2
+  "prompt-input-integer"
+h3
+  "integer"
+h2
+  "integer"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-invalid-date' > html/prompt/input-invalid-date 1`] = `
+"h2
+  "prompt-input-invalid-date"
+h3
+  "invalid-date"
+h2
+  "invalid-date"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="not-a-date"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-json' > html/prompt/input-json 1`] = `
+"h2
+  "prompt-input-json"
+h3
+  "json"
+h2
+  "json"
+form
+  fieldset
+    "Declared input"
+    label
+      "Ready"
+      input type="checkbox" checked
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-list' > html/prompt/input-list 1`] = `
+"h2
+  "prompt-input-list"
+h3
+  "list"
+h2
+  "list"
+form
+  fieldset
+    "Declared input"
+    ol
+      li
+        input aria-label="Item item 1" type="text" value="one"
+        button aria-label="Move up" type="button" disabled
+          "▲"
+        button aria-label="Move down" type="button"
+          "▼"
+        button aria-label="Remove" type="button" disabled
+          "✕"
+      li
+        input aria-label="Item item 2" type="text" value="one"
+        button aria-label="Move up" type="button"
+          "▲"
+        button aria-label="Move down" type="button" disabled
+          "▼"
+        button aria-label="Remove" type="button" disabled
+          "✕"
+    input type="hidden" value="2"
+    button aria-label="Add" type="button"
+      "Add"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-map' > html/prompt/input-map 1`] = `
+"h2
+  "prompt-input-map"
+h3
+  "map"
+h2
+  "map"
+form
+  fieldset
+    "Declared input"
+    ol
+    input type="hidden" value="{}"
+    button type="button"
+      "Add entry"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-masked' > html/prompt/input-masked 1`] = `
+"h2
+  "prompt-input-masked"
+h3
+  "masked"
+h2
+  "masked"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="password" value="fixture-secret"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-money' > html/prompt/input-money 1`] = `
+"h2
+  "prompt-input-money"
+h3
+  "money"
+h2
+  "money"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-multiline' > html/prompt/input-multiline 1`] = `
+"h2
+  "prompt-input-multiline"
+h3
+  "multiline"
+h2
+  "multiline"
+form
+  fieldset
+    label
+      "Declared input"
+      textarea
+        "first second"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-numeric-string' > html/prompt/input-numeric-string 1`] = `
+"h2
+  "prompt-input-numeric-string"
+h3
+  "numeric-string"
+h2
+  "numeric-string"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="0012.50"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-percent' > html/prompt/input-percent 1`] = `
+"h2
+  "prompt-input-percent"
+h3
+  "percent"
+h2
+  "percent"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-principal' > html/prompt/input-principal 1`] = `
+"h2
+  "prompt-input-principal"
+h3
+  "principal"
+h2
+  "principal"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-text' > html/prompt/input-text 1`] = `
+"h2
+  "prompt-input-text"
+h3
+  "text"
+h2
+  "text"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="plain text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-time' > html/prompt/input-time 1`] = `
+"h2
+  "prompt-input-time"
+h3
+  "time"
+h2
+  "time"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="13:45:00"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-unknown' > html/prompt/input-unknown 1`] = `
+"h2
+  "prompt-input-unknown"
+h3
+  "unknown"
+h2
+  "unknown"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="literal"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-unspecified' > html/prompt/input-unspecified 1`] = `
+"h2
+  "prompt-input-unspecified"
+h3
+  "unspecified"
+h2
+  "unspecified"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="literal"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-url' > html/prompt/input-url 1`] = `
+"h2
+  "prompt-input-url"
+h3
+  "url"
+h2
+  "url"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`html stateful ViewDescriptor corpus > 'prompt/input-zero' > html/prompt/input-zero 1`] = `
+"h2
+  "prompt-input-zero"
+h3
+  "zero"
+h2
+  "zero"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="0" min="-100" max="100" step="1"
   button type="submit"
     "Submit"
   button type="button"
@@ -9395,6 +11872,438 @@ form
     "Add section""
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-boolean' > shadcn/form/input-boolean 1`] = `
+"h2
+  "form-input-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-date' > shadcn/form/input-date 1`] = `
+"h2
+  "form-input-date"
+h3
+  "date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-date-time' > shadcn/form/input-date-time 1`] = `
+"h2
+  "form-input-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-decimal' > shadcn/form/input-decimal 1`] = `
+"h2
+  "form-input-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-duration' > shadcn/form/input-duration 1`] = `
+"h2
+  "form-input-duration"
+h3
+  "duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-email' > shadcn/form/input-email 1`] = `
+"h2
+  "form-input-email"
+h3
+  "email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-empty' > shadcn/form/input-empty 1`] = `
+"h2
+  "form-input-empty"
+h3
+  "empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-empty-list' > shadcn/form/input-empty-list 1`] = `
+"h2
+  "form-input-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-enum' > shadcn/form/input-enum 1`] = `
+"h2
+  "form-input-enum"
+h3
+  "enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-identifier' > shadcn/form/input-identifier 1`] = `
+"h2
+  "form-input-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-integer' > shadcn/form/input-integer 1`] = `
+"h2
+  "form-input-integer"
+h3
+  "integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-invalid-date' > shadcn/form/input-invalid-date 1`] = `
+"h2
+  "form-input-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-json' > shadcn/form/input-json 1`] = `
+"h2
+  "form-input-json"
+h3
+  "json"
+h3
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-list' > shadcn/form/input-list 1`] = `
+"h2
+  "form-input-list"
+h3
+  "list"
+h3
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-map' > shadcn/form/input-map 1`] = `
+"h2
+  "form-input-map"
+h3
+  "map"
+h3
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-masked' > shadcn/form/input-masked 1`] = `
+"h2
+  "form-input-masked"
+h3
+  "masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-money' > shadcn/form/input-money 1`] = `
+"h2
+  "form-input-money"
+h3
+  "money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-multiline' > shadcn/form/input-multiline 1`] = `
+"h2
+  "form-input-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-numeric-string' > shadcn/form/input-numeric-string 1`] = `
+"h2
+  "form-input-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-percent' > shadcn/form/input-percent 1`] = `
+"h2
+  "form-input-percent"
+h3
+  "percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-principal' > shadcn/form/input-principal 1`] = `
+"h2
+  "form-input-principal"
+h3
+  "principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-text' > shadcn/form/input-text 1`] = `
+"h2
+  "form-input-text"
+h3
+  "text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-time' > shadcn/form/input-time 1`] = `
+"h2
+  "form-input-time"
+h3
+  "time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-unknown' > shadcn/form/input-unknown 1`] = `
+"h2
+  "form-input-unknown"
+h3
+  "unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-unspecified' > shadcn/form/input-unspecified 1`] = `
+"h2
+  "form-input-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-url' > shadcn/form/input-url 1`] = `
+"h2
+  "form-input-url"
+h3
+  "url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/input-zero' > shadcn/form/input-zero 1`] = `
+"h2
+  "form-input-zero"
+h3
+  "zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'form/overflow' > shadcn/form/overflow 1`] = `
 "h2
   "Conformance: form · overflow"
@@ -10338,6 +13247,353 @@ form
   input type="hidden" value="30"
   button aria-label="Add section" type="button"
     "Add section""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-boolean' > shadcn/form/read-boolean 1`] = `
+"h2
+  "form-read-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+form
+  label
+    "Declared input"
+    "No""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-date' > shadcn/form/read-date 1`] = `
+"h2
+  "form-read-date"
+h3
+  "date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+    "Mar 29, 2026""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-date-time' > shadcn/form/read-date-time 1`] = `
+"h2
+  "form-read-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+    "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-decimal' > shadcn/form/read-decimal 1`] = `
+"h2
+  "form-read-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-duration' > shadcn/form/read-duration 1`] = `
+"h2
+  "form-read-duration"
+h3
+  "duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+    "4 min 12 s""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-email' > shadcn/form/read-email 1`] = `
+"h2
+  "form-read-email"
+h3
+  "email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+    "ada@example.com""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-empty' > shadcn/form/read-empty 1`] = `
+"h2
+  "form-read-empty"
+h3
+  "empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+    "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-empty-list' > shadcn/form/read-empty-list 1`] = `
+"h2
+  "form-read-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+form
+  "Declared input"
+  "—""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-enum' > shadcn/form/read-enum 1`] = `
+"h2
+  "form-read-enum"
+h3
+  "enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+    "READY""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-identifier' > shadcn/form/read-identifier 1`] = `
+"h2
+  "form-read-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+    "000123""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-integer' > shadcn/form/read-integer 1`] = `
+"h2
+  "form-read-integer"
+h3
+  "integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+    "-42""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-invalid-date' > shadcn/form/read-invalid-date 1`] = `
+"h2
+  "form-read-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+    "not-a-date""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-json' > shadcn/form/read-json 1`] = `
+"h2
+  "form-read-json"
+h3
+  "json"
+h3
+  "json"
+form
+  "Declared input"
+  "{\\"ready\\":true}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-list' > shadcn/form/read-list 1`] = `
+"h2
+  "form-read-list"
+h3
+  "list"
+h3
+  "list"
+form
+  "Declared input"
+  "one, one""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-map' > shadcn/form/read-map 1`] = `
+"h2
+  "form-read-map"
+h3
+  "map"
+h3
+  "map"
+form
+  "Declared input"
+  "{}""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-masked' > shadcn/form/read-masked 1`] = `
+"h2
+  "form-read-masked"
+h3
+  "masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+    "••••••""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-money' > shadcn/form/read-money 1`] = `
+"h2
+  "form-read-money"
+h3
+  "money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+    "12.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-multiline' > shadcn/form/read-multiline 1`] = `
+"h2
+  "form-read-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+    "first second""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-numeric-string' > shadcn/form/read-numeric-string 1`] = `
+"h2
+  "form-read-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+    "0012.50""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-percent' > shadcn/form/read-percent 1`] = `
+"h2
+  "form-read-percent"
+h3
+  "percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+    "0.125""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-principal' > shadcn/form/read-principal 1`] = `
+"h2
+  "form-read-principal"
+h3
+  "principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+    "Ada""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-text' > shadcn/form/read-text 1`] = `
+"h2
+  "form-read-text"
+h3
+  "text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+    "plain text""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-time' > shadcn/form/read-time 1`] = `
+"h2
+  "form-read-time"
+h3
+  "time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+    "1:45 PM UTC""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-unknown' > shadcn/form/read-unknown 1`] = `
+"h2
+  "form-read-unknown"
+h3
+  "unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-unspecified' > shadcn/form/read-unspecified 1`] = `
+"h2
+  "form-read-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+    "literal""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-url' > shadcn/form/read-url 1`] = `
+"h2
+  "form-read-url"
+h3
+  "url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+    "https://example.com/a?b=1""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'form/read-zero' > shadcn/form/read-zero 1`] = `
+"h2
+  "form-read-zero"
+h3
+  "zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+    "0""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'form/typical' > shadcn/form/typical 1`] = `
@@ -11407,6 +14663,654 @@ section aria-label="User prompt"
   pre"
 `;
 
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-boolean' > shadcn/llm_prompt/input-boolean 1`] = `
+"h2
+  "llm_prompt-input-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-date' > shadcn/llm_prompt/input-date 1`] = `
+"h2
+  "llm_prompt-input-date"
+h3
+  "date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-date-time' > shadcn/llm_prompt/input-date-time 1`] = `
+"h2
+  "llm_prompt-input-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-decimal' > shadcn/llm_prompt/input-decimal 1`] = `
+"h2
+  "llm_prompt-input-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-duration' > shadcn/llm_prompt/input-duration 1`] = `
+"h2
+  "llm_prompt-input-duration"
+h3
+  "duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-email' > shadcn/llm_prompt/input-email 1`] = `
+"h2
+  "llm_prompt-input-email"
+h3
+  "email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-empty' > shadcn/llm_prompt/input-empty 1`] = `
+"h2
+  "llm_prompt-input-empty"
+h3
+  "empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-empty-list' > shadcn/llm_prompt/input-empty-list 1`] = `
+"h2
+  "llm_prompt-input-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-enum' > shadcn/llm_prompt/input-enum 1`] = `
+"h2
+  "llm_prompt-input-enum"
+h3
+  "enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-identifier' > shadcn/llm_prompt/input-identifier 1`] = `
+"h2
+  "llm_prompt-input-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-integer' > shadcn/llm_prompt/input-integer 1`] = `
+"h2
+  "llm_prompt-input-integer"
+h3
+  "integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-invalid-date' > shadcn/llm_prompt/input-invalid-date 1`] = `
+"h2
+  "llm_prompt-input-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-json' > shadcn/llm_prompt/input-json 1`] = `
+"h2
+  "llm_prompt-input-json"
+h3
+  "json"
+h3
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-list' > shadcn/llm_prompt/input-list 1`] = `
+"h2
+  "llm_prompt-input-list"
+h3
+  "list"
+h3
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-map' > shadcn/llm_prompt/input-map 1`] = `
+"h2
+  "llm_prompt-input-map"
+h3
+  "map"
+h3
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-masked' > shadcn/llm_prompt/input-masked 1`] = `
+"h2
+  "llm_prompt-input-masked"
+h3
+  "masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-money' > shadcn/llm_prompt/input-money 1`] = `
+"h2
+  "llm_prompt-input-money"
+h3
+  "money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-multiline' > shadcn/llm_prompt/input-multiline 1`] = `
+"h2
+  "llm_prompt-input-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-numeric-string' > shadcn/llm_prompt/input-numeric-string 1`] = `
+"h2
+  "llm_prompt-input-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-percent' > shadcn/llm_prompt/input-percent 1`] = `
+"h2
+  "llm_prompt-input-percent"
+h3
+  "percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-principal' > shadcn/llm_prompt/input-principal 1`] = `
+"h2
+  "llm_prompt-input-principal"
+h3
+  "principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-text' > shadcn/llm_prompt/input-text 1`] = `
+"h2
+  "llm_prompt-input-text"
+h3
+  "text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-time' > shadcn/llm_prompt/input-time 1`] = `
+"h2
+  "llm_prompt-input-time"
+h3
+  "time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-unknown' > shadcn/llm_prompt/input-unknown 1`] = `
+"h2
+  "llm_prompt-input-unknown"
+h3
+  "unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-unspecified' > shadcn/llm_prompt/input-unspecified 1`] = `
+"h2
+  "llm_prompt-input-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-url' > shadcn/llm_prompt/input-url 1`] = `
+"h2
+  "llm_prompt-input-url"
+h3
+  "url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/input-zero' > shadcn/llm_prompt/input-zero 1`] = `
+"h2
+  "llm_prompt-input-zero"
+h3
+  "zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
 exports[`shadcn stateful ViewDescriptor corpus > 'llm_prompt/overflow' > shadcn/llm_prompt/overflow 1`] = `
 "h2
   "Conformance: llm_prompt · overflow"
@@ -11466,8 +15370,443 @@ h3
   "lro · empty"
 h3
   "lro · empty"
-button type="button"
-  "Run reindex""
+form
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-boolean' > shadcn/lro/input-boolean 1`] = `
+"h2
+  "lro-input-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+form
+  label
+    "Declared input"
+    input type="checkbox"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-date' > shadcn/lro/input-date 1`] = `
+"h2
+  "lro-input-date"
+h3
+  "date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-date-time' > shadcn/lro/input-date-time 1`] = `
+"h2
+  "lro-input-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+    input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-decimal' > shadcn/lro/input-decimal 1`] = `
+"h2
+  "lro-input-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-duration' > shadcn/lro/input-duration 1`] = `
+"h2
+  "lro-input-duration"
+h3
+  "duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+    input type="text" value="4 min 12 s"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-email' > shadcn/lro/input-email 1`] = `
+"h2
+  "lro-input-email"
+h3
+  "email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-empty' > shadcn/lro/input-empty 1`] = `
+"h2
+  "lro-input-empty"
+h3
+  "empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+    input type="text" value=""
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-empty-list' > shadcn/lro/input-empty-list 1`] = `
+"h2
+  "lro-input-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+form
+  "Declared input"
+  ol
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-enum' > shadcn/lro/input-enum 1`] = `
+"h2
+  "lro-input-enum"
+h3
+  "enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+    select
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-identifier' > shadcn/lro/input-identifier 1`] = `
+"h2
+  "lro-input-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+    input type="text" value="000123"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-integer' > shadcn/lro/input-integer 1`] = `
+"h2
+  "lro-input-integer"
+h3
+  "integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+    input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-invalid-date' > shadcn/lro/input-invalid-date 1`] = `
+"h2
+  "lro-input-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+    input type="text" value="not-a-date"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-json' > shadcn/lro/input-json 1`] = `
+"h2
+  "lro-input-json"
+h3
+  "json"
+h3
+  "json"
+form
+  "Declared input"
+  label
+    "Ready"
+    input type="checkbox" checked
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-list' > shadcn/lro/input-list 1`] = `
+"h2
+  "lro-input-list"
+h3
+  "list"
+h3
+  "list"
+form
+  "Declared input"
+  ol
+    li
+      input aria-label="Item item 1" type="text" value="one"
+      button aria-label="Move up" type="button" disabled
+        "▲"
+      button aria-label="Move down" type="button"
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+    li
+      input aria-label="Item item 2" type="text" value="one"
+      button aria-label="Move up" type="button"
+        "▲"
+      button aria-label="Move down" type="button" disabled
+        "▼"
+      button aria-label="Remove" type="button" disabled
+        "✕"
+  input type="hidden" value="2"
+  button aria-label="Add" type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-map' > shadcn/lro/input-map 1`] = `
+"h2
+  "lro-input-map"
+h3
+  "map"
+h3
+  "map"
+form
+  "Declared input"
+  ol
+  input type="hidden" value="{}"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-masked' > shadcn/lro/input-masked 1`] = `
+"h2
+  "lro-input-masked"
+h3
+  "masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+    input type="password" value="fixture-secret"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-money' > shadcn/lro/input-money 1`] = `
+"h2
+  "lro-input-money"
+h3
+  "money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+    input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-multiline' > shadcn/lro/input-multiline 1`] = `
+"h2
+  "lro-input-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+    textarea
+      "first second"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-numeric-string' > shadcn/lro/input-numeric-string 1`] = `
+"h2
+  "lro-input-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+    input type="text" value="0012.50"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-percent' > shadcn/lro/input-percent 1`] = `
+"h2
+  "lro-input-percent"
+h3
+  "percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+    input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-principal' > shadcn/lro/input-principal 1`] = `
+"h2
+  "lro-input-principal"
+h3
+  "principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+    input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-text' > shadcn/lro/input-text 1`] = `
+"h2
+  "lro-input-text"
+h3
+  "text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+    input type="text" value="plain text"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-time' > shadcn/lro/input-time 1`] = `
+"h2
+  "lro-input-time"
+h3
+  "time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+    input type="text" value="13:45:00"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-unknown' > shadcn/lro/input-unknown 1`] = `
+"h2
+  "lro-input-unknown"
+h3
+  "unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-unspecified' > shadcn/lro/input-unspecified 1`] = `
+"h2
+  "lro-input-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+    input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-url' > shadcn/lro/input-url 1`] = `
+"h2
+  "lro-input-url"
+h3
+  "url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+    input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'lro/input-zero' > shadcn/lro/input-zero 1`] = `
+"h2
+  "lro-input-zero"
+h3
+  "zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+    input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'lro/overflow' > shadcn/lro/overflow 1`] = `
@@ -11477,8 +15816,101 @@ h3
   "lro · overflow"
 h3
   "lro · overflow"
-button type="button"
-  "Run reindex""
+form
+  label
+    "Job input 0"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 2"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 3"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 4"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 5"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 6"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 7"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 8"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 9"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 10"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 11"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 12"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 13"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 14"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 15"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 16"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 17"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 18"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 19"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 20"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 21"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 22"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 23"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 24"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 25"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 26"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 27"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 28"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 29"
+    input type="text" value="Fixture job input"
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'lro/typical' > shadcn/lro/typical 1`] = `
@@ -11488,8 +15920,17 @@ h3
   "lro · typical"
 h3
   "lro · typical"
-button type="button"
-  "Run reindex""
+form
+  label
+    "Job input 0"
+    input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+    input type="text" value="Fixture job input"
+  button type="submit" disabled
+    "Run reindex"
+  p role="status"
+    "Saving is not permitted.""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'media/empty' > shadcn/media/empty 1`] = `
@@ -11681,6 +16122,519 @@ form
     label
       "Reason"
       input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-boolean' > shadcn/prompt/input-boolean 1`] = `
+"h2
+  "prompt-input-boolean"
+h3
+  "boolean"
+h3
+  "boolean"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="checkbox"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-date' > shadcn/prompt/input-date 1`] = `
+"h2
+  "prompt-input-date"
+h3
+  "date"
+h3
+  "date"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="2026-03-29"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-date-time' > shadcn/prompt/input-date-time 1`] = `
+"h2
+  "prompt-input-date-time"
+h3
+  "date-time"
+h3
+  "date-time"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-decimal' > shadcn/prompt/input-decimal 1`] = `
+"h2
+  "prompt-input-decimal"
+h3
+  "decimal"
+h3
+  "decimal"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-duration' > shadcn/prompt/input-duration 1`] = `
+"h2
+  "prompt-input-duration"
+h3
+  "duration"
+h3
+  "duration"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="4 min 12 s"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-email' > shadcn/prompt/input-email 1`] = `
+"h2
+  "prompt-input-email"
+h3
+  "email"
+h3
+  "email"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-empty' > shadcn/prompt/input-empty 1`] = `
+"h2
+  "prompt-input-empty"
+h3
+  "empty"
+h3
+  "empty"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value=""
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-empty-list' > shadcn/prompt/input-empty-list 1`] = `
+"h2
+  "prompt-input-empty-list"
+h3
+  "empty-list"
+h3
+  "empty-list"
+form
+  fieldset
+    "Declared input"
+    ol
+    button aria-label="Add" type="button"
+      "Add"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-enum' > shadcn/prompt/input-enum 1`] = `
+"h2
+  "prompt-input-enum"
+h3
+  "enum"
+h3
+  "enum"
+form
+  fieldset
+    label
+      "Declared input"
+      select
+        option value="READY"
+          "READY"
+        option value="DONE"
+          "DONE"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-identifier' > shadcn/prompt/input-identifier 1`] = `
+"h2
+  "prompt-input-identifier"
+h3
+  "identifier"
+h3
+  "identifier"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="000123"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-integer' > shadcn/prompt/input-integer 1`] = `
+"h2
+  "prompt-input-integer"
+h3
+  "integer"
+h3
+  "integer"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-invalid-date' > shadcn/prompt/input-invalid-date 1`] = `
+"h2
+  "prompt-input-invalid-date"
+h3
+  "invalid-date"
+h3
+  "invalid-date"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="not-a-date"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-json' > shadcn/prompt/input-json 1`] = `
+"h2
+  "prompt-input-json"
+h3
+  "json"
+h3
+  "json"
+form
+  fieldset
+    "Declared input"
+    label
+      "Ready"
+      input type="checkbox" checked
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-list' > shadcn/prompt/input-list 1`] = `
+"h2
+  "prompt-input-list"
+h3
+  "list"
+h3
+  "list"
+form
+  fieldset
+    "Declared input"
+    ol
+      li
+        input aria-label="Item item 1" type="text" value="one"
+        button aria-label="Move up" type="button" disabled
+          "▲"
+        button aria-label="Move down" type="button"
+          "▼"
+        button aria-label="Remove" type="button" disabled
+          "✕"
+      li
+        input aria-label="Item item 2" type="text" value="one"
+        button aria-label="Move up" type="button"
+          "▲"
+        button aria-label="Move down" type="button" disabled
+          "▼"
+        button aria-label="Remove" type="button" disabled
+          "✕"
+    input type="hidden" value="2"
+    button aria-label="Add" type="button"
+      "Add"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-map' > shadcn/prompt/input-map 1`] = `
+"h2
+  "prompt-input-map"
+h3
+  "map"
+h3
+  "map"
+form
+  fieldset
+    "Declared input"
+    ol
+    input type="hidden" value="{}"
+    button type="button"
+      "Add entry"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-masked' > shadcn/prompt/input-masked 1`] = `
+"h2
+  "prompt-input-masked"
+h3
+  "masked"
+h3
+  "masked"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="password" value="fixture-secret"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-money' > shadcn/prompt/input-money 1`] = `
+"h2
+  "prompt-input-money"
+h3
+  "money"
+h3
+  "money"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-multiline' > shadcn/prompt/input-multiline 1`] = `
+"h2
+  "prompt-input-multiline"
+h3
+  "multiline"
+h3
+  "multiline"
+form
+  fieldset
+    label
+      "Declared input"
+      textarea
+        "first second"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-numeric-string' > shadcn/prompt/input-numeric-string 1`] = `
+"h2
+  "prompt-input-numeric-string"
+h3
+  "numeric-string"
+h3
+  "numeric-string"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="0012.50"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-percent' > shadcn/prompt/input-percent 1`] = `
+"h2
+  "prompt-input-percent"
+h3
+  "percent"
+h3
+  "percent"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-principal' > shadcn/prompt/input-principal 1`] = `
+"h2
+  "prompt-input-principal"
+h3
+  "principal"
+h3
+  "principal"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-text' > shadcn/prompt/input-text 1`] = `
+"h2
+  "prompt-input-text"
+h3
+  "text"
+h3
+  "text"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="plain text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-time' > shadcn/prompt/input-time 1`] = `
+"h2
+  "prompt-input-time"
+h3
+  "time"
+h3
+  "time"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="13:45:00"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-unknown' > shadcn/prompt/input-unknown 1`] = `
+"h2
+  "prompt-input-unknown"
+h3
+  "unknown"
+h3
+  "unknown"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="literal"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-unspecified' > shadcn/prompt/input-unspecified 1`] = `
+"h2
+  "prompt-input-unspecified"
+h3
+  "unspecified"
+h3
+  "unspecified"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="literal"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-url' > shadcn/prompt/input-url 1`] = `
+"h2
+  "prompt-input-url"
+h3
+  "url"
+h3
+  "url"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel""
+`;
+
+exports[`shadcn stateful ViewDescriptor corpus > 'prompt/input-zero' > shadcn/prompt/input-zero 1`] = `
+"h2
+  "prompt-input-zero"
+h3
+  "zero"
+h3
+  "zero"
+form
+  fieldset
+    label
+      "Declared input"
+      input type="number" value="0" min="-100" max="100" step="1"
   button type="submit"
     "Submit"
   button type="button"

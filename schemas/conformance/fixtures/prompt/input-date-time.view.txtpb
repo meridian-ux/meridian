@@ -1,0 +1,27 @@
+id: "prompt-input-date-time"
+title: "prompt-input-date-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-date-time"
+    title: "date-time"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "2026-03-29T13:45:00Z"
+        }
+        display {
+          type: VALUE_TYPE_DATE_TIME
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

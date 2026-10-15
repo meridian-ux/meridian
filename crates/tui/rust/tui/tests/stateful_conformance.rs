@@ -10,6 +10,8 @@ use std::{
     },
 };
 
+use meridian_tui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use meridian_tui::PanelPromptResponse;
 use meridian_tui::{PanelView, RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession};
 use meridian_uiview::{
     proto::{panel_descriptor::Body, RpcCall, ViewDescriptor},
@@ -50,6 +52,23 @@ fn json_struct(value: Struct) -> Json {
             .map(|(key, value)| (key, json_value(value)))
             .collect(),
     )
+}
+
+// WKT Value has one double-valued JSON number kind. Runtime request builders
+// may retain an integer Number internally; compare the same protobuf numeric
+// representation without coercing strings, booleans, arrays, or objects.
+fn protobuf_json_numbers(value: Json) -> Json {
+    match value {
+        Json::Number(value) => json!(value.as_f64().unwrap()),
+        Json::Array(values) => Json::Array(values.into_iter().map(protobuf_json_numbers).collect()),
+        Json::Object(values) => Json::Object(
+            values
+                .into_iter()
+                .map(|(key, value)| (key, protobuf_json_numbers(value)))
+                .collect(),
+        ),
+        other => other,
+    }
 }
 
 struct CorpusHost {
@@ -95,6 +114,14 @@ fn shared_stateful_panels_match_native_buffers() {
     let constrained: Json =
         serde_json::from_slice(&std::fs::read(root.join("constrained_value_types.json")).unwrap())
             .unwrap();
+    let inputs = json_struct(
+        Struct::decode(
+            std::fs::read(root.join("input_values.binpb"))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap(),
+    );
     let mut cases = Vec::new();
     for arm in std::fs::read_dir(root.join("fixtures")).unwrap() {
         for entry in std::fs::read_dir(arm.unwrap().path()).unwrap() {
@@ -115,7 +142,9 @@ fn shared_stateful_panels_match_native_buffers() {
             + constrained["stringArms"].as_array().unwrap().len()
                 * constrained["strings"].as_array().unwrap().len()
             + constrained["numberArms"].as_array().unwrap().len()
-                * constrained["numbers"].as_array().unwrap().len(),
+                * constrained["numbers"].as_array().unwrap().len()
+            + inputs["cases"].as_array().unwrap().len()
+                * (inputs["arms"].as_array().unwrap().len() + 1),
         "every arm/state and every declared value surface/case"
     );
     let recording = std::env::var("UPDATE_SNAPSHOTS").as_deref() == Ok("1");
@@ -141,6 +170,16 @@ fn shared_stateful_panels_match_native_buffers() {
         let filename = path.file_name().unwrap().to_str().unwrap();
         let state = filename.strip_suffix(".view.binpb").unwrap();
         let name = format!("{arm}/{state}");
+        let input = state
+            .strip_prefix("input-")
+            .or_else(|| state.strip_prefix("read-"))
+            .and_then(|name| {
+                inputs["cases"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|case| case["name"].as_str() == Some(name))
+            });
         let view = ViewDescriptor::decode(std::fs::read(&path).unwrap().as_slice()).unwrap();
         assert_eq!(view.slots.len(), 1, "{name}: corpus currently has one slot");
         let panel = view.slots[0].panel.as_ref().unwrap();
@@ -197,7 +236,7 @@ fn shared_stateful_panels_match_native_buffers() {
                 if arm == "chart" && state != "empty" {
                     assert!(output.contains("2026-10-01"), "{name}\n{output}");
                 }
-                if arm == "form" {
+                if arm == "form" && ["empty", "typical", "overflow"].contains(&state) {
                     let count = match state {
                         "empty" => 0,
                         "typical" => 2,
@@ -207,6 +246,21 @@ fn shared_stateful_panels_match_native_buffers() {
                         output.contains(&format!("Navigation groups: {count} items")),
                         "{name}\n{output}"
                     );
+                }
+                if let Some(input) = input {
+                    if input["masked"] == true {
+                        assert!(
+                            !output.contains(input["raw"].as_str().unwrap()),
+                            "{name}: concealed default leaked\n{output}"
+                        );
+                    } else if state.starts_with("read-") {
+                        for line in input["expectedRead"].as_str().unwrap().lines() {
+                            assert!(
+                                output.contains(line),
+                                "{name}: read-only formatted value missing: {line:?}\n{output}"
+                            );
+                        }
+                    }
                 }
                 if state.starts_with("value-") || state.starts_with("typed-") {
                     let source = if state.starts_with("value-") {
@@ -278,6 +332,56 @@ fn shared_stateful_panels_match_native_buffers() {
                 );
             }
         }
+        if let Some(input) = input {
+            let expected = json!({"value": input["raw"].clone()});
+            match panel.body.as_ref().unwrap() {
+                Body::Form(form) if state.starts_with("read-") => {
+                    assert!(widget
+                        .handle_form_key(form, &context, KeyCode::Enter)
+                        .is_none());
+                }
+                Body::Form(form) => assert_eq!(
+                    protobuf_json_numbers(
+                        widget
+                            .handle_form_key(form, &context, KeyCode::Enter)
+                            .unwrap_or_else(|| panic!("{name}: valid defaults must submit"))
+                            .request
+                    ),
+                    expected,
+                    "{name}"
+                ),
+                Body::Lro(lro) => assert_eq!(
+                    protobuf_json_numbers(
+                        widget
+                            .handle_lro_key(lro, &context, KeyCode::Enter)
+                            .unwrap_or_else(|| panic!("{name}: valid defaults must start"))
+                            .request
+                    ),
+                    expected,
+                    "{name}"
+                ),
+                Body::Prompt(_) | Body::LlmPrompt(_) => {
+                    let response = widget
+                        .handle_prompt_key(panel, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+                        .unwrap_or_else(|| panic!("{name}: valid defaults must collect"));
+                    let values = match response {
+                        PanelPromptResponse::Submitted(values) => values,
+                        PanelPromptResponse::Preview { slots, .. } => slots,
+                        other => panic!("{name}: unexpected response {other:?}"),
+                    };
+                    assert_eq!(
+                        json_struct(values),
+                        expected,
+                        "{name}: collected protobuf must preserve raw values"
+                    );
+                }
+                _ => panic!("{name}: unexpected input arm"),
+            }
+            assert!(
+                host.calls.borrow().is_empty(),
+                "{name}: native collection must not execute a request"
+            );
+        }
         for key in host
             .responses
             .as_object()
@@ -319,6 +423,135 @@ fn shared_stateful_panels_match_native_buffers() {
         actual_goldens, expected_goldens,
         "native goldens must have no missing or extra cases; updater does not delete extras"
     );
+}
+
+#[test]
+fn typed_input_defaults_collect_raw_protobuf_values_without_transport() {
+    let root = data_root();
+    let inputs = json_struct(
+        Struct::decode(
+            std::fs::read(root.join("input_values.binpb"))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap(),
+    );
+    for input in inputs["cases"].as_array().unwrap() {
+        for arm in inputs["arms"].as_array().unwrap() {
+            let arm = arm.as_str().unwrap();
+            let name = format!("{arm}/input-{}", input["name"].as_str().unwrap());
+            let view = ViewDescriptor::decode(
+                std::fs::read(root.join(format!("fixtures/{name}.view.binpb")))
+                    .unwrap()
+                    .as_slice(),
+            )
+            .unwrap();
+            let panel = view.slots[0].panel.as_ref().unwrap();
+            let host = CorpusHost {
+                responses: json!({}),
+                calls: RefCell::new(BTreeSet::new()),
+                closed: Arc::new(AtomicUsize::new(0)),
+            };
+            let context = Context::default();
+            let mut widget = PanelView::new();
+            let mut terminal = Terminal::new(TestBackend::new(96, 28)).unwrap();
+            terminal
+                .draw(|frame| widget.render(frame, frame.area(), panel, &context, &host))
+                .unwrap();
+            let expected = json!({"value": input["raw"].clone()});
+            let collected = match panel.body.as_ref().unwrap() {
+                Body::Form(form) => {
+                    widget
+                        .handle_form_key(form, &context, KeyCode::Enter)
+                        .unwrap_or_else(|| panic!("{name}: valid defaults must submit"))
+                        .request
+                }
+                Body::Lro(lro) => {
+                    widget
+                        .handle_lro_key(lro, &context, KeyCode::Enter)
+                        .unwrap_or_else(|| panic!("{name}: valid defaults must start"))
+                        .request
+                }
+                Body::Prompt(_) | Body::LlmPrompt(_) => {
+                    match widget
+                        .handle_prompt_key(panel, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+                        .unwrap_or_else(|| panic!("{name}: valid defaults must collect"))
+                    {
+                        PanelPromptResponse::Submitted(values) => json_struct(values),
+                        PanelPromptResponse::Preview { slots, .. } => json_struct(slots),
+                        other => panic!("{name}: unexpected response {other:?}"),
+                    }
+                }
+                _ => panic!("{name}: unexpected input arm"),
+            };
+            assert_eq!(
+                protobuf_json_numbers(collected),
+                expected,
+                "{name}: defaults must retain their actual protobuf value types"
+            );
+            assert!(
+                host.calls.borrow().is_empty(),
+                "{name}: collection must not execute RPCs"
+            );
+        }
+    }
+}
+
+#[test]
+fn excessive_form_and_lro_default_expansion_fails_visibly_without_execution() {
+    let root = data_root();
+    for arm in ["form", "lro"] {
+        let mut view = ViewDescriptor::decode(
+            std::fs::read(root.join(format!("fixtures/{arm}/input-list.view.binpb")))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        let panel = view.slots[0].panel.as_mut().unwrap();
+        let field = match panel.body.as_mut().unwrap() {
+            Body::Form(form) => &mut form.fields[0],
+            Body::Lro(lro) => &mut lro.inputs[0],
+            _ => unreachable!(),
+        };
+        let Some(meridian_uiview::proto::form_field::Kind::Repeated(repeated)) = &mut field.kind
+        else {
+            unreachable!()
+        };
+        repeated.min_items = u32::MAX;
+        repeated.max_items = 0;
+        let host = CorpusHost {
+            responses: json!({}),
+            calls: RefCell::new(BTreeSet::new()),
+            closed: Arc::new(AtomicUsize::new(0)),
+        };
+        let context = Context::default();
+        let mut widget = PanelView::new();
+        let mut terminal = Terminal::new(TestBackend::new(96, 28)).unwrap();
+        terminal
+            .draw(|frame| widget.render(frame, frame.area(), panel, &context, &host))
+            .unwrap();
+        let text = terminal
+            .backend()
+            .buffer()
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<String>();
+        assert!(
+            text.contains("1000 value nodes"),
+            "{arm}: oversized defaults must explain rejection: {text}"
+        );
+        match panel.body.as_ref().unwrap() {
+            Body::Form(form) => assert!(widget
+                .handle_form_key(form, &context, KeyCode::Enter)
+                .is_none()),
+            Body::Lro(lro) => assert!(widget
+                .handle_lro_key(lro, &context, KeyCode::Enter)
+                .is_none()),
+            _ => unreachable!(),
+        }
+        assert!(host.calls.borrow().is_empty());
+    }
 }
 
 #[test]

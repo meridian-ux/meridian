@@ -1,0 +1,30 @@
+viewport 96x28
+boolean
+▶ Declared input
+    [ ]  (space)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+end viewport

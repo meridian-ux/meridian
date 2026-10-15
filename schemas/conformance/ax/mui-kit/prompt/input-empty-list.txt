@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-empty-list" level=2
+        StaticText name="prompt-input-empty-list"
+    heading name="empty-list" level=3
+      StaticText name="empty-list"
+    heading name="Declared input" level=6
+      StaticText name="Declared input"
+    paragraph name=""
+      StaticText name="(none)"
+    button name="ADD" focusable=true invalid="false"
+      StaticText name="ADD"
+    button name="SUBMIT" focusable=true invalid="false"
+      StaticText name="SUBMIT"
+    button name="CANCEL" focusable=true invalid="false"
+      StaticText name="CANCEL"

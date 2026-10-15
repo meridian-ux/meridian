@@ -534,6 +534,8 @@ function buildField(
     helperText: field.description || undefined,
     disabled,
     display: field.display,
+    rawValue: valueAt(values, path),
+    concealed: hasMaskedField(field),
   };
   const current = valueAt(values, path);
   switch (field.kind.case) {
@@ -682,6 +684,7 @@ function buildField(
         ...base,
         type: "text",
         masked: field.kind.case === "masked",
+        multilineRows: field.kind.case === "text" && field.display?.type === ValueType.MULTILINE_TEXT ? 4 : undefined,
         value: typeof current === "string" ? current : "",
         onChange: (value: string) => setAt(path, value),
       };

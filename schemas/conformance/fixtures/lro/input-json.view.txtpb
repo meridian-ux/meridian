@@ -1,0 +1,38 @@
+id: "lro-input-json"
+title: "lro-input-json"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-json"
+    title: "json"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        nested {
+          fields {
+            field_id: "ready"
+            label: "Ready"
+            boolean {
+              default_value: true
+            }
+          }
+        }
+        display {
+          type: VALUE_TYPE_JSON
+        }
+      }
+    }
+  }
+}

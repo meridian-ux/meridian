@@ -1,0 +1,12 @@
+viewport 40x10
+empty-list
+▶ Declared input
+    []  (JSON array)
+
+
+ Preview [Enter]   Cancel [Esc]   Naviga
+
+System prompt:
+
+User prompt:
+end viewport

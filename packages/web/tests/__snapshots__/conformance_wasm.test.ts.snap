@@ -1834,6 +1834,513 @@ form
   p role="alert""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-boolean' > web-components/form/input-boolean 1`] = `
+"h2
+  "form-input-boolean"
+h3
+  "boolean"
+"boolean"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="checkbox" value="false"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-date' > web-components/form/input-date 1`] = `
+"h2
+  "form-input-date"
+h3
+  "date"
+"date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-date-time' > web-components/form/input-date-time 1`] = `
+"h2
+  "form-input-date-time"
+h3
+  "date-time"
+"date-time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-decimal' > web-components/form/input-decimal 1`] = `
+"h2
+  "form-input-decimal"
+h3
+  "decimal"
+"decimal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-duration' > web-components/form/input-duration 1`] = `
+"h2
+  "form-input-duration"
+h3
+  "duration"
+"duration"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-email' > web-components/form/input-email 1`] = `
+"h2
+  "form-input-email"
+h3
+  "email"
+"email"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-empty' > web-components/form/input-empty 1`] = `
+"h2
+  "form-input-empty"
+h3
+  "empty"
+"empty"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-empty-list' > web-components/form/input-empty-list 1`] = `
+"h2
+  "form-input-empty-list"
+h3
+  "empty-list"
+"empty-list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      button type="button"
+        "Add item"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-enum' > web-components/form/input-enum 1`] = `
+"h2
+  "form-input-enum"
+h3
+  "enum"
+"enum"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      select aria-label="Declared input"
+        option value="READY"
+          "READY"
+        option value="DONE"
+          "DONE"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-identifier' > web-components/form/input-identifier 1`] = `
+"h2
+  "form-input-identifier"
+h3
+  "identifier"
+"identifier"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-integer' > web-components/form/input-integer 1`] = `
+"h2
+  "form-input-integer"
+h3
+  "integer"
+"integer"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-invalid-date' > web-components/form/input-invalid-date 1`] = `
+"h2
+  "form-input-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-json' > web-components/form/input-json 1`] = `
+"h2
+  "form-input-json"
+h3
+  "json"
+"json"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Ready"
+        input aria-label="Ready" type="checkbox" value="true"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-list' > web-components/form/input-list 1`] = `
+"h2
+  "form-input-list"
+h3
+  "list"
+"list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      button type="button"
+        "Add item"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-map' > web-components/form/input-map 1`] = `
+"h2
+  "form-input-map"
+h3
+  "map"
+"map"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-masked' > web-components/form/input-masked 1`] = `
+"h2
+  "form-input-masked"
+h3
+  "masked"
+"masked"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="password"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-money' > web-components/form/input-money 1`] = `
+"h2
+  "form-input-money"
+h3
+  "money"
+"money"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-multiline' > web-components/form/input-multiline 1`] = `
+"h2
+  "form-input-multiline"
+h3
+  "multiline"
+"multiline"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-numeric-string' > web-components/form/input-numeric-string 1`] = `
+"h2
+  "form-input-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-percent' > web-components/form/input-percent 1`] = `
+"h2
+  "form-input-percent"
+h3
+  "percent"
+"percent"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-principal' > web-components/form/input-principal 1`] = `
+"h2
+  "form-input-principal"
+h3
+  "principal"
+"principal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-text' > web-components/form/input-text 1`] = `
+"h2
+  "form-input-text"
+h3
+  "text"
+"text"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-time' > web-components/form/input-time 1`] = `
+"h2
+  "form-input-time"
+h3
+  "time"
+"time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-unknown' > web-components/form/input-unknown 1`] = `
+"h2
+  "form-input-unknown"
+h3
+  "unknown"
+"unknown"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-unspecified' > web-components/form/input-unspecified 1`] = `
+"h2
+  "form-input-unspecified"
+h3
+  "unspecified"
+"unspecified"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-url' > web-components/form/input-url 1`] = `
+"h2
+  "form-input-url"
+h3
+  "url"
+"url"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/input-zero' > web-components/form/input-zero 1`] = `
+"h2
+  "form-input-zero"
+h3
+  "zero"
+"zero"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
+  button type="submit"
+    "Save"
+  p role="status"
+  p role="alert""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/overflow' > web-components/form/overflow 1`] = `
 "h2
   "Conformance: form · overflow"
@@ -2479,6 +2986,438 @@ form
         "Add section"
   p role="status"
     "Saving is not permitted."
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-boolean' > web-components/form/read-boolean 1`] = `
+"h2
+  "form-read-boolean"
+h3
+  "boolean"
+"boolean"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "No"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-date' > web-components/form/read-date 1`] = `
+"h2
+  "form-read-date"
+h3
+  "date"
+"date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "Mar 29, 2026"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-date-time' > web-components/form/read-date-time 1`] = `
+"h2
+  "form-read-date-time"
+h3
+  "date-time"
+"date-time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "Mar 29, 2026, 1:45 PM UTC"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-decimal' > web-components/form/read-decimal 1`] = `
+"h2
+  "form-read-decimal"
+h3
+  "decimal"
+"decimal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "12.50"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-duration' > web-components/form/read-duration 1`] = `
+"h2
+  "form-read-duration"
+h3
+  "duration"
+"duration"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "4 min 12 s"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-email' > web-components/form/read-email 1`] = `
+"h2
+  "form-read-email"
+h3
+  "email"
+"email"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "ada@example.com"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-empty' > web-components/form/read-empty 1`] = `
+"h2
+  "form-read-empty"
+h3
+  "empty"
+"empty"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "—"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-empty-list' > web-components/form/read-empty-list 1`] = `
+"h2
+  "form-read-empty-list"
+h3
+  "empty-list"
+"empty-list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "—"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-enum' > web-components/form/read-enum 1`] = `
+"h2
+  "form-read-enum"
+h3
+  "enum"
+"enum"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "READY"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-identifier' > web-components/form/read-identifier 1`] = `
+"h2
+  "form-read-identifier"
+h3
+  "identifier"
+"identifier"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "000123"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-integer' > web-components/form/read-integer 1`] = `
+"h2
+  "form-read-integer"
+h3
+  "integer"
+"integer"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "-42"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-invalid-date' > web-components/form/read-invalid-date 1`] = `
+"h2
+  "form-read-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "not-a-date"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-json' > web-components/form/read-json 1`] = `
+"h2
+  "form-read-json"
+h3
+  "json"
+"json"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "{\\"ready\\":true}"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-list' > web-components/form/read-list 1`] = `
+"h2
+  "form-read-list"
+h3
+  "list"
+"list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "one, one"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-map' > web-components/form/read-map 1`] = `
+"h2
+  "form-read-map"
+h3
+  "map"
+"map"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "{}"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-masked' > web-components/form/read-masked 1`] = `
+"h2
+  "form-read-masked"
+h3
+  "masked"
+"masked"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "••••••"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-money' > web-components/form/read-money 1`] = `
+"h2
+  "form-read-money"
+h3
+  "money"
+"money"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "12.50"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-multiline' > web-components/form/read-multiline 1`] = `
+"h2
+  "form-read-multiline"
+h3
+  "multiline"
+"multiline"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "first second"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-numeric-string' > web-components/form/read-numeric-string 1`] = `
+"h2
+  "form-read-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "0012.50"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-percent' > web-components/form/read-percent 1`] = `
+"h2
+  "form-read-percent"
+h3
+  "percent"
+"percent"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "0.125"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-principal' > web-components/form/read-principal 1`] = `
+"h2
+  "form-read-principal"
+h3
+  "principal"
+"principal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "Ada"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-text' > web-components/form/read-text 1`] = `
+"h2
+  "form-read-text"
+h3
+  "text"
+"text"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "plain text"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-time' > web-components/form/read-time 1`] = `
+"h2
+  "form-read-time"
+h3
+  "time"
+"time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "1:45 PM UTC"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-unknown' > web-components/form/read-unknown 1`] = `
+"h2
+  "form-read-unknown"
+h3
+  "unknown"
+"unknown"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "literal"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-unspecified' > web-components/form/read-unspecified 1`] = `
+"h2
+  "form-read-unspecified"
+h3
+  "unspecified"
+"unspecified"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "literal"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-url' > web-components/form/read-url 1`] = `
+"h2
+  "form-read-url"
+h3
+  "url"
+"url"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "https://example.com/a?b=1"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/read-zero' > web-components/form/read-zero 1`] = `
+"h2
+  "form-read-zero"
+h3
+  "zero"
+"zero"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      "0"
+  p role="status"
   p role="alert""
 `;
 
@@ -3429,6 +4368,702 @@ section aria-label="User prompt"
 p role="status""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-boolean' > web-components/llm_prompt/input-boolean 1`] = `
+"h2
+  "llm_prompt-input-boolean"
+h3
+  "boolean"
+"boolean"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="checkbox" value="false"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-date' > web-components/llm_prompt/input-date 1`] = `
+"h2
+  "llm_prompt-input-date"
+h3
+  "date"
+"date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-date-time' > web-components/llm_prompt/input-date-time 1`] = `
+"h2
+  "llm_prompt-input-date-time"
+h3
+  "date-time"
+"date-time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-decimal' > web-components/llm_prompt/input-decimal 1`] = `
+"h2
+  "llm_prompt-input-decimal"
+h3
+  "decimal"
+"decimal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-duration' > web-components/llm_prompt/input-duration 1`] = `
+"h2
+  "llm_prompt-input-duration"
+h3
+  "duration"
+"duration"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-email' > web-components/llm_prompt/input-email 1`] = `
+"h2
+  "llm_prompt-input-email"
+h3
+  "email"
+"email"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-empty' > web-components/llm_prompt/input-empty 1`] = `
+"h2
+  "llm_prompt-input-empty"
+h3
+  "empty"
+"empty"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-empty-list' > web-components/llm_prompt/input-empty-list 1`] = `
+"h2
+  "llm_prompt-input-empty-list"
+h3
+  "empty-list"
+"empty-list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      button type="button"
+        "Add item"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-enum' > web-components/llm_prompt/input-enum 1`] = `
+"h2
+  "llm_prompt-input-enum"
+h3
+  "enum"
+"enum"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      select aria-label="Declared input"
+        option value="READY"
+          "READY"
+        option value="DONE"
+          "DONE"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-identifier' > web-components/llm_prompt/input-identifier 1`] = `
+"h2
+  "llm_prompt-input-identifier"
+h3
+  "identifier"
+"identifier"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-integer' > web-components/llm_prompt/input-integer 1`] = `
+"h2
+  "llm_prompt-input-integer"
+h3
+  "integer"
+"integer"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-invalid-date' > web-components/llm_prompt/input-invalid-date 1`] = `
+"h2
+  "llm_prompt-input-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-json' > web-components/llm_prompt/input-json 1`] = `
+"h2
+  "llm_prompt-input-json"
+h3
+  "json"
+"json"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Ready"
+        input aria-label="Ready" type="checkbox" value="true"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-list' > web-components/llm_prompt/input-list 1`] = `
+"h2
+  "llm_prompt-input-list"
+h3
+  "list"
+"list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      button type="button"
+        "Add item"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-map' > web-components/llm_prompt/input-map 1`] = `
+"h2
+  "llm_prompt-input-map"
+h3
+  "map"
+"map"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-masked' > web-components/llm_prompt/input-masked 1`] = `
+"h2
+  "llm_prompt-input-masked"
+h3
+  "masked"
+"masked"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="password"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-money' > web-components/llm_prompt/input-money 1`] = `
+"h2
+  "llm_prompt-input-money"
+h3
+  "money"
+"money"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-multiline' > web-components/llm_prompt/input-multiline 1`] = `
+"h2
+  "llm_prompt-input-multiline"
+h3
+  "multiline"
+"multiline"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-numeric-string' > web-components/llm_prompt/input-numeric-string 1`] = `
+"h2
+  "llm_prompt-input-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-percent' > web-components/llm_prompt/input-percent 1`] = `
+"h2
+  "llm_prompt-input-percent"
+h3
+  "percent"
+"percent"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-principal' > web-components/llm_prompt/input-principal 1`] = `
+"h2
+  "llm_prompt-input-principal"
+h3
+  "principal"
+"principal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-text' > web-components/llm_prompt/input-text 1`] = `
+"h2
+  "llm_prompt-input-text"
+h3
+  "text"
+"text"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-time' > web-components/llm_prompt/input-time 1`] = `
+"h2
+  "llm_prompt-input-time"
+h3
+  "time"
+"time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-unknown' > web-components/llm_prompt/input-unknown 1`] = `
+"h2
+  "llm_prompt-input-unknown"
+h3
+  "unknown"
+"unknown"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-unspecified' > web-components/llm_prompt/input-unspecified 1`] = `
+"h2
+  "llm_prompt-input-unspecified"
+h3
+  "unspecified"
+"unspecified"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-url' > web-components/llm_prompt/input-url 1`] = `
+"h2
+  "llm_prompt-input-url"
+h3
+  "url"
+"url"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/input-zero' > web-components/llm_prompt/input-zero 1`] = `
+"h2
+  "llm_prompt-input-zero"
+h3
+  "zero"
+"zero"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Value={{value}}"
+p role="status"
+  "Unresolved slots: value""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/overflow' > web-components/llm_prompt/overflow 1`] = `
 "h2
   "Conformance: llm_prompt · overflow"
@@ -3494,6 +5129,459 @@ button
   "Run reindex""
 `;
 
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-boolean' > web-components/lro/input-boolean 1`] = `
+"h2
+  "lro-input-boolean"
+h3
+  "boolean"
+"boolean"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="checkbox" value="false"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-date' > web-components/lro/input-date 1`] = `
+"h2
+  "lro-input-date"
+h3
+  "date"
+"date"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-date-time' > web-components/lro/input-date-time 1`] = `
+"h2
+  "lro-input-date-time"
+h3
+  "date-time"
+"date-time"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-decimal' > web-components/lro/input-decimal 1`] = `
+"h2
+  "lro-input-decimal"
+h3
+  "decimal"
+"decimal"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="number" step="any"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-duration' > web-components/lro/input-duration 1`] = `
+"h2
+  "lro-input-duration"
+h3
+  "duration"
+"duration"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-email' > web-components/lro/input-email 1`] = `
+"h2
+  "lro-input-email"
+h3
+  "email"
+"email"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-empty' > web-components/lro/input-empty 1`] = `
+"h2
+  "lro-input-empty"
+h3
+  "empty"
+"empty"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-empty-list' > web-components/lro/input-empty-list 1`] = `
+"h2
+  "lro-input-empty-list"
+h3
+  "empty-list"
+"empty-list"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    button type="button"
+      "Add item"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-enum' > web-components/lro/input-enum 1`] = `
+"h2
+  "lro-input-enum"
+h3
+  "enum"
+"enum"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    select aria-label="Declared input"
+      option value="READY"
+        "READY"
+      option value="DONE"
+        "DONE"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-identifier' > web-components/lro/input-identifier 1`] = `
+"h2
+  "lro-input-identifier"
+h3
+  "identifier"
+"identifier"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-integer' > web-components/lro/input-integer 1`] = `
+"h2
+  "lro-input-integer"
+h3
+  "integer"
+"integer"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="number"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-invalid-date' > web-components/lro/input-invalid-date 1`] = `
+"h2
+  "lro-input-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-json' > web-components/lro/input-json 1`] = `
+"h2
+  "lro-input-json"
+h3
+  "json"
+"json"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    fieldset
+      legend
+        "Ready"
+      input aria-label="Ready" type="checkbox" value="true"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-list' > web-components/lro/input-list 1`] = `
+"h2
+  "lro-input-list"
+h3
+  "list"
+"list"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    fieldset
+      legend
+        "Item"
+      input aria-label="Item" type="text"
+    button type="button" disabled
+      "Remove item"
+    fieldset
+      legend
+        "Item"
+      input aria-label="Item" type="text"
+    button type="button" disabled
+      "Remove item"
+    button type="button"
+      "Add item"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-map' > web-components/lro/input-map 1`] = `
+"h2
+  "lro-input-map"
+h3
+  "map"
+"map"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    textarea aria-label="Declared input"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-masked' > web-components/lro/input-masked 1`] = `
+"h2
+  "lro-input-masked"
+h3
+  "masked"
+"masked"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="password"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-money' > web-components/lro/input-money 1`] = `
+"h2
+  "lro-input-money"
+h3
+  "money"
+"money"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="number" step="any"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-multiline' > web-components/lro/input-multiline 1`] = `
+"h2
+  "lro-input-multiline"
+h3
+  "multiline"
+"multiline"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    textarea aria-label="Declared input"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-numeric-string' > web-components/lro/input-numeric-string 1`] = `
+"h2
+  "lro-input-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-percent' > web-components/lro/input-percent 1`] = `
+"h2
+  "lro-input-percent"
+h3
+  "percent"
+"percent"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="number" step="any"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-principal' > web-components/lro/input-principal 1`] = `
+"h2
+  "lro-input-principal"
+h3
+  "principal"
+"principal"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-text' > web-components/lro/input-text 1`] = `
+"h2
+  "lro-input-text"
+h3
+  "text"
+"text"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-time' > web-components/lro/input-time 1`] = `
+"h2
+  "lro-input-time"
+h3
+  "time"
+"time"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-unknown' > web-components/lro/input-unknown 1`] = `
+"h2
+  "lro-input-unknown"
+h3
+  "unknown"
+"unknown"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-unspecified' > web-components/lro/input-unspecified 1`] = `
+"h2
+  "lro-input-unspecified"
+h3
+  "unspecified"
+"unspecified"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-url' > web-components/lro/input-url 1`] = `
+"h2
+  "lro-input-url"
+h3
+  "url"
+"url"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="text"
+button
+  "Run""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/input-zero' > web-components/lro/input-zero 1`] = `
+"h2
+  "lro-input-zero"
+h3
+  "zero"
+"zero"
+"Click the button to run."
+fieldset
+  fieldset
+    legend
+      "Declared input"
+    input aria-label="Declared input" type="number"
+button
+  "Run""
+`;
+
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/overflow' > web-components/lro/overflow 1`] = `
 "h2
   "Conformance: lro · overflow"
@@ -3501,96 +5589,127 @@ h3
   "lro · overflow"
 "lro · overflow"
 "Click the button to run."
-label
-  "Job input 0:"
-  input type="text"
-label
-  "Job input 1:"
-  input type="text"
-label
-  "Job input 2:"
-  input type="text"
-label
-  "Job input 3:"
-  input type="text"
-label
-  "Job input 4:"
-  input type="text"
-label
-  "Job input 5:"
-  input type="text"
-label
-  "Job input 6:"
-  input type="text"
-label
-  "Job input 7:"
-  input type="text"
-label
-  "Job input 8:"
-  input type="text"
-label
-  "Job input 9:"
-  input type="text"
-label
-  "Job input 10:"
-  input type="text"
-label
-  "Job input 11:"
-  input type="text"
-label
-  "Job input 12:"
-  input type="text"
-label
-  "Job input 13:"
-  input type="text"
-label
-  "Job input 14:"
-  input type="text"
-label
-  "Job input 15:"
-  input type="text"
-label
-  "Job input 16:"
-  input type="text"
-label
-  "Job input 17:"
-  input type="text"
-label
-  "Job input 18:"
-  input type="text"
-label
-  "Job input 19:"
-  input type="text"
-label
-  "Job input 20:"
-  input type="text"
-label
-  "Job input 21:"
-  input type="text"
-label
-  "Job input 22:"
-  input type="text"
-label
-  "Job input 23:"
-  input type="text"
-label
-  "Job input 24:"
-  input type="text"
-label
-  "Job input 25:"
-  input type="text"
-label
-  "Job input 26:"
-  input type="text"
-label
-  "Job input 27:"
-  input type="text"
-label
-  "Job input 28:"
-  input type="text"
-label
-  "Job input 29:"
-  input type="text"
+fieldset
+  fieldset
+    legend
+      "Job input 0"
+    input aria-label="Job input 0" type="text"
+  fieldset
+    legend
+      "Job input 1"
+    input aria-label="Job input 1" type="text"
+  fieldset
+    legend
+      "Job input 2"
+    input aria-label="Job input 2" type="text"
+  fieldset
+    legend
+      "Job input 3"
+    input aria-label="Job input 3" type="text"
+  fieldset
+    legend
+      "Job input 4"
+    input aria-label="Job input 4" type="text"
+  fieldset
+    legend
+      "Job input 5"
+    input aria-label="Job input 5" type="text"
+  fieldset
+    legend
+      "Job input 6"
+    input aria-label="Job input 6" type="text"
+  fieldset
+    legend
+      "Job input 7"
+    input aria-label="Job input 7" type="text"
+  fieldset
+    legend
+      "Job input 8"
+    input aria-label="Job input 8" type="text"
+  fieldset
+    legend
+      "Job input 9"
+    input aria-label="Job input 9" type="text"
+  fieldset
+    legend
+      "Job input 10"
+    input aria-label="Job input 10" type="text"
+  fieldset
+    legend
+      "Job input 11"
+    input aria-label="Job input 11" type="text"
+  fieldset
+    legend
+      "Job input 12"
+    input aria-label="Job input 12" type="text"
+  fieldset
+    legend
+      "Job input 13"
+    input aria-label="Job input 13" type="text"
+  fieldset
+    legend
+      "Job input 14"
+    input aria-label="Job input 14" type="text"
+  fieldset
+    legend
+      "Job input 15"
+    input aria-label="Job input 15" type="text"
+  fieldset
+    legend
+      "Job input 16"
+    input aria-label="Job input 16" type="text"
+  fieldset
+    legend
+      "Job input 17"
+    input aria-label="Job input 17" type="text"
+  fieldset
+    legend
+      "Job input 18"
+    input aria-label="Job input 18" type="text"
+  fieldset
+    legend
+      "Job input 19"
+    input aria-label="Job input 19" type="text"
+  fieldset
+    legend
+      "Job input 20"
+    input aria-label="Job input 20" type="text"
+  fieldset
+    legend
+      "Job input 21"
+    input aria-label="Job input 21" type="text"
+  fieldset
+    legend
+      "Job input 22"
+    input aria-label="Job input 22" type="text"
+  fieldset
+    legend
+      "Job input 23"
+    input aria-label="Job input 23" type="text"
+  fieldset
+    legend
+      "Job input 24"
+    input aria-label="Job input 24" type="text"
+  fieldset
+    legend
+      "Job input 25"
+    input aria-label="Job input 25" type="text"
+  fieldset
+    legend
+      "Job input 26"
+    input aria-label="Job input 26" type="text"
+  fieldset
+    legend
+      "Job input 27"
+    input aria-label="Job input 27" type="text"
+  fieldset
+    legend
+      "Job input 28"
+    input aria-label="Job input 28" type="text"
+  fieldset
+    legend
+      "Job input 29"
+    input aria-label="Job input 29" type="text"
 button
   "Run reindex""
 `;
@@ -3602,12 +5721,15 @@ h3
   "lro · typical"
 "lro · typical"
 "Click the button to run."
-label
-  "Job input 0:"
-  input type="text"
-label
-  "Job input 1:"
-  input type="text"
+fieldset
+  fieldset
+    legend
+      "Job input 0"
+    input aria-label="Job input 0" type="text"
+  fieldset
+    legend
+      "Job input 1"
+    input aria-label="Job input 1" type="text"
 button
   "Run reindex""
 `;
@@ -3795,6 +5917,567 @@ form
       legend
         "Reason"
       input aria-label="Reason" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-boolean' > web-components/prompt/input-boolean 1`] = `
+"h2
+  "prompt-input-boolean"
+h3
+  "boolean"
+"boolean"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="checkbox" value="false"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-date' > web-components/prompt/input-date 1`] = `
+"h2
+  "prompt-input-date"
+h3
+  "date"
+"date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-date-time' > web-components/prompt/input-date-time 1`] = `
+"h2
+  "prompt-input-date-time"
+h3
+  "date-time"
+"date-time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-decimal' > web-components/prompt/input-decimal 1`] = `
+"h2
+  "prompt-input-decimal"
+h3
+  "decimal"
+"decimal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-duration' > web-components/prompt/input-duration 1`] = `
+"h2
+  "prompt-input-duration"
+h3
+  "duration"
+"duration"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-email' > web-components/prompt/input-email 1`] = `
+"h2
+  "prompt-input-email"
+h3
+  "email"
+"email"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-empty' > web-components/prompt/input-empty 1`] = `
+"h2
+  "prompt-input-empty"
+h3
+  "empty"
+"empty"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-empty-list' > web-components/prompt/input-empty-list 1`] = `
+"h2
+  "prompt-input-empty-list"
+h3
+  "empty-list"
+"empty-list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      button type="button"
+        "Add item"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-enum' > web-components/prompt/input-enum 1`] = `
+"h2
+  "prompt-input-enum"
+h3
+  "enum"
+"enum"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      select aria-label="Declared input"
+        option value="READY"
+          "READY"
+        option value="DONE"
+          "DONE"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-identifier' > web-components/prompt/input-identifier 1`] = `
+"h2
+  "prompt-input-identifier"
+h3
+  "identifier"
+"identifier"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-integer' > web-components/prompt/input-integer 1`] = `
+"h2
+  "prompt-input-integer"
+h3
+  "integer"
+"integer"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-invalid-date' > web-components/prompt/input-invalid-date 1`] = `
+"h2
+  "prompt-input-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-json' > web-components/prompt/input-json 1`] = `
+"h2
+  "prompt-input-json"
+h3
+  "json"
+"json"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Ready"
+        input aria-label="Ready" type="checkbox" value="true"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-list' > web-components/prompt/input-list 1`] = `
+"h2
+  "prompt-input-list"
+h3
+  "list"
+"list"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      fieldset
+        legend
+          "Item"
+        input aria-label="Item" type="text"
+      button type="button" disabled
+        "Remove item"
+      button type="button"
+        "Add item"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-map' > web-components/prompt/input-map 1`] = `
+"h2
+  "prompt-input-map"
+h3
+  "map"
+"map"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-masked' > web-components/prompt/input-masked 1`] = `
+"h2
+  "prompt-input-masked"
+h3
+  "masked"
+"masked"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="password"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-money' > web-components/prompt/input-money 1`] = `
+"h2
+  "prompt-input-money"
+h3
+  "money"
+"money"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-multiline' > web-components/prompt/input-multiline 1`] = `
+"h2
+  "prompt-input-multiline"
+h3
+  "multiline"
+"multiline"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      textarea aria-label="Declared input"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-numeric-string' > web-components/prompt/input-numeric-string 1`] = `
+"h2
+  "prompt-input-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-percent' > web-components/prompt/input-percent 1`] = `
+"h2
+  "prompt-input-percent"
+h3
+  "percent"
+"percent"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number" step="any"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-principal' > web-components/prompt/input-principal 1`] = `
+"h2
+  "prompt-input-principal"
+h3
+  "principal"
+"principal"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-text' > web-components/prompt/input-text 1`] = `
+"h2
+  "prompt-input-text"
+h3
+  "text"
+"text"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-time' > web-components/prompt/input-time 1`] = `
+"h2
+  "prompt-input-time"
+h3
+  "time"
+"time"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-unknown' > web-components/prompt/input-unknown 1`] = `
+"h2
+  "prompt-input-unknown"
+h3
+  "unknown"
+"unknown"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-unspecified' > web-components/prompt/input-unspecified 1`] = `
+"h2
+  "prompt-input-unspecified"
+h3
+  "unspecified"
+"unspecified"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-url' > web-components/prompt/input-url 1`] = `
+"h2
+  "prompt-input-url"
+h3
+  "url"
+"url"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="text"
+  button type="submit"
+    "Submit"
+  button type="button"
+    "Cancel"
+  p role="status"
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/input-zero' > web-components/prompt/input-zero 1`] = `
+"h2
+  "prompt-input-zero"
+h3
+  "zero"
+"zero"
+form
+  fieldset
+    fieldset
+      legend
+        "Declared input"
+      input aria-label="Declared input" type="number"
   button type="submit"
     "Submit"
   button type="button"

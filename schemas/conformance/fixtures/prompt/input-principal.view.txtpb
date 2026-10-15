@@ -1,0 +1,27 @@
+id: "prompt-input-principal"
+title: "prompt-input-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-principal"
+    title: "principal"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "Ada <ada@example.com>"
+        }
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+id: "prompt-input-duration"
+title: "prompt-input-duration"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-duration"
+    title: "duration"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "4 min 12 s"
+        }
+        display {
+          type: VALUE_TYPE_DURATION
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

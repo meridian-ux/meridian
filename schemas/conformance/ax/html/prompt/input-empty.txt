@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-empty" level=2
+        StaticText name="prompt-input-empty"
+    heading name="empty" level=3
+      StaticText name="empty"
+    heading name="empty" level=2
+      StaticText name="empty"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Declared input"
+        textbox name="Declared input" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

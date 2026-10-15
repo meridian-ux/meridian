@@ -1,0 +1,30 @@
+viewport 96x28
+date
+▶ Declared input
+    2026-03-29
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+end viewport

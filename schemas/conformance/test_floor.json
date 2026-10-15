@@ -9,7 +9,7 @@
       "kind": "javascript",
       "roots": ["packages/web/tests"],
       "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
-      "floor": 170
+      "floor": 176
     },
     {
       "id": "web-wasm-ffi",
@@ -18,10 +18,10 @@
       "floor": 15
     },
     { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 193 },
-    { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 44 },
-    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 210 },
+    { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 46 },
+    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 212 },
     { "id": "rust-core", "kind": "rust", "roots": ["crates/core/rust/uiview"], "floor": 73 },
     { "id": "rust-theme-proto", "kind": "rust", "roots": ["crates/core/rust/theme-proto"], "floor": 3 },
-    { "id": "rust-tui", "kind": "rust", "roots": ["crates/tui/rust/tui"], "floor": 134 }
+    { "id": "rust-tui", "kind": "rust", "roots": ["crates/tui/rust/tui"], "floor": 136 }
   ]
 }

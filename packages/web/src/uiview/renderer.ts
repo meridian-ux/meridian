@@ -12,8 +12,8 @@
 // decodes them with prost. There is no JSON / snake_case DTO in between.
 
 import { toBinary } from "@bufbuild/protobuf";
-import { buildInteractiveForm } from "./form.js";
-import { buildLlmPrompt } from "./llm_prompt.js";
+import { buildFormField, buildInteractiveForm } from "./form.js";
+import { buildLlmPrompt, hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 import { buildPrompt } from "./prompt.js";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
@@ -29,7 +29,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { resolveMediaKind } from "@savvifi/meridian-schemas/uiview";
+import { defaultFormValues, resolveMediaKind, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -1047,12 +1047,15 @@ function applySignalBindings(
 
 function setPath(root: Record<string, unknown>, path: string, value: unknown): void {
   const keys = path.split(".");
+  if (keys.some(key => !key || key === "__proto__" || key === "constructor" || key === "prototype")) {
+    throw new Error("Unsafe request path.");
+  }
   const leaf = keys.pop();
   if (!leaf) return;
   let cursor = root;
   for (const key of keys) {
-    const next = cursor[key];
-    if (!next || typeof next !== "object") cursor[key] = {};
+    const next = Object.hasOwn(cursor, key) ? cursor[key] : undefined;
+    if (!next || typeof next !== "object" || Array.isArray(next)) cursor[key] = {};
     cursor = cursor[key] as Record<string, unknown>;
   }
   cursor[leaf] = value;
@@ -2217,15 +2220,15 @@ async function renderLroPanel(
     : "No active resource.";
 
   // Form row.
-  const formRow = document.createElement("div");
+  const formRow = document.createElement("fieldset");
   formRow.style.display = "flex";
   formRow.style.flexWrap = "wrap";
   formRow.style.gap = "8px";
   formRow.style.padding = "4px 0";
-  const formGetters: Record<string, () => unknown> = {};
-  for (const field of panel.inputs) {
-    formRow.appendChild(buildFormInput(field, formGetters, opts.invoker));
-  }
+  let alive = true, ready = false, loading = false, busy = false;
+  let inputFields = panel.inputs;
+  let formGetters: Record<string, () => unknown> = {};
+  onDispose(root, () => { alive = false; });
   if (panel.inputs.length > 0) {
     root.appendChild(formRow);
   }
@@ -2235,7 +2238,7 @@ async function renderLroPanel(
   actionRow.style.padding = "4px 0";
   const runButton = document.createElement("button");
   runButton.textContent = panel.runButtonLabel || "Run";
-  runButton.disabled = !runnable;
+  runButton.disabled = true;
   actionRow.appendChild(runButton);
   root.appendChild(actionRow);
 
@@ -2249,32 +2252,64 @@ async function renderLroPanel(
   }
   root.appendChild(resultArea);
 
-  runButton.onclick = async () => {
-    runButton.disabled = true;
+  const retry = document.createElement("button");
+  retry.type = "button"; retry.textContent = "Retry inputs"; retry.hidden = true;
+  actionRow.append(retry);
+  const refresh = () => {
+    runButton.disabled = !runnable || !ready || busy;
+    formRow.disabled = !ready || busy;
+    retry.disabled = loading || busy;
+  };
+  const draw = (fields: FormField[]) => {
+    // Bound producer-controlled repeated defaults before allocating DOM nodes.
+    const defaults = defaultFormValues(fields);
+    formRow.replaceChildren();
+    inputFields = fields;
+    formGetters = Object.fromEntries(fields.map(field =>
+      [field.fieldId, buildFormField(formRow, field, defaults[field.fieldId], true)]));
+    ready = true;
+  };
+  const load = async () => {
+    if (!alive || loading || busy) return;
+    loading = true; ready = false; retry.hidden = true; refresh();
     try {
+      const fields = panel.inputs.some(hasOptionsSource)
+        ? await Promise.all(panel.inputs.map(field => resolveOptions(field, opts.invoker)))
+        : panel.inputs;
+      if (!alive) return;
+      draw(fields);
+      metaEl.textContent = runnable ? "Click the button to run." : "No active resource.";
+    } catch (reason) {
+      if (alive) {
+        metaEl.textContent = `Could not load inputs: ${reason instanceof Error ? reason.message : String(reason)}`;
+        retry.hidden = false;
+      }
+    } finally { loading = false; if (alive) refresh(); }
+  };
+  retry.onclick = () => { void load(); };
+  void load();
+
+  runButton.onclick = async () => {
+    if (!alive || !runnable || !ready || busy) return;
+    busy = true; refresh();
+    try {
+      const formValues = snapshotForm(formGetters);
+      const error = validateFormValues(inputFields, formValues);
+      if (error) throw new Error(error);
       await driveLro({
         opts,
         metaEl,
         resultArea,
         panel,
-        formValues: snapshotForm(formGetters),
+        formValues,
+        alive: () => alive,
       });
+    } catch (reason) {
+      if (alive) metaEl.textContent = `Failed: ${reason instanceof Error ? reason.message : String(reason)}`;
     } finally {
-      runButton.disabled = false;
+      busy = false; if (alive) refresh();
     }
   };
-}
-
-// The RPC-populated-dropdown shape (EnumSelection.options_source, schemas >=0.4.0).
-// Read via a cast so this renderer builds against older @savvifi/meridian-proto-ts
-// that predates the field — it's present at runtime once the emitter uses schemas
-// >=0.4.0, and absent (falls back to allowed_values) otherwise.
-interface OptionsSourceShape {
-  service: string;
-  method: string;
-  optionsField: string;
-  valueField: string;
-  labelField: string;
 }
 
 // Walk a dotted ProtoPath (e.g. "configs" or "outer.items") over a decoded
@@ -2289,105 +2324,10 @@ function resolvePath(obj: unknown, path: string): unknown {
   return cur;
 }
 
-function buildFormInput(
-  field: FormField,
-  getters: Record<string, () => unknown>,
-  invoker?: RpcInvoker,
-): HTMLElement {
-  const wrapper = document.createElement("label");
-  wrapper.style.display = "inline-flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.gap = "4px";
-  wrapper.style.fontSize = "13px";
-  const labelText = document.createElement("span");
-  labelText.textContent = field.label + ":";
-  wrapper.appendChild(labelText);
-
-  const kind = field.kind;
-  if (kind.case === "integer") {
-    const spec = kind.value;
-    const input = document.createElement("input");
-    input.type = "number";
-    input.style.width = "90px";
-    input.min = String(spec.min);
-    if (spec.max > 0) input.max = String(spec.max);
-    if (spec.step > 0) input.step = String(spec.step);
-    input.value = String(spec.defaultValue);
-    getters[field.fieldId] = () => Number(input.value);
-    wrapper.appendChild(input);
-  } else if (kind.case === "text") {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = kind.value.defaultValue;
-    getters[field.fieldId] = () => input.value;
-    wrapper.appendChild(input);
-  } else if (kind.case === "enumSelection") {
-    const spec = kind.value;
-    const select = document.createElement("select");
-    getters[field.fieldId] = () => select.value;
-    const src = (spec as unknown as { optionsSource?: OptionsSourceShape })
-      .optionsSource;
-    if (src && src.service) {
-      // RPC-populated: render a placeholder, then fill the <select> once the
-      // options RPC (e.g. ListConfigs) returns. Mirrors renderTablePanel's invoke.
-      const loading = document.createElement("option");
-      loading.textContent = "Loading…";
-      loading.disabled = true;
-      select.appendChild(loading);
-      if (invoker) {
-        invoker
-          .invoke(src.service, src.method, {})
-          .then((resp) => {
-            select.replaceChildren();
-            const items = resolvePath(resp, src.optionsField);
-            const arr = Array.isArray(items) ? items : [];
-            for (const it of arr) {
-              const value = String(resolvePath(it, src.valueField) ?? "");
-              const label = src.labelField
-                ? resolvePath(it, src.labelField)
-                : value;
-              const opt = document.createElement("option");
-              opt.value = value;
-              opt.textContent = String(label ?? value);
-              if (value === spec.defaultValue) opt.selected = true;
-              select.appendChild(opt);
-            }
-            if (arr.length === 0) {
-              const none = document.createElement("option");
-              none.textContent = "(none)";
-              none.disabled = true;
-              select.appendChild(none);
-            }
-          })
-          .catch((err: unknown) => {
-            select.replaceChildren();
-            const failed = document.createElement("option");
-            failed.textContent = `Failed: ${(err as Error).message}`;
-            failed.disabled = true;
-            select.appendChild(failed);
-          });
-      }
-    } else {
-      // Static allowed_values.
-      for (const value of spec.allowedValues) {
-        const opt = document.createElement("option");
-        opt.value = value;
-        opt.textContent = value;
-        if (value === spec.defaultValue) opt.selected = true;
-        select.appendChild(opt);
-      }
-    }
-    wrapper.appendChild(select);
-  }
-  return wrapper;
-}
-
 function snapshotForm(
   getters: Record<string, () => unknown>,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, get] of Object.entries(getters)) out[k] = get();
-  return out;
+  return Object.fromEntries(Object.entries(getters).map(([key, get]) => [key, get()]));
 }
 
 interface DriveLroArgs {
@@ -2396,6 +2336,7 @@ interface DriveLroArgs {
   resultArea: HTMLElement;
   panel: LroPanel;
   formValues: Record<string, unknown>;
+  alive: () => boolean;
 }
 
 interface Operation {
@@ -2411,7 +2352,7 @@ function bytesForRpc(call: RpcCall): Uint8Array {
 }
 
 async function driveLro(args: DriveLroArgs): Promise<void> {
-  const { opts, metaEl, resultArea, panel, formValues } = args;
+  const { opts, metaEl, resultArea, panel, formValues, alive } = args;
   const { wasm, invoker, context } = opts;
   const mutationInvoker = opts.mutationInvoker ?? invoker;
 
@@ -2423,7 +2364,22 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
 
   metaEl.textContent = "Submitting…";
   const startCtx: RenderContext = { ...context, formValues };
-  const startRequest = plainValue(wasm.buildRequest(bytesForRpc(start), startCtx)) as object;
+  const startRequest = plainValue(wasm.buildRequest(bytesForRpc(start), startCtx)) as Record<string, unknown>;
+  const mergeInputs = (fields: readonly FormField[], values: Record<string, unknown>, prefix = "") => {
+    for (const field of fields) {
+      const path = [prefix, field.requestField || field.fieldId].filter(Boolean).join(".");
+      const value = Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined;
+      if (field.kind.case === "nested") {
+        mergeInputs(field.kind.value.fields, value as Record<string, unknown>, path);
+      } else {
+        if (path.split(".").some(key => !key || key === "__proto__" || key === "constructor" || key === "prototype")) {
+          throw new Error("Unsafe form request path.");
+        }
+        setPath(startRequest, path, value);
+      }
+    }
+  };
+  mergeInputs(panel.inputs, formValues);
   let op: Operation;
   try {
     op = (await mutationInvoker.invoke(
@@ -2432,25 +2388,30 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
       startRequest,
     )) as Operation;
   } catch (err) {
+    if (!alive()) return;
     metaEl.textContent = `Failed: ${(err as Error).message}`;
     return;
   }
 
+  if (!alive()) return;
   const deadline = Date.now() + LRO_MAX_DURATION_MS;
-  while (!op.done && Date.now() < deadline) {
+  while (alive() && !op.done && Date.now() < deadline) {
     try {
       op = (await invoker.invoke("google.longrunning.Operations", "WaitOperation", {
         name: op.name,
         timeout: { seconds: LRO_POLL_WAIT_SECONDS },
       })) as Operation;
     } catch (err) {
+      if (!alive()) return;
       metaEl.textContent = `Poll failed: ${(err as Error).message}`;
       return;
     }
+    if (!alive()) return;
     if (op.metadata) {
       metaEl.textContent = wasm.formatLroMetadata(stripAtType(op.metadata));
     }
   }
+  if (!alive()) return;
   if (!op.done) {
     metaEl.textContent = "Timed out before completion.";
     return;
@@ -2479,11 +2440,13 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
         finalizeRequest,
       )) as object;
     } catch (err) {
+      if (!alive()) return;
       metaEl.textContent = `Finalize failed: ${(err as Error).message}`;
       return;
     }
   }
 
+  if (!alive()) return;
   const result = panel.result;
   if (!result) {
     metaEl.textContent = "Done.";

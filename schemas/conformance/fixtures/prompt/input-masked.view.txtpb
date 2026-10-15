@@ -1,0 +1,27 @@
+id: "prompt-input-masked"
+title: "prompt-input-masked"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-masked"
+    title: "masked"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        masked {
+          default_value: "fixture-secret"
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

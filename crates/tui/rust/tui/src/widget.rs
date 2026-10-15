@@ -148,7 +148,7 @@ impl CachedForm {
         if let Some((_, state)) = &self.editor {
             frame.render_widget(ratatui::widgets::Clear, area);
             state.draw(frame, area, palette);
-        } else if let Some(error) = &self.validation_error {
+        } else if let Some(error) = self.validation_error.as_ref().or(self.error.as_ref()) {
             let line = ratatui::layout::Rect {
                 y: area.y + area.height.saturating_sub(1),
                 height: area.height.min(1),
@@ -1011,7 +1011,19 @@ impl PanelView {
         {
             return;
         }
-        let mut values = content::form_defaults(&panel.fields);
+        let mut values = match crate::prompt::input_defaults(&panel.fields) {
+            Ok(values) => values,
+            Err(error) => {
+                self.cached_form = Some(CachedForm {
+                    descriptor,
+                    values: serde_json::json!({}),
+                    error: Some(error),
+                    validation_error: None,
+                    editor: None,
+                });
+                return;
+            }
+        };
         if panel.mode == FormMode::Edit as i32 {
             if let Some(prefill) = panel.prefill.as_ref() {
                 let request = RequestBuilder::build(prefill, context);
@@ -1117,10 +1129,14 @@ impl PanelView {
                 self.lro_identity = None;
             }
             self.lro_run = None;
+            let (values, error) = match crate::prompt::input_defaults(&panel.inputs) {
+                Ok(values) => (values, None),
+                Err(error) => (serde_json::json!({}), Some(error)),
+            };
             self.cached_lro = Some(CachedForm {
                 descriptor,
-                values: content::form_defaults(&panel.inputs),
-                error: None,
+                values,
+                error,
                 validation_error: None,
                 editor: None,
             });

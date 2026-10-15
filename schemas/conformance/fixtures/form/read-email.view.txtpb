@@ -1,0 +1,31 @@
+id: "form-read-email"
+title: "form-read-email"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-email"
+    title: "email"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "Ada <ada@example.com>"
+        }
+        display {
+          type: VALUE_TYPE_EMAIL
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

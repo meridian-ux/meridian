@@ -1,0 +1,30 @@
+id: "llm_prompt-input-date"
+title: "llm_prompt-input-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-date"
+    title: "date"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "2026-03-29"
+          }
+          display {
+            type: VALUE_TYPE_DATE
+          }
+        }
+      }
+    }
+  }
+}

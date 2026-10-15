@@ -1,0 +1,34 @@
+id: "form-read-numeric-string"
+title: "form-read-numeric-string"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-numeric-string"
+    title: "numeric-string"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "0012.50"
+        }
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+id: "form-read-empty"
+title: "form-read-empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-read-empty"
+    title: "empty"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+      mode: FORM_MODE_READONLY
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

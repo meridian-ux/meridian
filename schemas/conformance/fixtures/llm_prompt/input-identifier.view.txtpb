@@ -1,0 +1,30 @@
+id: "llm_prompt-input-identifier"
+title: "llm_prompt-input-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-identifier"
+    title: "identifier"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "000123"
+          }
+          display {
+            type: VALUE_TYPE_IDENTIFIER
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+id: "prompt-input-text"
+title: "prompt-input-text"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-text"
+    title: "text"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "plain text"
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

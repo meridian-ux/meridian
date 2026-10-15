@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-enum" level=2
+        StaticText name="prompt-input-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    heading name="enum" level=2
+      StaticText name="enum"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Declared input"
+        combobox name="Declared input" value="READY" expanded=false focusable=true hasPopup="menu" invalid="false"
+          MenuListPopup name=""
+            option name="READY" focusable=true selected=true
+            option name="DONE" focusable=true selected=false
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

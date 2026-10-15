@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-percent" level=2
+        StaticText name="prompt-input-percent"
+    heading name="percent" level=3
+      StaticText name="percent"
+    LabelText name=""
+      StaticText name="Declared input"
+    spinbutton name="Declared input" value=0.125 editable="plaintext" focusable=true invalid="false" required=false valuemax=100 valuemin=-100 valuetext="0.125"
+      generic name="" editable="plaintext"
+        StaticText name="0.125" editable="plaintext"
+    button name="SUBMIT" focusable=true invalid="false"
+      StaticText name="SUBMIT"
+    button name="CANCEL" focusable=true invalid="false"
+      StaticText name="CANCEL"

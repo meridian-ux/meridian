@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-multiline" level=2
+        StaticText name="lro-input-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    StaticText name="multiline"
+    StaticText name="Click the button to run."
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        textbox name="Declared input" value="first\nsecond" editable="plaintext" focusable=true invalid="false" multiline=true readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="first" editable="plaintext"
+            LineBreak name="\n" editable="plaintext"
+            StaticText name="second" editable="plaintext"
+    button name="Run" focusable=true invalid="false"
+      StaticText name="Run"

@@ -1,0 +1,37 @@
+id: "llm_prompt-input-list"
+title: "llm_prompt-input-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-list"
+    title: "list"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          repeated {
+            scalar {
+              label: "Item"
+              text {
+                default_value: "one"
+              }
+            }
+            min_items: 2
+            max_items: 4
+          }
+          display {
+            type: VALUE_TYPE_LIST
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+id: "form-input-text"
+title: "form-input-text"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-text"
+    title: "text"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "plain text"
+        }
+        display {
+          type: VALUE_TYPE_TEXT
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

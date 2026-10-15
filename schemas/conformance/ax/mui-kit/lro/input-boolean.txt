@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-boolean" level=2
+        StaticText name="lro-input-boolean"
+    heading name="boolean" level=3
+      StaticText name="boolean"
+    LabelText name=""
+      switch name="Declared input" checked="false" focusable=true invalid="false"
+      StaticText name="Declared input"
+    button name="RUN" focusable=true invalid="false"
+      StaticText name="RUN"

@@ -1,0 +1,26 @@
+id: "prompt-input-boolean"
+title: "prompt-input-boolean"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-boolean"
+    title: "boolean"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        boolean {
+        }
+        display {
+          type: VALUE_TYPE_BOOLEAN
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

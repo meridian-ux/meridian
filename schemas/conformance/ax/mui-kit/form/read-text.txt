@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-text" level=2
+        StaticText name="form-read-text"
+    heading name="text" level=3
+      StaticText name="text"
+    paragraph name=""
+      StaticText name="plain text"
+    button name="SAVE" disabled=true invalid="false"
+      StaticText name="SAVE"

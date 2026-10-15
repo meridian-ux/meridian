@@ -1,0 +1,29 @@
+id: "llm_prompt-input-unspecified"
+title: "llm_prompt-input-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-unspecified"
+    title: "unspecified"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "literal"
+          }
+          display {
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,8 @@
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { defaultFormValue, formatByDisplay, hasMaskedField } from "@savvifi/meridian-schemas/uiview";
+import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { buildMaskedMultiline } from "./masked_multiline.js";
 
 // Native option styling is platform-dependent; expose semantic roles without literal colors.
@@ -71,6 +72,21 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
   const legend = document.createElement("legend"); legend.textContent = field.label;
   box.append(legend); parent.append(box);
   const kind = field.kind;
+  if (!edit && field.display && field.display.type !== ValueType.UNSPECIFIED &&
+      (kind.case === "nested" || kind.case === "repeated" || kind.case === "keyValueMap")) {
+    try {
+      const raw = initial === undefined ? defaultFormValue(field) : initial;
+      const span = document.createElement("span"); span.dataset.field = field.fieldId;
+      span.className = "meridian-uiview-field-value";
+      span.textContent = hasMaskedField(field) ? "••••••" : formatByDisplay(raw, field.display).text;
+      box.append(span); return () => raw;
+    } catch (reason) {
+      const error = document.createElement("p"); error.setAttribute("role", "alert");
+      error.textContent = reason instanceof Error ? reason.message : String(reason); box.append(error);
+      return () => { throw reason; };
+    }
+  }
+  if (kind.case === "text" && field.display?.type === ValueType.MULTILINE_TEXT && multilineRows === 0) multilineRows = 4;
   if (kind.case === "nested") return buildFields(box, kind.value.fields,
     initial && typeof initial === "object" && !Array.isArray(initial) ? initial as Record<string, unknown> : {}, edit);
   if (kind.case === "repeated") {

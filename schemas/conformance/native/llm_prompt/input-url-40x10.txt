@@ -1,0 +1,12 @@
+viewport 40x10
+url
+▶ Declared input
+    https://example.com/a?b=1
+
+
+ Preview [Enter]   Cancel [Esc]   Naviga
+
+System prompt:
+
+User prompt:
+end viewport

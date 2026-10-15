@@ -1,0 +1,26 @@
+id: "prompt-input-unspecified"
+title: "prompt-input-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-unspecified"
+    title: "unspecified"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "literal"
+        }
+        display {
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

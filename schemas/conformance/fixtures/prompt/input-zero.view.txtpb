@@ -1,0 +1,28 @@
+id: "prompt-input-zero"
+title: "prompt-input-zero"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-zero"
+    title: "zero"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        integer {
+          min: -100
+          max: 100
+        }
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

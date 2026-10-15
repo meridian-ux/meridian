@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-empty-list" level=2
+        StaticText name="prompt-input-empty-list"
+    heading name="empty-list" level=3
+      StaticText name="empty-list"
+    StaticText name="empty-list"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        button name="Add item" focusable=true invalid="false"
+          StaticText name="Add item"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

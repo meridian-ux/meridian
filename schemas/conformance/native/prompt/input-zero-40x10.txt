@@ -1,0 +1,12 @@
+viewport 40x10
+zero
+▶ Declared input
+    0  (↑ / ↓)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-url" level=2
+        StaticText name="form-input-url"
+    heading name="url" level=3
+      StaticText name="url"
+    LabelText name=""
+      StaticText name="Declared input"
+    textbox name="Declared input" value="https://example.com/a?b=1" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"
+        StaticText name="https://example.com/a?b=1" editable="plaintext"
+    button name="SAVE" focusable=true invalid="false"
+      StaticText name="SAVE"

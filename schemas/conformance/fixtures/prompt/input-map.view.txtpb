@@ -1,0 +1,26 @@
+id: "prompt-input-map"
+title: "prompt-input-map"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-map"
+    title: "map"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        display {
+          type: VALUE_TYPE_JSON
+        }
+        key_value_map {
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

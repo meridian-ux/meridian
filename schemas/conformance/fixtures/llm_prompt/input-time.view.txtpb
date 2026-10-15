@@ -1,0 +1,30 @@
+id: "llm_prompt-input-time"
+title: "llm_prompt-input-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-input-time"
+    title: "time"
+    llm_prompt {
+      user_template: "Value={{value}}"
+      slots {
+        name: "value"
+        field {
+          field_id: "value"
+          label: "Declared input"
+          request_field: "value"
+          text {
+            default_value: "13:45:00"
+          }
+          display {
+            type: VALUE_TYPE_TIME
+          }
+        }
+      }
+    }
+  }
+}

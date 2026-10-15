@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-zero" level=2
+        StaticText name="lro-input-zero"
+    heading name="zero" level=3
+      StaticText name="zero"
+    StaticText name="zero"
+    StaticText name="Click the button to run."
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        spinbutton name="Declared input" value=0 editable="plaintext" focusable=true invalid="false" required=false valuemax=0 valuemin=0 valuetext="0"
+          generic name="" editable="plaintext"
+            StaticText name="0" editable="plaintext"
+    button name="Run" focusable=true invalid="false"
+      StaticText name="Run"

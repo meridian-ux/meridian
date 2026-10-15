@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-percent" level=2
+        StaticText name="form-read-percent"
+    heading name="percent" level=3
+      StaticText name="percent"
+    StaticText name="percent"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="0.125"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

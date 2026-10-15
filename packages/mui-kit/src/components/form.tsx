@@ -33,6 +33,9 @@ interface BaseField {
   helperText?: string;
   disabled?: boolean;
   display?: ValueDisplay;
+  /** Complete local value for a declared compound read-only display. */
+  rawValue?: unknown;
+  concealed?: boolean;
 }
 interface NumericField {
   value: number;
@@ -113,8 +116,10 @@ function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): R
   if (field.disabled && (field.type === "text" || field.type === undefined) && field.masked)
     return <Typography key={field.key} data-field-display={field.key}>••••••</Typography>;
   if (!field.disabled || !field.display || field.display.type === ValueType.UNSPECIFIED) return undefined;
-  if (field.type === "group" || field.type === "list" || field.type === "map") return undefined;
-  const shown = formatByDisplay(field.value, field.display, nowMs);
+  const compound = field.type === "group" || field.type === "list" || field.type === "map";
+  if (compound && field.rawValue === undefined) return undefined;
+  const shown = field.concealed ? { text: "••••••" }
+    : formatByDisplay(compound ? field.rawValue : "value" in field ? field.value : undefined, field.display, nowMs);
   return (
     <Typography key={field.key} data-field-display={field.key} color="text.secondary">
       {shown.text}

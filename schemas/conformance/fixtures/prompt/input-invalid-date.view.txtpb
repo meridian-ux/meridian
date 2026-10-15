@@ -1,0 +1,27 @@
+id: "prompt-input-invalid-date"
+title: "prompt-input-invalid-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-invalid-date"
+    title: "invalid-date"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "not-a-date"
+        }
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+id: "lro-input-time"
+title: "lro-input-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-time"
+    title: "time"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "13:45:00"
+        }
+        display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

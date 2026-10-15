@@ -1,0 +1,12 @@
+viewport 40x10
+multiline
+┌──────────────────────────────────────┐
+│Read-only item                        │
+│read-only form                        │
+│                                      │
+│▶ Declared input: first               │
+│second                                │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

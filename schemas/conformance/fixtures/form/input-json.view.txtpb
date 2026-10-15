@@ -1,0 +1,37 @@
+id: "form-input-json"
+title: "form-input-json"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-input-json"
+    title: "json"
+    form {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        nested {
+          fields {
+            field_id: "ready"
+            label: "Ready"
+            boolean {
+              default_value: true
+            }
+          }
+        }
+        display {
+          type: VALUE_TYPE_JSON
+        }
+      }
+      mode: FORM_MODE_EDIT
+      submit {
+        service: "fixture.Inputs"
+        method: "Submit"
+      }
+    }
+  }
+}

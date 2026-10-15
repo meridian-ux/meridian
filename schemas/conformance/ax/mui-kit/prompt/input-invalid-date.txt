@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-invalid-date" level=2
+        StaticText name="prompt-input-invalid-date"
+    heading name="invalid-date" level=3
+      StaticText name="invalid-date"
+    LabelText name=""
+      StaticText name="Declared input"
+    textbox name="Declared input" value="not-a-date" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"
+        StaticText name="not-a-date" editable="plaintext"
+    button name="SUBMIT" focusable=true invalid="false"
+      StaticText name="SUBMIT"
+    button name="CANCEL" focusable=true invalid="false"
+      StaticText name="CANCEL"

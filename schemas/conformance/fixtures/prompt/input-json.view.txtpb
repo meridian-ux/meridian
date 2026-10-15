@@ -1,0 +1,33 @@
+id: "prompt-input-json"
+title: "prompt-input-json"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-json"
+    title: "json"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        nested {
+          fields {
+            field_id: "ready"
+            label: "Ready"
+            boolean {
+              default_value: true
+            }
+          }
+        }
+        display {
+          type: VALUE_TYPE_JSON
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+id: "prompt-input-identifier"
+title: "prompt-input-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-identifier"
+    title: "identifier"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "000123"
+        }
+        display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

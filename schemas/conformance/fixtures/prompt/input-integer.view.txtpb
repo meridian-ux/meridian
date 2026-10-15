@@ -1,0 +1,29 @@
+id: "prompt-input-integer"
+title: "prompt-input-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-input-integer"
+    title: "integer"
+    prompt {
+      fields {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        integer {
+          min: -100
+          max: 100
+          default_value: -42
+        }
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+      accept_label: "Submit"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-empty-list" level=2
+        StaticText name="lro-input-empty-list"
+    heading name="empty-list" level=3
+      StaticText name="empty-list"
+    StaticText name="empty-list"
+    StaticText name="Click the button to run."
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        button name="Add item" focusable=true invalid="false"
+          StaticText name="Add item"
+    button name="Run" focusable=true invalid="false"
+      StaticText name="Run"

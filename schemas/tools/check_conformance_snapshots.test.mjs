@@ -103,3 +103,17 @@ test("constrained typed cases require independent browser and native goldens", (
   assert.deepEqual(checkNativeSnapshots(manifest, [], native, [], constrained), []);
   assert.match(checkNativeSnapshots(manifest, [], native.filter(key => key !== "copy_value/typed-boolean-40x10.txt"), [], constrained).join("\n"), /missing native snapshot copy_value\/typed-boolean-40x10.txt/);
 });
+
+test("typed input and readonly Form cases each require browser and both native goldens", () => {
+  const inputs = { arms: ["form", "prompt", "lro", "llm_prompt"], cases: [{ name: "boolean" }] };
+  const keys = [...inputs.arms.map(arm => `${arm}/input-boolean`), "form/read-boolean"];
+  const browser = keys.map(key => `exports[\`suite > html/${key} 1\`] = \`"body"\`;`).join("\n");
+  assert.deepEqual(checkStatefulSnapshots({ arms: {} }, [], browser, ["html"], [], {}, inputs), []);
+  for (const key of keys) {
+    const without = browser.split("\n").filter(line => !line.includes(`html/${key} `)).join("\n");
+    assert.match(checkStatefulSnapshots({ arms: {} }, [], without, ["html"], [], {}, inputs).join("\n"), /missing stateful snapshot/);
+  }
+  const native = keys.flatMap(key => ["96x28", "40x10"].map(size => `${key}-${size}.txt`));
+  assert.deepEqual(checkNativeSnapshots({ arms: {} }, [], native, [], {}, inputs), []);
+  assert.match(checkNativeSnapshots({ arms: {} }, [], native.slice(1), [], {}, inputs).join("\n"), /missing native snapshot/);
+});

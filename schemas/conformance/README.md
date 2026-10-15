@@ -12,13 +12,13 @@ host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
 
 There are also all 29 value cases from `value_types.json` through each of five
 unrestricted read arms (`panelArms`): table, record_card, detail_header, gallery,
-and resource_cards. The corpus has 292 cases total, including nulls,
+and resource_cards. The corpus has 427 cases total, including nulls,
 invalid declarations, and unknown types. HTML, shadcn, MUI, and web-components load these
 exact wire messages, render `ViewRenderer`, resolve the shared responses through
 their invokers, and compare committed semantic DOM goldens. Explicit assertions
 check populated/empty tables, formatter outputs, and bounded stream tails.
 Web-components runs these views through `renderView` and the actual compiled
-WASM bridge (306 tests including the earlier 14 core-boundary checks). Its
+WASM bridge (441 tests including the earlier 14 core-boundary checks). Its
 stream goldens deliberately select the plain-DOM fallback; Terminal uses real
 xterm with a non-network test socket, not a live PTY. Both resources are disposed
 after every case. Form prefill waits for loading to finish and checks live input
@@ -29,13 +29,23 @@ All four browser realizations submit these wire values to the host and assert
 canonical protobuf Struct responses after their initial-state snapshots. A
 shared protobuf interaction fixture additionally covers all nine input kinds,
 confirmation/cancellation, callback failure/retry, and stale response isolation.
-This is not yet the every-ValueType input/default corpus; that remains open.
+`input_values.binpb` and its readable text twin supply 27 typed input/default
+cases through Form, Prompt, LRO, and LLM-prompt, plus read-only Form: 135 views.
+The canonical protobuf Struct index covers every declared ValueType, unknown and
+invalid declarations, all nine input kinds, false/zero/empty values, multiline
+text, leading-zero strings, and masked defaults. Consumers assert live raw
+control values and exact collected requests/protobuf responses before comparing
+snapshots; declared read-only formatting and secret concealment are separate
+assertions. LLM-prompt previews remain local. LRO fixtures verify start inputs,
+not complete polling/results in every kit; reference kits and MUI still need
+that broader lifecycle work. Default expansion is bounded before DOM allocation
+in the DOM LRO path and before native Form/LRO collection.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 
-The native consumer decodes the same 292 views and protobuf Struct responses,
+The native consumer decodes the same 427 views and protobuf Struct responses,
 extracts each view's single panel, and drives the real `PanelView` RPC/stream
-seams. It compares 584 terminal-buffer goldens under `native/` at 96×28 and
+seams. It compares 854 terminal-buffer goldens under `native/` at 96×28 and
 40×10, with explicit fetched-content, formatter, repeated-form-count, stream-tail,
 and cancellation checks. This covers native panel dispatch, not a general view
 layout tier. Prompt/LLM-prompt are owned by `PanelView`, with separate wire-decoded
@@ -69,8 +79,8 @@ resolution plus the schema-defined display override. Computed delta/direction
 do not trust server trend metadata. React guards late responses, changed
 descriptors/requests/transports, and failures. Dedicated lifecycle tests cover
 those paths; the hook also resolves nested bindings from repeated-view records.
-Form/Prompt/LRO/LLM-prompt every-ValueType input/default cases still require their
-own fixtures and remain outstanding. Native Form/LRO inputs now validate through
+Form/Prompt/LRO/LLM-prompt typed input/default cases now have their own wire
+fixtures rather than coercing read-only payloads. Native Form/LRO inputs validate through
 the platform-neutral core before returning host-owned requests, with focused
 wire tests for all nine input kinds, compound JSON editors, invalid/recovering
 values, read-only immutability, descriptor replacement, and empty forms. Legacy
@@ -103,15 +113,15 @@ are tested; the updater refuses to delete unexpected files automatically.
 The original panel corpus remains intact for native and existing browser users.
 
 This expands real coverage but does not complete the conformance epic: the
-stateful wire corpus still needs ValueType scenarios in the remaining
-value-bearing arms. Computed browser accessibility trees have a separate gate
+stateful wire corpus does not replace broader interaction, overflow, and layout
+acceptance criteria. Computed browser accessibility trees have a separate gate
 below; the semantic DOM normalizer is not relabeled as that evidence. SwiftUI
 preview behavior remains explicitly unverified.
 
 ## Computed browser accessibility trees
 
 `ax/<kit>/<arm>/<case>.txt` records Chrome's actual accessibility tree for all
-292 canonical wire cases in HTML, shadcn, MUI, and web-components: 1,168 trees.
+427 canonical wire cases in HTML, shadcn, MUI, and web-components: 1,708 trees.
 The hermetic Chrome target loads the real compiled WASM bridge for web-components
 and the same ViewDescriptor/Struct bytes as the other consumers. RPC responses
 and Terminal's socket are local test transports; this is not a live PTY test.

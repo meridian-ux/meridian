@@ -1,0 +1,12 @@
+viewport 40x10
+principal
+▶ Declared input
+    Ada <ada@example.com>
+
+
+ Preview [Enter]   Cancel [Esc]   Naviga
+
+System prompt:
+
+User prompt:
+end viewport

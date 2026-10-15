@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-percent" level=2
+        StaticText name="form-read-percent"
+    heading name="percent" level=3
+      StaticText name="percent"
+    sectionheader name=""
+      heading name="percent" level=3
+        StaticText name="percent"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="0.125"

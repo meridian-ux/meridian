@@ -1,0 +1,32 @@
+id: "lro-input-date-time"
+title: "lro-input-date-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-input-date-time"
+    title: "date-time"
+    lro {
+      start {
+        service: "fixture.Inputs"
+        method: "Start"
+      }
+      metadata_type: "fixture.Metadata"
+      response_type: "fixture.Response"
+      inputs {
+        field_id: "value"
+        label: "Declared input"
+        request_field: "value"
+        text {
+          default_value: "2026-03-29T13:45:00Z"
+        }
+        display {
+          type: VALUE_TYPE_DATE_TIME
+        }
+      }
+    }
+  }
+}

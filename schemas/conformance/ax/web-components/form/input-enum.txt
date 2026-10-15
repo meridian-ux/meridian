@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-enum" level=2
+        StaticText name="form-input-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    StaticText name="enum"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        combobox name="Declared input" value="READY" expanded=false focusable=true hasPopup="menu" invalid="false"
+          MenuListPopup name=""
+            option name="READY" focusable=true selected=true
+            option name="DONE" focusable=true selected=false
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
+    alert name="" atomic=true live="assertive"

@@ -24,6 +24,7 @@ import {
 import { ResourceCardsView } from "./resource_cards.js";
 import { HTML_FORM_CLASSES } from "./form_fields.js";
 import { FormContent } from "./form.js";
+import { LroInputs } from "./lro_inputs.js";
 import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { useHrefResolver } from "./provider.js";
@@ -96,11 +97,7 @@ export const htmlKit: ComponentKit = {
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="mer-gallery" emptyClassName="mer-empty" />,
   Prompt: ({ panel, descriptor }) => <PromptContent panel={panel} panelId={descriptor.panelId} c={HTML_FORM_CLASSES} />,
   LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={HTML_FORM_CLASSES} />,
-  Lro: ({ panel }) => (
-    <div className="mer-lro">
-      <button type="button">{panel.runButtonLabel || "Run"}</button>
-    </div>
-  ),
+  Lro: ({ panel }) => <LroInputs panel={panel} c={HTML_FORM_CLASSES} className="mer-lro" />,
   Form: ({ panel }) => <FormContent panel={panel} c={HTML_FORM_CLASSES} className="mer-form" />,
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
