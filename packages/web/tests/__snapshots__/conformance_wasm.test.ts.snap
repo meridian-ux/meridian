@@ -1,0 +1,3977 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'action/empty' > web-components/action/empty 1`] = `
+"h2
+  "Conformance: action · empty"
+h3
+  "action · empty"
+"action · empty"
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'action/overflow' > web-components/action/overflow 1`] = `
+"h2
+  "Conformance: action · overflow"
+h3
+  "action · overflow"
+"action · overflow"
+p
+  "One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'action/typical' > web-components/action/typical 1`] = `
+"h2
+  "Conformance: action · typical"
+h3
+  "action · typical"
+"action · typical"
+p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'adhoc/empty' > web-components/adhoc/empty 1`] = `
+"h2
+  "Conformance: adhoc · empty"
+h3
+  "adhoc · empty"
+"adhoc · empty"
+"Adhoc panel — handler_id: overview-dashboard""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'adhoc/overflow' > web-components/adhoc/overflow 1`] = `
+"h2
+  "Conformance: adhoc · overflow"
+h3
+  "adhoc · overflow"
+"adhoc · overflow"
+"Adhoc panel — handler_id: overview-dashboard""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'adhoc/typical' > web-components/adhoc/typical 1`] = `
+"h2
+  "Conformance: adhoc · typical"
+h3
+  "adhoc · typical"
+"adhoc · typical"
+"Adhoc panel — handler_id: overview-dashboard""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'catalog/empty' > web-components/catalog/empty 1`] = `
+"h2
+  "Conformance: catalog · empty"
+h3
+  "catalog · empty"
+"catalog · empty"
+p
+  "(empty)""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'catalog/overflow' > web-components/catalog/overflow 1`] = `
+"h2
+  "Conformance: catalog · overflow"
+h3
+  "catalog · overflow"
+"catalog · overflow"
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads."
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'catalog/typical' > web-components/catalog/typical 1`] = `
+"h2
+  "Conformance: catalog · typical"
+h3
+  "catalog · typical"
+"catalog · typical"
+article
+  "list_instances"
+  p
+    "The instances you can address."
+  "tool"
+article
+  "graph_*"
+  "Next"
+  p
+    "RLS-respecting reads.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'chart/empty' > web-components/chart/empty 1`] = `
+"h2
+  "Conformance: chart · empty"
+h3
+  "chart · empty"
+"chart · empty"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "bar of requests by day""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'chart/overflow' > web-components/chart/overflow 1`] = `
+"h2
+  "Conformance: chart · overflow"
+h3
+  "chart · overflow"
+"chart · overflow"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "bar of requests by day"
+  table
+    tr
+      th
+        "day"
+      th
+        "requests"
+    tr
+      td
+        "2026-10-01"
+      td
+        "1"
+    tr
+      td
+        "2026-10-02"
+      td
+        "2"
+    tr
+      td
+        "2026-10-03"
+      td
+        "3"
+    tr
+      td
+        "2026-10-04"
+      td
+        "4"
+    tr
+      td
+        "2026-10-05"
+      td
+        "5"
+    tr
+      td
+        "2026-10-06"
+      td
+        "6"
+    tr
+      td
+        "2026-10-07"
+      td
+        "7"
+    tr
+      td
+        "2026-10-08"
+      td
+        "8"
+    tr
+      td
+        "2026-10-09"
+      td
+        "9"
+    tr
+      td
+        "2026-10-10"
+      td
+        "10"
+    tr
+      td
+        "2026-10-11"
+      td
+        "11"
+    tr
+      td
+        "2026-10-12"
+      td
+        "12"
+    tr
+      td
+        "2026-10-13"
+      td
+        "13"
+    tr
+      td
+        "2026-10-14"
+      td
+        "14"
+    tr
+      td
+        "2026-10-15"
+      td
+        "15"
+    tr
+      td
+        "2026-10-16"
+      td
+        "16"
+    tr
+      td
+        "2026-10-17"
+      td
+        "17"
+    tr
+      td
+        "2026-10-18"
+      td
+        "18"
+    tr
+      td
+        "2026-10-19"
+      td
+        "19"
+    tr
+      td
+        "2026-10-20"
+      td
+        "20""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'chart/typical' > web-components/chart/typical 1`] = `
+"h2
+  "Conformance: chart · typical"
+h3
+  "chart · typical"
+"chart · typical"
+figure
+  figcaption
+    "Requests by day"
+  p
+    "bar of requests by day"
+  table
+    tr
+      th
+        "day"
+      th
+        "requests"
+    tr
+      td
+        "2026-10-01"
+      td
+        "1"
+    tr
+      td
+        "2026-10-02"
+      td
+        "2"
+    tr
+      td
+        "2026-10-03"
+      td
+        "3""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'choice/empty' > web-components/choice/empty 1`] = `
+"h2
+  "Conformance: choice · empty"
+h3
+  "choice · empty"
+"choice · empty"
+div role="tablist"
+  p
+    "Which client?""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'choice/overflow' > web-components/choice/overflow 1`] = `
+"h2
+  "Conformance: choice · overflow"
+h3
+  "choice · overflow"
+"choice · overflow"
+div role="tablist"
+  p
+    "Which client?"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'choice/typical' > web-components/choice/typical 1`] = `
+"h2
+  "Conformance: choice · typical"
+h3
+  "choice · typical"
+"choice · typical"
+div role="tablist"
+  p
+    "Which client?"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/empty' > web-components/connect_flow/empty 1`] = `
+"h2
+  "Conformance: connect_flow · empty"
+h3
+  "connect_flow · empty"
+"connect_flow · empty"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+p
+  "(no targets)""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/overflow' > web-components/connect_flow/overflow 1`] = `
+"h2
+  "Conformance: connect_flow · overflow"
+h3
+  "connect_flow · overflow"
+"connect_flow · overflow"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'connect_flow/typical' > web-components/connect_flow/typical 1`] = `
+"h2
+  "Conformance: connect_flow · typical"
+h3
+  "connect_flow · typical"
+"connect_flow · typical"
+p
+  "Every agent points at the same endpoint."
+"Endpoint"
+button type="button"
+  code
+    "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/empty' > web-components/copy_value/empty 1`] = `
+"h2
+  "Conformance: copy_value · empty"
+h3
+  "copy_value · empty"
+"copy_value · empty"
+"Primary integration endpoint for the production workspace across all supported regions"
+button type="button"
+  code"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/overflow' > web-components/copy_value/overflow 1`] = `
+"h2
+  "Conformance: copy_value · overflow"
+h3
+  "copy_value · overflow"
+"copy_value · overflow"
+"Primary integration endpoint for the production workspace across all supported regions"
+button type="button"
+  code
+    "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'copy_value/typical' > web-components/copy_value/typical 1`] = `
+"h2
+  "Conformance: copy_value · typical"
+h3
+  "copy_value · typical"
+"copy_value · typical"
+"Primary integration endpoint for the production workspace across all supported regions"
+button type="button"
+  code
+    "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/empty' > web-components/detail_header/empty 1`] = `
+"h2
+  "Conformance: detail_header · empty"
+h3
+  "detail_header · empty"
+"detail_header · empty"
+dl
+  dt
+    "Type"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/overflow' > web-components/detail_header/overflow 1`] = `
+"h2
+  "Conformance: detail_header · overflow"
+h3
+  "detail_header · overflow"
+"detail_header · overflow"
+h2
+  "Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title"
+p
+  "Ada"
+dl
+  dt
+    "Type"
+  dd
+    "Service""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/typical' > web-components/detail_header/typical 1`] = `
+"h2
+  "Conformance: detail_header · typical"
+h3
+  "detail_header · typical"
+"detail_header · typical"
+h2
+  "Fixture record"
+p
+  "Ada"
+dl
+  dt
+    "Type"
+  dd
+    "Service""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/empty' > web-components/form/empty 1`] = `
+"h2
+  "Conformance: form · empty"
+h3
+  "form · empty"
+"form · empty"
+form
+  fieldset
+    fieldset
+      legend
+        "Navigation groups"
+      button type="button"
+        "Add section"
+  p role="status"
+    "Saving is not permitted."
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/overflow' > web-components/form/overflow 1`] = `
+"h2
+  "Conformance: form · overflow"
+h3
+  "form · overflow"
+"form · overflow"
+form
+  fieldset
+    fieldset
+      legend
+        "Navigation groups"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      button type="button"
+        "Add section"
+  p role="status"
+    "Saving is not permitted."
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'form/typical' > web-components/form/typical 1`] = `
+"h2
+  "Conformance: form · typical"
+h3
+  "form · typical"
+"form · typical"
+form
+  fieldset
+    fieldset
+      legend
+        "Navigation groups"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      fieldset
+        legend
+          "Label"
+        input aria-label="Label" type="text"
+      fieldset
+        legend
+          "Kinds"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        fieldset
+          legend
+          input aria-label="kind" type="text"
+        button type="button"
+          "Remove item"
+        button type="button"
+          "Add kind"
+      button type="button"
+        "Remove item"
+      button type="button"
+        "Add section"
+  p role="status"
+    "Saving is not permitted."
+  p role="alert""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/empty' > web-components/gallery/empty 1`] = `
+"h2
+  "Conformance: gallery · empty"
+h3
+  "gallery · empty"
+"gallery · empty"
+div role="list"
+  p
+    "no assets""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/overflow' > web-components/gallery/overflow 1`] = `
+"h2
+  "Conformance: gallery · overflow"
+h3
+  "gallery · overflow"
+"gallery · overflow"
+div role="list"
+  article role="listitem"
+    h3
+      "Resource 00"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 01"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 02"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 03"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 04"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 05"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 06"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 07"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 08"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 09"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 10"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 11"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 12"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 13"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 14"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 15"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 16"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 17"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 18"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 19"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 20"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 21"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 22"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 23"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 24"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 25"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 26"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 27"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 28"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 29"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 30"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 31"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 32"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 33"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 34"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 35"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 36"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 37"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 38"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 39"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/typical' > web-components/gallery/typical 1`] = `
+"h2
+  "Conformance: gallery · typical"
+h3
+  "gallery · typical"
+"gallery · typical"
+div role="list"
+  article role="listitem"
+    h3
+      "Resource 00"
+    p
+      "A shared response"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage"
+  article role="listitem"
+    h3
+      "Resource 01"
+    p
+      "A shared response"
+    "Connected"
+    a href="https://example.test/resource"
+      "Manage""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'grammar/empty' > web-components/grammar/empty 1`] = `
+"h2
+  "Conformance: grammar · empty"
+h3
+  "grammar · empty"
+"grammar · empty""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'grammar/overflow' > web-components/grammar/overflow 1`] = `
+"h2
+  "Conformance: grammar · overflow"
+h3
+  "grammar · overflow"
+"grammar · overflow"
+h3
+  "Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'grammar/typical' > web-components/grammar/typical 1`] = `
+"h2
+  "Conformance: grammar · typical"
+h3
+  "grammar · typical"
+"grammar · typical"
+h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/empty' > web-components/llm_prompt/empty 1`] = `
+"h2
+  "Conformance: llm_prompt · empty"
+h3
+  "llm_prompt · empty"
+"llm_prompt · empty""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/overflow' > web-components/llm_prompt/overflow 1`] = `
+"h2
+  "Conformance: llm_prompt · overflow"
+h3
+  "llm_prompt · overflow"
+"llm_prompt · overflow"
+p
+  "Summarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the document"
+h3
+  "User"
+pre
+  "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
+dl
+  dt
+    "text"
+  dd
+    "Source text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/typical' > web-components/llm_prompt/typical 1`] = `
+"h2
+  "Conformance: llm_prompt · typical"
+h3
+  "llm_prompt · typical"
+"llm_prompt · typical"
+p
+  "Summarize the document"
+h3
+  "User"
+pre
+  "Summarize {{text}}"
+dl
+  dt
+    "text"
+  dd
+    "Source text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/empty' > web-components/lro/empty 1`] = `
+"h2
+  "Conformance: lro · empty"
+h3
+  "lro · empty"
+"lro · empty"
+"Click the button to run."
+button
+  "Run reindex""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/overflow' > web-components/lro/overflow 1`] = `
+"h2
+  "Conformance: lro · overflow"
+h3
+  "lro · overflow"
+"lro · overflow"
+"Click the button to run."
+label
+  "Job input 0:"
+  input type="text"
+label
+  "Job input 1:"
+  input type="text"
+label
+  "Job input 2:"
+  input type="text"
+label
+  "Job input 3:"
+  input type="text"
+label
+  "Job input 4:"
+  input type="text"
+label
+  "Job input 5:"
+  input type="text"
+label
+  "Job input 6:"
+  input type="text"
+label
+  "Job input 7:"
+  input type="text"
+label
+  "Job input 8:"
+  input type="text"
+label
+  "Job input 9:"
+  input type="text"
+label
+  "Job input 10:"
+  input type="text"
+label
+  "Job input 11:"
+  input type="text"
+label
+  "Job input 12:"
+  input type="text"
+label
+  "Job input 13:"
+  input type="text"
+label
+  "Job input 14:"
+  input type="text"
+label
+  "Job input 15:"
+  input type="text"
+label
+  "Job input 16:"
+  input type="text"
+label
+  "Job input 17:"
+  input type="text"
+label
+  "Job input 18:"
+  input type="text"
+label
+  "Job input 19:"
+  input type="text"
+label
+  "Job input 20:"
+  input type="text"
+label
+  "Job input 21:"
+  input type="text"
+label
+  "Job input 22:"
+  input type="text"
+label
+  "Job input 23:"
+  input type="text"
+label
+  "Job input 24:"
+  input type="text"
+label
+  "Job input 25:"
+  input type="text"
+label
+  "Job input 26:"
+  input type="text"
+label
+  "Job input 27:"
+  input type="text"
+label
+  "Job input 28:"
+  input type="text"
+label
+  "Job input 29:"
+  input type="text"
+button
+  "Run reindex""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/typical' > web-components/lro/typical 1`] = `
+"h2
+  "Conformance: lro · typical"
+h3
+  "lro · typical"
+"lro · typical"
+"Click the button to run."
+label
+  "Job input 0:"
+  input type="text"
+label
+  "Job input 1:"
+  input type="text"
+button
+  "Run reindex""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'media/empty' > web-components/media/empty 1`] = `
+"h2
+  "Conformance: media · empty"
+h3
+  "media · empty"
+"media · empty"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. · 4:12""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'media/overflow' > web-components/media/overflow 1`] = `
+"h2
+  "Conformance: media · overflow"
+h3
+  "media · overflow"
+"media · overflow"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. · 4:12"
+  ol
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor"
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'media/typical' > web-components/media/typical 1`] = `
+"h2
+  "Conformance: media · typical"
+h3
+  "media · typical"
+"media · typical"
+figure
+  video aria-label="A four-minute walkthrough of creating a sponsor." src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+    track src="/evidence/golden-path.vtt" kind="captions"
+  figcaption
+    "Narrated from a live run. · 4:12"
+  ol
+    li
+      button aria-label="Seek to Open the page at 0:00" type="button"
+        time datetime="PT0S"
+          "0:00"
+        "Open the page"
+    li
+      button aria-label="Seek to Add the sponsor at 1:05" type="button"
+        time datetime="PT65S"
+          "1:05"
+        "Add the sponsor""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/empty' > web-components/prompt/empty 1`] = `
+"h2
+  "Conformance: prompt · empty"
+h3
+  "prompt · empty"
+"prompt · empty"
+form
+  label
+    "Reason"
+    input type="text"
+  button type="submit"
+    "Submit""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/overflow' > web-components/prompt/overflow 1`] = `
+"h2
+  "Conformance: prompt · overflow"
+h3
+  "prompt · overflow"
+"prompt · overflow"
+form
+  p
+    "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+  label
+    "Reason"
+    input type="text"
+  button type="submit"
+    "Submit""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'prompt/typical' > web-components/prompt/typical 1`] = `
+"h2
+  "Conformance: prompt · typical"
+h3
+  "prompt · typical"
+"prompt · typical"
+form
+  p
+    "Delete this resource?"
+  label
+    "Reason"
+    input type="text"
+  button type="submit"
+    "Submit""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/empty' > web-components/record_card/empty 1`] = `
+"h2
+  "Conformance: record_card · empty"
+h3
+  "record_card · empty"
+"record_card · empty"
+dl
+  dt
+    "Name"
+  dd
+    "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/overflow' > web-components/record_card/overflow 1`] = `
+"h2
+  "Conformance: record_card · overflow"
+h3
+  "record_card · overflow"
+"record_card · overflow"
+dl
+  dt
+    "Name"
+  dd
+    "Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/typical' > web-components/record_card/typical 1`] = `
+"h2
+  "Conformance: record_card · typical"
+h3
+  "record_card · typical"
+"record_card · typical"
+dl
+  dt
+    "Name"
+  dd
+    "Fixture record""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/empty' > web-components/resource_cards/empty 1`] = `
+"h2
+  "Conformance: resource_cards · empty"
+h3
+  "resource_cards · empty"
+"resource_cards · empty"
+div role="list"
+  p
+    "No services""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/overflow' > web-components/resource_cards/overflow 1`] = `
+"h2
+  "Conformance: resource_cards · overflow"
+h3
+  "resource_cards · overflow"
+"resource_cards · overflow"
+div role="list"
+  article role="listitem"
+    h3
+      "Resource 00"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 01"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 02"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 03"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 04"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 05"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 06"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 07"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 08"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 09"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 10"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 11"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 12"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 13"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 14"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 15"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 16"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 17"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 18"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 19"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 20"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 21"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 22"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 23"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 24"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 25"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 26"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 27"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 28"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 29"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 30"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 31"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 32"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 33"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 34"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 35"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 36"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 37"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 38"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+  article role="listitem"
+    h3
+      "Resource 39"
+    p
+      "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/typical' > web-components/resource_cards/typical 1`] = `
+"h2
+  "Conformance: resource_cards · typical"
+h3
+  "resource_cards · typical"
+"resource_cards · typical"
+div role="list"
+  article role="listitem"
+    h3
+      "Resource 00"
+    p
+      "A shared response"
+  article role="listitem"
+    h3
+      "Resource 01"
+    p
+      "A shared response""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'snippet/empty' > web-components/snippet/empty 1`] = `
+"h2
+  "Conformance: snippet · empty"
+h3
+  "snippet · empty"
+"snippet · empty"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'snippet/overflow' > web-components/snippet/overflow 1`] = `
+"h2
+  "Conformance: snippet · overflow"
+h3
+  "snippet · overflow"
+"snippet · overflow"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'snippet/typical' > web-components/snippet/typical 1`] = `
+"h2
+  "Conformance: snippet · typical"
+h3
+  "snippet · typical"
+"snippet · typical"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "(json)"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/empty' > web-components/stat/empty 1`] = `
+"h2
+  "Conformance: stat · empty"
+h3
+  "stat · empty"
+"stat · empty"
+"Active employees"
+"0"
+"→ +0""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/overflow' > web-components/stat/overflow 1`] = `
+"h2
+  "Conformance: stat · overflow"
+h3
+  "stat · overflow"
+"stat · overflow"
+"Active employees"
+"1,240"
+"↑ +60"
+svg"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typical' > web-components/stat/typical 1`] = `
+"h2
+  "Conformance: stat · typical"
+h3
+  "stat · typical"
+"stat · typical"
+"Active employees"
+"1,240"
+"↑ +60"
+svg"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'steps/empty' > web-components/steps/empty 1`] = `
+"h2
+  "Conformance: steps · empty"
+h3
+  "steps · empty"
+"steps · empty"
+ol"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'steps/overflow' > web-components/steps/overflow 1`] = `
+"h2
+  "Conformance: steps · overflow"
+h3
+  "steps · overflow"
+"steps · overflow"
+p
+  "Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it."
+ol
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'steps/typical' > web-components/steps/typical 1`] = `
+"h2
+  "Conformance: steps · typical"
+h3
+  "steps · typical"
+"steps · typical"
+p
+  "Add an employer and confirm a colleague can see it."
+ol
+  li
+    "Open the Sponsors page"
+    "(Admin)"
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    p
+      "The list of every employer your organization administers."
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "Add a new sponsor"
+    "(Admin)"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "Confirm a colleague sees it"
+    "(Manager)"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stream/empty' > web-components/stream/empty 1`] = `
+"h2
+  "Conformance: stream · empty"
+h3
+  "stream · empty"
+"stream · empty"
+"Loading…"
+div role="log" aria-live="polite"
+  "Waiting for build events...""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stream/overflow' > web-components/stream/overflow 1`] = `
+"h2
+  "Conformance: stream · overflow"
+h3
+  "stream · overflow"
+"stream · overflow"
+"140 events"
+div role="log" aria-live="polite"
+  "Stream line 120"
+  "Stream line 121"
+  "Stream line 122"
+  "Stream line 123"
+  "Stream line 124"
+  "Stream line 125"
+  "Stream line 126"
+  "Stream line 127"
+  "Stream line 128"
+  "Stream line 129"
+  "Stream line 130"
+  "Stream line 131"
+  "Stream line 132"
+  "Stream line 133"
+  "Stream line 134"
+  "Stream line 135"
+  "Stream line 136"
+  "Stream line 137"
+  "Stream line 138"
+  "Stream line 139""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stream/typical' > web-components/stream/typical 1`] = `
+"h2
+  "Conformance: stream · typical"
+h3
+  "stream · typical"
+"stream · typical"
+"3 events"
+div role="log" aria-live="polite"
+  "Stream line 000"
+  "Stream line 001"
+  "Stream line 002""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/empty' > web-components/table/empty 1`] = `
+"h2
+  "Conformance: table · empty"
+h3
+  "table · empty"
+"table · empty"
+"0 items"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+      th
+        "Enabled"
+      th
+        "Website"
+  tbody
+    tr
+      td
+        "no claims""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/overflow' > web-components/table/overflow 1`] = `
+"h2
+  "Conformance: table · overflow"
+h3
+  "table · overflow"
+"table · overflow"
+"40 items"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+      th
+        "Enabled"
+      th
+        "Website"
+  tbody
+    tr
+      td
+        "Member 00"
+      td
+        "0.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 01"
+      td
+        "1.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 02"
+      td
+        "2.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 03"
+      td
+        "3.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 04"
+      td
+        "4.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 05"
+      td
+        "5.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 06"
+      td
+        "6.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 07"
+      td
+        "7.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 08"
+      td
+        "8.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 09"
+      td
+        "9.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 10"
+      td
+        "10.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 11"
+      td
+        "11.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 12"
+      td
+        "12.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 13"
+      td
+        "13.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 14"
+      td
+        "14.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 15"
+      td
+        "15.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 16"
+      td
+        "16.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 17"
+      td
+        "17.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 18"
+      td
+        "18.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 19"
+      td
+        "19.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 20"
+      td
+        "20.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 21"
+      td
+        "21.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 22"
+      td
+        "22.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 23"
+      td
+        "23.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 24"
+      td
+        "24.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 25"
+      td
+        "25.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 26"
+      td
+        "26.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 27"
+      td
+        "27.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 28"
+      td
+        "28.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 29"
+      td
+        "29.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 30"
+      td
+        "30.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 31"
+      td
+        "31.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 32"
+      td
+        "32.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 33"
+      td
+        "33.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 34"
+      td
+        "34.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 35"
+      td
+        "35.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 36"
+      td
+        "36.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 37"
+      td
+        "37.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 38"
+      td
+        "38.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 39"
+      td
+        "39.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/typical' > web-components/table/typical 1`] = `
+"h2
+  "Conformance: table · typical"
+h3
+  "table · typical"
+"table · typical"
+"2 items"
+table
+  thead
+    tr
+      th
+        "Member"
+      th
+        "Amount"
+      th
+        "Enabled"
+      th
+        "Website"
+  tbody
+    tr
+      td
+        "Member 00"
+      td
+        "0.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 01"
+      td
+        "1.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-boolean' > web-components/table/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+"boolean"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "No""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-date' > web-components/table/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+"date"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "Mar 29, 2026""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-date-time' > web-components/table/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+"date-time"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "Mar 29, 2026, 1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-decimal' > web-components/table/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+"decimal"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-duration' > web-components/table/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+"duration"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "4 min 12 s""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-email' > web-components/table/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+"email"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "ada@example.com""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-empty-list' > web-components/table/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+"empty-list"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-enum' > web-components/table/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+"enum"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "READY""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-excessive-precision' > web-components/table/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+"excessive-precision"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-identifier' > web-components/table/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+"identifier"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "000123""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-integer' > web-components/table/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+"integer"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "42""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-invalid-date' > web-components/table/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+"invalid-date"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "not-a-date""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-invalid-principal' > web-components/table/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+"invalid-principal"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "Ada <bad email>""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-invalid-time' > web-components/table/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+"invalid-time"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "25:91""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-json' > web-components/table/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+"json"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "{\\"ready\\":true}""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-list' > web-components/table/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+"list"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "one, two""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-mismatched-number-options' > web-components/table/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+"mismatched-number-options"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-money-current-scalar' > web-components/table/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+"money-current-scalar"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "12.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-multiline' > web-components/table/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+"multiline"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "first second""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-negative-precision' > web-components/table/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+"negative-precision"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "12.5""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-null' > web-components/table/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+"null"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "—""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-numeric-string' > web-components/table/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+"numeric-string"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "0012.50""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-percent-current-scalar' > web-components/table/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+"percent-current-scalar"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "0.125""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-principal' > web-components/table/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+"principal"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "Ada""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-text' > web-components/table/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+"text"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "plain text""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-time' > web-components/table/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+"time"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "1:45 PM UTC""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-unknown-type' > web-components/table/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+"unknown-type"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-unspecified' > web-components/table/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+"unspecified"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        "literal""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-url' > web-components/table/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+"url"
+"1 items"
+table
+  thead
+    tr
+      th
+        "Declared value"
+  tbody
+    tr
+      td
+        a href="https://example.com/a?b=1"
+          "https://example.com/a?b=1""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'terminal/empty' > web-components/terminal/empty 1`] = `
+"h2
+  "Conformance: terminal · empty"
+h3
+  "terminal · empty"
+"terminal · empty"
+div role="alert"
+  "connection unavailable: expected a ws:// or wss:// broker URL"
+code"
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'terminal/overflow' > web-components/terminal/overflow 1`] = `
+"h2
+  "Conformance: terminal · overflow"
+h3
+  "terminal · overflow"
+"terminal · overflow"
+"Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title — connecting…"
+button
+  "Reconnect"
+div role="presentation"
+  textarea aria-label="Terminal input""
+`;
+
+exports[`web-components stateful ViewDescriptor corpus through real WASM > 'terminal/typical' > web-components/terminal/typical 1`] = `
+"h2
+  "Conformance: terminal · typical"
+h3
+  "terminal · typical"
+"terminal · typical"
+"bash — connecting…"
+button
+  "Reconnect"
+div role="presentation"
+  textarea aria-label="Terminal input""
+`;

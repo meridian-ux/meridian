@@ -30,9 +30,12 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
+import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
+import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
+import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and
 // pulling in @types/node for a single readFileSync would widen the global scope
@@ -50,8 +53,18 @@ const WASM = "./meridian_uiview_bg.wasm";
 let wasm: UiviewWasm;
 let core: ReturnType<typeof JSON.parse>;
 let values: ReturnType<typeof JSON.parse>;
+let renderView: typeof import("../src/uiview/view_renderer.js").renderView;
+let disposePanel: typeof import("../src/uiview/renderer.js").disposePanel;
+let terminals: typeof import("../src/terminal_panel.js");
+const originalCanvasContext = HTMLCanvasElement.prototype.getContext;
+afterAll(() => { HTMLCanvasElement.prototype.getContext = originalCanvasContext; });
 
 beforeAll(async () => {
+  // xterm probes canvas during module initialization; jsdom has no canvas.
+  HTMLCanvasElement.prototype.getContext = (() => null) as typeof originalCanvasContext;
+  ({ renderView } = await import("../src/uiview/view_renderer.js"));
+  ({ disposePanel } = await import("../src/uiview/renderer.js"));
+  terminals = await import("../src/terminal_panel.js");
   const { readFileSync } = (await import(/* @vite-ignore */ "node:" + "fs")) as NodeFs;
   const glueUrl = new URL(GLUE, import.meta.url);
   const wasmUrl = new URL(WASM, import.meta.url);
@@ -69,6 +82,95 @@ const CTX = {
   selectedRow: { name: "row-1", repo: "fastverk/botnoc" },
   formValues: {},
 };
+
+// Transport only: no network connection or PTY interaction is claimed here.
+class CorpusSocket {
+  static OPEN = 1;
+  static instances: CorpusSocket[] = [];
+  readyState = 0;
+  binaryType = "";
+  onopen = null;
+  onmessage = null;
+  onclose = null;
+  onerror = null;
+  constructor(readonly url: string) { CorpusSocket.instances.push(this); }
+  send() {}
+  close() { this.readyState = 3; }
+}
+
+describe("web-components stateful ViewDescriptor corpus through real WASM", () => {
+  it.each(STATE_CASES)("$name", async (fixture) => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const invoke = vi.fn(async (service: string, method: string) =>
+      (fixture.responses[`${service}.${method}`] ?? {}) as object);
+    const close = vi.fn();
+    const subscribe = vi.fn((...[_service, _method, _request, observer]: Parameters<StreamInvoker["subscribe"]>) => {
+      for (const frame of (fixture.responses.__streamFrames ?? []) as object[]) observer.onFrame(frame);
+      return { close };
+    });
+    // Pin the documented plain-DOM stream fallback. xterm's virtualized buffer
+    // and a computed browser accessibility tree require separate browser proof.
+    const log = vi.spyOn(terminals, "renderLogTerminal").mockImplementation(() => {
+      throw new Error("stateful DOM corpus: virtual terminal unavailable");
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (() => ({ matches: false, media: "", onchange: null,
+      addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+      dispatchEvent() { return false; },
+    })) as typeof window.matchMedia;
+    CorpusSocket.instances = [];
+    vi.stubGlobal("WebSocket", CorpusSocket);
+    try {
+      await renderView({ root: container, view: fixture.view, wasm, context: CTX,
+        invoker: { invoke }, streamInvoker: { subscribe } });
+      if (fixture.arm === "form") await vi.waitFor(() => {
+        expect(container.textContent).not.toContain("Loading…");
+      });
+      const tree = normalizeDom(container);
+      expect(container.textContent).toContain(fixture.view.title);
+      for (const call of Object.keys(fixture.responses).filter(key => !key.startsWith("__"))) {
+        expect(invoke.mock.calls.some(([service, method]) => `${service}.${method}` === call), `${fixture.name} must consume ${call}`).toBe(true);
+      }
+      if (fixture.expectedValue !== undefined) expect(container.querySelector("tbody td")?.textContent).toBe(fixture.expectedValue);
+      if (fixture.arm === "table") {
+        if (["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Member 00");
+        else if (fixture.state === "empty") expect(tree).not.toContain("Member 00");
+      }
+      if (["gallery", "resource_cards"].includes(fixture.arm) && fixture.state !== "empty") expect(tree).toContain("Resource 00");
+      if (fixture.arm === "detail_header" && fixture.state !== "empty") expect(tree).toContain("Fixture record");
+      if (fixture.arm === "form") {
+        // Imperative form controls set the live value property, not an HTML
+        // value attribute. Verify it directly, independently of DOM goldens.
+        const labels = [...container.querySelectorAll<HTMLInputElement>('input[aria-label="Label"]')];
+        expect(labels).toHaveLength(fixture.state === "empty" ? 0 : fixture.state === "typical" ? 2 : 30);
+        if (fixture.state !== "empty") expect(labels[0].value).toBe("Section 0");
+      }
+      if (fixture.arm === "stream") {
+        expect(subscribe).toHaveBeenCalledOnce();
+        if (fixture.state !== "empty") {
+          expect(log).toHaveBeenCalledOnce();
+          expect(warn).toHaveBeenCalledOnce();
+        } else expect(log).not.toHaveBeenCalled();
+        if (fixture.state === "overflow") {
+          expect(tree).toContain("Stream line 139");
+          expect(tree).not.toContain("Stream line 000");
+        }
+      }
+      expect(tree).toMatchSnapshot(`web-components/${fixture.name}`);
+    } finally {
+      container.querySelectorAll<HTMLElement>(".meridian-uiview-panel").forEach(disposePanel);
+      // Include every panel root regardless of its presentation class.
+      container.querySelectorAll<HTMLElement>(".meridian-uiview-slot > div").forEach(disposePanel);
+      container.remove();
+      window.matchMedia = originalMatchMedia;
+      log.mockRestore(); warn.mockRestore(); vi.unstubAllGlobals();
+      if (fixture.arm === "stream") expect(close).toHaveBeenCalledOnce();
+      for (const socket of CorpusSocket.instances) expect(socket.readyState).toBe(3);
+    }
+  });
+});
 
 const tablePanel: PanelDescriptor = create(PanelDescriptorSchema, {
   panelId: "builds",

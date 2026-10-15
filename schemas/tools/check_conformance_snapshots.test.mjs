@@ -60,3 +60,11 @@ test("stateful MUI snapshots are independently required", () => {
   assert.deepEqual(checkStatefulSnapshots(manifest, [], source, ["mui-kit"]), []);
   assert.match(checkStatefulSnapshots(manifest, [], source.replace(/^.*mui-kit\/table\/typical.*\n/m, ""), ["mui-kit"]).join("\n"), /missing stateful snapshot mui-kit\/table\/typical/);
 });
+
+test("real WASM web-components snapshots require every state independently", () => {
+  const manifest = { arms: { table: {} } };
+  const source = ["empty", "typical", "overflow"].map(state =>
+    `exports[\`suite > web-components/table/${state} 1\`] = \`"body"\`;`).join("\n");
+  assert.deepEqual(checkStatefulSnapshots(manifest, [], source, ["web-components"]), []);
+  assert.match(checkStatefulSnapshots(manifest, [], source.replace(/^.*web-components\/table\/typical.*\n/m, ""), ["web-components"]).join("\n"), /missing stateful snapshot web-components\/table\/typical/);
+});

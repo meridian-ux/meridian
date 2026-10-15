@@ -47,8 +47,20 @@ test("argument parsing rejects misspelled destructive update flags", () => {
   assert.deepEqual(parseArgs(["--update", "--bazel", "--dry-run"]), {
     update: true,
     bazel: true,
+    wasm: false,
     dryRun: true,
     help: false,
   });
   assert.throws(() => parseArgs(["--udpate"]), /unknown argument: --udpate/);
+});
+
+test("WASM recording builds and copies the real bridge before running its suite", () => {
+  const commands = buildCommands({ wasm: true, update: true });
+  const preparation = commands.slice(VITEST_SUITES.length, -1);
+  assert.deepEqual(preparation.map(step => step.args), [
+    ["build", "--announce_rc=false", "//packages/web/tests:wasm_artifacts"],
+    ["schemas/tools/prepare_wasm_conformance.mjs"],
+    ["run", "tests/conformance_wasm.test.ts", "--update"],
+  ]);
+  assert.equal(parseArgs(["--wasm"]).wasm, true);
 });

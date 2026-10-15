@@ -160,12 +160,14 @@ every browser arm's golden, and the conformance suites verify its contents.
 The shared stateful corpus now adds 98 canonical `ViewDescriptor` cases under
 `schemas/conformance/fixtures/`: empty/typical/overflow cases for all 23 arms,
 plus the 29 formatter cases through fetched tables. Each view and its protobuf
-`Struct` response companion has binary and readable text twins. HTML, Shadcn, and
-MUI consume these exact wires and compare 294 semantic DOM goldens, with explicit
+`Struct` response companion has binary and readable text twins. HTML, Shadcn,
+MUI, and web-components consume these exact wires and compare 392 semantic DOM goldens, with explicit
 checks for fetched content, formatter results, and bounded stream tails.
-The snapshot gate and shared Bazel-aware re-record path include these cases.
+The web-components suite loads the actual compiled WASM bridge; its stream cases
+pin the documented plain-DOM fallback, and terminal sockets are test transports,
+not live PTY proof. The snapshot gate and shared Bazel-aware re-record path include these cases.
 This is not proof of field-complete parity: the new corpus still needs consumers
-in the other renderers, ValueType cases in the other value-bearing arms, computed
+in the native renderer, ValueType cases in the other value-bearing arms, computed
 accessibility trees, renderer-specific overflow/layout, and broader interactive
 surfaces. These remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.

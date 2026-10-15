@@ -53,6 +53,7 @@ export function checkSnapshotFiles(coverage) {
   for (const [path, renderers] of [
     ["packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", ["html", "shadcn"]],
     ["packages/mui-kit/tests/__snapshots__/stateful_conformance.test.ts.snap", ["mui-kit"]],
+    ["packages/web/tests/__snapshots__/conformance_wasm.test.ts.snap", ["web-components"]],
   ]) {
     let source;
     try { source = readFileSync(new URL(path, root), "utf8"); }
