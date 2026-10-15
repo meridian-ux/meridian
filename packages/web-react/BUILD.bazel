@@ -88,6 +88,7 @@ vitest_test(
         "tests/stream.test.ts",
         "tests/stateful_conformance.test.ts",
         "tests/stat_fetch.test.ts",
+        "tests/record_fetch.test.ts",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
         "tests/gallery.test.ts",
         "tests/table_actions.test.ts",

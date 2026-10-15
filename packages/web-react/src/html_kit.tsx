@@ -105,8 +105,10 @@ export const htmlKit: ComponentKit = {
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const resolveHref = useHrefResolver();
-    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const { record, loading, error, reload } = useRecord(panel.populate, panel.idField, subjectId, invoker);
     const now = useDisplayNow();
+    if (loading) return <p className="mer-record-status" role="status">Loading record…</p>;
+    if (error) return <div role="alert"><p>Failed to load record.</p><button type="button" onClick={reload}>Retry record</button></div>;
     const hasRecord = record !== undefined;
     const title = hasRecord
       ? String(resolvePath(record, panel.titleSourcePath) ?? panel.title)
@@ -146,8 +148,10 @@ export const htmlKit: ComponentKit = {
   RecordCard: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);
     const resolveHref = useHrefResolver();
-    const { record } = useRecord(panel.populate, panel.idField, subjectId, invoker);
+    const { record, loading, error, reload } = useRecord(panel.populate, panel.idField, subjectId, invoker);
     const now = useDisplayNow();
+    if (loading) return <p className="mer-record-status" role="status">Loading record…</p>;
+    if (error) return <div role="alert"><p>Failed to load record.</p><button type="button" onClick={reload}>Retry record</button></div>;
     const hasRecord = record !== undefined;
     return (
       <dl className="mer-record-card" aria-label={panel.itemNoun || "Record details"}>
