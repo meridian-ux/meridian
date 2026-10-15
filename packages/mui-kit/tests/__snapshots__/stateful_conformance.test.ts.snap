@@ -3284,7 +3284,10 @@ exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/empty' > mui-kit/llm_p
   "Conformance: llm_prompt · empty"
 h3
   "llm_prompt · empty"
-pre"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre"
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/overflow' > mui-kit/llm_prompt/overflow 1`] = `
@@ -3294,14 +3297,21 @@ h3
   "llm_prompt · overflow"
 p
   "Summarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the document"
-pre
-  "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
 form
   label
     "Source text"
-  input type="text" value="A fixture document."
-  button type="submit" disabled
-    "Preview""
+  textarea
+    "A fixture document."
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "text""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/typical' > mui-kit/llm_prompt/typical 1`] = `
@@ -3311,14 +3321,21 @@ h3
   "llm_prompt · typical"
 p
   "Summarize the document"
-pre
-  "Summarize {{text}}"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Summarize {{text}}"
 form
   label
     "Source text"
-  input type="text" value="A fixture document."
-  button type="submit" disabled
-    "Preview""
+  textarea
+    "A fixture document."
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "text""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'lro/empty' > mui-kit/lro/empty 1`] = `

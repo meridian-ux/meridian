@@ -212,7 +212,9 @@ export const FIXTURES: Fixture[] = [
       title: "Summarize",
       body: {
         case: "llmPrompt",
-        value: create(LlmPromptPanelSchema, { description: "Summarize the document" }),
+        value: create(LlmPromptPanelSchema, { description: "Summarize the document", userTemplate: "Summarize {{text}}",
+          slots: [{ name: "text", multiLine: true, field: { fieldId: "text", label: "Source text", kind: { case: "text", value: { defaultValue: "A fixture document." } } } }],
+        }),
       },
     }),
   },

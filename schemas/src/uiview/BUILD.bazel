@@ -27,6 +27,7 @@ ts_project(
         "index.ts",
         "navigation.ts",
         "prompt_response.ts",
+        "prompt_template.ts",
         "form_values.ts",
         "stat.ts",
         "transport.ts",

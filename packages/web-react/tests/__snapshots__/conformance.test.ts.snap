@@ -145,10 +145,19 @@ exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcn
 p
   "Summarize the document"
 form
+  label
+    "Source text"
+    textarea
+      "A fixture document."
+  button type="submit"
+    "Preview"
 section aria-label="User prompt"
   h4
     "User prompt"
-  pre"
+  pre
+    "Summarize {{text}}"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the lro shape and shows its title > shadcn-kit/lro 1`] = `
@@ -454,10 +463,19 @@ exports[`web-react conformance over the canonical fixtures (htmlKit) > renders t
 p
   "Summarize the document"
 form
+  label
+    "Source text"
+    textarea
+      "A fixture document."
+  button type="submit"
+    "Preview"
 section aria-label="User prompt"
   h4
     "User prompt"
-  pre"
+  pre
+    "Summarize {{text}}"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the lro shape without crashing and shows its title > html-kit/lro 1`] = `

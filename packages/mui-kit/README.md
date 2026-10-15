@@ -19,6 +19,15 @@ MUI instead of plain HTML.
 
 ## How it fits
 
+`LlmPromptPanel` supports local parameter fill and preview with the kit's own
+typed controls, including multiline slot editors. Preview validates input and
+preserves the last valid output after invalid edits. Remote enum choices use
+read admission and offer retry on failure; descriptor replacement isolates late
+replies and resets edits. Model metadata, templates, and output schema are text,
+never HTML. The shared browser template helper substitutes original tokens once,
+leaves unresolved tokens visible, and keeps token-shaped slot values literal.
+This surface does not execute a model or invoke a provider API.
+
 `MeridianMuiProvider` forwards the shared `onPromptResponse(panelId, values)`
 callback for standalone prompts. `values` is a protobuf `Struct` keyed by field
 ID (or by panel ID for a boolean confirmation); `null` means cancellation.

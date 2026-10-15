@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { FormFieldRow, type FormFieldClasses } from "./form_fields.js";
+import { renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 // Read the shared FormField controls using their documented FormData paths.
 // Runtime values stay local to this preview; they never cross an RPC boundary.
@@ -33,12 +34,9 @@ function readField(field: FormField, name: string, data: FormData): unknown {
 /** Preview-only realization shared by the two reference kits. */
 export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormFieldClasses }) {
   const [values, setValues] = useState<Map<string, string>>(new Map());
-  const renderTemplate = (template: string) => template.replace(/\{\{\s*([^{}]+?)\s*\}\}/g,
-    (token, name: string) => values.get(name) ?? token);
-  const unresolved = [...new Set(
-    [...`${panel.systemTemplate}\n${panel.userTemplate}`.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)]
-      .map((match) => match[1]).filter((name) => !values.has(name)),
-  )];
+  const system = renderPromptTemplate(panel.systemTemplate, values);
+  const user = renderPromptTemplate(panel.userTemplate, values);
+  const unresolved = [...new Set([...system.unresolved, ...user.unresolved])];
   const model = panel.modelHint;
 
   function preview(event: FormEvent<HTMLFormElement>) {
@@ -79,8 +77,8 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
         })}
         {panel.slots.some((slot) => slot.field) && <button type="submit" className={c.addBtn}>Preview</button>}
       </form>
-      {panel.systemTemplate && <section aria-label="System prompt"><h4>System prompt</h4><pre>{renderTemplate(panel.systemTemplate)}</pre></section>}
-      <section aria-label="User prompt"><h4>User prompt</h4><pre>{renderTemplate(panel.userTemplate)}</pre></section>
+      {panel.systemTemplate && <section aria-label="System prompt"><h4>System prompt</h4><pre>{system.text}</pre></section>}
+      <section aria-label="User prompt"><h4>User prompt</h4><pre>{user.text}</pre></section>
       {unresolved.length > 0 && <p role="status">Unresolved slots: {unresolved.join(", ")}</p>}
       {panel.outputJsonSchema && <section aria-label="Output JSON schema"><h4>Output JSON schema</h4><pre>{panel.outputJsonSchema}</pre></section>}
     </div>

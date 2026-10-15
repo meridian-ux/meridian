@@ -30,6 +30,7 @@ vitest_test(
     srcs = [
         "tests/conformance.test.tsx",
         "tests/prompt.test.tsx",
+        "tests/llm_prompt.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",

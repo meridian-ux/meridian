@@ -4,6 +4,22 @@ import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { createPromptResponder, promptValues } from "./prompt_response.js";
 import { validateFormValues } from "./form_values.js";
+import { renderPromptTemplate } from "./prompt_template.js";
+
+describe("shared browser prompt templates", () => {
+  it("never recursively expands token-shaped slot values", () => {
+    expect(renderPromptTemplate("{{a}} / {{b}}", new Map([["a", "{{b}}"], ["b", "{{a}}"]]))).toEqual({ text: "{{b}} / {{a}}", unresolved: [] });
+  });
+  it("matches whitespace-delimited names and treats replacement characters and markup literally", () => {
+    expect(renderPromptTemplate("{{ name }} / {{a.b}}", new Map([["name", "<tag> $& 🦀"], ["a.b", "literal.name"]])).text).toBe("<tag> $& 🦀 / literal.name");
+  });
+  it("preserves empty values and reports unique unresolved names in template order", () => {
+    expect(renderPromptTemplate("[{{empty}}] {{x}} {{y}} {{x}}", new Map([["empty", ""]]))).toEqual({ text: "[] {{x}} {{y}} {{x}}", unresolved: ["x", "y"] });
+  });
+  it("preserves slotless templates verbatim", () => {
+    expect(renderPromptTemplate("First\nsecond", new Map())).toEqual({ text: "First\nsecond", unresolved: [] });
+  });
+});
 
 describe("canonical prompt responses", () => {
   it("round-trips false, zero, empty, nested, array, and map values as protobuf", () => {
@@ -39,7 +55,8 @@ describe("canonical prompt responses", () => {
   it("keeps cancellation distinct from a false confirmation", async () => {
     const handler = vi.fn();
     await createPromptResponder().respond(handler, "confirm", promptValues({ confirm: false }));
-    await createPromptResponder().respond(handler, "confirm", null);
+    const canceled = createPromptResponder(); await canceled.respond(handler, "confirm", null);
+    expect(canceled.getSnapshot().status).toBe("Canceled.");
     expect(toJson(StructSchema, handler.mock.calls[0][1])).toEqual({ confirm: false }); expect(handler.mock.calls[1][1]).toBeNull();
   });
   it("makes missing handlers explicit and never responds after disposal", async () => {

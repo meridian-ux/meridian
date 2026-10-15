@@ -1,2 +1,5 @@
 
-	summarize	Summarize:2Summarize the document
+	summarize	Summarize:bSummarize {{text}}4
+text*
+textSource text*
+A fixture document.2Summarize the document

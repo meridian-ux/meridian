@@ -126,13 +126,21 @@ p
   "Summarize the document"
 form
   fieldset
+    fieldset
+      legend
+        "Source text"
+      textarea aria-label="Source text"
   p role="status"
   p role="alert"
+  button type="submit"
+    "Preview"
 section aria-label="User prompt"
   h3
     "User prompt"
   pre
-p role="status""
+    "Summarize {{text}}"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical lro fixture > web-components/lro 1`] = `

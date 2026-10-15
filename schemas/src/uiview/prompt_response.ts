@@ -37,7 +37,7 @@ export function createPromptResponder() {
       notify({ busy: true, done: false, error: "", status: "Submitting…" });
       try {
         await handler(panelId, values);
-        if (alive && generation === current) notify({ busy: false, done: true, error: "", status: values === null ? "Cancelled." : "Submitted." });
+        if (alive && generation === current) notify({ busy: false, done: true, error: "", status: values === null ? "Canceled." : "Submitted." });
       } catch (reason) {
         if (alive && generation === current) notify({ busy: false, done: false, error: reason instanceof Error ? reason.message : String(reason), status: "" });
       }
