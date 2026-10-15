@@ -1099,8 +1099,8 @@ export const muiKit: ComponentKit = {
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
   Media: ({ panel }: ShapeProps<MediaPanel>) => <MediaView panel={panel} />,
-  Stream: ({ panel }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/stream_pb.js").StreamPanel>) => (
-    <MeridianStream panel={panel} />
+  Stream: ({ panel, descriptor }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/stream_pb.js").StreamPanel>) => (
+    <MeridianStream panel={panel} descriptor={descriptor} />
   ),
   Fallback,
   ActionBar,

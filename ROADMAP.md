@@ -117,6 +117,11 @@ Three facts shape the order of work:
   exposes optional `Stream` and `Terminal` members. Semantic snapshots exposed
   the missing HTML/Shadcn `LlmPrompt` implementations; both now share typed
   parameter controls and local textual preview, with focused interaction tests.
+  HTML, Shadcn, and MUI also share a protobuf-backed static stream transcript:
+  hosts supply `StreamFrame` snapshots by panel ID through `streamSnapshots`.
+  The kits retain the bounded tail, honor `line_field` and the byte ceiling,
+  and preserve placeholder copy when no valid frames are available. This is
+  the static degradation rung; live React subscriptions remain host-owned.
 - **The remaining intentional parity gaps are bounded:** two TUI placeholders
   (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
   and the TUI terminal transport boundary documented in its degradation ladder.

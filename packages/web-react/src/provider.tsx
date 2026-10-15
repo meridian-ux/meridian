@@ -8,6 +8,7 @@ import type { ComponentType, ReactNode } from "react";
 
 import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { StreamFrame } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
 import {
   createAdmissionGate,
   type AdmissionGate,
@@ -73,6 +74,8 @@ export type MeridianGrammarResolver = (opts: {
 
 export interface MeridianContextValue {
   theme?: Theme;
+  /** Bounded static stream snapshots keyed by panel ID; frames use the canonical proto envelope. */
+  streamSnapshots?: Readonly<Record<string, readonly StreamFrame[]>>;
   invoker: RpcInvoker;
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
@@ -94,6 +97,11 @@ interface MeridianContextState extends MeridianContextValue {
 }
 
 const MeridianContext = createContext<MeridianContextState | null>(null);
+
+/** Standalone exported Stream components remain usable without a provider. */
+export function useStreamSnapshots(): MeridianContextValue["streamSnapshots"] {
+  return useContext(MeridianContext)?.streamSnapshots;
+}
 
 function tieredInvoker(
   invoker: RpcInvoker,
@@ -169,6 +177,7 @@ export function MeridianProvider({
     () => ({ ...value, invoker: readInvoker, mutationInvoker }),
     [
       value.theme,
+      value.streamSnapshots,
       value.invoker,
       value.admission,
       value.kit,
