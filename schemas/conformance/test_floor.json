@@ -3,7 +3,7 @@
   "suites": [
     { "id": "chat", "kind": "javascript", "roots": ["packages/chat/tests"], "floor": 22 },
     { "id": "launchpad", "kind": "javascript", "roots": ["packages/launchpad/tests"], "floor": 16 },
-    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 214 },
+    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 217 },
     {
       "id": "web",
       "kind": "javascript",

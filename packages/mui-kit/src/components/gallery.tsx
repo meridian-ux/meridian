@@ -90,11 +90,20 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
   const withAsset = (s: string): string => (resolveAsset && s ? resolveAsset(s) : s);
   const hasImages = items.some((it) => it.src);
 
-  const [i, setI] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const cardKey = JSON.stringify(card);
+  const [selection, setSelection] = useState(() => ({
+    owner: { record, rowsField: panel.rowsField, cardKey }, index: 0, playing: false,
+  }));
   const timer = useRef<number | null>(null);
-  // The hydration-safe formatting instant must not reset lightbox selection.
-  useEffect(() => setI(0), [record, panel.rowsField, card]);
+  // Reset this component's state before rendering a different dataset, not in
+  // a later effect that can clobber navigation or dereference an old index.
+  // Equivalent protobuf objects and the formatting instant are not new data.
+  let current = selection;
+  if (selection.owner.record !== record || selection.owner.rowsField !== panel.rowsField || selection.owner.cardKey !== cardKey) {
+    current = { owner: { record, rowsField: panel.rowsField, cardKey }, index: 0, playing: false };
+    setSelection(current);
+  }
+  const { owner, index: i, playing } = current;
 
   const clearTimer = () => {
     if (timer.current !== null) {
@@ -103,42 +112,46 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
     }
   };
   const stop = () => {
-    setPlaying(false);
+    setSelection(state => state.owner === owner ? { ...state, playing: false } : state);
     clearTimer();
   };
   const go = (n: number) => {
-    if (items.length) setI(((n % items.length) + items.length) % items.length);
+    if (items.length) setSelection(state => state.owner === owner
+      ? { ...state, index: ((n % items.length) + items.length) % items.length } : state);
+  };
+  const step = (delta: number) => {
+    if (items.length) setSelection(state => state.owner === owner
+      ? { ...state, index: (state.index + delta + items.length) % items.length } : state);
+  };
+  const togglePlayback = () => {
+    setSelection(state => state.owner === owner ? { ...state, playing: !state.playing } : state);
   };
   useEffect(() => {
     if (!playing || items.length === 0) return;
     timer.current = window.setInterval(() => {
-      setI((cur) => {
-        if (cur >= items.length - 1) {
-          setPlaying(false);
-          return cur;
-        }
-        return cur + 1;
-      });
+      setSelection(state => state.owner !== owner || !state.playing ? state
+        : state.index >= items.length - 1 ? { ...state, playing: false }
+        : { ...state, index: state.index + 1 });
     }, 1400);
     return clearTimer;
-  }, [playing, items.length]);
+  }, [playing, items.length, owner]);
   useEffect(() => {
     if (!hasImages) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         stop();
-        go(i + 1);
+        step(1);
       } else if (e.key === "ArrowLeft") {
         stop();
-        go(i - 1);
+        step(-1);
       } else if (e.key === " ") {
         e.preventDefault();
-        setPlaying((p) => !p);
+        togglePlayback();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [i, items.length, hasImages]);
+  }, [items.length, hasImages, owner]);
 
   if (loading && !record)
     return (
@@ -232,13 +245,13 @@ export function MeridianGallery({ panel, invoker }: { panel: GalleryPanel; invok
       </Box>
 
       <Stack direction="row" alignItems="center" spacing={1} sx={{ my: 1.5, flexWrap: "wrap" }}>
-        <Button size="small" variant="outlined" onClick={() => { stop(); go(i - 1); }}>
+        <Button size="small" variant="outlined" onClick={() => { stop(); step(-1); }}>
           ‹ Prev
         </Button>
-        <Button size="small" variant="outlined" onClick={() => setPlaying((p) => !p)}>
+        <Button size="small" variant="outlined" onClick={togglePlayback}>
           {playing ? "⏸ Pause" : "▶ Play"}
         </Button>
-        <Button size="small" variant="outlined" onClick={() => { stop(); go(i + 1); }}>
+        <Button size="small" variant="outlined" onClick={() => { stop(); step(1); }}>
           Next ›
         </Button>
         <Typography color="text.secondary" sx={{ ml: "auto", fontVariantNumeric: "tabular-nums" }}>
