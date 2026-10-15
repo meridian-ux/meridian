@@ -298,6 +298,13 @@ Baseline, 2026‑09‑11:
 [#14](../../issues/14) sets a per-package floor that only rises; the current floor is
 declared in [`schemas/conformance/test_floor.json`](schemas/conformance/test_floor.json)
 and checked by [`schemas/tools/check_test_floor.mjs`](schemas/tools/check_test_floor.mjs).
+CI compares the manifest against the pull request base (or previous `main`
+revision) and rejects lower floors or removed suites. The WASM FFI floor counts
+only its real boundary test file, independently of ordinary renderer tests.
+Core, theme-proto, and TUI also have individual floors, so added tests in one
+crate cannot hide removed tests in another.
+These declaration counts complement test execution and coverage reports; they
+do not establish a measured code-coverage threshold.
 [#15](../../issues/15) tracks release engineering. Its lockfile and strict
 `bazel mod deps --lockfile_mode=error` gate are in place; the unused Bats toolchain
 is stubbed; and the three Tectonic catalog targets are manual and built by a focused
