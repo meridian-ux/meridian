@@ -94,6 +94,26 @@ it("routes declared table value links by their raw value and suppresses URL fall
 });
 
 describe("web-components GalleryPanel", () => {
+  it("preserves the empty placeholder and reports populate failures without cards", async () => {
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "gallery", value: {
+      populate: { service: "demo.Catalog", method: "List" }, rowsField: "data.items",
+      placeholder: "No integrations yet.", card: { titleField: "profile.name" },
+    } } });
+    const root = document.createElement("div");
+    const options = { wasm, root, descriptor,
+      context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} } };
+    await renderPanel({ ...options, invoker: { invoke: async () => ({ data: { items: [] } }) } });
+    expect(root.querySelector(".mer-empty")?.textContent).toBe("No integrations yet.");
+    expect(root.querySelectorAll(".mer-gallery-card")).toHaveLength(0);
+    await renderPanel({ ...options, invoker: { invoke: async () => { throw new Error("Catalog unavailable"); } } });
+    expect(root.textContent).toContain("Catalog unavailable");
+    expect(root.querySelectorAll(".mer-gallery-card")).toHaveLength(0);
+    await renderPanel({ ...options, invoker: { invoke: async () => ({ data: { items: [{ profile: { name: "Recovered" } }] } }) } });
+    expect(root.querySelector(".mer-gallery-card-title")?.textContent).toBe("Recovered");
+    expect(root.textContent).not.toContain("Catalog unavailable");
+    expect(root.querySelector(".mer-empty")).toBeNull();
+  });
+
   it("admits passive gallery image sources and omits rejected sources", async () => {
     const root = document.createElement("div");
     await renderPanel({

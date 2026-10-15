@@ -756,6 +756,14 @@ function buildSteps(opts: RenderPanelOptions, panel: StepsPanel): HTMLElement {
     const label = el("div", "mer-step-label", step.label);
     if (step.actor) label.appendChild(el("span", "mer-step-actor", ` (${step.actor})`));
     item.appendChild(label);
+    const alternative = step.mediaAlt && step.mediaAlt !== step.detail
+      ? el("p", "mer-step-media-alt", step.mediaAlt) : undefined;
+    const showAlternative = () => {
+      if (alternative && !alternative.parentNode) item.insertBefore(alternative, action ?? null);
+    };
+    // Keep narration and the frame's alternative independent. Both are useful
+    // when a frame fails; dropping the image must not drop its description.
+    let action: HTMLElement | undefined;
     const mediaSrc = safeAssetSrc(step.mediaUri);
     if (mediaSrc) {
       const image = document.createElement("img");
@@ -763,11 +771,12 @@ function buildSteps(opts: RenderPanelOptions, panel: StepsPanel): HTMLElement {
       image.src = mediaSrc;
       image.alt = step.mediaAlt || step.label;
       image.loading = "lazy";
-      image.addEventListener("error", () => image.remove());
+      image.addEventListener("error", () => { image.remove(); showAlternative(); });
       item.appendChild(image);
     }
-    if (step.detail || step.mediaAlt) item.appendChild(el("p", "mer-step-detail", step.detail || step.mediaAlt));
-    if (step.action) item.appendChild(buildAffordance(opts, step.action));
+    if (step.detail) item.appendChild(el("p", "mer-step-detail", step.detail));
+    if (step.action) { action = buildAffordance(opts, step.action); item.appendChild(action); }
+    if (!mediaSrc || !step.detail) showAlternative();
     list.appendChild(item);
   });
   section.appendChild(list);

@@ -46,6 +46,22 @@ The `--mer-*` tokens: `--mer-{bg,surface,fg,muted,border,accent,accent-strong,
 on-accent,danger,success,code-bg,code-fg}`, `--mer-font-{sans,mono,size}`,
 `--mer-heading-{weight,tracking}`, `--mer-{radius,unit}`.
 
+## Gallery and Steps layouts
+
+The base stylesheet lays out Gallery cards in responsive columns with a 16rem
+preferred minimum, collapsing to one column in narrow containers. Long values
+wrap and images remain within their cards. Card spacing, surfaces, borders,
+radius, and keyboard focus indicators use the existing theme tokens; descriptors
+carry no layout properties. Gallery links retain native Tab/Enter navigation.
+Empty galleries retain the descriptor's placeholder rather than empty cards.
+
+Steps use a native ordered list and retain actor, narration, and action order.
+Missing, rejected, or failed frame images preserve their distinct text alternative
+alongside narration; identical narration and alternatives are not repeated.
+Actions remain native links or buttons, and frame images scale to the container.
+Hermetic Chrome checks cover wide/narrow Gallery layout, themed spacing, keyboard
+access, and an actual failed Steps image request.
+
 ## Other renderers
 
 TUI / JavaFX / Swift bindings live under their own dirs and consume the same
