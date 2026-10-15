@@ -1,12 +1,12 @@
 viewport 40x10
 url
 ┌──────────────────────────────────────┐
-│▶ 1. https://example.com/a?b=1        │
-│[https://example.com/a?b=1]           │
+│▶ 1. https://example.com/a?b=1  [https│
+│://example.com/a?b=1]                 │
 │    https://example.com/a?b=1         │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
 └──────────────────────────────────────┘
+
+
+
+
 end viewport

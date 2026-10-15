@@ -53,6 +53,21 @@ The offline executable displays these local states without executing responses.
 The legacy one-shot helpers remain available; their established `FieldValue`
 API retains compound JSON as text, while the embedded API returns typed protobuf.
 
+## Native gallery and media
+
+Gallery renders populated cards in a responsive grid with one-cell gutters and
+at least 32 cells per card when space permits. Narrow terminals use one column.
+Titles, icons, status, subtitles, links, and action labels remain text; image
+slots are omitted on this tier. Shared ValueDisplay formatting still supplies
+the card labels. Grapheme-aware wrapping preserves Unicode, explicit newlines,
+and styles, and row heights prevent wrapped content from overlapping the next
+row. `select_next` / `select_prev` keep the selected card's row visible across
+resizes. A card taller than the viewport is clipped to the available height.
+
+Media uses the terminal's framed text degradation: authored alt description,
+caption, source URI, duration, captions URI, and chapter contents. This is not a
+claim of image/video playback. Hosts retain navigation and execution authority.
+
 ## Inline forms and LRO inputs
 
 Forward Form keys to `handle_form_key` and LRO keys to `handle_lro_key`.

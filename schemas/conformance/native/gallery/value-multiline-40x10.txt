@@ -6,7 +6,7 @@ multiline
 │second]                               │
 │    first                             │
 │second                                │
-│                                      │
-│                                      │
 └──────────────────────────────────────┘
+
+
 end viewport
