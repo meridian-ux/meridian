@@ -17,7 +17,7 @@ The roadmap exists to make three things true:
 | milestone | due | epics |
 |---|---|---|
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
-| **M2 · Parity closure** | 2026‑12‑31 | [#6](../../issues/6) TUI · [#7](../../issues/7) web-components · [#8](../../issues/8) kits · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
+| **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
 
@@ -126,16 +126,19 @@ Three facts shape the order of work:
   and preserve placeholder copy when no valid frames are available. This is
   the static degradation rung; live React subscriptions remain host-owned.
 - **The remaining intentional parity gaps are bounded:** two TUI placeholders
-  (adhoc and terminal), two dedicated-entrypoint shapes (prompt and llm_prompt),
-  and the TUI terminal transport boundary documented in its degradation ladder.
+  (adhoc and terminal), as permitted by the completed TUI epic. Prompt and
+  LLM-prompt are now owned by `PanelView`, including typed response collection
+  and local preview. Native LRO progress and finalized results are host-driven,
+  with stale-safe runtime identities; rendering does not execute operation RPCs.
+  The TUI terminal transport boundary remains documented in its degradation ladder.
   The TUI stream pane now subscribes through a host-owned `StreamInvoker`, keeps a
   bounded tail, and lets readers scroll back without losing their place as frames
   arrive. Its follow behavior is covered with `TestBackend`.
 - **The renderer catalog is now complete at the tier level.** The panel matrix includes
   every catalog panel renderer, including SwiftUI. Its external preview cells are marked
   `unverified`, with explicit waivers on full-parity arms; conversation and launchpad
-  retain their separate modality rows. [#5](../../issues/5) still owns publishing this
-  evidence through the Pages conformance view.
+  retain their separate modality rows. External preview verification remains
+  explicit rather than being inferred from catalog completeness.
 
 Declared is not proven. [#9](../../issues/9) builds the conformance corpus — fixtures per
 arm, a normalizer per renderer, snapshots gated in CI — so `renders` becomes a property
@@ -429,7 +432,7 @@ error transition without reaching `fetch`.
 
 - Verified SwiftUI rendering. Its public preview is now represented in the matrix as
   `unverified`; implementation evidence remains with the external `meridian-ui` project.
-  [#5](../../issues/5) tracks the remaining conformance-page work.
+  The conformance guide records the verification limits independently of catalog completeness.
 - Dates beyond M4. A 1.0 is the *criterion* of M4, not a date.
 - Anything the compiler has not yet found. The monorepo merge surfaced two unimplemented
   RPCs and a formatting field simply by unifying pins; M3's proto changes will surface
