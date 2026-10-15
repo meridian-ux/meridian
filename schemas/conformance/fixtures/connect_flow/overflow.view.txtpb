@@ -347,7 +347,7 @@ slots {
           path: "~/.codex/config.toml"
         }
       }
-      default_target_id: "cursor"
+      default_target_id: "cursor-0"
       endpoint {
         value: "mcp.example.com/mcp"
         label: "Endpoint"

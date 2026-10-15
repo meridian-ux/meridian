@@ -52,3 +52,11 @@ test("stateful gate rejects a missing state or formatter case, not just a missin
   assert.match(checkStatefulSnapshots(manifest, values, source.replace(/^.*html\/table\/value-boolean.*\n/m, "")).join("\n"), /missing stateful snapshot html\/table\/value-boolean/);
   assert.match(checkStatefulSnapshots(manifest, values, undefined).join("\n"), /missing stateful/);
 });
+
+test("stateful MUI snapshots are independently required", () => {
+  const manifest = { arms: { table: {} } };
+  const source = ["empty", "typical", "overflow"].map(state =>
+    `exports[\`suite > mui-kit/table/${state} 1\`] = \`"body"\`;`).join("\n");
+  assert.deepEqual(checkStatefulSnapshots(manifest, [], source, ["mui-kit"]), []);
+  assert.match(checkStatefulSnapshots(manifest, [], source.replace(/^.*mui-kit\/table\/typical.*\n/m, ""), ["mui-kit"]).join("\n"), /missing stateful snapshot mui-kit\/table\/typical/);
+});

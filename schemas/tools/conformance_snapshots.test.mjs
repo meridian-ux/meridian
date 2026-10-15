@@ -40,7 +40,7 @@ test("other UPDATE_SNAPSHOTS values do not opt into writing", () => {
 
 test("Bazel verification uses only snapshot-owning conformance targets", () => {
   const commands = buildCommands({ bazel: true });
-  assert.deepEqual(commands.at(-1)?.args, ["test", ...BAZEL_TARGETS]);
+  assert.deepEqual(commands.at(-1)?.args, ["test", "--announce_rc=false", ...BAZEL_TARGETS]);
 });
 
 test("argument parsing rejects misspelled destructive update flags", () => {

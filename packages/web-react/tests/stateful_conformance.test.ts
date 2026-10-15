@@ -16,6 +16,7 @@ afterAll(() => vi.unstubAllGlobals());
 for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescriptor corpus`, () => {
   it.each(STATE_CASES)("$name", async (fixture) => {
     const container = document.createElement("div");
+    document.body.append(container);
     const root = createRoot(container);
     const frames = (fixture.responses.__streamFrames ?? []) as object[];
     const panelId = fixture.view.slots[0].panel!.panelId;
@@ -25,7 +26,8 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescrip
       await act(async () => root.render(createElement(MeridianProvider, {
         kit, adhoc: {}, invoker: { invoke }, streamSnapshots: { [panelId]: frames.map(frame =>
           create(StreamFrameSchema, { dataJson: new TextEncoder().encode(JSON.stringify(frame)) })) },
-      }, createElement(ViewRenderer, { view: fixture.view }))));
+        children: createElement(ViewRenderer, { view: fixture.view }),
+      })));
       const tree = normalizeDom(container);
       expect(container.textContent).toContain(fixture.view.title);
       if (fixture.arm === "table" && ["typical", "overflow"].includes(fixture.state)) {
@@ -41,11 +43,12 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescrip
       if (fixture.arm === "detail_header" && fixture.state !== "empty") expect(tree).toContain("Fixture record");
       if (fixture.arm === "form" && fixture.state !== "empty") expect(tree).toContain("Section 0");
       if (fixture.arm === "chart" && fixture.state !== "empty") expect(tree).toContain("2026-10-01");
+      if (fixture.arm === "connect_flow" && fixture.state !== "empty") expect(tree).toContain("~/.cursor/mcp.json");
       if (fixture.arm === "stream" && fixture.state === "overflow") {
         expect(container.textContent).toContain("Stream line 139");
         expect(container.textContent).not.toContain("Stream line 000");
       }
       expect(tree).toMatchSnapshot(`${kit.id}/${fixture.name}`);
-    } finally { await act(async () => root.unmount()); }
+    } finally { await act(async () => root.unmount()); container.remove(); }
   });
 });

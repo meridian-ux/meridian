@@ -7,6 +7,20 @@ from tools.stateful_corpus import ROOT, STATES, artifacts, check, classes
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_default_ids_reference_unique_authored_options_after_state_expansion(self):
+        files = artifacts()
+        View = classes()["meridian.ui.v1.ViewDescriptor"]
+        for arm, field, default in (("choice", "options", "default_option_id"),
+                                    ("connect_flow", "targets", "default_target_id")):
+            for state in STATES:
+                view = View.FromString(files[f"{arm}/{state}.view.binpb"])
+                body = getattr(view.slots[0].panel, arm)
+                ids = [item.id for item in getattr(body, field)]
+                self.assertEqual(len(ids), len(set(ids)))
+                selected = getattr(body, default)
+                if selected:
+                    self.assertIn(selected, ids, f"{arm}/{state}")
+
     def test_every_arm_state_and_value_case_has_both_twins(self):
         files = artifacts()
         arms = json.loads((ROOT / "schemas/conformance/coverage.json").read_text())["arms"]

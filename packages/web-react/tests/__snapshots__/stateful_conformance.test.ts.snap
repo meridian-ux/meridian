@@ -535,7 +535,7 @@ button type="button"
   code
     "mcp.example.com/mcp"
 div role="tablist"
-  button role="tab" aria-selected="false" type="button"
+  button role="tab" aria-selected="true" type="button"
     "Cursor"
   button role="tab" aria-selected="false" type="button"
     "Codex"
@@ -582,7 +582,24 @@ div role="tablist"
   button role="tab" aria-selected="false" type="button"
     "Cursor"
   button role="tab" aria-selected="false" type="button"
-    "Codex""
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "("
+    "json"
+    ")"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'connect_flow/typical' > html/connect_flow/typical 1`] = `
@@ -4915,7 +4932,7 @@ button type="button"
   code
     "mcp.example.com/mcp"
 div role="tablist"
-  button role="tab" aria-selected="false" type="button"
+  button role="tab" aria-selected="true" type="button"
     "Cursor"
   button role="tab" aria-selected="false" type="button"
     "Codex"
@@ -4962,7 +4979,24 @@ div role="tablist"
   button role="tab" aria-selected="false" type="button"
     "Cursor"
   button role="tab" aria-selected="false" type="button"
-    "Codex""
+    "Codex"
+h3
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+figure
+  figcaption
+    "~/.cursor/mcp.json"
+    "("
+    "json"
+    ")"
+  button type="button"
+    "Copy"
+  pre
+    code
+      "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'connect_flow/typical' > shadcn/connect_flow/typical 1`] = `

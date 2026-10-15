@@ -11,7 +11,7 @@ each renderer. `__streamFrames` supplies structured snapshot events to the
 host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
 
 There are also 29 table value cases from `value_types.json`, including nulls,
-invalid declarations, and unknown types. Both reference React kits load these
+invalid declarations, and unknown types. HTML, shadcn, and MUI load these
 exact wire messages, render `ViewRenderer`, resolve the shared responses through
 their invokers, and compare committed semantic DOM goldens. Explicit assertions
 check populated/empty tables, formatter outputs, and bounded stream tails.
@@ -33,7 +33,7 @@ are tested; the updater refuses to delete unexpected files automatically.
 The original panel corpus remains intact for native and existing browser users.
 
 This expands real coverage but does not complete the conformance epic: the
-stateful wire corpus still needs MUI, web-components, and native consumers,
+stateful wire corpus still needs web-components and native consumers,
 ValueType scenarios in the remaining value-bearing arms, and computed browser
 accessibility-tree normalization. The present DOM normalizer is not that tree;
 SwiftUI preview behavior remains explicitly unverified.
@@ -194,8 +194,11 @@ shared updater, so Vitest writes to the checked-out package snapshots rather
 than through Bazel's runfiles symlinks. Do not re-record to hide a missing field
 or unexpected fallback. After reviewing the diff, run
 `node schemas/tools/conformance_snapshots.mjs --bazel` to verify the React and
-web-components Bazel conformance targets. MUI remains covered by its package
-Vitest suite because its browser Bazel harness is a separate test tier.
+web-components and MUI Bazel conformance targets. MUI's
+`//packages/mui-kit:stateful_conformance` target compares both its initial and
+stateful semantic goldens in strict CI mode; its real-browser harness remains a
+separate test tier. The shared verifier suppresses Bazel rc announcements so
+developer-local cache credentials cannot leak through configuration logging.
 
 ## Focused interaction and content coverage
 

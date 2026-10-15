@@ -10,12 +10,12 @@ export const SNAPSHOT_SUITES = {
   "packages/web/tests/__snapshots__/conformance.test.ts.snap": ["web-components"],
 };
 
-export function checkStatefulSnapshots(coverage, valueCases, source) {
+export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"]) {
   if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
   const cases = Object.keys(coverage.arms).flatMap(arm => ["empty", "typical", "overflow"].map(state => `${arm}/${state}`));
   cases.push(...valueCases.map(value => `table/value-${value.name}`));
-  const expected = new Set(["html", "shadcn"].flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
-  const actual = [...source.matchAll(/exports\[`[^`\n]* > ((?:html|shadcn)\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
+  const expected = new Set(renderers.flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
+  const actual = [...source.matchAll(/exports\[`[^`\n]* > ([a-z-]+\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
   const errors = [];
   for (const key of expected) if (!actual.includes(key)) errors.push(`missing stateful snapshot ${key}`);
   for (const key of actual) if (!expected.has(key)) errors.push(`unexpected stateful snapshot ${key}`);
@@ -48,11 +48,18 @@ export function checkSnapshotFiles(coverage) {
     try { sources[path] = readFileSync(new URL(path, root), "utf8"); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
   }
-  let stateful;
-  try { stateful = readFileSync(new URL("packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", root), "utf8"); }
-  catch (error) { if (error.code !== "ENOENT") throw error; }
   const valueCases = JSON.parse(readFileSync(new URL("schemas/conformance/value_types.json", root), "utf8")).cases;
-  return [...checkSnapshots(coverage, sources), ...checkStatefulSnapshots(coverage, valueCases, stateful)];
+  const statefulErrors = [];
+  for (const [path, renderers] of [
+    ["packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", ["html", "shadcn"]],
+    ["packages/mui-kit/tests/__snapshots__/stateful_conformance.test.ts.snap", ["mui-kit"]],
+  ]) {
+    let source;
+    try { source = readFileSync(new URL(path, root), "utf8"); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers).map(error => `${path}: ${error}`));
+  }
+  return [...checkSnapshots(coverage, sources), ...statefulErrors];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

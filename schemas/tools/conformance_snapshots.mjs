@@ -13,7 +13,7 @@ export const VITEST_SUITES = [
   },
   {
     cwd: "packages/mui-kit",
-    files: ["tests/conformance.test.tsx"],
+    files: ["tests/conformance.test.tsx", "tests/stateful_conformance.test.ts"],
   },
   {
     cwd: "packages/web",
@@ -23,6 +23,7 @@ export const VITEST_SUITES = [
 
 export const BAZEL_TARGETS = [
   "//packages/web-react:conformance",
+  "//packages/mui-kit:stateful_conformance",
   "//packages/web/tests:conformance",
 ];
 
@@ -42,7 +43,7 @@ export function buildCommands({ update = false, bazel = false } = {}) {
   if (bazel) {
     commands.push({
       command: "bazel",
-      args: ["test", ...BAZEL_TARGETS],
+      args: ["test", "--announce_rc=false", ...BAZEL_TARGETS],
       cwd: ROOT,
     });
   }

@@ -10,7 +10,6 @@ slots {
     panel_id: "choice-empty"
     title: "choice · empty"
     choice {
-      default_option_id: "cursor"
       prompt: "Which client?"
     }
   }

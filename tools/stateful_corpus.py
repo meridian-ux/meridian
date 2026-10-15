@@ -79,6 +79,9 @@ def scenario(panel_json, arm, state):
                         item["id"] += f"-{index}"
                 if key == "options" and "defaultOptionId" in body:
                     body["defaultOptionId"] = body[key][0]["id"]
+    for collection, default in (("targets", "defaultTargetId"), ("options", "defaultOptionId")):
+        if default in body and state in ("empty", "overflow"):
+            body[default] = body[collection][0]["id"] if body[collection] else ""
     for key in ("source", "description", "intro", "outro"):
         if isinstance(body.get(key), str):
             if state == "empty":

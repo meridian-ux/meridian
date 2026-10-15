@@ -11,7 +11,6 @@ slots {
     title: "connect_flow · empty"
     connect_flow {
       prompt: "Every agent points at the same endpoint."
-      default_target_id: "cursor"
       endpoint {
         value: "mcp.example.com/mcp"
         label: "Endpoint"
