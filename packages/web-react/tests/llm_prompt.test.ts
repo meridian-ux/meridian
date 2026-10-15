@@ -97,4 +97,35 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} LlmPrompt`, () => {
       expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toBe('{"label":"Ada"} [1.5] {}');
     } finally { await act(async () => root.unmount()); }
   });
+
+  it("substitutes scalar defaults once with slot names, preserving zero, false, and empty text", async () => {
+    const descriptor = fixture();
+    if (descriptor.body.case !== "llmPrompt") throw new Error("invalid fixture");
+    descriptor.body.value = create(LlmPromptPanelSchema, {
+      userTemplate: "{{a}} / {{b}} / [{{text}}] {{integer}} {{number}} {{boolean}} {{enum}} {{masked}} / {{ name }} / {{a.b}} / {{missing}}",
+      slots: [
+        { name: "a", field: { fieldId: "different", kind: { case: "text", value: { defaultValue: "{{b}}" } } } },
+        { name: "b", field: { kind: { case: "text", value: { defaultValue: "{{a}}" } } } },
+        { name: "text", field: { kind: { case: "text", value: { defaultValue: "" } } } },
+        { name: "integer", field: { kind: { case: "integer", value: { defaultValue: 0 } } } },
+        { name: "number", field: { kind: { case: "number", value: { defaultValue: -1.5 } } } },
+        { name: "boolean", field: { kind: { case: "boolean", value: { defaultValue: false } } } },
+        { name: "enum", field: { kind: { case: "enumSelection", value: { options: [{ value: "stored-token", label: "Shown label" }], defaultValue: "stored-token" } } } },
+        { name: "masked", field: { kind: { case: "masked", value: { defaultValue: "secret" } } } },
+        { name: "name", field: { kind: { case: "text", value: { defaultValue: "Ada $& <tag> 🦀" } } } },
+        { name: "a.b", field: { kind: { case: "text", value: { defaultValue: "literal.name" } } } },
+      ],
+    });
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(view(descriptor)));
+      await act(async () => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+      expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toBe(
+        "{{b}} / {{a}} / [] 0 -1.5 false stored-token secret / Ada $& <tag> 🦀 / literal.name / {{missing}}",
+      );
+      expect(container.querySelector("tag")).toBeNull();
+      expect(container.textContent).toContain("Unresolved slots: missing");
+    } finally { await act(async () => root.unmount()); }
+  });
 });
