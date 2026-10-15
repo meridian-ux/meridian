@@ -64,6 +64,16 @@ describe("MUI stateful ViewDescriptor corpus", () => {
         expect(tree).not.toContain("Stream line 000");
       }
       expect(tree).toMatchSnapshot(`mui-kit/${fixture.name}`);
+      if (fixture.arm === "llm_prompt") {
+        const textarea = container.querySelector<HTMLTextAreaElement>('textarea:not([aria-hidden="true"])');
+        if (fixture.state === "empty") expect(textarea).toBeNull();
+        else {
+          expect(textarea?.value).toBe("A fixture document.");
+          await act(async () => { container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+          expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent).toBe("Summarize A fixture document.".repeat(fixture.state === "overflow" ? 20 : 1));
+          expect(invoke).not.toHaveBeenCalled();
+        }
+      }
       if (fixture.arm === "prompt") {
         const body = fixture.view.slots[0].panel!.body; if (body.case !== "prompt" || body.value.fields[0].kind.case !== "text") throw new Error("Typed prompt fixture required");
         const raw = body.value.fields[0].kind.value.defaultValue;

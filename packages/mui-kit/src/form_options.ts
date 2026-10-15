@@ -52,21 +52,22 @@ async function resolveFields(fields: FormField[], invoker: RpcInvoker): Promise<
 
 // Only runtime descriptors are enriched; authored defaults and wire values stay intact.
 export function useFormOptions(fields: FormField[], invoker?: RpcInvoker) {
+  const [attempt, setAttempt] = useState(0);
   const needed = Boolean(invoker && hasSource(fields));
-  const [result, setResult] = useState<{ source: FormField[]; invoker: RpcInvoker; fields?: FormField[]; error?: string }>();
+  const [result, setResult] = useState<{ source: FormField[]; invoker: RpcInvoker; attempt: number; fields?: FormField[]; error?: string }>();
   useEffect(() => {
     if (!needed || !invoker) return;
     let active = true;
     setResult(undefined);
     void resolveFields(fields, invoker).then(resolved => {
-      if (active) setResult({ source: fields, invoker, fields: resolved });
+      if (active) setResult({ source: fields, invoker, attempt, fields: resolved });
     }, reason => {
-      if (active) setResult({ source: fields, invoker, error: reason instanceof Error ? reason.message : String(reason) });
+      if (active) setResult({ source: fields, invoker, attempt, error: reason instanceof Error ? reason.message : String(reason) });
     });
     return () => { active = false; };
-  }, [fields, invoker, needed]);
-  const current = result?.source === fields && result.invoker === invoker ? result : undefined;
-  return { fields: current?.fields ?? fields, pending: needed && !current, error: current?.error };
+  }, [fields, invoker, needed, attempt]);
+  const current = result?.source === fields && result.invoker === invoker && result.attempt === attempt ? result : undefined;
+  return { fields: current?.fields ?? fields, pending: needed && !current, error: current?.error, retry: () => setAttempt(value => value + 1) };
 }
 
 export function validateFormOptions(fields: FormField[], values: unknown): string | undefined {

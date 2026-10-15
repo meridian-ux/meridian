@@ -111,7 +111,20 @@ p
 exports[`muiKit canonical panel conformance > renders the llmPrompt fixture without crashing > mui-kit/llm_prompt 1`] = `
 "p
   "Summarize the document"
-pre"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Summarize {{text}}"
+form
+  label
+    "Source text"
+  textarea
+    "A fixture document."
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`muiKit canonical panel conformance > renders the lro fixture without crashing > mui-kit/lro 1`] = `

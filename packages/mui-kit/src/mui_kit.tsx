@@ -15,7 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { safeWebSocketUrl, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { safeWebSocketUrl, validateFormValues, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -35,6 +35,7 @@ import {
   selectionDeps,
   useActionHandler,
   usePromptResponse,
+  useRpcInvoker,
   useHrefResolver,
   useMutationRpcInvoker,
   useMeridianSelection,
@@ -680,6 +681,7 @@ function buildField(
       return {
         ...base,
         type: "text",
+        masked: field.kind.case === "masked",
         value: typeof current === "string" ? current : "",
         onChange: (value: string) => setAt(path, value),
       };
@@ -732,6 +734,7 @@ function FieldForm({
   onSubmit,
   resetOnSubmit,
   enumInvoker,
+  multilineRows,
 }: {
   fields: FormField[];
   disabled: boolean;
@@ -747,6 +750,7 @@ function FieldForm({
    *  Off by default: an EDIT form over an existing record must keep showing it. */
   resetOnSubmit?: boolean;
   enumInvoker?: RpcInvoker;
+  multilineRows?: ReadonlyMap<string, number>;
 }): ReactNode {
   const options = useFormOptions(fields, enumInvoker);
   const [optionError, setOptionError] = useState<string>();
@@ -779,8 +783,10 @@ function FieldForm({
     <>
     {options.pending && <Typography role="status">Loading options…</Typography>}
     {(options.error || optionError) && <Alert severity="error">{options.error || optionError}</Alert>}
+    {options.error && <Button onClick={options.retry}>Retry options</Button>}
     <MeridianForm
-      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled)}
+      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled).map(field =>
+        field.type === "text" && multilineRows?.has(field.key) ? { ...field, multilineRows: multilineRows.get(field.key) } : field)}
       description={description || undefined}
       submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error), onSubmit: handleSubmit }}
     />
@@ -866,26 +872,43 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
 }
 
 function LlmPromptShape({ panel }: { panel: LlmPromptPanel }): ReactNode {
-  const fields = panel.slots
-    .map((slot) => slot.field)
-    .filter((field): field is FormField => field !== undefined);
-  const model = [panel.modelHint?.provider, panel.modelHint?.model].filter(Boolean).join(" / ");
+  const invoker = useRpcInvoker();
+  const fields = useMemo(() => panel.slots.flatMap((slot, index) => slot.field ? [{ ...slot.field,
+    fieldId: `slot-${index}`, requestField: `slot-${index}`, label: slot.field.label || slot.name }] : []), [panel.slots]);
+  const multilineRows = useMemo(() => new Map(panel.slots.flatMap((slot, index) => slot.multiLine &&
+    (slot.field?.kind.case === "text" || slot.field?.kind.case === "masked") ? [[`slot-${index}`, slot.rows > 0 ? slot.rows : 4] as const] : [])), [panel.slots]);
+  const [values, setValues] = useState<ReadonlyMap<string, string>>(() => new Map());
+  const system = renderPromptTemplate(panel.systemTemplate, values), user = renderPromptTemplate(panel.userTemplate, values);
+  const unresolved = [...new Set([...system.unresolved, ...user.unresolved])];
+  const model = panel.modelHint;
   return (
     <Stack spacing={2} className="mer-llm-prompt">
       {panel.description && <Typography color="text.secondary">{panel.description}</Typography>}
-      {model && <Chip label={model} size="small" />}
+      {model && <Box component="dl" aria-label="Model settings" sx={{ m: 0 }}>
+        {[["Provider", model.provider], ["Model", model.model], ["Max output tokens", model.maxTokens], ["Temperature", model.temperature]].map(([label, value]) =>
+          value !== "" && value !== 0 ? <Box key={label} component="div"><Typography component="dt">{label}</Typography><Typography component="dd">{value}</Typography></Box> : null)}
+      </Box>}
+      {panel.slots.filter(slot => !slot.field).map((slot, index) => <Typography key={index} role="status">No input declared for {slot.name}.</Typography>)}
       {panel.systemTemplate && (
-        <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.systemTemplate}</Box>
+        <Box component="section" aria-label="System prompt"><Typography component="h4">System prompt</Typography><Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{system.text}</Box></Box>
       )}
-      <Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.userTemplate}</Box>
+      <Box component="section" aria-label="User prompt"><Typography component="h4">User prompt</Typography><Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{user.text}</Box></Box>
       {fields.length > 0 && (
         <FieldForm
           fields={fields}
           disabled={false}
           submitLabel="Preview"
-          submitDisabled
+          enumInvoker={invoker}
+          multilineRows={multilineRows}
+          onSubmit={input => setValues(new Map(panel.slots.flatMap((slot, index) => {
+            if (!slot.field) return [];
+            const value = input[`slot-${index}`];
+            return [[slot.name, typeof value === "string" ? value : JSON.stringify(value)] as const];
+          })))}
         />
       )}
+      {unresolved.length > 0 && <Typography role="status">Unresolved slots: {unresolved.join(", ")}</Typography>}
+      {panel.outputJsonSchema && <Box component="section" aria-label="Output JSON schema"><Typography component="h4">Output JSON schema</Typography><Box component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>{panel.outputJsonSchema}</Box></Box>}
     </Stack>
   );
 }
@@ -1070,7 +1093,7 @@ export const muiKit: ComponentKit = {
     <TableShape panel={panel} invoker={invoker} />
   ),
   Prompt: props => <PromptShape {...props} />,
-  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape panel={panel} />,
+  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape key={JSON.stringify(panel)} panel={panel} />,
   Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
   Lro: ({ panel }: ShapeProps<LroPanel>) => <LroShape panel={panel} />,
   Form: ({ panel, invoker }: ShapeProps<FormPanel>) => (

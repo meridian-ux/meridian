@@ -3,6 +3,7 @@ import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/prot
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { buildFormField } from "./form.js";
+import { renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 // All state here is local DOM state. The descriptor stays a canonical protobuf;
 // preview does not execute an LLM, invoke mutations, or serialize a new DTO.
@@ -44,8 +45,10 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   }
   const updatePreview = () => {
     const missing = new Set<string>();
-    for (const { source, output } of templates) output.textContent = source.replace(/\{\{\s*([^{}]+?)\s*\}\}/g,
-      (token, name: string) => { if (!values.has(name)) missing.add(name); return values.get(name) ?? token; });
+    for (const { source, output } of templates) {
+      const rendered = renderPromptTemplate(source, values); output.textContent = rendered.text;
+      rendered.unresolved.forEach(name => missing.add(name));
+    }
     unresolved.textContent = missing.size ? `Unresolved slots: ${[...missing].join(", ")}` : "";
   };
   updatePreview();

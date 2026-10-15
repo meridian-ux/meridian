@@ -19,3 +19,4 @@ export * from "./value_display.js";
 export * from "./navigation.js";
 export * from "./prompt_response.js";
 export * from "./form_values.js";
+export * from "./prompt_template.js";

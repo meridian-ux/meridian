@@ -41,7 +41,7 @@ interface NumericField {
   step?: number;
 }
 export type MeridianFormField =
-  | (BaseField & { type?: "text"; value: string; onChange: (value: string) => void })
+  | (BaseField & { type?: "text"; value: string; masked?: boolean; multilineRows?: number; onChange: (value: string) => void })
   // Both keep the actual numeric input; validation rejects integer fractions.
   | (BaseField & { type: "number" } & NumericField)
   | (BaseField & { type: "decimal" } & NumericField)
@@ -347,6 +347,9 @@ function renderField(field: MeridianFormField, nowMs: number | undefined): React
       value={field.value}
       helperText={field.helperText}
       disabled={field.disabled}
+      type={field.masked && !field.multilineRows ? "password" : "text"}
+      multiline={Boolean(field.multilineRows)}
+      rows={field.multilineRows}
       onChange={(event) => field.onChange(event.target.value)}
     />
   );
