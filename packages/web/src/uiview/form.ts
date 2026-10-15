@@ -59,12 +59,12 @@ export function buildInteractiveForm(panel: FormPanel, host: {
 }
 
 function buildFields(parent: HTMLElement, fields: FormField[], values: Record<string, unknown>, edit: boolean) {
-  const entries = fields.map(field => [field.fieldId, buildField(parent, field,
+  const entries = fields.map(field => [field.fieldId, buildFormField(parent, field,
     Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined, edit)] as const);
   return () => Object.fromEntries(entries.map(([key, get]) => [key, get()]));
 }
 
-function buildField(parent: HTMLElement, field: FormField, initial: unknown, edit: boolean): () => unknown {
+export function buildFormField(parent: HTMLElement, field: FormField, initial: unknown, edit: boolean, multilineRows = 0): () => unknown {
   const box = document.createElement("fieldset");
   box.className = "meridian-uiview-field";
   const legend = document.createElement("legend"); legend.textContent = field.label;
@@ -82,7 +82,7 @@ function buildField(parent: HTMLElement, field: FormField, initial: unknown, edi
     };
     const append = (value?: unknown) => {
       const node = document.createElement("div"); box.insertBefore(node, edit ? add : null);
-      const get = spec.element.case === "scalar" ? buildField(node, spec.element.value, value, edit)
+      const get = spec.element.case === "scalar" ? buildFormField(node, spec.element.value, value, edit)
         : spec.element.case === "object" ? buildFields(node, spec.element.value.fields,
           value && typeof value === "object" ? value as Record<string, unknown> : {}, edit) : () => null;
       const row = { node, get }; rows.push(row);
@@ -106,9 +106,10 @@ function buildField(parent: HTMLElement, field: FormField, initial: unknown, edi
     span.textContent = kind.case === "masked" ? "••••••" : field.display ? formatByDisplay(value, field.display).text : String(value);
     box.append(span); return () => value;
   }
-  const input = kind.case === "keyValueMap" ? document.createElement("textarea")
+  const input = kind.case === "keyValueMap" || (multilineRows > 0 && (kind.case === "text" || kind.case === "masked")) ? document.createElement("textarea")
     : kind.case === "enumSelection" ? document.createElement("select") : document.createElement("input");
   input.name = field.fieldId; input.setAttribute("aria-label", field.label || field.fieldId);
+  if (input instanceof HTMLTextAreaElement && multilineRows > 0) input.rows = multilineRows;
   if (input instanceof HTMLInputElement) input.type = kind.case === "boolean" ? "checkbox" : kind.case === "masked" ? "password"
     : kind.case === "integer" || kind.case === "number" ? "number" : "text";
   if (input instanceof HTMLInputElement && kind.case === "boolean") input.checked = value === true;
@@ -121,9 +122,14 @@ function buildField(parent: HTMLElement, field: FormField, initial: unknown, edi
       if (tone) option.dataset.valueTone = tone;
       input.append(option);
     }
+    if (!options.length) {
+      const option = document.createElement("option"); option.value = ""; option.textContent = "No options"; option.disabled = true;
+      input.append(option); input.disabled = true;
+    }
   }
   input.value = kind.case === "keyValueMap" ? JSON.stringify(value) : String(value);
   if (input instanceof HTMLSelectElement) {
+    if (value === "" && input.selectedIndex < 0 && input.options.length) input.selectedIndex = 0;
     const updateTone = () => {
       const tone = input.selectedOptions[0]?.dataset.valueTone;
       if (tone) input.dataset.valueTone = tone;
@@ -148,7 +154,7 @@ function buildField(parent: HTMLElement, field: FormField, initial: unknown, edi
       if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength)) fail("invalid length");
       if (spec.pattern && !new RegExp(spec.pattern).test(text)) fail(spec.patternErrorMsg || "invalid value");
     }
-    if (kind.case === "enumSelection" && !Array.from((input as HTMLSelectElement).options).some(option => option.value === text)) fail("select an allowed value");
+    if (kind.case === "enumSelection" && !Array.from((input as HTMLSelectElement).options).some(option => !option.disabled && option.value === text)) fail("select an allowed value");
     if (kind.case === "keyValueMap") {
       const map = JSON.parse(text);
       if (!map || typeof map !== "object" || Array.isArray(map) || Object.values(map).some(item => typeof item !== "string") || (kind.value.maxItems && Object.keys(map).length > kind.value.maxItems)) fail("invalid map");

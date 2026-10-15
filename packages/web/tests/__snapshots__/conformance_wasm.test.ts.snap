@@ -3417,7 +3417,16 @@ exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_
   "Conformance: llm_prompt · empty"
 h3
   "llm_prompt · empty"
-"llm_prompt · empty""
+"llm_prompt · empty"
+form
+  fieldset
+  p role="status"
+  p role="alert"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+p role="status""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/overflow' > web-components/llm_prompt/overflow 1`] = `
@@ -3428,15 +3437,23 @@ h3
 "llm_prompt · overflow"
 p
   "Summarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the document"
-h3
-  "User"
-pre
-  "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
-dl
-  dt
-    "text"
-  dd
-    "Source text""
+form
+  fieldset
+    fieldset
+      legend
+        "Source text"
+      textarea aria-label="Source text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'llm_prompt/typical' > web-components/llm_prompt/typical 1`] = `
@@ -3447,15 +3464,23 @@ h3
 "llm_prompt · typical"
 p
   "Summarize the document"
-h3
-  "User"
-pre
-  "Summarize {{text}}"
-dl
-  dt
-    "text"
-  dd
-    "Source text""
+form
+  fieldset
+    fieldset
+      legend
+        "Source text"
+      textarea aria-label="Source text"
+  p role="status"
+  p role="alert"
+  button type="submit"
+    "Preview"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+    "Summarize {{text}}"
+p role="status"
+  "Unresolved slots: text""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'lro/empty' > web-components/lro/empty 1`] = `

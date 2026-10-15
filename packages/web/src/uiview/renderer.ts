@@ -13,6 +13,7 @@
 
 import { toBinary } from "@bufbuild/protobuf";
 import { buildInteractiveForm } from "./form.js";
+import { buildLlmPrompt } from "./llm_prompt.js";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
@@ -26,7 +27,6 @@ import { actionFeedback } from "./action_feedback.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
 import {
@@ -481,7 +481,9 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   }
   if (body.case === "llmPrompt") {
     meta.textContent = "";
-    root.appendChild(buildLlmPrompt(body.value));
+    const prompt = buildLlmPrompt(body.value, renderOpts.invoker);
+    root.appendChild(prompt.element);
+    onDispose(root, prompt.dispose);
     return;
   }
   if (body.case === "chart") {
@@ -750,31 +752,6 @@ function buildSteps(opts: RenderPanelOptions, panel: StepsPanel): HTMLElement {
   });
   section.appendChild(list);
   if (panel.outro) section.appendChild(el("p", "mer-steps-outro", panel.outro));
-  return section;
-}
-
-function buildLlmPrompt(panel: LlmPromptPanel): HTMLElement {
-  const section = el("section", "mer-llm-prompt");
-  if (panel.description) section.appendChild(el("p", "mer-llm-prompt-description", panel.description));
-  if (panel.modelHint?.provider || panel.modelHint?.model) {
-    const model = [panel.modelHint.provider, panel.modelHint.model].filter(Boolean).join(" / ");
-    section.appendChild(el("p", "mer-llm-prompt-model", model));
-  }
-  for (const [label, template] of [["System", panel.systemTemplate], ["User", panel.userTemplate]] as const) {
-    if (!template) continue;
-    const block = el("div", "mer-llm-prompt-template");
-    block.appendChild(el("h3", undefined, label));
-    block.appendChild(el("pre", undefined, template));
-    section.appendChild(block);
-  }
-  if (panel.slots.length) {
-    const fields = el("dl", "mer-llm-prompt-slots");
-    for (const slot of panel.slots) {
-      fields.appendChild(el("dt", undefined, slot.name));
-      fields.appendChild(el("dd", undefined, slot.field?.label || slot.name));
-    }
-    section.appendChild(fields);
-  }
   return section;
 }
 

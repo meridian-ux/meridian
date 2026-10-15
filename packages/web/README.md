@@ -32,6 +32,21 @@ modules.
 
 ## Build & test
 
+`LlmPromptPanel` is a local parameter-fill and preview surface, not an LLM
+execution client. Slots use their canonical `FormField` controls, including
+nested objects, repeated values, string maps, and multiline text. Preview
+substitutes original template tokens once; inserted token-shaped text stays
+literal, and unresolved tokens remain visible. Values are keyed by slot name,
+not an unrelated authored field ID. Templates, model metadata, and output JSON
+schema are rendered as text, never interpreted as HTML.
+
+Remote enum options use the host's read-tier admission policy. Loading and failed
+option requests disable preview; failures remain visible with a retry action.
+Disposing or replacing a panel ignores late option responses and prevents stale
+forms from updating their preview. Preview itself makes no RPC and never invokes
+an LLM provider. Standalone `PromptPanel` host response collection remains a
+separate roadmap obligation.
+
 ```bash
 bazel build //src:core
 bazel test //tests:unit //tests:conformance   # conformance = the binary-boundary render guard (jsdom)

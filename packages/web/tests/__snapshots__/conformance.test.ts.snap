@@ -123,7 +123,16 @@ p
 exports[`renderPanel (web-components, binary boundary) > renders the canonical llmPrompt fixture > web-components/llm_prompt 1`] = `
 ""Summarize"
 p
-  "Summarize the document""
+  "Summarize the document"
+form
+  fieldset
+  p role="status"
+  p role="alert"
+section aria-label="User prompt"
+  h3
+    "User prompt"
+  pre
+p role="status""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical lro fixture > web-components/lro 1`] = `

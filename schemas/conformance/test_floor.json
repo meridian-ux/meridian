@@ -9,7 +9,7 @@
       "kind": "javascript",
       "roots": ["packages/web/tests"],
       "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
-      "floor": 146
+      "floor": 155
     },
     {
       "id": "web-wasm-ffi",
