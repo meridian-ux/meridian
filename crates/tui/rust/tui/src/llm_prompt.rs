@@ -8,6 +8,10 @@
 //! substitute the values into the `system_template` +
 //! `user_template`.
 //!
+//! Slot values are keyed by `ParameterSlot.name`, even when a field has a
+//! different `field_id`. Substitution scans the original template once:
+//! token-shaped slot contents stay literal, and unknown tokens stay visible.
+//!
 //! Returns the rendered strings + the typed slot map so callers
 //! can either preview them or hand them straight to an LLM API
 //! client. The renderer itself does NOT call the API — execution
@@ -50,29 +54,17 @@ pub fn render_llm_prompt(
     panel: &LlmPromptPanel,
     palette: &Palette,
 ) -> Result<LlmPromptResponse, PromptError> {
-    // Build a synthetic PromptPanel from the slot FormFields. If
-    // there are no slots, the templates carry no `{{...}}`
-    // placeholders and we can return them verbatim.
-    let fields = panel
-        .slots
-        .iter()
-        .filter_map(|s| s.field.clone())
-        .collect::<Vec<_>>();
-    if fields.is_empty() {
+    // Build a synthetic PromptPanel from the slot FormFields. Without usable
+    // inputs there is nothing to collect: return templates verbatim, including
+    // any unresolved placeholders, without entering raw terminal mode.
+    let synthetic = prompt_for_slots(panel);
+    if synthetic.fields.is_empty() {
         return Ok(LlmPromptResponse::Submitted {
             slots: HashMap::new(),
             rendered_system: panel.system_template.clone(),
             rendered_user: panel.user_template.clone(),
         });
     }
-    let synthetic = PromptPanel {
-        description: panel.description.clone(),
-        fields,
-        is_confirmation: false,
-        accept_label: "Render".to_string(),
-        cancel_label: "Cancel".to_string(),
-        detail: String::new(),
-    };
     let response = render_prompt(&synthetic, palette)?;
     match response {
         PromptResponse::Submitted(values) => {
@@ -93,13 +85,42 @@ pub fn render_llm_prompt(
     }
 }
 
-fn substitute(template: &str, values: &HashMap<String, FieldValue>) -> String {
-    let mut out = template.to_string();
-    for (k, v) in values {
-        let placeholder = format!("{{{{{}}}}}", k);
-        out = out.replace(&placeholder, &v.as_string());
+fn prompt_for_slots(panel: &LlmPromptPanel) -> PromptPanel {
+    PromptPanel {
+        description: panel.description.clone(),
+        fields: panel
+            .slots
+            .iter()
+            .filter_map(|slot| {
+                let mut field = slot.field.clone()?;
+                // Templates and the returned slot map are keyed by slot.name.
+                // The proto only recommends that field_id match; it does not
+                // require it. Preserve the authored descriptor while adapting
+                // to the standalone prompt's field_id-keyed response.
+                field.field_id = slot.name.clone();
+                Some(field)
+            })
+            .collect(),
+        is_confirmation: false,
+        accept_label: "Render".to_string(),
+        cancel_label: "Cancel".to_string(),
+        detail: String::new(),
     }
-    out
+}
+
+fn substitute(template: &str, values: &HashMap<String, FieldValue>) -> String {
+    // Match only the original template, never the inserted values. Replacing
+    // once per HashMap entry recursively expanded token-shaped slot values in
+    // an order that depended on the map's randomized iteration.
+    let tokens = regex::Regex::new(r"\{\{\s*([^{}]+?)\s*\}\}").expect("static slot pattern");
+    tokens
+        .replace_all(template, |captures: &regex::Captures<'_>| {
+            values
+                .get(captures[1].trim())
+                .map(FieldValue::as_string)
+                .unwrap_or_else(|| captures[0].to_string())
+        })
+        .into_owned()
 }
 
 #[cfg(test)]
@@ -147,6 +168,94 @@ mod tests {
         values.insert("name".to_string(), FieldValue::Text("Ada".to_string()));
         let s = substitute("{{name}} / {{age}}", &values);
         assert_eq!(s, "Ada / {{age}}");
+    }
+
+    #[test]
+    fn substitute_never_rescans_slot_values() {
+        let values = HashMap::from([
+            ("a".to_string(), FieldValue::Text("{{b}}".to_string())),
+            ("b".to_string(), FieldValue::Text("{{a}}".to_string())),
+        ]);
+        // Either HashMap iteration order breaks this if substitution rescans
+        // inserted text. Slot values, including token-shaped text, are literal.
+        assert_eq!(substitute("{{a}} / {{b}}", &values), "{{b}} / {{a}}");
+    }
+
+    #[test]
+    fn substitute_matches_original_tokens_and_keeps_values_literal() {
+        let values = HashMap::from([
+            (
+                "name".to_string(),
+                FieldValue::Text("Ada $& <tag> 🦀".to_string()),
+            ),
+            (
+                "a.b".to_string(),
+                FieldValue::Text("literal.name".to_string()),
+            ),
+        ]);
+        assert_eq!(
+            substitute("{{ name }} / {{\tname\n}} / {{a.b}} / {{missing}}", &values),
+            "Ada $& <tag> 🦀 / Ada $& <tag> 🦀 / literal.name / {{missing}}"
+        );
+    }
+
+    #[test]
+    fn substitute_preserves_typed_zero_false_and_empty_values() {
+        let values = HashMap::from([
+            ("text".to_string(), FieldValue::Text(String::new())),
+            ("integer".to_string(), FieldValue::Integer(0)),
+            ("number".to_string(), FieldValue::Number(-1.5)),
+            ("boolean".to_string(), FieldValue::Boolean(false)),
+            (
+                "enum".to_string(),
+                FieldValue::Selection("stored-token".to_string()),
+            ),
+            (
+                "masked".to_string(),
+                FieldValue::Masked("secret".to_string()),
+            ),
+        ]);
+        assert_eq!(
+            substitute(
+                "[{{text}}] {{integer}} {{number}} {{boolean}} {{enum}} {{masked}}",
+                &values
+            ),
+            "[] 0 -1.5 false stored-token secret"
+        );
+    }
+
+    #[test]
+    fn slot_names_key_inputs_without_mutating_authored_field_ids() {
+        let mut slot = make_text_slot("document", "Source text");
+        slot.field.as_mut().unwrap().field_id = "different-field-id".into();
+        slot.field.as_mut().unwrap().request_field = "rpc.only".into();
+        let panel = LlmPromptPanel {
+            description: "Fill the prompt".into(),
+            user_template: "{{document}}".into(),
+            slots: vec![
+                slot,
+                ParameterSlot {
+                    name: "missing".into(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let prompt = prompt_for_slots(&panel);
+        assert_eq!(prompt.fields.len(), 1);
+        assert_eq!(prompt.fields[0].field_id, "document");
+        assert_eq!(prompt.fields[0].request_field, "rpc.only");
+        assert_eq!(
+            prompt.fields[0].kind,
+            panel.slots[0].field.as_ref().unwrap().kind
+        );
+        assert_eq!(prompt.description, "Fill the prompt");
+        assert_eq!(prompt.accept_label, "Render");
+        assert!(!prompt.is_confirmation);
+        assert_eq!(
+            panel.slots[0].field.as_ref().unwrap().field_id,
+            "different-field-id"
+        );
     }
 
     fn make_text_slot(name: &str, default: &str) -> ParameterSlot {
