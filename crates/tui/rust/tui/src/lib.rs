@@ -42,6 +42,7 @@ mod inline_prompt;
 mod invoker;
 mod launchpad;
 mod llm_prompt;
+mod lro;
 mod prompt;
 mod state;
 mod theme;
@@ -60,6 +61,7 @@ pub use launchpad::{
     command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState, AGENT_GROUP_ID,
 };
 pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
+pub use lro::LroRunId;
 pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use theme::{parse_hex, Mode, Palette, Theme};

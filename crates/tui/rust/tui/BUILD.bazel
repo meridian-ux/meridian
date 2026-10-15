@@ -15,6 +15,7 @@ rust_library(
         "src/launchpad.rs",
         "src/lib.rs",
         "src/llm_prompt.rs",
+        "src/lro.rs",
         "src/prompt.rs",
         "src/state.rs",
         "src/theme.rs",

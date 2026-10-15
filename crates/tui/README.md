@@ -89,6 +89,33 @@ Read-only forms ignore editing keys. Replacing a descriptor discards cached form
 edits and open JSON editors; resizing preserves them. Hosts own authorization,
 RPC execution, and operation polling; rendering or editing never starts an RPC.
 
+Each `LroSubmission` includes an opaque, cloneable `LroRunId` for that one
+in-process attempt. While it is active, inputs and duplicate submissions are
+disabled. The host executes the start RPC and polls with its own authorized
+client/policy. Decode the operation's metadata using the declared metadata type,
+then pass its canonical protobuf `Struct` projection to
+`update_lro_progress(&run_id, operation_name, &metadata)`. The native progress
+line uses the same core metadata formatter as the browser. Operation names cannot
+change within an attempt.
+
+After successful completion and any declared host-owned finalize RPC, call
+`complete_lro(&run_id, &result)` with the decoded protobuf `Struct` source. The
+descriptor's result table renders locally, including shared ValueDisplay
+formatting and raw row selection; it does not invoke the table's populate RPC.
+Use `fail_lro` for start/poll/operation/finalize errors, or `cancel_lro` to mark
+host-confirmed/local cancellation. These methods do not send any RPC, including
+CancelOperation. Enter retries a terminal attempt with a fresh token; Esc returns
+to its inputs. Resize preserves progress; replacing the panel or changing its
+bound request context, or explicitly invalidating the view, drops that attempt.
+
+Updates return false without changing state for stale/terminal/cross-view tokens,
+changed operation names, or malformed/oversized structured payloads. Metadata and
+result conversion is bounded to 1 MiB of keys/string content, 10,000 value nodes,
+and 64 nested levels; nonfinite numbers are rejected. Hosts must handle rejection
+explicitly; nothing is silently truncated. Run tokens are runtime identities,
+not serializable DTOs or durable job IDs. The opaque operation name and canonical
+protobuf payloads remain the host's transport/recovery contract.
+
 ## Build
 
 Hosts can call `PanelView::selected_row_request(&call, &context, legacy_id_fallback)`

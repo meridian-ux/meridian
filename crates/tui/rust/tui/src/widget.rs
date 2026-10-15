@@ -16,6 +16,7 @@ use ratatui::Frame;
 use crate::content;
 use crate::inline_prompt::{InlinePrompt, PanelPromptResponse};
 use crate::invoker::{RpcInvoker, StreamInvoker, StreamSession};
+use crate::lro::{LroRun, LroRunId};
 use crate::prompt::{PromptResponse, PromptState};
 use crate::theme::Palette;
 
@@ -26,8 +27,8 @@ const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
 
 /// Stateful ratatui widget rendering one PanelDescriptor. For
 /// TablePanels it does its own populate call against the invoker
-/// (lazy + cached); for LroPanels it shows a placeholder telling
-/// the operator to wire the LRO driver; for AdhocPanels it surfaces
+/// (lazy + cached); for LroPanels it renders host-driven progress and results;
+/// for AdhocPanels it surfaces
 /// the handler_id so the host knows which custom view to swap in.
 ///
 /// All look comes from `palette` (derived from a `meridian.theme.v1.Theme`):
@@ -44,6 +45,8 @@ pub struct PanelView {
     cached_resource_cards: Option<CachedResourceCards>,
     cached_form: Option<CachedForm>,
     cached_lro: Option<CachedForm>,
+    lro_run: Option<LroRun>,
+    lro_identity: Option<(Vec<u8>, serde_json::Value)>,
     stream_lines: Vec<String>,
     stream_session: Option<StreamSession>,
     stream_request_key: Option<String>,
@@ -63,9 +66,9 @@ pub struct PanelView {
     reveal_secret: bool,
 }
 
-struct CachedTable {
-    rows: Vec<RenderedRow>,
-    item_noun: String,
+pub(crate) struct CachedTable {
+    pub rows: Vec<RenderedRow>,
+    pub item_noun: String,
 }
 
 struct CachedChart {
@@ -170,6 +173,8 @@ pub struct FormSubmission {
 /// the descriptor's optional TablePanel result renderer.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LroSubmission {
+    /// Pass this identity back with every progress/completion callback.
+    pub run_id: LroRunId,
     pub service: String,
     pub method: String,
     pub request: serde_json::Value,
@@ -187,6 +192,8 @@ impl PanelView {
             cached_resource_cards: None,
             cached_form: None,
             cached_lro: None,
+            lro_run: None,
+            lro_identity: None,
             stream_lines: Vec::new(),
             stream_session: None,
             stream_request_key: None,
@@ -215,6 +222,8 @@ impl PanelView {
             cached_resource_cards: None,
             cached_form: None,
             cached_lro: None,
+            lro_run: None,
+            lro_identity: None,
             stream_lines: Vec::new(),
             stream_session: None,
             stream_request_key: None,
@@ -379,6 +388,8 @@ impl PanelView {
         self.cached_resource_cards = None;
         self.cached_form = None;
         self.cached_lro = None;
+        self.lro_run = None;
+        self.lro_identity = None;
     }
 
     fn prepare_prompt(&mut self, descriptor: &PanelDescriptor) {
@@ -404,7 +415,7 @@ impl PanelView {
     }
 
     pub fn select_next(&mut self) {
-        if let Some(cached) = &self.cached {
+        if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
                 return;
@@ -423,7 +434,7 @@ impl PanelView {
     }
 
     pub fn select_prev(&mut self) {
-        if let Some(cached) = &self.cached {
+        if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
                 return;
@@ -476,6 +487,22 @@ impl PanelView {
         invoker: &I,
     ) {
         self.prepare_prompt(descriptor);
+        let identity = match &descriptor.body {
+            Some(Body::Lro(panel)) => Some((
+                descriptor.encode_to_vec(),
+                panel
+                    .start
+                    .as_ref()
+                    .map(|start| RequestBuilder::build(start, context))
+                    .unwrap_or_default(),
+            )),
+            _ => None,
+        };
+        if self.lro_identity.is_some() && self.lro_identity != identity {
+            self.cached_lro = None;
+            self.lro_run = None;
+        }
+        self.lro_identity = identity;
         let chunks = Layout::vertical([
             Constraint::Length(1),
             Constraint::Length(1),
@@ -496,10 +523,21 @@ impl PanelView {
         match descriptor.body.as_ref() {
             Some(Body::Table(table)) => {
                 self.populate_if_needed(table, context, invoker);
-                self.render_table(frame, table, chunks[1], chunks[2]);
+                Self::render_cached_table(
+                    frame,
+                    table,
+                    self.cached.as_ref().unwrap(),
+                    &self.palette,
+                    &mut self.table_state,
+                    [chunks[1], chunks[2]],
+                );
             }
             Some(Body::Lro(panel)) => {
                 self.populate_lro_if_needed(panel);
+                if self.lro_run.is_some() {
+                    self.render_lro_run(frame, content_area, panel);
+                    return;
+                }
                 let cached = self.cached_lro.as_ref().unwrap();
                 self.content_len = panel.inputs.len();
                 content::render_lro(
@@ -1068,6 +1106,10 @@ impl PanelView {
             .as_ref()
             .is_none_or(|cached| cached.descriptor != descriptor)
         {
+            if self.cached_lro.is_some() {
+                self.lro_identity = None;
+            }
+            self.lro_run = None;
             self.cached_lro = Some(CachedForm {
                 descriptor,
                 values: content::form_defaults(&panel.inputs),
@@ -1088,6 +1130,19 @@ impl PanelView {
         key: KeyCode,
     ) -> Option<LroSubmission> {
         self.populate_lro_if_needed(panel);
+        if let Some(run) = &self.lro_run {
+            if run.active() {
+                return None;
+            }
+            match key {
+                KeyCode::Esc => {
+                    self.lro_run = None;
+                    return None;
+                }
+                KeyCode::Enter => {}
+                _ => return None,
+            }
+        }
         let cached = self.cached_lro.as_mut()?;
         let field_count = panel.inputs.len();
         let selected = self.content_selected.min(field_count.saturating_sub(1));
@@ -1110,7 +1165,12 @@ impl PanelView {
                 start_context.form_values = form_values_by_id(&panel.inputs, &cached.values);
                 let mut request = RequestBuilder::build(start, &start_context);
                 merge_form_request(&mut request, &panel.inputs, &cached.values);
+                let run = LroRun::new(panel);
+                let run_id = run.id.clone();
+                self.lro_run = Some(run);
+                self.table_state = TableState::default();
                 return Some(LroSubmission {
+                    run_id,
                     service: start.service.clone(),
                     method: start.method.clone(),
                     request,
@@ -1126,17 +1186,97 @@ impl PanelView {
         None
     }
 
-    fn render_table(
+    /// Supply decoded operation metadata after the host starts/polls an LRO.
+    /// Stale/terminal tokens, changed operation names, and invalid or oversized
+    /// metadata are rejected without altering the last accepted state.
+    pub fn update_lro_progress(
         &mut self,
+        run_id: &LroRunId,
+        operation_name: &str,
+        metadata: &prost_types::Struct,
+    ) -> bool {
+        self.lro_run
+            .as_mut()
+            .is_some_and(|run| run.progress(run_id, operation_name, metadata))
+    }
+
+    /// Supply the final decoded response AFTER any host-owned finalize RPC.
+    /// Renders the descriptor's result table locally, never its populate RPC.
+    pub fn complete_lro(&mut self, run_id: &LroRunId, result: &prost_types::Struct) -> bool {
+        self.lro_run
+            .as_mut()
+            .is_some_and(|run| run.complete(run_id, result))
+    }
+
+    /// Surface a start, poll, operation, or finalize failure. Enter may retry.
+    pub fn fail_lro(&mut self, run_id: &LroRunId, error: &str) -> bool {
+        self.lro_run
+            .as_mut()
+            .is_some_and(|run| run.fail(run_id, error))
+    }
+
+    /// Mark the host's confirmed/local cancellation. Does not send a server
+    /// cancellation request; that decision and transport remain host-owned.
+    pub fn cancel_lro(&mut self, run_id: &LroRunId) -> bool {
+        self.lro_run.as_mut().is_some_and(|run| run.cancel(run_id))
+    }
+
+    fn current_table(&self) -> Option<&CachedTable> {
+        if self.lro_run.is_some() || self.lro_identity.is_some() {
+            self.lro_run.as_ref().and_then(|run| run.result.as_ref())
+        } else {
+            self.cached.as_ref()
+        }
+    }
+
+    fn render_lro_run(&mut self, frame: &mut Frame, area: ratatui::layout::Rect, panel: &LroPanel) {
+        let run = self.lro_run.as_ref().unwrap();
+        let status = run.status();
+        if let (Some(table), Some(result)) = (&panel.result, &run.result) {
+            if self.table_state.selected().is_none() && !result.rows.is_empty() {
+                self.table_state.select(Some(0));
+            }
+            let chunks = Layout::vertical([
+                Constraint::Length(status.lines().count().clamp(1, 3) as u16),
+                Constraint::Length(1),
+                Constraint::Min(1),
+            ])
+            .split(area);
+            frame.render_widget(Paragraph::new(status).style(self.palette.meta()), chunks[0]);
+            Self::render_cached_table(
+                frame,
+                table,
+                result,
+                &self.palette,
+                &mut self.table_state,
+                [chunks[1], chunks[2]],
+            );
+        } else {
+            frame.render_widget(
+                Paragraph::new(status)
+                    .style(self.palette.meta())
+                    .wrap(ratatui::widgets::Wrap { trim: false })
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .border_style(self.palette.border_style()),
+                    ),
+                area,
+            );
+        }
+    }
+
+    fn render_cached_table(
         frame: &mut Frame,
         table_panel: &TablePanel,
-        meta_area: ratatui::layout::Rect,
-        body_area: ratatui::layout::Rect,
+        cached: &CachedTable,
+        palette: &Palette,
+        table_state: &mut TableState,
+        [meta_area, body_area]: [ratatui::layout::Rect; 2],
     ) {
-        let cached = self.cached.as_ref().unwrap();
         let meta = Paragraph::new(Span::styled(
             format!("{} {}", cached.rows.len(), cached.item_noun),
-            self.palette.meta(),
+            palette.meta(),
         ));
         frame.render_widget(meta, meta_area);
 
@@ -1156,7 +1296,7 @@ impl PanelView {
                 .unwrap_or(1)
                 .clamp(1, u16::MAX as usize) as u16,
         )
-        .style(self.palette.header());
+        .style(palette.header());
 
         let rows: Vec<Row> = cached
             .rows
@@ -1199,16 +1339,16 @@ impl PanelView {
             .collect();
 
         let widget = Table::new(rows, constraints)
-            .style(self.palette.text())
+            .style(palette.text())
             .header(header)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_style(self.palette.border_style()),
+                    .border_style(palette.border_style()),
             )
-            .row_highlight_style(self.palette.selection());
+            .row_highlight_style(palette.selection());
 
-        frame.render_stateful_widget(widget, body_area, &mut self.table_state);
+        frame.render_stateful_widget(widget, body_area, table_state);
     }
 
     fn render_placeholder(
@@ -1257,9 +1397,12 @@ impl PanelView {
     /// Convenience: returns the currently-selected row's raw JSON,
     /// for hosts that want to fire RowActions.
     pub fn selected_row(&self) -> Option<&serde_json::Value> {
-        if let Some(cached) = &self.cached {
+        if let Some(cached) = self.current_table() {
             let index = self.table_state.selected()?;
             return cached.rows.get(index).map(|r| &r.raw);
+        }
+        if self.lro_run.is_some() || self.lro_identity.is_some() {
+            return None;
         }
         self.cached_resource_cards
             .as_ref()

@@ -2521,6 +2521,272 @@ fn media_uses_the_terminal_accessible_degradation() {
     assert!(output.contains("deploy.mp4"));
 }
 
+mod lro_progress {
+    use super::*;
+    use meridian_uiview::proto::{
+        field_binding::Source, ContextSource, FieldBinding, TableColumn, TablePanel, ValueDisplay,
+        ValueType,
+    };
+    use prost_types::{value::Kind as JsonKind, ListValue, Struct, Value};
+
+    struct NoCalls;
+    impl RpcInvoker for NoCalls {
+        fn invoke(
+            &self,
+            service: &str,
+            method: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            panic!("LRO rendering must not execute {service}/{method}")
+        }
+    }
+
+    fn wire_object(json: serde_json::Value) -> Struct {
+        fn value(json: serde_json::Value) -> Value {
+            Value {
+                kind: Some(match json {
+                    serde_json::Value::Null => JsonKind::NullValue(0),
+                    serde_json::Value::Bool(v) => JsonKind::BoolValue(v),
+                    serde_json::Value::Number(v) => JsonKind::NumberValue(v.as_f64().unwrap()),
+                    serde_json::Value::String(v) => JsonKind::StringValue(v),
+                    serde_json::Value::Array(v) => JsonKind::ListValue(ListValue {
+                        values: v.into_iter().map(value).collect(),
+                    }),
+                    serde_json::Value::Object(v) => JsonKind::StructValue(Struct {
+                        fields: v.into_iter().map(|(k, v)| (k, value(v))).collect(),
+                    }),
+                }),
+            }
+        }
+        let Some(JsonKind::StructValue(source)) = value(json).kind else {
+            panic!("object required")
+        };
+        Struct::decode(source.encode_to_vec().as_slice()).unwrap()
+    }
+
+    fn descriptor() -> PanelDescriptor {
+        let mut descriptor = lro_descriptor();
+        let Some(Body::Lro(panel)) = &mut descriptor.body else {
+            unreachable!()
+        };
+        panel.finalize = Some(RpcCall {
+            service: "Forbidden".into(),
+            method: "Finalize".into(),
+            ..Default::default()
+        });
+        panel.result = Some(TablePanel {
+            populate: Some(RpcCall {
+                service: "Forbidden".into(),
+                method: "Populate".into(),
+                ..Default::default()
+            }),
+            rows_field: "rows".into(),
+            item_noun: "flags".into(),
+            columns: vec![TableColumn {
+                header: "Enabled".into(),
+                field_path: "value".into(),
+                value_display: Some(ValueDisplay {
+                    r#type: ValueType::Boolean as i32,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap()
+    }
+
+    fn panel(descriptor: &PanelDescriptor) -> &LroPanel {
+        let Some(Body::Lro(panel)) = &descriptor.body else {
+            unreachable!()
+        };
+        panel
+    }
+
+    fn draw(
+        view: &mut PanelView,
+        descriptor: &PanelDescriptor,
+        context: &Context,
+        width: u16,
+    ) -> String {
+        let mut terminal = Terminal::new(TestBackend::new(width, 16)).unwrap();
+        terminal
+            .draw(|frame| view.render(frame, frame.area(), descriptor, context, &NoCalls))
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
+
+    #[test]
+    fn protobuf_progress_and_finalized_results_render_without_transport_calls() {
+        let descriptor = descriptor();
+        let context = Context::default();
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let run = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Submitting"));
+        let metadata =
+            wire_object(serde_json::json!({"state":"RUNNING", "status_message":"2 of 4 complete"}));
+        assert!(view.update_lro_progress(&run.run_id, "operations/deploy-1", &metadata));
+        let text = draw(&mut view, &descriptor, &context, 80);
+        assert!(text.contains("Running: operations/deploy-1"));
+        assert!(text.contains("[RUNNING] 2 of 4 complete"));
+        assert!(view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .is_none());
+        assert!(view.complete_lro(
+            &run.run_id,
+            &wire_object(serde_json::json!({"rows":[{"value":false},{"value":true}]}))
+        ));
+        let text = draw(&mut view, &descriptor, &context, 80);
+        for expected in ["Completed", "2 flags", "Enabled", "No", "Yes"] {
+            assert!(text.contains(expected), "{expected} missing: {text}");
+        }
+        assert_eq!(view.selected_row().unwrap()["value"], false);
+        view.select_next();
+        assert_eq!(view.selected_row().unwrap()["value"], true);
+        assert!(!view.complete_lro(&run.run_id, &Struct::default()));
+        assert!(!view.fail_lro(&run.run_id, "late error"));
+    }
+
+    #[test]
+    fn failures_retry_cancellation_and_cross_view_tokens_are_isolated() {
+        let descriptor = descriptor();
+        let context = Context::default();
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let first = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(view.fail_lro(&first.run_id, "poll failed"));
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Failed: poll failed"));
+        let second = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert_ne!(first.run_id, second.run_id);
+        assert!(!view.complete_lro(&first.run_id, &Struct::default()));
+        assert!(view.update_lro_progress(&second.run_id, "operations/new", &Struct::default()));
+        assert!(!view.update_lro_progress(&second.run_id, "operations/wrong", &Struct::default()));
+        let mut other = PanelView::new();
+        let other_run = other
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(!view.fail_lro(&other_run.run_id, "wrong view"));
+        assert!(view.cancel_lro(&second.run_id));
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Canceled"));
+        assert!(!view.update_lro_progress(&second.run_id, "operations/new", &Struct::default()));
+        view.handle_lro_key(panel(&descriptor), &context, KeyCode::Esc);
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Replicas: 1"));
+    }
+
+    #[test]
+    fn resize_preserves_progress_but_replacement_and_invalidation_reject_callbacks() {
+        let mut descriptor = descriptor();
+        let context = Context::default();
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let first = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(view.update_lro_progress(&first.run_id, "operations/one", &Struct::default()));
+        assert!(draw(&mut view, &descriptor, &context, 40).contains("operations/one"));
+        descriptor.panel_id = "replacement-same-body".into();
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Replicas: 1"));
+        assert!(!view.fail_lro(&first.run_id, "stale"));
+        let second = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        view.invalidate();
+        assert!(!view.complete_lro(&second.run_id, &Struct::default()));
+        draw(&mut view, &descriptor, &context, 80);
+        let third = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        draw(&mut view, &PanelDescriptor::default(), &context, 80);
+        assert!(!view.cancel_lro(&third.run_id));
+    }
+
+    #[test]
+    fn changed_request_context_drops_the_previous_operation() {
+        let mut descriptor = descriptor();
+        let Some(Body::Lro(lro)) = &mut descriptor.body else {
+            unreachable!()
+        };
+        lro.start.as_mut().unwrap().bindings.push(FieldBinding {
+            request_field: "resource".into(),
+            source: Some(Source::Context(ContextSource::CurrentResourcePath as i32)),
+            ..Default::default()
+        });
+        let mut context = Context {
+            current_resource_path: Some("resource/one".into()),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let run = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert_eq!(run.request["resource"], "resource/one");
+        context.current_resource_path = Some("resource/two".into());
+        draw(&mut view, &descriptor, &context, 80);
+        assert!(!view.fail_lro(&run.run_id, "old resource"));
+    }
+
+    #[test]
+    fn malformed_and_over_budget_protobuf_updates_leave_the_previous_state_intact() {
+        let descriptor = descriptor();
+        let context = Context::default();
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let run = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(view.update_lro_progress(
+            &run.run_id,
+            "operations/valid",
+            &wire_object(serde_json::json!({"status_message":"Last good state"}))
+        ));
+        let mut invalid = Struct {
+            fields: [(
+                "bad".into(),
+                Value {
+                    kind: Some(JsonKind::NumberValue(f64::NAN)),
+                },
+            )]
+            .into(),
+        };
+        assert!(!view.update_lro_progress(&run.run_id, "operations/valid", &invalid));
+        assert!(!view.complete_lro(&run.run_id, &invalid));
+        invalid = wire_object(serde_json::json!({"large":"x".repeat(1024*1024+1)}));
+        assert!(!view.update_lro_progress(&run.run_id, "operations/valid", &invalid));
+        let mut nested = Value {
+            kind: Some(JsonKind::NullValue(0)),
+        };
+        for _ in 0..70 {
+            nested = Value {
+                kind: Some(JsonKind::ListValue(ListValue {
+                    values: vec![nested],
+                })),
+            };
+        }
+        invalid = Struct {
+            fields: [("deep".into(), nested)].into(),
+        };
+        assert!(!view.update_lro_progress(&run.run_id, "operations/valid", &invalid));
+        invalid = wire_object(serde_json::json!({"many":vec![false;10_001]}));
+        assert!(!view.update_lro_progress(&run.run_id, "operations/valid", &invalid));
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Last good state"));
+        assert!(view.complete_lro(&run.run_id, &Struct::default()));
+    }
+}
+
 #[test]
 fn an_empty_descriptor_draws_rather_than_panicking() {
     // main.rs will happily decode a zero-byte file into a default
