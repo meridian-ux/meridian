@@ -3,10 +3,10 @@ gallery · typical
 ┌──────────────────────────────────────┐
 │▶ 1. Resource 00  [Connected]         │
 │    A shared response                 │
-│    [1] Manage                        │
-│https://example.test/resource         │
-│                                      │
-│  2. Resource 01  [Connected]         │
-│    A shared response                 │
+│    [1] Manage  https://example.test/r│
+│esource                               │
 └──────────────────────────────────────┘
+
+
+
 end viewport

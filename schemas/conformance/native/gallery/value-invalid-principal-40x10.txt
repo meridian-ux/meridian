@@ -1,12 +1,12 @@
 viewport 40x10
 invalid-principal
 ┌──────────────────────────────────────┐
-│▶ 1. Ada <bad email>  [Ada <bad       │
-│email>]                               │
+│▶ 1. Ada <bad email>  [Ada <bad email>│
+│]                                     │
 │    Ada <bad email>                   │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
 └──────────────────────────────────────┘
+
+
+
+
 end viewport

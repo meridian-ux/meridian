@@ -3,10 +3,10 @@ gallery · overflow
 ┌──────────────────────────────────────┐
 │▶ 1. Resource 00  [Connected]         │
 │    A shared response with overflowing│
+│ content with overflowing content with│
+│ overflowing content with overflowing │
 │content with overflowing content with │
-│overflowing content with overflowing  │
-│content with overflowing content with │
-│overflowing content with overflowing  │
-│content with overflowing content with │
+│overflowing content with overflowing c│
+│ontent with overflowing content with o│
 └──────────────────────────────────────┘
 end viewport

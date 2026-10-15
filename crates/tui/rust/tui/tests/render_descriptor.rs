@@ -1585,12 +1585,9 @@ fn canonical_populated_native_text_goldens() {
         let expected = if name == "gallery" {
             vec![
                 "Assets",
-                "▶ 1. GitHub [Connected]",
-                "Source control",
-                "[1] Manage https://github.com",
-                "2. PagerDuty [Connected]",
-                "Incident response",
-                "[2] Manage https://pagerduty.com",
+                "▶ 1. GitHub [Connected] │ │ 2. PagerDuty [Connected]",
+                "Source control │ │ Incident response",
+                "[1] Manage https://github.com │ │ [2] Manage https://pagerduty.com",
             ]
         } else if name == "resource_cards" {
             vec![
@@ -2071,7 +2068,7 @@ fn a_declining_stat_marked_higher_is_better_reads_as_bad() {
 }
 
 #[test]
-fn gallery_populate_flows_into_the_tui_card_list() {
+fn gallery_populate_flows_into_the_tui_card_grid() {
     let mut view = PanelView::with_palette(Palette::default());
     let ctx = Context::default();
     let mut term = Terminal::new(TestBackend::new(64, 10)).unwrap();

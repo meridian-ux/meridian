@@ -378,7 +378,7 @@ pub fn resource_action_visible(action: &ResourceAction, row: &Value) -> bool {
     value_at(row, path.trim()) == expected.trim()
 }
 
-/// Render a populated gallery as a selectable terminal card list. Image slots
+/// Render a populated gallery as a responsive selectable card grid. Image slots
 /// are intentionally omitted on a text surface; the card's text, icon, status,
 /// link, and action label remain visible.
 pub fn render_gallery(
@@ -389,22 +389,40 @@ pub fn render_gallery(
     palette: &Palette,
     selected: usize,
 ) {
-    let mut lines: Vec<Line> = Vec::new();
     if cards.is_empty() {
-        lines.push(Line::from(Span::styled(
+        let lines = vec![Line::from(Span::styled(
             if panel.placeholder.is_empty() {
                 "No items.".to_string()
             } else {
                 panel.placeholder.clone()
             },
             palette.meta(),
-        )));
+        ))];
         frame.render_widget(bordered(lines, palette), area);
+        return;
+    }
+    if area.width < 3 || area.height < 3 {
+        frame.render_widget(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(palette.border_style()),
+            area,
+        );
         return;
     }
 
     let selected = selected % cards.len();
+    // Each card gets at least 32 cells when possible, with a one-cell gutter.
+    // A narrow terminal remains a single column; an incomplete last row keeps
+    // the same column geometry as the preceding rows.
+    let columns = ((usize::from(area.width) + 1) / 33).max(1).min(cards.len());
+    let available = usize::from(area.width) - (columns - 1);
+    let widths: Vec<_> = (0..columns)
+        .map(|column| (available / columns + usize::from(column < available % columns)) as u16)
+        .collect();
+    let mut wrapped = Vec::with_capacity(cards.len());
     for (index, card) in cards.iter().enumerate() {
+        let mut lines = Vec::new();
         let active = index == selected;
         let style = if active {
             palette.focused()
@@ -448,11 +466,76 @@ pub fn render_gallery(
             }
             lines.push(Line::from(action));
         }
-        if index + 1 < cards.len() {
-            lines.push(Line::from(""));
-        }
+        wrapped.push(wrap_gallery_lines(lines, widths[index % columns] - 2));
     }
-    frame.render_widget(bordered(lines, palette), area);
+    // Row heights reflect real grapheme wrapping, not a fixed card height that
+    // could overwrite the next row. Scroll by rows to keep selection visible.
+    let heights: Vec<_> = wrapped
+        .chunks(columns)
+        .map(|row| row.iter().map(Vec::len).max().unwrap_or(0) + 2)
+        .collect();
+    let mut first = selected / columns;
+    let mut used = heights[first];
+    while first > 0 && used + heights[first - 1] < usize::from(area.height) {
+        first -= 1;
+        used += heights[first] + 1;
+    }
+    let mut y = area.y;
+    for (row_index, &height) in heights.iter().enumerate().skip(first) {
+        let remaining = area.bottom().saturating_sub(y);
+        if remaining < 3 {
+            break;
+        }
+        let height = height.min(usize::from(remaining)) as u16;
+        let mut x = area.x;
+        for (column, &width) in widths.iter().enumerate() {
+            let index = row_index * columns + column;
+            let Some(lines) = wrapped.get(index) else {
+                break;
+            };
+            frame.render_widget(
+                Paragraph::new(lines.clone()).style(palette.text()).block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_style(if index == selected {
+                            palette.focused()
+                        } else {
+                            palette.border_style()
+                        }),
+                ),
+                Rect::new(x, y, width, height),
+            );
+            x = x.saturating_add(width).saturating_add(1);
+        }
+        y = y.saturating_add(height).saturating_add(1);
+    }
+}
+
+// Prewrap at grapheme boundaries so row sizing and drawing use exactly the
+// same layout, retaining Unicode clusters, explicit blank lines, and styles.
+fn wrap_gallery_lines(lines: Vec<Line<'static>>, width: u16) -> Vec<Line<'static>> {
+    if width == 0 {
+        return Vec::new();
+    }
+    let mut output = Vec::new();
+    for line in expand_embedded_lines(lines) {
+        let mut current = Line::default();
+        let mut used = 0;
+        for grapheme in line.styled_graphemes(ratatui::style::Style::default()) {
+            let cells = Span::raw(grapheme.symbol).width();
+            if used > 0 && used + cells > usize::from(width) {
+                output.push(current);
+                current = Line::default();
+                used = 0;
+            }
+            current
+                .spans
+                .push(Span::styled(grapheme.symbol.to_owned(), grapheme.style));
+            used += cells;
+        }
+        output.push(current);
+    }
+    output
 }
 
 /// Render the record-bound detail header. A terminal has no chip or grid
@@ -2423,7 +2506,133 @@ mod tests {
     }
 
     #[test]
-    fn gallery_renders_populated_cards_as_selectable_text() {
+    fn gallery_uses_columns_and_reflows_to_one_column_on_narrow_terminals() {
+        use meridian_uiview::proto::{CardSpec, GalleryPanel};
+        use ratatui::{backend::TestBackend, Terminal};
+        let panel = GalleryPanel {
+            rows_field: "items".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                subtitle_field: "description".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let cards = meridian_uiview::render_gallery(
+            &serde_json::json!({"items": [
+                {"name": "Alpha", "description": "x".repeat(80) + "END"},
+                {"name": "Bravo"}, {"name": "Charlie"}, {"name": "Delta"}
+            ]}),
+            &panel,
+        );
+        for width in [40, 100] {
+            let mut terminal = Terminal::new(TestBackend::new(width, 20)).unwrap();
+            terminal
+                .draw(|frame| {
+                    render_gallery(frame, frame.area(), &panel, &cards, &Palette::default(), 0)
+                })
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            let locate = |name: &str| {
+                (0..20)
+                    .find_map(|y| {
+                        let line = (0..width)
+                            .map(|x| buffer[(x, y)].symbol())
+                            .collect::<String>();
+                        line.find(name).map(|x| (x, y))
+                    })
+                    .unwrap_or_else(|| panic!("{name} missing at width {width}"))
+            };
+            let first = locate("Alpha");
+            let second = locate("Bravo");
+            if width == 100 {
+                assert_eq!(
+                    first.1, second.1,
+                    "wide gallery must draw cards side by side"
+                );
+                assert!(second.0 > first.0);
+            } else {
+                assert!(second.1 > first.1, "narrow gallery must stack cards");
+            }
+            locate("Charlie");
+            let last = locate("Delta");
+            assert!(
+                locate("END").1 < last.1,
+                "wrapped content must end before the next row"
+            );
+        }
+    }
+
+    #[test]
+    fn gallery_keeps_the_selected_card_visible_in_short_and_tiny_viewports() {
+        use meridian_uiview::proto::{CardSpec, GalleryPanel};
+        use ratatui::{backend::TestBackend, Terminal};
+        let panel = GalleryPanel {
+            rows_field: "items".into(),
+            card: Some(CardSpec {
+                title_field: "name".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let cards = meridian_uiview::render_gallery(
+            &serde_json::json!({"items":
+                (0..40).map(|i| serde_json::json!({"name": format!("Card-{i:02}")})).collect::<Vec<_>>()
+            }),
+            &panel,
+        );
+        for (width, height) in [(40, 5), (100, 5), (1, 1)] {
+            let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+            terminal
+                .draw(|frame| {
+                    render_gallery(frame, frame.area(), &panel, &cards, &Palette::default(), 39)
+                })
+                .unwrap();
+            if width > 1 {
+                let text = terminal
+                    .backend()
+                    .buffer()
+                    .content()
+                    .iter()
+                    .map(|cell| cell.symbol())
+                    .collect::<String>();
+                assert!(
+                    text.contains("Card-39"),
+                    "selection must not remain below the viewport: {text}"
+                );
+                assert!(text.contains("▶"));
+            }
+        }
+    }
+
+    #[test]
+    fn gallery_wrapping_preserves_graphemes_blank_lines_and_styles() {
+        use ratatui::style::{Color, Style};
+        let style = Style::default().fg(Color::Green);
+        let lines = wrap_gallery_lines(
+            vec![Line::from(Span::styled("Ae\u{301}界Z\n\nend", style))],
+            4,
+        );
+        let text: Vec<_> = lines
+            .iter()
+            .map(|line| {
+                line.spans
+                    .iter()
+                    .map(|span| span.content.as_ref())
+                    .collect::<String>()
+            })
+            .collect();
+        assert_eq!(text, ["Ae\u{301}界", "Z", "", "end"]);
+        assert!(lines.iter().all(|line| line.width() <= 4));
+        assert!(lines
+            .iter()
+            .flat_map(|line| &line.spans)
+            .all(|span| span.style == style));
+        assert!(wrap_gallery_lines(vec![Line::from("unrenderable")], 0).is_empty());
+    }
+
+    #[test]
+    fn gallery_renders_populated_cards_as_selectable_grid() {
         use meridian_uiview::proto::{
             value_display, CardSpec, GalleryPanel, PrincipalDisplay, PrincipalOptions, RpcCall,
             ValueDisplay, ValueType,
