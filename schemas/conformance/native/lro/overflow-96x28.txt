@@ -2,7 +2,7 @@ viewport 96x28
 lro · overflow
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │Run reindex                                                                                   │
-│↑/↓ select · edit scalar · Enter start operation                                              │
+│↑/↓ select · ←/→ numeric · F2 JSON · Enter start                                              │
 │                                                                                              │
 │▶ Job input 0: Fixture job input                                                              │
 │  Job input 1: Fixture job input                                                              │

@@ -273,6 +273,21 @@ pub(crate) struct PromptState {
 }
 
 impl PromptState {
+    /// Reuse the compound editor without entering raw mode or losing prefill.
+    pub(crate) fn edit_compound(
+        field: &FormField,
+        value: &serde_json::Value,
+    ) -> Result<Self, PromptError> {
+        let panel = PromptPanel {
+            description: format!("Edit {} as JSON · Enter save · Esc cancel", field.label),
+            fields: vec![field.clone()],
+            ..Default::default()
+        };
+        let mut state = Self::new(&panel)?;
+        state.states[0].text = value.to_string();
+        Ok(state)
+    }
+
     pub(crate) fn set_multiline_rows(&mut self, field: &str, rows: i32) {
         self.multiline_rows
             .insert(field.to_string(), if rows > 0 { rows as u32 } else { 4 });

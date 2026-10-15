@@ -35,6 +35,7 @@ rust_library(
     srcs = [
         "src/conformance.rs",
         "src/conversation.rs",
+        "src/form_values.rs",
         "src/launchpad.rs",
         "src/lib.rs",
         "src/paths.rs",
@@ -54,6 +55,7 @@ rust_library(
         ":uiview_proto",
         "@meridian_crates//:prost",
         "@meridian_crates//:prost-types",
+        "@meridian_crates//:regex",
         "@meridian_crates//:serde",
         "@meridian_crates//:serde_json",
         "@meridian_crates//:thiserror",
@@ -87,6 +89,7 @@ rust_shared_library(
     name = "uiview_wasm_lib",
     srcs = [
         "src/conversation.rs",
+        "src/form_values.rs",
         "src/launchpad.rs",
         "src/lib.rs",
         "src/paths.rs",
@@ -107,6 +110,7 @@ rust_shared_library(
     deps = [
         ":uiview_proto",
         "@meridian_crates//:js-sys",
+        "@meridian_crates//:regex",
         "@meridian_crates//:prost",
         "@meridian_crates//:prost-types",
         "@meridian_crates//:serde",

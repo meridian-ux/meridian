@@ -48,6 +48,284 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+mod inline_form_validation {
+    use super::*;
+    use meridian_uiview::proto::{
+        repeated_field, KeyValueMapField, MaskedInput, NestedForm, NumberInput, RepeatedField,
+    };
+    use serde_json::json;
+    fn field(id: &str, kind: Kind) -> FormField {
+        FormField {
+            field_id: id.into(),
+            label: id.into(),
+            kind: Some(kind),
+            ..Default::default()
+        }
+    }
+    fn descriptor(fields: Vec<FormField>) -> PanelDescriptor {
+        let authored = PanelDescriptor {
+            body: Some(Body::Form(FormPanel {
+                fields,
+                mode: FormMode::Edit as i32,
+                submit: Some(RpcCall {
+                    service: "fixture.Forms".into(),
+                    method: "Save".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        PanelDescriptor::decode(authored.encode_to_vec().as_slice()).unwrap()
+    }
+    fn form(descriptor: &PanelDescriptor) -> &FormPanel {
+        match descriptor.body.as_ref().unwrap() {
+            Body::Form(form) => form,
+            _ => panic!("form required"),
+        }
+    }
+    fn draw(view: &mut PanelView, descriptor: &PanelDescriptor) -> String {
+        let mut term = Terminal::new(TestBackend::new(100, 20)).unwrap();
+        term.draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+        term.backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
+    fn edit(view: &mut PanelView, form: &FormPanel, text: &str) {
+        let ctx = Context::default();
+        assert!(view.handle_form_key(form, &ctx, KeyCode::F(2)).is_none());
+        view.handle_form_key(form, &ctx, KeyCode::Delete);
+        for character in text.chars() {
+            view.handle_form_key(form, &ctx, KeyCode::Char(character));
+        }
+        assert!(view.handle_form_key(form, &ctx, KeyCode::Enter).is_none());
+    }
+    #[test]
+    fn all_nine_kinds_edit_and_emit_raw_typed_values() {
+        let descriptor = descriptor(vec![
+            field(
+                "text",
+                Kind::Text(TextInput {
+                    default_value: "0001".into(),
+                    ..Default::default()
+                }),
+            ),
+            field(
+                "secret",
+                Kind::Masked(MaskedInput {
+                    default_value: "hidden".into(),
+                    ..Default::default()
+                }),
+            ),
+            field("integer", Kind::Integer(IntegerSpinner::default())),
+            field(
+                "number",
+                Kind::Number(NumberInput {
+                    default_value: 0.25,
+                    ..Default::default()
+                }),
+            ),
+            field("boolean", Kind::Boolean(BooleanToggle::default())),
+            field(
+                "enum",
+                Kind::EnumSelection(EnumSelection {
+                    allowed_values: vec!["RAW".into()],
+                    ..Default::default()
+                }),
+            ),
+            field(
+                "nested",
+                Kind::Nested(NestedForm {
+                    fields: vec![field("enabled", Kind::Boolean(BooleanToggle::default()))],
+                }),
+            ),
+            field(
+                "array",
+                Kind::Repeated(Box::new(RepeatedField {
+                    element: Some(repeated_field::Element::Scalar(Box::new(field(
+                        "element",
+                        Kind::Text(TextInput::default()),
+                    )))),
+                    ..Default::default()
+                })),
+            ),
+            field("map", Kind::KeyValueMap(KeyValueMapField::default())),
+        ]);
+        let form = form(&descriptor);
+        let mut view = PanelView::new();
+        let output = draw(&mut view, &descriptor);
+        assert!(!output.contains("hidden"));
+        for _ in 0..6 {
+            view.handle_form_key(form, &Context::default(), KeyCode::Tab);
+        }
+        edit(&mut view, form, r#"{"enabled":true}"#);
+        view.handle_form_key(form, &Context::default(), KeyCode::Tab);
+        edit(&mut view, form, r#"["", "0001"]"#);
+        view.handle_form_key(form, &Context::default(), KeyCode::Tab);
+        view.handle_form_key(form, &Context::default(), KeyCode::F(2));
+        assert!(draw(&mut view, &descriptor).contains("as JSON"));
+        view.handle_form_key(form, &Context::default(), KeyCode::Esc);
+        edit(&mut view, form, r#"{"empty":"", "zero":"0"}"#);
+        let response = view
+            .handle_form_key(form, &Context::default(), KeyCode::Enter)
+            .unwrap();
+        assert_eq!(
+            response.request,
+            json!({ "text":"0001", "secret":"hidden", "integer":0, "number":0.25, "boolean":false, "enum":"RAW", "nested":{"enabled":true}, "array":["", "0001"], "map":{"empty":"", "zero":"0"} })
+        );
+    }
+    #[test]
+    fn invalid_values_block_submission_and_recover_without_losing_edits() {
+        let descriptor = descriptor(vec![field(
+            "name",
+            Kind::Text(TextInput {
+                default_value: "x".into(),
+                min_length: 2,
+                ..Default::default()
+            }),
+        )]);
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor);
+        assert!(view
+            .handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+            .is_none());
+        assert!(draw(&mut view, &descriptor).contains("invalid length"));
+        view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Char('y'));
+        assert_eq!(
+            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request["name"],
+            "xy"
+        );
+    }
+    #[test]
+    fn invalid_compound_edits_stay_open_and_replacement_discards_stale_state() {
+        let original = descriptor(vec![field(
+            "map",
+            Kind::KeyValueMap(KeyValueMapField::default()),
+        )]);
+        let mut view = PanelView::new();
+        draw(&mut view, &original);
+        edit(&mut view, form(&original), r#"{"bad":false}"#);
+        assert!(draw(&mut view, &original).contains("must be a string"));
+        let replacement = descriptor(vec![field(
+            "name",
+            Kind::Text(TextInput {
+                default_value: "replacement".into(),
+                ..Default::default()
+            }),
+        )]);
+        assert!(view
+            .handle_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
+            .is_none());
+        assert!(draw(&mut view, &replacement).contains("replacement"));
+        assert_eq!(
+            view.handle_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request,
+            json!({"name":"replacement"})
+        );
+    }
+    #[test]
+    fn readonly_fields_ignore_all_edit_and_submit_keys() {
+        let mut descriptor = descriptor(vec![field(
+            "name",
+            Kind::Text(TextInput {
+                default_value: "original".into(),
+                ..Default::default()
+            }),
+        )]);
+        if let Some(Body::Form(form)) = descriptor.body.as_mut() {
+            form.mode = FormMode::Readonly as i32;
+        }
+        let mut view = PanelView::new();
+        let before = draw(&mut view, &descriptor);
+        for key in [
+            KeyCode::Char('x'),
+            KeyCode::Backspace,
+            KeyCode::F(2),
+            KeyCode::Enter,
+        ] {
+            assert!(view
+                .handle_form_key(form(&descriptor), &Context::default(), key)
+                .is_none());
+        }
+        assert_eq!(draw(&mut view, &descriptor), before);
+    }
+    #[test]
+    fn empty_forms_submit_explicitly_without_navigation_panics() {
+        let descriptor = descriptor(vec![]);
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor);
+        for key in [
+            KeyCode::Tab,
+            KeyCode::Up,
+            KeyCode::Down,
+            KeyCode::BackTab,
+            KeyCode::F(2),
+        ] {
+            assert!(view
+                .handle_form_key(form(&descriptor), &Context::default(), key)
+                .is_none());
+        }
+        assert_eq!(
+            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request,
+            json!({})
+        );
+    }
+    #[test]
+    fn lro_bounds_are_checked_before_emitting_start_requests() {
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Lro(LroPanel {
+                inputs: vec![field(
+                    "count",
+                    Kind::Integer(IntegerSpinner {
+                        min: 1,
+                        ..Default::default()
+                    }),
+                )],
+                start: Some(RpcCall {
+                    service: "fixture.Jobs".into(),
+                    method: "Start".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let Some(Body::Lro(panel)) = &descriptor.body else {
+            panic!()
+        };
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor);
+        assert!(view
+            .handle_lro_key(panel, &Context::default(), KeyCode::Enter)
+            .is_none());
+        assert!(draw(&mut view, &descriptor).contains("invalid number"));
+        view.handle_lro_key(panel, &Context::default(), KeyCode::Right);
+        assert_eq!(
+            view.handle_lro_key(panel, &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request["count"],
+            1
+        );
+    }
+}
+
 mod inline_prompts {
     use super::*;
     use crossterm::event::{KeyEvent, KeyModifiers};
@@ -2029,7 +2307,7 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
             }
             .to_string(),
             if mode == FormMode::Edit {
-                "↑/↓ select · edit scalar · Enter submit"
+                "↑/↓ select · ←/→ numeric · F2 JSON · Enter submit"
             } else {
                 "read-only form"
             }

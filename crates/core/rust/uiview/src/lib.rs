@@ -58,6 +58,7 @@ pub mod proto {
 }
 
 mod conversation;
+mod form_values;
 mod launchpad;
 mod paths;
 mod payload_budget;
@@ -70,6 +71,7 @@ mod stream;
 mod conformance;
 
 pub use conversation::{is_active_status, ConversationModel};
+pub use form_values::validate_form_values;
 pub use launchpad::{command_haystack, filter_launchpad, flatten, match_score, FilteredGroup};
 pub use paths::ProtoPaths;
 pub use payload_budget::{
