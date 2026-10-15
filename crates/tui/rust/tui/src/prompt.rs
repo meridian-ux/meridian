@@ -130,11 +130,7 @@ pub fn render_prompt(
     let backend = CrosstermBackend::new(stdout);
     let mut term = Terminal::new(backend)?;
 
-    let result = if panel.is_confirmation {
-        run_confirmation(&mut term, panel, palette)
-    } else {
-        run_form(&mut term, panel, palette)
-    };
+    let result = run_state(&mut term, panel, palette);
 
     // Always restore terminal state, even on Err.
     let _ = execute!(
@@ -192,48 +188,20 @@ fn validate_repeated_shape(field: &FormField, spec: &RepeatedField) -> Result<()
 // Confirmation mode
 // ──────────────────────────────────────────────────────────────
 
-fn run_confirmation<B: ratatui::backend::Backend>(
+fn run_state<B: ratatui::backend::Backend>(
     term: &mut Terminal<B>,
     panel: &PromptPanel,
     palette: &Palette,
 ) -> Result<PromptResponse, PromptError> {
-    let accept = if panel.accept_label.is_empty() {
-        "Yes"
-    } else {
-        &panel.accept_label
-    };
-    let cancel = if panel.cancel_label.is_empty() {
-        "No"
-    } else {
-        &panel.cancel_label
-    };
-
+    let mut state = PromptState::new(panel)?;
     loop {
-        term.draw(|f| draw_confirmation(f, panel, accept, cancel, palette))?;
-
-        if let Event::Key(KeyEvent {
-            code,
-            kind,
-            modifiers,
-            ..
-        }) = event::read()?
-        {
-            if kind != KeyEventKind::Press {
-                continue;
-            }
-            match code {
-                KeyCode::Char('y') | KeyCode::Char('Y') => {
-                    return Ok(PromptResponse::Confirmed(true))
-                }
-                KeyCode::Char('n') | KeyCode::Char('N') => {
-                    return Ok(PromptResponse::Confirmed(false))
-                }
-                KeyCode::Enter => return Ok(PromptResponse::Confirmed(false)), // default = No
-                KeyCode::Esc => return Ok(PromptResponse::Cancelled),
-                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Ok(PromptResponse::Cancelled);
-                }
-                _ => {}
+        term.draw(|frame| {
+            let area = frame.area();
+            state.draw(frame, area, palette);
+        })?;
+        if let Event::Key(key) = event::read()? {
+            if let Some(response) = state.handle_key(key) {
+                return Ok(response);
             }
         }
     }
@@ -241,12 +209,12 @@ fn run_confirmation<B: ratatui::backend::Backend>(
 
 fn draw_confirmation(
     f: &mut Frame,
+    area: Rect,
     panel: &PromptPanel,
     accept: &str,
     cancel: &str,
     palette: &Palette,
 ) {
-    let area = f.area();
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(header_body_footer(&panel.detail))
@@ -295,53 +263,97 @@ struct FieldState {
     error: Option<String>,
 }
 
-fn run_form<B: ratatui::backend::Backend>(
-    term: &mut Terminal<B>,
-    panel: &PromptPanel,
-    palette: &Palette,
-) -> Result<PromptResponse, PromptError> {
-    let mut states: Vec<FieldState> = panel.fields.iter().map(initial_state).collect();
-    let mut focus: usize = 0;
+/// Embeddable local interaction state used by the one-shot driver. It owns no
+/// terminal, transport, or serialized response envelope; PanelView can reuse it.
+pub(crate) struct PromptState {
+    panel: PromptPanel,
+    states: Vec<FieldState>,
+    focus: usize,
+    finished: Option<&'static str>,
+}
 
-    loop {
-        term.draw(|f| draw_form(f, panel, &states, focus, palette))?;
+impl PromptState {
+    pub(crate) fn new(panel: &PromptPanel) -> Result<Self, PromptError> {
+        if !panel.is_confirmation && panel.fields.is_empty() {
+            return Err(PromptError::EmptyPrompt);
+        }
+        validate_supported_fields(&panel.fields)?;
+        Ok(Self {
+            panel: panel.clone(),
+            states: panel.fields.iter().map(initial_state).collect(),
+            focus: 0,
+            finished: None,
+        })
+    }
 
-        if let Event::Key(KeyEvent {
-            code,
-            kind,
-            modifiers,
-            ..
-        }) = event::read()?
+    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> Option<PromptResponse> {
+        if self.finished.is_some() || key.kind != KeyEventKind::Press {
+            return None;
+        }
+        let response = if key.code == KeyCode::Esc
+            || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
         {
-            if kind != KeyEventKind::Press {
-                continue;
+            Some(PromptResponse::Cancelled)
+        } else if key
+            .modifiers
+            .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT)
+        {
+            None
+        } else if self.panel.is_confirmation {
+            match key.code {
+                KeyCode::Char('y' | 'Y') => Some(PromptResponse::Confirmed(true)),
+                KeyCode::Char('n' | 'N') | KeyCode::Enter => Some(PromptResponse::Confirmed(false)),
+                _ => None,
             }
-            // Global keys first.
-            match code {
-                KeyCode::Esc => return Ok(PromptResponse::Cancelled),
-                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Ok(PromptResponse::Cancelled);
+        } else {
+            match key.code {
+                KeyCode::Tab => self.focus = (self.focus + 1) % self.states.len(),
+                KeyCode::BackTab => {
+                    self.focus = (self.focus + self.states.len() - 1) % self.states.len()
                 }
-                KeyCode::Tab | KeyCode::Down if !is_editing_field(&states[focus]) => {
-                    focus = (focus + 1) % states.len();
-                    continue;
+                KeyCode::Down if !is_editing_field(&self.states[self.focus]) => {
+                    self.focus = (self.focus + 1) % self.states.len()
                 }
-                KeyCode::BackTab | KeyCode::Up if !is_editing_field(&states[focus]) => {
-                    focus = (focus + states.len() - 1) % states.len();
-                    continue;
+                KeyCode::Up if !is_editing_field(&self.states[self.focus]) => {
+                    self.focus = (self.focus + self.states.len() - 1) % self.states.len()
                 }
                 KeyCode::Enter => {
-                    // Validate every field. If all pass, return values.
-                    if validate_all(&mut states) {
-                        return Ok(PromptResponse::Submitted(collect(&states)));
+                    if validate_all(&mut self.states) {
+                        self.finished = Some("Submitted.");
+                        return Some(PromptResponse::Submitted(collect(&self.states)));
                     }
-                    // Else: errors are now populated; re-render shows them.
-                    continue;
                 }
-                _ => {}
+                code => apply_field_input(&mut self.states[self.focus], code),
             }
-            // Per-kind keys.
-            apply_field_input(&mut states[focus], code);
+            None
+        };
+        if let Some(response) = &response {
+            self.finished = Some(if matches!(response, PromptResponse::Cancelled) {
+                "Canceled."
+            } else {
+                "Submitted."
+            });
+        }
+        response
+    }
+
+    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: &Palette) {
+        if let Some(status) = self.finished {
+            frame.render_widget(Paragraph::new(status).style(palette.text()), area);
+        } else if self.panel.is_confirmation {
+            let accept = if self.panel.accept_label.is_empty() {
+                "Yes"
+            } else {
+                &self.panel.accept_label
+            };
+            let cancel = if self.panel.cancel_label.is_empty() {
+                "No"
+            } else {
+                &self.panel.cancel_label
+            };
+            draw_confirmation(frame, area, &self.panel, accept, cancel, palette);
+        } else {
+            draw_form(frame, area, &self.panel, &self.states, self.focus, palette);
         }
     }
 }
@@ -771,12 +783,12 @@ fn draw_detail(f: &mut Frame, area: Rect, detail: &str) {
 
 fn draw_form(
     f: &mut Frame,
+    area: Rect,
     panel: &PromptPanel,
     states: &[FieldState],
     focus: usize,
     palette: &Palette,
 ) {
-    let area = f.area();
     let outer = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -894,6 +906,139 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
     }
 
     f.render_widget(Paragraph::new(lines), area);
+}
+
+#[cfg(test)]
+mod shared_state_tests {
+    use super::*;
+    use ratatui::{backend::TestBackend, Terminal};
+
+    fn key(code: KeyCode) -> KeyEvent {
+        KeyEvent::new(code, KeyModifiers::NONE)
+    }
+    fn panel(fields: Vec<FormField>) -> PromptPanel {
+        PromptPanel {
+            fields,
+            ..Default::default()
+        }
+    }
+    fn text() -> FormField {
+        FormField {
+            field_id: "text".into(),
+            label: "Text".into(),
+            kind: Some(Kind::Text(TextInput::default())),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn reusable_state_collects_unicode_once_without_a_terminal_driver() {
+        let mut state = PromptState::new(&panel(vec![text()])).unwrap();
+        let mut release = key(KeyCode::Char('x'));
+        release.kind = KeyEventKind::Release;
+        assert!(state.handle_key(release).is_none());
+        state.handle_key(key(KeyCode::Char('🦀')));
+        state.handle_key(key(KeyCode::Char('z')));
+        state.handle_key(key(KeyCode::Backspace));
+        let Some(PromptResponse::Submitted(values)) = state.handle_key(key(KeyCode::Enter)) else {
+            panic!("expected submission")
+        };
+        assert_eq!(values["text"].as_string(), "🦀");
+        assert!(state.handle_key(key(KeyCode::Enter)).is_none());
+        assert!(state.handle_key(key(KeyCode::Esc)).is_none());
+    }
+
+    #[test]
+    fn tab_leaves_numeric_and_boolean_editors_while_arrows_edit_them() {
+        let fields = vec![
+            FormField {
+                field_id: "integer".into(),
+                kind: Some(Kind::Integer(IntegerSpinner::default())),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "boolean".into(),
+                kind: Some(Kind::Boolean(BooleanToggle::default())),
+                ..Default::default()
+            },
+        ];
+        let mut state = PromptState::new(&panel(fields)).unwrap();
+        state.handle_key(key(KeyCode::Up));
+        state.handle_key(key(KeyCode::Tab));
+        assert_eq!(state.focus, 1);
+        state.handle_key(key(KeyCode::Char(' ')));
+        state.handle_key(key(KeyCode::BackTab));
+        assert_eq!(state.focus, 0);
+        let Some(PromptResponse::Submitted(values)) = state.handle_key(key(KeyCode::Enter)) else {
+            panic!("expected submission")
+        };
+        assert!(matches!(values["integer"], FieldValue::Integer(1)));
+        assert!(matches!(values["boolean"], FieldValue::Boolean(true)));
+    }
+
+    #[test]
+    fn validation_preserves_edits_and_masks_values_in_an_embedded_rect() {
+        let field = FormField {
+            field_id: "secret".into(),
+            label: "Secret".into(),
+            kind: Some(Kind::Masked(MaskedInput {
+                default_value: "secret".into(),
+                min_length: 7,
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut state = PromptState::new(&panel(vec![field])).unwrap();
+        assert!(state.handle_key(key(KeyCode::Enter)).is_none());
+        assert!(state.states[0].error.is_some());
+        assert_eq!(state.states[0].text, "secret");
+        let mut terminal = Terminal::new(TestBackend::new(60, 20)).unwrap();
+        let area = Rect::new(3, 2, 50, 14);
+        terminal
+            .draw(|frame| state.draw(frame, area, &Palette::default()))
+            .unwrap();
+        let buffer = terminal.backend().buffer();
+        let mut rendered = String::new();
+        for y in 0..20 {
+            for x in 0..60 {
+                let symbol = buffer[(x, y)].symbol();
+                rendered.push_str(symbol);
+                if x < area.x || x >= area.right() || y < area.y || y >= area.bottom() {
+                    assert_eq!(symbol, " ");
+                }
+            }
+        }
+        assert!(rendered.contains("Secret"));
+        assert!(!rendered.contains("secret"));
+        assert!(rendered.contains("******"));
+        state.handle_key(key(KeyCode::Char('🦀')));
+        let Some(PromptResponse::Submitted(values)) = state.handle_key(key(KeyCode::Enter)) else {
+            panic!("expected repaired submission")
+        };
+        assert!(matches!(&values["secret"], FieldValue::Masked(value) if value == "secret🦀"));
+    }
+
+    #[test]
+    fn confirmation_default_no_and_cancellation_remain_distinct_and_one_shot() {
+        let panel = PromptPanel {
+            is_confirmation: true,
+            ..Default::default()
+        };
+        let mut no = PromptState::new(&panel).unwrap();
+        assert!(no
+            .handle_key(KeyEvent::new(KeyCode::Char('y'), KeyModifiers::CONTROL))
+            .is_none());
+        assert!(matches!(
+            no.handle_key(key(KeyCode::Enter)),
+            Some(PromptResponse::Confirmed(false))
+        ));
+        assert!(no.handle_key(key(KeyCode::Char('y'))).is_none());
+        let mut canceled = PromptState::new(&panel).unwrap();
+        assert!(matches!(
+            canceled.handle_key(KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)),
+            Some(PromptResponse::Cancelled)
+        ));
+    }
 }
 
 #[cfg(test)]
