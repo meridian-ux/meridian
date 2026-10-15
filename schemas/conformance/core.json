@@ -1,0 +1,505 @@
+{
+  "paths": [
+    {
+      "name": "nested",
+      "input": {
+        "a": {
+          "b": 7
+        }
+      },
+      "path": "a.b",
+      "expected": 7
+    },
+    {
+      "name": "false",
+      "input": {
+        "a": false
+      },
+      "path": "a",
+      "expected": false
+    },
+    {
+      "name": "zero",
+      "input": {
+        "a": 0
+      },
+      "path": "a",
+      "expected": 0
+    },
+    {
+      "name": "missing",
+      "input": {
+        "a": {}
+      },
+      "path": "a.b.c",
+      "expected": null
+    },
+    {
+      "name": "scalar-intermediate",
+      "input": {
+        "a": 7
+      },
+      "path": "a.b",
+      "expected": null
+    },
+    {
+      "name": "array-not-an-object",
+      "input": [
+        "a"
+      ],
+      "path": "0",
+      "expected": null
+    },
+    {
+      "name": "empty-path",
+      "input": {
+        "a": [
+          false,
+          0,
+          null
+        ]
+      },
+      "path": "",
+      "expected": {
+        "a": [
+          false,
+          0,
+          null
+        ]
+      }
+    }
+  ],
+  "requests": [
+    {
+      "name": "all-bridge-sources",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaCAoEbmFtZRABGgwKCGlkZW50aXR5EAIaEwoGcm93LmlkGgluZXN0ZWQuaWQaEgoHZW5hYmxlZCIHZW5hYmxlZBoOCgVjb3VudCIFY291bnQaDQoFc2NvcGVCBHllYXIaEAoFbGFiZWwqB2xpdGVyYWwaFgoFY2hpbGQyDQoLCgVsaW1pdCoCNTAaEQoHbWlzc2luZxoGYWJzZW50Gg8KBnNpZ25hbDoFYnJ1c2g=",
+      "context": {
+        "currentResourcePath": "resources/1",
+        "uiIdentity": {
+          "name": "human/ada"
+        },
+        "selectedRow": {
+          "nested": {
+            "id": 0
+          }
+        },
+        "formValues": {
+          "enabled": false,
+          "count": 0
+        },
+        "selections": {
+          "year": 2026
+        }
+      },
+      "expected": {
+        "name": "resources/1",
+        "identity": {
+          "name": "human/ada"
+        },
+        "row": {
+          "id": 0
+        },
+        "enabled": false,
+        "count": 0,
+        "scope": 2026,
+        "label": "literal",
+        "child": {
+          "limit": "50"
+        }
+      }
+    },
+    {
+      "name": "absent-context-omits-sources",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaCAoEbmFtZRABGgwKCGlkZW50aXR5EAIaEwoGcm93LmlkGgluZXN0ZWQuaWQaEgoHZW5hYmxlZCIHZW5hYmxlZBoOCgVjb3VudCIFY291bnQaDQoFc2NvcGVCBHllYXIaEAoFbGFiZWwqB2xpdGVyYWwaFgoFY2hpbGQyDQoLCgVsaW1pdCoCNTAaEQoHbWlzc2luZxoGYWJzZW50Gg8KBnNpZ25hbDoFYnJ1c2g=",
+      "context": {},
+      "expected": {
+        "label": "literal",
+        "child": {
+          "limit": "50"
+        }
+      }
+    },
+    {
+      "name": "null-and-empty-values",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaDQoGYWJzZW50IgNuaWwaDAoEdGV4dCIEdGV4dBoQCgZ2YWx1ZXMiBnZhbHVlcxoOCgVzY29wZUIFc2NvcGU=",
+      "context": {
+        "formValues": {
+          "nil": null,
+          "text": "",
+          "values": []
+        },
+        "selections": {
+          "scope": false
+        }
+      },
+      "expected": {
+        "text": "",
+        "values": [],
+        "scope": false
+      }
+    },
+    {
+      "name": "ordered-path-overwrite",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaCAoBYSoDb2xkGgoKA2EuYioDbmV3GgsKA2EuYioEbGFzdA==",
+      "context": {},
+      "expected": {
+        "a": {
+          "b": "last"
+        }
+      }
+    },
+    {
+      "name": "unknown-context-and-unset-source",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaDAoHdW5rbm93bhDnBxoHCgV1bnNldBoJKgdpZ25vcmVk",
+      "context": {},
+      "expected": {}
+    },
+    {
+      "name": "unbound-call",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGw=",
+      "context": {},
+      "expected": {}
+    }
+  ],
+  "tables": [
+    {
+      "name": "populated-nested-rows",
+      "table": "EgtyZXN1bHQucm93cyoMCgROYW1lEgRuYW1lKhQKBkFjdGl2ZRIGYWN0aXZlMgIIBSoUCgRDb3N0EgRjb3N0MgYIBBoCCAIqEAoGQWJzZW50EgZhYnNlbnQqHQoPRGVjbGFyZWQgYWJzZW50EgZhYnNlbnQyAggB",
+      "response": {
+        "result": {
+          "rows": [
+            {
+              "name": "Ada",
+              "active": false,
+              "cost": -1.125,
+              "nested": {
+                "count": 0
+              }
+            }
+          ]
+        }
+      },
+      "expected": [
+        {
+          "raw": {
+            "name": "Ada",
+            "active": false,
+            "cost": -1.125,
+            "nested": {
+              "count": 0
+            }
+          },
+          "cells": [
+            "Ada",
+            "No",
+            "-1.13",
+            "",
+            "—"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "table": "EgtyZXN1bHQucm93cyoMCgROYW1lEgRuYW1lKhQKBkFjdGl2ZRIGYWN0aXZlMgIIBSoUCgRDb3N0EgRjb3N0MgYIBBoCCAIqEAoGQWJzZW50EgZhYnNlbnQqHQoPRGVjbGFyZWQgYWJzZW50EgZhYnNlbnQyAggB",
+      "response": {
+        "result": {
+          "rows": []
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "missing-rows",
+      "table": "EgtyZXN1bHQucm93cyoMCgROYW1lEgRuYW1lKhQKBkFjdGl2ZRIGYWN0aXZlMgIIBSoUCgRDb3N0EgRjb3N0MgYIBBoCCAIqEAoGQWJzZW50EgZhYnNlbnQqHQoPRGVjbGFyZWQgYWJzZW50EgZhYnNlbnQyAggB",
+      "response": {},
+      "expected": []
+    },
+    {
+      "name": "wrong-rows-shape",
+      "table": "EgtyZXN1bHQucm93cyoMCgROYW1lEgRuYW1lKhQKBkFjdGl2ZRIGYWN0aXZlMgIIBSoUCgRDb3N0EgRjb3N0MgYIBBoCCAIqEAoGQWJzZW50EgZhYnNlbnQqHQoPRGVjbGFyZWQgYWJzZW50EgZhYnNlbnQyAggB",
+      "response": {
+        "result": {
+          "rows": {}
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "scalar-row",
+      "table": "EgRyb3dzKgA=",
+      "response": {
+        "rows": [
+          0,
+          false
+        ]
+      },
+      "expected": [
+        {
+          "raw": 0,
+          "cells": [
+            "0"
+          ]
+        },
+        {
+          "raw": false,
+          "cells": [
+            "false"
+          ]
+        }
+      ]
+    }
+  ],
+  "galleries": [
+    {
+      "name": "all-slots",
+      "gallery": "EgRyb3dzIi4KBG5hbWUSBmFjdGl2ZRoEaWNvbiIGc3RhdHVzKgRocmVmMgZhY3Rpb25KAggF",
+      "response": {
+        "rows": [
+          {
+            "name": "Alpha",
+            "active": false,
+            "icon": "repo",
+            "status": "ready",
+            "href": "/alpha",
+            "action": "Open"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "name": "Alpha",
+            "active": false,
+            "icon": "repo",
+            "status": "ready",
+            "href": "/alpha",
+            "action": "Open"
+          },
+          "title": "Alpha",
+          "subtitle": "No",
+          "icon": "repo",
+          "status": "ready",
+          "href": "/alpha",
+          "action_label": "Open"
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "gallery": "EgRyb3dzIi4KBG5hbWUSBmFjdGl2ZRoEaWNvbiIGc3RhdHVzKgRocmVmMgZhY3Rpb25KAggF",
+      "response": {
+        "rows": []
+      },
+      "expected": []
+    },
+    {
+      "name": "missing-card",
+      "gallery": "EgRyb3dz",
+      "response": {
+        "rows": [
+          {
+            "name": "Alpha",
+            "active": false,
+            "icon": "repo",
+            "status": "ready",
+            "href": "/alpha",
+            "action": "Open"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "name": "Alpha",
+            "active": false,
+            "icon": "repo",
+            "status": "ready",
+            "href": "/alpha",
+            "action": "Open"
+          },
+          "title": "",
+          "subtitle": "",
+          "icon": "",
+          "status": "",
+          "href": "",
+          "action_label": ""
+        }
+      ]
+    },
+    {
+      "name": "missing-and-scalar-slots",
+      "gallery": "EgRyb3dzIhYKDG5lc3RlZC52YWx1ZRIGYWJzZW50",
+      "response": {
+        "rows": [
+          {
+            "nested": {
+              "value": 0
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "nested": {
+              "value": 0
+            }
+          },
+          "title": "0",
+          "subtitle": "",
+          "icon": "",
+          "status": "",
+          "href": "",
+          "action_label": ""
+        }
+      ]
+    }
+  ],
+  "metadata": [
+    {
+      "name": "state-and-status",
+      "input": {
+        "state": "RUNNING",
+        "status_message": "Working"
+      },
+      "expected": "[RUNNING] Working"
+    },
+    {
+      "name": "state-only",
+      "input": {
+        "state": "DONE"
+      },
+      "expected": "[DONE] "
+    },
+    {
+      "name": "status-only",
+      "input": {
+        "status_message": "Waiting"
+      },
+      "expected": "Waiting"
+    },
+    {
+      "name": "fallback",
+      "input": {
+        "progress": 0
+      },
+      "expected": "{\"progress\":0}"
+    },
+    {
+      "name": "null",
+      "input": null,
+      "expected": "null"
+    }
+  ],
+  "budgets": [
+    {
+      "name": "rate-and-total",
+      "maxBytes": 8,
+      "maxRate": 5,
+      "frames": [
+        {
+          "bytes": 3,
+          "now": 100,
+          "expected": 0
+        },
+        {
+          "bytes": 3,
+          "now": 500,
+          "expected": 2
+        },
+        {
+          "bytes": 3,
+          "now": 1101,
+          "expected": 0
+        },
+        {
+          "bytes": 3,
+          "now": 1102,
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "name": "invalid-clock-and-recovery",
+      "maxBytes": 8,
+      "maxRate": 8,
+      "frames": [
+        {
+          "bytes": 1,
+          "now": "NaN",
+          "expected": 3
+        },
+        {
+          "bytes": 1,
+          "now": "Infinity",
+          "expected": 3
+        },
+        {
+          "bytes": 1,
+          "now": -1,
+          "expected": 3
+        },
+        {
+          "bytes": 1,
+          "now": 10,
+          "expected": 0
+        },
+        {
+          "bytes": 1,
+          "now": 9,
+          "expected": 3
+        },
+        {
+          "bytes": 1,
+          "now": 11,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "name": "rolling-bucket-edge",
+      "maxBytes": 20,
+      "maxRate": 5,
+      "frames": [
+        {
+          "bytes": 5,
+          "now": 0,
+          "expected": 0
+        },
+        {
+          "bytes": 1,
+          "now": 1000,
+          "expected": 2
+        },
+        {
+          "bytes": 5,
+          "now": 1001,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "name": "zero-selects-defaults",
+      "maxBytes": 0,
+      "maxRate": 0,
+      "frames": [
+        {
+          "bytes": 1048576,
+          "now": 0,
+          "expected": 0
+        },
+        {
+          "bytes": 1,
+          "now": 1,
+          "expected": 2
+        },
+        {
+          "bytes": 1,
+          "now": 1001,
+          "expected": 0
+        }
+      ]
+    }
+  ]
+}

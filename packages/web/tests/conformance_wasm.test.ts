@@ -23,12 +23,13 @@
 // interface claims. If the core ever reverts to Maps, this fails here rather
 // than in a browser three repos downstream.
 
-import { create, toBinary } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
@@ -47,6 +48,8 @@ const GLUE = "./meridian_uiview.js";
 const WASM = "./meridian_uiview_bg.wasm";
 
 let wasm: UiviewWasm;
+let core: ReturnType<typeof JSON.parse>;
+let values: ReturnType<typeof JSON.parse>;
 
 beforeAll(async () => {
   const { readFileSync } = (await import(/* @vite-ignore */ "node:" + "fs")) as NodeFs;
@@ -55,6 +58,9 @@ beforeAll(async () => {
   const mod = await import(glueUrl.href);
   await mod.default({ module_or_path: readFileSync(wasmUrl) });
   wasm = mod as unknown as UiviewWasm;
+  const text = (path: string) => new TextDecoder().decode(readFileSync(new URL(path, import.meta.url)));
+  core = JSON.parse(text("../../../schemas/conformance/core.json"));
+  values = JSON.parse(text("../../../schemas/conformance/value_types.json"));
 });
 
 const CTX = {
@@ -84,6 +90,94 @@ const tablePanel: PanelDescriptor = create(PanelDescriptorSchema, {
       ],
     },
   },
+});
+
+const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+describe("the native crate's shared fixture corpus through real WASM", () => {
+  it("reads the same path fixtures, including false, zero, absent fields, and empty paths", () => {
+    for (const entry of core.paths) {
+      expect(wasm.readPath(entry.input, entry.path), entry.name).toEqual(entry.expected);
+    }
+  });
+
+  it("builds the same requests through standalone and table-populate entrypoints", () => {
+    for (const entry of core.requests) {
+      const bytes = wire(entry.rpc);
+      expect(wasm.buildRequest(bytes, entry.context), entry.name).toEqual(entry.expected);
+      const descriptor = create(PanelDescriptorSchema, {
+        body: { case: "table", value: { populate: fromBinary(RpcCallSchema, bytes) } },
+      });
+      expect(wasm.buildPopulateRequest(toBinary(PanelDescriptorSchema, descriptor), entry.context), entry.name).toEqual(entry.expected);
+    }
+  });
+
+  it("renders the same table fixtures through both table entrypoints", () => {
+    for (const entry of core.tables) {
+      const bytes = wire(entry.table);
+      const actual = wasm.renderTablePanel(bytes, entry.response);
+      expect(actual, entry.name).toEqual(entry.expected);
+      expect(JSON.parse(JSON.stringify(actual)), entry.name).toEqual(entry.expected);
+      const descriptor = create(PanelDescriptorSchema, {
+        body: { case: "table", value: fromBinary(TablePanelSchema, bytes) },
+      });
+      expect(wasm.renderTable(toBinary(PanelDescriptorSchema, descriptor), entry.response), entry.name).toEqual(entry.expected);
+    }
+  });
+
+  it("renders the same gallery fixtures without losing raw rows or navigation slots", () => {
+    const bridge = wasm as UiviewWasm & { renderGalleryPanel(bytes: Uint8Array, response: object): unknown };
+    for (const entry of core.galleries) {
+      const actual = bridge.renderGalleryPanel(wire(entry.gallery), entry.response);
+      expect(actual, entry.name).toEqual(entry.expected);
+      expect(JSON.parse(JSON.stringify(actual)), entry.name).toEqual(entry.expected);
+    }
+  });
+
+  it("formats the same LRO metadata fixtures", () => {
+    for (const entry of core.metadata) {
+      expect(wasm.formatLroMetadata(entry.input), entry.name).toBe(entry.expected);
+    }
+  });
+
+  it("admits the same payload sequences, including invalid clocks and rolling-window edges", () => {
+    const Budget = wasm.WasmPayloadBudget!;
+    for (const entry of core.budgets) {
+      const budget = new Budget(entry.maxBytes, entry.maxRate);
+      for (const frame of entry.frames) {
+        expect(budget.admit(frame.bytes, Number(frame.now)), `${entry.name} at ${frame.now}`).toBe(frame.expected);
+      }
+    }
+  });
+
+  it("runs every native ValueType fixture and null fallback through both table entrypoints", () => {
+    expect(values.cases).toHaveLength(29);
+    for (const entry of values.cases) {
+      const table = create(TablePanelSchema, {
+        rowsField: "rows",
+        columns: [{ fieldPath: "value", valueDisplay: {
+          type: entry.type,
+          options: entry.digits === undefined ? undefined : { case: "number", value: { fractionDigits: entry.digits } },
+        } }],
+      });
+      const response = { rows: [{ value: entry.raw }, { value: null }] };
+      const expected = [
+        { raw: { value: entry.raw }, cells: [entry.expected] },
+        { raw: { value: null }, cells: ["—"] },
+      ];
+      expect(wasm.renderTablePanel(toBinary(TablePanelSchema, table), response), entry.name).toEqual(expected);
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: table } });
+      expect(wasm.renderTable(toBinary(PanelDescriptorSchema, descriptor), response), entry.name).toEqual(expected);
+    }
+  });
+
+  it("retains every operation and unique fixture names", () => {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 5, galleries: 4, metadata: 5, budgets: 4 })) {
+      const cases = core[operation];
+      expect(cases, operation).toHaveLength(count);
+      expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);
+    }
+  });
 });
 
 const RESPONSE = {

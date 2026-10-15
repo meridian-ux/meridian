@@ -298,6 +298,11 @@ Baseline, 2026‑09‑11:
 [#14](../../issues/14) sets a per-package floor that only rises; the current floor is
 declared in [`schemas/conformance/test_floor.json`](schemas/conformance/test_floor.json)
 and checked by [`schemas/tools/check_test_floor.mjs`](schemas/tools/check_test_floor.mjs).
+The native core and its real WASM bridge now share the protobuf-defined
+[`core.json`](schemas/conformance/core.json) fixture corpus for paths, requests,
+tables, galleries, metadata, and payload budgets; WASM also runs the native
+formatter's complete `value_types.json` corpus through both table entrypoints.
+Both implementations compare against the same committed expectations in CI.
 [#15](../../issues/15) tracks release engineering. Its lockfile and strict
 `bazel mod deps --lockfile_mode=error` gate are in place; the unused Bats toolchain
 is stubbed; and the three Tectonic catalog targets are manual and built by a focused

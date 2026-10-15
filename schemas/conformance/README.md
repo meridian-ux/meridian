@@ -1,5 +1,31 @@
 # Renderer conformance
 
+## Native and WASM core fixtures
+
+`core.proto` defines the test-only envelope for `core.json`. Its 31 cases cover
+field paths, request bindings, tables, galleries, LRO status text, and stateful
+payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
+and the real wasm-bindgen bridge compare their outputs with the same committed
+expectations, including false/zero preservation, plain JavaScript objects,
+missing data, and invalid clocks. Both WASM table entrypoints also consume all
+29 `value_types.json` cases already used by the native formatter, including
+each case's null fallback. These tests cover the exported core bridge, not DOM
+layout or every renderer interaction.
+
+The native suites run with `cargo test -p meridian-uiview --lib` or
+`bazel test //crates/core/rust/uiview:uiview_test`. The real bridge suite runs
+with `bazel test //packages/web/tests:conformance_wasm`; this compiles the WASM
+and binds it with the pinned toolchain rather than substituting a mock. CI runs
+both paths, so a divergence from either set of expectations fails the build.
+
+After editing the corpus authoring inputs or intentionally changing the core
+contract, regenerate with `node schemas/tools/write_core_corpus.mjs --write`
+after `pnpm install --frozen-lockfile`, then review the expectation changes.
+Without `--write`, this tool validates the proto3 JSON envelope and checks that
+descriptor bytes and committed expectations match the authoring inputs. CI
+uses this read-only mode; it never records its implementation's actual output
+as expected output.
+
 Conversation list items accept optional title/subtitle `ValueDisplay` declarations.
 Chat HTML/React and TUI tests wire-round-trip temporal and principal labels while
 preserving raw strings. Unsupported types retain literal text; browsers expose

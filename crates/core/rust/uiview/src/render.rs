@@ -14,6 +14,24 @@ pub struct RenderedRow {
     pub cells: Vec<String>,
 }
 
+/// Native and WASM LRO status-line projection, with a literal JSON fallback.
+pub fn format_lro_metadata(value: &Value) -> String {
+    let mut out = String::new();
+    if let Value::String(state) = ProtoPaths::get(value, "state") {
+        out.push('[');
+        out.push_str(state);
+        out.push_str("] ");
+    }
+    if let Value::String(status) = ProtoPaths::get(value, "status_message") {
+        out.push_str(status);
+    }
+    if out.is_empty() {
+        value.to_string()
+    } else {
+        out
+    }
+}
+
 /// Renders the `rows_field` of a JSON response into a sequence of
 /// `RenderedRow`. Each row is paired with its rendered column cells
 /// formatted per the TableColumn.format.
