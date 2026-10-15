@@ -1,7 +1,28 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@rules_vite//vite:defs.bzl", "vitest_test")
 
 package(default_visibility = ["//visibility:public"])
+
+# The web-components fixture is exercised by the workspace's existing hermetic
+# Chrome/Playwright runner in mui-kit; the rendered bundle contains no MUI code.
+esbuild(
+    name = "browser_fixture_bundle",
+    srcs = ["browser_fixture.ts", ":src_lib"],
+    entry_point = "browser_fixture.ts",
+    bundle = True,
+    format = "iife",
+    output = "web_fixture.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    deps = [
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@xterm/addon-fit",
+        "//packages/web:node_modules/@xterm/xterm",
+    ],
+)
 
 js_library(
     name = "src_lib",
@@ -51,6 +72,8 @@ vitest_test(
         "llm_prompt.test.ts",
         "prompt.test.ts",
         "media.test.ts",
+        "steps.test.ts",
+        "gallery.test.ts",
         "__snapshots__/conformance.test.ts.snap",
         "fixtures.ts",
     ],

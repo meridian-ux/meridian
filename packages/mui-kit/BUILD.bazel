@@ -107,6 +107,26 @@ js_test(
     ],
 )
 
+# Share the existing Chrome/Playwright tooling with the DOM renderer's real
+# layout checks. No cross-kit runtime dependency is introduced.
+js_test(
+    name = "web_components_browser_test",
+    args = [
+        "$(rootpath @chrome//:chrome)",
+        "$(rootpath //packages/web/tests:web_fixture.bundle.js)",
+        "$(rootpath //packages/web/theme:css)",
+    ],
+    data = [
+        "//packages/web/tests:web_fixture.bundle.js",
+        "//packages/web/theme:css",
+        ":node_modules/playwright",
+        "@chrome//:chrome",
+    ],
+    entry_point = "tests_browser/web_components.js",
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = ["PATH", "HOME"],
+)
+
 # ── Visual catalog: screenshots → rules_tectonic PDF ────────────────────────
 
 # The screenshot capturer (renders every fixture in @chrome, writes a PNG each +

@@ -1,0 +1,43 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const { chromium } = require("playwright");
+
+async function main() {
+  const browser = await chromium.launch({ executablePath: path.resolve(process.argv[2]), headless: true,
+    args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-gpu"] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1100, height: 800 } });
+    await page.route("https://assets.meridian.invalid/**", route => route.request().url().endsWith(".svg")
+      ? route.fulfill({ status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600"><rect width="1200" height="600" fill="gray"/></svg>' })
+      : route.fulfill({ status: 404, contentType: "text/plain", body: "No frame" }));
+    const css = fs.readFileSync(path.resolve(process.argv[4]), "utf8");
+    await page.setContent('<!doctype html><meta charset="utf-8"><style>' + css + '</style><main id="root" class="meridian-uiview-body" style="margin:16px;--mer-unit:8px"></main>');
+    await page.addScriptTag({ content: fs.readFileSync(path.resolve(process.argv[3]), "utf8") });
+    await page.evaluate(() => window.webConformance.gallery());
+    await page.locator("img").first().waitFor();
+    await page.waitForFunction(() => [...document.querySelectorAll("img")].every(image => image.complete && image.naturalWidth > 0));
+    await page.evaluate(() => {
+      const grid = document.querySelector(".mer-gallery"), cards = [...grid.querySelectorAll("article")];
+      const boxes = cards.map(card => card.getBoundingClientRect());
+      if (getComputedStyle(grid).display !== "grid" || boxes.length !== 3) throw new Error("Gallery is not a card grid");
+      if (!boxes.every(box => Math.abs(box.top - boxes[0].top) < 1) || boxes[1].left <= boxes[0].left) throw new Error("Wide gallery does not form columns");
+      if (getComputedStyle(grid).gap !== "32px" || getComputedStyle(cards[0]).padding !== "24px") throw new Error("Gallery spacing ignores theme units");
+      for (const card of cards) if (card.querySelector("img").getBoundingClientRect().width > card.getBoundingClientRect().width) throw new Error("Image overflows its card");
+    });
+    await page.keyboard.press("Tab");
+    if (await page.evaluate(() => document.activeElement.textContent) !== "Open card 1") throw new Error("Gallery link is not keyboard reachable");
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.evaluate(() => {
+      const boxes = [...document.querySelectorAll(".mer-gallery-card")].map(card => card.getBoundingClientRect());
+      if (!boxes.every(box => Math.abs(box.left - boxes[0].left) < 1) || boxes[1].top <= boxes[0].top) throw new Error("Narrow gallery does not stack");
+      if (document.documentElement.scrollWidth > innerWidth) throw new Error("Narrow gallery overflows horizontally");
+    });
+    await page.evaluate(() => window.webConformance.steps());
+    await page.getByText("Keep the frame summary", { exact: true }).waitFor({ state: "visible" });
+    for (const text of ["Keep the narration", "First", "Second", "Start here", "Finish here"]) await page.getByText(text, { exact: false }).first().waitFor({ state: "visible" });
+    if (await page.locator("ol > li").count() !== 2 || await page.locator("img").count() !== 0) throw new Error("Failed step lost its ordered structure");
+    if (await page.getByRole("link", { name: "Continue", exact: true }).getAttribute("href") !== "/next") throw new Error("Step lost its action");
+    console.log("Web-components gallery layout, theme spacing, keyboard access, and failed-step alternatives passed.");
+  } finally { await browser.close(); }
+}
+main().catch(error => { console.error(error); process.exit(1); });

@@ -233,3 +233,45 @@
 .meridian-uiview-record-rows dd.empty {
   color: var(--_muted);
 }
+
+/* GalleryPanel: preserve the card-grid realization at wide and narrow widths.
+ * The minimum fits inside its container, including small embedded view slots. */
+.mer-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: calc(var(--_unit) * 4);
+}
+.mer-gallery-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: calc(var(--_unit) * 3);
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+}
+.mer-gallery-card-title {
+  margin: 0 0 calc(var(--_unit) * 2);
+}
+.mer-gallery-card-link:focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 2px;
+}
+.mer-gallery-card-image,
+.mer-step-media {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.mer-steps > ol {
+  display: grid;
+  gap: calc(var(--_unit) * 4);
+  padding-inline-start: 2em;
+  list-style: decimal;
+}
+.mer-step {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mer-step-media-alt {
+  color: var(--_muted);
+}

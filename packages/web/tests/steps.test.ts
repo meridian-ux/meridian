@@ -14,6 +14,49 @@ const noWasm: UiviewWasm = {
 };
 
 describe("web-components StepsPanel", () => {
+  const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+  const draw = async (root: HTMLElement, mediaUri: string, mediaAlt = "Frame summary", detail = "Narration") => renderPanel({
+    root, wasm: noWasm, context, invoker: { invoke: async () => ({}) },
+    descriptor: create(PanelDescriptorSchema, { body: { case: "steps", value: {
+      intro: "Start here", outro: "Finish here", steps: [
+        { label: "First", actor: "Admin", mediaUri, mediaAlt, detail, action: { label: "Continue", invoke: { case: "uri", value: "/next" } } },
+        { label: "Second", actor: "Reviewer", detail: "Review the result" },
+      ],
+    } } }),
+  });
+
+  it("uses one ordered list in descriptor order with independent intro, narration, actors, actions, and outro", async () => {
+    const root = document.createElement("div"); await draw(root, "/frame.png");
+    expect(root.querySelectorAll(".mer-steps > ol")).toHaveLength(1);
+    expect([...root.querySelectorAll(".mer-steps > ol > li .mer-step-label")].map(node => node.textContent)).toEqual(["First (Admin)", "Second (Reviewer)"]);
+    for (const text of ["Start here", "Finish here", "Narration", "Review the result"]) expect(root.textContent).toContain(text);
+    expect(root.querySelector("a")!.getAttribute("href")).toBe("/next");
+    expect(root.querySelector("img")!.alt).toBe("Frame summary");
+  });
+
+  it("preserves both narration and a distinct alternative after frame failure without duplicating repeated errors", async () => {
+    const root = document.createElement("div"); await draw(root, "/broken.png");
+    const image = root.querySelector("img")!; expect(root.textContent).not.toContain("Frame summary");
+    image.dispatchEvent(new Event("error")); image.dispatchEvent(new Event("error"));
+    expect(root.querySelector("img")).toBeNull();
+    expect(root.querySelector(".mer-step-detail")!.textContent).toBe("Narration");
+    expect(root.querySelectorAll(".mer-step-media-alt")).toHaveLength(1);
+    expect(root.querySelector(".mer-step-media-alt")!.textContent).toBe("Frame summary");
+    expect(root.querySelectorAll("ol > li")).toHaveLength(2); expect(root.querySelector("a")!.textContent).toBe("Continue");
+    await draw(root, "/replacement.png", "Replacement summary");
+    image.dispatchEvent(new Event("error"));
+    expect(root.textContent).not.toContain("Frame summary"); expect(root.querySelector("img")!.getAttribute("src")).toBe("/replacement.png");
+  });
+
+  it("retains distinct alternatives for absent or rejected frames and deduplicates identical narration", async () => {
+    const root = document.createElement("div");
+    for (const uri of ["", "javascript:alert(1)", "data:text/html,unsafe", "file:///frame.png"]) {
+      await draw(root, uri); expect(root.querySelector("img")).toBeNull();
+      expect(root.textContent).toContain("Narration"); expect(root.textContent).toContain("Frame summary");
+    }
+    await draw(root, "", "Same text", "Same text");
+    expect([...root.querySelectorAll("li:first-child p")].map(node => node.textContent)).toEqual(["Same text"]);
+  });
   it("renders a nested step affordance without dropping its semantics", async () => {
     const root = document.createElement("div");
     await renderPanel({

@@ -1,4 +1,11 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
 package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "css",
+    srcs = ["web/meridian.css"],
+)
 
 # Meridian's style layer (web binding). Pure static assets a host stages next
 # to the renderer, the same way @brand//mdbook:theme is staged:
