@@ -705,14 +705,21 @@ fn form_value<'a>(values: &'a Value, field_id: &str) -> &'a Value {
 
 fn form_value_text(field: &FormField, value: &Value) -> String {
     if matches!(field.kind, Some(Kind::Masked(_))) {
-        return if value.as_str().is_some_and(|text| !text.is_empty()) { "••••••" } else { "(empty)" }.to_owned();
+        return if value.as_str().is_some_and(|text| !text.is_empty()) {
+            "••••••"
+        } else {
+            "(empty)"
+        }
+        .to_owned();
     }
     if let Some(display) = field
         .display
         .as_ref()
         .filter(|display| display.r#type != ValueType::Unspecified as i32)
     {
-        if crate::prompt::has_masked_field(field) { return "••••••".to_owned(); }
+        if crate::prompt::has_masked_field(field) {
+            return "••••••".to_owned();
+        }
         return format_display_value(value, display);
     }
     match field.kind.as_ref() {
