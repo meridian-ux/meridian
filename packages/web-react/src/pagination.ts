@@ -13,7 +13,7 @@
 // The request/response field wiring is pure + separately testable
 // (`buildPageRequest` / `readPage`); the hook is thin glue over them.
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 import {
   PaginationMode,
@@ -471,6 +471,17 @@ export interface RecordState {
   loading: boolean;
   /** True when the populate RPC rejected. */
   error: boolean;
+  /** Retry the current request through the same host/admission seam. */
+  reload: () => void;
+}
+
+function isRecord(value: unknown): value is Row {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasDynamicRecordBindings(bindings: RpcCall["bindings"]): boolean {
+  return bindings.some(binding => binding.source.case === "nested"
+    ? hasDynamicRecordBindings(binding.source.value.fields) : binding.source.case !== "literal");
 }
 
 /**
@@ -490,61 +501,53 @@ export function useRecord(
   invoker: RpcInvoker,
 ): RecordState {
   const initialData = useContext(MeridianInitialDataContext);
-  // Record-scoped: a detail panel with NO populate inside a repeated sub_view binds
-  // to the ambient record (the repeater's row) instead of fetching.
   const ambientRecord = useContext(MeridianRecordContext);
-  // A populate that binds live selection is not seedable (same reason as the table).
-  const seed =
-    populate && initialData && !hasSelectionBindings(populate)
-      ? initialData[`${populate.service}.${populate.method}`]
-      : undefined;
-  const seededRecord = seed?.rows?.[0];
-
   const selection = useMeridianSelection();
-  const selectionKey = selectionDeps(populate, selection.values);
-
-  const [record, setRecord] = useState<Row | undefined>(seededRecord);
-  const [loading, setLoading] = useState<boolean>(Boolean(populate) && !seededRecord);
-  const [error, setError] = useState<boolean>(false);
-  // When SSR-seeded, the record is already in state — skip the first client fetch.
-  const seedPendingRef = useRef<boolean>(Boolean(seededRecord));
+  const [revision, setRevision] = useState(0);
+  const reload = useCallback(() => setRevision(value => value + 1), []);
+  const request: Row = {};
+  if (subjectId != null && subjectId !== "") request[idField || "id"] = subjectId;
+  // Authored bindings override the subject default. Only available runtime
+  // values are used; missing form/signal/host context is never invented.
+  Object.assign(request, buildActionBindingRequest(populate, selection.values, ambientRecord));
+  const requestJson = JSON.stringify(request);
+  const service = populate?.service;
+  const method = populate?.method;
+  const enabled = Boolean(populate);
+  const key = JSON.stringify([service, method, requestJson, revision]);
+  // Effective request keys are primitive; the memoized generation additionally
+  // distinguishes A → disabled/B → A from the old, no-longer-active A request.
+  const identity = useMemo(() => ({ key, invoker, enabled }), [key, invoker, enabled]);
+  // The service/method-only SSR envelope cannot identify live selection or row
+  // scopes, including those nested inside another binding.
+  const seed = populate && !hasDynamicRecordBindings(populate.bindings) ? initialData?.[`${service}.${method}`]?.rows?.[0] : undefined;
+  type Result = { identity: typeof identity; record?: Row; error: boolean };
+  const [result, setResult] = useState<Result | undefined>(() => isRecord(seed)
+    ? { identity, record: seed, error: false } : undefined);
+  const initialSeed = useRef(isRecord(seed) ? identity : undefined);
 
   useEffect(() => {
-    if (!populate) {
-      setLoading(false);
-      return;
-    }
-    if (seedPendingRef.current) {
-      seedPendingRef.current = false;
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-    const request: Row = {};
-    if (subjectId != null && subjectId !== "") request[idField || "id"] = subjectId;
-    // Selection bindings OVERRIDE the subject-id default. This is the documented
-    // 500: the sponsor Overview card fetches `plan-year.get`, and without the
-    // override `id` would stay the SPONSOR's id and the op would 500.
-    Object.assign(request, buildBindingRequest(populate, selection.values));
-    invoker
-      .invoke(populate.service, populate.method, request)
-      .then((response) => {
-        if (!cancelled) setRecord(response as Row);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // selectionKey refetches when a bound selection value changes ("" for unbound).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [populate, invoker, idField, subjectId, selectionKey]);
+    // StrictMode effect replay must not consume the hydration seed twice. It
+    // stops being eligible on any request, transport, enable, or retry change.
+    if (enabled && initialSeed.current === identity) return;
+    initialSeed.current = undefined;
+    if (!enabled) return;
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (!active) return;
+      if (!service || !method) throw new Error("Invalid record populate call.");
+      return invoker.invoke(service, method, JSON.parse(requestJson));
+    }).then(record => {
+      if (!active) return;
+      if (!isRecord(record)) throw new Error("Invalid record response.");
+      setResult({ identity, record, error: false });
+    }).catch(() => { if (active) setResult({ identity, error: true }); });
+    return () => { active = false; };
+  }, [enabled, service, method, requestJson, identity, invoker]);
 
-  if (!populate && ambientRecord) return { record: ambientRecord, loading: false, error: false };
-  return { record, loading, error };
+  if (!enabled) return { record: ambientRecord, loading: false, error: false, reload };
+  // Do not expose stale data even in the render before effect cleanup runs.
+  return result?.identity === identity
+    ? { record: result.record, loading: false, error: result.error, reload }
+    : { record: undefined, loading: true, error: false, reload };
 }

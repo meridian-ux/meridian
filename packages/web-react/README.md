@@ -32,6 +32,28 @@ The design language reaches this repo purely as **npm packages**
 (`@savvifi/meridian-schemas`, `@savvifi/meridian-proto-ts`) — there is no Bazel
 module dependency on meridian-schemas. React is a peer dependency.
 
+### Record loading and retry
+
+`useRecord` resolves detail-header, record-card, and gallery populate calls from
+the current view subject plus available literal, selection, nested, and ambient
+row bindings. Unavailable form, signal, and host-context values remain omitted.
+The effective request and transport identify each fetch; equivalent reconstructed
+descriptors do not refetch. Changed subjects/transports, disabled calls, retries,
+and late replies cannot expose an older request's record.
+
+The bundled HTML and shadcn detail-header/record-card components announce loading
+with `role="status"` and failures with `role="alert"`. Their Retry record button
+uses `useRecord().reload()` through the same host/admission seam. Synchronous
+throws and non-object responses are failures, not apparently successful records.
+No populate means an ambient repeated-view record, or an inert authored fallback,
+never leftover fetched data.
+
+SSR seeds remain service/method-keyed one-row pages. They are scoped to the
+initial request/transport and survive StrictMode effect replay without refetch.
+Calls with live bindings, including nested selections or row fields, cannot use
+these unscoped seeds. A changed request fetches normally rather than reusing the
+old subject's seed. The seed format itself is unchanged.
+
 ### Specialized Terminal support
 
 `Terminal` is an optional kit slot. The bundled HTML, shadcn, and MUI kits
