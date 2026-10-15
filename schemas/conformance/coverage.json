@@ -168,7 +168,7 @@
         },
         "tui": {
           "status": "renders",
-          "reason": "The TUI renders LRO inputs and run affordance text; hosts handle the long-running operation transport."
+          "reason": "The TUI renders typed inputs, host-driven progress/failure/cancellation, and finalized result tables with stale-safe runtime identities; hosts own operation transport and finalization."
         },
         "swiftui": {
           "status": "unverified",
@@ -289,7 +289,7 @@
         },
         "tui": {
           "status": "renders",
-          "reason": "The TUI renders populated gallery cards as selectable text, retaining title, subtitle, status, links, and actions."
+          "reason": "The TUI renders populated gallery cards in a width-aware selectable text grid, retaining title, subtitle, status, links, and actions."
         },
         "swiftui": {
           "status": "unverified",
@@ -317,7 +317,7 @@
         },
         "tui": {
           "status": "renders",
-          "reason": "The TUI renders form fields as labeled terminal controls with read-only and editable modes plus defaults."
+          "reason": "The TUI renders read-only/editable typed controls and bounded recursive defaults; core validation precedes host-owned request collection."
         },
         "swiftui": {
           "status": "unverified",

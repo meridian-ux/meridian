@@ -598,10 +598,12 @@ headers, response schemas, or host network policy.
 
 ## Remaining coverage and tooling
 
-Epic #9 still owns broader populated-shape coverage, visual overflow/layout and
-ValueType renderer fixtures beyond the shared formatter corpus, broader
-interactive snapshots, and native snapshots beyond the
-Gallery/Table/ResourceCards/Steps/Chart text goldens. The common snapshot command now
+Epic #9 still owns external SwiftUI view-tree evidence, renderer-specific visual
+overflow/layout proof, and broader interactive snapshots. The shared panel corpus
+now has 427 canonical cases across all current arms, including typed input/default
+values, with 854 native buffers and 1,708 computed browser accessibility trees;
+those snapshots do not establish general native ViewDescriptor layout or every
+interaction contract. The common snapshot command now
 supports intentional re-recording and optional verification of the Bazel targets
 that own semantic goldens. MUI's semantic suite runs through the package test
 job; its Bazel browser harness is a separate set of tests.
