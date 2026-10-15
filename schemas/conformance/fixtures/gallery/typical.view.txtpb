@@ -1,0 +1,28 @@
+id: "gallery-typical"
+title: "Conformance: gallery · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-typical"
+    title: "gallery · typical"
+    gallery {
+      populate {
+        service: "demo.Gallery"
+        method: "List"
+      }
+      rows_field: "items"
+      placeholder: "no assets"
+      card {
+        title_field: "name"
+        subtitle_field: "description"
+        status_field: "status"
+        href_field: "href"
+        action_label_field: "action"
+      }
+    }
+  }
+}

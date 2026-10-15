@@ -1,0 +1,15 @@
+id: "steps-empty"
+title: "Conformance: steps · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "steps-empty"
+    title: "steps · empty"
+    steps {
+    }
+  }
+}

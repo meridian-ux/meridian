@@ -1,0 +1,20 @@
+id: "prompt-overflow"
+title: "Conformance: prompt · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-overflow"
+    title: "prompt · overflow"
+    prompt {
+      description: "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+      fields {
+        field_id: "reason"
+        label: "Reason"
+      }
+    }
+  }
+}

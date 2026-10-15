@@ -1,0 +1,7 @@
+fields {
+  key: "fixture.Records.Get"
+  value {
+    struct_value {
+    }
+  }
+}

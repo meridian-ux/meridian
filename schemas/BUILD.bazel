@@ -34,8 +34,10 @@ js_library(
         "conformance/fixtures.ts",
         "conformance/normalize_dom.ts",
         "conformance/populated.ts",
+        "conformance/state_cases.ts",
+        "conformance/value_types.json",
         "conformance/coverage.json",
-    ] + glob(["conformance/binpb/*.binpb"]),
+    ] + glob(["conformance/binpb/*.binpb", "conformance/fixtures/**/*.binpb", "conformance/fixtures/**/*.txtpb"]),
     deps = [
         "//schemas:node_modules/@bufbuild/protobuf",
         "//schemas:node_modules/@savvifi/meridian-proto-ts",

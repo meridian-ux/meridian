@@ -1,0 +1,28 @@
+id: "llm_prompt-typical"
+title: "Conformance: llm_prompt · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-typical"
+    title: "llm_prompt · typical"
+    llm_prompt {
+      user_template: "Summarize {{text}}"
+      slots {
+        name: "text"
+        field {
+          field_id: "text"
+          label: "Source text"
+          text {
+            default_value: "A fixture document."
+          }
+        }
+        multi_line: true
+      }
+      description: "Summarize the document"
+    }
+  }
+}

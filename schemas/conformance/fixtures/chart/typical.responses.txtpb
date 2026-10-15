@@ -1,0 +1,62 @@
+fields {
+  key: "fixture.Charts.List"
+  value {
+    struct_value {
+      fields {
+        key: "rows"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-01"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 1.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-02"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 2.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-03"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 3.0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -99,6 +99,19 @@ jobs:
       - name: Conformance corpus
         run: node schemas/tools/check_conformance_corpus.mjs
 
+      - name: Stateful corpus protobuf runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned conformance protobuf runtime
+        run: python3 -m pip install -r tools/conformance_requirements.txt
+
+      - name: Stateful view corpus and readable twins are current
+        run: |
+          python3 tools/stateful_corpus.py
+          python3 -m unittest tools/test_stateful_corpus.py
+
       - name: Native and WASM core corpus is current
         run: node schemas/tools/write_core_corpus.mjs
 
@@ -123,6 +136,7 @@ jobs:
         run: |
           pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
+          pnpm --filter @savvifi/meridian-mui-kit exec tsc -p tsconfig.json --noEmit
 
       # Six package suites report coverage independently. The schemas seam was
       # previously compiled and run with node:test; it now uses Vitest so it is

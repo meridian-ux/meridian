@@ -1,0 +1,1407 @@
+fields {
+  key: "__streamFrames"
+  value {
+    list_value {
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 000"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 001"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 002"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 003"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 004"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 005"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 006"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 007"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 008"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 009"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 010"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 011"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 012"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 013"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 014"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 015"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 016"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 017"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 018"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 019"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 020"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 021"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 022"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 023"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 024"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 025"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 026"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 027"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 028"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 029"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 030"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 031"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 032"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 033"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 034"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 035"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 036"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 037"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 038"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 039"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 040"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 041"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 042"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 043"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 044"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 045"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 046"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 047"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 048"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 049"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 050"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 051"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 052"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 053"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 054"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 055"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 056"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 057"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 058"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 059"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 060"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 061"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 062"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 063"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 064"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 065"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 066"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 067"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 068"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 069"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 070"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 071"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 072"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 073"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 074"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 075"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 076"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 077"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 078"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 079"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 080"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 081"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 082"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 083"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 084"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 085"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 086"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 087"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 088"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 089"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 090"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 091"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 092"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 093"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 094"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 095"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 096"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 097"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 098"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 099"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 100"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 101"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 102"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 103"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 104"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 105"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 106"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 107"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 108"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 109"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 110"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 111"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 112"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 113"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 114"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 115"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 116"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 117"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 118"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 119"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 120"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 121"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 122"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 123"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 124"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 125"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 126"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 127"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 128"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 129"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 130"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 131"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 132"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 133"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 134"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 135"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 136"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 137"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 138"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 139"
+            }
+          }
+        }
+      }
+    }
+  }
+}

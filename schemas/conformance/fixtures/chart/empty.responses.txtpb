@@ -1,0 +1,14 @@
+fields {
+  key: "fixture.Charts.List"
+  value {
+    struct_value {
+      fields {
+        key: "rows"
+        value {
+          list_value {
+          }
+        }
+      }
+    }
+  }
+}

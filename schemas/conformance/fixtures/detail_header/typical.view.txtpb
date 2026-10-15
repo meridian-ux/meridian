@@ -1,0 +1,25 @@
+id: "detail_header-typical"
+title: "Conformance: detail_header · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-typical"
+    title: "detail_header · typical"
+    detail_header {
+      title_source_path: "name"
+      subtitle_source_path: "data.owner"
+      descriptor_rows {
+        label: "Type"
+        source_path: "data.type"
+      }
+      populate {
+        service: "fixture.Records"
+        method: "Get"
+      }
+    }
+  }
+}

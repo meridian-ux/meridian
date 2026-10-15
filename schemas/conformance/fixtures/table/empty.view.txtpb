@@ -1,0 +1,46 @@
+id: "table-empty"
+title: "Conformance: table · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "table-empty"
+    title: "table · empty"
+    table {
+      populate {
+        service: "demo.Claims"
+        method: "List"
+      }
+      rows_field: "claims"
+      placeholder: "no claims"
+      columns {
+        header: "Member"
+        field_path: "member"
+        link {
+          target_kind: "member"
+        }
+      }
+      columns {
+        header: "Amount"
+        field_path: "amount"
+      }
+      columns {
+        header: "Enabled"
+        field_path: "enabled"
+        value_display {
+          type: VALUE_TYPE_BOOLEAN
+        }
+      }
+      columns {
+        header: "Website"
+        field_path: "website"
+        value_display {
+          type: VALUE_TYPE_URL
+        }
+      }
+    }
+  }
+}

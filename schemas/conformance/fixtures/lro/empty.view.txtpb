@@ -1,0 +1,20 @@
+id: "lro-empty"
+title: "Conformance: lro · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-empty"
+    title: "lro · empty"
+    lro {
+      start {
+        service: "fixture.Jobs"
+        method: "Start"
+      }
+      run_button_label: "Run reindex"
+    }
+  }
+}

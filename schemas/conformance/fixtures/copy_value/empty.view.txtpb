@@ -1,0 +1,18 @@
+id: "copy_value-empty"
+title: "Conformance: copy_value · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-empty"
+    title: "copy_value · empty"
+    copy_value {
+      value {
+        label: "Primary integration endpoint for the production workspace across all supported regions"
+      }
+    }
+  }
+}

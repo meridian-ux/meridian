@@ -1,0 +1,14 @@
+fields {
+  key: "demo.Services.List"
+  value {
+    struct_value {
+      fields {
+        key: "services"
+        value {
+          list_value {
+          }
+        }
+      }
+    }
+  }
+}

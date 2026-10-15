@@ -1,0 +1,19 @@
+id: "copy_value-overflow"
+title: "Conformance: copy_value · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-overflow"
+    title: "copy_value · overflow"
+    copy_value {
+      value {
+        value: "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming"
+        label: "Primary integration endpoint for the production workspace across all supported regions"
+      }
+    }
+  }
+}

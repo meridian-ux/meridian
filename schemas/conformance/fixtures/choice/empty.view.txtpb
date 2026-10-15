@@ -1,0 +1,16 @@
+id: "choice-empty"
+title: "Conformance: choice · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "choice-empty"
+    title: "choice · empty"
+    choice {
+      prompt: "Which client?"
+    }
+  }
+}

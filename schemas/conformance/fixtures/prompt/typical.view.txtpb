@@ -1,0 +1,20 @@
+id: "prompt-typical"
+title: "Conformance: prompt · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-typical"
+    title: "prompt · typical"
+    prompt {
+      description: "Delete this resource?"
+      fields {
+        field_id: "reason"
+        label: "Reason"
+      }
+    }
+  }
+}

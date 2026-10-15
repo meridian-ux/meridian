@@ -1,0 +1,14 @@
+fields {
+  key: "demo.Claims.List"
+  value {
+    struct_value {
+      fields {
+        key: "claims"
+        value {
+          list_value {
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,50 @@
 # Renderer conformance
 
+## Stateful ViewDescriptor corpus
+
+`fixtures/<arm>/` contains empty, typical, and overflow `ViewDescriptor` cases
+for every current panel arm, each with a `.view.binpb` and reviewable `.view.txtpb`
+twin. Companion `.responses.binpb` / `.responses.txtpb` files are canonical
+`google.protobuf.Struct` messages, keyed by RPC service/method. They carry real
+empty or populated responses rather than substituting a different fixture in
+each renderer. `__streamFrames` supplies structured snapshot events to the
+host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
+
+There are also 29 table value cases from `value_types.json`, including nulls,
+invalid declarations, and unknown types. HTML, shadcn, MUI, and web-components load these
+exact wire messages, render `ViewRenderer`, resolve the shared responses through
+their invokers, and compare committed semantic DOM goldens. Explicit assertions
+check populated/empty tables, formatter outputs, and bounded stream tails.
+Web-components runs these views through `renderView` and the actual compiled
+WASM bridge (112 tests including the earlier 14 core-boundary checks). Its
+stream goldens deliberately select the plain-DOM fallback; Terminal uses real
+xterm with a non-network test socket, not a live PTY. Both resources are disposed
+after every case. Form prefill waits for loading to finish and checks live input
+values separately, because the DOM normalizer preserves attributes, not all
+mutable control properties.
+The presence gate requires every arm/state and formatter case; removing just an
+overflow snapshot now fails even when that arm's initial snapshot still exists.
+
+Generate or verify deterministically with the pinned protobuf runtime:
+
+```sh
+python3 -m pip install -r tools/conformance_requirements.txt
+python3 tools/stateful_corpus.py --write  # deliberate update; review all twins
+python3 tools/stateful_corpus.py          # read-only freshness check used in CI
+python3 -m unittest tools/test_stateful_corpus.py
+```
+
+The existing `UPDATE_SNAPSHOTS=1` re-record path includes the stateful suite.
+Binary/text equivalence, missing files, changed content, and unexpected files
+are tested; the updater refuses to delete unexpected files automatically.
+The original panel corpus remains intact for native and existing browser users.
+
+This expands real coverage but does not complete the conformance epic: the
+stateful wire corpus still needs a native consumer,
+ValueType scenarios in the remaining value-bearing arms, and computed browser
+accessibility-tree normalization. The present DOM normalizer is not that tree;
+SwiftUI preview behavior remains explicitly unverified.
+
 ## Native and WASM core fixtures
 
 `core.proto` defines the test-only envelope for `core.json`. Its 31 cases cover
@@ -149,6 +194,8 @@ either build entrypoint, then review every golden diff:
 ```sh
 UPDATE_SNAPSHOTS=1 pnpm conformance:snapshots
 UPDATE_SNAPSHOTS=1 bazel run //:re_record_conformance
+# Include the compiled-WASM stateful DOM suite (requires the Bazel toolchain):
+node schemas/tools/conformance_snapshots.mjs --wasm --update
 ```
 
 The Bazel launcher returns to `BUILD_WORKSPACE_DIRECTORY` before running the
@@ -156,8 +203,16 @@ shared updater, so Vitest writes to the checked-out package snapshots rather
 than through Bazel's runfiles symlinks. Do not re-record to hide a missing field
 or unexpected fallback. After reviewing the diff, run
 `node schemas/tools/conformance_snapshots.mjs --bazel` to verify the React and
-web-components Bazel conformance targets. MUI remains covered by its package
-Vitest suite because its browser Bazel harness is a separate test tier.
+web-components and MUI Bazel conformance targets. MUI's
+`//packages/mui-kit:stateful_conformance` target compares both its initial and
+stateful semantic goldens in strict CI mode; its real-browser harness remains a
+separate test tier. The shared verifier suppresses Bazel rc announcements so
+developer-local cache credentials cannot leak through configuration logging.
+The optional `--wasm` path first builds `//packages/web/tests:wasm_artifacts`,
+copies its generated JS/WASM next to the local Vite suite, and then runs the
+suite with the same explicit update switch. The default Node-only command
+checks the committed WASM golden presence but does not require a Rust compiler;
+the dedicated CI Bazel job compares their contents in strict read-only mode.
 
 ## Focused interaction and content coverage
 

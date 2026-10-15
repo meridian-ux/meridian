@@ -1,0 +1,29 @@
+id: "media-typical"
+title: "Conformance: media · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "media-typical"
+    title: "media · typical"
+    media {
+      kind: MEDIA_KIND_VIDEO
+      src_uri: "/evidence/golden-path.mp4"
+      poster_uri: "/evidence/golden-path.png"
+      alt: "A four-minute walkthrough of creating a sponsor."
+      captions_uri: "/evidence/golden-path.vtt"
+      duration_ms: 252000
+      chapters {
+        label: "Open the page"
+      }
+      chapters {
+        start_ms: 65000
+        label: "Add the sponsor"
+      }
+      caption: "Narrated from a live run."
+    }
+  }
+}

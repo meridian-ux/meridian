@@ -1,0 +1,357 @@
+id: "connect_flow-overflow"
+title: "Conformance: connect_flow · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "connect_flow-overflow"
+    title: "connect_flow · overflow"
+    connect_flow {
+      prompt: "Every agent points at the same endpoint."
+      targets {
+        id: "cursor-0"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-1"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-2"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-3"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-4"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-5"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-6"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-7"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-8"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-9"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-10"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-11"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-12"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-13"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-14"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-15"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-16"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-17"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-18"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-19"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-20"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-21"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      targets {
+        id: "cursor-22"
+        label: "Cursor"
+        name: "Cursor"
+        description: "One click installs it."
+        actions {
+          id: "add"
+          label: "Add to Cursor"
+          uri: "cursor://install"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+        configs {
+          content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+          language: "json"
+          path: "~/.cursor/mcp.json"
+        }
+      }
+      targets {
+        id: "codex-23"
+        label: "Codex"
+        name: "Codex CLI"
+        description: "Bridge the remote endpoint with mcp-remote."
+        configs {
+          content: "[mcp_servers.demo]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"https://mcp.example/mcp\"]"
+          language: "toml"
+          path: "~/.codex/config.toml"
+        }
+      }
+      default_target_id: "cursor-0"
+      endpoint {
+        value: "mcp.example.com/mcp"
+        label: "Endpoint"
+      }
+    }
+  }
+}

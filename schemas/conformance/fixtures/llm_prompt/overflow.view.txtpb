@@ -1,0 +1,28 @@
+id: "llm_prompt-overflow"
+title: "Conformance: llm_prompt · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-overflow"
+    title: "llm_prompt · overflow"
+    llm_prompt {
+      user_template: "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
+      slots {
+        name: "text"
+        field {
+          field_id: "text"
+          label: "Source text"
+          text {
+            default_value: "A fixture document."
+          }
+        }
+        multi_line: true
+      }
+      description: "Summarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the document"
+    }
+  }
+}

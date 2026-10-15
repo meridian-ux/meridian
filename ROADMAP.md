@@ -16,7 +16,7 @@ The roadmap exists to make three things true:
 
 | milestone | due | epics |
 |---|---|---|
-| **M1 · Seam & truth** | 2026‑10‑31 | [#4](../../issues/4) ComponentKit seam · [#5](../../issues/5) manifest completeness · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
+| **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · [#5](../../issues/5) manifest completeness · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | [#6](../../issues/6) TUI · [#7](../../issues/7) web-components · [#8](../../issues/8) kits · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
@@ -157,10 +157,19 @@ set. All four browser realizations now commit semantic DOM snapshots for the
 24 canonical initial-state fixtures, preserving text, controls, link targets,
 media alternatives, and authored accessibility state. `check_coverage` requires
 every browser arm's golden, and the conformance suites verify its contents.
-This is a regression baseline, not proof of field-complete parity: broader
-populated-shape parity, renderer-specific overflow/layout, broader interactive
-surfaces, native snapshots beyond text goldens, and a Bazel-aware re-record
-workflow remain in [#9](../../issues/9). See the
+The shared stateful corpus now adds 98 canonical `ViewDescriptor` cases under
+`schemas/conformance/fixtures/`: empty/typical/overflow cases for all 23 arms,
+plus the 29 formatter cases through fetched tables. Each view and its protobuf
+`Struct` response companion has binary and readable text twins. HTML, Shadcn,
+MUI, and web-components consume these exact wires and compare 392 semantic DOM goldens, with explicit
+checks for fetched content, formatter results, and bounded stream tails.
+The web-components suite loads the actual compiled WASM bridge; its stream cases
+pin the documented plain-DOM fallback, and terminal sockets are test transports,
+not live PTY proof. The snapshot gate and shared Bazel-aware re-record path include these cases.
+This is not proof of field-complete parity: the new corpus still needs consumers
+in the native renderer, ValueType cases in the other value-bearing arms, computed
+accessibility trees, renderer-specific overflow/layout, and broader interactive
+surfaces. These remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
 Bounded slices now cover canonical `resource_cards`, `gallery`, and `table`
 descriptors with shared responses across HTML, Shadcn, MUI, web-components, and

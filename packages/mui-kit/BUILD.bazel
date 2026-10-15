@@ -1,11 +1,47 @@
 load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
-load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary", "js_test")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_run_binary", "js_test")
 load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_tectonic//tectonic:defs.bzl", "tectonic_pdf")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
 
 package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
+
+js_library(
+    name = "stateful_test_sources",
+    testonly = True,
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["tsconfig.json"],
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+vitest_test(
+    name = "stateful_conformance",
+    srcs = [
+        "tests/conformance.test.tsx",
+        "tests/stateful_conformance.test.ts",
+        "tests/__snapshots__/conformance.test.tsx.snap",
+        "tests/__snapshots__/stateful_conformance.test.ts.snap",
+        "vitest.config.ts",
+    ],
+    env = {"CI": "true"},
+    deps = [
+        ":stateful_test_sources",
+        ":node_modules/jsdom",
+        ":node_modules/vitest",
+        "//schemas:conformance_fixtures",
+    ],
+)
 
 # The fixture harness bundled into a single self-contained IIFE (React + MUI +
 # meridian + the kit source all inlined). Real Chrome loads this via setContent;

@@ -1,0 +1,17 @@
+id: "grammar-typical"
+title: "Conformance: grammar · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "grammar-typical"
+    title: "grammar · typical"
+    grammar {
+      language: GRAMMAR_LANGUAGE_MARKDOWN
+      source: "# Hello\n\nA small rendered document."
+    }
+  }
+}

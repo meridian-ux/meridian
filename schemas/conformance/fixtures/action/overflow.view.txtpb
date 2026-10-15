@@ -1,0 +1,22 @@
+id: "action-overflow"
+title: "Conformance: action · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "action-overflow"
+    title: "action · overflow"
+    action {
+      action {
+        id: "add-to-cursor"
+        label: "Add to Cursor"
+        uri: "cursor://anysphere.cursor-deeplink/mcp/install"
+        style: AFFORDANCE_STYLE_PRIMARY
+      }
+      description: "One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
+    }
+  }
+}

@@ -1,0 +1,34 @@
+id: "lro-typical"
+title: "Conformance: lro · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-typical"
+    title: "lro · typical"
+    lro {
+      start {
+        service: "fixture.Jobs"
+        method: "Start"
+      }
+      run_button_label: "Run reindex"
+      inputs {
+        field_id: "input-0"
+        label: "Job input 0"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-1"
+        label: "Job input 1"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+id: "copy_value-typical"
+title: "Conformance: copy_value · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "copy_value-typical"
+    title: "copy_value · typical"
+    copy_value {
+      value {
+        value: "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming"
+        label: "Primary integration endpoint for the production workspace across all supported regions"
+      }
+    }
+  }
+}

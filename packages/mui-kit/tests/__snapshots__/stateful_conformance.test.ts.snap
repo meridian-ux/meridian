@@ -1,0 +1,4120 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MUI stateful ViewDescriptor corpus > 'action/empty' > mui-kit/action/empty 1`] = `
+"h2
+  "Conformance: action · empty"
+h3
+  "action · empty"
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'action/overflow' > mui-kit/action/overflow 1`] = `
+"h2
+  "Conformance: action · overflow"
+h3
+  "action · overflow"
+p
+  "One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'action/typical' > mui-kit/action/typical 1`] = `
+"h2
+  "Conformance: action · typical"
+h3
+  "action · typical"
+p
+  "One click adds it to Cursor."
+a href="cursor://anysphere.cursor-deeplink/mcp/install"
+  "Add to Cursor""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'adhoc/empty' > mui-kit/adhoc/empty 1`] = `
+"h2
+  "Conformance: adhoc · empty"
+h3
+  "adhoc · empty"
+div role="alert"
+  "unsupported panel shape: adhoc""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'adhoc/overflow' > mui-kit/adhoc/overflow 1`] = `
+"h2
+  "Conformance: adhoc · overflow"
+h3
+  "adhoc · overflow"
+div role="alert"
+  "unsupported panel shape: adhoc""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'adhoc/typical' > mui-kit/adhoc/typical 1`] = `
+"h2
+  "Conformance: adhoc · typical"
+h3
+  "adhoc · typical"
+div role="alert"
+  "unsupported panel shape: adhoc""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'catalog/empty' > mui-kit/catalog/empty 1`] = `
+"h2
+  "Conformance: catalog · empty"
+h3
+  "catalog · empty"
+p
+  "(empty)""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'catalog/overflow' > mui-kit/catalog/overflow 1`] = `
+"h2
+  "Conformance: catalog · overflow"
+h3
+  "catalog · overflow"
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads."
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'catalog/typical' > mui-kit/catalog/typical 1`] = `
+"h2
+  "Conformance: catalog · typical"
+h3
+  "catalog · typical"
+h6
+  "list_instances"
+p
+  "The instances you can address."
+"tool"
+h6
+  "graph_*"
+"Next"
+p
+  "RLS-respecting reads.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'chart/empty' > mui-kit/chart/empty 1`] = `
+"h2
+  "Conformance: chart · empty"
+h3
+  "chart · empty"
+h6
+  "Requests by day"
+p
+  "bar"
+  "of"
+  "requests"
+  "by"
+  "day"
+p
+  "No chart data.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'chart/overflow' > mui-kit/chart/overflow 1`] = `
+"h2
+  "Conformance: chart · overflow"
+h3
+  "chart · overflow"
+h6
+  "Requests by day"
+p
+  "bar"
+  "of"
+  "requests"
+  "by"
+  "day"
+table
+  thead
+    tr
+      th
+        "day"
+      th
+        "requests"
+  tbody
+    tr
+      td
+        "2026-10-01"
+      td
+        "1"
+    tr
+      td
+        "2026-10-02"
+      td
+        "2"
+    tr
+      td
+        "2026-10-03"
+      td
+        "3"
+    tr
+      td
+        "2026-10-04"
+      td
+        "4"
+    tr
+      td
+        "2026-10-05"
+      td
+        "5"
+    tr
+      td
+        "2026-10-06"
+      td
+        "6"
+    tr
+      td
+        "2026-10-07"
+      td
+        "7"
+    tr
+      td
+        "2026-10-08"
+      td
+        "8"
+    tr
+      td
+        "2026-10-09"
+      td
+        "9"
+    tr
+      td
+        "2026-10-10"
+      td
+        "10"
+    tr
+      td
+        "2026-10-11"
+      td
+        "11"
+    tr
+      td
+        "2026-10-12"
+      td
+        "12"
+    tr
+      td
+        "2026-10-13"
+      td
+        "13"
+    tr
+      td
+        "2026-10-14"
+      td
+        "14"
+    tr
+      td
+        "2026-10-15"
+      td
+        "15"
+    tr
+      td
+        "2026-10-16"
+      td
+        "16"
+    tr
+      td
+        "2026-10-17"
+      td
+        "17"
+    tr
+      td
+        "2026-10-18"
+      td
+        "18"
+    tr
+      td
+        "2026-10-19"
+      td
+        "19"
+    tr
+      td
+        "2026-10-20"
+      td
+        "20""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'chart/typical' > mui-kit/chart/typical 1`] = `
+"h2
+  "Conformance: chart · typical"
+h3
+  "chart · typical"
+h6
+  "Requests by day"
+p
+  "bar"
+  "of"
+  "requests"
+  "by"
+  "day"
+table
+  thead
+    tr
+      th
+        "day"
+      th
+        "requests"
+  tbody
+    tr
+      td
+        "2026-10-01"
+      td
+        "1"
+    tr
+      td
+        "2026-10-02"
+      td
+        "2"
+    tr
+      td
+        "2026-10-03"
+      td
+        "3""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'choice/empty' > mui-kit/choice/empty 1`] = `
+"h2
+  "Conformance: choice · empty"
+h3
+  "choice · empty"
+p
+  "Which client?"
+div role="tablist""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'choice/overflow' > mui-kit/choice/overflow 1`] = `
+"h2
+  "Conformance: choice · overflow"
+h3
+  "choice · overflow"
+p
+  "Which client?"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'choice/typical' > mui-kit/choice/typical 1`] = `
+"h2
+  "Conformance: choice · typical"
+h3
+  "choice · typical"
+p
+  "Which client?"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "VS Code""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/empty' > mui-kit/connect_flow/empty 1`] = `
+"h2
+  "Conformance: connect_flow · empty"
+h3
+  "connect_flow · empty"
+p
+  "Every agent points at the same endpoint."
+p
+  "Endpoint"
+div role="button"
+  "mcp.example.com/mcp"
+p
+  "(no targets)""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/overflow' > mui-kit/connect_flow/overflow 1`] = `
+"h2
+  "Conformance: connect_flow · overflow"
+h3
+  "connect_flow · overflow"
+p
+  "Every agent points at the same endpoint."
+p
+  "Endpoint"
+div role="button"
+  "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+  button role="tab" aria-selected="false" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h6
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+"~/.cursor/mcp.json"
+"(json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'connect_flow/typical' > mui-kit/connect_flow/typical 1`] = `
+"h2
+  "Conformance: connect_flow · typical"
+h3
+  "connect_flow · typical"
+p
+  "Every agent points at the same endpoint."
+p
+  "Endpoint"
+div role="button"
+  "mcp.example.com/mcp"
+div role="tablist"
+  button role="tab" aria-selected="true" type="button"
+    "Cursor"
+  button role="tab" aria-selected="false" type="button"
+    "Codex"
+h6
+  "Cursor"
+p
+  "One click installs it."
+a href="cursor://install"
+  "Add to Cursor"
+"~/.cursor/mcp.json"
+"(json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/empty' > mui-kit/copy_value/empty 1`] = `
+"h2
+  "Conformance: copy_value · empty"
+h3
+  "copy_value · empty"
+p
+  "Primary integration endpoint for the production workspace across all supported regions"
+div role="button""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/overflow' > mui-kit/copy_value/overflow 1`] = `
+"h2
+  "Conformance: copy_value · overflow"
+h3
+  "copy_value · overflow"
+p
+  "Primary integration endpoint for the production workspace across all supported regions"
+div role="button"
+  "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'copy_value/typical' > mui-kit/copy_value/typical 1`] = `
+"h2
+  "Conformance: copy_value · typical"
+h3
+  "copy_value · typical"
+p
+  "Primary integration endpoint for the production workspace across all supported regions"
+div role="button"
+  "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/empty' > mui-kit/detail_header/empty 1`] = `
+"h2
+  "Conformance: detail_header · empty"
+h3
+  "detail_header · empty"
+h1
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/overflow' > mui-kit/detail_header/overflow 1`] = `
+"h2
+  "Conformance: detail_header · overflow"
+h3
+  "detail_header · overflow"
+h1
+  "Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title"
+p
+  "Ada"
+"Type"
+p
+  "Service""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'detail_header/typical' > mui-kit/detail_header/typical 1`] = `
+"h2
+  "Conformance: detail_header · typical"
+h3
+  "detail_header · typical"
+h1
+  "Fixture record"
+p
+  "Ada"
+"Type"
+p
+  "Service""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/empty' > mui-kit/form/empty 1`] = `
+"h2
+  "Conformance: form · empty"
+h3
+  "form · empty"
+form
+  h6
+    "Navigation groups"
+  p
+    "(none)"
+  button type="button"
+    "Add section"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/overflow' > mui-kit/form/overflow 1`] = `
+"h2
+  "Conformance: form · overflow"
+h3
+  "form · overflow"
+form
+  h6
+    "Navigation groups"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 0"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 1"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 2"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 3"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 4"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 5"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 6"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 7"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 8"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 9"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 10"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 11"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 12"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 13"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 14"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 15"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 16"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 17"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 18"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 19"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 20"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 21"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 22"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 23"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 24"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 25"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 26"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 27"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 28"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 29"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  button type="button"
+    "Add section"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/typical' > mui-kit/form/typical 1`] = `
+"h2
+  "Conformance: form · typical"
+h3
+  "form · typical"
+form
+  h6
+    "Navigation groups"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 0"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  fieldset
+    legend
+    label
+      "Label"
+    input type="text" value="Section 1"
+    h6
+      "Kinds"
+    input type="text" value="service"
+    button aria-label="move item up" type="button" disabled
+      "↑"
+    button aria-label="move item down" type="button"
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    input type="text" value="environment"
+    button aria-label="move item up" type="button"
+      "↑"
+    button aria-label="move item down" type="button" disabled
+      "↓"
+    button aria-label="remove item" type="button"
+      "✕"
+    button type="button"
+      "Add kind"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button"
+    "✕"
+  button type="button"
+    "Add section"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/empty' > mui-kit/gallery/empty 1`] = `
+"h2
+  "Conformance: gallery · empty"
+h3
+  "gallery · empty"
+p
+  "no assets""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/overflow' > mui-kit/gallery/overflow 1`] = `
+"h2
+  "Conformance: gallery · overflow"
+h3
+  "gallery · overflow"
+a href="https://example.test/resource"
+  p
+    "Resource 00"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 01"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 02"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 03"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 04"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 05"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 06"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 07"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 08"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 09"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 10"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 11"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 12"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 13"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 14"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 15"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 16"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 17"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 18"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 19"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 20"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 21"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 22"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 23"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 24"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 25"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 26"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 27"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 28"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 29"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 30"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 31"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 32"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 33"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 34"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 35"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 36"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 37"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 38"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 39"
+  "Connected"
+  "Manage""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'gallery/typical' > mui-kit/gallery/typical 1`] = `
+"h2
+  "Conformance: gallery · typical"
+h3
+  "gallery · typical"
+a href="https://example.test/resource"
+  p
+    "Resource 00"
+  "Connected"
+  "Manage"
+a href="https://example.test/resource"
+  p
+    "Resource 01"
+  "Connected"
+  "Manage""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'grammar/empty' > mui-kit/grammar/empty 1`] = `
+"h2
+  "Conformance: grammar · empty"
+h3
+  "grammar · empty""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'grammar/overflow' > mui-kit/grammar/overflow 1`] = `
+"h2
+  "Conformance: grammar · overflow"
+h3
+  "grammar · overflow"
+h3
+  "Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.# Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'grammar/typical' > mui-kit/grammar/typical 1`] = `
+"h2
+  "Conformance: grammar · typical"
+h3
+  "grammar · typical"
+h3
+  "Hello"
+p
+  "A small rendered document.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/empty' > mui-kit/llm_prompt/empty 1`] = `
+"h2
+  "Conformance: llm_prompt · empty"
+h3
+  "llm_prompt · empty"
+pre"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/overflow' > mui-kit/llm_prompt/overflow 1`] = `
+"h2
+  "Conformance: llm_prompt · overflow"
+h3
+  "llm_prompt · overflow"
+p
+  "Summarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the documentSummarize the document"
+pre
+  "Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}Summarize {{text}}"
+form
+  label
+    "Source text"
+  input type="text" value="A fixture document."
+  button type="submit" disabled
+    "Preview""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/typical' > mui-kit/llm_prompt/typical 1`] = `
+"h2
+  "Conformance: llm_prompt · typical"
+h3
+  "llm_prompt · typical"
+p
+  "Summarize the document"
+pre
+  "Summarize {{text}}"
+form
+  label
+    "Source text"
+  input type="text" value="A fixture document."
+  button type="submit" disabled
+    "Preview""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/empty' > mui-kit/lro/empty 1`] = `
+"h2
+  "Conformance: lro · empty"
+h3
+  "lro · empty"
+button type="button"
+  "Run reindex""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/overflow' > mui-kit/lro/overflow 1`] = `
+"h2
+  "Conformance: lro · overflow"
+h3
+  "lro · overflow"
+form
+  label
+    "Job input 0"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 2"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 3"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 4"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 5"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 6"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 7"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 8"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 9"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 10"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 11"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 12"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 13"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 14"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 15"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 16"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 17"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 18"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 19"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 20"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 21"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 22"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 23"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 24"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 25"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 26"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 27"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 28"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 29"
+  input type="text" value="Fixture job input"
+  button type="submit"
+    "Run reindex""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/typical' > mui-kit/lro/typical 1`] = `
+"h2
+  "Conformance: lro · typical"
+h3
+  "lro · typical"
+form
+  label
+    "Job input 0"
+  input type="text" value="Fixture job input"
+  label
+    "Job input 1"
+  input type="text" value="Fixture job input"
+  button type="submit"
+    "Run reindex""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'media/empty' > mui-kit/media/empty 1`] = `
+"h2
+  "Conformance: media · empty"
+h3
+  "media · empty"
+video src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+  track src="/evidence/golden-path.vtt" kind="captions"
+  "A four-minute walkthrough of creating a sponsor."
+"Narrated from a live run."
+"4:12""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'media/overflow' > mui-kit/media/overflow 1`] = `
+"h2
+  "Conformance: media · overflow"
+h3
+  "media · overflow"
+video src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+  track src="/evidence/golden-path.vtt" kind="captions"
+  "A four-minute walkthrough of creating a sponsor."
+"Narrated from a live run."
+"4:12"
+ol
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor"
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'media/typical' > mui-kit/media/typical 1`] = `
+"h2
+  "Conformance: media · typical"
+h3
+  "media · typical"
+video src="/evidence/golden-path.mp4" poster="/evidence/golden-path.png" controls
+  track src="/evidence/golden-path.vtt" kind="captions"
+  "A four-minute walkthrough of creating a sponsor."
+"Narrated from a live run."
+"4:12"
+ol
+  li
+    button aria-label="Seek to Open the page at 0:00" type="button"
+      time datetime="PT0S"
+        "0:00"
+      "Open the page"
+  li
+    button aria-label="Seek to Add the sponsor at 1:05" type="button"
+      time datetime="PT65S"
+        "1:05"
+      "Add the sponsor""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/empty' > mui-kit/prompt/empty 1`] = `
+"h2
+  "Conformance: prompt · empty"
+h3
+  "prompt · empty"
+form
+  label
+    "Reason"
+  input type="text" value=""
+  button type="submit"
+    "Submit""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/overflow' > mui-kit/prompt/overflow 1`] = `
+"h2
+  "Conformance: prompt · overflow"
+h3
+  "prompt · overflow"
+form
+  "Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?Delete this resource?"
+  label
+    "Reason"
+  input type="text" value=""
+  button type="submit"
+    "Submit""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/typical' > mui-kit/prompt/typical 1`] = `
+"h2
+  "Conformance: prompt · typical"
+h3
+  "prompt · typical"
+form
+  "Delete this resource?"
+  label
+    "Reason"
+  input type="text" value=""
+  button type="submit"
+    "Submit""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/empty' > mui-kit/record_card/empty 1`] = `
+"h2
+  "Conformance: record_card · empty"
+h3
+  "record_card · empty"
+"Name"
+p
+  "—""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/overflow' > mui-kit/record_card/overflow 1`] = `
+"h2
+  "Conformance: record_card · overflow"
+h3
+  "record_card · overflow"
+"Name"
+p
+  "Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'record_card/typical' > mui-kit/record_card/typical 1`] = `
+"h2
+  "Conformance: record_card · typical"
+h3
+  "record_card · typical"
+"Name"
+p
+  "Fixture record""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/empty' > mui-kit/resource_cards/empty 1`] = `
+"h2
+  "Conformance: resource_cards · empty"
+h3
+  "resource_cards · empty"
+p
+  "No services""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/overflow' > mui-kit/resource_cards/overflow 1`] = `
+"h2
+  "Conformance: resource_cards · overflow"
+h3
+  "resource_cards · overflow"
+h6
+  "Resource 00"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 01"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 02"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 03"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 04"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 05"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 06"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 07"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 08"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 09"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 10"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 11"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 12"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 13"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 14"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 15"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 16"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 17"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 18"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 19"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 20"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 21"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 22"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 23"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 24"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 25"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 26"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 27"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 28"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 29"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 30"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 31"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 32"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 33"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 34"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 35"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 36"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 37"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 38"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content"
+h6
+  "Resource 39"
+p
+  "A shared response with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content with overflowing content""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/typical' > mui-kit/resource_cards/typical 1`] = `
+"h2
+  "Conformance: resource_cards · typical"
+h3
+  "resource_cards · typical"
+h6
+  "Resource 00"
+p
+  "A shared response"
+h6
+  "Resource 01"
+p
+  "A shared response""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'snippet/empty' > mui-kit/snippet/empty 1`] = `
+"h2
+  "Conformance: snippet · empty"
+h3
+  "snippet · empty"
+"~/.cursor/mcp.json"
+"(json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'snippet/overflow' > mui-kit/snippet/overflow 1`] = `
+"h2
+  "Conformance: snippet · overflow"
+h3
+  "snippet · overflow"
+"~/.cursor/mcp.json"
+"(json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'snippet/typical' > mui-kit/snippet/typical 1`] = `
+"h2
+  "Conformance: snippet · typical"
+h3
+  "snippet · typical"
+"~/.cursor/mcp.json"
+"(json)"
+button aria-label="copy snippet" type="button"
+  "Copy"
+pre
+  code
+    "{ \\"mcpServers\\": { \\"demo\\": { \\"url\\": \\"https://mcp.example/mcp\\" } } }""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/empty' > mui-kit/stat/empty 1`] = `
+"h2
+  "Conformance: stat · empty"
+h3
+  "stat · empty"
+"Active employees"
+h5
+  "0"
+p
+  "→"
+  "+0""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/overflow' > mui-kit/stat/overflow 1`] = `
+"h2
+  "Conformance: stat · overflow"
+h3
+  "stat · overflow"
+"Active employees"
+h5
+  "1,240"
+p
+  "↑"
+  "+60""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stat/typical' > mui-kit/stat/typical 1`] = `
+"h2
+  "Conformance: stat · typical"
+h3
+  "stat · typical"
+"Active employees"
+h5
+  "1,240"
+p
+  "↑"
+  "+60""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'steps/empty' > mui-kit/steps/empty 1`] = `
+"h2
+  "Conformance: steps · empty"
+h3
+  "steps · empty"
+ol"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'steps/overflow' > mui-kit/steps/overflow 1`] = `
+"h2
+  "Conformance: steps · overflow"
+h3
+  "steps · overflow"
+p
+  "Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it."
+ol
+  li
+    "1"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "2"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "3"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "4"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "5"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "6"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "7"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "8"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "9"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "10"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "11"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "12"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "13"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "14"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "15"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "16"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "17"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "18"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "19"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "20"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "21"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "22"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "23"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "24"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "25"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "26"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "27"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "28"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "29"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "30"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "31"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "32"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "33"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+  li
+    "34"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "35"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "36"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'steps/typical' > mui-kit/steps/typical 1`] = `
+"h2
+  "Conformance: steps · typical"
+h3
+  "steps · typical"
+p
+  "Add an employer and confirm a colleague can see it."
+ol
+  li
+    "1"
+    h6
+      "Open the Sponsors page"
+    "Admin"
+    p
+      "The list of every employer your organization administers."
+    img alt="The sponsors list" src="/evidence/sponsors.png"
+    a title="Continue in the sponsor list" href="/sponsors"
+      "Open Sponsors"
+    "Continue in the sponsor list"
+  li
+    "2"
+    h6
+      "Add a new sponsor"
+    "Admin"
+    p
+      "Name it, then set Status to Active and Kind to Customer."
+  li
+    "3"
+    h6
+      "Confirm a colleague sees it"
+    "Manager"
+    p
+      "Everyone in your organization shares one sponsor list."
+p
+  "The sponsor is now visible to your whole team.""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stream/empty' > mui-kit/stream/empty 1`] = `
+"h2
+  "Conformance: stream · empty"
+h3
+  "stream · empty"
+div aria-live="polite"
+  p
+    "Waiting for build events...""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stream/overflow' > mui-kit/stream/overflow 1`] = `
+"h2
+  "Conformance: stream · overflow"
+h3
+  "stream · overflow"
+div aria-live="polite"
+  pre role="log" aria-label="stream · overflow"
+    "Stream line 120\\nStream line 121\\nStream line 122\\nStream line 123\\nStream line 124\\nStream line 125\\nStream line 126\\nStream line 127\\nStream line 128\\nStream line 129\\nStream line 130\\nStream line 131\\nStream line 132\\nStream line 133\\nStream line 134\\nStream line 135\\nStream line 136\\nStream line 137\\nStream line 138\\nStream line 139""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'stream/typical' > mui-kit/stream/typical 1`] = `
+"h2
+  "Conformance: stream · typical"
+h3
+  "stream · typical"
+div aria-live="polite"
+  pre role="log" aria-label="stream · typical"
+    "Stream line 000\\nStream line 001\\nStream line 002""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/empty' > mui-kit/table/empty 1`] = `
+"h2
+  "Conformance: table · empty"
+h3
+  "table · empty"
+p
+  "no claims""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/overflow' > mui-kit/table/overflow 1`] = `
+"h2
+  "Conformance: table · overflow"
+h3
+  "table · overflow"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Member"
+      th
+        span role="button"
+          "Amount"
+      th
+        span role="button"
+          "Enabled"
+      th
+        span role="button"
+          "Website"
+  tbody
+    tr
+      td
+        "Member 00"
+      td
+        "0.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 01"
+      td
+        "1.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 02"
+      td
+        "2.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 03"
+      td
+        "3.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 04"
+      td
+        "4.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 05"
+      td
+        "5.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 06"
+      td
+        "6.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 07"
+      td
+        "7.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 08"
+      td
+        "8.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 09"
+      td
+        "9.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 10"
+      td
+        "10.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 11"
+      td
+        "11.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 12"
+      td
+        "12.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 13"
+      td
+        "13.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 14"
+      td
+        "14.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 15"
+      td
+        "15.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 16"
+      td
+        "16.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 17"
+      td
+        "17.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 18"
+      td
+        "18.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 19"
+      td
+        "19.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+p
+  "Showing 20 of 40 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–20 of 40"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/typical' > mui-kit/table/typical 1`] = `
+"h2
+  "Conformance: table · typical"
+h3
+  "table · typical"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Member"
+      th
+        span role="button"
+          "Amount"
+      th
+        span role="button"
+          "Enabled"
+      th
+        span role="button"
+          "Website"
+  tbody
+    tr
+      td
+        "Member 00"
+      td
+        "0.25"
+      td
+        "Yes"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+    tr
+      td
+        "Member 01"
+      td
+        "1.25"
+      td
+        "No"
+      td
+        a href="https://example.test/resource"
+          "https://example.test/resource"
+p
+  "Showing 2 of 2 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–2 of 2"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-boolean' > mui-kit/table/value-boolean 1`] = `
+"h2
+  "value-boolean"
+h3
+  "boolean"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "No"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-date' > mui-kit/table/value-date 1`] = `
+"h2
+  "value-date"
+h3
+  "date"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "Mar 29, 2026"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-date-time' > mui-kit/table/value-date-time 1`] = `
+"h2
+  "value-date-time"
+h3
+  "date-time"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "Mar 29, 2026, 1:45 PM UTC"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-decimal' > mui-kit/table/value-decimal 1`] = `
+"h2
+  "value-decimal"
+h3
+  "decimal"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "12.50"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-duration' > mui-kit/table/value-duration 1`] = `
+"h2
+  "value-duration"
+h3
+  "duration"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "4 min 12 s"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-email' > mui-kit/table/value-email 1`] = `
+"h2
+  "value-email"
+h3
+  "email"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "ada@example.com"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-empty-list' > mui-kit/table/value-empty-list 1`] = `
+"h2
+  "value-empty-list"
+h3
+  "empty-list"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "—"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-enum' > mui-kit/table/value-enum 1`] = `
+"h2
+  "value-enum"
+h3
+  "enum"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "READY"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-excessive-precision' > mui-kit/table/value-excessive-precision 1`] = `
+"h2
+  "value-excessive-precision"
+h3
+  "excessive-precision"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "12.5"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-identifier' > mui-kit/table/value-identifier 1`] = `
+"h2
+  "value-identifier"
+h3
+  "identifier"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "000123"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-integer' > mui-kit/table/value-integer 1`] = `
+"h2
+  "value-integer"
+h3
+  "integer"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "42"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-invalid-date' > mui-kit/table/value-invalid-date 1`] = `
+"h2
+  "value-invalid-date"
+h3
+  "invalid-date"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "not-a-date"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-invalid-principal' > mui-kit/table/value-invalid-principal 1`] = `
+"h2
+  "value-invalid-principal"
+h3
+  "invalid-principal"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "Ada <bad email>"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-invalid-time' > mui-kit/table/value-invalid-time 1`] = `
+"h2
+  "value-invalid-time"
+h3
+  "invalid-time"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "25:91"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-json' > mui-kit/table/value-json 1`] = `
+"h2
+  "value-json"
+h3
+  "json"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "{\\"ready\\":true}"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-list' > mui-kit/table/value-list 1`] = `
+"h2
+  "value-list"
+h3
+  "list"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "one, two"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-mismatched-number-options' > mui-kit/table/value-mismatched-number-options 1`] = `
+"h2
+  "value-mismatched-number-options"
+h3
+  "mismatched-number-options"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "Ada"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-money-current-scalar' > mui-kit/table/value-money-current-scalar 1`] = `
+"h2
+  "value-money-current-scalar"
+h3
+  "money-current-scalar"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "12.50"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-multiline' > mui-kit/table/value-multiline 1`] = `
+"h2
+  "value-multiline"
+h3
+  "multiline"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "first second"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-negative-precision' > mui-kit/table/value-negative-precision 1`] = `
+"h2
+  "value-negative-precision"
+h3
+  "negative-precision"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "12.5"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-null' > mui-kit/table/value-null 1`] = `
+"h2
+  "value-null"
+h3
+  "null"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "—"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-numeric-string' > mui-kit/table/value-numeric-string 1`] = `
+"h2
+  "value-numeric-string"
+h3
+  "numeric-string"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "0012.50"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-percent-current-scalar' > mui-kit/table/value-percent-current-scalar 1`] = `
+"h2
+  "value-percent-current-scalar"
+h3
+  "percent-current-scalar"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "0.125"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-principal' > mui-kit/table/value-principal 1`] = `
+"h2
+  "value-principal"
+h3
+  "principal"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "Ada"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-text' > mui-kit/table/value-text 1`] = `
+"h2
+  "value-text"
+h3
+  "text"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "plain text"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-time' > mui-kit/table/value-time 1`] = `
+"h2
+  "value-time"
+h3
+  "time"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "1:45 PM UTC"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-unknown-type' > mui-kit/table/value-unknown-type 1`] = `
+"h2
+  "value-unknown-type"
+h3
+  "unknown-type"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "literal"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-unspecified' > mui-kit/table/value-unspecified 1`] = `
+"h2
+  "value-unspecified"
+h3
+  "unspecified"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        "literal"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'table/value-url' > mui-kit/table/value-url 1`] = `
+"h2
+  "value-url"
+h3
+  "url"
+table
+  thead
+    tr
+      th
+        span role="button"
+          "Declared value"
+  tbody
+    tr
+      td
+        a href="https://example.com/a?b=1"
+          "https://example.com/a?b=1"
+p
+  "Showing 1 of 1 items"
+p
+  "Rows per page:"
+div role="combobox" aria-expanded="false" aria-labelledby="Rows per page: 20"
+  "20"
+p
+  "1–1 of 1"
+button aria-label="Go to previous page" title="Go to previous page" type="button" disabled
+button aria-label="Go to next page" title="Go to next page" type="button" disabled"
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'terminal/empty' > mui-kit/terminal/empty 1`] = `
+"h2
+  "Conformance: terminal · empty"
+h3
+  "terminal · empty"
+div role="region" aria-label="Terminal"
+  p
+    "Interactive terminal connection"
+  code
+  div role="alert"
+    "Connection unavailable: expected a ws:// or wss:// broker URL""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'terminal/overflow' > mui-kit/terminal/overflow 1`] = `
+"h2
+  "Conformance: terminal · overflow"
+h3
+  "terminal · overflow"
+div role="region" aria-label="Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title "
+  p
+    "Interactive terminal connection"
+  a href="wss://example.test/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/"
+    "wss://example.test/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/"
+  "240"
+  "×"
+  "80""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'terminal/typical' > mui-kit/terminal/typical 1`] = `
+"h2
+  "Conformance: terminal · typical"
+h3
+  "terminal · typical"
+div role="region" aria-label="bash"
+  p
+    "Interactive terminal connection"
+  a href="wss://example.test/pty"
+    "wss://example.test/pty"
+  "80"
+  "×"
+  "24""
+`;

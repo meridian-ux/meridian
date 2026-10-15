@@ -166,7 +166,8 @@ done
 
 vitest_test(
     name = "conformance_wasm",
-    srcs = ["conformance_wasm.test.ts"],
+    env = {"CI": "true"},
+    srcs = ["conformance_wasm.test.ts", "__snapshots__/conformance_wasm.test.ts.snap"],
     data = [":wasm_artifacts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
@@ -174,6 +175,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:core_conformance_data",
+        "//schemas:conformance_fixtures",
         ":src_lib",
     ],
 )

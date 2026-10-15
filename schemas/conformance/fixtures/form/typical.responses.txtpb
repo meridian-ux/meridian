@@ -1,0 +1,60 @@
+fields {
+  key: "fixture.Forms.Get"
+  value {
+    struct_value {
+      fields {
+        key: "groups"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 0"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 1"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+id: "grammar-empty"
+title: "Conformance: grammar · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "grammar-empty"
+    title: "grammar · empty"
+    grammar {
+      language: GRAMMAR_LANGUAGE_MARKDOWN
+    }
+  }
+}

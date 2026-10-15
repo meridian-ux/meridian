@@ -1,0 +1,14 @@
+fields {
+  key: "demo.Gallery.List"
+  value {
+    struct_value {
+      fields {
+        key: "items"
+        value {
+          list_value {
+          }
+        }
+      }
+    }
+  }
+}

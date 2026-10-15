@@ -1,0 +1,37 @@
+fields {
+  key: "__streamFrames"
+  value {
+    list_value {
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 000"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 001"
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "message"
+            value {
+              string_value: "Stream line 002"
+            }
+          }
+        }
+      }
+    }
+  }
+}

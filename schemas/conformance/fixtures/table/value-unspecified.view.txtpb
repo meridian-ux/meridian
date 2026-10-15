@@ -1,0 +1,26 @@
+id: "value-unspecified"
+title: "value-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "value-unspecified"
+    title: "unspecified"
+    table {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      columns {
+        header: "Declared value"
+        field_path: "value"
+        value_display {
+        }
+      }
+    }
+  }
+}

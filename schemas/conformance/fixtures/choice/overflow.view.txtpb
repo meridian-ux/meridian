@@ -1,0 +1,113 @@
+id: "choice-overflow"
+title: "Conformance: choice · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "choice-overflow"
+    title: "choice · overflow"
+    choice {
+      options {
+        id: "cursor-0"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-1"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-2"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-3"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-4"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-5"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-6"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-7"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-8"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-9"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-10"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-11"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-12"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-13"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-14"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-15"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-16"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-17"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-18"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-19"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-20"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-21"
+        label: "VS Code"
+      }
+      options {
+        id: "cursor-22"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode-23"
+        label: "VS Code"
+      }
+      default_option_id: "cursor-0"
+      prompt: "Which client?"
+    }
+  }
+}

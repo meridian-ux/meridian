@@ -1,0 +1,27 @@
+id: "catalog-typical"
+title: "Conformance: catalog · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "catalog-typical"
+    title: "catalog · typical"
+    catalog {
+      items {
+        id: "list_instances"
+        name: "list_instances"
+        description: "The instances you can address."
+        tag: "tool"
+      }
+      items {
+        id: "graph"
+        name: "graph_*"
+        description: "RLS-respecting reads."
+        state: "Next"
+      }
+    }
+  }
+}

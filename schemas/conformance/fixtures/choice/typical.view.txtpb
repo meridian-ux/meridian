@@ -1,0 +1,25 @@
+id: "choice-typical"
+title: "Conformance: choice · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "choice-typical"
+    title: "choice · typical"
+    choice {
+      options {
+        id: "cursor"
+        label: "Cursor"
+      }
+      options {
+        id: "vscode"
+        label: "VS Code"
+      }
+      default_option_id: "cursor"
+      prompt: "Which client?"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+id: "action-empty"
+title: "Conformance: action · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "action-empty"
+    title: "action · empty"
+    action {
+      action {
+        id: "add-to-cursor"
+        label: "Add to Cursor"
+        uri: "cursor://anysphere.cursor-deeplink/mcp/install"
+        style: AFFORDANCE_STYLE_PRIMARY
+      }
+    }
+  }
+}

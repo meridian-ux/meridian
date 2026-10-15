@@ -1,0 +1,130 @@
+fields {
+  key: "demo.Services.List"
+  value {
+    struct_value {
+      fields {
+        key: "services"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "action"
+                  value {
+                    string_value: "Manage"
+                  }
+                }
+                fields {
+                  key: "amount"
+                  value {
+                    number_value: 0.25
+                  }
+                }
+                fields {
+                  key: "description"
+                  value {
+                    string_value: "A shared response"
+                  }
+                }
+                fields {
+                  key: "enabled"
+                  value {
+                    bool_value: true
+                  }
+                }
+                fields {
+                  key: "href"
+                  value {
+                    string_value: "https://example.test/resource"
+                  }
+                }
+                fields {
+                  key: "member"
+                  value {
+                    string_value: "Member 00"
+                  }
+                }
+                fields {
+                  key: "name"
+                  value {
+                    string_value: "Resource 00"
+                  }
+                }
+                fields {
+                  key: "status"
+                  value {
+                    string_value: "Connected"
+                  }
+                }
+                fields {
+                  key: "website"
+                  value {
+                    string_value: "https://example.test/resource"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "action"
+                  value {
+                    string_value: "Manage"
+                  }
+                }
+                fields {
+                  key: "amount"
+                  value {
+                    number_value: 1.25
+                  }
+                }
+                fields {
+                  key: "description"
+                  value {
+                    string_value: "A shared response"
+                  }
+                }
+                fields {
+                  key: "enabled"
+                  value {
+                    bool_value: false
+                  }
+                }
+                fields {
+                  key: "href"
+                  value {
+                    string_value: "https://example.test/resource"
+                  }
+                }
+                fields {
+                  key: "member"
+                  value {
+                    string_value: "Member 01"
+                  }
+                }
+                fields {
+                  key: "name"
+                  value {
+                    string_value: "Resource 01"
+                  }
+                }
+                fields {
+                  key: "status"
+                  value {
+                    string_value: "Connected"
+                  }
+                }
+                fields {
+                  key: "website"
+                  value {
+                    string_value: "https://example.test/resource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
