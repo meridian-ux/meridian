@@ -1,0 +1,41 @@
+id: "resource_cards-value-invalid-time"
+title: "value-invalid-time"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-invalid-time"
+    title: "invalid-time"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_TIME
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_TIME
+        }
+        subtitle_display {
+          type: VALUE_TYPE_TIME
+        }
+        status_display {
+          type: VALUE_TYPE_TIME
+        }
+      }
+    }
+  }
+}

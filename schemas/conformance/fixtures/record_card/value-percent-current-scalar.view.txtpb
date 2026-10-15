@@ -1,0 +1,31 @@
+id: "record_card-value-percent-current-scalar"
+title: "value-percent-current-scalar"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-percent-current-scalar"
+    title: "percent-current-scalar"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

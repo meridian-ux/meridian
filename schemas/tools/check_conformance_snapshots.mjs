@@ -10,15 +10,15 @@ export const SNAPSHOT_SUITES = {
   "packages/web/tests/__snapshots__/conformance.test.ts.snap": ["web-components"],
 };
 
-function statefulCases(coverage, valueCases) {
+function statefulCases(coverage, valueCases, valueArms = ["table"]) {
   const cases = Object.keys(coverage.arms).flatMap(arm => ["empty", "typical", "overflow"].map(state => `${arm}/${state}`));
-  cases.push(...valueCases.map(value => `table/value-${value.name}`));
+  cases.push(...valueArms.flatMap(arm => valueCases.map(value => `${arm}/value-${value.name}`)));
   return cases;
 }
 
-export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"]) {
+export function checkStatefulSnapshots(coverage, valueCases, source, renderers = ["html", "shadcn"], valueArms = ["table"]) {
   if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
-  const cases = statefulCases(coverage, valueCases);
+  const cases = statefulCases(coverage, valueCases, valueArms);
   const expected = new Set(renderers.flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
   const actual = [...source.matchAll(/exports\[`[^`\n]* > ([a-z-]+\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
   const errors = [];
@@ -28,8 +28,8 @@ export function checkStatefulSnapshots(coverage, valueCases, source, renderers =
   return errors;
 }
 
-export function checkNativeSnapshots(coverage, valueCases, paths) {
-  const expected = new Set(statefulCases(coverage, valueCases).flatMap(name =>
+export function checkNativeSnapshots(coverage, valueCases, paths, valueArms = ["table"]) {
+  const expected = new Set(statefulCases(coverage, valueCases, valueArms).flatMap(name =>
     ["96x28", "40x10"].map(size => `${name}-${size}.txt`)));
   const actual = new Set(paths);
   return [
@@ -63,7 +63,8 @@ export function checkSnapshotFiles(coverage) {
     try { sources[path] = readFileSync(new URL(path, root), "utf8"); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
   }
-  const valueCases = JSON.parse(readFileSync(new URL("schemas/conformance/value_types.json", root), "utf8")).cases;
+  const valueCorpus = JSON.parse(readFileSync(new URL("schemas/conformance/value_types.json", root), "utf8"));
+  const valueCases = valueCorpus.cases;
   const statefulErrors = [];
   for (const [path, renderers] of [
     ["packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", ["html", "shadcn"]],
@@ -73,7 +74,7 @@ export function checkSnapshotFiles(coverage) {
     let source;
     try { source = readFileSync(new URL(path, root), "utf8"); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
-    statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers).map(error => `${path}: ${error}`));
+    statefulErrors.push(...checkStatefulSnapshots(coverage, valueCases, source, renderers, valueCorpus.panelArms).map(error => `${path}: ${error}`));
   }
   const native = [];
   function walkNative(prefix = "") {
@@ -86,7 +87,7 @@ export function checkSnapshotFiles(coverage) {
     }
   }
   walkNative();
-  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native)];
+  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

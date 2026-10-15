@@ -1,0 +1,53 @@
+id: "resource_cards-value-percent-current-scalar"
+title: "value-percent-current-scalar"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-percent-current-scalar"
+    title: "percent-current-scalar"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_PERCENT
+            number {
+              fraction_digits: 3
+            }
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+        subtitle_display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+        status_display {
+          type: VALUE_TYPE_PERCENT
+          number {
+            fraction_digits: 3
+          }
+        }
+      }
+    }
+  }
+}

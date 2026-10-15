@@ -1,0 +1,12 @@
+viewport 40x10
+mismatched-number-options
+┌──────────────────────────────────────┐
+│▶ 1. Ada                              │
+│    Ada                               │
+│    status: Ada                       │
+│    Declared value: Ada               │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

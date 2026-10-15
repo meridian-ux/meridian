@@ -35,12 +35,17 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} stateful ViewDescrip
         expect(invoke).toHaveBeenCalled();
       }
       if (fixture.arm === "table" && fixture.state === "empty") expect(container.textContent).not.toContain("Member 00");
-      if (fixture.expectedValue !== undefined) expect(container.querySelector("tbody td")?.textContent).toBe(fixture.expectedValue);
+      if (fixture.expectedValue !== undefined) {
+        if (fixture.arm === "table") expect(container.querySelector("tbody td")?.textContent).toBe(fixture.expectedValue);
+        else expect(container.textContent).toContain(fixture.expectedValue);
+        const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resource_cards" ? 4 : 1;
+        expect((container.textContent ?? "").split(fixture.expectedValue).length - 1).toBeGreaterThanOrEqual(slots);
+      }
       for (const call of Object.keys(fixture.responses).filter(key => !key.startsWith("__"))) {
         expect(invoke.mock.calls.some(([service, method]) => `${service}.${method}` === call), `${fixture.name} must consume ${call}`).toBe(true);
       }
-      if (["gallery", "resource_cards"].includes(fixture.arm) && fixture.state !== "empty") expect(tree).toContain("Resource 00");
-      if (fixture.arm === "detail_header" && fixture.state !== "empty") expect(tree).toContain("Fixture record");
+      if (["gallery", "resource_cards"].includes(fixture.arm) && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Resource 00");
+      if (fixture.arm === "detail_header" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Fixture record");
       if (fixture.arm === "form" && fixture.state !== "empty") expect(tree).toContain("Section 0");
       if (fixture.arm === "chart" && fixture.state !== "empty") expect(tree).toContain("2026-10-01");
       if (fixture.arm === "connect_flow" && fixture.state !== "empty") expect(tree).toContain("~/.cursor/mcp.json");

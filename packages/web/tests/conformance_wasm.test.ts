@@ -133,13 +133,18 @@ describe("web-components stateful ViewDescriptor corpus through real WASM", () =
       for (const call of Object.keys(fixture.responses).filter(key => !key.startsWith("__"))) {
         expect(invoke.mock.calls.some(([service, method]) => `${service}.${method}` === call), `${fixture.name} must consume ${call}`).toBe(true);
       }
-      if (fixture.expectedValue !== undefined) expect(container.querySelector("tbody td")?.textContent).toBe(fixture.expectedValue);
+      if (fixture.expectedValue !== undefined) {
+        if (fixture.arm === "table") expect(container.querySelector("tbody td")?.textContent).toBe(fixture.expectedValue);
+        else expect(container.textContent).toContain(fixture.expectedValue);
+        const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resource_cards" ? 4 : 1;
+        expect((container.textContent ?? "").split(fixture.expectedValue).length - 1).toBeGreaterThanOrEqual(slots);
+      }
       if (fixture.arm === "table") {
         if (["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Member 00");
         else if (fixture.state === "empty") expect(tree).not.toContain("Member 00");
       }
-      if (["gallery", "resource_cards"].includes(fixture.arm) && fixture.state !== "empty") expect(tree).toContain("Resource 00");
-      if (fixture.arm === "detail_header" && fixture.state !== "empty") expect(tree).toContain("Fixture record");
+      if (["gallery", "resource_cards"].includes(fixture.arm) && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Resource 00");
+      if (fixture.arm === "detail_header" && ["typical", "overflow"].includes(fixture.state)) expect(tree).toContain("Fixture record");
       if (fixture.arm === "form") {
         // Imperative form controls set the live value property, not an HTML
         // value attribute. Verify it directly, independently of DOM goldens.

@@ -1,0 +1,41 @@
+id: "resource_cards-value-empty-list"
+title: "value-empty-list"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-empty-list"
+    title: "empty-list"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_LIST
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_LIST
+        }
+        subtitle_display {
+          type: VALUE_TYPE_LIST
+        }
+        status_display {
+          type: VALUE_TYPE_LIST
+        }
+      }
+    }
+  }
+}

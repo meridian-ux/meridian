@@ -1,0 +1,31 @@
+id: "record_card-value-mismatched-number-options"
+title: "value-mismatched-number-options"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-mismatched-number-options"
+    title: "mismatched-number-options"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

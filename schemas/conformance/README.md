@@ -10,13 +10,15 @@ empty or populated responses rather than substituting a different fixture in
 each renderer. `__streamFrames` supplies structured snapshot events to the
 host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
 
-There are also 29 table value cases from `value_types.json`, including nulls,
+There are also all 29 value cases from `value_types.json` through each of five
+unrestricted read arms (`panelArms`): table, record_card, detail_header, gallery,
+and resource_cards. The corpus has 214 cases total, including nulls,
 invalid declarations, and unknown types. HTML, shadcn, MUI, and web-components load these
 exact wire messages, render `ViewRenderer`, resolve the shared responses through
 their invokers, and compare committed semantic DOM goldens. Explicit assertions
 check populated/empty tables, formatter outputs, and bounded stream tails.
 Web-components runs these views through `renderView` and the actual compiled
-WASM bridge (112 tests including the earlier 14 core-boundary checks). Its
+WASM bridge (228 tests including the earlier 14 core-boundary checks). Its
 stream goldens deliberately select the plain-DOM fallback; Terminal uses real
 xterm with a non-network test socket, not a live PTY. Both resources are disposed
 after every case. Form prefill waits for loading to finish and checks live input
@@ -25,15 +27,25 @@ mutable control properties.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 
-The native consumer decodes the same 98 views and protobuf Struct responses,
+The native consumer decodes the same 214 views and protobuf Struct responses,
 extracts each view's single panel, and drives the real `PanelView` RPC/stream
-seams. It compares 196 terminal-buffer goldens under `native/` at 96×28 and
+seams. It compares 428 terminal-buffer goldens under `native/` at 96×28 and
 40×10, with explicit fetched-content, formatter, repeated-form-count, stream-tail,
 and cancellation checks. This covers native panel dispatch, not a general view
 layout tier. Prompt/LLM-prompt retain their documented standalone-entrypoint
 degradation in `PanelView`, while Terminal remains a web-specific surface.
 Table rows and headers now reserve their declared multiline text height; the
 corpus and a focused regression verify lines and following records aren't lost.
+Native paragraphs also expand embedded newlines into real styled terminal
+lines, preserving blank lines and following spans rather than joining words.
+All gallery/card display slots are checked, including null placeholders.
+
+The unrestricted arm list is verified against reachable ValueDisplay fields in
+the canonical descriptor set, with explicit exceptions for constrained payloads
+and form input/default semantics. This does not claim string-only CopyValue /
+ConnectFlow, numeric-only Stat, or Form/Prompt/LRO/LLM-prompt inputs accept the
+same raw payloads. Those require dedicated typed fixtures and remain outstanding;
+no coercion of strings, booleans, arrays, or objects was added to these cases.
 
 Compare or intentionally re-record native buffers from the source workspace:
 

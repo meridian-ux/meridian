@@ -157,21 +157,27 @@ set. All four browser realizations now commit semantic DOM snapshots for the
 24 canonical initial-state fixtures, preserving text, controls, link targets,
 media alternatives, and authored accessibility state. `check_coverage` requires
 every browser arm's golden, and the conformance suites verify its contents.
-The shared stateful corpus now adds 98 canonical `ViewDescriptor` cases under
+The shared stateful corpus now adds 214 canonical `ViewDescriptor` cases under
 `schemas/conformance/fixtures/`: empty/typical/overflow cases for all 23 arms,
-plus the 29 formatter cases through fetched tables. Each view and its protobuf
+plus all 29 formatter cases through each of five unrestricted read surfaces:
+tables, record cards, header rows, galleries, and resource cards. Each view and its protobuf
 `Struct` response companion has binary and readable text twins. HTML, Shadcn,
-MUI, and web-components consume these exact wires and compare 392 semantic DOM goldens, with explicit
+MUI, and web-components consume these exact wires and compare 856 semantic DOM goldens, with explicit
 checks for fetched content, formatter results, and bounded stream tails.
 The web-components suite loads the actual compiled WASM bridge; its stream cases
 pin the documented plain-DOM fallback, and terminal sockets are test transports,
 not live PTY proof. The snapshot gate and shared Bazel-aware re-record path include these cases.
 Native TUI `PanelView` also decodes these views, extracts their one panel slot,
 and renders shared responses through its actual transport seams. It compares
-196 terminal-buffer goldens at 96×28 and 40×10, with explicit content, formatter,
+428 terminal-buffer goldens at 96×28 and 40×10, with explicit content, formatter,
 stream-tail, and subscription-disposal assertions. This exposed and fixed
 multiline table cells and headers losing all but their first line. It does not
-establish a general native ViewDescriptor layout implementation.
+establish a general native ViewDescriptor layout implementation. The expanded
+corpus also fixed declared-null values being omitted in MUI header rows and
+web-components card slots, and preserves multiline values in native paragraphs
+instead of silently concatenating their words. The five unrestricted surfaces
+are checked against the canonical descriptor set; string-only, numeric-only,
+and form-input surfaces require their own typed cases, not coerced copies.
 This is not proof of field-complete parity: the new corpus still needs consumers
 for native standalone prompt surfaces, ValueType cases in the other value-bearing arms, computed
 accessibility trees, renderer-specific overflow/layout, and broader interactive

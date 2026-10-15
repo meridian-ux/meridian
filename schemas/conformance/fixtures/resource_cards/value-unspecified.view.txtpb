@@ -1,0 +1,37 @@
+id: "resource_cards-value-unspecified"
+title: "value-unspecified"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-unspecified"
+    title: "unspecified"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+          }
+        }
+        title_display {
+        }
+        subtitle_display {
+        }
+        status_display {
+        }
+      }
+    }
+  }
+}

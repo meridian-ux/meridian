@@ -1,0 +1,12 @@
+viewport 40x10
+multiline
+┌──────────────────────────────────────┐
+│▶ 1. first                            │
+│second  [first                        │
+│second]                               │
+│    first                             │
+│second                                │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

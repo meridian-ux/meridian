@@ -1,0 +1,28 @@
+id: "record_card-value-null"
+title: "value-null"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-null"
+    title: "null"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_DECIMAL
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

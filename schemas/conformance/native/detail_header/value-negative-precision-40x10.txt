@@ -1,0 +1,12 @@
+viewport 40x10
+negative-precision
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Declared value: 12.5                  │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

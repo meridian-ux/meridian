@@ -142,9 +142,9 @@ def artifacts():
         for state in STATES:
             view, responses = scenario(panel_json, arm, state)
             add(arm, state, view, responses)
-    # All formatter cases, including invalid/unknown declarations and nulls,
-    # through a real fetched TablePanel inside a ViewDescriptor.
-    for case in json.loads((ROOT / "schemas/conformance/value_types.json").read_text())["cases"]:
+    # Typed response values pass unchanged through every unrestricted read arm.
+    value_corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+    for case in value_corpus["cases"]:
         if not re.fullmatch(r"[a-z][a-z0-9-]*", case["name"]):
             raise ValueError(f"Invalid value case filename: {case['name']}")
         display = {"type": case["type"]}
@@ -154,9 +154,33 @@ def artifacts():
         panel = {"panelId": name, "title": case["name"], "table": {
             "populate": {"service": "fixture.Values", "method": "List"}, "rowsField": "rows",
             "columns": [{"header": "Declared value", "fieldPath": "value", "valueDisplay": display}]}}
-        view = {"id": name, "title": name, "layout": {"stacked": {}},
-                "slots": [{"id": "content", "panel": panel}]}
-        add("table", name, view, {"fixture.Values.List": {"rows": [{"value": case["raw"]}]}})
+        call = {"service": "fixture.Values", "method": "List"}
+        field = {"fieldId": "value", "label": "Declared value", "display": display, "text": {}}
+        bodies = {
+            "table": panel["table"],
+            "record_card": {"populate": call, "fields": [field]},
+            "detail_header": {"populate": call, "title": "Fixture record", "descriptorRows": [
+                {"label": "Declared value", "sourcePath": "value", "display": display}]},
+            "gallery": {"populate": call, "rowsField": "rows", "card": {
+                "titleField": "value", "titleDisplay": display,
+                "subtitleField": "value", "subtitleDisplay": display,
+                "statusField": "value", "statusDisplay": display}},
+            "resource_cards": {"populate": call, "rowsField": "rows", "template": {
+                "titleField": "value", "titleDisplay": display,
+                "subtitleField": "value", "subtitleDisplay": display,
+                "statusField": "value", "statusDisplay": display,
+                "meta": [{"label": "Declared value", "fieldPath": "value", "display": display}]}},
+        }
+        for arm in value_corpus["panelArms"]:
+            body_key = {"record_card": "recordCard", "detail_header": "detailHeader",
+                        "resource_cards": "resourceCards"}.get(arm, arm)
+            identity = name if arm == "table" else f"{arm}-{name}"
+            panel = {"panelId": identity, "title": case["name"], body_key: bodies[arm]}
+            view = {"id": identity, "title": name, "layout": {"stacked": {}},
+                    "slots": [{"id": "content", "panel": panel}]}
+            raw = {"value": case["raw"]}
+            response = raw if arm in ("record_card", "detail_header") else {"rows": [raw]}
+            add(arm, name, view, {"fixture.Values.List": response})
     return files
 
 

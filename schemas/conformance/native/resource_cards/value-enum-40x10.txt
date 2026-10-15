@@ -1,0 +1,12 @@
+viewport 40x10
+enum
+┌──────────────────────────────────────┐
+│▶ 1. READY                            │
+│    READY                             │
+│    status: READY                     │
+│    Declared value: READY             │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

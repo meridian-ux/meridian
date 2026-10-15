@@ -1,0 +1,28 @@
+id: "record_card-value-invalid-date"
+title: "value-invalid-date"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-invalid-date"
+    title: "invalid-date"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_DATE
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+viewport 40x10
+duration
+┌──────────────────────────────────────┐
+│▶ 1. 4 min 12 s                       │
+│    4 min 12 s                        │
+│    status: 4 min 12 s                │
+│    Declared value: 4 min 12 s        │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

@@ -1,0 +1,41 @@
+id: "resource_cards-value-unknown-type"
+title: "value-unknown-type"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-unknown-type"
+    title: "unknown-type"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: 999
+          }
+        }
+        title_display {
+          type: 999
+        }
+        subtitle_display {
+          type: 999
+        }
+        status_display {
+          type: 999
+        }
+      }
+    }
+  }
+}

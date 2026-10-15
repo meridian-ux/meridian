@@ -1,0 +1,27 @@
+id: "detail_header-value-multiline"
+title: "value-multiline"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-value-multiline"
+    title: "multiline"
+    detail_header {
+      title: "Fixture record"
+      descriptor_rows {
+        label: "Declared value"
+        source_path: "value"
+        display {
+          type: VALUE_TYPE_MULTILINE_TEXT
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

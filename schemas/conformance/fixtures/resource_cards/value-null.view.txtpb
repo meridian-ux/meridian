@@ -1,0 +1,41 @@
+id: "resource_cards-value-null"
+title: "value-null"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-null"
+    title: "null"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_DECIMAL
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+        subtitle_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+        status_display {
+          type: VALUE_TYPE_DECIMAL
+        }
+      }
+    }
+  }
+}

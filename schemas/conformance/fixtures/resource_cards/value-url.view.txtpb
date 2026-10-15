@@ -1,0 +1,41 @@
+id: "resource_cards-value-url"
+title: "value-url"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-value-url"
+    title: "url"
+    resource_cards {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      template {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        meta {
+          label: "Declared value"
+          field_path: "value"
+          display {
+            type: VALUE_TYPE_URL
+          }
+        }
+        title_display {
+          type: VALUE_TYPE_URL
+        }
+        subtitle_display {
+          type: VALUE_TYPE_URL
+        }
+        status_display {
+          type: VALUE_TYPE_URL
+        }
+      }
+    }
+  }
+}

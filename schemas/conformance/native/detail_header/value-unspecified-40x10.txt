@@ -1,0 +1,12 @@
+viewport 40x10
+unspecified
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Declared value: literal               │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

@@ -59,13 +59,13 @@ export function MeridianDetailHeader({
   // status, which are identity, not data: `formatDisplayValue` maps empty to an em
   // dash, which would defeat the `|| panel.title` fallback and paint a "—" chip.
   //
-  // The empty filter tests the RAW value, since a formatted empty is that em dash
-  // — filtering on the formatted text would keep every blank row.
+  // Undeclared rows retain legacy empty filtering. A declared display owns the
+  // null fallback too, matching tables, record cards, and the other kits.
   // A row's DECLARED display wins (schemas 0.23.0 gave these rows a say at last);
   // with none, formatByDisplay defers to the inference that was already here.
   const rows = panel.descriptorRows
     .map((row) => ({ label: row.label, raw: resolvePath(record, row.sourcePath), display: row.display }))
-    .filter((row) => asText(row.raw) !== "")
+    .filter((row) => row.display !== undefined || asText(row.raw) !== "")
     .map((row) => ({
       label: row.label,
       raw: row.raw,

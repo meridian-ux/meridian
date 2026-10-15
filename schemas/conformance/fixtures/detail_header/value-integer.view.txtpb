@@ -1,0 +1,27 @@
+id: "detail_header-value-integer"
+title: "value-integer"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-value-integer"
+    title: "integer"
+    detail_header {
+      title: "Fixture record"
+      descriptor_rows {
+        label: "Declared value"
+        source_path: "value"
+        display {
+          type: VALUE_TYPE_INTEGER
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

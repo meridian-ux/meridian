@@ -1,0 +1,12 @@
+viewport 40x10
+principal
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Declared value: Ada                   │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

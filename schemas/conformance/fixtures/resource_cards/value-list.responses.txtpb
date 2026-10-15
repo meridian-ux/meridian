@@ -1,0 +1,31 @@
+fields {
+  key: "fixture.Values.List"
+  value {
+    struct_value {
+      fields {
+        key: "rows"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "value"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "one"
+                      }
+                      values {
+                        string_value: "two"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+id: "detail_header-value-principal"
+title: "value-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-value-principal"
+    title: "principal"
+    detail_header {
+      title: "Fixture record"
+      descriptor_rows {
+        label: "Declared value"
+        source_path: "value"
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

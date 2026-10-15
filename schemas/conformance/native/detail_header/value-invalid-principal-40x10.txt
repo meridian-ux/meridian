@@ -1,0 +1,12 @@
+viewport 40x10
+invalid-principal
+┌──────────────────────────────────────┐
+│Fixture record                        │
+│Declared value: Ada <bad email>       │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

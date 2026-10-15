@@ -1,0 +1,43 @@
+id: "gallery-value-money-current-scalar"
+title: "value-money-current-scalar"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-value-money-current-scalar"
+    title: "money-current-scalar"
+    gallery {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      card {
+        title_field: "value"
+        subtitle_field: "value"
+        status_field: "value"
+        title_display {
+          type: VALUE_TYPE_MONEY
+          number {
+            fraction_digits: 2
+          }
+        }
+        subtitle_display {
+          type: VALUE_TYPE_MONEY
+          number {
+            fraction_digits: 2
+          }
+        }
+        status_display {
+          type: VALUE_TYPE_MONEY
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

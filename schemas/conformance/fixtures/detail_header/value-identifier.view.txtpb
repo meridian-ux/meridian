@@ -1,0 +1,27 @@
+id: "detail_header-value-identifier"
+title: "value-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-value-identifier"
+    title: "identifier"
+    detail_header {
+      title: "Fixture record"
+      descriptor_rows {
+        label: "Declared value"
+        source_path: "value"
+        display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+id: "record_card-value-excessive-precision"
+title: "value-excessive-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-excessive-precision"
+    title: "excessive-precision"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: 101
+          }
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}

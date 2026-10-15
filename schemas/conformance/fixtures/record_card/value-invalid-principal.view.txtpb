@@ -1,0 +1,28 @@
+id: "record_card-value-invalid-principal"
+title: "value-invalid-principal"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-value-invalid-principal"
+    title: "invalid-principal"
+    record_card {
+      fields {
+        field_id: "value"
+        label: "Declared value"
+        text {
+        }
+        display {
+          type: VALUE_TYPE_PRINCIPAL
+        }
+      }
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+    }
+  }
+}
