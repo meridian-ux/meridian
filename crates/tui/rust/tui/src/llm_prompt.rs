@@ -85,7 +85,7 @@ pub fn render_llm_prompt(
     }
 }
 
-fn prompt_for_slots(panel: &LlmPromptPanel) -> PromptPanel {
+pub(crate) fn prompt_for_slots(panel: &LlmPromptPanel) -> PromptPanel {
     PromptPanel {
         description: panel.description.clone(),
         fields: panel
@@ -108,7 +108,7 @@ fn prompt_for_slots(panel: &LlmPromptPanel) -> PromptPanel {
     }
 }
 
-fn substitute(template: &str, values: &HashMap<String, FieldValue>) -> String {
+pub(crate) fn substitute(template: &str, values: &HashMap<String, FieldValue>) -> String {
     // Match only the original template, never the inserted values. Replacing
     // once per HashMap entry recursively expanded token-shaped slot values in
     // an order that depended on the map's randomized iteration.

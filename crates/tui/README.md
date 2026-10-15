@@ -19,10 +19,39 @@ the shared rust core, never on the other renderers:
      └── //rust/uiview:uiview_wasm  (wasm)      ─▶ meridian-web
 ```
 
-It consumes the core cross-repo via the Bazel module graph
-(`@meridian_uiview_core//rust/uiview` + `:theme_proto`); the proto contracts come
-transitively from
-[meridian-schemas](https://github.com/meridian-ux/meridian-schemas).
+The monorepo supplies the first-party core and theme crates through Cargo path
+dependencies and in-repository Bazel targets. Both builds use the canonical
+protobuf contracts from `schemas/proto`.
+
+## Embedded prompts and local LLM preview
+
+`PanelView::render` draws Prompt and LlmPrompt in the host's existing frame.
+Forward prompt key events to `PanelView::handle_prompt_key(&descriptor, key)`;
+it returns an optional `PanelPromptResponse`. Submitted values and preview slots
+are canonical protobuf `Struct` values, including nested objects, arrays, and
+maps. Confirmation returns a distinct boolean outcome; cancellation is distinct
+from false. Ordinary prompts respond once. LLM preview remains editable and may
+be requested again. No model, provider, or mutation RPC is executed. Hosts own
+authorization and execution of any subsequent action. As with other native enum
+controls, hosts resolve remote enum options before supplying a descriptor.
+
+Tab/Shift+Tab moves between fields; arrow keys edit numeric/enum controls, and
+Space toggles booleans. Compound values use recursively validated JSON editors;
+Ctrl+U clears an editor. Defaults honor required repeated rows, bounded to 1,000
+expanded value nodes; oversized descriptors fail visibly, never silently
+truncate. Enter validates and submits/previews. Shift+Enter inserts a newline in
+an LLM slot declared multiline. Original separators and Unicode remain in the
+collected value. PageUp/PageDown scrolls long previews; F1 toggles full prompt
+description/detail, with paging for long context. Esc cancels. Confirmations use
+Y/N, defaulting to No on Enter; their fields are ignored as the schema specifies.
+
+Masked fields and compound editors containing masked children remain concealed,
+including preview substitutions. Raw values are available only in the returned
+host response and local state; concealment is not encryption. Descriptor changes
+reset prompt state, while resizing/invalidation preserves in-progress edits.
+The offline executable displays these local states without executing responses.
+The legacy one-shot helpers remain available; their established `FieldValue`
+API retains compound JSON as text, while the embedded API returns typed protobuf.
 
 ## Build
 
@@ -34,12 +63,11 @@ the legacy non-null row `id` fallback. Hosts still decide whether an action is
 eligible, authorize it, invoke the RPC, and refresh the panel after success.
 
 ```bash
-bazel build //rust/tui
-bazel test  //rust/tui:tui_test
+bazel build //crates/tui/rust/tui:meridian_tui
+bazel test //crates/tui/rust/tui:tui_test //crates/tui/rust/tui:render_descriptor_test
+cargo test --locked -p meridian-tui
 ```
 
-The authoritative build is Bazel. Standalone `cargo` is not wired in this repo:
-the first-party `meridian_uiview` + `theme_proto` crates are supplied by Bazel
-cross-repo (not as cargo path deps), and the `build.rs` proto-codegen path needs
-the proto sources locally. Use the Bazel `bazel_proto` feature (the default
-here).
+Run these commands from the monorepo root. Bazel and Cargo both exercise the
+native renderer; Bazel's shared conformance target additionally verifies the
+committed descriptor corpus through TestBackend.

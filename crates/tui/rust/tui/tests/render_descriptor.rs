@@ -48,6 +48,503 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+mod inline_prompts {
+    use super::*;
+    use crossterm::event::{KeyEvent, KeyModifiers};
+    use meridian_tui::PanelPromptResponse;
+    use meridian_uiview::proto::{
+        repeated_field, LlmPromptPanel, MaskedInput, NestedForm, NumberInput, ParameterSlot,
+        PromptPanel, RepeatedField,
+    };
+    use prost_types::{value::Kind as ValueKind, Struct};
+
+    fn field(id: &str, kind: Kind) -> FormField {
+        FormField {
+            field_id: id.into(),
+            label: id.into(),
+            kind: Some(kind),
+            ..Default::default()
+        }
+    }
+    fn text(value: &str) -> Kind {
+        Kind::Text(TextInput {
+            default_value: value.into(),
+            ..Default::default()
+        })
+    }
+    fn prompt(fields: Vec<FormField>) -> PanelDescriptor {
+        PanelDescriptor {
+            panel_id: "inline".into(),
+            title: "Inline prompt".into(),
+            body: Some(Body::Prompt(PromptPanel {
+                fields,
+                ..Default::default()
+            })),
+            ..Default::default()
+        }
+    }
+    fn key(
+        view: &mut PanelView,
+        descriptor: &PanelDescriptor,
+        code: KeyCode,
+    ) -> Option<PanelPromptResponse> {
+        view.handle_prompt_key(descriptor, KeyEvent::new(code, KeyModifiers::NONE))
+    }
+    fn buffer(
+        view: &mut PanelView,
+        descriptor: &PanelDescriptor,
+        width: u16,
+        height: u16,
+    ) -> String {
+        struct NoCalls;
+        impl RpcInvoker for NoCalls {
+            fn invoke(
+                &self,
+                _: &str,
+                _: &str,
+                _: serde_json::Value,
+            ) -> Result<serde_json::Value, RpcError> {
+                panic!("local prompts must not execute RPCs")
+            }
+        }
+        let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+        terminal
+            .draw(|frame| {
+                let area = frame.area();
+                view.render(frame, area, descriptor, &Context::default(), &NoCalls);
+            })
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<String>()
+    }
+    fn value<'a>(values: &'a Struct, key: &str) -> &'a ValueKind {
+        values.fields[key].kind.as_ref().unwrap()
+    }
+
+    #[test]
+    fn focused_fields_remain_visible_in_short_viewports() {
+        let fields = (0..20)
+            .map(|index| {
+                field(
+                    &format!("Field{index:02}"),
+                    text(&format!("Value{index:02}")),
+                )
+            })
+            .collect();
+        let descriptor = prompt(fields);
+        let mut view = PanelView::new();
+        for _ in 0..19 {
+            key(&mut view, &descriptor, KeyCode::Tab);
+        }
+        let output = buffer(&mut view, &descriptor, 40, 12);
+        assert!(output.contains("Field19"));
+        assert!(output.contains("Value19"));
+    }
+
+    #[test]
+    fn nested_masked_values_stay_concealed_while_protobuf_preserves_them() {
+        let descriptor = prompt(vec![field(
+            "credentials",
+            Kind::Nested(NestedForm {
+                fields: vec![field(
+                    "token",
+                    Kind::Masked(MaskedInput {
+                        default_value: "nested-secret".into(),
+                        ..Default::default()
+                    }),
+                )],
+                ..Default::default()
+            }),
+        )]);
+        let mut view = PanelView::new();
+        let output = buffer(&mut view, &descriptor, 80, 24);
+        assert!(!output.contains("nested-secret"));
+        assert!(output.contains("******"));
+        let Some(PanelPromptResponse::Submitted(values)) =
+            key(&mut view, &descriptor, KeyCode::Enter)
+        else {
+            panic!("expected nested response")
+        };
+        assert!(
+            matches!(value(&values,"credentials"),ValueKind::StructValue(credentials) if matches!(value(credentials,"token"),ValueKind::StringValue(value) if value == "nested-secret"))
+        );
+    }
+
+    #[test]
+    fn long_wrapped_llm_previews_can_page_to_schema_and_metadata() {
+        let descriptor = PanelDescriptor {
+            body: Some(Body::LlmPrompt(LlmPromptPanel {
+                user_template: "long word ".repeat(200),
+                output_json_schema: "SCHEMA-END".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        for _ in 0..100 {
+            key(&mut view, &descriptor, KeyCode::PageDown);
+        }
+        let output = buffer(&mut view, &descriptor, 40, 12);
+        assert!(output.contains("SCHEMA-END"));
+        for _ in 0..100 {
+            key(&mut view, &descriptor, KeyCode::PageUp);
+        }
+        assert!(buffer(&mut view, &descriptor, 40, 12).contains("User prompt:"));
+    }
+
+    #[test]
+    fn full_prompt_context_and_authored_labels_remain_accessible_without_submitting() {
+        let mut descriptor = prompt(vec![field("text", text("value"))]);
+        if let Some(Body::Prompt(panel)) = &mut descriptor.body {
+            panel.description = format!("{}\nDESCRIPTION-END", "Context ".repeat(100));
+            panel.detail = format!("{}\nDETAIL-END", "Diff ".repeat(100));
+            panel.accept_label = "Apply".into();
+            panel.cancel_label = "Dismiss".into();
+        }
+        let mut view = PanelView::new();
+        let output = buffer(&mut view, &descriptor, 100, 24);
+        assert!(output.contains("Apply [Enter]"));
+        assert!(output.contains("Dismiss [Esc]"));
+        key(&mut view, &descriptor, KeyCode::F(1));
+        assert!(key(&mut view, &descriptor, KeyCode::Enter).is_none());
+        for _ in 0..100 {
+            key(&mut view, &descriptor, KeyCode::PageDown);
+        }
+        assert!(buffer(&mut view, &descriptor, 40, 12).contains("DETAIL-END"));
+        key(&mut view, &descriptor, KeyCode::F(1));
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Enter),
+            Some(PanelPromptResponse::Submitted(_))
+        ));
+        descriptor.body = Some(Body::Prompt(PromptPanel {
+            is_confirmation: true,
+            fields: vec![FormField::default()],
+            ..Default::default()
+        }));
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Enter),
+            Some(PanelPromptResponse::Confirmed(false))
+        ));
+    }
+
+    #[test]
+    fn inline_prompt_dispatch_collects_all_field_kinds_as_wire_roundtrippable_protobuf() {
+        let descriptor = prompt(vec![
+            field("text", text("")),
+            field("integer", Kind::Integer(IntegerSpinner::default())),
+            field(
+                "number",
+                Kind::Number(NumberInput {
+                    default_value: -1.5,
+                    ..Default::default()
+                }),
+            ),
+            field("boolean", Kind::Boolean(BooleanToggle::default())),
+            field(
+                "enum",
+                Kind::EnumSelection(EnumSelection {
+                    options: vec![EnumOption {
+                        value: "stored".into(),
+                        label: "Shown".into(),
+                        ..Default::default()
+                    }],
+                    default_value: "stored".into(),
+                    ..Default::default()
+                }),
+            ),
+            field(
+                "masked",
+                Kind::Masked(MaskedInput {
+                    default_value: "secret-value".into(),
+                    ..Default::default()
+                }),
+            ),
+            field(
+                "nested",
+                Kind::Nested(NestedForm {
+                    fields: vec![field("label", text("Ada"))],
+                    ..Default::default()
+                }),
+            ),
+            field(
+                "items",
+                Kind::Repeated(Box::new(RepeatedField {
+                    min_items: 1,
+                    element: Some(repeated_field::Element::Scalar(Box::new(field(
+                        "",
+                        Kind::Number(NumberInput {
+                            default_value: 1.5,
+                            ..Default::default()
+                        }),
+                    )))),
+                    ..Default::default()
+                })),
+            ),
+            field(
+                "rows",
+                Kind::Repeated(Box::new(RepeatedField {
+                    min_items: 1,
+                    element: Some(repeated_field::Element::Object(NestedForm {
+                        fields: vec![field("enabled", Kind::Boolean(BooleanToggle::default()))],
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })),
+            ),
+            field("map", Kind::KeyValueMap(Default::default())),
+        ]);
+        let bytes = descriptor.encode_to_vec();
+        let descriptor = PanelDescriptor::decode(bytes.as_slice()).unwrap();
+        let mut view = PanelView::new();
+        let output = buffer(&mut view, &descriptor, 80, 24);
+        assert!(output.contains("Inline prompt"));
+        assert!(!output.contains("standalone"));
+        assert!(!output.contains("secret-value"));
+        let Some(PanelPromptResponse::Submitted(values)) =
+            key(&mut view, &descriptor, KeyCode::Enter)
+        else {
+            panic!("expected valid typed defaults")
+        };
+        let values = Struct::decode(values.encode_to_vec().as_slice()).unwrap();
+        assert_eq!(values.fields.len(), 10);
+        assert!(matches!(value(&values,"text"), ValueKind::StringValue(value) if value.is_empty()));
+        assert!(matches!(
+            value(&values, "integer"),
+            ValueKind::NumberValue(0.0)
+        ));
+        assert!(matches!(
+            value(&values, "number"),
+            ValueKind::NumberValue(-1.5)
+        ));
+        assert!(matches!(
+            value(&values, "boolean"),
+            ValueKind::BoolValue(false)
+        ));
+        assert!(
+            matches!(value(&values,"enum"), ValueKind::StringValue(value) if value == "stored")
+        );
+        assert!(
+            matches!(value(&values,"masked"), ValueKind::StringValue(value) if value == "secret-value")
+        );
+        assert!(
+            matches!(value(&values,"nested"), ValueKind::StructValue(nested) if matches!(value(nested,"label"), ValueKind::StringValue(value) if value == "Ada"))
+        );
+        assert!(
+            matches!(value(&values,"items"), ValueKind::ListValue(items) if matches!(items.values[0].kind, Some(ValueKind::NumberValue(1.5))))
+        );
+        assert!(
+            matches!(value(&values,"rows"), ValueKind::ListValue(items) if matches!(&items.values[0].kind, Some(ValueKind::StructValue(row)) if matches!(value(row,"enabled"), ValueKind::BoolValue(false))))
+        );
+        assert!(
+            matches!(value(&values,"map"), ValueKind::StructValue(map) if map.fields.is_empty())
+        );
+        assert!(key(&mut view, &descriptor, KeyCode::Enter).is_none());
+        assert!(key(&mut view, &descriptor, KeyCode::Esc).is_none());
+        assert_eq!(descriptor.encode_to_vec(), bytes);
+    }
+
+    #[test]
+    fn nested_json_edits_validate_recover_and_reject_inexact_integers() {
+        let descriptor = prompt(vec![field(
+            "nested",
+            Kind::Nested(NestedForm {
+                fields: vec![field("count", Kind::Integer(IntegerSpinner::default()))],
+                ..Default::default()
+            }),
+        )]);
+        let mut view = PanelView::new();
+        buffer(&mut view, &descriptor, 80, 24);
+        for raw in [
+            "[]",
+            "{\"count\":9007199254740992}",
+            "{\"count\":1.5}",
+            "{\"extra\":0}",
+        ] {
+            view.handle_prompt_key(
+                &descriptor,
+                KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL),
+            );
+            for ch in raw.chars() {
+                key(&mut view, &descriptor, KeyCode::Char(ch));
+            }
+            assert!(key(&mut view, &descriptor, KeyCode::Enter).is_none());
+            assert!(buffer(&mut view, &descriptor, 80, 24).contains('✗'));
+        }
+        view.handle_prompt_key(
+            &descriptor,
+            KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL),
+        );
+        for ch in "{\"count\":0}".chars() {
+            key(&mut view, &descriptor, KeyCode::Char(ch));
+        }
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Enter),
+            Some(PanelPromptResponse::Submitted(_))
+        ));
+    }
+
+    #[test]
+    fn dispatch_preserves_edits_across_resize_resets_replaced_descriptors_and_separates_cancel_from_false(
+    ) {
+        let mut descriptor = prompt(vec![field("text", text("base"))]);
+        let mut view = PanelView::new();
+        key(&mut view, &descriptor, KeyCode::Char('🦀'));
+        view.invalidate();
+        assert!(buffer(&mut view, &descriptor, 40, 12).contains("base🦀"));
+        if let Some(Body::Prompt(panel)) = &mut descriptor.body {
+            panel.fields[0] = field("text", text("replacement"));
+        }
+        let Some(PanelPromptResponse::Submitted(values)) =
+            key(&mut view, &descriptor, KeyCode::Enter)
+        else {
+            panic!("expected replacement response")
+        };
+        assert!(
+            matches!(value(&values,"text"),ValueKind::StringValue(value) if value == "replacement")
+        );
+        descriptor.body = Some(Body::Prompt(PromptPanel {
+            is_confirmation: true,
+            detail: "Dangerous operation".into(),
+            ..Default::default()
+        }));
+        assert!(buffer(&mut view, &descriptor, 80, 24).contains("Dangerous operation"));
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Enter),
+            Some(PanelPromptResponse::Confirmed(false))
+        ));
+        descriptor.panel_id = "other".into();
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Esc),
+            Some(PanelPromptResponse::Cancelled)
+        ));
+    }
+
+    #[test]
+    fn inline_llm_preview_is_local_literal_multiline_and_masked_in_the_display() {
+        let descriptor = PanelDescriptor {
+            panel_id: "llm".into(),
+            body: Some(Body::LlmPrompt(LlmPromptPanel {
+                system_template: "Use {{secret}}".into(),
+                user_template: "{{document}} / {{missing}}".into(),
+                slots: vec![
+                    ParameterSlot {
+                        name: "document".into(),
+                        multi_line: true,
+                        rows: 4,
+                        field: Some(field("unrelated", text("{{secret}}\r\nlast"))),
+                        ..Default::default()
+                    },
+                    ParameterSlot {
+                        name: "secret".into(),
+                        field: Some(field(
+                            "also-unrelated",
+                            Kind::Masked(MaskedInput {
+                                default_value: "secret-value".into(),
+                                ..Default::default()
+                            }),
+                        )),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        let tall = buffer(&mut view, &descriptor, 100, 30);
+        let mut short = descriptor.clone();
+        if let Some(Body::LlmPrompt(panel)) = &mut short.body {
+            panel.slots[0].rows = 1;
+        }
+        let compact = buffer(&mut PanelView::new(), &short, 100, 30);
+        assert!(
+            tall.find("also-unrelated").unwrap() / 100
+                > compact.find("also-unrelated").unwrap() / 100
+        );
+        assert!(tall.matches("{{secret}}").count() > compact.matches("{{secret}}").count());
+        view.handle_prompt_key(
+            &descriptor,
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::SHIFT),
+        );
+        for ch in "next🦀".chars() {
+            key(&mut view, &descriptor, KeyCode::Char(ch));
+        }
+        let Some(PanelPromptResponse::Preview {
+            slots,
+            rendered_system,
+            rendered_user,
+        }) = key(&mut view, &descriptor, KeyCode::Enter)
+        else {
+            panic!("expected preview")
+        };
+        assert_eq!(rendered_system, "Use secret-value");
+        assert_eq!(rendered_user, "{{secret}}\r\nlast\nnext🦀 / {{missing}}");
+        assert!(
+            matches!(value(&slots,"document"),ValueKind::StringValue(value) if value == "{{secret}}\r\nlast\nnext🦀")
+        );
+        let output = buffer(&mut view, &descriptor, 100, 30);
+        assert!(!output.contains("secret-value"));
+        assert!(output.contains("Use ******"));
+        assert!(output.contains("next🦀"));
+        assert!(matches!(
+            key(&mut view, &descriptor, KeyCode::Enter),
+            Some(PanelPromptResponse::Preview { .. })
+        ));
+    }
+
+    #[test]
+    fn hostile_defaults_fail_but_empty_prompts_and_slotless_previews_collect_valid_values() {
+        let duplicate = prompt(vec![field("same", text("one")), field("same", text("two"))]);
+        let mut invalid = PanelView::new();
+        assert!(buffer(&mut invalid, &duplicate, 100, 24).contains("duplicate field identifier"));
+        assert!(key(&mut invalid, &duplicate, KeyCode::Enter).is_none());
+        let bad_slot = PanelDescriptor {
+            body: Some(Body::LlmPrompt(LlmPromptPanel {
+                slots: vec![ParameterSlot::default()],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        assert!(buffer(&mut invalid, &bad_slot, 100, 24).contains("nonempty and unique"));
+        let descriptor = prompt(vec![field(
+            "huge",
+            Kind::Repeated(Box::new(RepeatedField {
+                min_items: u32::MAX,
+                element: Some(repeated_field::Element::Scalar(Box::new(field(
+                    "",
+                    text("default"),
+                )))),
+                ..Default::default()
+            })),
+        )]);
+        let mut view = PanelView::new();
+        assert!(buffer(&mut view, &descriptor, 100, 24).contains("1000 value nodes"));
+        assert!(key(&mut view, &descriptor, KeyCode::Enter).is_none());
+        let empty = prompt(vec![]);
+        assert!(buffer(&mut view, &empty, 100, 24).contains("No fields declared"));
+        assert!(
+            matches!(key(&mut view,&empty,KeyCode::Enter),Some(PanelPromptResponse::Submitted(values)) if values.fields.is_empty())
+        );
+        assert!(buffer(&mut view, &empty, 100, 24).contains("Submitted."));
+        let no_slots = PanelDescriptor {
+            body: Some(Body::LlmPrompt(LlmPromptPanel {
+                user_template: "Literal {{missing}}".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        assert!(buffer(&mut view, &no_slots, 80, 24).contains("Literal {{missing}}"));
+        assert!(
+            matches!(key(&mut view,&no_slots,KeyCode::Enter),Some(PanelPromptResponse::Preview { rendered_user, slots, ..}) if rendered_user == "Literal {{missing}}" && slots.fields.is_empty())
+        );
+    }
+}
+
 #[test]
 fn selected_row_action_requests_use_wire_bindings_without_changing_raw_values() {
     use meridian_uiview::proto::{field_binding::Source, FieldBinding, NestedBinding};

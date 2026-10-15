@@ -13,7 +13,7 @@
 // raw JSON in the existing Text variant so this helper's public response API
 // stays stable.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io;
 
 use crossterm::{
@@ -79,23 +79,23 @@ impl FieldValue {
 
 #[derive(Debug, thiserror::Error)]
 pub enum PromptError {
+    #[error("invalid prompt descriptor: {0}")]
+    InvalidDescriptor(String),
     #[error("terminal io: {0}")]
     Io(#[from] io::Error),
     #[error("prompt panel has no fields and is_confirmation = false")]
     EmptyPrompt,
     #[error("field {field_id}: unsupported kind (missing FormField.kind oneof)")]
     UnsupportedKind { field_id: String },
-    /// `NestedFields` describes a sub-object, but `PromptResponse::Submitted` is
-    /// flat (keyed by `field_id`), so there is nowhere to put the children's
-    /// values. Rejected up front rather than rendered as a form that silently
-    /// drops a whole branch of the request.
+    /// Legacy error variant retained for callers. Nested values are now edited
+    /// and validated as JSON objects; the one-shot API preserves raw JSON in
+    /// Text, while PanelView emits typed protobuf Struct values.
     #[error(
         "field {field_id}: nested sub-forms are not supported by the one-shot prompt renderer"
     )]
     NestedUnsupported { field_id: String },
-    /// Scalar repeated fields use a typed JSON-array editor. Object rows and
-    /// malformed repeated declarations remain unsupported because the one-shot
-    /// renderer has no nested row editor.
+    /// Missing repeated element declarations remain unsupported. Valid scalar
+    /// and object elements use the recursively validated JSON-array editor.
     #[error("field {field_id}: repeated object or missing-element fields are not supported by the one-shot prompt renderer")]
     RepeatedUnsupported { field_id: String },
     /// Legacy source-compatible error variant. Valid `KeyValueMapField`
@@ -122,7 +122,9 @@ pub fn render_prompt(
         return Err(PromptError::EmptyPrompt);
     }
 
-    validate_supported_fields(&panel.fields)?;
+    if !panel.is_confirmation {
+        validate_supported_fields(&panel.fields)?;
+    }
 
     let mut stdout = io::stdout();
     terminal::enable_raw_mode()?;
@@ -143,22 +145,24 @@ pub fn render_prompt(
     result
 }
 
-/// Fail before raw mode for shapes the one-shot editor cannot faithfully
-/// collect. Scalar repeated fields (including nested scalar arrays) and string
-/// maps are valid; object rows still require the richer FormPanel row editor.
+/// Reject missing kinds before raw mode. Compound values use recursively
+/// validated JSON editors rather than silently dropping nested branches.
 fn validate_supported_fields(fields: &[FormField]) -> Result<(), PromptError> {
+    let mut identifiers = HashSet::new();
     for field in fields {
+        if !identifiers.insert(field.field_id.as_str()) {
+            return Err(PromptError::InvalidDescriptor(format!(
+                "duplicate field identifier {}",
+                field.field_id
+            )));
+        }
         match field.kind.as_ref() {
             None => {
                 return Err(PromptError::UnsupportedKind {
                     field_id: field.field_id.clone(),
                 })
             }
-            Some(Kind::Nested(_)) => {
-                return Err(PromptError::NestedUnsupported {
-                    field_id: field.field_id.clone(),
-                })
-            }
+            Some(Kind::Nested(spec)) => validate_supported_fields(&spec.fields)?,
             Some(Kind::Repeated(spec)) => validate_repeated_shape(field, spec)?,
             Some(Kind::KeyValueMap(_)) => {}
             Some(_) => {}
@@ -168,19 +172,12 @@ fn validate_supported_fields(fields: &[FormField]) -> Result<(), PromptError> {
 }
 
 fn validate_repeated_shape(field: &FormField, spec: &RepeatedField) -> Result<(), PromptError> {
-    let Some(Element::Scalar(scalar)) = spec.element.as_ref() else {
-        return Err(PromptError::RepeatedUnsupported {
+    match spec.element.as_ref() {
+        Some(Element::Scalar(scalar)) => validate_supported_fields(std::slice::from_ref(scalar)),
+        Some(Element::Object(object)) => validate_supported_fields(&object.fields),
+        None => Err(PromptError::RepeatedUnsupported {
             field_id: field.field_id.clone(),
-        });
-    };
-    match scalar.kind.as_ref() {
-        Some(Kind::Repeated(nested)) => validate_repeated_shape(field, nested),
-        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
-            Err(PromptError::RepeatedUnsupported {
-                field_id: field.field_id.clone(),
-            })
-        }
-        Some(_) => Ok(()),
+        }),
     }
 }
 
@@ -270,24 +267,104 @@ pub(crate) struct PromptState {
     states: Vec<FieldState>,
     focus: usize,
     finished: Option<&'static str>,
+    show_details: bool,
+    detail_scroll: u16,
+    multiline_rows: HashMap<String, u32>,
 }
 
 impl PromptState {
+    pub(crate) fn set_multiline_rows(&mut self, field: &str, rows: i32) {
+        self.multiline_rows
+            .insert(field.to_string(), if rows > 0 { rows as u32 } else { 4 });
+    }
+    pub(crate) fn rearm(&mut self) {
+        self.finished = None;
+    }
+
+    pub(crate) fn insert_line_break(&mut self) {
+        if self.finished.is_none()
+            && matches!(
+                self.states
+                    .get(self.focus)
+                    .and_then(|state| state.field.kind.as_ref()),
+                Some(Kind::Text(_)) | Some(Kind::Masked(_))
+            )
+        {
+            self.states[self.focus].text.push('\n');
+        }
+    }
+
+    pub(crate) fn focused_field_id(&self) -> Option<&str> {
+        self.states
+            .get(self.focus)
+            .map(|state| state.field.field_id.as_str())
+    }
+
+    pub(crate) fn clear_text(&mut self) {
+        if self.finished.is_none() {
+            if let Some(state) = self.states.get_mut(self.focus) {
+                state.text.clear();
+            }
+        }
+    }
     pub(crate) fn new(panel: &PromptPanel) -> Result<Self, PromptError> {
         if !panel.is_confirmation && panel.fields.is_empty() {
             return Err(PromptError::EmptyPrompt);
         }
-        validate_supported_fields(&panel.fields)?;
+        let fields = if panel.is_confirmation {
+            &[][..]
+        } else {
+            panel.fields.as_slice()
+        };
+        validate_supported_fields(fields)?;
+        let mut remaining = 1_000usize;
+        let states = fields
+            .iter()
+            .map(|field| {
+                let default = prompt_default(field, &mut remaining)
+                    .map_err(PromptError::InvalidDescriptor)?;
+                let mut state = initial_state(field);
+                if matches!(
+                    field.kind,
+                    Some(Kind::Nested(_)) | Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_))
+                ) {
+                    state.text = default.to_string();
+                }
+                Ok(state)
+            })
+            .collect::<Result<Vec<_>, PromptError>>()?;
         Ok(Self {
             panel: panel.clone(),
-            states: panel.fields.iter().map(initial_state).collect(),
+            states,
             focus: 0,
             finished: None,
+            show_details: false,
+            detail_scroll: 0,
+            multiline_rows: HashMap::new(),
         })
     }
 
     pub(crate) fn handle_key(&mut self, key: KeyEvent) -> Option<PromptResponse> {
         if self.finished.is_some() || key.kind != KeyEventKind::Press {
+            return None;
+        }
+        if key.code == KeyCode::F(1) {
+            self.show_details = !self.show_details;
+            self.detail_scroll = 0;
+            return None;
+        }
+        if self.show_details && key.code == KeyCode::PageDown {
+            self.detail_scroll = self.detail_scroll.saturating_add(5);
+            return None;
+        }
+        if self.show_details && key.code == KeyCode::PageUp {
+            self.detail_scroll = self.detail_scroll.saturating_sub(5);
+            return None;
+        }
+        if self.show_details
+            && key.code != KeyCode::Esc
+            && !(key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
+        {
             return None;
         }
         let response = if key.code == KeyCode::Esc
@@ -340,6 +417,32 @@ impl PromptState {
     pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: &Palette) {
         if let Some(status) = self.finished {
             frame.render_widget(Paragraph::new(status).style(palette.text()), area);
+        } else if self.show_details {
+            let text = format!(
+                "{}\n{}\nDetails [F1 to return] · scroll [PageUp/PageDown]",
+                self.panel.description, self.panel.detail
+            );
+            let lines: usize = text
+                .lines()
+                .map(|line| {
+                    Line::raw(line)
+                        .width()
+                        .max(1)
+                        .div_ceil(area.width.max(1) as usize)
+                })
+                .sum();
+            let scroll = self.detail_scroll.min(
+                lines
+                    .saturating_sub(area.height as usize)
+                    .min(u16::MAX as usize) as u16,
+            );
+            frame.render_widget(
+                Paragraph::new(text)
+                    .style(palette.text())
+                    .wrap(Wrap { trim: false })
+                    .scroll((scroll, 0)),
+                area,
+            );
         } else if self.panel.is_confirmation {
             let accept = if self.panel.accept_label.is_empty() {
                 "Yes"
@@ -353,7 +456,57 @@ impl PromptState {
             };
             draw_confirmation(frame, area, &self.panel, accept, cancel, palette);
         } else {
-            draw_form(frame, area, &self.panel, &self.states, self.focus, palette);
+            draw_form(
+                frame,
+                area,
+                &self.panel,
+                &self.states,
+                self.focus,
+                palette,
+                &self.multiline_rows,
+            );
+        }
+    }
+}
+
+// Bound default expansion, especially repeated-of-repeated min_items. Reject
+// rather than silently truncating or allocating producer-controlled billions.
+fn prompt_default(field: &FormField, remaining: &mut usize) -> Result<serde_json::Value, String> {
+    *remaining = remaining
+        .checked_sub(1)
+        .ok_or_else(|| "default expansion exceeds 1000 value nodes".to_string())?;
+    match field.kind.as_ref() {
+        Some(Kind::Nested(spec)) => {
+            let fields = spec
+                .fields
+                .iter()
+                .map(|field| Ok((field.field_id.clone(), prompt_default(field, remaining)?)))
+                .collect::<Result<serde_json::Map<_, _>, String>>()?;
+            Ok(serde_json::Value::Object(fields))
+        }
+        Some(Kind::Repeated(spec)) => {
+            if spec.min_items as usize > *remaining {
+                return Err("default expansion exceeds 1000 value nodes".into());
+            }
+            let mut items = Vec::new();
+            for _ in 0..spec.min_items {
+                let value = match spec.element.as_ref() {
+                    Some(Element::Scalar(field)) => prompt_default(field, remaining)?,
+                    Some(Element::Object(object)) => prompt_default(
+                        &FormField {
+                            kind: Some(Kind::Nested(object.clone())),
+                            ..Default::default()
+                        },
+                        remaining,
+                    )?,
+                    None => return Err("missing repeated element kind".into()),
+                };
+                items.push(value);
+            }
+            Ok(serde_json::Value::Array(items))
+        }
+        _ => {
+            Ok(crate::content::form_defaults(std::slice::from_ref(field))[&field.field_id].clone())
         }
     }
 }
@@ -390,8 +543,10 @@ fn initial_state(f: &FormField) -> FieldState {
         }
         Some(Kind::Repeated(_)) => state.text = "[]".to_string(),
         Some(Kind::KeyValueMap(_)) => state.text = "{}".to_string(),
-        // Nested fields are rejected in render_prompt before state is built.
-        Some(Kind::Nested(_)) | None => {}
+        Some(Kind::Nested(spec)) => {
+            state.text = crate::content::form_defaults(&spec.fields).to_string()
+        }
+        None => {}
     }
     state
 }
@@ -415,6 +570,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
         Some(Kind::Text(_))
         | Some(Kind::Masked(_))
         | Some(Kind::Repeated(_))
+        | Some(Kind::Nested(_))
         | Some(Kind::KeyValueMap(_)) => match code {
             KeyCode::Char(c) => s.text.push(c),
             KeyCode::Backspace => {
@@ -481,7 +637,7 @@ fn apply_field_input(s: &mut FieldState, code: KeyCode) {
                 _ => {}
             }
         }
-        Some(Kind::Nested(_)) | None => {}
+        None => {}
     }
 }
 
@@ -521,7 +677,9 @@ fn validate_one(s: &FieldState) -> Option<String> {
             pattern_error_msg,
         ),
         Some(Kind::Integer(IntegerSpinner { min, max, .. })) => {
-            if *max != 0 && s.integer > *max as i64 {
+            if s.integer.unsigned_abs() > 9_007_199_254_740_991 {
+                Some("integer cannot be represented exactly by protobuf Value".into())
+            } else if *max != 0 && s.integer > *max as i64 {
                 Some(format!("value must be ≤ {max}"))
             } else if *min != 0 && s.integer < *min as i64 {
                 Some(format!("value must be ≥ {min}"))
@@ -530,7 +688,9 @@ fn validate_one(s: &FieldState) -> Option<String> {
             }
         }
         Some(Kind::Number(NumberInput { min, max, .. })) => {
-            if *max != 0.0 && s.number > *max {
+            if !s.number.is_finite() {
+                Some("value must be a finite number".into())
+            } else if *max != 0.0 && s.number > *max {
                 Some(format!("value must be ≤ {max}"))
             } else if *min != 0.0 && s.number < *min {
                 Some(format!("value must be ≥ {min}"))
@@ -540,9 +700,16 @@ fn validate_one(s: &FieldState) -> Option<String> {
         }
         Some(Kind::Repeated(spec)) => parse_repeated_text(spec, &s.text).err(),
         Some(Kind::KeyValueMap(spec)) => parse_key_value_map_text(spec, &s.text).err(),
-        Some(Kind::Boolean(_)) | Some(Kind::EnumSelection(_)) | Some(Kind::Nested(_)) | None => {
-            None
-        }
+        Some(Kind::Nested(spec)) => serde_json::from_str(&s.text)
+            .map_err(|error| format!("invalid JSON object: {error}"))
+            .and_then(|value| validate_object(&spec.fields, &value))
+            .err(),
+        Some(Kind::EnumSelection(spec)) => crate::enum_options::options(spec)
+            .get(s.selection_index)
+            .is_none()
+            .then(|| "select an allowed option".into()),
+        Some(Kind::Boolean(_)) => None,
+        None => Some("unsupported field kind".into()),
     }
 }
 
@@ -586,17 +753,52 @@ fn parse_repeated_value(spec: &RepeatedField, value: &serde_json::Value) -> Resu
         let noun = if spec.max_items == 1 { "item" } else { "items" };
         return Err(format!("must contain at most {} {noun}", spec.max_items));
     }
-    let Some(Element::Scalar(field)) = spec.element.as_ref() else {
-        return Err("repeated object rows are not supported".to_string());
-    };
     items
         .iter()
         .enumerate()
         .map(|(index, item)| {
-            parse_repeated_item(field, item).map_err(|error| format!("item {}: {error}", index + 1))
+            let result = match spec.element.as_ref() {
+                Some(Element::Scalar(field)) => parse_repeated_item(field, item),
+                Some(Element::Object(object)) => validate_object(&object.fields, item),
+                None => Err("missing repeated element kind".into()),
+            };
+            result.map_err(|error| format!("item {}: {error}", index + 1))
         })
         .collect::<Result<Vec<_>, _>>()
         .map(|_| ())
+}
+
+fn validate_object(fields: &[FormField], value: &serde_json::Value) -> Result<(), String> {
+    let object = value
+        .as_object()
+        .ok_or_else(|| "must be a JSON object".to_string())?;
+    if object
+        .keys()
+        .any(|key| !fields.iter().any(|field| &field.field_id == key))
+    {
+        return Err("unknown object field".into());
+    }
+    for field in fields {
+        let value = object
+            .get(&field.field_id)
+            .ok_or_else(|| format!("missing field {}", field.field_id))?;
+        parse_repeated_item(field, value)
+            .map_err(|error| format!("{}: {error}", field.field_id))?;
+    }
+    Ok(())
+}
+
+pub(crate) fn has_masked_field(field: &FormField) -> bool {
+    match field.kind.as_ref() {
+        Some(Kind::Masked(_)) => true,
+        Some(Kind::Nested(spec)) => spec.fields.iter().any(has_masked_field),
+        Some(Kind::Repeated(spec)) => match spec.element.as_ref() {
+            Some(Element::Scalar(field)) => has_masked_field(field),
+            Some(Element::Object(object)) => object.fields.iter().any(has_masked_field),
+            None => false,
+        },
+        _ => false,
+    }
 }
 
 fn parse_repeated_item(field: &FormField, value: &serde_json::Value) -> Result<(), String> {
@@ -631,7 +833,9 @@ fn parse_repeated_item(field: &FormField, value: &serde_json::Value) -> Result<(
             let value = value
                 .as_i64()
                 .ok_or_else(|| "must be an integer".to_string())?;
-            if input.max != 0 && value > input.max as i64 {
+            if value.unsigned_abs() > 9_007_199_254_740_991 {
+                Err("integer cannot be represented exactly by protobuf Value".into())
+            } else if input.max != 0 && value > input.max as i64 {
                 Err(format!("value must be ≤ {}", input.max))
             } else if input.min != 0 && value < input.min as i64 {
                 Err(format!("value must be ≥ {}", input.min))
@@ -661,16 +865,16 @@ fn parse_repeated_item(field: &FormField, value: &serde_json::Value) -> Result<(
                 .as_str()
                 .ok_or_else(|| "must be a string token".to_string())?;
             let options = crate::enum_options::options(spec);
-            if !options.is_empty() && !options.iter().any(|option| option.0 == value) {
+            if !options.iter().any(|option| option.0 == value) {
                 Err(format!("unknown option {value:?}"))
             } else {
                 Ok(())
             }
         }
         Some(Kind::Repeated(nested)) => parse_repeated_value(nested, value),
-        Some(Kind::Nested(_)) | Some(Kind::KeyValueMap(_)) | None => {
-            Err("unsupported repeated element kind".to_string())
-        }
+        Some(Kind::Nested(spec)) => validate_object(&spec.fields, value),
+        Some(Kind::KeyValueMap(spec)) => parse_key_value_map_text(spec, &value.to_string()),
+        None => Err("unsupported repeated element kind".to_string()),
     }
 }
 
@@ -728,10 +932,10 @@ fn collect(states: &[FieldState]) -> HashMap<String, FieldValue> {
                     .map(|option| option.0.to_string())
                     .unwrap_or_default(),
             ),
-            Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) => {
+            Some(Kind::Repeated(_)) | Some(Kind::KeyValueMap(_)) | Some(Kind::Nested(_)) => {
                 FieldValue::Text(s.text.clone())
             }
-            Some(Kind::Nested(_)) | None => FieldValue::Text(String::new()),
+            None => FieldValue::Text(String::new()),
         };
         out.insert(s.field.field_id.clone(), value);
     }
@@ -788,24 +992,68 @@ fn draw_form(
     states: &[FieldState],
     focus: usize,
     palette: &Palette,
+    multiline_rows: &HashMap<String, u32>,
 ) {
     let outer = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(if panel.description.is_empty() { 0 } else { 3 }),
+            Constraint::Length(if panel.description.is_empty() {
+                0
+            } else if area.height >= 8 {
+                3
+            } else {
+                1
+            }),
             Constraint::Min(1),
-            Constraint::Length(2),
+            Constraint::Length(if area.height >= 8 { 2 } else { 1 }),
         ])
         .split(area);
 
     if !panel.description.is_empty() {
-        draw_header(f, outer[0], panel, palette);
+        if outer[0].height > 1 {
+            draw_header(f, outer[0], panel, palette);
+        } else {
+            f.render_widget(
+                Paragraph::new(panel.description.lines().next().unwrap_or(""))
+                    .style(palette.title()),
+                outer[0],
+            );
+        }
     }
 
-    // Field rows: 2 lines per field (label + value) + 1 for error if any.
+    // Page by focus so a host's smaller content Rect never traps editing offscreen.
+    let field_height = |state: &FieldState| -> u16 {
+        let overhead = 2 + u16::from(state.error.is_some());
+        let lines = if let Some(rows) = multiline_rows.get(&state.field.field_id) {
+            (*rows).min(outer[1].height.saturating_sub(overhead).max(1) as u32) as u16
+        } else if matches!(state.field.kind, Some(Kind::Text(_))) {
+            state.text.split('\n').count().clamp(1, 6) as u16
+        } else {
+            1
+        };
+        lines.saturating_add(overhead)
+    };
+    let mut start = 0;
+    let mut used = 0u16;
+    for index in 0..=focus.min(states.len().saturating_sub(1)) {
+        used = used.saturating_add(field_height(&states[index]));
+        while used > outer[1].height && start < index {
+            used = used.saturating_sub(field_height(&states[start]));
+            start += 1;
+        }
+    }
+    let mut end = start;
+    used = 0;
+    while end < states.len()
+        && (end == start || used.saturating_add(field_height(&states[end])) <= outer[1].height)
+    {
+        used = used.saturating_add(field_height(&states[end]));
+        end += 1;
+    }
+    let visible = &states[start..end];
     let mut field_constraints = Vec::with_capacity(states.len());
-    for s in states {
-        field_constraints.push(Constraint::Length(if s.error.is_some() { 4 } else { 3 }));
+    for s in visible {
+        field_constraints.push(Constraint::Length(field_height(s)));
     }
     field_constraints.push(Constraint::Min(0)); // filler
     let rows = Layout::default()
@@ -813,8 +1061,8 @@ fn draw_form(
         .constraints(field_constraints)
         .split(outer[1]);
 
-    for (i, s) in states.iter().enumerate() {
-        draw_field(f, rows[i], s, i == focus, palette);
+    for (i, s) in visible.iter().enumerate() {
+        draw_field(f, rows[i], s, i + start == focus, palette);
     }
 
     let accept = if panel.accept_label.is_empty() {
@@ -822,21 +1070,31 @@ fn draw_form(
     } else {
         &panel.accept_label
     };
+    let cancel = if panel.cancel_label.is_empty() {
+        "Cancel"
+    } else {
+        &panel.cancel_label
+    };
     let footer = Line::from(vec![
         Span::styled(format!(" {accept} [Enter] "), palette.success_style()),
         Span::raw(" "),
-        Span::styled(" Cancel [Esc] ", palette.meta()),
+        Span::styled(format!(" {cancel} [Esc] "), palette.meta()),
         Span::raw(" "),
         Span::styled(" Navigate [Tab / Shift+Tab] ", palette.meta()),
+        Span::raw(" Details [F1] "),
+        Span::raw(format!(" Field {}/{}", focus + 1, states.len())),
     ]);
-    f.render_widget(
-        Paragraph::new(footer).block(
+    let footer = Paragraph::new(footer);
+    let footer = if outer[2].height > 1 {
+        footer.block(
             Block::default()
                 .borders(Borders::TOP)
                 .border_style(palette.border_style()),
-        ),
-        outer[2],
-    );
+        )
+    } else {
+        footer
+    };
+    f.render_widget(footer, outer[2]);
 }
 
 fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette: &Palette) {
@@ -847,57 +1105,63 @@ fn draw_field(f: &mut Frame, area: Rect, s: &FieldState, focused: bool, palette:
         palette.text()
     };
 
-    let value_str = match s.field.kind.as_ref() {
-        Some(Kind::Text(_)) => s.text.clone(),
-        Some(Kind::Masked(_)) => "*".repeat(s.text.chars().count()),
-        Some(Kind::Integer(_)) => format!("{}  (↑ / ↓)", s.integer),
-        Some(Kind::Number(_)) => format!("{}  (↑ / ↓)", s.number),
-        Some(Kind::Boolean(_)) => {
-            format!("[{}]  (space)", if s.boolean { "x" } else { " " })
+    let value_str = if has_masked_field(&s.field) {
+        "******".to_string()
+    } else {
+        match s.field.kind.as_ref() {
+            Some(Kind::Text(_)) => s.text.clone(),
+            Some(Kind::Masked(_)) => "*".repeat(s.text.chars().count()),
+            Some(Kind::Integer(_)) => format!("{}  (↑ / ↓)", s.integer),
+            Some(Kind::Number(_)) => format!("{}  (↑ / ↓)", s.number),
+            Some(Kind::Boolean(_)) => {
+                format!("[{}]  (space)", if s.boolean { "x" } else { " " })
+            }
+            Some(Kind::EnumSelection(spec)) => {
+                let allowed_values = crate::enum_options::options(spec);
+                let current = allowed_values
+                    .get(s.selection_index)
+                    .map(|option| option.1)
+                    .unwrap_or_default();
+                format!(
+                    "{current}    [{}/{}]",
+                    s.selection_index + 1,
+                    allowed_values.len()
+                )
+            }
+            Some(Kind::Repeated(_)) => format!("{}  (JSON array)", s.text),
+            Some(Kind::KeyValueMap(_)) => format!("{}  (JSON object)", s.text),
+            Some(Kind::Nested(_)) => format!("{}  (JSON object)", s.text),
+            None => String::new(),
         }
-        Some(Kind::EnumSelection(spec)) => {
-            let allowed_values = crate::enum_options::options(spec);
-            let current = allowed_values
-                .get(s.selection_index)
-                .map(|option| option.1)
-                .unwrap_or_default();
-            format!(
-                "{current}    [{}/{}]",
-                s.selection_index + 1,
-                allowed_values.len()
-            )
-        }
-        Some(Kind::Repeated(_)) => format!("{}  (JSON array)", s.text),
-        Some(Kind::KeyValueMap(_)) => format!("{}  (JSON object)", s.text),
-        Some(Kind::Nested(_)) | None => String::new(),
     };
 
-    let mut lines = vec![
-        Line::from(vec![
-            Span::styled(marker, label_style),
-            Span::styled(&s.field.label, label_style),
-            if !s.field.description.is_empty() {
-                Span::styled(format!("  — {}", s.field.description), palette.meta())
-            } else {
-                Span::raw("")
-            },
-        ]),
-        Line::from(vec![
-            Span::raw("    "),
-            Span::styled(
-                value_str,
-                match s.field.kind.as_ref() {
-                    Some(Kind::EnumSelection(spec)) => crate::enum_options::style(
-                        crate::enum_options::options(spec)
-                            .get(s.selection_index)
-                            .map_or(0, |o| o.2),
-                        palette,
-                    ),
-                    _ => palette.value(),
-                },
+    let mut lines = vec![Line::from(vec![
+        Span::styled(marker, label_style),
+        Span::styled(&s.field.label, label_style),
+        if !s.field.description.is_empty() {
+            Span::styled(format!("  — {}", s.field.description), palette.meta())
+        } else {
+            Span::raw("")
+        },
+    ])];
+    let normalized = value_str.replace("\r\n", "\n").replace('\r', "\n");
+    let value_lines: Vec<_> = normalized.split('\n').collect();
+    let capacity = area.height.saturating_sub(2 + u16::from(s.error.is_some())) as usize;
+    for line in &value_lines[value_lines.len().saturating_sub(capacity)..] {
+        let style = match s.field.kind.as_ref() {
+            Some(Kind::EnumSelection(spec)) => crate::enum_options::style(
+                crate::enum_options::options(spec)
+                    .get(s.selection_index)
+                    .map_or(0, |option| option.2),
+                palette,
             ),
-        ]),
-    ];
+            _ => palette.value(),
+        };
+        lines.push(Line::from(vec![
+            Span::raw("    "),
+            Span::styled(line.to_string(), style),
+        ]));
+    }
     if let Some(err) = &s.error {
         lines.push(Line::from(vec![
             Span::raw("    "),
@@ -1263,7 +1527,7 @@ mod repeated_tests {
     }
 
     #[test]
-    fn nested_scalar_arrays_are_typed_but_object_rows_and_nested_forms_stay_rejected() {
+    fn nested_scalar_arrays_and_object_rows_validate_without_dropping_nested_fields() {
         let inner = repeated_field(
             FormField {
                 kind: Some(Kind::Boolean(BooleanToggle::default())),
@@ -1290,20 +1554,24 @@ mod repeated_tests {
             }))),
             ..Default::default()
         };
-        assert!(matches!(
-            validate_supported_fields(&[object_rows]),
-            Err(PromptError::RepeatedUnsupported { .. })
-        ));
+        validate_supported_fields(std::slice::from_ref(&object_rows)).unwrap();
+        let mut state = initial_state(&object_rows);
+        state.text = "[{}]".into();
+        assert_eq!(validate_one(&state), None);
+        state.text = "[false]".into();
+        assert!(validate_one(&state).is_some());
 
         let nested = FormField {
             field_id: "nested".into(),
             kind: Some(form_field::Kind::Nested(NestedForm::default())),
             ..Default::default()
         };
-        assert!(matches!(
-            validate_supported_fields(&[nested]),
-            Err(PromptError::NestedUnsupported { .. })
-        ));
+        validate_supported_fields(std::slice::from_ref(&nested)).unwrap();
+        let mut state = initial_state(&nested);
+        assert_eq!(state.text, "{}");
+        assert_eq!(validate_one(&state), None);
+        state.text = "[]".into();
+        assert!(validate_one(&state).is_some());
     }
 }
 

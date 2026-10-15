@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyEvent};
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
@@ -13,6 +13,7 @@ use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
 use ratatui::Frame;
 
 use crate::content;
+use crate::inline_prompt::{InlinePrompt, PanelPromptResponse};
 use crate::invoker::{RpcInvoker, StreamInvoker, StreamSession};
 use crate::theme::Palette;
 
@@ -32,6 +33,7 @@ const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
 /// build a `Palette::from_theme(...)` and pass it via `with_palette`; the
 /// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
+    inline_prompt: Option<InlinePrompt>,
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
     cached_stat: Option<CachedRecord>,
@@ -111,6 +113,7 @@ pub struct LroSubmission {
 impl PanelView {
     pub fn new() -> Self {
         Self {
+            inline_prompt: None,
             cached: None,
             cached_chart: None,
             cached_stat: None,
@@ -138,6 +141,7 @@ impl PanelView {
     /// `Palette::from_theme(&theme, mode)`). Use this to skin the renderer.
     pub fn with_palette(palette: Palette) -> Self {
         Self {
+            inline_prompt: None,
             cached: None,
             cached_chart: None,
             cached_stat: None,
@@ -312,6 +316,28 @@ impl PanelView {
         self.cached_lro = None;
     }
 
+    fn prepare_prompt(&mut self, descriptor: &PanelDescriptor) {
+        if !self
+            .inline_prompt
+            .as_ref()
+            .is_some_and(|state| state.matches(descriptor))
+        {
+            self.inline_prompt = InlinePrompt::new(descriptor);
+        }
+    }
+
+    /// Collect a local prompt response or preview in the host's existing event
+    /// loop. Never enters raw mode, invokes a model, or performs a mutation.
+    /// The host owns any action taken with the canonical protobuf values.
+    pub fn handle_prompt_key(
+        &mut self,
+        descriptor: &PanelDescriptor,
+        key: KeyEvent,
+    ) -> Option<PanelPromptResponse> {
+        self.prepare_prompt(descriptor);
+        self.inline_prompt.as_mut()?.handle_key(key)
+    }
+
     pub fn select_next(&mut self) {
         if let Some(cached) = &self.cached {
             let n = cached.rows.len();
@@ -384,6 +410,7 @@ impl PanelView {
         context: &Context,
         invoker: &I,
     ) {
+        self.prepare_prompt(descriptor);
         let chunks = Layout::vertical([
             Constraint::Length(1),
             Constraint::Length(1),
@@ -425,18 +452,11 @@ impl PanelView {
                 chunks[2],
                 &format!("Adhoc panel — handler_id: {}", adhoc.handler_id),
             ),
-            Some(Body::Prompt(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "Prompt panels: drive via the standalone prompt renderer (meridian::prompt — not via PanelView).",
-            ),
-            Some(Body::LlmPrompt(_)) => self.render_placeholder(
-                frame,
-                chunks[1],
-                chunks[2],
-                "LLM-prompt panels: drive via the standalone renderer (meridian_tui::render_llm_prompt — one-shot, like the PromptPanel renderer).",
-            ),
+            Some(Body::Prompt(_)) | Some(Body::LlmPrompt(_)) => {
+                if let Some(state) = &self.inline_prompt {
+                    state.draw(frame, content_area, &self.palette);
+                }
+            }
             Some(Body::Gallery(panel)) => {
                 self.populate_gallery_if_needed(panel, context, invoker);
                 let cached = self.cached_gallery.as_ref().unwrap();
@@ -518,7 +538,13 @@ impl PanelView {
             // ── content shapes ────────────────────────────────────────────────
             Some(Body::Choice(panel)) => {
                 self.content_len = panel.options.len();
-                content::render_choice(frame, content_area, panel, &self.palette, self.content_selected);
+                content::render_choice(
+                    frame,
+                    content_area,
+                    panel,
+                    &self.palette,
+                    self.content_selected,
+                );
             }
             Some(Body::Snippet(panel)) => {
                 content::render_snippet(frame, content_area, panel, &self.palette);
@@ -542,11 +568,23 @@ impl PanelView {
             }
             Some(Body::CopyValue(panel)) => {
                 self.content_len = 0;
-                content::render_copy_value(frame, content_area, panel, &self.palette, self.reveal_secret);
+                content::render_copy_value(
+                    frame,
+                    content_area,
+                    panel,
+                    &self.palette,
+                    self.reveal_secret,
+                );
             }
             Some(Body::Catalog(panel)) => {
                 self.content_len = panel.items.len();
-                content::render_catalog(frame, content_area, panel, &self.palette, self.content_selected);
+                content::render_catalog(
+                    frame,
+                    content_area,
+                    panel,
+                    &self.palette,
+                    self.content_selected,
+                );
             }
             Some(Body::Grammar(panel)) => {
                 // The terminal's capability set is text + a sparkline (no
@@ -555,19 +593,43 @@ impl PanelView {
             }
             Some(Body::Stat(panel)) => {
                 if self.cached_stat.is_none() {
-                    let fetched = panel.populate.as_ref().map(|call| invoker.invoke(&call.service, &call.method, RequestBuilder::build(call, context)));
+                    let fetched = panel.populate.as_ref().map(|call| {
+                        invoker.invoke(
+                            &call.service,
+                            &call.method,
+                            RequestBuilder::build(call, context),
+                        )
+                    });
                     self.cached_stat = Some(match fetched {
-                        Some(Ok(record)) if record.is_object() => CachedRecord { record: Some(record), error: None },
-                        Some(Ok(_)) => CachedRecord { record: None, error: Some("Invalid metric response.".into()) },
-                        Some(Err(error)) => CachedRecord { record: None, error: Some(format!("Failed to load metric: {error}")) },
-                        None => CachedRecord { record: None, error: None },
+                        Some(Ok(record)) if record.is_object() => CachedRecord {
+                            record: Some(record),
+                            error: None,
+                        },
+                        Some(Ok(_)) => CachedRecord {
+                            record: None,
+                            error: Some("Invalid metric response.".into()),
+                        },
+                        Some(Err(error)) => CachedRecord {
+                            record: None,
+                            error: Some(format!("Failed to load metric: {error}")),
+                        },
+                        None => CachedRecord {
+                            record: None,
+                            error: None,
+                        },
                     });
                 }
                 let cached = self.cached_stat.as_ref().unwrap();
                 if let Some(error) = &cached.error {
                     self.render_placeholder(frame, chunks[1], chunks[2], error);
                 } else if cached.record.is_some() {
-                    content::render_stat_with_response(frame, content_area, panel, &self.palette, cached.record.as_ref());
+                    content::render_stat_with_response(
+                        frame,
+                        content_area,
+                        panel,
+                        &self.palette,
+                        cached.record.as_ref(),
+                    );
                 } else {
                     content::render_stat(frame, content_area, panel, &self.palette);
                 }
@@ -604,7 +666,9 @@ impl PanelView {
                 if self.stream_follow {
                     self.stream_scroll = max.saturating_sub(self.stream_view_height);
                 }
-                self.stream_scroll = self.stream_scroll.min(max.saturating_sub(self.stream_view_height));
+                self.stream_scroll = self
+                    .stream_scroll
+                    .min(max.saturating_sub(self.stream_view_height));
                 content::render_stream_window(
                     frame,
                     chunks[2],

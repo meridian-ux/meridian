@@ -11,6 +11,7 @@ rust_library(
         "src/enum_options.rs",
         "src/conversation.rs",
         "src/invoker.rs",
+        "src/inline_prompt.rs",
         "src/launchpad.rs",
         "src/lib.rs",
         "src/llm_prompt.rs",
@@ -38,6 +39,7 @@ rust_library(
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
         "@meridian_crates//:regex",
         "@meridian_crates//:thiserror",
@@ -87,6 +89,7 @@ rust_test(
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
     ],
 )

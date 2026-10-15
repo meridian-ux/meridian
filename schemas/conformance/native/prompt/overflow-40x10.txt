@@ -1,12 +1,12 @@
 viewport 40x10
 prompt · overflow
+Delete this resource?Delete this resourc
 
-┌──────────────────────────────────────┐
-│Prompt panels: drive via the standalon│
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-└──────────────────────────────────────┘
+────────────────────────────────────────
+▶ Reason
+    Fixture reasonFixture reasonFixture
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
 end viewport

@@ -227,8 +227,8 @@
           "status": "renders"
         },
         "tui": {
-          "status": "separate-entrypoint",
-          "reason": "Rendered by a dedicated one-shot entrypoint (render_prompt / render_llm_prompt) rather than by PanelView's dispatch."
+          "status": "renders",
+          "reason": "PanelView owns local typed prompt input, validation, confirmation/cancellation, and canonical protobuf response collection; native hosts resolve remote enum options before rendering."
         },
         "swiftui": {
           "status": "unverified",
@@ -259,8 +259,8 @@
           "reason": "shadcnKit shares the typed parameter-fill and local textual preview implementation with htmlKit."
         },
         "tui": {
-          "status": "separate-entrypoint",
-          "reason": "Rendered by a dedicated one-shot entrypoint (render_prompt / render_llm_prompt) rather than by PanelView's dispatch."
+          "status": "renders",
+          "reason": "PanelView owns typed parameter fill and local one-pass LLM preview, preserving multiline input and concealing masked display values; it never executes a provider."
         },
         "swiftui": {
           "status": "unverified",

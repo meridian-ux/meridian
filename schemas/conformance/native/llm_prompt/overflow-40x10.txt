@@ -1,12 +1,12 @@
 viewport 40x10
 llm_prompt · overflow
+Summarize the documentSummarize the docu
+▶ Source text
+    A fixture document.
 
-┌──────────────────────────────────────┐
-│LLM-prompt panels: drive via the stand│
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-│                                      │
-└──────────────────────────────────────┘
+ Preview [Enter]   Cancel [Esc]   Naviga
+Summarize the documentSummarize the
+documentSummarize the documentSummarize
+the documentSummarize the
+documentSummarize the documentSummarize
 end viewport

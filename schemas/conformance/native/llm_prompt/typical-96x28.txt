@@ -1,30 +1,30 @@
 viewport 96x28
 llm_prompt · typical
+Summarize the document
 
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│LLM-prompt panels: drive via the standalone renderer (meridian_tui::render_llm_prompt — one-sh│
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-│                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+────────────────────────────────────────────────────────────────────────────────────────────────
+▶ Source text
+    A fixture document.
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Preview [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+Summarize the document
+System prompt:
+
+User prompt:
+Summarize {{text}}
+Preview [Enter] · multiline [Shift+Enter] · clear [Ctrl+U] · scroll [PageUp/PageDown] · cancel
+[Esc]
+
+
+
+
+
 end viewport
