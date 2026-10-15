@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-numeric-string-precision" level=2
+        StaticText name="typed-numeric-string-precision"
+    heading name="numeric-string-precision" level=3
+      StaticText name="numeric-string-precision"
+    heading name="numeric-string-precision" level=2
+      StaticText name="numeric-string-precision"
+    StaticText name="Typed value"
+    button name="0012.50" focusable=true invalid="false"
+      code name=""
+        StaticText name="0012.50"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Fixture target" focusable=true invalid="false" selected=true
+        StaticText name="Fixture target"

@@ -58,6 +58,16 @@ function renderFormPanel(fields: ReturnType<typeof create<typeof FormFieldSchema
 // ── Scalar fields ──────────────────────────────────────────────────────────────
 
 describe("FormFieldRow — scalar fields (htmlKit, EDIT mode)", () => {
+  it("gives repeated scalar controls names from their parent label and row position", () => {
+    const field = create(FormFieldSchema, { fieldId: "tags", label: "Tags", kind: { case: "repeated", value: {
+      minItems: 2, element: { case: "scalar", value: { fieldId: "tag", kind: { case: "text", value: {} } } },
+    } } });
+    const html = renderFormPanel([field]);
+    expect(html).toContain('aria-label="Tags item 1"');
+    expect(html).toContain('aria-label="Tags item 2"');
+    expect(html).toContain('name="tags[0]"');
+    expect(html).toContain('name="tags[1]"');
+  });
   it("renders a text field with label and input", () => {
     const field = create(FormFieldSchema, {
       fieldId: "name",

@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: lro · overflow" level=2
+        StaticText name="Conformance: lro · overflow"
+    heading name="lro · overflow" level=3
+      StaticText name="lro · overflow"
+    sectionheader name=""
+      heading name="lro · overflow" level=3
+        StaticText name="lro · overflow"
+    button name="Run reindex" focusable=true invalid="false"
+      StaticText name="Run reindex"

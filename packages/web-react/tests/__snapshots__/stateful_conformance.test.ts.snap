@@ -1063,7 +1063,7 @@ h3
 h2
   "copy_value · empty"
 "Primary integration endpoint for the production workspace across all supported regions"
-button type="button"
+button aria-label="Copy Primary integration endpoint for the production workspace across all supported regions" type="button"
   code"
 `;
 
@@ -1978,7 +1978,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -1986,7 +1986,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2009,7 +2009,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2017,7 +2017,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2040,7 +2040,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2048,7 +2048,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2071,7 +2071,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2079,7 +2079,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2102,7 +2102,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2110,7 +2110,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2133,7 +2133,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2141,7 +2141,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2164,7 +2164,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2172,7 +2172,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2195,7 +2195,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2203,7 +2203,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2226,7 +2226,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2234,7 +2234,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2257,7 +2257,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2265,7 +2265,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2288,7 +2288,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2296,7 +2296,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2319,7 +2319,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2327,7 +2327,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2350,7 +2350,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2358,7 +2358,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2381,7 +2381,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2389,7 +2389,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2412,7 +2412,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2420,7 +2420,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2443,7 +2443,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2451,7 +2451,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2474,7 +2474,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2482,7 +2482,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2505,7 +2505,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2513,7 +2513,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2536,7 +2536,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2544,7 +2544,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2567,7 +2567,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2575,7 +2575,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2598,7 +2598,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2606,7 +2606,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2629,7 +2629,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2637,7 +2637,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2660,7 +2660,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2668,7 +2668,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2691,7 +2691,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2699,7 +2699,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2722,7 +2722,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2730,7 +2730,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2753,7 +2753,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2761,7 +2761,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2784,7 +2784,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2792,7 +2792,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2815,7 +2815,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2823,7 +2823,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2846,7 +2846,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2854,7 +2854,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2877,7 +2877,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2885,7 +2885,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2923,7 +2923,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2931,7 +2931,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -2954,7 +2954,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -2962,7 +2962,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -8497,7 +8497,7 @@ h3
 h3
   "copy_value · empty"
 "Primary integration endpoint for the production workspace across all supported regions"
-button type="button"
+button aria-label="Copy Primary integration endpoint for the production workspace across all supported regions" type="button"
   code"
 `;
 
@@ -9412,7 +9412,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9420,7 +9420,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9443,7 +9443,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9451,7 +9451,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9474,7 +9474,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9482,7 +9482,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9505,7 +9505,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9513,7 +9513,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9536,7 +9536,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9544,7 +9544,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9567,7 +9567,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9575,7 +9575,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9598,7 +9598,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9606,7 +9606,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9629,7 +9629,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9637,7 +9637,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9660,7 +9660,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9668,7 +9668,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9691,7 +9691,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9699,7 +9699,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9722,7 +9722,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9730,7 +9730,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9753,7 +9753,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9761,7 +9761,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9784,7 +9784,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9792,7 +9792,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9815,7 +9815,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9823,7 +9823,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9846,7 +9846,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9854,7 +9854,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9877,7 +9877,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9885,7 +9885,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9908,7 +9908,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9916,7 +9916,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9939,7 +9939,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9947,7 +9947,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -9970,7 +9970,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -9978,7 +9978,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10001,7 +10001,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10009,7 +10009,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10032,7 +10032,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10040,7 +10040,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10063,7 +10063,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10071,7 +10071,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10094,7 +10094,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10102,7 +10102,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10125,7 +10125,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10133,7 +10133,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10156,7 +10156,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10164,7 +10164,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10187,7 +10187,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10195,7 +10195,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10218,7 +10218,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10226,7 +10226,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10249,7 +10249,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10257,7 +10257,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10280,7 +10280,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10288,7 +10288,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10311,7 +10311,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10319,7 +10319,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10357,7 +10357,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10365,7 +10365,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled
@@ -10388,7 +10388,7 @@ form
       "Kinds"
       ol
         li
-          input type="text" value="service"
+          input aria-label="Kinds item 1" type="text" value="service"
           button aria-label="Move up" type="button" disabled
             "▲"
           button aria-label="Move down" type="button"
@@ -10396,7 +10396,7 @@ form
           button aria-label="Remove" type="button"
             "✕"
         li
-          input type="text" value="environment"
+          input aria-label="Kinds item 2" type="text" value="environment"
           button aria-label="Move up" type="button"
             "▲"
           button aria-label="Move down" type="button" disabled

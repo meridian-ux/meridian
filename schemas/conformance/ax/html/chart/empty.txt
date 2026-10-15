@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: chart · empty" level=2
+        StaticText name="Conformance: chart · empty"
+    heading name="chart · empty" level=3
+      StaticText name="chart · empty"
+    heading name="chart · empty" level=2
+      StaticText name="chart · empty"
+    figure name=""
+      Figcaption name=""
+        StaticText name="Requests by day"
+      paragraph name=""
+        StaticText name="bar"
+        StaticText name=" of "
+        StaticText name="requests"
+        StaticText name=" by "
+        StaticText name="day"
+      paragraph name=""
+        StaticText name="No chart data."

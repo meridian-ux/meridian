@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: stream · overflow" level=2
+        StaticText name="Conformance: stream · overflow"
+    heading name="stream · overflow" level=3
+      StaticText name="stream · overflow"
+    generic name="" atomic=false live="polite"
+      log name="stream · overflow" atomic=false focusable=true live="polite"
+        StaticText name="Stream line 120\nStream line 121\nStream line 122\nStream line 123\nStream line 124\nStream line 125\nStream line 126\nStream line 127\nStream line 128\nStream line 129\nStream line 130\nStream line 131\nStream line 132\nStream line 133\nStream line 134\nStream line 135\nStream line 136\nStream line 137\nStream line 138\nStream line 139"

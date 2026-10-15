@@ -1,0 +1,58 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: choice · overflow" level=2
+        StaticText name="Conformance: choice · overflow"
+    heading name="choice · overflow" level=3
+      StaticText name="choice · overflow"
+    paragraph name=""
+      StaticText name="Which client?"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="CURSOR" focusable=true invalid="false" selected=true
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"
+      tab name="CURSOR" focusable=true invalid="false" selected=false
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"

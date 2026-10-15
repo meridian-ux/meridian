@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-duration" level=2
+        StaticText name="value-duration"
+    heading name="duration" level=3
+      StaticText name="duration"
+    StaticText name="duration"
+    StaticText name="1 items"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="4 min 12 s"
+          StaticText name="4 min 12 s"

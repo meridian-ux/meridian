@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: form · empty" level=2
+        StaticText name="Conformance: form · empty"
+    heading name="form · empty" level=3
+      StaticText name="form · empty"
+    sectionheader name=""
+      heading name="form · empty" level=3
+        StaticText name="form · empty"
+    StaticText name="Navigation groups"
+    list name=""
+    button name="Add section" focusable=true invalid="false"
+      StaticText name="Add section"

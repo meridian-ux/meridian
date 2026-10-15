@@ -58,6 +58,21 @@ async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"],
 }
 
 describe("web-components content shapes (field-complete)", () => {
+  it.each(["", "  "])("names an empty copy control while copying its raw value %j", async raw => {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    for (const secret of [false, true]) {
+      const root = await draw(create(PanelDescriptorSchema, { body: { case: "copyValue", value: {
+        value: { label: "Token", value: raw, secret },
+      } } }));
+      if (secret) root.querySelector<HTMLButtonElement>(".mer-reveal")!.click();
+      const button = root.querySelector<HTMLButtonElement>(".mer-copyvalue-btn")!;
+      expect(button.getAttribute("aria-label")).toBe("Copy Token");
+      button.click();
+      await Promise.resolve();
+      expect(writeText).toHaveBeenCalledWith(raw);
+    }
+  });
   it("Choice renders option label + description + icon seam", async () => {
     const root = await draw(choiceFixture);
     expect(root.querySelectorAll('[role="tab"]').length).toBe(2);

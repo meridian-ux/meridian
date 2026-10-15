@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: grammar · empty" level=2
+        StaticText name="Conformance: grammar · empty"
+    heading name="grammar · empty" level=3
+      StaticText name="grammar · empty"
+    heading name="grammar · empty" level=2
+      StaticText name="grammar · empty"

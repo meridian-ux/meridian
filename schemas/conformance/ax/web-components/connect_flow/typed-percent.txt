@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-percent" level=2
+        StaticText name="typed-percent"
+    heading name="percent" level=3
+      StaticText name="percent"
+    StaticText name="percent"
+    StaticText name="Typed value"
+    button name="0.125" focusable=true invalid="false"
+      code name=""
+        StaticText name="0.125"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Fixture target" focusable=true invalid="false" selected=true
+        StaticText name="Fixture target"

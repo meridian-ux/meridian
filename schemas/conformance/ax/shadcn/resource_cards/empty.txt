@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: resource_cards · empty" level=2
+        StaticText name="Conformance: resource_cards · empty"
+    heading name="resource_cards · empty" level=3
+      StaticText name="resource_cards · empty"
+    sectionheader name=""
+      heading name="resource_cards · empty" level=3
+        StaticText name="resource_cards · empty"
+    paragraph name=""
+      StaticText name="No services"

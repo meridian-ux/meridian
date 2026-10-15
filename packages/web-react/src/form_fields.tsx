@@ -34,7 +34,7 @@ export const FormEnumValues = createContext<Map<string, readonly string[]> | und
 // Native option styling is platform-dependent; expose semantic roles without literal colors.
 const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: "info", 3: "success", 4: "warning", 5: "danger", 6: "accent" };
 
-function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: string; raw: unknown; className: string }) {
+function EnumInput({ spec, name, raw, className, label }: { spec: EnumSelection; name: string; raw: unknown; className: string; label?: string }) {
   const invoker = useRpcInvoker();
   const registry = useContext(FormEnumValues);
   const id = useId();
@@ -76,6 +76,7 @@ function EnumInput({ spec, name, raw, className }: { spec: EnumSelection; name: 
   const message = pending ? "Loading options…" : result?.error ? `Could not load options: ${result.error}` : options.length === 0 ? "No options available." : "";
   const value = tokens.includes(chosen) ? chosen : tokens[0] ?? "";
   return <><select name={name} className={className} value={value} disabled={pending || options.length === 0}
+    aria-label={label}
     data-value-tone={enumTones[options.find(option => option.value === value)?.tone ?? 0]}
     aria-busy={pending || undefined} aria-describedby={message ? id : undefined} onChange={event => setChosen(event.target.value)}>
     {options.length === 0 && <option value="">{pending ? "Loading…" : "No options"}</option>}
@@ -161,11 +162,13 @@ function ScalarInput({
   field,
   mode,
   name,
+  label,
 }: {
   c: FormFieldClasses;
   field: FormField;
   mode: number;
   name: string;
+  label?: string;
 }): ReactNode {
   const initial = useInitialValue(name);
   const fallback = field.kind.value && "defaultValue" in field.kind.value ? field.kind.value.defaultValue : "";
@@ -175,10 +178,12 @@ function ScalarInput({
     return <span className={c.fieldValue} data-field={name}>{field.kind.case === "masked" ? "••••••" : shown.text}</span>;
   }
   const kind = field.kind;
+  const accessibleLabel = label || (!field.label ? field.fieldId || name : undefined);
   if (kind.case === "boolean") {
     return (
       <input
         type="checkbox"
+        aria-label={accessibleLabel}
         className={c.fieldCheck}
         name={name}
         defaultChecked={Boolean(raw)}
@@ -189,6 +194,7 @@ function ScalarInput({
     return (
       <input
         type="number"
+        aria-label={accessibleLabel}
         className={c.fieldInput}
         name={name}
         min={kind.value.min !== 0 ? kind.value.min : undefined}
@@ -202,6 +208,7 @@ function ScalarInput({
     return (
       <input
         type="number"
+        aria-label={accessibleLabel}
         className={c.fieldInput}
         name={name}
         min={kind.value.min !== 0 ? kind.value.min : undefined}
@@ -212,12 +219,13 @@ function ScalarInput({
     );
   }
   if (kind.case === "enumSelection") {
-    return <EnumInput spec={kind.value} name={name} raw={raw} className={c.fieldSelect} />;
+    return <EnumInput spec={kind.value} name={name} raw={raw} className={c.fieldSelect} label={accessibleLabel} />;
   }
   // text, masked, or unset
   return (
     <input
       type={kind.case === "masked" ? "password" : "text"}
+      aria-label={accessibleLabel}
       className={c.fieldInput}
       name={name}
       defaultValue={String(raw)}
@@ -307,6 +315,7 @@ export function FormFieldRow({
           spec={kind.value}
           mode={mode}
           namePath={namePath}
+          label={field.label || field.fieldId}
         />
       </div>
     );
@@ -482,11 +491,13 @@ export function RepeatedFieldControl({
   spec,
   mode,
   namePath,
+  label,
 }: {
   c: FormFieldClasses;
   spec: RepeatedField;
   mode: number;
   namePath: string;
+  label?: string;
 }): ReactNode {
   const initialValues = useContext(FormInitialValues);
   const minItems = spec.minItems ?? 0;
@@ -559,6 +570,7 @@ export function RepeatedFieldControl({
                   field={element.value}
                   mode={mode}
                   name={`${namePath}[${idx}]`}
+                  label={`${element.value.label || label || namePath} item ${idx + 1}`}
                 />
               ) : null}
               </FormInitialValues.Provider>

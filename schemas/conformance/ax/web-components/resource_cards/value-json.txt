@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-json" level=2
+        StaticText name="value-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    list name=""
+      listitem name="" level=1
+        heading name="{\"ready\":true}" level=3
+          StaticText name="{\"ready\":true}"
+        paragraph name=""
+          StaticText name="{\"ready\":true}"
+        StaticText name="{\"ready\":true}"
+        DescriptionList name=""
+          term name="Declared value"
+            StaticText name="Declared value"
+          definition name=""
+            StaticText name="{\"ready\":true}"

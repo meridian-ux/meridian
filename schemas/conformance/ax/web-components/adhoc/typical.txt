@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: adhoc · typical" level=2
+        StaticText name="Conformance: adhoc · typical"
+    heading name="adhoc · typical" level=3
+      StaticText name="adhoc · typical"
+    StaticText name="adhoc · typical"
+    StaticText name="Adhoc panel — handler_id: overview-dashboard"

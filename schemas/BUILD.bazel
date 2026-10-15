@@ -29,6 +29,14 @@ npm_link_all_packages(name = "node_modules")
 # Renderer conformance consumes the same protobuf fixture messages from every
 # modality. This is test infrastructure, not a published schemas entrypoint.
 js_library(
+    name = "computed_accessibility_data",
+    srcs = ["conformance/normalize_ax.cjs"] + glob([
+        "conformance/fixtures/**/*.binpb",
+        "conformance/ax/**/*.txt",
+    ], allow_empty = True),
+)
+
+js_library(
     name = "conformance_fixtures",
     srcs = [
         "conformance/fixtures.ts",

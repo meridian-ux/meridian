@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: gallery · empty" level=2
+        StaticText name="Conformance: gallery · empty"
+    heading name="gallery · empty" level=3
+      StaticText name="gallery · empty"
+    paragraph name=""
+      StaticText name="no assets"

@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-null" level=2
+        StaticText name="value-null"
+    heading name="null" level=3
+      StaticText name="null"
+    StaticText name="null"
+    StaticText name="1 items"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="—"
+          StaticText name="—"

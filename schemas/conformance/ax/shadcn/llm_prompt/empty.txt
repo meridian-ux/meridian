@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: llm_prompt · empty" level=2
+        StaticText name="Conformance: llm_prompt · empty"
+    heading name="llm_prompt · empty" level=3
+      StaticText name="llm_prompt · empty"
+    sectionheader name=""
+      heading name="llm_prompt · empty" level=3
+        StaticText name="llm_prompt · empty"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"

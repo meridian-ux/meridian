@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-principal" level=2
+        StaticText name="typed-principal"
+    heading name="principal" level=3
+      StaticText name="principal"
+    sectionheader name=""
+      heading name="principal" level=3
+        StaticText name="principal"
+    StaticText name="Typed value"
+    button name="Ada" focusable=true invalid="false"
+      code name=""
+        StaticText name="Ada"

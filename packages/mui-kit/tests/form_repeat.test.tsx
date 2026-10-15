@@ -7,7 +7,7 @@
 //     nav.groups shape — adds sections, adds kinds per section, and reorders, then
 //     the submit RPC receives the exact array a MeridianSite expects.
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
@@ -147,6 +147,17 @@ const navGroupsPanel = create(PanelDescriptorSchema, {
 // ── scalar repeated field ──────────────────────────────────────────────────
 
 describe("RepeatedField — scalar items (add / remove / reorder)", () => {
+  it("names unlabeled repeated scalar inputs from their parent and row position", async () => {
+    const descriptor = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, scalarPanel));
+    if (descriptor.body.case !== "form" || descriptor.body.value.fields[0].kind.case !== "repeated") throw new Error("repeated form required");
+    const element = descriptor.body.value.fields[0].kind.value.element;
+    if (element.case !== "scalar") throw new Error("scalar required");
+    element.value.label = "";
+    render(<MeridianMuiProvider invoker={makeInvoker()}><ViewRenderer view={formView(descriptor)} /></MeridianMuiProvider>);
+    expect(await screen.findByRole("textbox", { name: "Tags item 1" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    expect(screen.getByRole("textbox", { name: "Tags item 2" })).toBeTruthy();
+  });
   it("seeds min_items rows and renders up/down/remove controls", async () => {
     render(
       <MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={makeInvoker()}>

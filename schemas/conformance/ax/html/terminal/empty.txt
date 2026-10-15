@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: terminal · empty" level=2
+        StaticText name="Conformance: terminal · empty"
+    heading name="terminal · empty" level=3
+      StaticText name="terminal · empty"
+    heading name="terminal · empty" level=2
+      StaticText name="terminal · empty"
+    region name="Terminal"
+      paragraph name=""
+        StaticText name="Interactive terminal connection"
+      code name="" invalid="true"
+      alert name="" atomic=true live="assertive"
+        StaticText name="Connection unavailable: expected a ws:// or wss:// broker URL"
+      StaticText name="0"

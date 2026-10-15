@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-principal" level=2
+        StaticText name="value-principal"
+    heading name="principal" level=3
+      StaticText name="principal"
+    heading name="principal" level=2
+      StaticText name="principal"
+    list name=""
+      listitem name="" level=1
+        heading name="Ada" level=3
+          StaticText name="Ada"
+        paragraph name=""
+          StaticText name="Ada"
+        StaticText name="Ada"
+        DescriptionList name=""
+          term name="Declared value"
+            StaticText name="Declared value"
+          definition name=""
+            StaticText name="Ada"

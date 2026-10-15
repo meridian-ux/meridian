@@ -300,7 +300,8 @@ export function CopyValueContent({ c, value }: { c: ContentClasses; value: CopyV
   return (
     <div className={c.copyValue} data-secret={value.secret || undefined}>
       {value.label && <span className={c.copyValueLabel}>{value.label}</span>}
-      <button type="button" className={c.copyValueBtn} data-copy={value.value}>
+      <button type="button" className={c.copyValueBtn} data-copy={value.value}
+        aria-label={!value.secret && !shown.trim() ? value.label ? `Copy ${value.label}` : "Copy value" : undefined}>
         <code className={c.copyValueValue}>{value.secret ? "••••••••" : shown}</code>
       </button>
       {value.secret && (

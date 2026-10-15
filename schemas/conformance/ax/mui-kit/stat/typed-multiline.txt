@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-multiline" level=2
+        StaticText name="typed-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    StaticText name="TYPED METRIC"
+    heading name="42.25" level=5
+      StaticText name="42.25"

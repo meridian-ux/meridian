@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: steps · empty" level=2
+        StaticText name="Conformance: steps · empty"
+    heading name="steps · empty" level=3
+      StaticText name="steps · empty"
+    heading name="steps · empty" level=2
+      StaticText name="steps · empty"
+    list name=""

@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-email" level=2
+        StaticText name="value-email"
+    heading name="email" level=3
+      StaticText name="email"
+    heading name="email" level=2
+      StaticText name="email"
+    sectionheader name=""
+      heading name="Fixture record" level=3
+        StaticText name="Fixture record"
+      DescriptionList name=""
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="ada@example.com"

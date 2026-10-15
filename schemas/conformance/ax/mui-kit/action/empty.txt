@@ -1,0 +1,9 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: action · empty" level=2
+        StaticText name="Conformance: action · empty"
+    heading name="action · empty" level=3
+      StaticText name="action · empty"
+    link name="ADD TO CURSOR" focusable=true
+      StaticText name="ADD TO CURSOR"

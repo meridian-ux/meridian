@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: catalog · empty" level=2
+        StaticText name="Conformance: catalog · empty"
+    heading name="catalog · empty" level=3
+      StaticText name="catalog · empty"
+    sectionheader name=""
+      heading name="catalog · empty" level=3
+        StaticText name="catalog · empty"
+    paragraph name=""
+      StaticText name="(empty)"

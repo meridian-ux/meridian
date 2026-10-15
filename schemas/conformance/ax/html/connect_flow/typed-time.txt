@@ -1,0 +1,16 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-time" level=2
+        StaticText name="typed-time"
+    heading name="time" level=3
+      StaticText name="time"
+    heading name="time" level=2
+      StaticText name="time"
+    StaticText name="Typed value"
+    button name="1:45 PM UTC" focusable=true invalid="false"
+      code name=""
+        StaticText name="1:45 PM UTC"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Fixture target" focusable=true invalid="false" selected=true
+        StaticText name="Fixture target"

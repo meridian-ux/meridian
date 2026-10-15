@@ -1,0 +1,45 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: steps · typical" level=2
+        StaticText name="Conformance: steps · typical"
+    heading name="steps · typical" level=3
+      StaticText name="steps · typical"
+    sectionheader name=""
+      heading name="steps · typical" level=3
+        StaticText name="steps · typical"
+    region name="Steps"
+      paragraph name=""
+        StaticText name="Add an employer and confirm a colleague can see it."
+      list name=""
+        listitem name="" level=1
+          ListMarker name="1. "
+          StaticText name="1"
+          StaticText name="."
+          StaticText name="Open the Sponsors page"
+          StaticText name="Admin"
+          paragraph name=""
+            StaticText name="The list of every employer your organization administers."
+          paragraph name=""
+            StaticText name="The sponsors list"
+          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+            StaticText name="Open Sponsors"
+          StaticText name="Continue in the sponsor list"
+        listitem name="" level=1
+          ListMarker name="2. "
+          StaticText name="2"
+          StaticText name="."
+          StaticText name="Add a new sponsor"
+          StaticText name="Admin"
+          paragraph name=""
+            StaticText name="Name it, then set Status to Active and Kind to Customer."
+        listitem name="" level=1
+          ListMarker name="3. "
+          StaticText name="3"
+          StaticText name="."
+          StaticText name="Confirm a colleague sees it"
+          StaticText name="Manager"
+          paragraph name=""
+            StaticText name="Everyone in your organization shares one sponsor list."
+      paragraph name=""
+        StaticText name="The sponsor is now visible to your whole team."

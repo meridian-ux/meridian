@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: action · typical" level=2
+        StaticText name="Conformance: action · typical"
+    heading name="action · typical" level=3
+      StaticText name="action · typical"
+    sectionheader name=""
+      heading name="action · typical" level=3
+        StaticText name="action · typical"
+    paragraph name=""
+      StaticText name="One click adds it to Cursor."
+    link name="Add to Cursor" focusable=true
+      StaticText name="Add to Cursor"

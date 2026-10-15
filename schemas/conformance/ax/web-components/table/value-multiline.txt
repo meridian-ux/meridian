@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-multiline" level=2
+        StaticText name="value-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    StaticText name="multiline"
+    StaticText name="1 items"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="first second"
+          StaticText name="first second"

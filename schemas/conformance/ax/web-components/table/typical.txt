@@ -1,0 +1,40 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: table · typical" level=2
+        StaticText name="Conformance: table · typical"
+    heading name="table · typical" level=3
+      StaticText name="table · typical"
+    StaticText name="table · typical"
+    StaticText name="2 items"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Member" readonly=false required=false
+            StaticText name="Member"
+          columnheader name="Amount" readonly=false required=false
+            StaticText name="Amount"
+          columnheader name="Enabled" readonly=false required=false
+            StaticText name="Enabled"
+          columnheader name="Website" readonly=false required=false
+            StaticText name="Website"
+      row name=""
+        cell name="Member 00"
+          StaticText name="Member 00"
+        cell name="0.25"
+          StaticText name="0.25"
+        cell name="Yes"
+          StaticText name="Yes"
+        cell name="https://example.test/resource"
+          link name="https://example.test/resource" focusable=true
+            StaticText name="https://example.test/resource"
+      row name=""
+        cell name="Member 01"
+          StaticText name="Member 01"
+        cell name="1.25"
+          StaticText name="1.25"
+        cell name="No"
+          StaticText name="No"
+        cell name="https://example.test/resource"
+          link name="https://example.test/resource" focusable=true
+            StaticText name="https://example.test/resource"

@@ -1,0 +1,26 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-list" level=2
+        StaticText name="value-list"
+    heading name="list" level=3
+      StaticText name="list"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            button name="Declared value" focusable=true
+              StaticText name="Declared value"
+      row name=""
+        cell name="one, two"
+          StaticText name="one, two"
+    paragraph name=""
+      StaticText name="Showing 1 of 1 items"
+    paragraph name=""
+      StaticText name="Rows per page:"
+    combobox name="Rows per page: 20" value="20" expanded=false focusable=true hasPopup="listbox" required=false
+      StaticText name="20"
+    paragraph name=""
+      StaticText name="1–1 of 1"
+    button name="Go to previous page" description="Go to previous page" disabled=true invalid="false"
+    button name="Go to next page" description="Go to next page" disabled=true invalid="false"

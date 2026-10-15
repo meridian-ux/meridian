@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-unknown-type" level=2
+        StaticText name="value-unknown-type"
+    heading name="unknown-type" level=3
+      StaticText name="unknown-type"
+    heading name="literal" level=6
+      StaticText name="literal"
+    paragraph name=""
+      StaticText name="literal"
+    StaticText name="literal"
+    StaticText name="Declared value"
+    paragraph name=""
+      StaticText name="literal"

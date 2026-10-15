@@ -1,0 +1,19 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: detail_header · overflow" level=2
+        StaticText name="Conformance: detail_header · overflow"
+    heading name="detail_header · overflow" level=3
+      StaticText name="detail_header · overflow"
+    heading name="detail_header · overflow" level=2
+      StaticText name="detail_header · overflow"
+    sectionheader name=""
+      heading name="Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title" level=3
+        StaticText name="Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title"
+      paragraph name=""
+        StaticText name="Ada"
+      DescriptionList name=""
+        term name="Type"
+          StaticText name="Type"
+        definition name=""
+          StaticText name="Service"

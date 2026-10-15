@@ -1,0 +1,312 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: steps · overflow" level=2
+        StaticText name="Conformance: steps · overflow"
+    heading name="steps · overflow" level=3
+      StaticText name="steps · overflow"
+    paragraph name=""
+      StaticText name="Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it."
+    list name=""
+      listitem name="" level=1
+        StaticText name="1"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="2"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="3"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="4"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="5"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="6"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="7"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="8"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="9"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="10"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="11"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="12"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="13"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="14"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="15"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="16"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="17"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="18"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="19"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="20"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="21"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="22"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="23"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="24"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="25"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="26"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="27"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="28"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="29"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="30"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="31"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="32"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="33"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+      listitem name="" level=1
+        StaticText name="34"
+        heading name="Open the Sponsors page" level=6
+          StaticText name="Open the Sponsors page"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="The list of every employer your organization administers."
+        image name="The sponsors list"
+        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+          StaticText name="OPEN SPONSORS"
+        StaticText name="Continue in the sponsor list"
+      listitem name="" level=1
+        StaticText name="35"
+        heading name="Add a new sponsor" level=6
+          StaticText name="Add a new sponsor"
+        StaticText name="Admin"
+        paragraph name=""
+          StaticText name="Name it, then set Status to Active and Kind to Customer."
+      listitem name="" level=1
+        StaticText name="36"
+        heading name="Confirm a colleague sees it" level=6
+          StaticText name="Confirm a colleague sees it"
+        StaticText name="Manager"
+        paragraph name=""
+          StaticText name="Everyone in your organization shares one sponsor list."
+    paragraph name=""
+      StaticText name="The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team."

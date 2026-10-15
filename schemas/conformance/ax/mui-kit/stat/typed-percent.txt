@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-percent" level=2
+        StaticText name="typed-percent"
+    heading name="percent" level=3
+      StaticText name="percent"
+    StaticText name="TYPED METRIC"
+    heading name="0.125" level=5
+      StaticText name="0.125"

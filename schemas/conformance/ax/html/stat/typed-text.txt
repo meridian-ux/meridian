@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-text" level=2
+        StaticText name="typed-text"
+    heading name="text" level=3
+      StaticText name="text"
+    heading name="text" level=2
+      StaticText name="text"
+    StaticText name="Typed metric"
+    StaticText name="42.25"

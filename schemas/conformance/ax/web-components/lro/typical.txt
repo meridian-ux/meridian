@@ -1,0 +1,21 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: lro · typical" level=2
+        StaticText name="Conformance: lro · typical"
+    heading name="lro · typical" level=3
+      StaticText name="lro · typical"
+    StaticText name="lro · typical"
+    StaticText name="Click the button to run."
+    LabelText name=""
+      StaticText name="Job input 0:"
+      textbox name="Job input 0:" value="Fixture job input" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+        generic name="" editable="plaintext"
+          StaticText name="Fixture job input" editable="plaintext"
+    LabelText name=""
+      StaticText name="Job input 1:"
+      textbox name="Job input 1:" value="Fixture job input" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+        generic name="" editable="plaintext"
+          StaticText name="Fixture job input" editable="plaintext"
+    button name="Run reindex" focusable=true invalid="false"
+      StaticText name="Run reindex"

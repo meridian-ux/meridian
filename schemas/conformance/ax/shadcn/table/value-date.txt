@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-date" level=2
+        StaticText name="value-date"
+    heading name="date" level=3
+      StaticText name="date"
+    sectionheader name=""
+      heading name="date" level=3
+        StaticText name="date"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="Mar 29, 2026"
+          StaticText name="Mar 29, 2026"

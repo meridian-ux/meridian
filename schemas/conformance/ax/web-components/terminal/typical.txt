@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: terminal · typical" level=2
+        StaticText name="Conformance: terminal · typical"
+    heading name="terminal · typical" level=3
+      StaticText name="terminal · typical"
+    StaticText name="terminal · typical"
+    StaticText name="bash — connecting…"
+    textbox name="Terminal input" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+      generic name="" editable="plaintext"

@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: record_card · empty" level=2
+        StaticText name="Conformance: record_card · empty"
+    heading name="record_card · empty" level=3
+      StaticText name="record_card · empty"
+    StaticText name="record_card · empty"
+    DescriptionList name=""
+      term name="Name"
+        StaticText name="Name"
+      definition name=""
+        StaticText name="—"

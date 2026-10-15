@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-mismatched-number-options" level=2
+        StaticText name="value-mismatched-number-options"
+    heading name="mismatched-number-options" level=3
+      StaticText name="mismatched-number-options"
+    heading name="mismatched-number-options" level=2
+      StaticText name="mismatched-number-options"
+    sectionheader name=""
+      heading name="Fixture record" level=3
+        StaticText name="Fixture record"
+      DescriptionList name=""
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="Ada"

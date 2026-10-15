@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-invalid-time" level=2
+        StaticText name="value-invalid-time"
+    heading name="invalid-time" level=3
+      StaticText name="invalid-time"
+    heading name="invalid-time" level=2
+      StaticText name="invalid-time"
+    table name=""
+      rowgroup name=""
+        row name=""
+          columnheader name="Declared value" readonly=false required=false
+            StaticText name="Declared value"
+      row name=""
+        cell name="25:91"
+          StaticText name="25:91"

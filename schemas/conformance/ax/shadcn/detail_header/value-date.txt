@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-date" level=2
+        StaticText name="value-date"
+    heading name="date" level=3
+      StaticText name="date"
+    sectionheader name=""
+      heading name="date" level=3
+        StaticText name="date"
+    sectionheader name=""
+      heading name="Fixture record" level=2
+        StaticText name="Fixture record"
+      DescriptionList name="Record summary"
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="Mar 29, 2026"

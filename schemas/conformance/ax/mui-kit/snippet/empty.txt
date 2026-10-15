@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: snippet · empty" level=2
+        StaticText name="Conformance: snippet · empty"
+    heading name="snippet · empty" level=3
+      StaticText name="snippet · empty"
+    StaticText name="~/.cursor/mcp.json"
+    StaticText name=" (json)"
+    button name="copy snippet" focusable=true invalid="false"
+      StaticText name="Copy"
+    code name=""

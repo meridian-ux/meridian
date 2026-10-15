@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: catalog · typical" level=2
+        StaticText name="Conformance: catalog · typical"
+    heading name="catalog · typical" level=3
+      StaticText name="catalog · typical"
+    heading name="list_instances" level=6
+      StaticText name="list_instances"
+    paragraph name=""
+      StaticText name="The instances you can address."
+    StaticText name="tool"
+    heading name="graph_*" level=6
+      StaticText name="graph_*"
+    StaticText name="Next"
+    paragraph name=""
+      StaticText name="RLS-respecting reads."

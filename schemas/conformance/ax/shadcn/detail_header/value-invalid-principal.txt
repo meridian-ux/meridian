@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-invalid-principal" level=2
+        StaticText name="value-invalid-principal"
+    heading name="invalid-principal" level=3
+      StaticText name="invalid-principal"
+    sectionheader name=""
+      heading name="invalid-principal" level=3
+        StaticText name="invalid-principal"
+    sectionheader name=""
+      heading name="Fixture record" level=2
+        StaticText name="Fixture record"
+      DescriptionList name="Record summary"
+        term name="Declared value"
+          StaticText name="Declared value"
+        definition name=""
+          StaticText name="Ada <bad email>"

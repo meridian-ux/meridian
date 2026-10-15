@@ -1,0 +1,10 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: copy_value · empty" level=2
+        StaticText name="Conformance: copy_value · empty"
+    heading name="copy_value · empty" level=3
+      StaticText name="copy_value · empty"
+    paragraph name=""
+      StaticText name="Primary integration endpoint for the production workspace across all supported regions"
+    button name="Copy Primary integration endpoint for the production workspace across all supported regions" focusable=true

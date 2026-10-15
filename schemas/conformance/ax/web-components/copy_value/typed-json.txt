@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-json" level=2
+        StaticText name="typed-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    StaticText name="Typed value"
+    button name="{\"ready\":true}" focusable=true invalid="false"
+      code name=""
+        StaticText name="{\"ready\":true}"

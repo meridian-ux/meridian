@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: stat · empty" level=2
+        StaticText name="Conformance: stat · empty"
+    heading name="stat · empty" level=3
+      StaticText name="stat · empty"
+    StaticText name="ACTIVE EMPLOYEES"
+    heading name="0" level=5
+      StaticText name="0"
+    paragraph name=""
+      StaticText name="→ "
+      StaticText name="+0"

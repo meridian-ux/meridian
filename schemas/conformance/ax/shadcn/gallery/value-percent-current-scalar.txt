@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-percent-current-scalar" level=2
+        StaticText name="value-percent-current-scalar"
+    heading name="percent-current-scalar" level=3
+      StaticText name="percent-current-scalar"
+    sectionheader name=""
+      heading name="percent-current-scalar" level=3
+        StaticText name="percent-current-scalar"
+    list name=""
+      listitem name="" level=1
+        heading name="0.125" level=3
+          StaticText name="0.125"
+        paragraph name=""
+          StaticText name="0.125"
+        status name="" atomic=true live="polite"
+          StaticText name="0.125"

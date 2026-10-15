@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: snippet · typical" level=2
+        StaticText name="Conformance: snippet · typical"
+    heading name="snippet · typical" level=3
+      StaticText name="snippet · typical"
+    StaticText name="~/.cursor/mcp.json"
+    StaticText name=" (json)"
+    button name="copy snippet" focusable=true invalid="false"
+      StaticText name="Copy"
+    code name=""
+      StaticText name="{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"

@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-enum" level=2
+        StaticText name="value-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    sectionheader name=""
+      heading name="enum" level=3
+        StaticText name="enum"
+    list name=""
+      listitem name="" level=1
+        heading name="READY" level=3
+          StaticText name="READY"
+        paragraph name=""
+          StaticText name="READY"
+        status name="" atomic=true live="polite"
+          StaticText name="READY"

@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: copy_value · overflow" level=2
+        StaticText name="Conformance: copy_value · overflow"
+    heading name="copy_value · overflow" level=3
+      StaticText name="copy_value · overflow"
+    StaticText name="copy_value · overflow"
+    StaticText name="Primary integration endpoint for the production workspace across all supported regions"
+    button name="https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming" focusable=true invalid="false"
+      code name=""
+        StaticText name="https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaminghttps://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming"

@@ -993,7 +993,7 @@ h3
   "copy_value · empty"
 "copy_value · empty"
 "Primary integration endpoint for the production workspace across all supported regions"
-button type="button"
+button aria-label="Copy Primary integration endpoint for the production workspace across all supported regions" type="button"
   code"
 `;
 

@@ -1,0 +1,14 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="Conformance: choice · typical" level=2
+        StaticText name="Conformance: choice · typical"
+    heading name="choice · typical" level=3
+      StaticText name="choice · typical"
+    paragraph name=""
+      StaticText name="Which client?"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="CURSOR" focusable=true invalid="false" selected=true
+        StaticText name="CURSOR"
+      tab name="VS CODE" focusable=true invalid="false" selected=false
+        StaticText name="VS CODE"

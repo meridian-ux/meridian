@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-enum" level=2
+        StaticText name="typed-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    sectionheader name=""
+      heading name="enum" level=3
+        StaticText name="enum"
+    StaticText name="Typed value"
+    button name="READY" focusable=true invalid="false"
+      code name=""
+        StaticText name="READY"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Fixture target" focusable=true invalid="false" selected=true
+        StaticText name="Fixture target"

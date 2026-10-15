@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="value-negative-precision" level=2
+        StaticText name="value-negative-precision"
+    heading name="negative-precision" level=3
+      StaticText name="negative-precision"
+    heading name="12.5" level=6
+      StaticText name="12.5"
+    paragraph name=""
+      StaticText name="12.5"
+    StaticText name="12.5"
+    StaticText name="Declared value"
+    paragraph name=""
+      StaticText name="12.5"

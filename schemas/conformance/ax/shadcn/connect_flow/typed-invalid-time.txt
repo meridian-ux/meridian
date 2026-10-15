@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="typed-invalid-time" level=2
+        StaticText name="typed-invalid-time"
+    heading name="invalid-time" level=3
+      StaticText name="invalid-time"
+    sectionheader name=""
+      heading name="invalid-time" level=3
+        StaticText name="invalid-time"
+    StaticText name="Typed value"
+    button name="25:91" focusable=true invalid="false"
+      code name=""
+        StaticText name="25:91"
+    tablist name="" multiselectable=false orientation="horizontal"
+      tab name="Fixture target" focusable=true invalid="false" selected=true
+        StaticText name="Fixture target"
