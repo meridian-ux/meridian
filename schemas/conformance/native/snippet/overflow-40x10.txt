@@ -1,0 +1,10 @@
+snippet · overflow
+┌──────────────────────────────────────┐
+│~/.cursor/mcp.json  (json)            │
+│{ "mcpServers": { "demo": { "url":    │
+│"https://mcp.example/mcp" } } }{      │
+│"mcpServers": { "demo": { "url":      │
+│"https://mcp.example/mcp" } } }{      │
+│"mcpServers": { "demo": { "url":      │
+│"https://mcp.example/mcp" } } }{      │
+└──────────────────────────────────────┘

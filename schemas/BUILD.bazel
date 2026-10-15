@@ -52,6 +52,15 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "stateful_conformance_data",
+    srcs = ["conformance/value_types.json"] + glob([
+        "conformance/fixtures/**/*.binpb",
+        "conformance/native/**/*.txt",
+    ], allow_empty = True),  # The test rejects missing goldens; permits first recording.
+    visibility = ["//visibility:public"],
+)
+
 # The npm_link_package calls that used to live here moved to //:BUILD.bazel.
 # They create `node_modules/<pkg>` in the package that DECLARES them, and this
 # directory was the workspace root before the merge — so leaving them here linked

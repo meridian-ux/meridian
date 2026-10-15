@@ -1,0 +1,10 @@
+action · overflow
+┌──────────────────────────────────────┐
+│One click adds it to Cursor.One click │
+│adds it to Cursor.One click adds it to│
+│Cursor.One click adds it to Cursor.One│
+│click adds it to Cursor.One click adds│
+│it to Cursor.One click adds it to     │
+│Cursor.One click adds it to Cursor.One│
+│click adds it to Cursor.One click adds│
+└──────────────────────────────────────┘

@@ -1,0 +1,10 @@
+copy_value · empty
+┌──────────────────────────────────────┐
+│Primary integration endpoint for the  │
+│production workspace across all       │
+│supported regions:    [c] copy        │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

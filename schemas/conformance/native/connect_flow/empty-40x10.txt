@@ -1,0 +1,10 @@
+connect_flow · empty
+┌──────────────────────────────────────┐
+│Every agent points at the same        │
+│endpoint.                             │
+│Endpoint: mcp.example.com/mcp   [c]   │
+│copy                                  │
+│(no targets)                          │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

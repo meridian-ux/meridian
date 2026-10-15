@@ -1,0 +1,28 @@
+copy_value · typical
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Primary integration endpoint for the production workspace across all supported regions:       │
+│https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqr│
+│stuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming│
+│  [c] copy                                                                                    │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘

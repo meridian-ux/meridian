@@ -1,0 +1,28 @@
+connect_flow · overflow
+Every agent points at the same endpoint.
+Endpoint: mcp.example.com/mcp   [c] copy
+
+┌──────────────────┐┌──────────────────────────────────────────────────────────────────────────┐
+│▶ Cursor          ││Cursor                                                                    │
+│  Codex           ││One click installs it.                                                    │
+│  Cursor          ││ ↵ Add to Cursor  cursor://install                                        │
+│  Codex           ││                                                                          │
+│  Cursor          ││~/.cursor/mcp.json  (json)                                                │
+│  Codex           ││{ "mcpServers": { "demo": { "url": "https://mcp.example/mcp" } } }        │
+│  Cursor          ││[c] copy (OSC52)                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+│  Cursor          ││                                                                          │
+│  Codex           ││                                                                          │
+└──────────────────┘└──────────────────────────────────────────────────────────────────────────┘

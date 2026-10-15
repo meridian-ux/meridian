@@ -1,0 +1,10 @@
+record_card · overflow
+┌──────────────────────────────────────┐
+│Name: Fixture record with a long title│
+│with a long title with a long title   │
+│with a long title with a long title   │
+│with a long title with a long title   │
+│with a long title with a long title   │
+│with a long title with a long title   │
+│with a long title with a long title   │
+└──────────────────────────────────────┘

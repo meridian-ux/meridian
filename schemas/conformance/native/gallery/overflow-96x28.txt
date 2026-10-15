@@ -1,0 +1,28 @@
+gallery · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│▶ 1. Resource 00  [Connected]                                                                 │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│    [1] Manage  https://example.test/resource                                                 │
+│                                                                                              │
+│  2. Resource 01  [Connected]                                                                 │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│    [2] Manage  https://example.test/resource                                                 │
+│                                                                                              │
+│  3. Resource 02  [Connected]                                                                 │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+│with overflowing content with overflowing content                                             │
+│    [3] Manage  https://example.test/resource                                                 │
+│                                                                                              │
+│  4. Resource 03  [Connected]                                                                 │
+│    A shared response with overflowing content with overflowing content with overflowing      │
+│content with overflowing content with overflowing content with overflowing content with       │
+│overflowing content with overflowing content with overflowing content with overflowing content│
+└──────────────────────────────────────────────────────────────────────────────────────────────┘

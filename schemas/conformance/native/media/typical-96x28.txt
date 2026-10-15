@@ -1,0 +1,28 @@
+media · typical
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Narrated from a live run.                                                                     │
+│Description: A four-minute walkthrough of creating a sponsor.                                 │
+│Duration: 04:12                                                                               │
+│Captions: /evidence/golden-path.vtt                                                           │
+│Source: /evidence/golden-path.mp4                                                             │
+│Chapter: 00:00 — Open the page                                                                │
+│Chapter: 01:05 — Add the sponsor                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘

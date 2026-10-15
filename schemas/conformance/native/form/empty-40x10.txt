@@ -1,0 +1,10 @@
+form · empty
+┌──────────────────────────────────────┐
+│Edit item                             │
+│↑/↓ select · edit scalar · Enter      │
+│submit                                │
+│                                      │
+│▶ Navigation groups: 0 items          │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

@@ -1,0 +1,10 @@
+action · typical
+┌──────────────────────────────────────┐
+│One click adds it to Cursor.          │
+│                                      │
+│ ↵ Add to Cursor                      │
+│cursor://anysphere.cursor-deeplink/mcp│
+│/install                              │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

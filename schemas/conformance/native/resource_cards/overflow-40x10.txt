@@ -1,0 +1,10 @@
+resource_cards · overflow
+┌──────────────────────────────────────┐
+│▶ 1. Resource 00                      │
+│    A shared response with overflowing│
+│content with overflowing content with │
+│overflowing content with overflowing  │
+│content with overflowing content with │
+│overflowing content with overflowing  │
+│content with overflowing content with │
+└──────────────────────────────────────┘

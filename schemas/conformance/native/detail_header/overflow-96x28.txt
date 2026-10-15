@@ -1,0 +1,28 @@
+detail_header · overflow
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Fixture record with a long title with a long title with a long title with a long title with a │
+│long title with a long title with a long title with a long title with a long title with a long│
+│title with a long title with a long title with a long title with a long title with a long     │
+│title with a long title with a long title with a long title with a long title with a long     │
+│title                                                                                         │
+│Ada                                                                                           │
+│Type: Service                                                                                 │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘

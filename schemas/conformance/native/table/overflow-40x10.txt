@@ -1,0 +1,10 @@
+table · overflow
+40
+┌──────────────────────────────────────┐
+│Member    Amount    Enabled  Website  │
+│Member 00 0.25      Yes      https://e│
+│Member 01 1.25      No       https://e│
+│Member 02 2.25      Yes      https://e│
+│Member 03 3.25      No       https://e│
+│Member 04 4.25      Yes      https://e│
+└──────────────────────────────────────┘

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots, checkStatefulSnapshots } from "./check_conformance_snapshots.mjs";
+import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots, checkStatefulSnapshots, checkNativeSnapshots } from "./check_conformance_snapshots.mjs";
 
 const coverage = { arms: { choice: {}, stream: {} } };
 function sources() {
@@ -67,4 +67,14 @@ test("real WASM web-components snapshots require every state independently", () 
     `exports[\`suite > web-components/table/${state} 1\`] = \`"body"\`;`).join("\n");
   assert.deepEqual(checkStatefulSnapshots(manifest, [], source, ["web-components"]), []);
   assert.match(checkStatefulSnapshots(manifest, [], source.replace(/^.*web-components\/table\/typical.*\n/m, ""), ["web-components"]).join("\n"), /missing stateful snapshot web-components\/table\/typical/);
+});
+
+test("native buffers require both viewports, all states, and every formatter case", () => {
+  const manifest = { arms: { table: {} } };
+  const values = [{ name: "boolean" }];
+  const paths = ["empty", "typical", "overflow", "value-boolean"].flatMap(state =>
+    ["96x28", "40x10"].map(size => `table/${state}-${size}.txt`));
+  assert.deepEqual(checkNativeSnapshots(manifest, values, paths), []);
+  for (const missing of paths) assert.match(checkNativeSnapshots(manifest, values, paths.filter(path => path !== missing)).join("\n"), /missing native snapshot/);
+  assert.match(checkNativeSnapshots(manifest, values, [...paths, "table/stale.txt"]).join("\n"), /unexpected native snapshot table\/stale.txt/);
 });

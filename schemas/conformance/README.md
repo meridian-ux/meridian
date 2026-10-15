@@ -25,6 +25,28 @@ mutable control properties.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
 
+The native consumer decodes the same 98 views and protobuf Struct responses,
+extracts each view's single panel, and drives the real `PanelView` RPC/stream
+seams. It compares 196 terminal-buffer goldens under `native/` at 96×28 and
+40×10, with explicit fetched-content, formatter, repeated-form-count, stream-tail,
+and cancellation checks. This covers native panel dispatch, not a general view
+layout tier. Prompt/LLM-prompt retain their documented standalone-entrypoint
+degradation in `PanelView`, while Terminal remains a web-specific surface.
+Table rows and headers now reserve their declared multiline text height; the
+corpus and a focused regression verify lines and following records aren't lost.
+
+Compare or intentionally re-record native buffers from the source workspace:
+
+```sh
+bazel test --announce_rc=false //crates/tui/rust/tui:stateful_conformance_test
+node schemas/tools/conformance_snapshots.mjs --native --update
+```
+
+The recorder requires Bazel's explicit source workspace path before writing,
+never writes through runfiles, and does not delete unexpected goldens. The
+normal comparison path fails on missing, changed, or extra goldens. The default
+Node presence gate independently requires both viewport files for every case.
+
 Generate or verify deterministically with the pinned protobuf runtime:
 
 ```sh
@@ -40,7 +62,7 @@ are tested; the updater refuses to delete unexpected files automatically.
 The original panel corpus remains intact for native and existing browser users.
 
 This expands real coverage but does not complete the conformance epic: the
-stateful wire corpus still needs a native consumer,
+stateful wire corpus still needs native standalone-prompt coverage,
 ValueType scenarios in the remaining value-bearing arms, and computed browser
 accessibility-tree normalization. The present DOM normalizer is not that tree;
 SwiftUI preview behavior remains explicitly unverified.

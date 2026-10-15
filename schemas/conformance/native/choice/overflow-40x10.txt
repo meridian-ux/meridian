@@ -1,0 +1,10 @@
+choice · overflow
+┌──────────────────────────────────────┐
+│Which client?                         │
+│                                      │
+│▶ Cursor                              │
+│  VS Code                             │
+│  Cursor                              │
+│  VS Code                             │
+│  Cursor                              │
+└──────────────────────────────────────┘

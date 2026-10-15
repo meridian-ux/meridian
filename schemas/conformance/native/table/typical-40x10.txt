@@ -1,0 +1,10 @@
+table · typical
+2
+┌──────────────────────────────────────┐
+│Member    Amount    Enabled  Website  │
+│Member 00 0.25      Yes      https://e│
+│Member 01 1.25      No       https://e│
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

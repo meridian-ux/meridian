@@ -1,0 +1,10 @@
+connect_flow · typical
+Every agent points at the same endpoint.
+Endpoint: mcp.example.com/mcp   [c] copy
+
+┌──────────────────┐┌──────────────────┐
+│▶ Cursor          ││Cursor            │
+│  Codex           ││One click installs│
+│                  ││it.               │
+│                  ││ ↵ Add to Cursor  │
+└──────────────────┘└──────────────────┘

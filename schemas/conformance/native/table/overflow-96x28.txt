@@ -1,0 +1,28 @@
+table · overflow
+40
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│Member                  Amount                  Enabled                Website                │
+│Member 00               0.25                    Yes                    https://example.test/re│
+│Member 01               1.25                    No                     https://example.test/re│
+│Member 02               2.25                    Yes                    https://example.test/re│
+│Member 03               3.25                    No                     https://example.test/re│
+│Member 04               4.25                    Yes                    https://example.test/re│
+│Member 05               5.25                    No                     https://example.test/re│
+│Member 06               6.25                    Yes                    https://example.test/re│
+│Member 07               7.25                    No                     https://example.test/re│
+│Member 08               8.25                    Yes                    https://example.test/re│
+│Member 09               9.25                    No                     https://example.test/re│
+│Member 10               10.25                   Yes                    https://example.test/re│
+│Member 11               11.25                   No                     https://example.test/re│
+│Member 12               12.25                   Yes                    https://example.test/re│
+│Member 13               13.25                   No                     https://example.test/re│
+│Member 14               14.25                   Yes                    https://example.test/re│
+│Member 15               15.25                   No                     https://example.test/re│
+│Member 16               16.25                   Yes                    https://example.test/re│
+│Member 17               17.25                   No                     https://example.test/re│
+│Member 18               18.25                   Yes                    https://example.test/re│
+│Member 19               19.25                   No                     https://example.test/re│
+│Member 20               20.25                   Yes                    https://example.test/re│
+│Member 21               21.25                   No                     https://example.test/re│
+│Member 22               22.25                   Yes                    https://example.test/re│
+└──────────────────────────────────────────────────────────────────────────────────────────────┘

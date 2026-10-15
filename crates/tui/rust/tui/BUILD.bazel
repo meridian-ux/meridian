@@ -90,3 +90,20 @@ rust_test(
         "@meridian_crates//:ratatui",
     ],
 )
+
+# Decode the shared stateful ViewDescriptor/Struct corpus and render its panels
+# through the real native dispatch, not Rust-authored copies or canned rows.
+rust_test(
+    name = "stateful_conformance_test",
+    srcs = ["tests/stateful_conformance.rs"],
+    data = ["//schemas:stateful_conformance_data"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+        "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
+        "@meridian_crates//:ratatui",
+    ],
+)

@@ -1,0 +1,10 @@
+lro · empty
+┌──────────────────────────────────────┐
+│Run reindex                           │
+│↑/↓ select · edit scalar · Enter start│
+│operation                             │
+│Press Enter to start.                 │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘

@@ -16,7 +16,7 @@ The roadmap exists to make three things true:
 
 | milestone | due | epics |
 |---|---|---|
-| **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · [#5](../../issues/5) manifest completeness · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
+| **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | [#6](../../issues/6) TUI · [#7](../../issues/7) web-components · [#8](../../issues/8) kits · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
@@ -166,8 +166,14 @@ checks for fetched content, formatter results, and bounded stream tails.
 The web-components suite loads the actual compiled WASM bridge; its stream cases
 pin the documented plain-DOM fallback, and terminal sockets are test transports,
 not live PTY proof. The snapshot gate and shared Bazel-aware re-record path include these cases.
+Native TUI `PanelView` also decodes these views, extracts their one panel slot,
+and renders shared responses through its actual transport seams. It compares
+196 terminal-buffer goldens at 96×28 and 40×10, with explicit content, formatter,
+stream-tail, and subscription-disposal assertions. This exposed and fixed
+multiline table cells and headers losing all but their first line. It does not
+establish a general native ViewDescriptor layout implementation.
 This is not proof of field-complete parity: the new corpus still needs consumers
-in the native renderer, ValueType cases in the other value-bearing arms, computed
+for native standalone prompt surfaces, ValueType cases in the other value-bearing arms, computed
 accessibility trees, renderer-specific overflow/layout, and broader interactive
 surfaces. These remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
