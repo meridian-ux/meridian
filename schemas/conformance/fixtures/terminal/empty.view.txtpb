@@ -1,0 +1,15 @@
+id: "terminal-empty"
+title: "Conformance: terminal · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "terminal-empty"
+    title: "terminal · empty"
+    terminal {
+    }
+  }
+}

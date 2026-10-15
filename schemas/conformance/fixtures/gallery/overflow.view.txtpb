@@ -1,0 +1,28 @@
+id: "gallery-overflow"
+title: "Conformance: gallery · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "gallery-overflow"
+    title: "gallery · overflow"
+    gallery {
+      populate {
+        service: "demo.Gallery"
+        method: "List"
+      }
+      rows_field: "items"
+      placeholder: "no assets"
+      card {
+        title_field: "name"
+        subtitle_field: "description"
+        status_field: "status"
+        href_field: "href"
+        action_label_field: "action"
+      }
+    }
+  }
+}

@@ -1,0 +1,704 @@
+fields {
+  key: "fixture.Forms.Get"
+  value {
+    struct_value {
+      fields {
+        key: "groups"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 0"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 1"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 2"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 3"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 4"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 5"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 6"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 7"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 8"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 9"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 10"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 11"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 12"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 13"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 14"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 15"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 16"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 17"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 18"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 19"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 20"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 21"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 22"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 23"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 24"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 25"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 26"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 27"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 28"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "kinds"
+                  value {
+                    list_value {
+                      values {
+                        string_value: "service"
+                      }
+                      values {
+                        string_value: "environment"
+                      }
+                    }
+                  }
+                }
+                fields {
+                  key: "label"
+                  value {
+                    string_value: "Section 29"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

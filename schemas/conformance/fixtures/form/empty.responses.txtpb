@@ -1,0 +1,14 @@
+fields {
+  key: "fixture.Forms.Get"
+  value {
+    struct_value {
+      fields {
+        key: "groups"
+        value {
+          list_value {
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+id: "stat-typical"
+title: "Conformance: stat · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-typical"
+    title: "stat · typical"
+    stat {
+      label: "Active employees"
+      value: 1240.0
+      format: VALUE_FORMAT_NUMBER
+      previous: 1180.0
+      series: 1180.0
+      series: 1200.0
+      series: 1220.0
+      series: 1240.0
+      higher_is_better: true
+    }
+  }
+}

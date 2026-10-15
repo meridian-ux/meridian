@@ -1,0 +1,15 @@
+id: "catalog-empty"
+title: "Conformance: catalog · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "catalog-empty"
+    title: "catalog · empty"
+    catalog {
+    }
+  }
+}

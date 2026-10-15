@@ -1,0 +1,26 @@
+id: "resource_cards-empty"
+title: "Conformance: resource_cards · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-empty"
+    title: "resource_cards · empty"
+    resource_cards {
+      populate {
+        service: "demo.Services"
+        method: "List"
+      }
+      rows_field: "services"
+      template {
+        title_field: "name"
+        subtitle_field: "description"
+      }
+      item_noun: "services"
+      empty_message: "No services"
+    }
+  }
+}

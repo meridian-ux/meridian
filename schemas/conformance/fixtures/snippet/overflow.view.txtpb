@@ -1,0 +1,20 @@
+id: "snippet-overflow"
+title: "Conformance: snippet · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "snippet-overflow"
+    title: "snippet · overflow"
+    snippet {
+      snippet {
+        content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+        language: "json"
+        path: "~/.cursor/mcp.json"
+      }
+    }
+  }
+}

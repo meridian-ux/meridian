@@ -1,0 +1,23 @@
+id: "stream-empty"
+title: "Conformance: stream · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stream-empty"
+    title: "stream · empty"
+    stream {
+      subscribe {
+        service: "demo.Builds"
+        method: "Tail"
+      }
+      line_field: "message"
+      max_lines: 20
+      placeholder: "Waiting for build events..."
+      item_noun: "events"
+    }
+  }
+}

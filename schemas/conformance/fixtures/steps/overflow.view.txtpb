@@ -1,0 +1,305 @@
+id: "steps-overflow"
+title: "Conformance: steps · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "steps-overflow"
+    title: "steps · overflow"
+    steps {
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      steps {
+        label: "Open the Sponsors page"
+        detail: "The list of every employer your organization administers."
+        media_uri: "/evidence/sponsors.png"
+        media_alt: "The sponsors list"
+        actor: "Admin"
+        action {
+          label: "Open Sponsors"
+          description: "Continue in the sponsor list"
+          icon: "open"
+          uri: "/sponsors"
+          style: AFFORDANCE_STYLE_PRIMARY
+        }
+      }
+      steps {
+        label: "Add a new sponsor"
+        detail: "Name it, then set Status to Active and Kind to Customer."
+        actor: "Admin"
+      }
+      steps {
+        label: "Confirm a colleague sees it"
+        detail: "Everyone in your organization shares one sponsor list."
+        actor: "Manager"
+      }
+      intro: "Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it.Add an employer and confirm a colleague can see it."
+      outro: "The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team.The sponsor is now visible to your whole team."
+    }
+  }
+}

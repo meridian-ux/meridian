@@ -1,0 +1,32 @@
+fields {
+  key: "fixture.Records.Get"
+  value {
+    struct_value {
+      fields {
+        key: "data"
+        value {
+          struct_value {
+            fields {
+              key: "owner"
+              value {
+                string_value: "Ada"
+              }
+            }
+            fields {
+              key: "type"
+              value {
+                string_value: "Service"
+              }
+            }
+          }
+        }
+      }
+      fields {
+        key: "name"
+        value {
+          string_value: "Fixture record with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title with a long title"
+        }
+      }
+    }
+  }
+}

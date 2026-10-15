@@ -75,6 +75,7 @@ vitest_test(
 # meridian.ui.v1 shape renders, htmlKit covers what it claims, adhoc routes.
 vitest_test(
     name = "conformance",
+    env = {"CI": "true"},
     srcs = [
         "tests/conformance.test.ts",
         "tests/chart.test.ts",
@@ -84,6 +85,8 @@ vitest_test(
         "tests/media.test.ts",
         "tests/steps.test.ts",
         "tests/stream.test.ts",
+        "tests/stateful_conformance.test.ts",
+        "tests/__snapshots__/stateful_conformance.test.ts.snap",
         "tests/gallery.test.ts",
         "tests/table_actions.test.ts",
         "tests/fixtures.ts",

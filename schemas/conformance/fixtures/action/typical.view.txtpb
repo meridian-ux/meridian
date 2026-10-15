@@ -1,0 +1,22 @@
+id: "action-typical"
+title: "Conformance: action · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "action-typical"
+    title: "action · typical"
+    action {
+      action {
+        id: "add-to-cursor"
+        label: "Add to Cursor"
+        uri: "cursor://anysphere.cursor-deeplink/mcp/install"
+        style: AFFORDANCE_STYLE_PRIMARY
+      }
+      description: "One click adds it to Cursor."
+    }
+  }
+}

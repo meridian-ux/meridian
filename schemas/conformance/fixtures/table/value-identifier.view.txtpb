@@ -1,0 +1,27 @@
+id: "value-identifier"
+title: "value-identifier"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "value-identifier"
+    title: "identifier"
+    table {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      columns {
+        header: "Declared value"
+        field_path: "value"
+        value_display {
+          type: VALUE_TYPE_IDENTIFIER
+        }
+      }
+    }
+  }
+}

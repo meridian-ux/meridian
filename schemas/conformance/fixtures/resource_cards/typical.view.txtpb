@@ -1,0 +1,26 @@
+id: "resource_cards-typical"
+title: "Conformance: resource_cards · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-typical"
+    title: "resource_cards · typical"
+    resource_cards {
+      populate {
+        service: "demo.Services"
+        method: "List"
+      }
+      rows_field: "services"
+      template {
+        title_field: "name"
+        subtitle_field: "description"
+      }
+      item_noun: "services"
+      empty_message: "No services"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+id: "chart-overflow"
+title: "Conformance: chart · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "chart-overflow"
+    title: "chart · overflow"
+    chart {
+      chart {
+        mark: CHART_MARK_BAR
+        x {
+          field_name: "day"
+          type: ENCODING_TYPE_TEMPORAL
+        }
+        y {
+          field_name: "requests"
+          type: ENCODING_TYPE_QUANTITATIVE
+        }
+        populate {
+          service: "fixture.Charts"
+          method: "List"
+        }
+        title: "Requests by day"
+        rows_field: "rows"
+      }
+    }
+  }
+}

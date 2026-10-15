@@ -1,0 +1,30 @@
+id: "value-negative-precision"
+title: "value-negative-precision"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "value-negative-precision"
+    title: "negative-precision"
+    table {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      columns {
+        header: "Declared value"
+        field_path: "value"
+        value_display {
+          type: VALUE_TYPE_DECIMAL
+          number {
+            fraction_digits: -1
+          }
+        }
+      }
+    }
+  }
+}

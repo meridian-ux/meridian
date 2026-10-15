@@ -1,0 +1,30 @@
+id: "value-mismatched-number-options"
+title: "value-mismatched-number-options"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "value-mismatched-number-options"
+    title: "mismatched-number-options"
+    table {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      columns {
+        header: "Declared value"
+        field_path: "value"
+        value_display {
+          type: VALUE_TYPE_PRINCIPAL
+          number {
+            fraction_digits: 2
+          }
+        }
+      }
+    }
+  }
+}

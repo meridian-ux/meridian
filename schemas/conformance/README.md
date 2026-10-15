@@ -1,5 +1,43 @@
 # Renderer conformance
 
+## Stateful ViewDescriptor corpus
+
+`fixtures/<arm>/` contains empty, typical, and overflow `ViewDescriptor` cases
+for every current panel arm, each with a `.view.binpb` and reviewable `.view.txtpb`
+twin. Companion `.responses.binpb` / `.responses.txtpb` files are canonical
+`google.protobuf.Struct` messages, keyed by RPC service/method. They carry real
+empty or populated responses rather than substituting a different fixture in
+each renderer. `__streamFrames` supplies structured snapshot events to the
+host's existing protobuf StreamFrame seam. No JSON-only transport DTO is added.
+
+There are also 29 table value cases from `value_types.json`, including nulls,
+invalid declarations, and unknown types. Both reference React kits load these
+exact wire messages, render `ViewRenderer`, resolve the shared responses through
+their invokers, and compare committed semantic DOM goldens. Explicit assertions
+check populated/empty tables, formatter outputs, and bounded stream tails.
+The presence gate requires every arm/state and formatter case; removing just an
+overflow snapshot now fails even when that arm's initial snapshot still exists.
+
+Generate or verify deterministically with the pinned protobuf runtime:
+
+```sh
+python3 -m pip install -r tools/conformance_requirements.txt
+python3 tools/stateful_corpus.py --write  # deliberate update; review all twins
+python3 tools/stateful_corpus.py          # read-only freshness check used in CI
+python3 -m unittest tools/test_stateful_corpus.py
+```
+
+The existing `UPDATE_SNAPSHOTS=1` re-record path includes the stateful suite.
+Binary/text equivalence, missing files, changed content, and unexpected files
+are tested; the updater refuses to delete unexpected files automatically.
+The original panel corpus remains intact for native and existing browser users.
+
+This expands real coverage but does not complete the conformance epic: the
+stateful wire corpus still needs MUI, web-components, and native consumers,
+ValueType scenarios in the remaining value-bearing arms, and computed browser
+accessibility-tree normalization. The present DOM normalizer is not that tree;
+SwiftUI preview behavior remains explicitly unverified.
+
 ## Native and WASM core fixtures
 
 `core.proto` defines the test-only envelope for `core.json`. Its 31 cases cover

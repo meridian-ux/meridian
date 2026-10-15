@@ -9,7 +9,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const VITEST_SUITES = [
   {
     cwd: "packages/web-react",
-    files: ["tests/conformance.test.ts"],
+    files: ["tests/conformance.test.ts", "tests/stateful_conformance.test.ts"],
   },
   {
     cwd: "packages/mui-kit",

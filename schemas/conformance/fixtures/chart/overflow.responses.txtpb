@@ -1,0 +1,462 @@
+fields {
+  key: "fixture.Charts.List"
+  value {
+    struct_value {
+      fields {
+        key: "rows"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-01"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 1.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-02"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 2.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-03"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 3.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-04"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 4.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-05"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 5.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-06"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 6.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-07"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 7.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-08"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 8.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-09"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 9.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-10"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 10.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-11"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 11.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-12"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 12.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-13"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 13.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-14"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 14.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-15"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 15.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-16"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 16.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-17"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 17.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-18"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 18.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-19"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 19.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-20"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 20.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-21"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 21.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-22"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 22.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-23"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 23.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-24"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 24.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-25"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 25.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-26"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 26.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-27"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 27.0
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "day"
+                  value {
+                    string_value: "2026-10-28"
+                  }
+                }
+                fields {
+                  key: "requests"
+                  value {
+                    number_value: 28.0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

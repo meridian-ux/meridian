@@ -10,6 +10,19 @@ export const SNAPSHOT_SUITES = {
   "packages/web/tests/__snapshots__/conformance.test.ts.snap": ["web-components"],
 };
 
+export function checkStatefulSnapshots(coverage, valueCases, source) {
+  if (source === undefined) return ["missing stateful ViewDescriptor snapshots"];
+  const cases = Object.keys(coverage.arms).flatMap(arm => ["empty", "typical", "overflow"].map(state => `${arm}/${state}`));
+  cases.push(...valueCases.map(value => `table/value-${value.name}`));
+  const expected = new Set(["html", "shadcn"].flatMap(renderer => cases.map(name => `${renderer}/${name}`)));
+  const actual = [...source.matchAll(/exports\[`[^`\n]* > ((?:html|shadcn)\/[a-z_]+\/[a-z0-9-]+) 1`\] = /g)].map(match => match[1]);
+  const errors = [];
+  for (const key of expected) if (!actual.includes(key)) errors.push(`missing stateful snapshot ${key}`);
+  for (const key of actual) if (!expected.has(key)) errors.push(`unexpected stateful snapshot ${key}`);
+  if (new Set(actual).size !== actual.length) errors.push("duplicate stateful snapshot key");
+  return errors;
+}
+
 export function checkSnapshots(coverage, sources) {
   const errors = [];
   const arms = ["unset", ...Object.keys(coverage.arms)];
@@ -35,7 +48,11 @@ export function checkSnapshotFiles(coverage) {
     try { sources[path] = readFileSync(new URL(path, root), "utf8"); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
   }
-  return checkSnapshots(coverage, sources);
+  let stateful;
+  try { stateful = readFileSync(new URL("packages/web-react/tests/__snapshots__/stateful_conformance.test.ts.snap", root), "utf8"); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
+  const valueCases = JSON.parse(readFileSync(new URL("schemas/conformance/value_types.json", root), "utf8")).cases;
+  return [...checkSnapshots(coverage, sources), ...checkStatefulSnapshots(coverage, valueCases, stateful)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

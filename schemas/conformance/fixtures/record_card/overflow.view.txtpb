@@ -1,0 +1,24 @@
+id: "record_card-overflow"
+title: "Conformance: record_card · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "record_card-overflow"
+    title: "record_card · overflow"
+    record_card {
+      fields {
+        field_id: "name"
+        label: "Name"
+      }
+      populate {
+        service: "fixture.Records"
+        method: "Get"
+      }
+      item_noun: "sponsor"
+    }
+  }
+}

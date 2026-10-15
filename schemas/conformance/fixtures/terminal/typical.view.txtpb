@@ -1,0 +1,19 @@
+id: "terminal-typical"
+title: "Conformance: terminal · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "terminal-typical"
+    title: "terminal · typical"
+    terminal {
+      url: "wss://example.test/pty"
+      tool: "bash"
+      cols: 80
+      rows: 24
+    }
+  }
+}

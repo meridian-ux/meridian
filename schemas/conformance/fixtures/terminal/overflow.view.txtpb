@@ -1,0 +1,19 @@
+id: "terminal-overflow"
+title: "Conformance: terminal · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "terminal-overflow"
+    title: "terminal · overflow"
+    terminal {
+      url: "wss://example.test/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/long-path/"
+      tool: "Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title Long terminal title "
+      cols: 240
+      rows: 80
+    }
+  }
+}

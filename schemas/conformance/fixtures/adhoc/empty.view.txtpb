@@ -1,0 +1,16 @@
+id: "adhoc-empty"
+title: "Conformance: adhoc · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "adhoc-empty"
+    title: "adhoc · empty"
+    adhoc {
+      handler_id: "overview-dashboard"
+    }
+  }
+}

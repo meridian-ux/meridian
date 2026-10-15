@@ -1,0 +1,27 @@
+id: "value-enum"
+title: "value-enum"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "value-enum"
+    title: "enum"
+    table {
+      populate {
+        service: "fixture.Values"
+        method: "List"
+      }
+      rows_field: "rows"
+      columns {
+        header: "Declared value"
+        field_path: "value"
+        value_display {
+          type: VALUE_TYPE_ENUM
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+id: "detail_header-overflow"
+title: "Conformance: detail_header · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "detail_header-overflow"
+    title: "detail_header · overflow"
+    detail_header {
+      title_source_path: "name"
+      subtitle_source_path: "data.owner"
+      descriptor_rows {
+        label: "Type"
+        source_path: "data.type"
+      }
+      populate {
+        service: "fixture.Records"
+        method: "Get"
+      }
+    }
+  }
+}

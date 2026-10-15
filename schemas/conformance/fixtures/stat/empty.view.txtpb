@@ -1,0 +1,19 @@
+id: "stat-empty"
+title: "Conformance: stat · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stat-empty"
+    title: "stat · empty"
+    stat {
+      label: "Active employees"
+      format: VALUE_FORMAT_NUMBER
+      previous: 0.0
+      higher_is_better: true
+    }
+  }
+}

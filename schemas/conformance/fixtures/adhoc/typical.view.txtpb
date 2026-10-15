@@ -1,0 +1,16 @@
+id: "adhoc-typical"
+title: "Conformance: adhoc · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "adhoc-typical"
+    title: "adhoc · typical"
+    adhoc {
+      handler_id: "overview-dashboard"
+    }
+  }
+}

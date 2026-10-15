@@ -1,0 +1,51 @@
+id: "form-typical"
+title: "Conformance: form · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "form-typical"
+    title: "form · typical"
+    form {
+      fields {
+        field_id: "groups"
+        label: "Navigation groups"
+        request_field: "nav.groups"
+        repeated {
+          object {
+            fields {
+              field_id: "label"
+              label: "Label"
+              request_field: "label"
+              text {
+              }
+            }
+            fields {
+              field_id: "kinds"
+              label: "Kinds"
+              request_field: "kinds"
+              repeated {
+                scalar {
+                  field_id: "kind"
+                  request_field: "kind"
+                  text {
+                  }
+                }
+                add_label: "Add kind"
+              }
+            }
+          }
+          add_label: "Add section"
+        }
+      }
+      mode: FORM_MODE_EDIT
+      prefill {
+        service: "fixture.Forms"
+        method: "Get"
+      }
+    }
+  }
+}

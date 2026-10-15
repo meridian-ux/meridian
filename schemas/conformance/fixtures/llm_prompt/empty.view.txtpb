@@ -1,0 +1,15 @@
+id: "llm_prompt-empty"
+title: "Conformance: llm_prompt · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "llm_prompt-empty"
+    title: "llm_prompt · empty"
+    llm_prompt {
+    }
+  }
+}

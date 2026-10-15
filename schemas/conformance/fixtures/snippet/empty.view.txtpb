@@ -1,0 +1,19 @@
+id: "snippet-empty"
+title: "Conformance: snippet · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "snippet-empty"
+    title: "snippet · empty"
+    snippet {
+      snippet {
+        language: "json"
+        path: "~/.cursor/mcp.json"
+      }
+    }
+  }
+}

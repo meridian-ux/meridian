@@ -1,0 +1,23 @@
+id: "stream-typical"
+title: "Conformance: stream · typical"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "stream-typical"
+    title: "stream · typical"
+    stream {
+      subscribe {
+        service: "demo.Builds"
+        method: "Tail"
+      }
+      line_field: "message"
+      max_lines: 20
+      placeholder: "Waiting for build events..."
+      item_noun: "events"
+    }
+  }
+}

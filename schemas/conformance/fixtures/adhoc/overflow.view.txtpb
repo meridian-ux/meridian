@@ -1,0 +1,16 @@
+id: "adhoc-overflow"
+title: "Conformance: adhoc · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "adhoc-overflow"
+    title: "adhoc · overflow"
+    adhoc {
+      handler_id: "overview-dashboard"
+    }
+  }
+}

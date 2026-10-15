@@ -1,0 +1,230 @@
+id: "lro-overflow"
+title: "Conformance: lro · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "lro-overflow"
+    title: "lro · overflow"
+    lro {
+      start {
+        service: "fixture.Jobs"
+        method: "Start"
+      }
+      run_button_label: "Run reindex"
+      inputs {
+        field_id: "input-0"
+        label: "Job input 0"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-1"
+        label: "Job input 1"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-2"
+        label: "Job input 2"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-3"
+        label: "Job input 3"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-4"
+        label: "Job input 4"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-5"
+        label: "Job input 5"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-6"
+        label: "Job input 6"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-7"
+        label: "Job input 7"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-8"
+        label: "Job input 8"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-9"
+        label: "Job input 9"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-10"
+        label: "Job input 10"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-11"
+        label: "Job input 11"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-12"
+        label: "Job input 12"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-13"
+        label: "Job input 13"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-14"
+        label: "Job input 14"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-15"
+        label: "Job input 15"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-16"
+        label: "Job input 16"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-17"
+        label: "Job input 17"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-18"
+        label: "Job input 18"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-19"
+        label: "Job input 19"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-20"
+        label: "Job input 20"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-21"
+        label: "Job input 21"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-22"
+        label: "Job input 22"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-23"
+        label: "Job input 23"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-24"
+        label: "Job input 24"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-25"
+        label: "Job input 25"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-26"
+        label: "Job input 26"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-27"
+        label: "Job input 27"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-28"
+        label: "Job input 28"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+      inputs {
+        field_id: "input-29"
+        label: "Job input 29"
+        text {
+          default_value: "Fixture job input"
+        }
+      }
+    }
+  }
+}

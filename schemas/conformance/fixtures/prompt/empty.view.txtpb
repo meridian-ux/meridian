@@ -1,0 +1,19 @@
+id: "prompt-empty"
+title: "Conformance: prompt · empty"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "prompt-empty"
+    title: "prompt · empty"
+    prompt {
+      fields {
+        field_id: "reason"
+        label: "Reason"
+      }
+    }
+  }
+}

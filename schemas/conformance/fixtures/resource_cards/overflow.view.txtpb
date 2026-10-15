@@ -1,0 +1,26 @@
+id: "resource_cards-overflow"
+title: "Conformance: resource_cards · overflow"
+layout {
+  stacked {
+  }
+}
+slots {
+  id: "content"
+  panel {
+    panel_id: "resource_cards-overflow"
+    title: "resource_cards · overflow"
+    resource_cards {
+      populate {
+        service: "demo.Services"
+        method: "List"
+      }
+      rows_field: "services"
+      template {
+        title_field: "name"
+        subtitle_field: "description"
+      }
+      item_noun: "services"
+      empty_message: "No services"
+    }
+  }
+}

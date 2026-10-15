@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots } from "./check_conformance_snapshots.mjs";
+import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots, checkStatefulSnapshots } from "./check_conformance_snapshots.mjs";
 
 const coverage = { arms: { choice: {}, stream: {} } };
 function sources() {
@@ -39,4 +39,16 @@ test("a newly declared arm requires new snapshots in every browser suite", () =>
 test("the committed Vitest snapshots cover the real manifest", () => {
   const manifest = JSON.parse(readFileSync(new URL("../conformance/coverage.json", import.meta.url), "utf8"));
   assert.deepEqual(checkSnapshotFiles(manifest), []);
+});
+
+test("stateful gate rejects a missing state or formatter case, not just a missing arm", () => {
+  const keys = ["html", "shadcn"].flatMap(renderer =>
+    ["empty", "typical", "overflow", "value-boolean"].map(state => `${renderer}/table/${state}`));
+  const source = keys.map(key => `exports[\`suite > ${key} 1\`] = \`"body"\`;`).join("\n");
+  const manifest = { arms: { table: {} } };
+  const values = [{ name: "boolean" }];
+  assert.deepEqual(checkStatefulSnapshots(manifest, values, source), []);
+  assert.match(checkStatefulSnapshots(manifest, values, source.replace(/^.*html\/table\/overflow.*\n/m, "")).join("\n"), /missing stateful snapshot html\/table\/overflow/);
+  assert.match(checkStatefulSnapshots(manifest, values, source.replace(/^.*html\/table\/value-boolean.*\n/m, "")).join("\n"), /missing stateful snapshot html\/table\/value-boolean/);
+  assert.match(checkStatefulSnapshots(manifest, values, undefined).join("\n"), /missing stateful/);
 });
