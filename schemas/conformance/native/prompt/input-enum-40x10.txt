@@ -1,0 +1,12 @@
+viewport 40x10
+enum
+▶ Declared input
+    READY    [1/2]
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

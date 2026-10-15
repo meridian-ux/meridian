@@ -1,0 +1,23 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-integer" level=2
+        StaticText name="llm_prompt-input-integer"
+    heading name="integer" level=3
+      StaticText name="integer"
+    heading name="integer" level=2
+      StaticText name="integer"
+    LabelText name=""
+      StaticText name="Declared input"
+      spinbutton name="Declared input" value=-42 editable="plaintext" focusable=true invalid="false" required=false valuemax=100 valuemin=-100 valuetext="-42"
+        generic name="" editable="plaintext"
+          StaticText name="-42" editable="plaintext"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

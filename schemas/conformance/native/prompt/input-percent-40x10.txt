@@ -1,0 +1,12 @@
+viewport 40x10
+percent
+▶ Declared input
+    0.125  (↑ / ↓)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

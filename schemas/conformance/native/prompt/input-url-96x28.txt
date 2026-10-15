@@ -1,0 +1,30 @@
+viewport 96x28
+url
+▶ Declared input
+    https://example.com/a?b=1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+end viewport

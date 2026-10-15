@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-unspecified" level=2
+        StaticText name="form-read-unspecified"
+    heading name="unspecified" level=3
+      StaticText name="unspecified"
+    LabelText name=""
+      StaticText name="Declared input"
+    textbox name="Declared input" value="literal" disabled=true editable="plaintext" invalid="false" multiline=false readonly=false required=false
+      StaticText name="literal"
+    button name="SAVE" disabled=true invalid="false"
+      StaticText name="SAVE"

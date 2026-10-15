@@ -1,0 +1,30 @@
+viewport 96x28
+invalid-date
+▶ Declared input
+    not-a-date
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+end viewport

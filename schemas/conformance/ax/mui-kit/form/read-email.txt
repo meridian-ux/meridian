@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-email" level=2
+        StaticText name="form-read-email"
+    heading name="email" level=3
+      StaticText name="email"
+    paragraph name=""
+      StaticText name="ada@example.com"
+    button name="SAVE" disabled=true invalid="false"
+      StaticText name="SAVE"

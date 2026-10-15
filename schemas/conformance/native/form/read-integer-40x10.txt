@@ -1,0 +1,12 @@
+viewport 40x10
+integer
+┌──────────────────────────────────────┐
+│Read-only item                        │
+│read-only form                        │
+│                                      │
+│▶ Declared input: -42                 │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

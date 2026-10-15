@@ -1,0 +1,11 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-time" level=2
+        StaticText name="form-read-time"
+    heading name="time" level=3
+      StaticText name="time"
+    paragraph name=""
+      StaticText name="1:45 PM UTC"
+    button name="SAVE" disabled=true invalid="false"
+      StaticText name="SAVE"

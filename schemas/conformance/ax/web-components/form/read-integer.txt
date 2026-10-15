@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-integer" level=2
+        StaticText name="form-read-integer"
+    heading name="integer" level=3
+      StaticText name="integer"
+    StaticText name="integer"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="-42"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

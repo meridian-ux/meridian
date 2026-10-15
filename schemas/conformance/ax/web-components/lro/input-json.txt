@@ -1,0 +1,19 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-json" level=2
+        StaticText name="lro-input-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    StaticText name="Click the button to run."
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        group name="Ready" invalid="false"
+          Legend name=""
+            StaticText name="Ready"
+          checkbox name="Ready" checked="true" focusable=true invalid="false"
+    button name="Run" focusable=true invalid="false"
+      StaticText name="Run"

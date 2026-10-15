@@ -1,0 +1,45 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-list" level=2
+        StaticText name="llm_prompt-input-list"
+    heading name="list" level=3
+      StaticText name="list"
+    sectionheader name=""
+      heading name="list" level=3
+        StaticText name="list"
+    StaticText name="Declared input"
+    list name=""
+      listitem name="" level=1
+        ListMarker name="1. "
+        textbox name="Item item 1" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="one" editable="plaintext"
+        button name="Move up" disabled=true invalid="false"
+          StaticText name="▲"
+        button name="Move down" focusable=true invalid="false"
+          StaticText name="▼"
+        button name="Remove" disabled=true invalid="false"
+          StaticText name="✕"
+      listitem name="" level=1
+        ListMarker name="2. "
+        textbox name="Item item 2" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="one" editable="plaintext"
+        button name="Move up" focusable=true invalid="false"
+          StaticText name="▲"
+        button name="Move down" disabled=true invalid="false"
+          StaticText name="▼"
+        button name="Remove" disabled=true invalid="false"
+          StaticText name="✕"
+    button name="Add" focusable=true invalid="false"
+      StaticText name="Add"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

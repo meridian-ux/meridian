@@ -2,6 +2,7 @@
 import { create, fromBinary } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { ValueTone, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { expect, it, vi } from "vitest";
 import { renderPanel, disposePanel, type UiviewWasm } from "../src/uiview/renderer.js";
@@ -22,6 +23,79 @@ const wasm: UiviewWasm = {
   buildRequest: (bytes, context) => { const rpc = fromBinary(RpcCallSchema, bytes); return rpc.method === "Save" ? { resource: "record", ...context.formValues } : {}; },
 };
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+const lroDescriptor = () => create(PanelDescriptorSchema, { body: { case: "lro", value: {
+  start: { service: "demo.Lro", method: "Start" }, inputs: [
+    { fieldId: "enabled", requestField: "config.enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: false } } },
+    { fieldId: "notes", label: "Notes", display: { type: ValueType.MULTILINE_TEXT }, kind: { case: "text", value: { defaultValue: "first\nsecond", minLength: 1 } } },
+    { fieldId: "nested", requestField: "settings", kind: { case: "nested", value: { fields: [
+      { fieldId: "amount", requestField: "limit.amount", kind: { case: "number", value: { defaultValue: 12.5 } } },
+    ] } } },
+  ],
+} } });
+it("collects typed LRO inputs and maps request paths without formatting raw values", async () => {
+  const root = document.createElement("div");
+  const invoke = vi.fn(async () => ({ name: "operations/test", done: true }));
+  await renderPanel({ root, wasm, descriptor: lroDescriptor(), context, invoker: { invoke }, admission: "unrestricted" });
+  expect(root.querySelector("textarea")?.value).toBe("first\nsecond");
+  root.querySelector<HTMLButtonElement>("button")!.click(); await flush();
+  expect(invoke).toHaveBeenCalledTimes(1);
+  expect(invoke).toHaveBeenCalledWith("demo.Lro", "Start", {
+    config: { enabled: false }, notes: "first\nsecond", settings: { limit: { amount: 12.5 } },
+  });
+  expect(root.textContent).toContain("Done."); disposePanel(root);
+});
+it("validates LRO inputs before mutation and permits a corrected retry", async () => {
+  const root = document.createElement("div"); const invoke = vi.fn(async () => ({ done: true }));
+  await renderPanel({ root, wasm, descriptor: lroDescriptor(), context, invoker: { invoke }, admission: "unrestricted" });
+  const notes = root.querySelector("textarea")!; notes.value = "";
+  const run = root.querySelector<HTMLButtonElement>("button")!; run.click(); await flush();
+  expect(invoke).not.toHaveBeenCalled(); expect(root.textContent).toContain("invalid length");
+  notes.value = "corrected"; run.click(); await flush(); expect(invoke).toHaveBeenCalledTimes(1); disposePanel(root);
+});
+it("ignores an LRO start completion after the panel is disposed", async () => {
+  const root = document.createElement("div"); let complete!: (value: object) => void;
+  const invoke = vi.fn(() => new Promise<object>(resolve => { complete = resolve; }));
+  await renderPanel({ root, wasm, descriptor: lroDescriptor(), context, invoker: { invoke }, admission: "unrestricted" });
+  const run = root.querySelector<HTMLButtonElement>("button")!; run.click(); await flush();
+  expect(invoke).toHaveBeenCalledTimes(1); disposePanel(root);
+  const previous = root.textContent; complete({ name: "operations/stale", done: false }); await flush();
+  expect(root.textContent).toBe(previous); expect(invoke).toHaveBeenCalledTimes(1); expect(run.disabled).toBe(true);
+});
+it("keeps the LRO mutation admission gate authoritative", async () => {
+  const root = document.createElement("div"); const invoke = vi.fn(async () => ({ done: true }));
+  await renderPanel({ root, wasm, descriptor: lroDescriptor(), context, invoker: { invoke } });
+  root.querySelector<HTMLButtonElement>("button")!.click(); await flush();
+  expect(invoke).not.toHaveBeenCalled(); expect(root.textContent).toContain("Failed:"); disposePanel(root);
+});
+it("retries LRO options and ignores an options response after disposal", async () => {
+  const panel = lroDescriptor(); if (panel.body.case !== "lro") throw new Error();
+  panel.body.value.inputs = [create(FormFieldSchema, { fieldId: "region", kind: { case: "enumSelection", value: {
+    optionsSource: { service: "demo.Options", method: "List", optionsField: "items", valueField: "token", labelField: "label" },
+  } } })];
+  const root = document.createElement("div"); let complete!: (value: object) => void;
+  const invoke = vi.fn().mockRejectedValueOnce(new Error("offline")).mockImplementationOnce(() => new Promise<object>(resolve => { complete = resolve; }));
+  await renderPanel({ root, wasm, descriptor: panel, context, invoker: { invoke }, admission: "unrestricted" }); await flush();
+  expect(root.textContent).toContain("offline");
+  const buttons = Array.from(root.querySelectorAll("button"));
+  expect(buttons[0].disabled).toBe(true); buttons.find(button => button.textContent === "Retry inputs")!.click(); await flush();
+  expect(invoke).toHaveBeenCalledTimes(2); disposePanel(root); const previous = root.textContent;
+  complete({ items: [{ token: "west", label: "Western region" }] }); await flush();
+  expect(root.textContent).toBe(previous); expect(root.querySelector("select")).toBeNull();
+});
+it("rejects unsafe LRO request paths and excessive repeated defaults without invoking", async () => {
+  for (const excessive of [false, true]) {
+    const panel = lroDescriptor(); if (panel.body.case !== "lro") throw new Error();
+    if (excessive) panel.body.value.inputs = [create(FormFieldSchema, { fieldId: "huge", kind: { case: "repeated", value: {
+      minItems: 0xffffffff, element: { case: "scalar", value: { kind: { case: "boolean", value: {} } } },
+    } } })];
+    else panel.body.value.inputs[0].requestField = "__proto__.polluted";
+    const root = document.createElement("div"); const invoke = vi.fn(async () => ({ done: true }));
+    await renderPanel({ root, wasm, descriptor: panel, context, invoker: { invoke }, admission: "unrestricted" });
+    root.querySelector<HTMLButtonElement>("button")!.click(); await flush();
+    expect(invoke).not.toHaveBeenCalled(); expect(root.textContent).toContain(excessive ? "Default expansion" : "Unsafe form request path");
+    expect(Object.hasOwn(Object.prototype, "polluted")).toBe(false); disposePanel(root);
+  }
+});
 it("preserves enum labels, tones, fallback options, and raw submissions", async () => {
   for (const labeled of [true, false]) {
     const root = document.createElement("div");

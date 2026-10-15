@@ -1,0 +1,25 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-money" level=2
+        StaticText name="llm_prompt-input-money"
+    heading name="money" level=3
+      StaticText name="money"
+    StaticText name="money"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        spinbutton name="Declared input" value=12.5 editable="plaintext" focusable=true invalid="false" required=false valuemax=0 valuemin=0 valuetext="12.5"
+          generic name="" editable="plaintext"
+            StaticText name="12.5" editable="plaintext"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=3
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: value"

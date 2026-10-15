@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-duration" level=2
+        StaticText name="prompt-input-duration"
+    heading name="duration" level=3
+      StaticText name="duration"
+    sectionheader name=""
+      heading name="duration" level=3
+        StaticText name="duration"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Declared input"
+        textbox name="Declared input" value="4 min 12 s" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="4 min 12 s" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

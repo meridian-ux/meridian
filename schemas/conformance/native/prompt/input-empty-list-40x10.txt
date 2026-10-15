@@ -1,0 +1,12 @@
+viewport 40x10
+empty-list
+▶ Declared input
+    []  (JSON array)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

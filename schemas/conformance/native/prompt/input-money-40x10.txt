@@ -1,0 +1,12 @@
+viewport 40x10
+money
+▶ Declared input
+    12.5  (↑ / ↓)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

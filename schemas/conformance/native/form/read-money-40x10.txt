@@ -1,0 +1,12 @@
+viewport 40x10
+money
+┌──────────────────────────────────────┐
+│Read-only item                        │
+│read-only form                        │
+│                                      │
+│▶ Declared input: 12.50               │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+end viewport

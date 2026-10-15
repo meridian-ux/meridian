@@ -1,0 +1,23 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-json" level=2
+        StaticText name="llm_prompt-input-json"
+    heading name="json" level=3
+      StaticText name="json"
+    sectionheader name=""
+      heading name="json" level=3
+        StaticText name="json"
+    StaticText name="Declared input"
+    LabelText name=""
+      StaticText name="Ready"
+      checkbox name="Ready" checked="true" focusable=true invalid="false"
+    button name="Preview" focusable=true invalid="false"
+      StaticText name="Preview"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

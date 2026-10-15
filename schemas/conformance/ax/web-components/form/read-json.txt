@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-json" level=2
+        StaticText name="form-read-json"
+    heading name="json" level=3
+      StaticText name="json"
+    StaticText name="json"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="{\"ready\":true}"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

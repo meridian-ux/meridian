@@ -1675,6 +1675,387 @@ form
     "Save""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-boolean' > mui-kit/form/input-boolean 1`] = `
+"h2
+  "form-input-boolean"
+h3
+  "boolean"
+form
+  label
+    input role="switch" type="checkbox"
+    "Declared input"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-date' > mui-kit/form/input-date 1`] = `
+"h2
+  "form-input-date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-date-time' > mui-kit/form/input-date-time 1`] = `
+"h2
+  "form-input-date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-decimal' > mui-kit/form/input-decimal 1`] = `
+"h2
+  "form-input-decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-duration' > mui-kit/form/input-duration 1`] = `
+"h2
+  "form-input-duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+  input type="text" value="4 min 12 s"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-email' > mui-kit/form/input-email 1`] = `
+"h2
+  "form-input-email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-empty' > mui-kit/form/input-empty 1`] = `
+"h2
+  "form-input-empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+  input type="text" value=""
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-empty-list' > mui-kit/form/input-empty-list 1`] = `
+"h2
+  "form-input-empty-list"
+h3
+  "empty-list"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-enum' > mui-kit/form/input-enum 1`] = `
+"h2
+  "form-input-enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+  div role="combobox" aria-expanded="false" aria-labelledby="Declared input READY"
+    "READY"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-identifier' > mui-kit/form/input-identifier 1`] = `
+"h2
+  "form-input-identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+  input type="text" value="000123"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-integer' > mui-kit/form/input-integer 1`] = `
+"h2
+  "form-input-integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+  input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-invalid-date' > mui-kit/form/input-invalid-date 1`] = `
+"h2
+  "form-input-invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+  input type="text" value="not-a-date"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-json' > mui-kit/form/input-json 1`] = `
+"h2
+  "form-input-json"
+h3
+  "json"
+form
+  fieldset
+    legend
+      "Declared input"
+    label
+      input role="switch" type="checkbox" checked
+      "Ready"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-list' > mui-kit/form/input-list 1`] = `
+"h2
+  "form-input-list"
+h3
+  "list"
+form
+  h6
+    "Declared input"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-map' > mui-kit/form/input-map 1`] = `
+"h2
+  "form-input-map"
+h3
+  "map"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-masked' > mui-kit/form/input-masked 1`] = `
+"h2
+  "form-input-masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+  input type="password" value="fixture-secret"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-money' > mui-kit/form/input-money 1`] = `
+"h2
+  "form-input-money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-multiline' > mui-kit/form/input-multiline 1`] = `
+"h2
+  "form-input-multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+  textarea
+    "first second"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-numeric-string' > mui-kit/form/input-numeric-string 1`] = `
+"h2
+  "form-input-numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+  input type="text" value="0012.50"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-percent' > mui-kit/form/input-percent 1`] = `
+"h2
+  "form-input-percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+  input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-principal' > mui-kit/form/input-principal 1`] = `
+"h2
+  "form-input-principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-text' > mui-kit/form/input-text 1`] = `
+"h2
+  "form-input-text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+  input type="text" value="plain text"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-time' > mui-kit/form/input-time 1`] = `
+"h2
+  "form-input-time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+  input type="text" value="13:45:00"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-unknown' > mui-kit/form/input-unknown 1`] = `
+"h2
+  "form-input-unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-unspecified' > mui-kit/form/input-unspecified 1`] = `
+"h2
+  "form-input-unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-url' > mui-kit/form/input-url 1`] = `
+"h2
+  "form-input-url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+  input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/input-zero' > mui-kit/form/input-zero 1`] = `
+"h2
+  "form-input-zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+  input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Save""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'form/overflow' > mui-kit/form/overflow 1`] = `
 "h2
   "Conformance: form · overflow"
@@ -2709,6 +3090,331 @@ form
     "Save""
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-boolean' > mui-kit/form/read-boolean 1`] = `
+"h2
+  "form-read-boolean"
+h3
+  "boolean"
+form
+  p
+    "No"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-date' > mui-kit/form/read-date 1`] = `
+"h2
+  "form-read-date"
+h3
+  "date"
+form
+  p
+    "Mar 29, 2026"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-date-time' > mui-kit/form/read-date-time 1`] = `
+"h2
+  "form-read-date-time"
+h3
+  "date-time"
+form
+  p
+    "Mar 29, 2026, 1:45 PM UTC"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-decimal' > mui-kit/form/read-decimal 1`] = `
+"h2
+  "form-read-decimal"
+h3
+  "decimal"
+form
+  p
+    "12.50"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-duration' > mui-kit/form/read-duration 1`] = `
+"h2
+  "form-read-duration"
+h3
+  "duration"
+form
+  p
+    "4 min 12 s"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-email' > mui-kit/form/read-email 1`] = `
+"h2
+  "form-read-email"
+h3
+  "email"
+form
+  p
+    "ada@example.com"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-empty' > mui-kit/form/read-empty 1`] = `
+"h2
+  "form-read-empty"
+h3
+  "empty"
+form
+  p
+    "—"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-empty-list' > mui-kit/form/read-empty-list 1`] = `
+"h2
+  "form-read-empty-list"
+h3
+  "empty-list"
+form
+  p
+    "—"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-enum' > mui-kit/form/read-enum 1`] = `
+"h2
+  "form-read-enum"
+h3
+  "enum"
+form
+  p
+    "READY"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-identifier' > mui-kit/form/read-identifier 1`] = `
+"h2
+  "form-read-identifier"
+h3
+  "identifier"
+form
+  p
+    "000123"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-integer' > mui-kit/form/read-integer 1`] = `
+"h2
+  "form-read-integer"
+h3
+  "integer"
+form
+  p
+    "-42"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-invalid-date' > mui-kit/form/read-invalid-date 1`] = `
+"h2
+  "form-read-invalid-date"
+h3
+  "invalid-date"
+form
+  p
+    "not-a-date"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-json' > mui-kit/form/read-json 1`] = `
+"h2
+  "form-read-json"
+h3
+  "json"
+form
+  p
+    "{\\"ready\\":true}"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-list' > mui-kit/form/read-list 1`] = `
+"h2
+  "form-read-list"
+h3
+  "list"
+form
+  p
+    "one, one"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-map' > mui-kit/form/read-map 1`] = `
+"h2
+  "form-read-map"
+h3
+  "map"
+form
+  p
+    "{}"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-masked' > mui-kit/form/read-masked 1`] = `
+"h2
+  "form-read-masked"
+h3
+  "masked"
+form
+  p
+    "••••••"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-money' > mui-kit/form/read-money 1`] = `
+"h2
+  "form-read-money"
+h3
+  "money"
+form
+  p
+    "12.50"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-multiline' > mui-kit/form/read-multiline 1`] = `
+"h2
+  "form-read-multiline"
+h3
+  "multiline"
+form
+  p
+    "first second"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-numeric-string' > mui-kit/form/read-numeric-string 1`] = `
+"h2
+  "form-read-numeric-string"
+h3
+  "numeric-string"
+form
+  p
+    "0012.50"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-percent' > mui-kit/form/read-percent 1`] = `
+"h2
+  "form-read-percent"
+h3
+  "percent"
+form
+  p
+    "0.125"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-principal' > mui-kit/form/read-principal 1`] = `
+"h2
+  "form-read-principal"
+h3
+  "principal"
+form
+  p
+    "Ada"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-text' > mui-kit/form/read-text 1`] = `
+"h2
+  "form-read-text"
+h3
+  "text"
+form
+  p
+    "plain text"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-time' > mui-kit/form/read-time 1`] = `
+"h2
+  "form-read-time"
+h3
+  "time"
+form
+  p
+    "1:45 PM UTC"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-unknown' > mui-kit/form/read-unknown 1`] = `
+"h2
+  "form-read-unknown"
+h3
+  "unknown"
+form
+  p
+    "literal"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-unspecified' > mui-kit/form/read-unspecified 1`] = `
+"h2
+  "form-read-unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+  input type="text" value="literal" disabled
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-url' > mui-kit/form/read-url 1`] = `
+"h2
+  "form-read-url"
+h3
+  "url"
+form
+  p
+    "https://example.com/a?b=1"
+  button type="submit" disabled
+    "Save""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'form/read-zero' > mui-kit/form/read-zero 1`] = `
+"h2
+  "form-read-zero"
+h3
+  "zero"
+form
+  p
+    "0"
+  button type="submit" disabled
+    "Save""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'form/typical' > mui-kit/form/typical 1`] = `
 "h2
   "Conformance: form · typical"
@@ -3450,6 +4156,603 @@ section aria-label="User prompt"
   pre"
 `;
 
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-boolean' > mui-kit/llm_prompt/input-boolean 1`] = `
+"h2
+  "llm_prompt-input-boolean"
+h3
+  "boolean"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    input role="switch" type="checkbox"
+    "Declared input"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-date' > mui-kit/llm_prompt/input-date 1`] = `
+"h2
+  "llm_prompt-input-date"
+h3
+  "date"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-date-time' > mui-kit/llm_prompt/input-date-time 1`] = `
+"h2
+  "llm_prompt-input-date-time"
+h3
+  "date-time"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-decimal' > mui-kit/llm_prompt/input-decimal 1`] = `
+"h2
+  "llm_prompt-input-decimal"
+h3
+  "decimal"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-duration' > mui-kit/llm_prompt/input-duration 1`] = `
+"h2
+  "llm_prompt-input-duration"
+h3
+  "duration"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="4 min 12 s"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-email' > mui-kit/llm_prompt/input-email 1`] = `
+"h2
+  "llm_prompt-input-email"
+h3
+  "email"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-empty' > mui-kit/llm_prompt/input-empty 1`] = `
+"h2
+  "llm_prompt-input-empty"
+h3
+  "empty"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value=""
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-empty-list' > mui-kit/llm_prompt/input-empty-list 1`] = `
+"h2
+  "llm_prompt-input-empty-list"
+h3
+  "empty-list"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-enum' > mui-kit/llm_prompt/input-enum 1`] = `
+"h2
+  "llm_prompt-input-enum"
+h3
+  "enum"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  div role="combobox" aria-expanded="false" aria-labelledby="Declared input READY"
+    "READY"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-identifier' > mui-kit/llm_prompt/input-identifier 1`] = `
+"h2
+  "llm_prompt-input-identifier"
+h3
+  "identifier"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="000123"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-integer' > mui-kit/llm_prompt/input-integer 1`] = `
+"h2
+  "llm_prompt-input-integer"
+h3
+  "integer"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-invalid-date' > mui-kit/llm_prompt/input-invalid-date 1`] = `
+"h2
+  "llm_prompt-input-invalid-date"
+h3
+  "invalid-date"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="not-a-date"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-json' > mui-kit/llm_prompt/input-json 1`] = `
+"h2
+  "llm_prompt-input-json"
+h3
+  "json"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  fieldset
+    legend
+      "Declared input"
+    label
+      input role="switch" type="checkbox" checked
+      "Ready"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-list' > mui-kit/llm_prompt/input-list 1`] = `
+"h2
+  "llm_prompt-input-list"
+h3
+  "list"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  h6
+    "Declared input"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-map' > mui-kit/llm_prompt/input-map 1`] = `
+"h2
+  "llm_prompt-input-map"
+h3
+  "map"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-masked' > mui-kit/llm_prompt/input-masked 1`] = `
+"h2
+  "llm_prompt-input-masked"
+h3
+  "masked"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="password" value="fixture-secret"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-money' > mui-kit/llm_prompt/input-money 1`] = `
+"h2
+  "llm_prompt-input-money"
+h3
+  "money"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-multiline' > mui-kit/llm_prompt/input-multiline 1`] = `
+"h2
+  "llm_prompt-input-multiline"
+h3
+  "multiline"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  textarea
+    "first second"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-numeric-string' > mui-kit/llm_prompt/input-numeric-string 1`] = `
+"h2
+  "llm_prompt-input-numeric-string"
+h3
+  "numeric-string"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="0012.50"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-percent' > mui-kit/llm_prompt/input-percent 1`] = `
+"h2
+  "llm_prompt-input-percent"
+h3
+  "percent"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-principal' > mui-kit/llm_prompt/input-principal 1`] = `
+"h2
+  "llm_prompt-input-principal"
+h3
+  "principal"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-text' > mui-kit/llm_prompt/input-text 1`] = `
+"h2
+  "llm_prompt-input-text"
+h3
+  "text"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="plain text"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-time' > mui-kit/llm_prompt/input-time 1`] = `
+"h2
+  "llm_prompt-input-time"
+h3
+  "time"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="13:45:00"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-unknown' > mui-kit/llm_prompt/input-unknown 1`] = `
+"h2
+  "llm_prompt-input-unknown"
+h3
+  "unknown"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-unspecified' > mui-kit/llm_prompt/input-unspecified 1`] = `
+"h2
+  "llm_prompt-input-unspecified"
+h3
+  "unspecified"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-url' > mui-kit/llm_prompt/input-url 1`] = `
+"h2
+  "llm_prompt-input-url"
+h3
+  "url"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/input-zero' > mui-kit/llm_prompt/input-zero 1`] = `
+"h2
+  "llm_prompt-input-zero"
+h3
+  "zero"
+section aria-label="User prompt"
+  h4
+    "User prompt"
+  pre
+    "Value={{value}}"
+form
+  label
+    "Declared input"
+  input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Preview"
+p role="status"
+  "Unresolved slots:"
+  "value""
+`;
+
 exports[`MUI stateful ViewDescriptor corpus > 'llm_prompt/overflow' > mui-kit/llm_prompt/overflow 1`] = `
 "h2
   "Conformance: llm_prompt · overflow"
@@ -3505,6 +4808,387 @@ h3
   "lro · empty"
 button type="button"
   "Run reindex""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-boolean' > mui-kit/lro/input-boolean 1`] = `
+"h2
+  "lro-input-boolean"
+h3
+  "boolean"
+form
+  label
+    input role="switch" type="checkbox"
+    "Declared input"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-date' > mui-kit/lro/input-date 1`] = `
+"h2
+  "lro-input-date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-date-time' > mui-kit/lro/input-date-time 1`] = `
+"h2
+  "lro-input-date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-decimal' > mui-kit/lro/input-decimal 1`] = `
+"h2
+  "lro-input-decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-duration' > mui-kit/lro/input-duration 1`] = `
+"h2
+  "lro-input-duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+  input type="text" value="4 min 12 s"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-email' > mui-kit/lro/input-email 1`] = `
+"h2
+  "lro-input-email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-empty' > mui-kit/lro/input-empty 1`] = `
+"h2
+  "lro-input-empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+  input type="text" value=""
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-empty-list' > mui-kit/lro/input-empty-list 1`] = `
+"h2
+  "lro-input-empty-list"
+h3
+  "empty-list"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-enum' > mui-kit/lro/input-enum 1`] = `
+"h2
+  "lro-input-enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+  div role="combobox" aria-expanded="false" aria-labelledby="Declared input READY"
+    "READY"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-identifier' > mui-kit/lro/input-identifier 1`] = `
+"h2
+  "lro-input-identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+  input type="text" value="000123"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-integer' > mui-kit/lro/input-integer 1`] = `
+"h2
+  "lro-input-integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+  input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-invalid-date' > mui-kit/lro/input-invalid-date 1`] = `
+"h2
+  "lro-input-invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+  input type="text" value="not-a-date"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-json' > mui-kit/lro/input-json 1`] = `
+"h2
+  "lro-input-json"
+h3
+  "json"
+form
+  fieldset
+    legend
+      "Declared input"
+    label
+      input role="switch" type="checkbox" checked
+      "Ready"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-list' > mui-kit/lro/input-list 1`] = `
+"h2
+  "lro-input-list"
+h3
+  "list"
+form
+  h6
+    "Declared input"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-map' > mui-kit/lro/input-map 1`] = `
+"h2
+  "lro-input-map"
+h3
+  "map"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-masked' > mui-kit/lro/input-masked 1`] = `
+"h2
+  "lro-input-masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+  input type="password" value="fixture-secret"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-money' > mui-kit/lro/input-money 1`] = `
+"h2
+  "lro-input-money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-multiline' > mui-kit/lro/input-multiline 1`] = `
+"h2
+  "lro-input-multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+  textarea
+    "first second"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-numeric-string' > mui-kit/lro/input-numeric-string 1`] = `
+"h2
+  "lro-input-numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+  input type="text" value="0012.50"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-percent' > mui-kit/lro/input-percent 1`] = `
+"h2
+  "lro-input-percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+  input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-principal' > mui-kit/lro/input-principal 1`] = `
+"h2
+  "lro-input-principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-text' > mui-kit/lro/input-text 1`] = `
+"h2
+  "lro-input-text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+  input type="text" value="plain text"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-time' > mui-kit/lro/input-time 1`] = `
+"h2
+  "lro-input-time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+  input type="text" value="13:45:00"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-unknown' > mui-kit/lro/input-unknown 1`] = `
+"h2
+  "lro-input-unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-unspecified' > mui-kit/lro/input-unspecified 1`] = `
+"h2
+  "lro-input-unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-url' > mui-kit/lro/input-url 1`] = `
+"h2
+  "lro-input-url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+  input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Run""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'lro/input-zero' > mui-kit/lro/input-zero 1`] = `
+"h2
+  "lro-input-zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+  input type="number" value="0" min="-100" max="100" step="1"
+  button type="submit"
+    "Run""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'lro/overflow' > mui-kit/lro/overflow 1`] = `
@@ -3800,6 +5484,441 @@ form
   label
     "Reason"
   input type="text" value=""
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-boolean' > mui-kit/prompt/input-boolean 1`] = `
+"h2
+  "prompt-input-boolean"
+h3
+  "boolean"
+form
+  label
+    input role="switch" type="checkbox"
+    "Declared input"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-date' > mui-kit/prompt/input-date 1`] = `
+"h2
+  "prompt-input-date"
+h3
+  "date"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-date-time' > mui-kit/prompt/input-date-time 1`] = `
+"h2
+  "prompt-input-date-time"
+h3
+  "date-time"
+form
+  label
+    "Declared input"
+  input type="text" value="2026-03-29T13:45:00Z"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-decimal' > mui-kit/prompt/input-decimal 1`] = `
+"h2
+  "prompt-input-decimal"
+h3
+  "decimal"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-duration' > mui-kit/prompt/input-duration 1`] = `
+"h2
+  "prompt-input-duration"
+h3
+  "duration"
+form
+  label
+    "Declared input"
+  input type="text" value="4 min 12 s"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-email' > mui-kit/prompt/input-email 1`] = `
+"h2
+  "prompt-input-email"
+h3
+  "email"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-empty' > mui-kit/prompt/input-empty 1`] = `
+"h2
+  "prompt-input-empty"
+h3
+  "empty"
+form
+  label
+    "Declared input"
+  input type="text" value=""
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-empty-list' > mui-kit/prompt/input-empty-list 1`] = `
+"h2
+  "prompt-input-empty-list"
+h3
+  "empty-list"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-enum' > mui-kit/prompt/input-enum 1`] = `
+"h2
+  "prompt-input-enum"
+h3
+  "enum"
+form
+  label
+    "Declared input"
+  div role="combobox" aria-expanded="false" aria-labelledby="Declared input READY"
+    "READY"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-identifier' > mui-kit/prompt/input-identifier 1`] = `
+"h2
+  "prompt-input-identifier"
+h3
+  "identifier"
+form
+  label
+    "Declared input"
+  input type="text" value="000123"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-integer' > mui-kit/prompt/input-integer 1`] = `
+"h2
+  "prompt-input-integer"
+h3
+  "integer"
+form
+  label
+    "Declared input"
+  input type="number" value="-42" min="-100" max="100" step="1"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-invalid-date' > mui-kit/prompt/input-invalid-date 1`] = `
+"h2
+  "prompt-input-invalid-date"
+h3
+  "invalid-date"
+form
+  label
+    "Declared input"
+  input type="text" value="not-a-date"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-json' > mui-kit/prompt/input-json 1`] = `
+"h2
+  "prompt-input-json"
+h3
+  "json"
+form
+  fieldset
+    legend
+      "Declared input"
+    label
+      input role="switch" type="checkbox" checked
+      "Ready"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-list' > mui-kit/prompt/input-list 1`] = `
+"h2
+  "prompt-input-list"
+h3
+  "list"
+form
+  h6
+    "Declared input"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button" disabled
+    "↑"
+  button aria-label="move item down" type="button"
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  label
+    "Item"
+  input type="text" value="one"
+  button aria-label="move item up" type="button"
+    "↑"
+  button aria-label="move item down" type="button" disabled
+    "↓"
+  button aria-label="remove item" type="button" disabled
+    "✕"
+  button type="button"
+    "Add"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-map' > mui-kit/prompt/input-map 1`] = `
+"h2
+  "prompt-input-map"
+h3
+  "map"
+form
+  h6
+    "Declared input"
+  p
+    "(none)"
+  button type="button"
+    "Add entry"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-masked' > mui-kit/prompt/input-masked 1`] = `
+"h2
+  "prompt-input-masked"
+h3
+  "masked"
+form
+  label
+    "Declared input"
+  input type="password" value="fixture-secret"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-money' > mui-kit/prompt/input-money 1`] = `
+"h2
+  "prompt-input-money"
+h3
+  "money"
+form
+  label
+    "Declared input"
+  input type="number" value="12.5" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-multiline' > mui-kit/prompt/input-multiline 1`] = `
+"h2
+  "prompt-input-multiline"
+h3
+  "multiline"
+form
+  label
+    "Declared input"
+  textarea
+    "first second"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-numeric-string' > mui-kit/prompt/input-numeric-string 1`] = `
+"h2
+  "prompt-input-numeric-string"
+h3
+  "numeric-string"
+form
+  label
+    "Declared input"
+  input type="text" value="0012.50"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-percent' > mui-kit/prompt/input-percent 1`] = `
+"h2
+  "prompt-input-percent"
+h3
+  "percent"
+form
+  label
+    "Declared input"
+  input type="number" value="0.125" min="-100" max="100" step="any"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-principal' > mui-kit/prompt/input-principal 1`] = `
+"h2
+  "prompt-input-principal"
+h3
+  "principal"
+form
+  label
+    "Declared input"
+  input type="text" value="Ada <ada@example.com>"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-text' > mui-kit/prompt/input-text 1`] = `
+"h2
+  "prompt-input-text"
+h3
+  "text"
+form
+  label
+    "Declared input"
+  input type="text" value="plain text"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-time' > mui-kit/prompt/input-time 1`] = `
+"h2
+  "prompt-input-time"
+h3
+  "time"
+form
+  label
+    "Declared input"
+  input type="text" value="13:45:00"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-unknown' > mui-kit/prompt/input-unknown 1`] = `
+"h2
+  "prompt-input-unknown"
+h3
+  "unknown"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-unspecified' > mui-kit/prompt/input-unspecified 1`] = `
+"h2
+  "prompt-input-unspecified"
+h3
+  "unspecified"
+form
+  label
+    "Declared input"
+  input type="text" value="literal"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-url' > mui-kit/prompt/input-url 1`] = `
+"h2
+  "prompt-input-url"
+h3
+  "url"
+form
+  label
+    "Declared input"
+  input type="text" value="https://example.com/a?b=1"
+  button type="submit"
+    "Submit"
+button type="button"
+  "Cancel""
+`;
+
+exports[`MUI stateful ViewDescriptor corpus > 'prompt/input-zero' > mui-kit/prompt/input-zero 1`] = `
+"h2
+  "prompt-input-zero"
+h3
+  "zero"
+form
+  label
+    "Declared input"
+  input type="number" value="0" min="-100" max="100" step="1"
   button type="submit"
     "Submit"
 button type="button"

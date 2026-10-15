@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-map" level=2
+        StaticText name="lro-input-map"
+    heading name="map" level=3
+      StaticText name="map"
+    heading name="Declared input" level=6
+      StaticText name="Declared input"
+    paragraph name=""
+      StaticText name="(none)"
+    button name="ADD ENTRY" focusable=true invalid="false"
+      StaticText name="ADD ENTRY"
+    button name="RUN" focusable=true invalid="false"
+      StaticText name="RUN"

@@ -69,17 +69,20 @@ function inputValues(fields: FormField[], values: Record<string, unknown>, prefi
   return result;
 }
 
-export function FormContent({ panel, c, className }: { panel: FormPanel; c: FormFieldClasses; className: string }) {
+export function FormContent({ panel, c, className, submitLabel, submittingLabel = "Saving…", successLabel = "Saved." }: {
+  panel: FormPanel; c: FormFieldClasses; className: string;
+  submitLabel?: string; submittingLabel?: string; successLabel?: string;
+}) {
   const { invoker, mutationInvoker, admission } = useMeridian();
   const selection = useMeridianSelection();
   const deps = selectionDeps(panel.prefill, selection.values);
   const request = useMemo(() => buildBindingRequest(panel.prefill, selection.values), [panel.prefill, deps]);
   // A changed descriptor/selection starts a fresh instance, isolating late responses.
   const key = JSON.stringify([panel, request]);
-  return <FormSession key={key} {...{ panel, c, className, invoker, mutationInvoker, admission, request, selection }} />;
+  return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, invoker, mutationInvoker, admission, request, selection }} />;
 }
 
-function FormSession({ panel, c, className, invoker, mutationInvoker, admission, request, selection }:
+function FormSession({ panel, c, className, submitLabel, submittingLabel, successLabel, invoker, mutationInvoker, admission, request, selection }:
   Parameters<typeof FormContent>[0] & Pick<ReturnType<typeof useMeridian>, "invoker" | "mutationInvoker" | "admission"> & {
     request: Record<string, unknown>; selection: ReturnType<typeof useMeridianSelection>;
   }) {
@@ -111,9 +114,9 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
     setError(""); setStatus("");
     try {
       const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current);
-      busy.current = true; setStatus("Saving…");
+      busy.current = true; setStatus(submittingLabel ?? "Saving…");
       await mutationInvoker.invoke(call.service, call.method, { ...buildBindingRequest(call, selection.values), ...values });
-      if (alive.current) setStatus("Saved.");
+      if (alive.current) setStatus(successLabel ?? "Saved.");
     } catch (reason) {
       if (alive.current) { setStatus(""); setError(reason instanceof Error ? reason.message : String(reason)); }
     } finally { busy.current = false; }
@@ -122,7 +125,7 @@ function FormSession({ panel, c, className, invoker, mutationInvoker, admission,
     {loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormInitialValues.Provider value={initial}>
       {panel.fields.map(field => <FormFieldRow key={field.fieldId} c={c} field={field} mode={panel.mode} />)}
     </FormInitialValues.Provider></FormEnumValues.Provider>}
-    {edit && call && <button type="submit" disabled={loading || status === "Saving…" || !allowed}>{`Save ${panel.itemNoun}`.trim()}</button>}
+    {edit && call && <button type="submit" disabled={loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
     {edit && call && !allowed && <p role="status">Saving is not permitted.</p>}
     {status && <p role="status">{status}</p>}
     {error && <p role="alert">{error}</p>}

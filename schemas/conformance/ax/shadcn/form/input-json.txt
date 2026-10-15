@@ -1,0 +1,18 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-json" level=2
+        StaticText name="form-input-json"
+    heading name="json" level=3
+      StaticText name="json"
+    sectionheader name=""
+      heading name="json" level=3
+        StaticText name="json"
+    StaticText name="Declared input"
+    LabelText name=""
+      StaticText name="Ready"
+      checkbox name="Ready" checked="true" focusable=true invalid="false"
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."

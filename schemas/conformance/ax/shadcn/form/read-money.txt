@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-money" level=2
+        StaticText name="form-read-money"
+    heading name="money" level=3
+      StaticText name="money"
+    sectionheader name=""
+      heading name="money" level=3
+        StaticText name="money"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="12.50"

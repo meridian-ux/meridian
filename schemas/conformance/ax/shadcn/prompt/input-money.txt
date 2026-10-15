@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-money" level=2
+        StaticText name="prompt-input-money"
+    heading name="money" level=3
+      StaticText name="money"
+    sectionheader name=""
+      heading name="money" level=3
+        StaticText name="money"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Declared input"
+        spinbutton name="Declared input" value=12.5 editable="plaintext" focusable=true invalid="false" required=false valuemax=100 valuemin=-100 valuetext="12.5"
+          generic name="" editable="plaintext"
+            StaticText name="12.5" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

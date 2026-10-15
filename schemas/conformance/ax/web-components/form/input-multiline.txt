@@ -1,0 +1,22 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-multiline" level=2
+        StaticText name="form-input-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    StaticText name="multiline"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        textbox name="Declared input" value="first\nsecond" editable="plaintext" focusable=true invalid="false" multiline=true readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="first" editable="plaintext"
+            LineBreak name="\n" editable="plaintext"
+            StaticText name="second" editable="plaintext"
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
+    alert name="" atomic=true live="assertive"

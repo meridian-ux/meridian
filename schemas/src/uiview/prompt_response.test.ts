@@ -3,9 +3,35 @@ import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { createPromptResponder, promptValues } from "./prompt_response.js";
-import { validateFormValues } from "./form_values.js";
+import { defaultFormValue, defaultFormValues, validateFormValues } from "./form_values.js";
 import { hasMaskedField, renderPromptTemplate } from "./prompt_template.js";
 import { editMaskedSelection, maskedLines, replaceMaskedLine } from "./masked_multiline.js";
+
+it("constructs typed recursive defaults without coercing false, zero, or strings", () => {
+  const fields = [
+    create(FormFieldSchema, { fieldId: "flag", kind: { case: "boolean", value: {} } }),
+    create(FormFieldSchema, { fieldId: "count", kind: { case: "integer", value: {} } }),
+    create(FormFieldSchema, { fieldId: "id", kind: { case: "text", value: { defaultValue: "000123" } } }),
+    create(FormFieldSchema, { fieldId: "list", kind: { case: "repeated", value: { minItems: 2,
+      element: { case: "scalar", value: { kind: { case: "text", value: { defaultValue: "one" } } } } } } }),
+    create(FormFieldSchema, { fieldId: "object", kind: { case: "nested", value: { fields: [
+      { fieldId: "ready", kind: { case: "boolean", value: { defaultValue: true } } },
+    ] } } }),
+  ];
+  expect(defaultFormValues(fields)).toEqual({ flag: false, count: 0, id: "000123", list: ["one", "one"], object: { ready: true } });
+  expect(defaultFormValue(create(FormFieldSchema, { fieldId: "map", kind: { case: "keyValueMap", value: {} } }))).toEqual({});
+});
+
+it("rejects excessive recursive defaults before allocating or truncating values", () => {
+  const huge = create(FormFieldSchema, { kind: { case: "repeated", value: { minItems: 0xffffffff,
+    element: { case: "object", value: {} } } } });
+  expect(() => defaultFormValue(huge)).toThrow(/1000/);
+  let deep = create(FormFieldSchema, { kind: { case: "text", value: {} } });
+  for (let i = 0; i < 70; ++i) deep = create(FormFieldSchema, { kind: { case: "nested", value: { fields: [deep] } } });
+  expect(() => defaultFormValue(deep)).toThrow(/64/);
+  const rows = create(FormFieldSchema, { kind: { case: "repeated", value: { minItems: 600, element: { case: "object", value: {} } } } });
+  expect(() => defaultFormValues([{ ...rows, fieldId: "a" }, { ...rows, fieldId: "b" }])).toThrow(/1000/);
+});
 
 describe("lossless masked multiline editing", () => {
   it("preserves mixed separators, blank lines, trailing lines, and Unicode", () => {

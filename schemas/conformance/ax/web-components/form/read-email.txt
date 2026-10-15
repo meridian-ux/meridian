@@ -1,0 +1,15 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-email" level=2
+        StaticText name="form-read-email"
+    heading name="email" level=3
+      StaticText name="email"
+    StaticText name="email"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        StaticText name="ada@example.com"
+    status name="" atomic=true live="polite"
+    alert name="" atomic=true live="assertive"

@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-multiline" level=2
+        StaticText name="form-read-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    sectionheader name=""
+      heading name="multiline" level=3
+        StaticText name="multiline"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="first second"

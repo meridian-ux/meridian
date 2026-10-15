@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-email" level=2
+        StaticText name="form-input-email"
+    heading name="email" level=3
+      StaticText name="email"
+    StaticText name="email"
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        textbox name="Declared input" value="Ada <ada@example.com>" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="Ada <ada@example.com>" editable="plaintext"
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
+    alert name="" atomic=true live="assertive"

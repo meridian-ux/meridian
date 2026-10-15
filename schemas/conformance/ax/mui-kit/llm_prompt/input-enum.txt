@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-enum" level=2
+        StaticText name="llm_prompt-input-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    LabelText name=""
+      StaticText name="Declared input"
+    combobox name="Declared input READY" value="READY" expanded=false focusable=true hasPopup="listbox" required=false
+      StaticText name="READY"
+    button name="PREVIEW" focusable=true invalid="false"
+      StaticText name="PREVIEW"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

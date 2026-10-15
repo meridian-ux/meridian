@@ -1,0 +1,12 @@
+viewport 40x10
+invalid-date
+▶ Declared input
+    not-a-date
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

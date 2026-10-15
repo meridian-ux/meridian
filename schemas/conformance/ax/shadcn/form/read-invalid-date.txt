@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-invalid-date" level=2
+        StaticText name="form-read-invalid-date"
+    heading name="invalid-date" level=3
+      StaticText name="invalid-date"
+    sectionheader name=""
+      heading name="invalid-date" level=3
+        StaticText name="invalid-date"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="not-a-date"

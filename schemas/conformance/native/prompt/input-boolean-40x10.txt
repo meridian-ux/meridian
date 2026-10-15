@@ -1,0 +1,12 @@
+viewport 40x10
+boolean
+▶ Declared input
+    [ ]  (space)
+
+
+
+
+
+────────────────────────────────────────
+ Submit [Enter]   Cancel [Esc]   Navigat
+end viewport

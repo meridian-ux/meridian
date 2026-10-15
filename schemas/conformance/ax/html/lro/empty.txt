@@ -7,5 +7,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="lro · empty"
     heading name="lro · empty" level=2
       StaticText name="lro · empty"
-    button name="Run reindex" focusable=true invalid="false"
+    button name="Run reindex" disabled=true invalid="false"
       StaticText name="Run reindex"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."

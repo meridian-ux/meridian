@@ -1,0 +1,41 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-list" level=2
+        StaticText name="prompt-input-list"
+    heading name="list" level=3
+      StaticText name="list"
+    sectionheader name=""
+      heading name="list" level=3
+        StaticText name="list"
+    group name="" invalid="false"
+      StaticText name="Declared input"
+      list name=""
+        listitem name="" level=1
+          ListMarker name="1. "
+          textbox name="Item item 1" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+            generic name="" editable="plaintext"
+              StaticText name="one" editable="plaintext"
+          button name="Move up" disabled=true invalid="false"
+            StaticText name="▲"
+          button name="Move down" focusable=true invalid="false"
+            StaticText name="▼"
+          button name="Remove" disabled=true invalid="false"
+            StaticText name="✕"
+        listitem name="" level=1
+          ListMarker name="2. "
+          textbox name="Item item 2" value="one" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+            generic name="" editable="plaintext"
+              StaticText name="one" editable="plaintext"
+          button name="Move up" focusable=true invalid="false"
+            StaticText name="▲"
+          button name="Move down" disabled=true invalid="false"
+            StaticText name="▼"
+          button name="Remove" disabled=true invalid="false"
+            StaticText name="✕"
+      button name="Add" focusable=true invalid="false"
+        StaticText name="Add"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

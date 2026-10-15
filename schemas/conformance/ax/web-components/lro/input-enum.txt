@@ -1,0 +1,19 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="lro-input-enum" level=2
+        StaticText name="lro-input-enum"
+    heading name="enum" level=3
+      StaticText name="enum"
+    StaticText name="enum"
+    StaticText name="Click the button to run."
+    group name="" invalid="false"
+      group name="Declared input" invalid="false"
+        Legend name=""
+          StaticText name="Declared input"
+        combobox name="Declared input" value="READY" expanded=false focusable=true hasPopup="menu" invalid="false"
+          MenuListPopup name=""
+            option name="READY" focusable=true selected=true
+            option name="DONE" focusable=true selected=false
+    button name="Run" focusable=true invalid="false"
+      StaticText name="Run"

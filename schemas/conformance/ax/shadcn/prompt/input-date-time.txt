@@ -1,0 +1,20 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="prompt-input-date-time" level=2
+        StaticText name="prompt-input-date-time"
+    heading name="date-time" level=3
+      StaticText name="date-time"
+    sectionheader name=""
+      heading name="date-time" level=3
+        StaticText name="date-time"
+    group name="" invalid="false"
+      LabelText name=""
+        StaticText name="Declared input"
+        textbox name="Declared input" value="2026-03-29T13:45:00Z" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
+          generic name="" editable="plaintext"
+            StaticText name="2026-03-29T13:45:00Z" editable="plaintext"
+    button name="Submit" focusable=true invalid="false"
+      StaticText name="Submit"
+    button name="Cancel" focusable=true invalid="false"
+      StaticText name="Cancel"

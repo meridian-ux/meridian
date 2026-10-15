@@ -1,0 +1,17 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-input-empty-list" level=2
+        StaticText name="form-input-empty-list"
+    heading name="empty-list" level=3
+      StaticText name="empty-list"
+    heading name="empty-list" level=2
+      StaticText name="empty-list"
+    StaticText name="Declared input"
+    list name=""
+    button name="Add" focusable=true invalid="false"
+      StaticText name="Add"
+    button name="Save" disabled=true invalid="false"
+      StaticText name="Save"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."

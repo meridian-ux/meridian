@@ -163,8 +163,7 @@ p role="status"
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the lro shape and shows its title > shadcn-kit/lro 1`] = `
 "h3
   "Reindex search"
-button type="button"
-  "Run reindex""
+form"
 `;
 
 exports[`Swap B — shadcnKit renders the same fixtures, different look > shadcnKit renders the media shape and shows its title > shadcn-kit/media 1`] = `
@@ -481,8 +480,7 @@ p role="status"
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the lro shape without crashing and shows its title > html-kit/lro 1`] = `
 "h2
   "Reindex search"
-button type="button"
-  "Run reindex""
+form"
 `;
 
 exports[`web-react conformance over the canonical fixtures (htmlKit) > renders the media shape without crashing and shows its title > html-kit/media 1`] = `

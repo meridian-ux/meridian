@@ -28,6 +28,7 @@ import {
 import { ResourceCardsView } from "./resource_cards.js";
 import { SHADCN_FORM_CLASSES } from "./form_fields.js";
 import { FormContent } from "./form.js";
+import { LroInputs } from "./lro_inputs.js";
 import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
 import { useHrefResolver } from "./provider.js";
@@ -111,16 +112,7 @@ export const shadcnKit: ComponentKit = {
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="grid grid-cols-2 gap-3 sm:grid-cols-3" emptyClassName="col-span-full text-sm text-muted-foreground" />,
   Prompt: ({ panel, descriptor }) => <PromptContent panel={panel} panelId={descriptor.panelId} c={SHADCN_FORM_CLASSES} />,
   LlmPrompt: ({ panel }) => <LlmPromptContent key={JSON.stringify(panel)} panel={panel} c={SHADCN_FORM_CLASSES} />,
-  Lro: ({ panel }) => (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-      >
-        {panel.runButtonLabel || "Run"}
-      </button>
-    </div>
-  ),
+  Lro: ({ panel }) => <LroInputs panel={panel} c={SHADCN_FORM_CLASSES} className="grid gap-4" />,
   Form: ({ panel }) => <FormContent panel={panel} c={SHADCN_FORM_CLASSES} className="grid gap-4" />,
   DetailHeader: ({ panel, invoker }) => {
     const { subjectId } = useContext(MeridianViewContext);

@@ -1,0 +1,30 @@
+viewport 96x28
+money
+▶ Declared input
+    12.5  (↑ / ↓)
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ Preview [Enter]   Cancel [Esc]   Navigate [Tab / Shift+Tab]  Details [F1]  Field 1/1
+
+System prompt:
+
+User prompt:
+Value={{value}}
+Preview [Enter] · multiline [Shift+Enter] · clear [Ctrl+U] · scroll [PageUp/PageDown] · cancel
+[Esc]
+
+
+
+
+
+end viewport

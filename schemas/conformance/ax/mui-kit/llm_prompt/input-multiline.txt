@@ -1,0 +1,23 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="llm_prompt-input-multiline" level=2
+        StaticText name="llm_prompt-input-multiline"
+    heading name="multiline" level=3
+      StaticText name="multiline"
+    region name="User prompt"
+      heading name="User prompt" level=4
+        StaticText name="User prompt"
+      StaticText name="Value={{value}}"
+    LabelText name=""
+      StaticText name="Declared input"
+    textbox name="Declared input" value="first\nsecond" editable="plaintext" focusable=true invalid="false" multiline=true readonly=false required=false
+      generic name="" editable="plaintext"
+        StaticText name="first" editable="plaintext"
+        LineBreak name="\n" editable="plaintext"
+        StaticText name="second" editable="plaintext"
+    button name="PREVIEW" focusable=true invalid="false"
+      StaticText name="PREVIEW"
+    status name="" atomic=true live="polite"
+      StaticText name="Unresolved slots: "
+      StaticText name="value"

@@ -1,0 +1,12 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-json" level=2
+        StaticText name="form-read-json"
+    heading name="json" level=3
+      StaticText name="json"
+    sectionheader name=""
+      heading name="json" level=3
+        StaticText name="json"
+    StaticText name="Declared input"
+    StaticText name="{\"ready\":true}"

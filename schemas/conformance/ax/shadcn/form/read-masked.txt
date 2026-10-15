@@ -1,0 +1,13 @@
+RootWebArea name="Meridian AX conformance" focusable=true
+  main name=""
+    sectionheader name=""
+      heading name="form-read-masked" level=2
+        StaticText name="form-read-masked"
+    heading name="masked" level=3
+      StaticText name="masked"
+    sectionheader name=""
+      heading name="masked" level=3
+        StaticText name="masked"
+    LabelText name=""
+      StaticText name="Declared input"
+      StaticText name="••••••"

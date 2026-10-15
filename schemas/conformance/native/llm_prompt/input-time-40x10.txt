@@ -1,0 +1,12 @@
+viewport 40x10
+time
+▶ Declared input
+    13:45:00
+
+
+ Preview [Enter]   Cancel [Esc]   Naviga
+
+System prompt:
+
+User prompt:
+end viewport
