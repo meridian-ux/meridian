@@ -66,6 +66,9 @@ mod request;
 mod stat;
 mod stream;
 
+#[cfg(test)]
+mod conformance;
+
 pub use conversation::{is_active_status, ConversationModel};
 pub use launchpad::{command_haystack, filter_launchpad, flatten, match_score, FilteredGroup};
 pub use paths::ProtoPaths;
@@ -73,8 +76,8 @@ pub use payload_budget::{
     PayloadBudget, PayloadLimitExceeded, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_RATE,
 };
 pub use render::{
-    format_cell, format_display_value, format_value, render_gallery, render_table, RenderedCard,
-    RenderedRow,
+    format_cell, format_display_value, format_lro_metadata, format_value, render_gallery,
+    render_table, RenderedCard, RenderedRow,
 };
 pub use request::{Context, RequestBuilder};
 pub use stat::{

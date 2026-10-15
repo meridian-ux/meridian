@@ -85,7 +85,13 @@ fn to_js<T: serde::Serialize + ?Sized>(value: &T) -> Result<JsValue, JsError> {
     // `Serializer` is cheap to construct; there is no shared-state win in
     // caching it, and a fresh one keeps this free of statics.
     value
-        .serialize(&serde_wasm_bindgen::Serializer::new().serialize_maps_as_objects(true))
+        .serialize(
+            &serde_wasm_bindgen::Serializer::new()
+                .serialize_maps_as_objects(true)
+                // JSON null must remain null across the bridge. The default
+                // maps it to undefined, dropping raw-row properties on stringify.
+                .serialize_missing_as_null(true),
+        )
         .map_err(|e| JsError::new(&e.to_string()))
 }
 
@@ -287,21 +293,7 @@ pub fn render_table_panel_wasm(table_panel: &[u8], response: JsValue) -> Result<
 pub fn format_lro_metadata(metadata: JsValue) -> Result<String, JsError> {
     let value: Value =
         serde_wasm_bindgen::from_value(metadata).map_err(|e| JsError::new(&e.to_string()))?;
-    let mut out = String::new();
-    let state = ProtoPaths::get(&value, "state");
-    if let Value::String(s) = state {
-        out.push('[');
-        out.push_str(s);
-        out.push_str("] ");
-    }
-    let status = ProtoPaths::get(&value, "status_message");
-    if let Value::String(s) = status {
-        out.push_str(s);
-    }
-    if out.is_empty() {
-        out = value.to_string();
-    }
-    Ok(out)
+    Ok(crate::format_lro_metadata(&value))
 }
 
 // NOTE: bundle decoding (formerly `decodePanelBundle`) now lives on the TS side —

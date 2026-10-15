@@ -99,6 +99,9 @@ jobs:
       - name: Conformance corpus
         run: node schemas/tools/check_conformance_corpus.mjs
 
+      - name: Native and WASM core corpus is current
+        run: node schemas/tools/write_core_corpus.mjs
+
       - name: Coverage matrix
         run: node schemas/tools/check_coverage.mjs --matrix
 

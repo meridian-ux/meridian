@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package meridian.conformance;
+
+import "google/protobuf/struct.proto";
+
+// Test-only corpus consumed by native Rust and the actual wasm-bindgen bridge.
+// core.json is this envelope's proto3 JSON representation. Descriptor bytes are
+// canonical meridian.ui.v1 messages, not a second hand-maintained schema.
+message CoreCorpus {
+  repeated PathCase paths = 1;
+  repeated RequestCase requests = 2;
+  repeated TableCase tables = 3;
+  repeated GalleryCase galleries = 4;
+  repeated MetadataCase metadata = 5;
+  repeated BudgetCase budgets = 6;
+}
+
+message PathCase {
+  string name = 1;
+  google.protobuf.Value input = 2;
+  string path = 3;
+  google.protobuf.Value expected = 4;
+}
+
+message RequestCase {
+  string name = 1;
+  bytes rpc = 2; // RpcCall wire bytes; also wrapped in a table's populate call.
+  google.protobuf.Value context = 3;
+  google.protobuf.Value expected = 4;
+}
+
+message TableCase {
+  string name = 1;
+  bytes table = 2; // TablePanel wire bytes.
+  google.protobuf.Value response = 3;
+  google.protobuf.Value expected = 4; // Array of {raw, cells}.
+}
+
+message GalleryCase {
+  string name = 1;
+  bytes gallery = 2; // GalleryPanel wire bytes.
+  google.protobuf.Value response = 3;
+  google.protobuf.Value expected = 4; // Array of rendered card slots and raw rows.
+}
+
+message MetadataCase {
+  string name = 1;
+  google.protobuf.Value input = 2;
+  string expected = 3;
+}
+
+message BudgetCase {
+  string name = 1;
+  uint32 max_bytes = 2;
+  uint32 max_rate = 3;
+  repeated BudgetFrame frames = 4;
+}
+
+message BudgetFrame {
+  uint32 bytes = 1;
+  double now = 2; // Monotonic milliseconds, including proto JSON's NaN/Infinity.
+  uint32 expected = 3; // 0 admitted, 1 bytes, 2 rate, 3 invalid clock.
+}

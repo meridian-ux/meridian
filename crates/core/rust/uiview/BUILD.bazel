@@ -33,6 +33,7 @@ rust_prost_library(
 rust_library(
     name = "uiview",
     srcs = [
+        "src/conformance.rs",
         "src/conversation.rs",
         "src/launchpad.rs",
         "src/lib.rs",
@@ -72,7 +73,10 @@ rust_test(
     # for the same reason and already carries the flag.
     rustc_flags = ["--cfg=bazel_proto"],
     crate = ":uiview",
-    compile_data = ["//schemas:conformance/value_types.json"],
+    compile_data = [
+        "//schemas:conformance/value_types.json",
+        "//schemas:conformance/core.json",
+    ],
     edition = "2021",
 )
 
