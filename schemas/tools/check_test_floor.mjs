@@ -9,7 +9,8 @@
  * that a declaration passed, which is why this gate follows the test job.
  */
 
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, join, relative } from "node:path";
 
@@ -62,6 +63,10 @@ function filesUnderFrom(repoRoot, relativeRoot) {
   const absoluteRoot = join(repoRoot, relativeRoot);
   const files = [];
   const visit = (directory) => {
+    if (statSync(directory).isFile()) {
+      files.push(directory);
+      return;
+    }
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) visit(path);
@@ -103,9 +108,31 @@ function readManifest() {
   return JSON.parse(readFileSync(join(SCHEMAS_ROOT, "conformance/test_floor.json"), "utf8"));
 }
 
+export function checkRatchet(manifest, baseline) {
+  const errors = [];
+  const current = new Map(manifest.suites.map((suite) => [suite.id, suite]));
+  for (const previous of baseline.suites) {
+    const suite = current.get(previous.id);
+    if (!suite) errors.push(`${previous.id}: cannot remove a protected test suite`);
+    else if (suite.floor < previous.floor) {
+      errors.push(`${suite.id}: floor cannot decrease from ${previous.floor} to ${suite.floor}`);
+    }
+  }
+  return errors;
+}
+
 function main() {
   const manifest = readManifest();
   const errors = check(manifest);
+  const baseIndex = process.argv.indexOf("--base-ref");
+  if (baseIndex !== -1) {
+    const ref = process.argv[baseIndex + 1];
+    if (!ref || ref.startsWith("-")) throw new Error("--base-ref requires a Git revision");
+    const baseline = JSON.parse(execFileSync("git", [
+      "show", `${ref}:schemas/conformance/test_floor.json`,
+    ], { cwd: REPO_ROOT, encoding: "utf8" }));
+    errors.push(...checkRatchet(manifest, baseline));
+  }
   if (errors.length === 0) {
     const summary = manifest.suites.map((suite) => {
       const { count } = countSuite(suite);

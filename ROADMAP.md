@@ -298,6 +298,13 @@ Baseline, 2026‑09‑11:
 [#14](../../issues/14) sets a per-package floor that only rises; the current floor is
 declared in [`schemas/conformance/test_floor.json`](schemas/conformance/test_floor.json)
 and checked by [`schemas/tools/check_test_floor.mjs`](schemas/tools/check_test_floor.mjs).
+CI compares the manifest against the pull request base (or previous `main`
+revision) and rejects lower floors or removed suites. The WASM FFI floor counts
+only its real boundary test file, independently of ordinary renderer tests.
+Core, theme-proto, and TUI also have individual floors, so added tests in one
+crate cannot hide removed tests in another.
+These declaration counts complement test execution and coverage reports; they
+do not establish a measured code-coverage threshold.
 The native core and its real WASM bridge now share the protobuf-defined
 [`core.json`](schemas/conformance/core.json) fixture corpus for paths, requests,
 tables, galleries, metadata, and payload budgets; WASM also runs the native

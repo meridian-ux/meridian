@@ -1,24 +1,27 @@
 {
   "$schema-note": "Minimum declared test cases for the suites that CI executes. The floor only rises; test execution remains the CI job's responsibility.",
   "suites": [
-    { "id": "chat", "kind": "javascript", "roots": ["packages/chat/tests"], "floor": 14 },
-    { "id": "launchpad", "kind": "javascript", "roots": ["packages/launchpad/tests"], "floor": 12 },
-    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 124 },
+    { "id": "chat", "kind": "javascript", "roots": ["packages/chat/tests"], "floor": 22 },
+    { "id": "launchpad", "kind": "javascript", "roots": ["packages/launchpad/tests"], "floor": 16 },
+    { "id": "mui-kit", "kind": "javascript", "roots": ["packages/mui-kit/tests"], "floor": 191 },
     {
       "id": "web",
       "kind": "javascript",
       "roots": ["packages/web/tests"],
       "exclude": ["packages/web/tests/conformance_wasm.test.ts"],
-      "floor": 82
+      "floor": 146
     },
     {
       "id": "web-wasm-ffi",
       "kind": "javascript",
-      "roots": ["packages/web/tests"],
-      "floor": 4
+      "roots": ["packages/web/tests/conformance_wasm.test.ts"],
+      "floor": 14
     },
-    { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 72 },
-    { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 14 },
-    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 79 }
+    { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 155 },
+    { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 24 },
+    { "id": "rust-workspace", "kind": "rust", "roots": ["crates/core", "crates/tui"], "floor": 165 },
+    { "id": "rust-core", "kind": "rust", "roots": ["crates/core/rust/uiview"], "floor": 65 },
+    { "id": "rust-theme-proto", "kind": "rust", "roots": ["crates/core/rust/theme-proto"], "floor": 3 },
+    { "id": "rust-tui", "kind": "rust", "roots": ["crates/tui/rust/tui"], "floor": 97 }
   ]
 }
