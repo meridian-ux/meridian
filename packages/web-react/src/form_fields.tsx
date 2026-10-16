@@ -175,8 +175,9 @@ function ScalarInput({
   const fallback = field.kind.value && "defaultValue" in field.kind.value ? field.kind.value.defaultValue : "";
   const raw = initial ?? fallback;
   if (mode !== 2) {
-    const shown = field.display ? formatByDisplay(raw, field.display) : { text: String(raw) };
-    return <span className={c.fieldValue} data-field={name}>{field.kind.case === "masked" ? "••••••" : shown.text}</span>;
+    const shown = field.kind.case === "masked" ? { text: "••••••" }
+      : field.display ? formatByDisplay(raw, field.display) : { text: String(raw) };
+    return <span className={c.fieldValue} data-field={name} title={shown.title}>{shown.text}</span>;
   }
   const kind = field.kind;
   const accessibleLabel = label || (!field.label ? field.fieldId || name : undefined);

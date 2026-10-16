@@ -120,7 +120,10 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
   if (!edit) {
     const span = document.createElement("span"); span.dataset.field = field.fieldId;
     span.className = "meridian-uiview-field-value";
-    span.textContent = kind.case === "masked" ? "••••••" : field.display ? formatByDisplay(value, field.display).text : String(value);
+    const shown = kind.case === "masked" ? { text: "••••••" }
+      : field.display ? formatByDisplay(value, field.display) : { text: String(value) };
+    span.textContent = shown.text;
+    if (shown.title !== undefined) span.title = shown.title;
     box.append(span); return () => value;
   }
   if (kind.case === "masked" && multilineRows > 0) {

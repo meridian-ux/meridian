@@ -115,13 +115,16 @@ function enumTone(tone: ValueTone | undefined): { name: string; color: string } 
 function readOnlyDisplay(field: MeridianFormField, nowMs: number | undefined): ReactNode | undefined {
   if (field.disabled && (field.type === "text" || field.type === undefined) && field.masked)
     return <Typography key={field.key} data-field-display={field.key}>••••••</Typography>;
-  if (!field.disabled || !field.display || field.display.type === ValueType.UNSPECIFIED) return undefined;
+  if (!field.disabled || !field.display) return undefined;
   const compound = field.type === "group" || field.type === "list" || field.type === "map";
   if (compound && field.rawValue === undefined) return undefined;
   const shown = field.concealed ? { text: "••••••" }
     : formatByDisplay(compound ? field.rawValue : "value" in field ? field.value : undefined, field.display, nowMs);
+  // Keep the legacy labeled disabled control when inference has no effect.
+  if (field.display.type === ValueType.UNSPECIFIED && !compound && "value" in field &&
+      shown.text === String(field.value) && shown.title === undefined) return undefined;
   return (
-    <Typography key={field.key} data-field-display={field.key} color="text.secondary">
+    <Typography key={field.key} data-field-display={field.key} title={shown.title} color="text.secondary">
       {shown.text}
     </Typography>
   );

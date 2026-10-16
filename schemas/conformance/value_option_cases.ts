@@ -17,6 +17,38 @@ export const OPTION_VALUES = corpus.valueFormats.map(entry => ({
     : entry).expected)),
 }));
 
+// FormField scalar defaults carry strings/doubles, not null or heterogeneous
+// lists. Preserve those corpus inputs on read surfaces rather than coercing
+// them into an invented editable default. Compound kinds have their own corpus.
+export const OPTION_INPUT_VALUES = OPTION_VALUES.filter(entry => entry.nowMs === undefined &&
+  (typeof entry.raw === "string" || typeof entry.raw === "number"));
+export const OPTION_INPUT_CASES = OPTION_INPUT_VALUES.flatMap(entry => {
+  const field = { fieldId: "value", requestField: "value", label: "Declared input",
+    display: toJson(ValueDisplaySchema, entry.display),
+    ...(typeof entry.raw === "string" ? { text: { defaultValue: entry.raw } }
+      : { number: { defaultValue: entry.raw } }) };
+  const bodies: Record<string, { arm: string; body: JsonObject }> = {
+    form: { arm: "form", body: { fields: [field], mode: 2, submit: { service: "fixture.Inputs", method: "Submit" } } },
+    prompt: { arm: "prompt", body: { fields: [field], acceptLabel: "Submit" } },
+    lro: { arm: "lro", body: { inputs: [field], start: { service: "fixture.Inputs", method: "Start" },
+      metadataType: "fixture.Metadata", responseType: "fixture.Response" } },
+    llmPrompt: { arm: "llmPrompt", body: { userTemplate: "Value={{value}}", slots: [{ name: "value", field }] } },
+    readonlyForm: { arm: "form", body: { fields: [field], mode: 1 } },
+  };
+  if (typeof entry.raw === "string") bodies.readonlyMaskedForm = { arm: "form", body: { mode: 1,
+    fields: [{ fieldId: "value", requestField: "value", label: "Concealed input",
+      display: toJson(ValueDisplaySchema, entry.display), masked: { defaultValue: entry.raw } }] } };
+  return Object.entries(bodies).map(([surface, { arm, body }]) => {
+    const message = fromJson(ViewDescriptorSchema, { id: `${surface}-${entry.name}`, title: "Input fixture",
+      layout: { stacked: {} }, slots: [{ id: "content", panel: { panelId: `${surface}-${entry.name}`, [arm]: body } }] });
+    const bytes = toBinary(ViewDescriptorSchema, message);
+    return { ...entry, name: `${surface}/${entry.name}`,
+      surface: surface === "readonlyMaskedForm" ? "readonlyForm" : surface,
+      expected: surface === "readonlyMaskedForm" ? { text: "••••••", title: undefined } : entry.expected,
+      view: fromBinary(ViewDescriptorSchema, bytes), bytes };
+  });
+});
+
 export const OPTION_READ_CASES = OPTION_VALUES.flatMap(entry => {
   const display = toJson(ValueDisplaySchema, entry.display);
   const populate = { service: "fixture.Options", method: "Get" };
