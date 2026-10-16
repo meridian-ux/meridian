@@ -11,12 +11,14 @@ import coreCorpus from "../../../schemas/conformance/core.json";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 import {
+  FormattedValueSchema,
   PrincipalDisplay,
   TemporalDisplay,
   TemporalPrecision,
   ValueDisplaySchema,
   ValueType,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { formatByCore } from "@savvifi/meridian-schemas/uiview";
 
 import {
   EMPTY_DISPLAY,
@@ -34,6 +36,25 @@ describe("native/WASM temporal table parity vectors", () => {
     const row = entry.response as { rows: { value: string }[] };
     const expected = entry.expected as { cells: string[] }[];
     expect(formatByDisplay(row.rows[0]!.value, table.columns[0]!.valueDisplay).text).toBe(expected[0]!.cells[0]);
+  });
+});
+
+describe("core formatter wire adapter", () => {
+  it.each([undefined, "", "supporting text"])("preserves title presence: %s", title => {
+    const display = create(ValueDisplaySchema, { type: ValueType.BOOLEAN });
+    const shown = formatByCore(false, display, {
+      formatValueDisplay(bytes, raw) {
+        expect(fromBinary(ValueDisplaySchema, bytes)).toEqual(display);
+        expect(raw).toBe(false);
+        return toBinary(FormattedValueSchema, create(FormattedValueSchema, { text: "core-only", title }));
+      },
+    });
+    expect(shown).toEqual({ text: "core-only", ...(title === undefined ? {} : { title }) });
+  });
+  it("does not silently fall back to a second formatter when core output is invalid", () => {
+    expect(() => formatByCore(false, create(ValueDisplaySchema), {
+      formatValueDisplay: () => new Uint8Array([255]),
+    })).toThrow();
   });
 });
 

@@ -140,6 +140,17 @@ message ValueDisplay {
   ValueLink link = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Core formatting result shared by native and WASM consumers. Text is the
+// visible label, not a replacement for the stored raw value. A surface that
+// cannot expose supporting text may omit title decoration without changing
+// the visible label. Routing, colors, and action capabilities remain host-owned.
+message FormattedValue {
+  string text = 1;
+  // Presence distinguishes absent supporting text from an explicitly empty
+  // title. Serialized formatter results cross language boundaries as protobuf.
+  optional string title = 2;
+}
+
 // Renders a declared value as a host-resolved link. The renderer never builds
 // a URL; the host owns lookup, authorization, and route encoding. `target_kind`
 // is required in practice because a display label cannot safely identify an
