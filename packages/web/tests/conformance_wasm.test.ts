@@ -38,7 +38,7 @@ import { FormattedValueSchema, PrincipalDisplay, ValueDisplaySchema, ValueType }
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
-import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { RpcInvoker, StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
@@ -59,7 +59,13 @@ type NodeFs = { readFileSync(path: URL | string): Uint8Array };
 const GLUE = "./meridian_uiview.js";
 const WASM = "./meridian_uiview_bg.wasm";
 
-let wasm: UiviewWasm & ValueFormatterWasm & { matchesFormPattern(pattern: string, input: string): boolean };
+// This suite exercises more of the actual core than a renderer host needs.
+// Declare those additional capabilities once instead of casting each callsite.
+type ConformanceWasm = UiviewWasm & ValueFormatterWasm & {
+  matchesFormPattern(pattern: string, input: string): boolean;
+  renderGalleryPanel(bytes: Uint8Array, response: object): unknown;
+};
+let wasm: ConformanceWasm;
 let core: ReturnType<typeof JSON.parse>;
 let values: ReturnType<typeof JSON.parse>;
 let renderView: typeof import("../src/uiview/view_renderer.js").renderView;
@@ -80,6 +86,7 @@ beforeAll(async () => {
   const mod = await import(glueUrl.href);
   await mod.default({ module_or_path: readFileSync(wasmUrl) });
   wasm = mod as unknown as typeof wasm;
+  expect(wasm.renderGalleryPanel).toBeTypeOf("function");
   const text = (path: string) => new TextDecoder().decode(readFileSync(new URL(path, import.meta.url)));
   core = JSON.parse(text("../../../schemas/conformance/core.json"));
   values = JSON.parse(text("../../../schemas/conformance/value_types.json"));
@@ -549,9 +556,8 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("renders the same gallery fixtures without losing raw rows or navigation slots", () => {
-    const bridge = wasm as UiviewWasm & { renderGalleryPanel(bytes: Uint8Array, response: object): unknown };
     for (const entry of core.galleries) {
-      const actual = bridge.renderGalleryPanel(wire(entry.gallery), entry.response);
+      const actual = wasm.renderGalleryPanel(wire(entry.gallery), entry.response);
       expect(actual, entry.name).toEqual(entry.expected);
       expect(JSON.parse(JSON.stringify(actual)), entry.name).toEqual(entry.expected);
     }
@@ -716,7 +722,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
         : { case: "lro", value: { inputs: fields, start: call } },
     });
     const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(700_000) } };
-    const invoke = vi.fn(async () => ({ done: true }));
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ done: true }));
     const root = document.createElement("main");
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     try {
@@ -814,7 +820,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it("rejects an excessive finalize request without a second RPC", async () => {
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
-    const root = document.createElement("main"), invoke = vi.fn(async () => ({ done: true, response: {} }));
+    const root = document.createElement("main"), invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ done: true, response: {} }));
     const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
       start: { service: "fixture.Lro", method: "Start" }, finalize: {
         service: "fixture.Lro", method: "Finalize", bindings: [{
@@ -1073,10 +1079,6 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
   });
 
   it("rejects malformed and future descriptors without trapping across the real wasm boundary", () => {
-    const boundary = wasm as UiviewWasm & {
-      renderTablePanel(table: Uint8Array, response: object): unknown;
-      renderGalleryPanel(gallery: Uint8Array, response: object): unknown;
-    };
     // A tag with a truncated varint is invalid wire data for every descriptor
     // decoder used by the WebAssembly API.
     const malformed = new Uint8Array([0x0a, 0x80]);
@@ -1084,8 +1086,8 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       () => wasm.renderTable(malformed, {}),
       () => wasm.buildPopulateRequest(malformed, CTX),
       () => wasm.buildRequest(malformed, CTX),
-      () => boundary.renderTablePanel(malformed, {}),
-      () => boundary.renderGalleryPanel(malformed, {}),
+      () => wasm.renderTablePanel(malformed, {}),
+      () => wasm.renderGalleryPanel(malformed, {}),
     ];
     for (const call of malformedCalls) {
       let failure: unknown;
