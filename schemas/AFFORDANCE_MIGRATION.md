@@ -148,7 +148,7 @@ with JDK 21. This is bounded compiled-consumer proof, not an audit of unknown
 external Java/JavaFX applications. Descriptor-holder methods returning old
 file descriptors, positional message lists, dependency lists, and descriptor
 object identity cannot silently be treated as equivalent to a new canonical file.
-The newly built SwiftUI foundation is tracked separately in PR #152; this
+The SwiftUI foundation merged separately in PR #152; this
 proposal has not yet rerun its native package against the relocated descriptor.
 Public registry/external consumers require an explicit migration notice.
 
