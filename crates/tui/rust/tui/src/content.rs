@@ -19,9 +19,10 @@
 
 use meridian_uiview::proto::{
     affordance::Invoke, form_field::Kind, Affordance, AffordanceStyle, CatalogPanel, ChartPanel,
-    ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, FormField,
-    FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel, ResourceAction,
-    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel, ValueType,
+    ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis,
+    FormField, FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel,
+    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
+    Tone, ValueType,
 };
 use meridian_uiview::RenderedCard;
 use meridian_uiview::{format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics};
@@ -1014,12 +1015,32 @@ fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
         Some(Invoke::Command(c)) => ("$", c.clone()),
         None => ("•", String::new()),
     };
-    let label_style = if a.style == AffordanceStyle::Primary as i32 {
+    let primary = a
+        .emphasis
+        .map_or(a.style == AffordanceStyle::Primary as i32, |emphasis| {
+            emphasis == Emphasis::Primary as i32
+        });
+    let mut label_style = if primary {
         palette.title()
     } else {
         palette.text()
     };
-    let mut spans = vec![Span::styled(format!(" {marker} "), palette.title())];
+    if let Some(tone) = a.tone {
+        let tone = Tone::try_from(tone)
+            .ok()
+            .filter(|tone| *tone != Tone::Unspecified)
+            .unwrap_or(Tone::Neutral);
+        label_style = palette.tone_style(tone);
+        if primary {
+            label_style = label_style.add_modifier(ratatui::style::Modifier::BOLD);
+        }
+    }
+    let marker_style = if a.tone.is_some() {
+        label_style
+    } else {
+        palette.title()
+    };
+    let mut spans = vec![Span::styled(format!(" {marker} "), marker_style)];
     if !a.icon.is_empty() {
         spans.push(Span::styled(format!("{} ", glyph(&a.icon)), palette.meta()));
     }
@@ -2052,6 +2073,57 @@ mod tests {
     }
 
     #[test]
+    fn affordance_presentation_keeps_role_prominence_and_target_independent_in_terminal_cells() {
+        use prost::Message;
+        use ratatui::{backend::TestBackend, style::Modifier, Terminal};
+        let palette = Palette::default();
+        for emphasis in [None, Some(0), Some(1), Some(2), Some(999)] {
+            for (tone, color) in [
+                (Some(0), palette.fg),
+                (Some(1), palette.fg),
+                (Some(2), palette.info),
+                (Some(3), palette.success),
+                (Some(4), palette.warning),
+                (Some(5), palette.danger),
+                (Some(6), palette.accent),
+                (Some(999), palette.fg),
+            ] {
+                for invoke in [
+                    Invoke::Uri("/next".into()),
+                    Invoke::Command("echo raw command".into()),
+                ] {
+                    let primary = emphasis.is_none() || emphasis == Some(1);
+                    let action = Affordance {
+                        label: "Action".into(),
+                        style: AffordanceStyle::Primary as i32,
+                        tone,
+                        emphasis,
+                        invoke: Some(invoke),
+                        ..Default::default()
+                    };
+                    let bytes = action.encode_to_vec();
+                    let decoded = Affordance::decode(bytes.as_slice()).unwrap();
+                    let mut terminal = Terminal::new(TestBackend::new(60, 2)).unwrap();
+                    terminal
+                        .draw(|frame| {
+                            frame.render_widget(
+                                Paragraph::new(affordance_line(&decoded, &palette)),
+                                frame.area(),
+                            )
+                        })
+                        .unwrap();
+                    let buffer = terminal.backend().buffer();
+                    assert_eq!(buffer[(3, 0)].symbol(), "A");
+                    assert_eq!(buffer[(3, 0)].fg, color);
+                    assert_eq!(buffer[(3, 0)].modifier.contains(Modifier::BOLD), primary);
+                    assert_eq!(decoded.invoke, action.invoke);
+                    assert_eq!(decoded.encode_to_vec(), bytes);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn selected_affordance_resolves_catalog_item_action() {
         use meridian_uiview::proto::panel_descriptor::Body;
         use meridian_uiview::proto::{affordance::Invoke, CatalogItem, CatalogPanel};
@@ -2062,6 +2134,8 @@ mod tests {
             icon: String::new(),
             style: 0,
             invoke: Some(Invoke::Uri("https://x".into())),
+            tone: None,
+            emphasis: None,
         };
         let body = Body::Catalog(CatalogPanel {
             items: vec![CatalogItem {

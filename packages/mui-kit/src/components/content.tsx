@@ -42,6 +42,7 @@ import {
 } from "@savvifi/meridian-web-react";
 import {
   computeStat,
+  affordancePresentation,
   safeAssetSrc,
   safeNavigationHref,
   statSparklinePoints,
@@ -49,7 +50,6 @@ import {
 } from "@savvifi/meridian-schemas/uiview";
 import { formatByDisplay } from "../display_format.js";
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -85,7 +85,8 @@ function Glyph({ name }: { name: string }): ReactNode {
 }
 
 function AffordanceButton({ affordance }: { affordance: Affordance }): ReactNode {
-  const primary = affordance.style === AffordanceStyle.PRIMARY;
+  const { primary, tone, style } = affordancePresentation(affordance);
+  const colors = { neutral: "inherit", info: "info", success: "success", warning: "warning", danger: "error", accent: "primary" } as const;
   const glyph = useIcon(affordance.icon);
   const common = {
     variant: (primary ? "contained" : "outlined") as "contained" | "outlined",
@@ -93,6 +94,10 @@ function AffordanceButton({ affordance }: { affordance: Affordance }): ReactNode
     startIcon: glyph ?? undefined,
     title: affordance.description || undefined,
     "data-icon": affordance.icon || undefined,
+    "data-mer-tone": tone,
+    "data-mer-emphasis": affordance.emphasis === undefined ? undefined : primary ? "primary" : "secondary",
+    color: tone === undefined ? undefined : colors[tone as keyof typeof colors],
+    style: affordance.emphasis === undefined ? undefined : { fontWeight: style.fontWeight, borderWidth: style.borderWidth, borderStyle: style.borderStyle },
   };
   const href = affordance.invoke.case === "uri" ? safeNavigationHref(affordance.invoke.value) : undefined;
   const unavailableUri = affordance.invoke.case === "uri" && !href;

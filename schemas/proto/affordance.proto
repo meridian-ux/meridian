@@ -13,6 +13,7 @@ syntax = "proto3";
 package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
+import "proto/value.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -42,10 +43,24 @@ message Affordance {
   // Prominence hint. The renderer maps it to its own weighting (web = contained
   // vs outlined button, tui = highlighted vs plain keybinding).
   AffordanceStyle style = 7 [(google.api.field_behavior) = OPTIONAL];
+  // Semantic color, independent of prominence and invocation authority. Absent
+  // retains legacy styling; present unspecified/unknown selects neutral.
+  optional Tone tone = 8 [(google.api.field_behavior) = OPTIONAL];
+  // Absence adapts legacy style. Present unspecified/unknown uses ordinary
+  // surface prominence, never reviving a legacy PRIMARY hint.
+  optional Emphasis emphasis = 9 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Prominence only: not color, placement, operational state, or permission.
+enum Emphasis {
+  EMPHASIS_UNSPECIFIED = 0;
+  EMPHASIS_PRIMARY = 1;
+  EMPHASIS_SECONDARY = 2;
 }
 
 // How prominently an affordance renders.
 enum AffordanceStyle {
+  option deprecated = true;
   AFFORDANCE_STYLE_UNSPECIFIED = 0;
   // The primary call to action.
   AFFORDANCE_STYLE_PRIMARY = 1;

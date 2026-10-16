@@ -64,6 +64,24 @@ URI or a command, and its optional icon, description, and style provide context.
 same primitive. Web renderers use links or buttons; TUI renders a keybinding-like
 action line; non-interactive surfaces retain the label and destination as text.
 
+`Affordance.tone` (optional tag 8) selects the shared semantic palette role;
+`Affordance.emphasis` (optional tag 9) selects primary or secondary prominence.
+These are independent: danger is not inherently primary, and neither field
+grants permission to execute. An absent emphasis adapts legacy `style` (tag 7).
+An explicitly supplied unspecified or unknown emphasis is ordinary, even when
+legacy style is primary. An absent Tone preserves host styling; an explicit
+unspecified or unknown Tone uses neutral. The deprecated `AffordanceStyle`
+enum retains its existing numbers and field type for old readers.
+
+The HTML, Shadcn, MUI, web-component, and TUI action paths adopt this projection.
+Browser emphasis uses theme heading/body weights; native emphasis uses bold.
+Semantic palette roles remain separate from emphasis. Unsafe URI admission and
+exact command clipboard payloads are unchanged. Descriptor and old-reader tests
+cover additive wire compatibility, not universal generated-source compatibility:
+Rust exhaustive struct literals must include `tone: None, emphasis: None` or
+use a default initializer. This does not prove external SwiftUI adoption or
+complete #44's cross-renderer acceptance criteria.
+
 The proposed [unified Affordance contract](AFFORDANCE_RFC.md) inventories the
 existing shapes, typed-schema dependency cycle, host admission requirements,
 compatibility window, and acceptance tests. It is the design artifact for #46,
@@ -286,6 +304,7 @@ scope requires updating its concept as well as regenerating the table.
 | Proto scope | Named concept | Tone / theme roles | Modality profile |
 |---|---|---|---|
 | `meridian.ui.v1.ActionPlacement` | Action location and prominence: primary, row, header, overflow | Placement is not Tone; foreground/accent/focus identify a reachable action. | `actions` |
+| `meridian.ui.v1.Emphasis` | Action prominence: primary or secondary, independent of location and execution | Primary strengthens weighting; Tone independently selects a semantic palette role. Presence overrides legacy AffordanceStyle without granting a capability. | `actions` |
 | `meridian.ui.v1.ActionStyle` | Resource lifecycle action emphasis, including destructive intent | Default/primary set prominence; danger retains its warning meaning and label, not color alone. | `actions` |
 | `meridian.ui.v1.Affordance.invoke` | Static destination or command invitation | No intrinsic Tone; foreground/accent/focus plus authored label. URI/command capability stays host-owned. | `actions` |
 | `meridian.ui.v1.AffordanceStyle` | Primary versus secondary action emphasis | Prominence is independent of Tone; compatible accent/foreground/border/focus styling. | `actions` |
@@ -351,6 +370,7 @@ Generated from the current compiled proto sources; numbers are wire identities, 
 | [`meridian.ui.v1.Command.action`](proto/command_palette.proto) | oneof | `rpc=8`, `open_panel=9`, `open_view_id=10`, `navigate=11` |
 | [`meridian.ui.v1.ContextSource`](proto/rpc.proto) | enum | `CONTEXT_SOURCE_UNSPECIFIED=0`, `CURRENT_RESOURCE_PATH=1`, `UI_IDENTITY=2` |
 | [`meridian.ui.v1.ConversationEvent.event`](proto/conversation.proto) | oneof | `block=2`, `status=3`, `done=4`, `error=5` |
+| [`meridian.ui.v1.Emphasis`](proto/affordance.proto) | enum | `EMPHASIS_UNSPECIFIED=0`, `EMPHASIS_PRIMARY=1`, `EMPHASIS_SECONDARY=2` |
 | [`meridian.ui.v1.EncodingType`](proto/chart.proto) | enum | `ENCODING_TYPE_UNSPECIFIED=0`, `ENCODING_TYPE_TEMPORAL=1`, `ENCODING_TYPE_QUANTITATIVE=2`, `ENCODING_TYPE_NOMINAL=3`, `ENCODING_TYPE_ORDINAL=4` |
 | [`meridian.ui.v1.FieldBinding.source`](proto/rpc.proto) | oneof | `context=2`, `row_field=3`, `form_field=4`, `literal=5`, `nested=6`, `signal=7`, `selection_key=8` |
 | [`meridian.ui.v1.FollowMode`](proto/stream.proto) | enum | `FOLLOW_MODE_UNSPECIFIED=0`, `FOLLOW_MODE_FOLLOW=1`, `FOLLOW_MODE_MANUAL=2` |
@@ -375,5 +395,5 @@ Generated from the current compiled proto sources; numbers are wire identities, 
 | [`meridian.ui.v1.ValueType`](proto/value.proto) | enum | `VALUE_TYPE_UNSPECIFIED=0`, `VALUE_TYPE_TEXT=1`, `VALUE_TYPE_MULTILINE_TEXT=2`, `VALUE_TYPE_INTEGER=3`, `VALUE_TYPE_DECIMAL=4`, `VALUE_TYPE_BOOLEAN=5`, `VALUE_TYPE_ENUM=6`, `VALUE_TYPE_LIST=7`, `VALUE_TYPE_DATE=8`, `VALUE_TYPE_DATE_TIME=9`, `VALUE_TYPE_TIME=10`, `VALUE_TYPE_DURATION=11`, `VALUE_TYPE_PRINCIPAL=12`, `VALUE_TYPE_EMAIL=13`, `VALUE_TYPE_URL=14`, `VALUE_TYPE_IDENTIFIER=15`, `VALUE_TYPE_MONEY=16`, `VALUE_TYPE_PERCENT=17`, `VALUE_TYPE_JSON=18` |
 | [`meridian.ui.v1.ViewKind`](proto/view.proto) | enum | `VIEW_KIND_UNSPECIFIED=0`, `VIEW_KIND_LIST=1`, `VIEW_KIND_DETAIL=2` |
 
-**26 enums and 11 explicit oneofs; 37 named-concept mappings.**
+**27 enums and 11 explicit oneofs; 38 named-concept mappings.**
 <!-- vocabulary:end -->

@@ -46,6 +46,32 @@ async function main() {
     await page.setContent(html, { waitUntil: "load" });
     await page.waitForFunction(() => !!window.meridianHarness, null, { timeout: 15000 });
 
+    await check("Affordance roles and emphasis use computed MUI theme colors without granting unsafe destinations", async () => {
+      const colors = ["rgb(16, 32, 48)", "rgb(16, 32, 48)", "rgb(32, 80, 112)", "rgb(48, 112, 80)", "rgb(128, 96, 32)", "rgb(128, 32, 48)", "rgb(96, 64, 128)"];
+      for (const kit of ["mui", "html", "shadcn"]) {
+      for (const emphasis of [undefined, 0, 1, 2, 999]) for (const tone of [0, 1, 2, 3, 4, 5, 6, 999]) {
+        await page.evaluate(({ tone, emphasis, kit }) => window.meridianPresentation(tone, emphasis, false, kit), { tone, emphasis, kit });
+        const primary = emphasis === undefined || emphasis === 1;
+        const expected = colors[tone <= 6 ? tone : 0];
+        await page.waitForFunction(({ primary, tone, expected, kit }) => {
+          const control = document.querySelector('[data-mer-tone]');
+          if (!control) return false;
+          const style = getComputedStyle(control);
+          return (kit === "mui" && primary && tone > 1 && tone < 7 ? style.backgroundColor : style.color) === expected;
+        }, { primary, tone, expected, kit }, { timeout: 3000 });
+        const actual = await page.getByRole("link", { name: "Presentation action" }).evaluate(control => ({
+          color: getComputedStyle(control).color, background: getComputedStyle(control).backgroundColor,
+          weight: getComputedStyle(control).fontWeight, href: control.getAttribute("href"),
+        }));
+        if (actual.href !== "/next" || (kit === "mui" && primary && tone > 1 && tone < 7 ? actual.background : actual.color) !== expected)
+          throw new Error(`MUI Tone ${tone}, emphasis ${emphasis}: ${JSON.stringify(actual)}, expected ${expected}`);
+        if (emphasis !== undefined && actual.weight !== (primary ? "700" : "500")) throw new Error("Themed emphasis was dropped");
+      }
+      await page.evaluate(kit => window.meridianPresentation(5, 1, true, kit), kit);
+      if (!await page.getByRole("button", { name: "Presentation action" }).isDisabled()) throw new Error("Presentation enabled a denied URI");
+      }
+    });
+
     const render = (name) => page.evaluate((n) => window.meridianHarness.render(n), name);
     const seen = (text) =>
       page.getByText(text, { exact: false }).first().waitFor({ state: "visible", timeout: 8000 });

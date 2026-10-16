@@ -50,6 +50,30 @@ const kits: [string, ComponentKit][] = [
   ["shadcnKit", shadcnKit],
 ];
 
+it.each([undefined, 0, 1, 2, 999])("reference kits honor emphasis presence %s without changing destination admission", emphasis => {
+  for (const [, kit] of kits) for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
+    for (const uri of ["/next", "javascript:alert(1)"]) {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+        label: "Action", description: "Explain", icon: "action", style: 1, tone, emphasis,
+        invoke: { case: "uri", value: uri },
+      } } } });
+      const decoded = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, descriptor));
+      const html = render(kit, decoded);
+      const primary = emphasis === undefined || emphasis === 1;
+      expect(html.includes("mer-affordance-primary") || html.includes("bg-primary")).toBe(primary);
+      if (tone === undefined) expect(html).not.toContain("data-mer-tone");
+      else expect(html).toContain(`data-mer-tone="${["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral"}"`);
+      if (emphasis !== undefined) expect(html).toContain(`font-weight:var(--mer-${primary ? "heading-weight, 600" : "body-weight, 400"})`);
+      expect(html).toContain("Explain");
+      if (uri.startsWith("javascript:")) {
+        expect(html).not.toContain("href=");
+        expect(html).toContain('aria-disabled="true"');
+        expect(html).toContain("disabled");
+      } else expect(html).toContain('href="/next"');
+    }
+  }
+});
+
 const choice = create(PanelDescriptorSchema, {
   panelId: "c",
   title: "Choice",
