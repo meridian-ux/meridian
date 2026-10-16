@@ -240,6 +240,27 @@ export function checkWorkspaceRendererCoverage(catalog, { repoRoot = REPO_ROOT }
   const dependsOnProtoTs = (pkg) => [pkg.dependencies, pkg.devDependencies, pkg.peerDependencies]
     .some((deps) => Object.hasOwn(deps ?? {}, "@savvifi/meridian-proto-ts"));
 
+  // SwiftPM has no custom package metadata table. Keep a JSON array in a
+  // declarative comment instead of executing an arbitrary Swift manifest.
+  const swiftManifests = [join(repoRoot, "Package.swift"),
+    ...readdirSync(join(repoRoot, "packages"), { withFileTypes: true })
+      .filter(entry => entry.isDirectory()).map(entry => join(repoRoot, "packages", entry.name, "Package.swift"))];
+  for (const manifest of swiftManifests) {
+    let source;
+    try { source = readFileSync(manifest, "utf8"); }
+    catch (error) { if (error.code !== "ENOENT") errors.push(`${manifest}: ${error.message}`); continue; }
+    if (!/SwiftProtobuf|MeridianProtos/.test(source)) continue;
+    const annotations = [...source.matchAll(/^\/\/ meridian\.rendererIds: (.+)$/gm)];
+    let ids;
+    try { if (annotations.length === 1) ids = JSON.parse(annotations[0][1]); }
+    catch { /* The explicit failure below covers malformed metadata too. */ }
+    if (!Array.isArray(ids)) {
+      errors.push(`${manifest}: proto-dependent Swift package needs one meridian.rendererIds array`);
+      continue;
+    }
+    for (const id of ids) add(id, manifest);
+  }
+
   for (const directory of readdirSync(join(repoRoot, "packages"), { withFileTypes: true })) {
     if (!directory.isDirectory()) continue;
     const packagePath = join(repoRoot, "packages", directory.name, "package.json");

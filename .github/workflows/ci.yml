@@ -24,6 +24,22 @@ permissions:
   contents: read
 
 jobs:
+  swiftui:
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Generate canonical Swift bindings and test native views
+        run: python3 tools/swiftui.py --ios
+      - name: Swift dependency lock is current
+        run: git diff --exit-code -- Package.resolved
+
   core-runtime:
     runs-on: ubuntu-latest
     steps:

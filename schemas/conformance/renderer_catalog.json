@@ -63,9 +63,9 @@
       "modality": "panel",
       "status": "preview",
       "source": {
-        "kind": "external",
-        "repo": "meridian-ui",
-        "note": "The public catalog advertises the SwiftUI renderer as a preview tier; its implementation is maintained outside this repository."
+        "kind": "local",
+        "root": "packages/swiftui",
+        "entrypoint": "Sources/MeridianUI/MeridianPanel.swift"
       }
     },
     {

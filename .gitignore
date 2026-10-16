@@ -32,3 +32,8 @@ MODULE.bazel.lock
 
 # tools/registry_entry.sh output — generated from the release tarball, never committed
 .registry-entry/
+
+# SwiftPM and canonical Swift protobuf codegen (tools/swiftui.py).
+.build/
+.swiftpm/
+packages/swiftui/Generated/**/*.pb.swift

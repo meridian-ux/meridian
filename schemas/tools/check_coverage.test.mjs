@@ -116,6 +116,24 @@ test("the Launchpad manifest covers every Command.action arm", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 
+test("proto-dependent Swift packages require cataloged renderer metadata", (t) => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "meridian-swift-renderers-"));
+  t.after(() => rmSync(repoRoot, { recursive: true, force: true }));
+  mkdirSync(join(repoRoot, "packages"), { recursive: true });
+  mkdirSync(join(repoRoot, "crates"), { recursive: true });
+  const manifest = join(repoRoot, "Package.swift");
+  writeFileSync(manifest, 'import PackageDescription\n// SwiftProtobuf\n');
+  assert.ok(checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot })
+    .some(error => /Swift package needs one meridian\.rendererIds array/.test(error)));
+  writeFileSync(manifest, '// SwiftProtobuf\n// meridian.rendererIds: ["new-native"]\n');
+  assert.ok(checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot })
+    .some(error => /new-native.*has no catalog entry/.test(error)));
+  const catalog = { renderers: [{ id: "new-native", source: { kind: "local" } }] };
+  assert.deepEqual(checkWorkspaceRendererCoverage(catalog, { repoRoot }), []);
+  writeFileSync(manifest, '// SwiftProtobuf\n// meridian.rendererIds: invalid\n');
+  assert.ok(checkWorkspaceRendererCoverage(catalog, { repoRoot }).length > 0);
+});
+
 test("a modality proto arm with no renderer coverage fails", () => {
   const manifest = realManifest();
   delete manifest.modalities.conversation.arms.view;

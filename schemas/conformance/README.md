@@ -156,7 +156,7 @@ offscreen frames share that condition. Media waits for its real player → poste
 → text failure ladder to finish before capture; Steps may retain native broken
 images with accessible alternative text. This does not prove successful playback,
 production transport behavior, keyboard order, contrast, or full WCAG compliance.
-Native buffer normalization and external SwiftUI evidence remain separate.
+Native buffer normalization and SwiftUI evidence remain separate.
 
 ```sh
 bazel test --announce_rc=false //packages/mui-kit:computed_accessibility_test
@@ -631,7 +631,7 @@ buffer.
 Conversation field/list spans also expand into physical lines before wrapping
 and tail-scroll calculation; public draw-path TestBackend checks protect blank
 lines, subsequent styled spans, and two-row viewport tails.
-These checks do not establish external SwiftUI conformance or every
+These checks do not establish SwiftUI conformance or every
 temporal/principal option combination in every modality; roadmap #51 stays open.
 
 The native descriptor suite now has inline text goldens for populated Gallery,
@@ -765,7 +765,11 @@ presence are necessary, not sufficient: the owning tests must pass on the same
 revision. This registry covers panels, not external conversation consumers;
 SwiftUI remains unverified until its own evidence and verifier are integrated.
 
-Epic #9 still owns external SwiftUI view-tree evidence, renderer-specific visual
+The local SwiftPM foundation is documented in
+[packages/swiftui](../../packages/swiftui/README.md). Its wire and native layout
+smoke tests are not registered semantic render proofs and do not promote cells.
+
+Epic #9 still owns SwiftUI view-tree evidence, renderer-specific visual
 overflow/layout proof, and broader interactive snapshots. The shared panel corpus
 now has 427 canonical cases across all current arms, including typed input/default
 values, with 854 native buffers and 1,708 computed browser accessibility trees;
