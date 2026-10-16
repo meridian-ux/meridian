@@ -3,7 +3,7 @@ import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.j
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, expect, it, vi } from "vitest";
-import { OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
+import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
 import { MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
 import { muiKit } from "../src/mui_kit.js";
 
@@ -35,4 +35,44 @@ it.each(OPTION_READ_CASES)("MUI: $name", async fixture => {
     expect(JSON.stringify(fixture.response)).toBe(raw);
     expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
   } finally { await act(async () => root.unmount()); container.remove(); }
+});
+
+it.each(OPTION_CONSTRAINED_CASES)("MUI constrained: $name", async fixture => {
+  const container = document.createElement("main");
+  document.body.append(container);
+  const root = createRoot(container);
+  const invoke = vi.fn(async () => ({}));
+  const prior = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+  const writeText = vi.fn(async (_text: string) => {});
+  Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+  try {
+    await act(async () => root.render(createElement(MeridianProvider, { kit: muiKit, adhoc: {}, invoker: { invoke },
+      children: createElement(ViewRenderer, { view: fixture.view }) })));
+    expect(writeText).not.toHaveBeenCalled();
+    if (fixture.arm === "stat") expect(container.querySelector(".mer-stat-value")?.textContent).toBe(fixture.expectedText);
+    else {
+      const copy = container.querySelector<HTMLElement>(".MuiChip-root[role=button]")!;
+      expect(copy.textContent).toBe(fixture.secret ? "••••••••" : fixture.expectedText);
+      expect(copy.querySelector("a")).toBeNull();
+      await act(async () => copy.click());
+      expect(writeText).toHaveBeenCalledWith(fixture.raw);
+      expect(writeText).toHaveBeenCalledOnce();
+      if (fixture.secret) {
+        const reveal = container.querySelector<HTMLButtonElement>(".mer-reveal")!;
+        await act(async () => reveal.click());
+        expect(reveal.getAttribute("aria-pressed")).toBe("true");
+        expect(copy.textContent).toBe(fixture.expectedText);
+        await act(async () => reveal.click());
+        expect(reveal.getAttribute("aria-pressed")).toBe("false");
+        expect(copy.textContent).toBe("••••••••");
+        expect(writeText).toHaveBeenCalledOnce();
+      }
+    }
+    expect(invoke).not.toHaveBeenCalled();
+    expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
+  } finally {
+    await act(async () => root.unmount()); container.remove();
+    if (prior) Object.defineProperty(navigator, "clipboard", prior);
+    else Reflect.deleteProperty(navigator, "clipboard");
+  }
 });

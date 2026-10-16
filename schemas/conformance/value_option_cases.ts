@@ -41,3 +41,31 @@ export const OPTION_READ_CASES = OPTION_VALUES.flatMap(entry => {
     };
   });
 });
+
+export const OPTION_CONSTRAINED_CASES = OPTION_VALUES.flatMap(entry => {
+  if (entry.nowMs !== undefined) return [];
+  const display = toJson(ValueDisplaySchema, entry.display);
+  const variants: Array<{ arm: string; body: JsonObject; secret: boolean; expectedText: string }> = [];
+  if (typeof entry.raw === "string") {
+    // CopyValue explicitly preserves its legacy literal output for unspecified
+    // declarations. Copy identity is always the raw string, never this label.
+    const expectedText = entry.display.type === 0 ? entry.raw : entry.expected.text;
+    for (const secret of [false, true]) {
+      const value = { value: entry.raw, label: "Value", display, secret };
+      variants.push({ arm: "copyValue", body: { value }, secret, expectedText });
+      variants.push({ arm: "connectFlow", body: { endpoint: value,
+        targets: [{ id: "fixture", label: "Fixture target" }], defaultTargetId: "fixture" }, secret, expectedText });
+    }
+  } else if (typeof entry.raw === "number") {
+    variants.push({ arm: "stat", body: { label: "Value", value: entry.raw, format: 5, valueDisplay: display },
+      secret: false, expectedText: entry.expected.text });
+  }
+  return variants.map(({ arm, body, secret, expectedText }) => {
+    const message = fromJson(ViewDescriptorSchema, { id: `${arm}-${entry.name}-${secret}`, title: "Option fixture",
+      layout: { stacked: {} }, slots: [{ id: "content", panel: { panelId: `${arm}-${entry.name}-${secret}`,
+        title: "Option fixture", [arm]: body } }] });
+    const bytes = toBinary(ViewDescriptorSchema, message);
+    return { ...entry, arm, secret, expectedText, name: `${arm}/${entry.name}/${secret ? "secret" : "public"}`,
+      view: fromBinary(ViewDescriptorSchema, bytes), bytes };
+  });
+});
