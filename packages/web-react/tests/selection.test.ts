@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import {
   type ViewDescriptor,
   ViewDescriptorSchema,
@@ -59,6 +59,10 @@ describe("buildBindingRequest", () => {
     ).toEqual({ sponsorId: "42" });
   });
 
+  it("preserves an intentionally empty authored literal rather than treating it as an unset selection", () => {
+    expect(buildBindingRequest(call([{ requestField: "query", source: { case: "literal", value: "" } }]), {})).toEqual({ query: "" });
+  });
+
   it("skips non-populate sources (row_field / signal / context)", () => {
     expect(
       buildBindingRequest(
@@ -84,13 +88,36 @@ describe("buildBindingRequest", () => {
 describe("selectionDeps", () => {
   it("is a stable string over the bound keys' current values", () => {
     const c = call([{ requestField: "id", source: { case: "selectionKey", value: "k" } }]);
-    expect(selectionDeps(c, { k: "1" })).toBe("k=1;");
+    expect(selectionDeps(c, { k: "1" })).toBe('[["k","1"]]');
     expect(selectionDeps(c, { k: "2" })).not.toBe(selectionDeps(c, { k: "1" }));
   });
 
   it('is "" for a call with no selection bindings — so unbound panels never refetch', () => {
     expect(selectionDeps(call([{ requestField: "sponsorId", source: { case: "literal", value: "42" } }]), {})).toBe("");
     expect(selectionDeps(undefined, { k: "1" })).toBe("");
+  });
+
+  it("tracks nested selection sources and cannot collide on embedded delimiters", () => {
+    const c = call([{ requestField: "scope", source: { case: "nested", value: { fields: [
+      { requestField: "a", source: { case: "selectionKey", value: "a" } },
+      { requestField: "b", source: { case: "selectionKey", value: "b" } },
+    ] } } }]);
+    expect(hasSelectionBindings(c)).toBe(true);
+    expect(buildBindingRequest(c, { a: "first", b: "second" })).toEqual({ scope: { a: "first", b: "second" } });
+    expect(selectionDeps(c, { a: "1;b=2", b: "3" })).not.toBe(selectionDeps(c, { a: "1", b: "2;b=3" }));
+  });
+
+  it("bounds cyclic dependencies and oversized selection values without throwing during render", () => {
+    const c = call([]);
+    const nested = create(FieldBindingSchema, { requestField: "scope", source: { case: "nested", value: {} } });
+    if (nested.source.case !== "nested") throw new Error("Wrong fixture source");
+    nested.source.value.fields.push(nested);
+    c.bindings.push(nested);
+    expect(() => selectionDeps(c, {})).not.toThrow();
+    expect(hasSelectionBindings(c)).toBe(true);
+    expect(() => buildBindingRequest(c, {})).toThrow();
+    const live = call([{ requestField: "id", source: { case: "selectionKey", value: "id" } }]);
+    expect(selectionDeps(live, { id: "x".repeat(800_000) })).toContain("invalid");
   });
 });
 

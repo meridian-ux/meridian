@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { EnumSelectionSchema, FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { ValueType, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
@@ -30,6 +31,31 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  it("admits valid nested forms despite protobuf structural wrapper depth", async () => {
+    const p = panel();
+    let field = create(FormFieldSchema, { fieldId: "leaf", kind: { case: "text", value: { defaultValue: "Deep value" } } });
+    for (let i = 0; i < 20; i++) field = create(FormFieldSchema, { fieldId: `group${i}`, kind: { case: "nested", value: { fields: [field] } } });
+    p.fields = [field];
+    const view = await mount(p, vi.fn(async () => ({})));
+    try {
+      expect(view.container.querySelector<HTMLInputElement>("input")?.value).toBe("Deep value");
+      expect(view.container.querySelector('[role="alert"]')).toBeNull();
+    } finally { await view.close(); }
+  });
+  it.each(["unsafe", "large", "cycle"])("rejects %s prefill requests visibly without transport or field mounting", async mode => {
+    const p = panel();
+    const field = create(FieldBindingSchema, { requestField: mode === "unsafe" ? "__proto__.scope" : "payload",
+      source: mode === "cycle" ? { case: "nested", value: {} } : { case: "literal", value: "x".repeat(mode === "large" ? 800_000 : 1) } });
+    if (field.source.case === "nested") field.source.value.fields.push(field);
+    p.prefill = create(FormPanelSchema, { prefill: { service: "demo.Records", method: "Get", bindings: [field] } }).prefill;
+    const invoke = vi.fn(async () => ({}));
+    const view = await mount(p, invoke);
+    try {
+      expect(invoke).not.toHaveBeenCalled();
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("rejected");
+      expect(view.container.querySelectorAll("input,select,textarea")).toHaveLength(0);
+    } finally { await view.close(); }
+  });
   it.each([0, 1])("uses runtime rows rather than a descriptor row-count alias (minimum %i)", async minItems => {
     const p = panel(); p.fields = [
       fromJson(FormFieldSchema, { fieldId: "collision", requestField: "items.__count", text: { defaultValue: "4294967295" } }),

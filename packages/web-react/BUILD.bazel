@@ -97,6 +97,7 @@ vitest_test(
         "tests/gallery.test.ts",
         "tests/resource_cards.test.ts",
         "tests/action_request.test.ts",
+        "tests/selection.test.ts",
         "tests/table_actions.test.ts",
         "tests/fixtures.ts",
         "tests/__snapshots__/conformance.test.ts.snap",

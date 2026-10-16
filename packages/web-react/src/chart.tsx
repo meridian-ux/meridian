@@ -71,8 +71,11 @@ export function ChartContent({ panel, invoker, classes }: {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    const request = buildBindingRequest(spec.populate, selection.values);
-    void invoker.invoke(spec.populate.service, spec.populate.method, request)
+    const populate = spec.populate;
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      return invoker.invoke(populate.service, populate.method, buildBindingRequest(populate, selection.values));
+    })
       .then((response) => {
         if (!cancelled) setRows(rowsFromResponse(response, spec.rowsField));
       })

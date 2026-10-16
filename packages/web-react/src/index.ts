@@ -67,6 +67,8 @@ export {
   buildPageRequest,
   readPage,
   buildBindingRequest,
+  bindingRequestJson,
+  boundedDescriptorJson,
   buildActionBindingRequest,
   selectionDeps,
   hasSelectionBindings,

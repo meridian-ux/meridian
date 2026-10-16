@@ -3,7 +3,7 @@ import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { assertFormDefaultBudget, createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
-import { buildBindingRequest, selectionDeps, useMeridianSelection } from "./pagination.js";
+import { bindingRequestJson, boundedDescriptorJson, buildBindingRequest, useMeridianSelection } from "./pagination.js";
 import { FormEnumValues, FormFieldRow, FormInitialValues, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
@@ -75,10 +75,13 @@ export function FormContent({ panel, c, className, submitLabel, submittingLabel 
 }) {
   const { invoker, mutationInvoker, admission } = useMeridian();
   const selection = useMeridianSelection();
-  const deps = selectionDeps(panel.prefill, selection.values);
-  const request = useMemo(() => buildBindingRequest(panel.prefill, selection.values), [panel.prefill, deps]);
+  const requestJson = bindingRequestJson(panel.prefill, selection.values);
+  const request = useMemo(() => requestJson === undefined ? undefined : JSON.parse(requestJson) as Record<string, unknown>, [requestJson]);
+  let descriptor: string | undefined;
+  try { descriptor = boundedDescriptorJson(panel); } catch { /* Reject before mounting form fields or dispatching. */ }
   // A changed descriptor/selection starts a fresh instance, isolating late responses.
-  const key = JSON.stringify([panel, request]);
+  const key = JSON.stringify([descriptor, requestJson]);
+  if (!request || descriptor === undefined) return <p role="alert">{formDefaultsError(panel.fields) || "Form request or descriptor rejected."}</p>;
   return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, invoker, mutationInvoker, admission, request, selection }} />;
 }
 

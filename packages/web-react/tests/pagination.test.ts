@@ -12,6 +12,8 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 import { buildPageRequest, readPage, resolvePagination } from "../src/pagination.js";
+import { boundedPopulateRequest } from "../src/action_request.js";
+import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 
 describe("resolvePagination", () => {
   it("defaults to CLIENT + page size 20 when unset", () => {
@@ -36,6 +38,38 @@ describe("resolvePagination", () => {
 });
 
 describe("buildPageRequest", () => {
+  it("preserves sibling bound scope fields while adding pagination under the same root", () => {
+    const call = create(RpcCallSchema, { service: "s", method: "m", bindings: [
+      { requestField: "page.tenant", source: { case: "literal", value: "tenant" } },
+    ] });
+    const pagination = create(PaginationSchema, { mode: PaginationMode.OFFSET,
+      offsetRequestField: "page.offset", limitRequestField: "page.limit", pageSize: 25 });
+    expect(boundedPopulateRequest(call, {}, pagination, { page: 2 })).toEqual({ page: { tenant: "tenant", offset: 50, limit: 25 } });
+  });
+
+  it("charges bindings and cursor copies to one cumulative budget", () => {
+    const call = create(RpcCallSchema, { service: "s", method: "m", bindings: [
+      { requestField: "tenant", source: { case: "literal", value: "x".repeat(400_000) } },
+    ] });
+    const pagination = create(PaginationSchema, { mode: PaginationMode.CURSOR, cursorRequestField: "cursor" });
+    expect(() => boundedPopulateRequest(call, {}, pagination, { cursor: "x".repeat(400_000) })).toThrow();
+  });
+
+  it.each(["__proto__.scope", "page..limit", Array(66).fill("deep").join(".")])("rejects an invalid pagination path without prototype writes: %s", path => {
+    const pagination = create(PaginationSchema, { mode: PaginationMode.OFFSET, limitRequestField: path });
+    expect(() => buildPageRequest(pagination, {})).toThrow();
+    expect(({} as { scope?: unknown }).scope).toBeUndefined();
+  });
+
+  it.each([NaN, Infinity, -1, 1.5, Number.MAX_SAFE_INTEGER])("rejects invalid or overflowing offset arithmetic: %s", page => {
+    const pagination = create(PaginationSchema, { mode: PaginationMode.OFFSET, offsetRequestField: "offset", pageSize: 20 });
+    expect(() => buildPageRequest(pagination, { page })).toThrow();
+  });
+
+  it("rejects an unsafe cursor declaration on the first page, before any token exists", () => {
+    const pagination = create(PaginationSchema, { mode: PaginationMode.CURSOR, cursorRequestField: "__proto__.cursor" });
+    expect(() => buildPageRequest(pagination, {})).toThrow();
+  });
   it("OFFSET: sets offset = page*pageSize and limit (dotted paths supported)", () => {
     const pagination = create(PaginationSchema, {
       mode: PaginationMode.OFFSET,

@@ -108,4 +108,12 @@ describe("bounded React action assembly", () => {
     expect(actionRequestJson(call, {}, {}, JSON.parse('{"__proto__":"id"}'))).toBeUndefined();
     expect(boundedActionRequest(undefined, {}, undefined, { "literal.id": "subject" })).toEqual({ "literal.id": "subject" });
   });
+
+  it("omits explicitly unset protobuf descriptor properties but rejects undefined RPC data", () => {
+    expect(boundedJson({ optional: undefined, present: false })).toBe('{"present":false}');
+    expect(() => boundedActionRequest(rowCall(), {}, { payload: { optional: undefined } })).toThrow();
+    let deep: unknown = 0;
+    for (let i = 0; i < 520; i++) deep = { nested: deep };
+    expect(() => boundedJson(deep)).toThrow();
+  });
 });
