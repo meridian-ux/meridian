@@ -30,6 +30,48 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  it.each([0, 1])("uses runtime rows rather than a descriptor row-count alias (minimum %i)", async minItems => {
+    const p = panel(); p.fields = [
+      fromJson(FormFieldSchema, { fieldId: "collision", requestField: "items.__count", text: { defaultValue: "4294967295" } }),
+      fromJson(FormFieldSchema, { fieldId: "items", repeated: { minItems, scalar: { fieldId: "item", text: { defaultValue: "row" } } } }),
+    ];
+    const invoke = vi.fn(async () => ({})), view = await mount(p, invoke);
+    const nativeFrom = Array.from;
+    const allocation = vi.spyOn(Array, "from").mockImplementation((source: any, map?: any, receiver?: any) => {
+      if (source && !source[Symbol.iterator] && source.length > 1000) throw new Error("unbounded allocation sentinel");
+      return nativeFrom(source, map, receiver);
+    });
+    try {
+      expect(new FormData(view.container.querySelector("form")!).getAll("items.__count")).toHaveLength(minItems ? 2 : 1);
+      await act(async () => { submit(view.container); });
+      expect(view.container.querySelector('[role="alert"]')).toBeNull();
+      expect(invoke).toHaveBeenCalledWith("demo.Records", "Update", { scope: "scope-1", collision: "4294967295", items: minItems ? ["row"] : [] });
+    } finally { allocation.mockRestore(); await view.close(); }
+  });
+  it("keeps nested row counts correct after add, move, remove, and advisory-count tampering", async () => {
+    const p = panel(); p.fields = [fromJson(FormFieldSchema, { fieldId: "rows", repeated: { minItems: 2, addLabel: "Add outer",
+      object: { fields: [{ fieldId: "items", repeated: { minItems: 1, addLabel: "Add inner", scalar: { text: { defaultValue: "row" } } } }] } } })];
+    const invoke = vi.fn(async () => ({})), view = await mount(p, invoke);
+    try {
+      const inner = () => [...view.container.querySelectorAll("button")].filter(button => button.textContent === "Add inner");
+      await act(async () => inner()[1].click());
+      await act(async () => inner()[1].click());
+      await act(async () => [...view.container.querySelectorAll("button")].find(button => button.textContent === "Add outer")!.click());
+      const outer = view.container.querySelector('[data-min="2"]')!;
+      await act(async () => outer.querySelectorAll<HTMLButtonElement>(':scope > ol > li > div > button[aria-label="Move up"]')[2].click());
+      await act(async () => outer.querySelector<HTMLButtonElement>(':scope > ol > li > div > button[aria-label="Remove"]')!.click());
+      for (const input of view.container.querySelectorAll<HTMLInputElement>('input[type="hidden"][name$=".__count"]')) input.value = "4294967295";
+      const nativeFrom = Array.from;
+      const allocation = vi.spyOn(Array, "from").mockImplementation((source: any, map?: any, receiver?: any) => {
+        if (source && !source[Symbol.iterator] && source.length > 1000) throw new Error("unbounded allocation sentinel");
+        return nativeFrom(source, map, receiver);
+      });
+      try { await act(async () => { submit(view.container); }); }
+      finally { allocation.mockRestore(); }
+      expect(view.container.querySelector('[role="alert"]')).toBeNull();
+      expect(invoke).toHaveBeenCalledWith("demo.Records", "Update", { scope: "scope-1", rows: [{ items: ["row"] }, { items: ["row", "row", "row"] }] });
+    } finally { await view.close(); }
+  });
   const kinds: Record<string, JsonObject> = { integer: {}, number: {}, boolean: {}, text: {}, masked: {},
     enumSelection: { allowedValues: ["one"], defaultValue: "one" }, nested: {},
     repeated: { scalar: { fieldId: "item", text: {} } }, keyValueMap: {} };

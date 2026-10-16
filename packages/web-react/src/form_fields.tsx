@@ -31,6 +31,8 @@ import type {
 export const FormInitialValues = createContext<Record<string, unknown>>({});
 // Runtime-only validation registry; loaded option tokens are never taken from DOM markup.
 export const FormEnumValues = createContext<Map<string, readonly string[]> | undefined>(undefined);
+// Runtime-owned row cardinality; descriptor aliases may collide with hidden names.
+export const FormRepeatedCounts = createContext<Map<string, number> | undefined>(undefined);
 
 // Native option styling is platform-dependent; expose semantic roles without literal colors.
 const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: "info", 3: "success", 4: "warning", 5: "danger", 6: "accent" };
@@ -525,6 +527,7 @@ export function RepeatedFieldControl({
     Array.from({ length: initialCount }, (_, i) => ({ id: i })),
   );
   const [nextId, setNextId] = useState(initialCount);
+  const counts = useContext(FormRepeatedCounts);
 
   const canAdd = maxItems === 0 || rows.length < maxItems;
   const canRemove = rows.length > minItems;
@@ -567,7 +570,11 @@ export function RepeatedFieldControl({
   }
 
   return (
-    <div className={c.repeated} data-min={minItems || undefined} data-max={maxItems || undefined}>
+    <div className={c.repeated} data-min={minItems || undefined} data-max={maxItems || undefined}
+      ref={counts ? node => {
+        if (node) counts.set(namePath, rows.length);
+        else counts.delete(namePath);
+      } : undefined}>
       <ol className={c.repeatedList}>
         {rows.map((row, idx) => (
           <li key={row.id} className={c.repeatedRow}>
@@ -626,9 +633,8 @@ export function RepeatedFieldControl({
         ))}
       </ol>
       {/*
-        Hidden input carries the serialized row count at namePath so FormData
-        collectors can detect an empty array (rows.length === 0 → omit the field,
-        matching the "Empty list → omit the field" requirement).
+        Legacy FormData markup remains inspectable. Typed collection uses the
+        mounted row registry, not this descriptor-named advisory control.
       */}
       {rows.length > 0 && (
         <input
