@@ -157,7 +157,7 @@ fn shared_core_corpus_keeps_every_operation_and_unique_names() {
     for (operation, count) in [
         ("paths", 7),
         ("requests", 6),
-        ("tables", 5),
+        ("tables", 18),
         ("galleries", 4),
         ("metadata", 5),
         ("budgets", 4),

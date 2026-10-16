@@ -177,9 +177,22 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         | ValueType::Identifier => {
             let text = value.as_str();
             match value_type {
-                ValueType::Date | ValueType::DateTime => text
-                    .and_then(|text| format_temporal(text, value_type))
-                    .unwrap_or_else(|| format_display_scalar(value)),
+                ValueType::Date | ValueType::DateTime => {
+                    let day_precision = matches!(display.options.as_ref(),
+                        Some(value_display::Options::Temporal(options))
+                            if options.precision == TemporalPrecision::Day as i32);
+                    text.and_then(|text| {
+                        format_temporal(
+                            text,
+                            if day_precision {
+                                ValueType::Date
+                            } else {
+                                value_type
+                            },
+                        )
+                    })
+                    .unwrap_or_else(|| format_display_scalar(value))
+                }
                 ValueType::Time => {
                     let precision = match display.options.as_ref() {
                         Some(value_display::Options::Temporal(options)) => {
@@ -261,9 +274,9 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     {
         return None;
     }
-    let year = text[0..4].parse::<u16>().ok()?;
-    let month = text[5..7].parse::<u8>().ok()?;
-    let day = text[8..10].parse::<u8>().ok()?;
+    let mut year = text[0..4].parse::<u16>().ok()?;
+    let mut month = text[5..7].parse::<u8>().ok()?;
+    let mut day = text[8..10].parse::<u8>().ok()?;
     if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
         return None;
     }
@@ -281,10 +294,96 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     if text.len() < 16 || !matches!(text.as_bytes().get(10), Some(b'T' | b' ')) {
         return None;
     }
-    let hour = text[11..13].parse::<u8>().ok()?;
-    let minute = text[14..16].parse::<u8>().ok()?;
-    if hour > 23 || minute > 59 || text.as_bytes()[13] != b':' {
+    // Parse bytes, never slice untrusted UTF-8 at an assumed character boundary.
+    let digits = |start: usize, end: usize| -> Option<i32> {
+        let part = bytes.get(start..end)?;
+        part.iter().all(u8::is_ascii_digit).then(|| {
+            part.iter()
+                .fold(0, |value, digit| value * 10 + i32::from(digit - b'0'))
+        })
+    };
+    let hour = digits(11, 13)?;
+    let minute = digits(14, 16)?;
+    if hour > 23 || minute > 59 || bytes[13] != b':' {
         return None;
+    }
+    let mut cursor = 16;
+    let mut second = 0;
+    if bytes.get(cursor) == Some(&b':') {
+        second = digits(cursor + 1, cursor + 3)?;
+        if second > 59 {
+            return None;
+        }
+        cursor += 3;
+        if bytes.get(cursor) == Some(&b'.') {
+            cursor += 1;
+            let start = cursor;
+            while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+                cursor += 1;
+            }
+            if cursor == start {
+                return None;
+            }
+        }
+    }
+    let offset = match bytes.get(cursor) {
+        None => 0, // Authored zone-free values retain the native UTC convention.
+        Some(b'Z') if cursor + 1 == bytes.len() => 0,
+        Some(sign @ (b'+' | b'-')) => {
+            let hours = digits(cursor + 1, cursor + 3)?;
+            let minutes_start = cursor
+                + if bytes.get(cursor + 3) == Some(&b':') {
+                    4
+                } else {
+                    3
+                };
+            let minutes = digits(minutes_start, minutes_start + 2)?;
+            if hours > 23 || minutes > 59 || minutes_start + 2 != bytes.len() {
+                return None;
+            }
+            (hours * 60 + minutes) * if *sign == b'-' { -1 } else { 1 }
+        }
+        _ => return None,
+    };
+    let utc_minutes = hour * 60 + minute - offset;
+    let shift = utc_minutes.div_euclid(24 * 60);
+    if shift < 0 {
+        if day > 1 {
+            day -= 1;
+        } else {
+            if month > 1 {
+                month -= 1;
+            } else {
+                year = year.checked_sub(1)?;
+                month = 12;
+            }
+            day = days_in_month(year, month);
+        }
+    } else if shift > 0 {
+        if day < days_in_month(year, month) {
+            day += 1;
+        } else {
+            day = 1;
+            if month < 12 {
+                month += 1;
+            } else {
+                year = year.checked_add(1)?;
+                month = 1;
+            }
+        }
+    }
+    let utc_minutes = utc_minutes.rem_euclid(24 * 60);
+    let hour = utc_minutes / 60;
+    let minute = utc_minutes % 60;
+    // Match the web's stable UTC timestamp presentation, including its
+    // date-only representation for midnight (milliseconds do not add precision).
+    if hour == 0 && minute == 0 && second == 0 {
+        return Some(format!(
+            "{} {}, {}",
+            months[(month - 1) as usize],
+            day,
+            year
+        ));
     }
     let suffix = if hour >= 12 { "PM" } else { "AM" };
     let display_hour = match hour % 12 {
@@ -319,7 +418,10 @@ fn format_time(text: &str, precision: TemporalPrecision) -> Option<String> {
     if bytes.len() != 5 && bytes.len() != 8 {
         return None;
     }
-    if bytes[2] != b':' || !bytes[..2].iter().all(u8::is_ascii_digit) {
+    if bytes[2] != b':'
+        || !bytes[..2].iter().all(u8::is_ascii_digit)
+        || !bytes[3..5].iter().all(u8::is_ascii_digit)
+    {
         return None;
     }
     let hour = text[0..2].parse::<u8>().ok()?;
@@ -519,6 +621,32 @@ mod tests {
     }
     use crate::proto::value_display;
     use serde_json::json;
+
+    #[test]
+    fn declared_datetimes_normalize_offsets_and_reject_malformed_suffixes() {
+        let display = ValueDisplay {
+            r#type: ValueType::DateTime as i32,
+            ..Default::default()
+        };
+        for (raw, expected) in [
+            ("2026-03-29T13:45:30+02:30", "Mar 29, 2026, 11:15 AM UTC"),
+            ("2026-03-29T23:30:00-02:00", "Mar 30, 2026, 1:30 AM UTC"),
+            ("2026-01-01T00:15:00+01:00", "Dec 31, 2025, 11:15 PM UTC"),
+            ("2024-03-01T00:15:00+01:00", "Feb 29, 2024, 11:15 PM UTC"),
+            ("2026-03-29T02:00:00+02:00", "Mar 29, 2026"),
+            ("2026-03-29T13:45:30.123-0230", "Mar 29, 2026, 4:15 PM UTC"),
+            ("2026-03-29T13:45Zgarbage", "2026-03-29T13:45Zgarbage"),
+            ("2026-03-29T13:45:99Z", "2026-03-29T13:45:99Z"),
+            ("2026-03-29T13:45+24:00", "2026-03-29T13:45+24:00"),
+            ("2026-03-29Té:45Z", "2026-03-29Té:45Z"),
+        ] {
+            assert_eq!(
+                format_display_value(&json!(raw), &display),
+                expected,
+                "{raw}"
+            );
+        }
+    }
 
     #[test]
     fn gallery_wire_displays_preserve_raw_rows_and_navigation() {

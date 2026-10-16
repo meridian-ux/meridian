@@ -183,7 +183,7 @@ declarations and explicit delegation rather than claiming to execute private cod
 
 ## Native and WASM core fixtures
 
-`core.proto` defines the test-only envelope for `core.json`. Its 31 cases cover
+`core.proto` defines the test-only envelope for `core.json`. Its 44 cases cover
 field paths, request bindings, tables, galleries, LRO status text, and stateful
 payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
 and the real wasm-bindgen bridge compare their outputs with the same committed
@@ -192,6 +192,16 @@ missing data, and invalid clocks. Both WASM table entrypoints also consume all
 29 `value_types.json` cases already used by the native formatter, including
 each case's null fallback. These tests cover the exported core bridge, not DOM
 layout or every renderer interaction.
+
+Thirteen temporal vectors additionally compare native core, both real WASM
+table entrypoints, and the current TypeScript formatter. They cover UTC offset
+normalization, day/year/leap-day rollover, midnight presentation, explicit day
+precision, and malformed suffixes or Unicode input. Invalid inputs retain raw
+text rather than becoming a partial timestamp or panicking on a UTF-8 slice.
+Explicit day precision retains the authored calendar date rather than shifting
+it with the timestamp's offset; zone-free native timestamps retain UTC behavior.
+These vectors expose regressions while #50 consolidates the formatter; they do
+not substitute for its required single implementation or complete option matrix.
 
 The native suites run with `cargo test -p meridian-uiview --lib` or
 `bazel test //crates/core/rust/uiview:uiview_test`. The real bridge suite runs

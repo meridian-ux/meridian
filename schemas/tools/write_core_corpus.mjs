@@ -48,6 +48,24 @@ const card = { titleField: "name", subtitleField: "active", subtitleDisplay: { t
 const cardRow = { name: "Alpha", active: false, icon: "repo", status: "ready", href: "/alpha", action: "Open" };
 const renderedCard = { raw: cardRow, title: "Alpha", subtitle: "No", icon: "repo", status: "ready", href: "/alpha", action_label: "Open" };
 
+// Fixed expectations shared by native core, the real WASM bridge, and the
+// current TypeScript formatter while #50 consolidates the implementations.
+const temporalCases = [
+  ["offset", "2026-03-29T13:45:30+02:30", "Mar 29, 2026, 11:15 AM UTC"],
+  ["next-day", "2026-03-29T23:30:00-02:00", "Mar 30, 2026, 1:30 AM UTC"],
+  ["previous-year", "2026-01-01T00:15:00+01:00", "Dec 31, 2025, 11:15 PM UTC"],
+  ["leap-day", "2024-03-01T00:15:00+01:00", "Feb 29, 2024, 11:15 PM UTC"],
+  ["midnight", "2026-03-29T02:00:00+02:00", "Mar 29, 2026"],
+  ["compact-offset", "2026-03-29T13:45:30.123-0230", "Mar 29, 2026, 4:15 PM UTC"],
+  ["bad-suffix", "2026-03-29T13:45Zgarbage", "2026-03-29T13:45Zgarbage"],
+  ["bad-second", "2026-03-29T13:45:99Z", "2026-03-29T13:45:99Z"],
+  ["bad-offset", "2026-03-29T13:45+24:00", "2026-03-29T13:45+24:00"],
+  ["unicode-hour", "2026-03-29Té:45Z", "2026-03-29Té:45Z"],
+  ["unicode-minute", "2026-03-29T13:中Z", "2026-03-29T13:中Z"],
+  ["day-precision", "2026-03-29T23:30:00-02:00", "Mar 29, 2026", { precision: 1 }],
+  ["unicode-time", "13:😀Z", "13:😀Z", undefined, 10],
+];
+
 const corpus = {
   paths: [
     { name: "nested", input: { a: { b: 7 } }, path: "a.b", expected: 7 },
@@ -78,6 +96,9 @@ const corpus = {
     request("unbound-call", [], {}, {}),
   ],
   tables: [
+    ...temporalCases.map(([name, value, expected, temporal, type = 9]) => table(`temporal-${name}`, {
+      rowsField: "rows", columns: [{ fieldPath: "value", valueDisplay: { type, ...(temporal ? { temporal } : {}) } }],
+    }, { rows: [{ value }] }, [{ raw: { value }, cells: [expected] }])),
     table("populated-nested-rows", tableShape, { result: { rows: [row] } }, [{ raw: row, cells: ["Ada", "No", "-1.13", "", "—"] }]),
     table("empty", tableShape, { result: { rows: [] } }, []),
     table("missing-rows", tableShape, {}, []),
