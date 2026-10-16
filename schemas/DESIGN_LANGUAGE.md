@@ -23,11 +23,32 @@ action line; non-interactive surfaces retain the label and destination as text.
 ## Value display
 
 `ValueDisplay` declares how a value should be read rather than asking each
-renderer to infer meaning from a string. Its `ValueType`, tone, format, and
-optional precision are producer intent. The compatibility rule is additive:
-an absent display keeps the renderer's existing fallback formatting. Current
-consumers include table columns, descriptor rows, forms, and the MUI formatter;
-new value-bearing messages should adopt the declaration before adding ad hoc
+renderer to infer meaning from a string. Its `ValueType`, temporal/number/principal
+options, and optional host-resolved link are producer intent. `ValueDisplay`
+does not carry a tone field; enum-option tone remains on `EnumOption`.
+The compatibility rule is additive: an absent display keeps the renderer's
+existing fallback formatting. The shared declaration is present on these
+value-bearing schema slots:
+
+| Surface | Shared declaration |
+|---|---|
+| Table cell | `TableColumn.value_display` (tag 6), alongside legacy `format` |
+| Stat value | `StatPanel.value_display` (tag 16), alongside legacy numeric format |
+| Form / record-card field | `FormField.display` (tag 13); `RecordCardPanel.fields` reuses `FormField` |
+| Header row | `DescriptorRow.display` (tag 3) |
+| Conversation field | `Block.Field.display` (tag 3) |
+| Conversation table cell | `Block.Cell.display` (tag 2), carried in `Block.Row.display_cells` |
+
+Conversation rich cells coexist with legacy string cells: a rich entry wins for
+its key, including an empty value; a missing rich key falls back to `cells`.
+Declaring display changes presentation, never the raw stored/submitted value.
+The schema compatibility tests in `tools/value_display_contract.test.mjs` verify
+stable tags, message presence, unchanged wire/JSON when unset, and old-reader
+unknown-field preservation. They do not prove renderer formatting; the stateful
+corpus and interaction suites own that evidence. The broader shared-core/WASM
+formatter requirement remains roadmap #50, not a consequence of these fields.
+
+New value-bearing messages should adopt the declaration before adding ad hoc
 formatting rules. Principal labels may use the compatible `Name <email>` wire
 form; `PrincipalDisplay` then selects the visible name, email, or name with an
 email title where the surface supports titles.
