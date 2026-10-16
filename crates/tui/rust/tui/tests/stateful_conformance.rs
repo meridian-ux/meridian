@@ -170,7 +170,6 @@ fn canonical_value_options_reach_every_native_read_surface() {
                 panel_id: format!("{arm}-{}", case["name"].as_str().unwrap()),
                 title: "Option fixture".into(),
                 body: Some(body),
-                ..Default::default()
             };
             let bytes = authored.encode_to_vec();
             let panel = PanelDescriptor::decode(bytes.as_slice()).unwrap();
