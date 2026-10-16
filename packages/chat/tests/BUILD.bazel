@@ -28,9 +28,12 @@ vitest_test(
     name = "render",
     srcs = [
         "render.test.tsx",
+        "value_corpus.test.tsx",
         "fixtures.ts",
     ],
     deps = [
+        "//schemas:conversation_value_data",
+        "//packages/chat:node_modules/jsdom",
         "//packages/chat:node_modules/react",
         "//packages/chat:node_modules/react-dom",
         "//packages/chat:chat_lib",

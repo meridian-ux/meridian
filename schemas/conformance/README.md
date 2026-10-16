@@ -617,6 +617,23 @@ scale by 100 and carry a percent suffix. The extended `core.json` cases exercise
 currency-code prefixes, grouping, and compact magnitudes separately. This corpus does not prove renderer decoration,
 layout, all option combinations, or universal Rust/TypeScript parity.
 
+Conversation fields, list titles/subtitles, and rich table cells also consume
+all 26 string cases from `constrained_value_types.json`, covering all 18 declared
+ValueTypes without parsing numeric or boolean strings. The schema's conversation
+contract preserves an explicitly empty string rather than the panel corpus's
+missing-value dash. HTML, React, and the legacy assistant web component test
+canonical Block wire round trips with both numeric and named enum JSON; the
+native suite independently round-trips the same values through Block and checks
+its rendered lines. Rich table cells override stale legacy values even when
+empty. A native TestBackend test additionally verifies multiline table cells,
+blank continuation lines, and neighboring column alignment in the actual terminal
+buffer.
+Conversation field/list spans also expand into physical lines before wrapping
+and tail-scroll calculation; public draw-path TestBackend checks protect blank
+lines, subsequent styled spans, and two-row viewport tails.
+These checks do not establish external SwiftUI conformance or every
+temporal/principal option combination in every modality; roadmap #51 stays open.
+
 The native descriptor suite now has inline text goldens for populated Gallery,
 Table, ResourceCards, and Steps at a fixed 160-by-20 viewport, plus empty
 responses and absent populate RPCs for the three RPC-backed shapes.

@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
-import { fromJson, type JsonObject } from "@bufbuild/protobuf";
+import { fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
+import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { CONVERSATION_VALUES, conversationValueBlocks } from "../../../schemas/conformance/conversation_values.js";
 import { ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 import { describe, expect, it } from "vitest";
@@ -26,6 +28,24 @@ function renderBlock(block: Record<string, unknown>): string {
 function renderListItem(item: Record<string, unknown>): string {
   return renderBlock({ list: { items: [item] } });
 }
+
+it.each(CONVERSATION_VALUES)("web-component conversation string contract: $name", entry => {
+  for (const message of conversationValueBlocks(entry)) {
+    const bytes = toBinary(BlockSchema, message);
+    const decoded = fromBinary(BlockSchema, bytes);
+    for (const enumAsInteger of [false, true]) {
+      const block = toJson(BlockSchema, decoded, { enumAsInteger }) as Record<string, unknown>;
+      const root = document.createElement("main");
+      root.innerHTML = renderBlock(block);
+      const selector = block.fields ? ".fields > div:not(.k)" : block.table ? "td" : ".ltitle, .lsub";
+      expect([...root.querySelectorAll(selector)].map(node => node.textContent))
+        .toEqual(block.list && entry.raw ? [entry.expected, entry.expected] : [entry.expected]);
+      expect(root.querySelector("a")).toBeNull();
+      expect(root.textContent).not.toContain("stale legacy cell");
+    }
+    expect(toBinary(BlockSchema, decoded)).toEqual(bytes);
+  }
+});
 
 describe("vanilla assistant list displays", () => {
   it("formats supported wire-level date and principal declarations", () => {

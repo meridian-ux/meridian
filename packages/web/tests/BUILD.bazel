@@ -64,6 +64,7 @@ vitest_test(
     name = "assistant_panel",
     srcs = ["assistant_panel.test.ts"],
     deps = [
+        "//schemas:conversation_value_data",
         "//packages/web:node_modules/@bufbuild/protobuf",
         "//packages/web:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web:node_modules/@savvifi/meridian-schemas",
