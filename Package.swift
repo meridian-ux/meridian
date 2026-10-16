@@ -11,6 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.39.0"),
+        .package(url: "https://github.com/nalexn/ViewInspector.git", exact: "0.10.5"),
     ],
     targets: [
         .binaryTarget(name: "MeridianCoreFFI", path: ".build/MeridianCoreFFI.xcframework"),
@@ -23,7 +24,8 @@ let package = Package(
         .target(name: "MeridianConformance", dependencies: [
             .product(name: "SwiftProtobuf", package: "swift-protobuf"),
         ], path: "packages/swiftui/Tests/Generated"),
-        .testTarget(name: "MeridianUITests", dependencies: ["MeridianUI", "MeridianConformance"],
+        .testTarget(name: "MeridianUITests", dependencies: ["MeridianUI", "MeridianConformance",
+            .product(name: "ViewInspector", package: "ViewInspector")],
                     path: "packages/swiftui/Tests/MeridianUITests"),
     ]
 )

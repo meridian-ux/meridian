@@ -17,9 +17,11 @@ public struct MeridianPanel: View {
                 Text(descriptor.title).font(.headline).accessibilityAddTraits(.isHeader)
             }
             switch descriptor.body {
-            case .choice(let panel): ChoiceContent(panel: panel)
+            case .choice(let panel): ChoicePanelContent(panel: panel)
             case .snippet(let panel): SnippetContent(snippet: panel.snippet, host: host)
             case .copyValue(let panel): CopyValueContent(value: panel.value, host: host)
+            case .connectFlow(let panel): ConnectFlowPanelContent(panel: panel, host: host)
+            case .steps(let panel): StepsContent(panel: panel, host: host)
             case .action(let panel):
                 Text(panel.description_p)
                 AffordanceContent(action: panel.action, host: host)
@@ -48,36 +50,43 @@ public struct MeridianPanel: View {
     }
 }
 
+struct ChoicePanelContent: View {
+    let panel: Meridian_Ui_V1_ChoicePanel
+    @StateObject private var selection = NativeSelectionState()
+    var body: some View { ChoiceContent(panel: panel, selection: selection) }
+}
+
 struct ChoiceContent: View {
     let panel: Meridian_Ui_V1_ChoicePanel
-    @State private var selection: String
+    @ObservedObject var selection: NativeSelectionState
 
     static func initialSelection(_ panel: Meridian_Ui_V1_ChoicePanel) -> String {
-        panel.options.contains { $0.id == panel.defaultOptionID }
-            ? panel.defaultOptionID : (panel.options.first?.id ?? "")
-    }
-
-    init(panel: Meridian_Ui_V1_ChoicePanel) {
-        self.panel = panel
-        _selection = State(initialValue: Self.initialSelection(panel))
+        guard let ids = NativeSelection.identifiers(panel.options.map(\.id)),
+              let initial = NativeSelection.resolve(ids, preferred: panel.defaultOptionID, remembered: nil)
+        else { return "" }
+        return String(decoding: initial, as: UTF8.self)
     }
 
     var body: some View {
         VStack(alignment: .leading) {
             if panel.options.isEmpty {
                 Text(panel.prompt.isEmpty ? "No options." : panel.prompt)
-            } else {
-                Picker(panel.prompt.isEmpty ? "Choose an option" : panel.prompt, selection: $selection) {
+            } else if let ids = NativeSelection.identifiers(panel.options.map(\.id)) {
+                let binding = Binding<Data?>(
+                    get: { NativeSelection.resolve(ids, preferred: panel.defaultOptionID, remembered: selection.remembered) },
+                    set: { selection.remembered = $0 })
+                Picker(panel.prompt.isEmpty ? "Choose an option" : panel.prompt, selection: binding) {
                     ForEach(Array(panel.options.enumerated()), id: \.offset) { _, option in
-                        Text(option.label).tag(option.id)
+                        Text(option.label.isEmpty ? "Unnamed option" : option.label).tag(Optional(Data(option.id.utf8)))
                     }
                 }
-                if let option = panel.options.first(where: { $0.id == selection }), !option.description_p.isEmpty {
+                if let option = panel.options.first(where: { Data($0.id.utf8) == binding.wrappedValue }), !option.description_p.isEmpty {
                     Text(option.description_p).foregroundStyle(.secondary)
                 }
+            } else {
+                Text("Options need nonempty, unique IDs.")
             }
         }
-        .onChange(of: panel) { updated in selection = Self.initialSelection(updated) }
     }
 }
 
@@ -156,8 +165,14 @@ struct AffordanceContent: View {
     @ObservedObject var host: MeridianHost
     var body: some View {
         VStack(alignment: .leading) {
-            Button(action.label.isEmpty ? "Unnamed action" : action.label) {
+            Button {
                 Task { await host.activate(.affordance(action)) }
+            } label: {
+                if let symbol = host.symbol(for: action.icon), !symbol.isEmpty {
+                    Label(action.label.isEmpty ? "Unnamed action" : action.label, systemImage: symbol)
+                } else {
+                    Text(action.label.isEmpty ? "Unnamed action" : action.label)
+                }
             }.disabled(host.pending || action.invoke == nil)
             if !action.description_p.isEmpty { Text(action.description_p).foregroundStyle(.secondary) }
             if action.invoke == nil { Text("This action has no supported target.") }
