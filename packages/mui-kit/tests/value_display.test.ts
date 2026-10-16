@@ -40,6 +40,26 @@ describe("native/WASM temporal table parity vectors", () => {
 });
 
 describe("core formatter wire adapter", () => {
+  it.each([undefined, 0, -60_000, NaN, Infinity])("forwards the exact explicit instant: %s", now => {
+    const shown = () => toBinary(FormattedValueSchema, create(FormattedValueSchema, { text: "core-only" }));
+    formatByCore("raw", create(ValueDisplaySchema), {
+      formatValueDisplay(_bytes, raw) {
+        expect(now).toBeUndefined();
+        expect(raw).toBe("raw");
+        return shown();
+      },
+      formatValueDisplayAt(_bytes, raw, clock) {
+        expect(raw).toBe("raw");
+        expect(clock).toBe(now);
+        return shown();
+      },
+    }, now);
+  });
+  it("rejects an explicit clock on older bindings rather than silently ignoring it", () => {
+    expect(() => formatByCore("raw", create(ValueDisplaySchema), {
+      formatValueDisplay: () => { throw new Error("must not fall back"); },
+    }, 0)).toThrow("Core binding lacks explicit-clock value formatting");
+  });
   it.each([undefined, "", "supporting text"])("preserves title presence: %s", title => {
     const display = create(ValueDisplaySchema, { type: ValueType.BOOLEAN });
     const shown = formatByCore(false, display, {

@@ -14,6 +14,15 @@ message CoreCorpus {
   repeated GalleryCase galleries = 4;
   repeated MetadataCase metadata = 5;
   repeated BudgetCase budgets = 6;
+  repeated ValueFormatCase value_formats = 7;
+}
+
+message ValueFormatCase {
+  string name = 1;
+  bytes display = 2; // ValueDisplay wire bytes.
+  google.protobuf.Value input = 3;
+  optional double now_ms = 4; // Explicit wall-clock epoch ms; zero is present.
+  bytes expected = 5; // FormattedValue wire bytes, preserving title presence.
 }
 
 message PathCase {

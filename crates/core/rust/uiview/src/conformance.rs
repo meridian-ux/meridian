@@ -1,6 +1,6 @@
 //! Shared proto-defined corpus, also consumed through the actual WASM bridge.
 //! Expectations are committed data, never derived from the implementation.
-use crate::proto::{GalleryPanel, RpcCall, TablePanel};
+use crate::proto::{FormattedValue, GalleryPanel, RpcCall, TablePanel, ValueDisplay};
 use crate::{Context, PayloadBudget, PayloadLimitExceeded, ProtoPaths, RequestBuilder};
 use prost::Message;
 use serde_json::{json, Value};
@@ -88,6 +88,28 @@ fn shared_core_tables() {
 }
 
 #[test]
+fn shared_core_clocked_value_formats() {
+    for case in corpus()["valueFormats"].as_array().unwrap() {
+        let display = ValueDisplay::decode(wire(&case["display"]).as_slice()).unwrap();
+        let expected = FormattedValue::decode(wire(&case["expected"]).as_slice()).unwrap();
+        let now = case.get("nowMs").map(|now| {
+            now.as_f64()
+                .unwrap_or_else(|| now.as_str().unwrap().parse().unwrap())
+        });
+        assert_eq!(
+            crate::format_display_value_with_context(&case["input"], &display, now),
+            expected,
+            "{}",
+            case["name"]
+        );
+        assert_eq!(
+            crate::format_display_value_with_metadata(&case["input"], &display),
+            crate::format_display_value_with_context(&case["input"], &display, None)
+        );
+    }
+}
+
+#[test]
 fn shared_core_galleries() {
     for case in corpus()["galleries"].as_array().unwrap() {
         let gallery = GalleryPanel::decode(wire(&case["gallery"]).as_slice()).unwrap();
@@ -161,6 +183,7 @@ fn shared_core_corpus_keeps_every_operation_and_unique_names() {
         ("galleries", 4),
         ("metadata", 5),
         ("budgets", 4),
+        ("valueFormats", 55),
     ] {
         let cases = corpus[operation].as_array().unwrap();
         assert_eq!(cases.len(), count, "{operation}");

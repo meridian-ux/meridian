@@ -183,7 +183,7 @@ declarations and explicit delegation rather than claiming to execute private cod
 
 ## Native and WASM core fixtures
 
-`core.proto` defines the test-only envelope for `core.json`. Its 44 cases cover
+`core.proto` defines the test-only envelope for `core.json`. Its 99 cases cover
 field paths, request bindings, tables, galleries, LRO status text, and stateful
 payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
 and the real wasm-bindgen bridge compare their outputs with the same committed
@@ -225,9 +225,27 @@ Actual-WASM tests exercise all 29 current typed-value cases and null fallbacks,
 the thirteen temporal core vectors, and the principal mode/supporting-title
 matrix through this standalone entrypoint. Adapter tests separately preserve
 absent versus empty title presence.
+
+`format_display_value_with_context` adds an explicit epoch-millisecond instant
+for relative temporal text and relative-with-absolute-title results. It reuses
+the same UTC parser as absolute formatting, including fractional milliseconds
+and pre-epoch dates. No process or browser clock is read. Missing, non-finite,
+or out-of-range instants (outside ±8.64e15 milliseconds) retain absolute text;
+zero and negative epoch instants remain valid. Calendar-free TIME values retain
+absolute presentation rather than inventing a date.
+
+The separate WASM `formatValueDisplayAt` capability and the optional final
+`nowMs` argument to `formatByCore` carry this explicit instant. Clock-free calls
+retain the original two-argument WASM entrypoint. An explicit clock with an older
+binding that lacks the new capability fails clearly rather than silently ignoring
+the caller's instant. Fifty-five proto-defined cases pin all TemporalDisplay
+modes, relative-time boundaries/rounding, offsets, leap centuries, invalid clocks,
+and PrincipalDisplay modes with and without clock context. Native Rust and actual
+WASM decode identical expected FormattedValue bytes, including title presence.
+
 This additive capability is not yet the default formatter for existing browser
-consumers. Clock-aware temporal results, the complete option matrix, synchronous
-browser/SSR initialization, and removal of the legacy TypeScript implementation
+consumers. The complete precision/option matrix, synchronous browser/SSR
+initialization, and removal of the legacy TypeScript implementation
 remain requirements of #50/#51; this boundary does not close either task.
 
 After editing the corpus authoring inputs or intentionally changing the core

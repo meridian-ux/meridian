@@ -1,7 +1,8 @@
 use crate::paths::ProtoPaths;
 use crate::proto::{
     value_display, ColumnFormat, FormattedValue, GalleryPanel, NumberOptions, PrincipalDisplay,
-    PrincipalOptions, TableColumn, TablePanel, TemporalPrecision, ValueDisplay, ValueType,
+    PrincipalOptions, TableColumn, TablePanel, TemporalDisplay, TemporalPrecision, ValueDisplay,
+    ValueType,
 };
 use serde_json::Value;
 
@@ -212,8 +213,46 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
 
 /// Rich result for native and WASM consumers of a declared display. Legacy
 /// text-only callers keep their API; supporting text is computed once here.
-/// Clock-aware temporal presentation remains a separate formatter migration.
 pub fn format_display_value_with_metadata(value: &Value, display: &ValueDisplay) -> FormattedValue {
+    format_display_value_with_context(value, display, None)
+}
+
+/// Use an explicit shared wall-clock instant (epoch milliseconds), never a
+/// process clock. Missing/non-finite/out-of-range clocks retain absolute output.
+pub fn format_display_value_with_context(
+    value: &Value,
+    display: &ValueDisplay,
+    now_ms: Option<f64>,
+) -> FormattedValue {
+    let absolute = format_display_value_absolute(value, display);
+    let Some(now) = now_ms.filter(|now| now.is_finite() && now.abs() <= 8_640_000_000_000_000.0)
+    else {
+        return absolute;
+    };
+    let kind = ValueType::try_from(display.r#type).unwrap_or(ValueType::Unspecified);
+    if !matches!(kind, ValueType::Date | ValueType::DateTime) {
+        return absolute;
+    }
+    let Some(value_display::Options::Temporal(options)) = display.options.as_ref() else {
+        return absolute;
+    };
+    let mode = TemporalDisplay::try_from(options.display).unwrap_or(TemporalDisplay::Unspecified);
+    if !matches!(
+        mode,
+        TemporalDisplay::Relative | TemporalDisplay::RelativeWithAbsoluteTitle
+    ) {
+        return absolute;
+    }
+    let Some(instant) = value.as_str().and_then(|text| parse_temporal(text, false)) else {
+        return absolute;
+    };
+    FormattedValue {
+        text: format_relative_time(instant.epoch_millis() - now),
+        title: (mode == TemporalDisplay::RelativeWithAbsoluteTitle).then_some(absolute.text),
+    }
+}
+
+fn format_display_value_absolute(value: &Value, display: &ValueDisplay) -> FormattedValue {
     if !value.is_null() && value.as_str() != Some("") {
         let kind = ValueType::try_from(display.r#type).unwrap_or(ValueType::Unspecified);
         if matches!(kind, ValueType::Principal | ValueType::Email) {
@@ -310,7 +349,88 @@ fn formatted_principal(
     FormattedValue { text: name, title }
 }
 
-fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
+// Runtime-only parsed state. This never serializes or crosses the WASM boundary.
+struct ParsedTemporal {
+    year: u16,
+    month: u8,
+    day: u8,
+    hour: i32,
+    minute: i32,
+    second: i32,
+    millisecond: u16,
+}
+
+impl ParsedTemporal {
+    fn epoch_millis(&self) -> f64 {
+        let year = i64::from(self.year);
+        let leap_days = |year: i64| {
+            (year - 1).div_euclid(4) - (year - 1).div_euclid(100) + (year - 1).div_euclid(400)
+        };
+        let months = (1..self.month)
+            .map(|month| i64::from(days_in_month(self.year, month)))
+            .sum::<i64>();
+        let days =
+            365 * (year - 1970) + leap_days(year) - leap_days(1970) + months + i64::from(self.day)
+                - 1;
+        (((days * 24 + i64::from(self.hour)) * 60 + i64::from(self.minute)) * 60
+            + i64::from(self.second)) as f64
+            * 1000.0
+            + f64::from(self.millisecond)
+    }
+}
+
+fn format_relative_time(delta_ms: f64) -> String {
+    let absolute = delta_ms.abs();
+    if absolute < 60_000.0 {
+        return "just now".into();
+    }
+    let (scale, unit) = if absolute < 3_600_000.0 {
+        (60_000.0, "minute")
+    } else if absolute < 86_400_000.0 {
+        (3_600_000.0, "hour")
+    } else if absolute < 30.0 * 86_400_000.0 {
+        (86_400_000.0, "day")
+    } else if absolute < 365.0 * 86_400_000.0 {
+        (30.0 * 86_400_000.0, "month")
+    } else {
+        (365.0 * 86_400_000.0, "year")
+    };
+    // ECMAScript Math.round: exact negative halves round toward positive
+    // infinity, not away from zero. Thresholds use the unrounded delta.
+    let count = (delta_ms / scale + 0.5).floor() as i64;
+    match (unit, count) {
+        ("day", -1) => return "yesterday".into(),
+        ("day", 0) => return "today".into(),
+        ("day", 1) => return "tomorrow".into(),
+        ("month", -1) => return "last month".into(),
+        ("month", 0) => return "this month".into(),
+        ("month", 1) => return "next month".into(),
+        ("year", -1) => return "last year".into(),
+        ("year", 0) => return "this year".into(),
+        ("year", 1) => return "next year".into(),
+        _ => {}
+    }
+    let digits = count.abs().to_string();
+    let grouped = digits
+        .as_bytes()
+        .rchunks(3)
+        .rev()
+        .map(|chunk| std::str::from_utf8(chunk).expect("integer digits are ASCII"))
+        .collect::<Vec<_>>()
+        .join(",");
+    let label = if count.abs() == 1 {
+        unit.to_string()
+    } else {
+        format!("{unit}s")
+    };
+    if count < 0 {
+        format!("{grouped} {label} ago")
+    } else {
+        format!("in {grouped} {label}")
+    }
+}
+
+fn parse_temporal(text: &str, day_only: bool) -> Option<ParsedTemporal> {
     let bytes = text.as_bytes();
     if bytes.len() < 10
         || bytes[4] != b'-'
@@ -327,16 +447,16 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
         return None;
     }
-    let months = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
-    if value_type == ValueType::Date || text.len() == 10 {
-        return Some(format!(
-            "{} {}, {}",
-            months[(month - 1) as usize],
+    if day_only || text.len() == 10 {
+        return Some(ParsedTemporal {
+            year,
+            month,
             day,
-            year
-        ));
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+        });
     }
     if text.len() < 16 || !matches!(text.as_bytes().get(10), Some(b'T' | b' ')) {
         return None;
@@ -356,6 +476,7 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     }
     let mut cursor = 16;
     let mut second = 0;
+    let mut millisecond = 0;
     if bytes.get(cursor) == Some(&b':') {
         second = digits(cursor + 1, cursor + 3)?;
         if second > 59 {
@@ -366,10 +487,16 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
             cursor += 1;
             let start = cursor;
             while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+                if cursor - start < 3 {
+                    millisecond = millisecond * 10 + u16::from(bytes[cursor] - b'0');
+                }
                 cursor += 1;
             }
             if cursor == start {
                 return None;
+            }
+            for _ in cursor - start..3 {
+                millisecond *= 10;
             }
         }
     }
@@ -422,9 +549,36 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     let utc_minutes = utc_minutes.rem_euclid(24 * 60);
     let hour = utc_minutes / 60;
     let minute = utc_minutes % 60;
+    Some(ParsedTemporal {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        millisecond,
+    })
+}
+
+fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
+    let ParsedTemporal {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        ..
+    } = parse_temporal(text, value_type == ValueType::Date)?;
+    let months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
     // Match the web's stable UTC timestamp presentation, including its
     // date-only representation for midnight (milliseconds do not add precision).
-    if hour == 0 && minute == 0 && second == 0 {
+    if value_type == ValueType::Date
+        || text.len() == 10
+        || (hour == 0 && minute == 0 && second == 0)
+    {
         return Some(format!(
             "{} {}, {}",
             months[(month - 1) as usize],

@@ -19,13 +19,18 @@ import { fromBinary, toBinary } from "@bufbuild/protobuf";
 export interface ValueFormatterWasm {
   /** Initialized Rust bindings. Raw input must be JSON-compatible. */
   formatValueDisplay(display: Uint8Array, value: unknown): Uint8Array;
+  /** Explicit-clock capability. Older modules remain valid for clock-free use. */
+  formatValueDisplayAt?(display: Uint8Array, value: unknown, nowMs: number): Uint8Array;
 }
 
 /** Decode a core-produced rich result; no browser date/principal formatter runs
  * on this path. The host owns initialization, routing, and tooltip realization.
- * This additive seam does not yet replace the legacy formatter or its clock. */
-export function formatByCore(value: unknown, display: ValueDisplay, core: ValueFormatterWasm): DisplayedValue {
-  const result = fromBinary(FormattedValueSchema, core.formatValueDisplay(toBinary(ValueDisplaySchema, display), value));
+ * The explicit instant can be shared by SSR and hydration; no clock is read. */
+export function formatByCore(value: unknown, display: ValueDisplay, core: ValueFormatterWasm, nowMs?: number): DisplayedValue {
+  const bytes = toBinary(ValueDisplaySchema, display);
+  if (nowMs !== undefined && !core.formatValueDisplayAt) throw new Error("Core binding lacks explicit-clock value formatting");
+  const output = nowMs === undefined ? core.formatValueDisplay(bytes, value) : core.formatValueDisplayAt!(bytes, value, nowMs);
+  const result = fromBinary(FormattedValueSchema, output);
   return { text: result.text, ...(result.title === undefined ? {} : { title: result.title }) };
 }
 
