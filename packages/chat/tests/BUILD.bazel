@@ -29,6 +29,7 @@ vitest_test(
     srcs = [
         "render.test.tsx",
         "value_corpus.test.tsx",
+        "tone.test.tsx",
         "fixtures.ts",
     ],
     deps = [

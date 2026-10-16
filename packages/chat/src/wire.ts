@@ -11,8 +11,8 @@
 import type { JsonObject } from "@bufbuild/protobuf";
 
 export type Role = "user" | "assistant";
-export type StatusState = "STATE_UNSPECIFIED" | "IDLE" | "THINKING" | "WORKING";
-export type ToolState = "RUNNING" | "OK" | "ERROR";
+export type StatusState = "STATE_UNSPECIFIED" | "IDLE" | "THINKING" | "WORKING" | 0 | 1 | 2 | 3;
+export type ToolState = "RUNNING" | "OK" | "ERROR" | 0 | 1 | 2;
 
 export interface Markdown {
   text?: string;
@@ -22,6 +22,7 @@ export interface ContextLine {
   text?: string;
 }
 export interface ToolBlock {
+  tone?: number | string | null;
   name?: string;
   argsJson?: string;
   state?: ToolState;
@@ -98,6 +99,7 @@ export interface Block {
 }
 
 export interface Status {
+  tone?: number | string | null;
   state?: StatusState;
   detail?: string;
 }
@@ -125,5 +127,5 @@ export interface TurnRequest {
 
 /** Whether a status is a live (shown) indicator vs cleared/idle. */
 export function isActiveStatus(state: StatusState | undefined): boolean {
-  return state === "THINKING" || state === "WORKING";
+  return state === "THINKING" || state === "WORKING" || state === 2 || state === 3;
 }

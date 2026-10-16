@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
+import { clone, createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 
 const descriptors = fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
@@ -10,6 +10,36 @@ const descriptors = fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
 const registry = createFileRegistry(descriptors);
 const names = ["UNSPECIFIED", "NEUTRAL", "INFO", "SUCCESS", "WARNING", "DANGER", "ACCENT"];
 const value = descriptors.file.find(file => file.name === "proto/value.proto");
+
+test("conversation Tone fields are additive, presence-tracked, and old-reader round-trip safe", () => {
+  const old = clone(FileDescriptorSetSchema, descriptors);
+  const conversation = old.file.find(file => file.name === "proto/conversation.proto");
+  const status = conversation.messageType.find(message => message.name === "Status");
+  const tool = conversation.messageType.find(message => message.name === "Block").nestedType.find(message => message.name === "ToolBlock");
+  for (const message of [status, tool]) {
+    message.field = message.field.filter(field => field.name !== "tone");
+    message.oneofDecl = message.oneofDecl.filter(oneof => oneof.name !== "_tone");
+  }
+  const oldRegistry = createFileRegistry(old);
+  for (const [name, tag, legacy] of [["Status", 3, { state: "WORKING", detail: "Working" }],
+    ["Block.ToolBlock", 5, { name: "Tool", state: "ERROR", summary: "Failed" }]]) {
+    const schema = registry.getMessage(`meridian.ui.v1.${name}`), oldSchema = oldRegistry.getMessage(`meridian.ui.v1.${name}`);
+    const field = schema.fields.find(field => field.name === "tone");
+    assert.equal(field.number, tag);
+    assert.equal(field.enum.typeName, "meridian.ui.v1.Tone");
+    assert.equal(field.proto.proto3Optional, true);
+    const absent = fromJson(schema, legacy);
+    assert.equal(absent.tone, undefined);
+    assert.deepEqual(toBinary(schema, absent), toBinary(oldSchema, fromJson(oldSchema, legacy)));
+    for (const tone of [0, 1, 2, 3, 4, 5, 6, 999]) {
+      const current = fromJson(schema, { ...legacy, tone });
+      const bytes = toBinary(schema, current);
+      const oldRead = fromBinary(oldSchema, bytes);
+      assert.deepEqual(toJson(oldSchema, oldRead), legacy);
+      assert.equal(fromBinary(schema, toBinary(oldSchema, oldRead)).tone, tone);
+    }
+  }
+});
 
 test("one shared Tone enum has the six semantic roles and compatible numeric assignments", () => {
   const tone = registry.getEnum("meridian.ui.v1.Tone");

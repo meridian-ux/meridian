@@ -27,7 +27,7 @@
     "src/uiview/**/*.d.ts"
   ],
   "scripts": {
-    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts"
+    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/conversation_tone.test.ts"
   },
   "dependencies": {
     "@savvifi/meridian-proto-ts": "workspace:*",

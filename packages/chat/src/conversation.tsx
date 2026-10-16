@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { ConversationModel } from "./model.js";
 import { BlockView, type ViewRenderer } from "./render_react.js";
 import { isActiveStatus, type ConversationEvent } from "./wire.js";
+import { conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
 
 export interface ConversationProps {
   /** SSE endpoint of ConversationEvent frames. Default `/api/noc-agent/view`. */
@@ -140,8 +141,8 @@ export function Conversation({
             </div>
           ))
         )}
-        <div className={"status" + (statusOn ? " on" : "")}>
-          {status?.state === "THINKING" ? (
+        <div className={"status" + (statusOn ? " on" : "")} data-mer-tone={conversationToneRole(status?.tone)}>
+          {conversationStatusState(status?.state) === "THINKING" ? (
             <>
               Thinking
               <span className="dots">
@@ -150,10 +151,10 @@ export function Conversation({
                 <span>.</span>
               </span>
             </>
-          ) : status?.state === "WORKING" ? (
+          ) : conversationStatusState(status?.state) === "WORKING" ? (
             <>
               <span className="spin" />
-              {status.detail || "Working…"}
+              {status?.detail || "Working…"}
             </>
           ) : null}
         </div>

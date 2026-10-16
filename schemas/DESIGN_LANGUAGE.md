@@ -20,8 +20,25 @@ and `VALUE_TONE_*` JSON tokens remain unchanged. Do not change the enum type of
 an existing field in place: matching wire numbers do not preserve generated
 source APIs or JSON enum names. New tone-bearing fields should use `Tone`;
 consumer adoption and precedence during migration remain roadmap #44. This
-definition alone does not make existing renderers consume a new tone field or
-prove theme conformance (#45).
+definition alone does not prove complete renderer adoption or theme conformance
+(#45).
+
+Conversation `Status.tone` (tag 3) and `Block.ToolBlock.tone` (tag 5) are optional
+`Tone` fields. Absence preserves the legacy state-derived appearance. A present
+neutral, unspecified, or unknown declaration selects neutral foreground instead
+of reviving a legacy state color. All six explicit roles map to named palette
+tokens in HTML/React conversation rendering, both assistant web components, and
+TUI. Canonical named and numeric enum JSON are supported. The exported browser
+stylesheet must be installed by the host, as before.
+
+Tone changes semantic color, not operational state: an ERROR tool keeps its error
+marker even with success Tone, and IDLE still clears a status even with danger
+Tone. No tone starts a tool, sends a turn, grants permission, or changes a state
+transition. Existing state enum names/numbers remain intact. Descriptor-driven
+tests protect field presence, unchanged legacy bytes, and old-reader unknown-field
+round trips; actual Chrome colors and native terminal cells verify realization.
+Conversation adoption does not complete the Affordance/emphasis migration in #44
+or establish external SwiftUI/theme conformance.
 
 The native `Palette.tone_style` maps all six shared roles to their named theme
 colors. In particular, `info` and `warning` no longer collapse into accent or

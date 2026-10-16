@@ -74,7 +74,25 @@ async function main() {
       window.webConformance.resetTheme();
       if (root.style.getPropertyValue("--mer-unit") !== "11px" || root.style.getPropertyPriority("--mer-unit") !== "important") throw new Error("Latest host override priority was not restored");
     });
-    console.log("Web-components gallery layout, theme spacing, keyboard access, failed-step alternatives, computed typography, and theme replacement passed.");
+    await page.evaluate(() => {
+      const root = document.getElementById("root");
+      const roles = ["fg", "fg", "info", "success", "warning", "danger", "accent"];
+      const colors = ["rgb(1, 2, 3)", "rgb(1, 2, 3)", "rgb(4, 5, 6)", "rgb(7, 8, 9)", "rgb(10, 11, 12)", "rgb(13, 14, 15)", "rgb(16, 17, 18)"];
+      roles.forEach((role, index) => root.style.setProperty(`--mer-${role}`, colors[index]));
+      for (const tone of [0, 1, 2, 3, 4, 5, 6, 999]) {
+        window.webConformance.conversationTone(tone);
+        const marker = root.querySelector(".tool .dot.err"), status = root.querySelector(".status.on");
+        const expected = colors[tone <= 6 ? tone : 0];
+        if (!marker || !status || getComputedStyle(marker).backgroundColor !== expected || getComputedStyle(status).color !== expected)
+          throw new Error(`Conversation Tone ${tone}: marker=${marker && getComputedStyle(marker).backgroundColor}, status=${status && getComputedStyle(status).color}, expected=${expected}`);
+        if (root.querySelector(".tool").getAttribute("data-mer-tone") !== (tone <= 1 || tone === 999 ? "neutral" : roles[tone]))
+          throw new Error("Conversation Tone attribute is not canonical");
+      }
+      window.webConformance.conversationTone();
+      if (root.querySelector(".tool").hasAttribute("data-mer-tone") || getComputedStyle(root.querySelector(".dot.err")).backgroundColor !== "rgb(239, 68, 68)")
+        throw new Error("Absent conversation Tone changed legacy error styling");
+    });
+    console.log("Web-components layouts, typography, theme replacement, and conversation semantic Tone colors passed.");
   } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exit(1); });

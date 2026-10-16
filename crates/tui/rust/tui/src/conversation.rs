@@ -26,7 +26,7 @@
 //   * divider   → a hairline.
 //   * table     → aligned columns with a header row.
 
-use meridian_uiview::proto::{block, Block, Status, ValueType};
+use meridian_uiview::proto::{block, Block, Status, Tone, ValueType};
 use meridian_uiview::ConversationModel;
 use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
@@ -47,6 +47,17 @@ fn tool_marker(state: i32) -> &'static str {
         // is still in flight as far as this renderer is concerned).
         _ => "◐",
     }
+}
+
+fn conversation_tone_style(palette: &Palette, tone: Option<i32>, legacy: Style) -> Style {
+    let Some(number) = tone else {
+        return legacy;
+    };
+    let tone = Tone::try_from(number)
+        .ok()
+        .filter(|tone| *tone != Tone::Unspecified)
+        .unwrap_or(Tone::Neutral);
+    legacy.patch(palette.tone_style(tone))
 }
 
 /// Inline markdown → styled spans. Mirrors the two markers @savvifi/meridian-chat's
@@ -158,8 +169,14 @@ pub fn block_lines(block: &Block, palette: &Palette) -> Vec<Line<'static>> {
                 palette.success_style()
             };
             let mut spans = vec![
-                Span::styled(format!("  {} ", tool_marker(tool.state)), marker_style),
-                Span::styled(tool.name.clone(), palette.header()),
+                Span::styled(
+                    format!("  {} ", tool_marker(tool.state)),
+                    conversation_tone_style(palette, tool.tone, marker_style),
+                ),
+                Span::styled(
+                    tool.name.clone(),
+                    conversation_tone_style(palette, tool.tone, palette.header()),
+                ),
             ];
             // The web hides an empty args object rather than printing "{}".
             if !tool.args_json.is_empty() && tool.args_json != "{}" {
@@ -446,8 +463,14 @@ pub fn status_line(status: &Status, palette: &Palette) -> Line<'static> {
         status.detail.clone()
     };
     Line::from(vec![
-        Span::styled("  ◐ ", palette.accent_line()),
-        Span::styled(detail, palette.meta()),
+        Span::styled(
+            "  ◐ ",
+            conversation_tone_style(palette, status.tone, palette.accent_line()),
+        ),
+        Span::styled(
+            detail,
+            conversation_tone_style(palette, status.tone, palette.meta()),
+        ),
     ])
 }
 
@@ -1240,10 +1263,79 @@ mod tests {
             event: Some(conversation_event::Event::Status(Status {
                 state: status::State::Working as i32,
                 detail: "Calling forge·list_repos".into(),
+                tone: None,
             })),
         });
         let lines = conversation_lines(&model, &palette(), "empty");
         assert!(text_of(lines.last().unwrap()).contains("Calling forge·list_repos"));
+    }
+
+    #[test]
+    fn declared_conversation_tones_color_real_cells_without_changing_operational_state() {
+        use prost::Message;
+        use ratatui::{backend::TestBackend, Terminal};
+        let palette = palette();
+        for (tone, expected) in [
+            (Some(0), palette.fg),
+            (Some(1), palette.fg),
+            (Some(2), palette.info),
+            (Some(3), palette.success),
+            (Some(4), palette.warning),
+            (Some(5), palette.danger),
+            (Some(6), palette.accent),
+            (Some(999), palette.fg),
+        ] {
+            let mut model = ConversationModel::new();
+            for event in [
+                ConversationEvent {
+                    seq: 1,
+                    event: Some(conversation_event::Event::Block(block_of(
+                        block::Kind::Tool(block::ToolBlock {
+                            name: "Task".into(),
+                            state: block::tool_block::State::Error as i32,
+                            tone,
+                            ..Default::default()
+                        }),
+                    ))),
+                },
+                ConversationEvent {
+                    seq: 2,
+                    event: Some(conversation_event::Event::Status(Status {
+                        state: status::State::Working as i32,
+                        detail: "Working".into(),
+                        tone,
+                    })),
+                },
+            ] {
+                let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+                assert!(model.ingest(&decoded));
+            }
+            let mut terminal = Terminal::new(TestBackend::new(40, 4)).unwrap();
+            terminal
+                .draw(|frame| render_conversation(frame, frame.area(), &model, &palette, "Empty"))
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            assert_eq!(buffer[(2, 0)].symbol(), "✗");
+            assert_eq!(buffer[(2, 0)].fg, expected);
+            assert_eq!(buffer[(2, 1)].symbol(), "◐");
+            assert_eq!(buffer[(2, 1)].fg, expected);
+            model.ingest(&ConversationEvent {
+                seq: 3,
+                event: Some(conversation_event::Event::Status(Status {
+                    state: status::State::Idle as i32,
+                    detail: "Hidden".into(),
+                    tone: Some(Tone::Danger as i32),
+                })),
+            });
+            assert!(
+                model.status().is_none(),
+                "Tone cannot turn IDLE into an active status"
+            );
+        }
+        assert_eq!(
+            conversation_tone_style(&palette, None, palette.danger_style()),
+            palette.danger_style()
+        );
     }
 
     #[test]
