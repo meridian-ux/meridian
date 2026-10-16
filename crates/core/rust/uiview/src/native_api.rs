@@ -259,13 +259,25 @@ fn protobuf_value(value: Value, depth: usize) -> Result<prost_types::Value, i32>
     })
 }
 
+// Bazel's protobuf dependency generates the well-known types in struct_proto;
+// Cargo's generator uses prost_types. Cross this seam through their shared wire
+// contract instead of assuming Rust type identity between the two producers.
+fn context_json(value: impl Message) -> Result<Value, i32> {
+    if value.encoded_len() > MAX_VALUE_BYTES {
+        return Err(LIMIT_EXCEEDED);
+    }
+    let value = prost_types::Value::decode(value.encode_to_vec().as_slice())
+        .map_err(|_| INVALID_PAYLOAD)?;
+    json(value, 0)
+}
+
 fn context_bag(entries: Vec<crate::proto::ContextValue>) -> Result<HashMap<String, Value>, i32> {
     let mut result = HashMap::new();
     for entry in entries {
         if result.contains_key(&entry.key) {
             return Err(INVALID_PAYLOAD);
         }
-        result.insert(entry.key, json(entry.value.unwrap_or_default(), 0)?);
+        result.insert(entry.key, context_json(entry.value.unwrap_or_default())?);
     }
     Ok(result)
 }
@@ -306,14 +318,8 @@ pub unsafe extern "C" fn meridian_core_build_request(
         .map_err(|_| INVALID_PAYLOAD)?;
         let context = crate::Context {
             current_resource_path: context.current_resource_path,
-            ui_identity: context
-                .ui_identity
-                .map(|value| json(value, 0))
-                .transpose()?,
-            selected_row: context
-                .selected_row
-                .map(|value| json(value, 0))
-                .transpose()?,
+            ui_identity: context.ui_identity.map(context_json).transpose()?,
+            selected_row: context.selected_row.map(context_json).transpose()?,
             form_values: context_bag(context.form_values)?,
             signals: context_bag(context.signals)?,
             selections: context_bag(context.selections)?,
@@ -397,6 +403,10 @@ pub unsafe extern "C" fn meridian_core_buffer_free(pointer: *mut u8, len: usize)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn well_known_value<T: Message + Default>(value: prost_types::Value) -> T {
+        T::decode(value.encode_to_vec().as_slice()).unwrap()
+    }
     use crate::proto::{FormattedValue, ValueType};
 
     unsafe fn request(call: &[u8], context: &[u8]) -> (i32, Option<Value>) {
@@ -456,15 +466,15 @@ mod tests {
             current_resource_path: Some(String::new()),
             selections: vec![ContextValue {
                 key: "year".into(),
-                value: Some(prost_types::Value {
+                value: Some(well_known_value(prost_types::Value {
                     kind: Some(prost_types::value::Kind::NumberValue(0.0)),
-                }),
+                })),
             }],
             signals: vec![ContextValue {
                 key: "brush".into(),
-                value: Some(prost_types::Value {
+                value: Some(well_known_value(prost_types::Value {
                     kind: Some(prost_types::value::Kind::BoolValue(false)),
-                }),
+                })),
             }],
             ..Default::default()
         };
@@ -552,9 +562,9 @@ mod tests {
         }
         .encode_to_vec();
         let context = RequestContext {
-            ui_identity: Some(prost_types::Value {
+            ui_identity: Some(well_known_value(prost_types::Value {
                 kind: Some(prost_types::value::Kind::StringValue("x".repeat(700_000))),
-            }),
+            })),
             ..Default::default()
         }
         .encode_to_vec();
