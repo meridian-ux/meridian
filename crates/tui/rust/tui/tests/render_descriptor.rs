@@ -48,6 +48,228 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+mod host_admission {
+    use super::*;
+    use meridian_tui::prost_types::Struct;
+    use meridian_uiview::proto::{field_binding::Source, FieldBinding, TablePanel};
+    use std::cell::{Cell, RefCell};
+    use std::collections::HashSet;
+
+    const DENIED: &str = "Denied by host policy";
+
+    #[derive(Default)]
+    struct Backend {
+        calls: Cell<usize>,
+    }
+
+    impl RpcInvoker for Backend {
+        fn invoke(
+            &self,
+            _: &str,
+            _: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            self.calls.set(self.calls.get() + 1);
+            Ok(serde_json::json!({"name": "operations/admitted"}))
+        }
+    }
+
+    // Runtime host policy fixture, not a renderer-owned authorization engine or
+    // serialized DTO. Denial happens before the backend is ever called.
+    struct Host<'a> {
+        backend: &'a Backend,
+        allowed: RefCell<HashSet<(String, String)>>,
+        attempts: RefCell<Vec<(String, String, serde_json::Value)>>,
+    }
+
+    impl<'a> Host<'a> {
+        fn new(backend: &'a Backend) -> Self {
+            Self {
+                backend,
+                allowed: RefCell::new(HashSet::new()),
+                attempts: RefCell::new(Vec::new()),
+            }
+        }
+
+        fn allow(&self, service: &str, method: &str) {
+            self.allowed
+                .borrow_mut()
+                .insert((service.into(), method.into()));
+        }
+    }
+
+    impl RpcInvoker for Host<'_> {
+        fn invoke(
+            &self,
+            service: &str,
+            method: &str,
+            request: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            let key = (service.to_owned(), method.to_owned());
+            self.attempts
+                .borrow_mut()
+                .push((key.0.clone(), key.1.clone(), request.clone()));
+            if !self.allowed.borrow().contains(&key) {
+                return Err(RpcError::Other(DENIED.into()));
+            }
+            self.backend.invoke(service, method, request)
+        }
+    }
+
+    fn paint<I: RpcInvoker>(
+        view: &mut PanelView,
+        descriptor: &PanelDescriptor,
+        context: &Context,
+        invoker: &I,
+    ) -> String {
+        let mut terminal = Terminal::new(TestBackend::new(120, 28)).unwrap();
+        terminal
+            .draw(|frame| view.render(frame, frame.area(), descriptor, context, invoker))
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
+
+    fn call(method: &str) -> RpcCall {
+        RpcCall {
+            service: "fixture.Admission".into(),
+            method: method.into(),
+            bindings: vec![FieldBinding {
+                request_field: "tenant".into(),
+                source: Some(Source::Literal("scope-1".into())),
+            }],
+        }
+    }
+
+    #[test]
+    fn denied_populate_and_prefill_render_the_host_denial_not_empty_success() {
+        for body in [
+            Body::Table(TablePanel {
+                populate: Some(call("Read")),
+                rows_field: "items".into(),
+                item_noun: "records".into(),
+                ..Default::default()
+            }),
+            Body::Form(FormPanel {
+                mode: FormMode::Edit as i32,
+                prefill: Some(call("Read")),
+                fields: vec![FormField {
+                    field_id: "name".into(),
+                    kind: Some(Kind::Text(TextInput {
+                        default_value: "retained".into(),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+        ] {
+            let descriptor = PanelDescriptor {
+                body: Some(body),
+                ..Default::default()
+            };
+            let wire = descriptor.encode_to_vec();
+            let decoded = PanelDescriptor::decode(wire.as_slice()).unwrap();
+            let backend = Backend::default();
+            let host = Host::new(&backend);
+            let context = Context::default();
+            let mut view = PanelView::new();
+            let first = paint(&mut view, &decoded, &context, &host);
+            assert!(first.contains(DENIED), "{first}");
+            assert_eq!(host.attempts.borrow().len(), 1);
+            assert_eq!(
+                host.attempts.borrow()[0],
+                (
+                    "fixture.Admission".into(),
+                    "Read".into(),
+                    serde_json::json!({"tenant": "scope-1"})
+                )
+            );
+            assert_eq!(backend.calls.get(), 0);
+            let second = paint(&mut view, &decoded, &context, &host);
+            assert!(second.contains(DENIED), "{second}");
+            assert_eq!(host.attempts.borrow().len(), 1, "repaint must not retry");
+            assert_eq!(backend.calls.get(), 0);
+            assert_eq!(decoded.encode_to_vec(), wire);
+        }
+    }
+
+    #[test]
+    fn denied_lro_start_is_visible_retryable_and_cannot_overwrite_an_admitted_retry() {
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Lro(LroPanel {
+                start: Some(call("Start")),
+                inputs: vec![FormField {
+                    field_id: "name".into(),
+                    request_field: "settings.name".into(),
+                    label: "Name".into(),
+                    kind: Some(Kind::Text(TextInput {
+                        default_value: "001.20".into(),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let wire = descriptor.encode_to_vec();
+        let decoded = PanelDescriptor::decode(wire.as_slice()).unwrap();
+        let Some(Body::Lro(panel)) = decoded.body.as_ref() else {
+            panic!("expected LRO fixture")
+        };
+        let backend = Backend::default();
+        let host = Host::new(&backend);
+        let context = Context::default();
+        let mut view = PanelView::new();
+        paint(&mut view, &decoded, &context, &host);
+        let denied = view
+            .handle_lro_key(panel, &context, KeyCode::Enter)
+            .unwrap();
+        assert!(view
+            .handle_lro_key(panel, &context, KeyCode::Enter)
+            .is_none());
+        let expected = serde_json::json!({"tenant": "scope-1", "settings": {"name": "001.20"}});
+        assert_eq!(denied.request, expected);
+        let error = host
+            .invoke(&denied.service, &denied.method, denied.request.clone())
+            .unwrap_err();
+        assert_eq!(backend.calls.get(), 0);
+        assert!(view.fail_lro(&denied.run_id, &error.to_string()));
+        let text = paint(&mut view, &decoded, &context, &host);
+        assert!(text.contains(DENIED), "{text}");
+        assert!(!view.complete_lro(&denied.run_id, &Struct::default()));
+
+        host.allow("fixture.Admission", "Start");
+        let retry = view
+            .handle_lro_key(panel, &context, KeyCode::Enter)
+            .unwrap();
+        assert_ne!(retry.run_id, denied.run_id);
+        assert_eq!(retry.request, expected, "denial must retain raw input");
+        let response = host
+            .invoke(&retry.service, &retry.method, retry.request)
+            .unwrap();
+        assert_eq!(backend.calls.get(), 1);
+        assert_eq!(host.attempts.borrow().len(), 2);
+        assert!(view.update_lro_progress(
+            &retry.run_id,
+            response["name"].as_str().unwrap(),
+            &Struct::default()
+        ));
+        assert!(!view.fail_lro(&denied.run_id, "stale denial"));
+        let text = paint(&mut view, &decoded, &context, &host);
+        assert!(!text.contains(DENIED), "{text}");
+        assert!(!text.contains("stale denial"), "{text}");
+        assert!(text.contains("operations/admitted"), "{text}");
+        assert_eq!(decoded.encode_to_vec(), wire);
+    }
+}
+
 mod bounded_requests {
     use super::*;
     use meridian_uiview::proto::{field_binding::Source, FieldBinding};
