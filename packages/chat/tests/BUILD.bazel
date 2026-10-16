@@ -31,6 +31,7 @@ vitest_test(
         "value_corpus.test.tsx",
         "tone.test.tsx",
         "sequence.test.tsx",
+        "lifecycle.test.tsx",
         "fixtures.ts",
     ],
     deps = [

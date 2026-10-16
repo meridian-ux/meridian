@@ -62,7 +62,7 @@ vitest_test(
 
 vitest_test(
     name = "assistant_panel",
-    srcs = ["assistant_panel.test.ts"],
+    srcs = ["assistant_panel.test.ts", "assistant_lifecycle.test.ts"],
     deps = [
         "//schemas:conversation_value_data",
         "//packages/web:node_modules/@bufbuild/protobuf",

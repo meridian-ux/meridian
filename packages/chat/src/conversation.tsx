@@ -68,7 +68,9 @@ export function Conversation({
 
   useEffect(() => {
     const es = new EventSource(sseUrl);
+    let active = true;
     es.onmessage = (msg) => {
+      if (!active) return;
       try {
         const ev = JSON.parse(msg.data) as ConversationEvent;
         if (model.ingest(ev)) {
@@ -82,7 +84,7 @@ export function Conversation({
     es.onerror = () => {
       /* EventSource auto-retries */
     };
-    return () => es.close();
+    return () => { active = false; es.close(); };
   }, [sseUrl, model]);
 
   // Autoscroll to the newest block on every update.
