@@ -89,6 +89,7 @@ vitest_test(
         "tests/steps.test.ts",
         "tests/stream.test.ts",
         "tests/stateful_conformance.test.ts",
+        "tests/value_options.test.ts",
         "tests/stat_fetch.test.ts",
         "tests/record_fetch.test.ts",
         "tests/core_hydration.test.ts",
@@ -108,6 +109,7 @@ vitest_test(
         "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
         "//packages/web-react:node_modules/vitest",
         "//schemas:conformance_fixtures",
+        "//schemas:value_option_data",
         ":node_modules/jsdom",
     ],
 )

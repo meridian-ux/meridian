@@ -4,6 +4,12 @@ load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
+js_library(
+    name = "value_option_data",
+    srcs = ["conformance/value_option_cases.ts", "conformance/core.json"],
+    deps = [":node_modules/@bufbuild/protobuf", ":node_modules/@savvifi/meridian-proto-ts"],
+)
+
 exports_files([
     "conformance/constrained_value_types.json",
     "conformance/value_types.json",

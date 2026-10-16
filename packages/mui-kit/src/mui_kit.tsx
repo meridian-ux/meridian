@@ -137,7 +137,7 @@ function formatCell(
   display?: ValueDisplay,
   nowMs?: number,
 ): ReactNode {
-  if (display && display.type !== ValueType.UNSPECIFIED) {
+  if (display) {
     const shown = formatByDisplay(value, display, nowMs);
     return shown.title ? <span title={shown.title}>{shown.text}</span> : shown.text;
   }

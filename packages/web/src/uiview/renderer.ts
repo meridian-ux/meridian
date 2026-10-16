@@ -1748,6 +1748,11 @@ function buildCell(
   // Older WASM bridges may return only the rendered cells. Preserve their
   // ColumnLink behavior while preferring the raw value whenever it is present.
   const raw = rowValue === undefined ? cell : rowValue;
+  // The table FFI returns visible strings only. Obtain supporting text from
+  // the same core formatter and actual raw value, never reconstruct an email
+  // from a rendered label. Older bridges without raw rows keep plain cells.
+  const title = rowValue !== undefined && column?.valueDisplay
+    ? formatByDisplay(rowValue, column.valueDisplay).title : undefined;
   const valueLink = resolveValueLink(raw, column?.valueDisplay);
   const targetKind = link ? link.targetKind : valueLink?.targetKind;
   const id = link ? (raw == null ? "" : String(raw)) : valueLink?.id;
@@ -1761,6 +1766,7 @@ function buildCell(
       const a = document.createElement("a");
       a.href = href;
       a.textContent = cell;
+      if (title !== undefined) a.title = title;
       // A link inside a selectable row must not also toggle the selection.
       a.addEventListener("click", (e) => e.stopPropagation());
       return a;
@@ -1770,9 +1776,16 @@ function buildCell(
     const a = document.createElement("a");
     a.href = raw;
     a.textContent = cell;
+    if (title !== undefined) a.title = title;
     a.rel = "noopener noreferrer";
     a.addEventListener("click", (e) => e.stopPropagation());
     return a;
+  }
+  if (title !== undefined) {
+    const span = document.createElement("span");
+    span.textContent = cell;
+    span.title = title;
+    return span;
   }
   return document.createTextNode(cell);
 }
