@@ -97,5 +97,28 @@ pub use stream::{
 // `Message` impls and `PanelBundle::decode` would not resolve.
 pub use prost;
 
+#[cfg(test)]
+mod tone_contract {
+    use super::proto::{Tone, ValueTone};
+
+    #[test]
+    fn shared_tone_retains_every_legacy_numeric_assignment() {
+        for (tone, legacy, name) in [
+            (Tone::Unspecified, ValueTone::Unspecified, "UNSPECIFIED"),
+            (Tone::Neutral, ValueTone::Neutral, "NEUTRAL"),
+            (Tone::Info, ValueTone::Info, "INFO"),
+            (Tone::Success, ValueTone::Success, "SUCCESS"),
+            (Tone::Warning, ValueTone::Warning, "WARNING"),
+            (Tone::Danger, ValueTone::Danger, "DANGER"),
+            (Tone::Accent, ValueTone::Accent, "ACCENT"),
+        ] {
+            assert_eq!(tone as i32, legacy as i32);
+            assert_eq!(tone.as_str_name(), format!("TONE_{name}"));
+            assert_eq!(legacy.as_str_name(), format!("VALUE_TONE_{name}"));
+        }
+        assert!(Tone::try_from(999).is_err());
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 mod wasm_api;
