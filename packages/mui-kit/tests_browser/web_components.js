@@ -49,10 +49,32 @@ async function main() {
       if (getComputedStyle(root).fontSize !== "19px") throw new Error("Typography base size was dropped");
       if (getComputedStyle(heading).fontWeight !== "700") throw new Error("Typography heading weight was dropped");
       if (getComputedStyle(body).fontWeight !== "500") throw new Error("Typography body weight was dropped");
-      root.style.removeProperty("--mer-body-weight");
+      window.webConformance.resetTheme();
       if (getComputedStyle(body).fontWeight !== "400") throw new Error("Unset body weight lost neutral fallback");
+      if (getComputedStyle(root).fontSize !== "14px" || getComputedStyle(heading).fontWeight !== "600") throw new Error("Replacement theme retained old typography");
     });
-    console.log("Web-components gallery layout, theme spacing, keyboard access, failed-step alternatives, and computed typography passed.");
+    await page.evaluate(() => window.webConformance.gallery());
+    await page.evaluate(() => {
+      const root = document.getElementById("root"), grid = root.querySelector(".mer-gallery");
+      const card = grid.querySelector("article");
+      window.webConformance.metrics();
+      if (getComputedStyle(grid).gap !== "64px" || getComputedStyle(card).borderRadius !== "20px") throw new Error("Metrics were not applied");
+      window.webConformance.resetTheme();
+      if (getComputedStyle(grid).gap !== "32px" || getComputedStyle(card).borderRadius !== "8px") throw new Error("Replacement theme retained old Metrics or lost host spacing");
+      if (root.style.getPropertyValue("--mer-unit") !== "8px") throw new Error("Pre-theme host spacing was not restored");
+      root.style.setProperty("--mer-unit", "7px", "important");
+      if (root.style.getPropertyPriority("--mer-unit") !== "important") throw new Error("Browser did not preserve priority in test setup");
+      window.webConformance.metrics();
+      window.webConformance.metrics();
+      window.webConformance.resetTheme();
+      if (root.style.getPropertyValue("--mer-unit") !== "7px" || root.style.getPropertyPriority("--mer-unit") !== "important") throw new Error("Pre-theme host priority was not restored");
+      window.webConformance.metrics();
+      root.style.setProperty("--mer-unit", "11px", "important");
+      window.webConformance.metrics();
+      window.webConformance.resetTheme();
+      if (root.style.getPropertyValue("--mer-unit") !== "11px" || root.style.getPropertyPriority("--mer-unit") !== "important") throw new Error("Latest host override priority was not restored");
+    });
+    console.log("Web-components gallery layout, theme spacing, keyboard access, failed-step alternatives, computed typography, and theme replacement passed.");
   } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exit(1); });
