@@ -146,7 +146,7 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
                 Some(value_display::Options::Number(options)) => Some(options),
                 _ => None,
             };
-            format_display_number(value, options)
+            format_display_number(value, value_type, options)
         }
         ValueType::Json => match value {
             Value::String(value) => value.clone(),
@@ -684,22 +684,85 @@ fn format_display_scalar(value: &Value) -> String {
     }
 }
 
-fn format_display_number(value: &Value, options: Option<&NumberOptions>) -> String {
-    let Some(number) = value.as_f64() else {
+fn format_display_number(
+    value: &Value,
+    kind: ValueType,
+    options: Option<&NumberOptions>,
+) -> String {
+    let Some(mut number) = value.as_f64() else {
         return format_display_scalar(value);
     };
-    if let Some(fraction_digits) = options.and_then(|options| options.fraction_digits) {
-        // The same bound as the browser formatter: never allocate a
-        // descriptor-controlled number of digits outside the supported range.
-        if (0..=100).contains(&fraction_digits) {
-            return format_declared_fixed(number, fraction_digits as usize);
+    if kind == ValueType::Percent {
+        number *= 100.0;
+    }
+    // Never emit infinity from a finite ratio whose percentage overflows.
+    // Preserve the original scalar rather than inventing a numeric result.
+    if !number.is_finite() {
+        return format_display_scalar(value);
+    }
+    let mut suffix = "";
+    if options.is_some_and(|options| options.compact) {
+        for (magnitude, label) in [(1e12, "T"), (1e9, "B"), (1e6, "M"), (1e3, "K")] {
+            if number.abs() >= magnitude {
+                number /= magnitude;
+                suffix = label;
+                break;
+            }
         }
     }
-    format_display_scalar(value)
+    let digits = options
+        .and_then(|options| options.fraction_digits)
+        .filter(|digits| (0..=100).contains(digits));
+    let text = if let Some(digits) = digits {
+        format_declared_fixed(number, digits as usize)
+    } else {
+        // Default scalar precision does not silently round fractional values.
+        if number == 0.0 {
+            "0".to_string()
+        } else {
+            number.to_string()
+        }
+    };
+    let text = if options.is_some_and(|options| options.omit_group_separators) {
+        text
+    } else {
+        group_decimal(&text)
+    };
+    let currency = options
+        .map(|options| options.currency_code.as_str())
+        .filter(|code| {
+            kind == ValueType::Money
+                && code.len() == 3
+                && code.bytes().all(|c| c.is_ascii_uppercase())
+        });
+    format!(
+        "{}{}{}{}",
+        currency.map(|code| format!("{code} ")).unwrap_or_default(),
+        text,
+        suffix,
+        if kind == ValueType::Percent { "%" } else { "" }
+    )
+}
+
+// Group only the integer part; never insert separators into an exponent or
+// fraction. All input here is formatter-produced ASCII, not descriptor text.
+#[allow(clippy::manual_is_multiple_of)]
+fn group_decimal(text: &str) -> String {
+    let end = text.find(['.', 'e', 'E']).unwrap_or(text.len());
+    let start = usize::from(text.starts_with('-'));
+    let mut grouped = String::with_capacity(text.len() + end / 3);
+    for (index, character) in text.char_indices() {
+        if index > start && index < end && (end - index) % 3 == 0 {
+            grouped.push(',');
+        }
+        grouped.push(character);
+    }
+    grouped
 }
 
 /// Fixed precision rounds the stored binary64 value to nearest, with exact
-/// ties away from zero (ECMAScript toFixed). Legacy ColumnFormat is unchanged.
+/// ties away from zero. Unlike ECMAScript toFixed at magnitudes >= 1e21, retain
+/// fixed notation and the actual binary value. Legacy ColumnFormat is unchanged.
 fn format_declared_fixed(number: f64, digits: usize) -> String {
     // Negative zero itself has no sign in toFixed; negative nonzero values that
     // round to zero still do. Rust's formatter otherwise handles sign/precision.
@@ -1023,7 +1086,7 @@ mod tests {
             (2.0_f64.powi(-101), 100,
              "0.0000000000000000000000000000003944304526105059027058642826413931148366032175545115023851394653320313"),
         ] {
-            for kind in [ValueType::Integer, ValueType::Decimal, ValueType::Money, ValueType::Percent] {
+            for kind in [ValueType::Integer, ValueType::Decimal, ValueType::Money] {
                 let display = ValueDisplay {
                     r#type: kind as i32,
                     options: Some(value_display::Options::Number(NumberOptions {
@@ -1055,6 +1118,7 @@ mod tests {
         use prost::Message;
         // Paired with the browser formatter's precision conformance cases.
         let at_limit = format!("1.125{}", "0".repeat(97));
+        let percent_at_limit = format!("112.5{}%", "0".repeat(99));
         for value_type in [
             ValueType::Integer,
             ValueType::Decimal,
@@ -1071,6 +1135,16 @@ mod tests {
                 (Some(101), "1.125"),
                 (Some(i32::MAX), "1.125"),
             ] {
+                let expected = if value_type == ValueType::Percent {
+                    match digits {
+                        Some(0) => "113%",
+                        Some(3) => "112.500%",
+                        Some(100) => percent_at_limit.as_str(),
+                        _ => "112.5%",
+                    }
+                } else {
+                    expected
+                };
                 let display = ValueDisplay {
                     r#type: value_type as i32,
                     options: Some(value_display::Options::Number(NumberOptions {

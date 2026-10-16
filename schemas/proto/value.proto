@@ -249,25 +249,38 @@ enum TemporalPrecision {
   TEMPORAL_PRECISION_SECOND = 3;
 }
 
-// Display options for INTEGER / DECIMAL / MONEY / PERCENT.
+// Display options for INTEGER / DECIMAL / MONEY / PERCENT. Only numeric values
+// are transformed; numeric-looking strings remain literal. PERCENT scales its
+// stored ratio by 100 before applying these options and appends "%". If that
+// scaling overflows binary64, preserve the original scalar rather than showing
+// an invented infinity. Neither options nor display text change the raw value.
 message NumberOptions {
   // Digits after the decimal point. Explicitly OPTIONAL because 0 is a real
   // answer ("show no decimals") and must not read as "unset".
   // Supported range: 0 through 100 inclusive. Outside this range, renderers
-  // ignore the precision and preserve the unrounded scalar representation.
+  // ignore the precision and preserve unrounded numeric precision (the type,
+  // grouping, currency, and compact semantics still apply). Absent precision
+  // also preserves unrounded numeric precision; no currency-specific defaults
+  // or locale-dependent rounding are inferred.
   // This bounds formatting work even for untrusted descriptors.
   // Numeric binary64 values round to nearest at this precision, with exact
   // ties away from zero (12.5 at 0 digits -> 13; -1.125 at 2 -> -1.13).
   // Round the stored binary value, not the source decimal spelling: 2.675 at
   // 2 digits is 2.67. Negative zero itself displays without a minus sign.
   optional int32 fraction_digits = 1 [(google.api.field_behavior) = OPTIONAL];
-  // ISO 4217 code (e.g. "USD"). MONEY only.
+  // ISO 4217 code (e.g. "USD"). MONEY only. Render as a code prefix and one
+  // ASCII space ("USD 1,234.50"), not an inferred currency symbol. Empty or
+  // malformed codes (not three uppercase ASCII letters) omit the prefix.
+  // Producers own ISO-code validity; renderers do not guess or convert codes.
   string currency_code = 2 [(google.api.field_behavior) = OPTIONAL];
   // Suppress thousands separators — for a number that is really a code. Stated
   // negatively so the proto3 zero value is the sane default (grouping ON).
   bool omit_group_separators = 3 [(google.api.field_behavior) = OPTIONAL];
-  // Compact magnitude: "1.2K", "3.4M". Present so stat.proto's COMPACT case has
-  // a home when StatPanel migrates onto ValueDisplay.
+  // Compact magnitude: "1.2K", "3.4M". Select the largest threshold <= the
+  // absolute numeric value: K=1e3, M=1e6, B=1e9, T=1e12. Scale before rounding;
+  // fraction_digits applies to this scaled value. Below K, use ordinary form.
+  // Selection precedes rounding, so it does not promote a rounded 1,000K to M.
+  // PERCENT applies this after ratio scaling; its suffix follows the magnitude.
   bool compact = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 

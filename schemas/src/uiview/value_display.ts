@@ -250,6 +250,41 @@ export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined)
   }
 }
 
+/** Stable decimal scalar spelling without locale or exponent grouping. */
+function plainNumber(value: number): string {
+  const text = String(value);
+  if (!/[eE]/.test(text)) return text;
+  const [mantissa, exponent] = text.split(/[eE]/);
+  const sign = mantissa!.startsWith("-") ? "-" : "";
+  const unsigned = mantissa!.replace(/^-/, "");
+  const point = unsigned.includes(".") ? unsigned.indexOf(".") : unsigned.length;
+  const digits = unsigned.replace(".", "");
+  const position = point + Number(exponent);
+  return sign + (position <= 0 ? `0.${"0".repeat(-position)}${digits}`
+    : position >= digits.length ? digits + "0".repeat(position - digits.length)
+    : `${digits.slice(0, position)}.${digits.slice(position)}`);
+}
+
+/** Round the stored binary64 value, including magnitudes where toFixed switches
+ * to exponent notation. Exact ties are away from zero; precision is bounded. */
+function fixedNumber(value: number, digits: number): string {
+  const buffer = new DataView(new ArrayBuffer(8));
+  buffer.setFloat64(0, Math.abs(value));
+  const bits = buffer.getBigUint64(0);
+  const biased = Number((bits >> 52n) & 2047n);
+  const mantissa = (bits & ((1n << 52n) - 1n)) | (biased === 0 ? 0n : 1n << 52n);
+  const exponent = Math.max(1, biased) - 1023 - 52 + digits;
+  let scaled = mantissa * 5n ** BigInt(digits);
+  if (exponent >= 0) scaled <<= BigInt(exponent);
+  else {
+    const shift = BigInt(-exponent);
+    scaled = (scaled + (1n << (shift - 1n))) >> shift;
+  }
+  const text = scaled.toString().padStart(digits + 1, "0");
+  const sign = value < 0 ? "-" : "";
+  return sign + (digits === 0 ? text : `${text.slice(0, -digits)}.${text.slice(-digits)}`);
+}
+
 /** Format a value according to its declared ValueDisplay, with inference fallback. */
 export function formatByDisplay(
   value: unknown,
@@ -286,16 +321,25 @@ export function formatByDisplay(
     case ValueType.MONEY:
     case ValueType.PERCENT: {
       const options = display?.options.case === "number" ? display.options.value : undefined;
-      const digits = options?.fractionDigits;
-      // Match the native formatter and bound work for untrusted descriptors.
-      // Invalid precision is ignored, not clamped (which would change the value).
-      if (typeof value === "number" && digits !== undefined
-        && Number.isInteger(digits) && digits >= 0 && digits <= 100) {
-        // Round the stored binary64 value, exact ties away from zero. Native
-        // format_declared_fixed mirrors this rule; avoid scaled Math.round.
-        return { text: value.toFixed(digits) };
+      if (typeof value !== "number" || !Number.isFinite(value)) return { text: formatDisplayValue(value) };
+      let number = type === ValueType.PERCENT ? value * 100 : value;
+      if (!Number.isFinite(number)) return { text: formatDisplayValue(value) };
+      let suffix = "";
+      if (options?.compact) {
+        for (const [magnitude, label] of [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]] as const) {
+          if (Math.abs(number) >= magnitude) { number /= magnitude; suffix = label; break; }
+        }
       }
-      return { text: formatDisplayValue(value) };
+      const digits = options?.fractionDigits;
+      let text = digits !== undefined && Number.isInteger(digits) && digits >= 0 && digits <= 100
+        ? fixedNumber(number, digits) : plainNumber(number);
+      if (!options?.omitGroupSeparators) {
+        const [integer, fraction] = text.split(".");
+        text = integer!.replace(/\B(?=(\d{3})+$)/g, ",") + (fraction === undefined ? "" : `.${fraction}`);
+      }
+      const currency = type === ValueType.MONEY && /^[A-Z]{3}$/.test(options?.currencyCode ?? "")
+        ? `${options!.currencyCode} ` : "";
+      return { text: `${currency}${text}${suffix}${type === ValueType.PERCENT ? "%" : ""}` };
     }
     case ValueType.PRINCIPAL: {
       const options = display?.options.case === "principal" ? display.options.value : undefined;

@@ -9,4 +9,4 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="Fixture record"
     StaticText name="Declared value"
     paragraph name=""
-      StaticText name="0.125"
+      StaticText name="12.500%"

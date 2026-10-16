@@ -15,7 +15,7 @@
   {"name":"url","type":14,"raw":"https://example.com/a?b=1","expected":"https://example.com/a?b=1"},
   {"name":"identifier","type":15,"raw":"000123","expected":"000123"},
   {"name":"money-current-scalar","type":16,"raw":12.5,"digits":2,"expected":"12.50"},
-  {"name":"percent-current-scalar","type":17,"raw":0.125,"digits":3,"expected":"0.125"},
+  {"name":"percent-current-scalar","type":17,"raw":0.125,"digits":3,"expected":"12.500%"},
   {"name":"json","type":18,"raw":{"ready":true},"expected":"{\"ready\":true}"},
   {"name":"null","type":4,"raw":null,"expected":"—"},
   {"name":"empty-list","type":7,"raw":[],"expected":"—"},

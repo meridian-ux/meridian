@@ -46,7 +46,7 @@
     {"name":"url","type":14,"raw":42.25,"expected":"42.25"},
     {"name":"identifier","type":15,"raw":42.25,"expected":"42.25"},
     {"name":"money","type":16,"digits":2,"raw":12.5,"expected":"12.50"},
-    {"name":"percent","type":17,"digits":3,"raw":0.125,"expected":"0.125"},
+    {"name":"percent","type":17,"digits":3,"raw":0.125,"expected":"12.500%"},
     {"name":"json","type":18,"raw":42.25,"expected":"42.25"},
     {"name":"unknown-type","type":999,"raw":42.25,"expected":"42.25"},
     {"name":"unspecified","type":0,"raw":42.25,"expected":"42.25"},

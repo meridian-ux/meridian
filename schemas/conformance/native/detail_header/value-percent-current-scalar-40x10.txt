@@ -2,7 +2,7 @@ viewport 40x10
 percent-current-scalar
 ┌──────────────────────────────────────┐
 │Fixture record                        │
-│Declared value: 0.125                 │
+│Declared value: 12.500%               │
 │                                      │
 │                                      │
 │                                      │

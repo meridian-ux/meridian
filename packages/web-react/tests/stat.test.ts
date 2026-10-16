@@ -83,8 +83,12 @@ describe("computeStat — computed delta/trend/semantics (parity with Rust)", ()
         const c = computeStat(fromBinary(StatPanelSchema, toBinary(StatPanelSchema, p)));
         const valid = digits !== undefined && digits >= 0 && digits <= 100;
         const suffix = type === ValueType.MONEY || type === ValueType.PERCENT ? "" : " items";
-        expect(c.formattedValue).toBe((valid ? (12.625).toFixed(digits) : "12.625") + suffix);
-        expect(c.formattedDelta).toBe("+" + (valid ? (2.375).toFixed(digits) : "2.375"));
+        const percentValue = digits === 0 ? "1,263%" : digits === 3 ? "1,262.500%"
+          : digits === 100 ? `1,262.5${"0".repeat(99)}%` : "1,262.5%";
+        const percentDelta = digits === 0 ? "+238%" : digits === 3 ? "+237.500%"
+          : digits === 100 ? `+237.5${"0".repeat(99)}%` : "+237.5%";
+        expect(c.formattedValue).toBe(type === ValueType.PERCENT ? percentValue : (valid ? (12.625).toFixed(digits) : "12.625") + suffix);
+        expect(c.formattedDelta).toBe(type === ValueType.PERCENT ? percentDelta : "+" + (valid ? (2.375).toFixed(digits) : "2.375"));
         expect(c.trend).toBe("up");
       }
     }
@@ -150,7 +154,7 @@ describe("computeStat — computed delta/trend/semantics (parity with Rust)", ()
         options: { case: "number", value: { fractionDigits: 0 } },
       },
     }));
-    expect(c.formattedValue).toBe("1234");
+    expect(c.formattedValue).toBe("1,234");
     expect(c.formattedDelta).toBe("+234");
   });
 });

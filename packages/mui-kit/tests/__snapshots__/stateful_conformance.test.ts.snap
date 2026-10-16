@@ -1584,7 +1584,7 @@ h1
   "Fixture record"
 "Declared value"
 p
-  "0.125""
+  "12.500%""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'detail_header/value-principal' > mui-kit/detail_header/value-principal 1`] = `
@@ -3325,7 +3325,7 @@ h3
   "percent"
 form
   p
-    "0.125"
+    "12.500%"
   button type="submit" disabled
     "Save""
 `;
@@ -4000,10 +4000,10 @@ exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-percent-current-sca
 h3
   "percent-current-scalar"
 p
-  "0.125"
-"0.125"
+  "12.500%"
+"12.500%"
 p
-  "0.125""
+  "12.500%""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'gallery/value-principal' > mui-kit/gallery/value-principal 1`] = `
@@ -6216,7 +6216,7 @@ h3
   "percent-current-scalar"
 "Declared value"
 p
-  "0.125""
+  "12.500%""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'record_card/value-principal' > mui-kit/record_card/value-principal 1`] = `
@@ -6806,13 +6806,13 @@ exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-percent-curr
 h3
   "percent-current-scalar"
 h6
-  "0.125"
+  "12.500%"
 p
-  "0.125"
-"0.125"
+  "12.500%"
+"12.500%"
 "Declared value"
 p
-  "0.125""
+  "12.500%""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'resource_cards/value-principal' > mui-kit/resource_cards/value-principal 1`] = `
@@ -7149,7 +7149,7 @@ h3
   "percent"
 "Typed metric"
 h5
-  "0.125""
+  "12.500%""
 `;
 
 exports[`MUI stateful ViewDescriptor corpus > 'stat/typed-principal' > mui-kit/stat/typed-principal 1`] = `
@@ -8535,7 +8535,7 @@ table
   tbody
     tr
       td
-        "0.125"
+        "12.500%"
 p
   "Showing 1 of 1 items"
 p

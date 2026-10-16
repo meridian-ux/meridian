@@ -39,7 +39,16 @@ vitest_test(
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
         "vitest.config.ts",
     ],
-    env = {"CI": "true"},
+    # The overflow form must retain its normal per-case deadline even while a
+    # cold CI runner builds Rust/browser targets. Avoid competing Vitest workers
+    # inside this DOM-heavy suite; every case and assertion still executes.
+    env = {
+        "CI": "true",
+        "VITEST_MAX_THREADS": "1",
+        "VITEST_MIN_THREADS": "1",
+        "VITEST_MAX_FORKS": "1",
+        "VITEST_MIN_FORKS": "1",
+    },
     deps = [
         ":stateful_test_sources",
         ":node_modules/jsdom",

@@ -4,7 +4,7 @@ percent
 │Read-only item                                                                                │
 │read-only form                                                                                │
 │                                                                                              │
-│▶ Declared input: 0.125                                                                       │
+│▶ Declared input: 12.500%                                                                     │
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │

@@ -12,8 +12,8 @@ RootWebArea name="Meridian AX conformance" focusable=true
             button name="Declared value" focusable=true
               StaticText name="Declared value"
       row name=""
-        cell name="0.125"
-          StaticText name="0.125"
+        cell name="12.500%"
+          StaticText name="12.500%"
     paragraph name=""
       StaticText name="Showing 1 of 1 items"
     paragraph name=""

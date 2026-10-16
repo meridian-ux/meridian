@@ -2,7 +2,7 @@ viewport 40x10
 integer
 ┌──────────────────────────────────────┐
 │Fixture record                        │
-│Declared value: 42.0                  │
+│Declared value: 42                    │
 │                                      │
 │                                      │
 │                                      │

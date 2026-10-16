@@ -11,3 +11,9 @@ export function assertFormatterModes(getEnum) {
     if (JSON.stringify(declared) !== JSON.stringify(covered)) throw new Error(`${name}: update the explicit formatting corpus for every declared mode`);
   }
 }
+
+export function assertNumberOptions(message) {
+  const fields = message.fields.map(field => `${field.number}:${field.name}`).sort();
+  const covered = ["1:fraction_digits", "2:currency_code", "3:omit_group_separators", "4:compact"];
+  if (JSON.stringify(fields) !== JSON.stringify(covered)) throw new Error("NumberOptions: update the explicit formatting corpus for every declared option");
+}

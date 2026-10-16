@@ -5,11 +5,11 @@ RootWebArea name="Meridian AX conformance" focusable=true
         StaticText name="value-percent-current-scalar"
     heading name="percent-current-scalar" level=3
       StaticText name="percent-current-scalar"
-    heading name="0.125" level=6
-      StaticText name="0.125"
+    heading name="12.500%" level=6
+      StaticText name="12.500%"
     paragraph name=""
-      StaticText name="0.125"
-    StaticText name="0.125"
+      StaticText name="12.500%"
+    StaticText name="12.500%"
     StaticText name="Declared value"
     paragraph name=""
-      StaticText name="0.125"
+      StaticText name="12.500%"

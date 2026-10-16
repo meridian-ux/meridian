@@ -1722,7 +1722,7 @@ dl
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'detail_header/value-principal' > web-components/detail_header/value-principal 1`] = `
@@ -3304,7 +3304,7 @@ form
     fieldset
       legend
         "Declared input"
-      "0.125"
+      "12.500%"
   p role="status"
   p role="alert""
 `;
@@ -4185,10 +4185,10 @@ h3
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
-    "0.125""
+      "12.500%"
+    "12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'gallery/value-principal' > web-components/gallery/value-principal 1`] = `
@@ -6865,7 +6865,7 @@ dl
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'record_card/value-principal' > web-components/record_card/value-principal 1`] = `
@@ -7635,15 +7635,15 @@ h3
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
-    "0.125"
+      "12.500%"
+    "12.500%"
     dl
       dt
         "Declared value"
       dd
-        "0.125""
+        "12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'resource_cards/value-principal' > web-components/resource_cards/value-principal 1`] = `
@@ -8017,7 +8017,7 @@ h3
   "percent"
 "percent"
 "Typed metric"
-"0.125""
+"12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'stat/typed-principal' > web-components/stat/typed-principal 1`] = `
@@ -9345,7 +9345,7 @@ table
   tbody
     tr
       td
-        "0.125""
+        "12.500%""
 `;
 
 exports[`web-components stateful ViewDescriptor corpus through real WASM > 'table/value-principal' > web-components/table/value-principal 1`] = `

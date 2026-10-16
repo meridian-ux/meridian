@@ -1483,7 +1483,7 @@ fields {
           fields {
             key: "expectedRead"
             value {
-              string_value: "0.125"
+              string_value: "12.500%"
             }
           }
           fields {

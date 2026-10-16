@@ -6,6 +6,6 @@ RootWebArea name="Meridian AX conformance" focusable=true
     heading name="percent" level=3
       StaticText name="percent"
     paragraph name=""
-      StaticText name="0.125"
+      StaticText name="12.500%"
     button name="SAVE" disabled=true invalid="false"
       StaticText name="SAVE"
