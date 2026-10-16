@@ -15,6 +15,7 @@ import { escHtml as esc } from "./dom.js";
 import { renderBlockInner } from "./render_html.js";
 import { ASSISTANT_PANEL_CSS } from "./styles.js";
 import type { Block, ConversationEvent } from "./wire.js";
+import { conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
 
 export { ASSISTANT_PANEL_CSS };
 
@@ -92,7 +93,7 @@ export class MAssistantPanel extends HTMLElement {
       this.seen.add(seq);
     }
     if (ev.block) this.upsertBlock(ev.block);
-    else if (ev.status) this.renderStatus(ev.status.state || "", ev.status.detail || "");
+    else if (ev.status) this.renderStatus(ev.status.state, ev.status.detail || "", ev.status.tone);
     else if (ev.done) {
       this.renderStatus("IDLE", "");
       if (this.sendEl) this.sendEl.disabled = false;
@@ -129,9 +130,12 @@ export class MAssistantPanel extends HTMLElement {
     this.scrollDown();
   }
 
-  private renderStatus(state: string, detail: string): void {
+  private renderStatus(rawState: unknown, detail: string, tone?: unknown): void {
+    const state = conversationStatusState(rawState);
     const s = this.statusEl;
     if (!s) return;
+    const role = conversationToneRole(tone);
+    if (role) s.dataset.merTone = role; else delete s.dataset.merTone;
     if (state === "THINKING") {
       s.innerHTML = 'Thinking<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
       s.className = "status on";

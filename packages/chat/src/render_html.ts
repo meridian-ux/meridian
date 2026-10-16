@@ -5,6 +5,7 @@
 import { escHtml as esc, mdInline } from "./dom.js";
 import type { Block } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
+import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
 
 export function renderBlockInner(b: Block): string {
   if (b.markdown) return `<div class="md">${mdInline(b.markdown.text || "")}</div>`;
@@ -13,14 +14,15 @@ export function renderBlockInner(b: Block): string {
   }
   if (b.tool) {
     const t = b.tool;
-    const err = t.state === "ERROR";
+    const state = conversationToolState(t.state), err = state === "ERROR";
+    const tone = conversationToneRole(t.tone);
     const ind =
-      t.state === "RUNNING"
-        ? '<span class="spin"></span>'
-        : `<span class="dot ${err ? "err" : "ok"}"></span>`;
+      state === "RUNNING"
+        ? '<span class="spin" role="img" aria-label="RUNNING" title="RUNNING"></span>'
+        : `<span class="dot ${err ? "err" : "ok"}" role="img" aria-label="${state}" title="${state}"></span>`;
     const args = t.argsJson && t.argsJson !== "{}" ? ` <span class="targs">${esc(t.argsJson)}</span>` : "";
     const summary = t.summary ? ` — ${esc(t.summary)}` : "";
-    return `<div class="tool${err ? " err" : ""}">${ind}<span class="tname">${esc(t.name)}</span>${args}${summary}</div>`;
+    return `<div class="tool${err ? " err" : ""}"${tone ? ` data-mer-tone="${tone}"` : ""}>${ind}<span class="tname">${esc(t.name)}</span>${args}${summary}</div>`;
   }
   if (b.list) {
     const items = (b.list.items || [])

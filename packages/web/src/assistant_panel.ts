@@ -15,14 +15,14 @@
 
 import { fromJson, type JsonObject } from '@bufbuild/protobuf';
 import { ValueDisplaySchema, ValueType } from '@savvifi/meridian-proto-ts/proto/value_pb.js';
-import { formatByDisplay, type DisplayedValue } from '@savvifi/meridian-schemas/uiview';
+import { formatByDisplay, type DisplayedValue, conversationToneRole, conversationToolState, conversationStatusState, CONVERSATION_TONE_CSS } from '@savvifi/meridian-schemas/uiview';
 
 import { escHtml as esc } from './dom.js';
 
 interface HostEvent {
   seq: number | string;
   block?: BlockMsg;
-  status?: { state: string; detail?: string };
+  status?: { state: string | number; detail?: string; tone?: number | string | null };
   done?: { stopReason: string };
   error?: { message: string };
 }
@@ -31,7 +31,7 @@ interface BlockMsg {
   role?: string;
   markdown?: { text: string };
   context?: { icon?: string; text: string };
-  tool?: { name: string; argsJson?: string; state: string; summary?: string };
+  tool?: { name: string; argsJson?: string; state?: string | number; summary?: string; tone?: number | string | null };
   list?: { title?: string; items: ListItem[] };
   fields?: { fields: AssistantField[] };
   code?: { language?: string; text: string };
@@ -130,7 +130,7 @@ export const ASSISTANT_PANEL_CSS = `
     border: 1px solid color-mix(in srgb, var(--surface, #1a1d27) 50%, #fff); background: var(--surface, #1a1d27); color: var(--text, #e5e7eb); font: inherit; }
   m-assistant-panel button.asst-send { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent, #6366f1); color: #fff; font: inherit; cursor: pointer; }
   m-assistant-panel button.asst-send:disabled { opacity: .5; cursor: default; }
-`;
+` + CONVERSATION_TONE_CSS;
 
 function mdInline(text: string): string {
   return esc(text)
@@ -162,13 +162,14 @@ function renderAssistantBlock(b: BlockMsg): string {
   if (b.context) return `<div class="ctx">${b.context.icon ? esc(b.context.icon) + ' ' : ''}${esc(b.context.text)}</div>`;
   if (b.tool) {
     const t = b.tool;
-    const err = t.state === 'ERROR';
-    const ind = t.state === 'RUNNING'
-      ? '<span class="spin"></span>'
-      : `<span class="dot ${err ? 'err' : 'ok'}"></span>`;
+    const state = conversationToolState(t.state), err = state === 'ERROR';
+    const tone = conversationToneRole(t.tone);
+    const ind = state === 'RUNNING'
+      ? '<span class="spin" role="img" aria-label="RUNNING" title="RUNNING"></span>'
+      : `<span class="dot ${err ? 'err' : 'ok'}" role="img" aria-label="${state}" title="${state}"></span>`;
     const args = t.argsJson && t.argsJson !== '{}' ? ` <span class="targs">${esc(t.argsJson)}</span>` : '';
     const summary = t.summary ? ` — ${esc(t.summary)}` : '';
-    return `<div class="tool${err ? ' err' : ''}">${ind}<span class="tname">${esc(t.name)}</span>${args}${summary}</div>`;
+    return `<div class="tool${err ? ' err' : ''}"${tone ? ` data-mer-tone="${tone}"` : ''}>${ind}<span class="tname">${esc(t.name)}</span>${args}${summary}</div>`;
   }
   if (b.list) {
     const items = (b.list.items || []).map((it) => {
@@ -284,7 +285,7 @@ export class MAssistantPanel extends HTMLElement {
       this.seen.add(seq);
     }
     if (ev.block) this.upsertBlock(ev.block);
-    else if (ev.status) this.renderStatus(ev.status.state, ev.status.detail || '');
+    else if (ev.status) this.renderStatus(ev.status.state, ev.status.detail || '', ev.status.tone);
     else if (ev.done) {
       this.renderStatus('IDLE', '');
       if (this.sendEl) this.sendEl.disabled = false;
@@ -320,9 +321,12 @@ export class MAssistantPanel extends HTMLElement {
     this.scrollDown();
   }
 
-  private renderStatus(state: string, detail: string): void {
+  private renderStatus(rawState: unknown, detail: string, tone?: unknown): void {
+    const state = conversationStatusState(rawState);
     const s = this.statusEl;
     if (!s) return;
+    const role = conversationToneRole(tone);
+    if (role) s.dataset.merTone = role; else delete s.dataset.merTone;
     if (state === 'THINKING') {
       s.innerHTML = 'Thinking<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
       s.className = 'status on';

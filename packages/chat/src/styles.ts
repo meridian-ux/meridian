@@ -26,6 +26,7 @@
 //   --field-border      composer input outline
 //   --field-bg          composer input fill
 //   --code-bg           inline `code` fill
+import { CONVERSATION_TONE_CSS } from "@savvifi/meridian-schemas/uiview";
 export const ASSISTANT_PANEL_CSS = `
   m-assistant-panel { display: flex; flex-direction: column; height: 100%; min-height: 0;
     color: var(--text, #e5e7eb); font: 13px/1.5 system-ui, sans-serif; }
@@ -97,7 +98,7 @@ export const ASSISTANT_PANEL_CSS = `
     border: 1px solid var(--field-border, color-mix(in srgb, var(--surface, #1a1d27) 50%, #fff)); background: var(--field-bg, var(--surface, #1a1d27)); color: var(--text, #e5e7eb); font: inherit; }
   m-assistant-panel button.asst-send { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent, #6366f1); color: #fff; font: inherit; cursor: pointer; }
   m-assistant-panel button.asst-send:disabled { opacity: .5; cursor: default; }
-`;
+` + CONVERSATION_TONE_CSS;
 
 /** The same styles, re-scoped for the React <Conversation> wrapper. */
 export const CONVERSATION_CSS = ASSISTANT_PANEL_CSS.replace(

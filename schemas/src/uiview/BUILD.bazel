@@ -4,6 +4,12 @@ load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 
 package(default_visibility = ["//visibility:public"])
 
+vitest_test(
+    name = "conversation_tone_test",
+    srcs = ["conversation_tone.test.ts"],
+    deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+)
+
 js_run_binary(
     name = "core_runtime",
     tool = "//schemas:embed_core_wasm",
@@ -46,6 +52,7 @@ ts_project(
     srcs = [
         "admission.ts",
         "core_runtime.ts",
+        "conversation_tone.ts",
         "index.ts",
         "navigation.ts",
         "masked_multiline.ts",

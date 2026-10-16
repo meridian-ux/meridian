@@ -1,4 +1,6 @@
-import { create } from "@bufbuild/protobuf";
+import { create, toJson } from "@bufbuild/protobuf";
+import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { registerAssistantPanel, ASSISTANT_PANEL_CSS } from "../src/assistant_panel.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { renderPanel, type UiviewWasm } from "../src/uiview/renderer.js";
 import { applyTheme } from "../theme/web/theme.js";
@@ -12,6 +14,32 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  conversationTone: (tone?: number, state: 0 | 1 | 2 = 2) => {
+    if (!document.getElementById("conversation-styles")) {
+      const style = document.createElement("style");
+      style.id = "conversation-styles";
+      style.textContent = ASSISTANT_PANEL_CSS;
+      document.head.append(style);
+    }
+    let source!: { onmessage: ((event: MessageEvent) => void) | null };
+    const original = globalThis.EventSource;
+    globalThis.EventSource = class {
+      onmessage: ((event: MessageEvent) => void) | null = null;
+      onerror = null;
+      constructor() { source = this; }
+      close() {}
+    } as unknown as typeof EventSource;
+    try {
+      registerAssistantPanel();
+      root().replaceChildren(document.createElement("m-assistant-panel"));
+      for (const event of [
+        create(ConversationEventSchema, { seq: 1n, event: { case: "block", value: {
+          blockId: "tone", role: "assistant", kind: { case: "tool", value: { name: "Task", state, tone } },
+        } } }),
+        create(ConversationEventSchema, { seq: 2n, event: { case: "status", value: { state: 3, detail: "Working", tone } } }),
+      ]) source.onmessage!(new MessageEvent("message", { data: JSON.stringify(toJson(ConversationEventSchema, event, { enumAsInteger: true })) }));
+    } finally { globalThis.EventSource = original; }
+  },
   typography: () => applyTheme({ typography: {
     sans: "sans-serif", base_size_px: 19, heading_weight: 700, body_weight: 500,
   } }, "light", root()),

@@ -173,6 +173,7 @@ mod tests {
             conversation_event::Event::Status(Status {
                 state: status::State::Thinking as i32,
                 detail: "Calling forge·list_repos".into(),
+                tone: None,
             }),
         ));
         assert_eq!(
@@ -184,6 +185,7 @@ mod tests {
             conversation_event::Event::Status(Status {
                 state: status::State::Idle as i32,
                 detail: String::new(),
+                tone: None,
             }),
         ));
         assert!(model.status().is_none());
@@ -197,6 +199,7 @@ mod tests {
             conversation_event::Event::Status(Status {
                 state: status::State::Working as i32,
                 detail: "…".into(),
+                tone: None,
             }),
         ));
         model.ingest(&event(

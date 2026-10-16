@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { mdInline } from "./dom.js";
 import type { Block, ViewBlock } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
+import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
 
 /**
  * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
@@ -40,10 +41,10 @@ export function BlockView({
   }
   if (block.tool) {
     const t = block.tool;
-    const err = t.state === "ERROR";
+    const state = conversationToolState(t.state), err = state === "ERROR";
     return (
-      <div className={"tool" + (err ? " err" : "")}>
-        {t.state === "RUNNING" ? <span className="spin" /> : <span className={"dot " + (err ? "err" : "ok")} />}
+      <div className={"tool" + (err ? " err" : "")} data-mer-tone={conversationToneRole(t.tone)}>
+        {state === "RUNNING" ? <span className="spin" role="img" aria-label={state} title={state} /> : <span className={"dot " + (err ? "err" : "ok")} role="img" aria-label={state} title={state} />}
         <span className="tname">{t.name}</span>
         {t.argsJson && t.argsJson !== "{}" ? <span className="targs"> {t.argsJson}</span> : null}
         {t.summary ? <> — {t.summary}</> : null}

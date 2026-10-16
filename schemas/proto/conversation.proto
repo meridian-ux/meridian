@@ -83,6 +83,10 @@ message Status {
   }
   State state = 1 [(google.api.field_behavior) = REQUIRED];
   string detail = 2 [(google.api.field_behavior) = OPTIONAL];   // e.g. "Calling forge·list_repos"
+  // Semantic color only, never a state transition or execution permission.
+  // Absent preserves legacy state styling. Present unspecified/unknown selects
+  // neutral styling; it must not resurrect an inferred state color.
+  optional Tone tone = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // One rendered unit. `block_id` is stable: re-sending with the same id UPDATES
@@ -129,6 +133,9 @@ message Block {
     string args_json = 2 [(google.api.field_behavior) = OPTIONAL]; // call args, JSON (collapsible)
     State state = 3 [(google.api.field_behavior) = REQUIRED];
     string summary = 4 [(google.api.field_behavior) = OPTIONAL];   // short result/error line
+    // Same presence/precedence contract as Status.tone. State still controls
+    // running/ok/error indicators even when the semantic color is overridden.
+    optional Tone tone = 5 [(google.api.field_behavior) = OPTIONAL];
   }
 
   message ListItem {
