@@ -60,6 +60,147 @@ fn option_wire(value: &Json) -> Vec<u8> {
     bytes
 }
 
+fn label_occurrences(buffer: &ratatui::buffer::Buffer, text: &str) -> usize {
+    // Retain authored spaces and wide-glyph continuation cells exactly.
+    let expected_width = ratatui::text::Line::from(text).width() as u16;
+    assert!(expected_width > 0 && expected_width <= buffer.area.width);
+    let area = ratatui::layout::Rect::new(0, 0, expected_width, 1);
+    let mut expected_buffer = ratatui::buffer::Buffer::empty(area);
+    ratatui::widgets::Widget::render(
+        ratatui::widgets::Paragraph::new(text),
+        area,
+        &mut expected_buffer,
+    );
+    let pattern: Vec<_> = (0..expected_width)
+        .map(|x| expected_buffer[(x, 0)].symbol())
+        .collect();
+    (0..buffer.area.height)
+        .map(|y| {
+            let row: Vec<_> = (0..buffer.area.width)
+                .map(|x| buffer[(x, y)].symbol())
+                .collect();
+            row.windows(pattern.len())
+                .filter(|cells| *cells == pattern.as_slice())
+                .count()
+        })
+        .sum()
+}
+
+#[test]
+fn canonical_string_options_reach_native_conversation_slots() {
+    use meridian_tui::{render_conversation, Palette};
+    use meridian_uiview::{
+        proto::{
+            block, conversation_event, Block, ConversationEvent, FormattedValue, ValueDisplay,
+        },
+        ConversationModel,
+    };
+    let corpus: Json =
+        serde_json::from_slice(&std::fs::read(data_root().join("core.json")).unwrap()).unwrap();
+    let cases: Vec<_> = corpus["valueFormats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|entry| entry.get("nowMs").is_none() && entry["input"].is_string())
+        .collect();
+    assert_eq!(
+        cases.len(),
+        180,
+        "all no-clock string inputs without numeric coercion"
+    );
+    for case in cases {
+        let raw = case["input"].as_str().unwrap();
+        let display = ValueDisplay::decode(option_wire(&case["display"]).as_slice()).unwrap();
+        let formatted = FormattedValue::decode(option_wire(&case["expected"]).as_slice()).unwrap();
+        let expected = if !raw.is_empty() && [8, 9, 10, 12, 13].contains(&display.r#type) {
+            formatted.text.as_str()
+        } else {
+            raw
+        };
+        let kinds = [
+            block::Kind::Fields(block::Fields {
+                fields: vec![block::Field {
+                    key: "Value".into(),
+                    value: raw.into(),
+                    display: Some(display.clone()),
+                }],
+            }),
+            block::Kind::List(block::ListBlock {
+                items: vec![block::ListItem {
+                    title: raw.into(),
+                    subtitle: raw.into(),
+                    title_display: Some(display.clone()),
+                    subtitle_display: Some(display.clone()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+            block::Kind::Table(block::Table {
+                columns: vec![block::Column {
+                    key: "value".into(),
+                    label: "Value".into(),
+                }],
+                rows: vec![block::Row {
+                    cells: [("value".into(), "stale legacy cell".into())]
+                        .into_iter()
+                        .collect(),
+                    display_cells: [(
+                        "value".into(),
+                        block::Cell {
+                            value: raw.into(),
+                            display: Some(display.clone()),
+                        },
+                    )]
+                    .into_iter()
+                    .collect(),
+                }],
+                ..Default::default()
+            }),
+        ];
+        let mut model = ConversationModel::new();
+        for (index, kind) in kinds.into_iter().enumerate() {
+            let block = Block {
+                block_id: "value".into(),
+                role: "assistant".into(),
+                kind: Some(kind),
+            };
+            let event = ConversationEvent {
+                seq: index as u64 + 1,
+                event: Some(conversation_event::Event::Block(block.clone())),
+            };
+            let bytes = event.encode_to_vec();
+            let decoded = ConversationEvent::decode(bytes.as_slice()).unwrap();
+            assert!(model.ingest(&decoded));
+            assert!(!model.ingest(&decoded));
+            assert_eq!(model.blocks(), vec![&block]);
+            let mut terminal = Terminal::new(TestBackend::new(1024, 24)).unwrap();
+            terminal
+                .draw(|frame| {
+                    render_conversation(frame, frame.area(), &model, &Palette::default(), "Empty")
+                })
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            let text = buffer
+                .content
+                .iter()
+                .map(|cell| cell.symbol())
+                .collect::<String>();
+            assert!(!text.contains("stale legacy cell"));
+            if expected.is_empty() {
+                assert!(!text.contains('—'));
+            } else {
+                let slots = if index == 1 { 2 } else { 1 };
+                assert!(
+                    label_occurrences(buffer, expected) >= slots,
+                    "{} slot{index}: {expected:?}",
+                    case["name"]
+                );
+            }
+            assert_eq!(decoded.encode_to_vec(), bytes);
+        }
+    }
+}
+
 #[test]
 fn canonical_value_options_reach_every_native_read_surface() {
     use meridian_uiview::proto::{
@@ -214,26 +355,7 @@ fn canonical_value_options_reach_every_native_read_surface() {
             // A wide glyph occupies a continuation cell. Compare terminal
             // cells with an independently drawn expected label rather than
             // flattening that continuation into an invented authored space.
-            let expected_width = ratatui::text::Line::from(expected.text.as_str()).width() as u16;
-            assert!(expected_width > 0 && expected_width <= width);
-            let area = ratatui::layout::Rect::new(0, 0, expected_width, 1);
-            let mut expected_buffer = ratatui::buffer::Buffer::empty(area);
-            ratatui::widgets::Widget::render(
-                ratatui::widgets::Paragraph::new(expected.text.as_str()),
-                area,
-                &mut expected_buffer,
-            );
-            let pattern: Vec<_> = (0..expected_width)
-                .map(|x| expected_buffer[(x, 0)].symbol())
-                .collect();
-            let occurrences = (0..height)
-                .map(|y| {
-                    let row: Vec<_> = (0..width).map(|x| buffer[(x, y)].symbol()).collect();
-                    row.windows(pattern.len())
-                        .filter(|cells| *cells == pattern.as_slice())
-                        .count()
-                })
-                .sum::<usize>();
+            let occurrences = label_occurrences(buffer, &expected.text);
             assert!(
                 occurrences >= slots,
                 "{arm}/{}: expected {slots} occurrences of {:?}\n{output}",

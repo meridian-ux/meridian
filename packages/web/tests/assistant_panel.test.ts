@@ -59,6 +59,10 @@ it.each(CONVERSATION_VALUES)("web-component conversation string contract: $name"
         .toEqual(block.list && entry.raw ? [entry.expected, entry.expected] : [entry.expected]);
       expect(root.querySelector("a")).toBeNull();
       expect(root.textContent).not.toContain("stale legacy cell");
+      if (entry.expectedTitle !== undefined) {
+        expect([...root.querySelectorAll("[title]")].filter(node => node.getAttribute("title") === entry.expectedTitle))
+          .toHaveLength(block.list && entry.raw ? 2 : 1);
+      }
     }
     expect(toBinary(BlockSchema, decoded)).toEqual(bytes);
   }
