@@ -60,6 +60,8 @@ pub mod proto {
 mod conversation;
 mod form_values;
 mod launchpad;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native_api;
 mod paths;
 mod payload_budget;
 mod render;

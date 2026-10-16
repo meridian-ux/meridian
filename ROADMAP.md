@@ -360,12 +360,19 @@ populated cards, including media alternatives, host-resolved icons, and href act
 Richer non-browser realizations remain open.
 Conversation list title/subtitle slots now share the field display contract in
 chat HTML/React and TUI, with wire-roundtrip coverage and literal string fallback.
-The shared formatter corpus now has 353 fixed-expectation cases, including a
+The shared formatter corpus now has 355 fixed-expectation cases, including a
 no-clock twin for all 133 explicit-clock cases. Native and actual WASM checks
 independently verify absolute temporal fallback and preserved principal titles;
 all 48 temporal mode/precision combinations and eight principal modes are covered.
 These formatter-boundary cases do not replace per-renderer option propagation
 or the outstanding SwiftUI semantic conformance evidence.
+
+The local SwiftUI package now calls that same Rust kernel through a bounded
+protobuf C ABI in a statically linked macOS/iOS XCFramework. Its native tests
+execute all 355 formatter cases and the 16 shared Rust Unicode regex cases.
+CopyValue adopts declared formatting while preserving literal copy, absent
+declaration behavior, and hidden-secret masking. These are kernel/consumer
+proofs, not full SwiftUI panel parity or a semantic view-dump verifier.
 
 ## Track C — Hardening
 

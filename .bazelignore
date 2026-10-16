@@ -15,3 +15,5 @@ dist
 .astro
 .ts-test
 .registry-entry
+# SwiftPM dependency checkouts/build products are not monorepo Bazel packages.
+.build

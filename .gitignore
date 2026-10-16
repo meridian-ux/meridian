@@ -37,3 +37,4 @@ MODULE.bazel.lock
 .build/
 .swiftpm/
 packages/swiftui/Generated/**/*.pb.swift
+packages/swiftui/Tests/Generated/*.pb.swift

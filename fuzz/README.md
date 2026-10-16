@@ -4,7 +4,18 @@ Use nightly-2026-04-29 and cargo-fuzz 0.13.2 (the CI pins). The target decodes
 PanelDescriptor, TablePanel, GalleryPanel, RpcCall, and ValueDisplay. It exercises
 core table/gallery rendering with a populated response, request binding, and
 formatting of text, numeric, and null values with an explicit clock. This is not
-a full native widget or all-input security audit. Seed a **scratch** corpus from
+a full native widget or all-input security audit.
+
+The same harness now calls the bounded native C ABI with borrowed protobuf
+buffers as both declarations and google.protobuf.Value inputs. It checks
+success-result decoding, exact output-pointer/length ownership/freeing, cleared
+error outputs, and absence of internal panic statuses. It also exercises native
+UTF-8/Rust-regex matching and its fail-closed statuses. The sanitizer sees the
+actual Rust ABI implementation, not a mock or alternate allocator. Pointer
+forgery and double-free are outside the caller contract; the harness supplies
+valid live input/output regions. Deterministic Rust/C/Swift tests separately
+cover caps, malformed/deep encodings, raw NUL strings, and authored outcomes.
+Seed a **scratch** corpus from
 the E6 panels and typed core wire cases:
 
 ```sh

@@ -112,6 +112,10 @@ const temporalCases = [
 
 const corpus = {
   valueFormats: [
+    valueFormat("json-safe-integer-structure", { count: 1, enabled: true, value: [0, 2.5] },
+      { type: 18 }, undefined, '{"count":1,"enabled":true,"value":[0,2.5]}'),
+    valueFormat("list-safe-integer-scalars", [0, 1, 2.5, false, null],
+      { type: 7 }, undefined, "0, 1, 2.5, false, —"),
     ...[
       [8, "2026-03-29T23:30:07-02:00", ["Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026"], "yesterday"],
       [9, "2026-03-29T23:30:07-02:00", ["Mar 30, 2026, 1:30 AM UTC", "Mar 30, 2026", "Mar 30, 2026, 1:30 AM UTC", "Mar 30, 2026, 1:30:07 AM UTC"], "2 hours ago"],
