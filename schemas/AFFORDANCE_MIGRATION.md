@@ -12,6 +12,8 @@ pnpm install --frozen-lockfile
 node schemas/tools/affordance_migration_probe.mjs
 # Optional: retain generated sources/descriptors for native consumer experiments.
 node schemas/tools/affordance_migration_probe.mjs --keep
+# With the retained directory, pinned protoc 33.4, JDK 21 and protobuf-java
+# 4.33.4, run tools/affordance_java_probe.py --help for compiled Java checks.
 ```
 
 The probe builds temporary copies of the **current real schemas**, not just
@@ -134,11 +136,18 @@ table. Production facade generation must derive old ownership/exports from the
 frozen baseline FileDescriptorSet and pinned generator, not a second manually
 maintained schema/export catalog. Update both generation paths together.
 
-Java compilation is **not yet verified**: this host has no configured JDK,
-and generated-source inspection with an unrelated protoc is not evidence of
-compiled compatibility. Java descriptor-holder methods returning old file
-descriptors, positional message lists, dependency lists, and descriptor object
-identity cannot silently be treated as equivalent to a new canonical file.
+Compiled Java evidence now uses the repository's protoc 33.4, checksum-pinned
+protobuf-java 4.33.4, and the available Homebrew JDK 21 without changing system
+Java configuration. The consumer compiles once against old generated classes;
+that same bytecode passes message/builder/wire checks against the old, purely
+relocated, and expanded schemas. Its old descriptor-ownership assertions pass
+only against the old classes and correctly fail in both migrated worlds:
+Affordance's owner changes to interaction.proto, while the old AffordanceProto
+holder has zero messages rather than two. The dedicated CI job repeats this
+with JDK 21. This is bounded compiled-consumer proof, not an audit of unknown
+external Java/JavaFX applications. Descriptor-holder methods returning old
+file descriptors, positional message lists, dependency lists, and descriptor
+object identity cannot silently be treated as equivalent to a new canonical file.
 The newly built SwiftUI foundation is tracked separately in PR #152; this
 proposal has not yet rerun its native package against the relocated descriptor.
 Public registry/external consumers require an explicit migration notice.
