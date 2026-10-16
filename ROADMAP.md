@@ -17,7 +17,7 @@ The roadmap exists to make three things true:
 | milestone | due | epics |
 |---|---|---|
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
-| **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness |
+| **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
 
@@ -194,10 +194,17 @@ responses before snapshot comparison; LLM-prompt previews stay local. LRO cases
 prove typed start-input collection, not full polling/results across every kit.
 Reference kits now have functional start forms; their full lifecycle, alongside
 MUI's, remains outstanding.
-This is not proof of field-complete parity: the new corpus still needs consumers
-for native standalone prompt surfaces, ValueType cases in the other value-bearing arms, computed
-accessibility trees, renderer-specific overflow/layout, and broader interactive
-surfaces. These remain in [#9](../../issues/9). See the
+Fixture provision ([#39](../../issues/39)) and the passing-snapshot gate
+([#41](../../issues/41)) are now integrated and acceptance-audited. The generator
+requires a complete, disjoint family for every value-bearing panel arm and every
+declared ValueType, including input/default cases. Computed browser accessibility
+proof covers all 427 cases across four browser realizations (1,708 trees).
+The gate rejects unsupported `renders` promotions, requires committed goldens,
+and CI explicitly executes the seven registered panel proof targets in addition
+to its wildcard test suite. Presence alone is not proof of passing output.
+This is not field-complete parity: external SwiftUI view dumps, general native
+ViewDescriptor layout, renderer-specific overflow/layout, and broader interactive
+surfaces remain in [#9](../../issues/9) and [#40](../../issues/40). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
 Bounded slices now cover canonical `resource_cards`, `gallery`, and `table`
 descriptors with shared responses across HTML, Shadcn, MUI, web-components, and
@@ -242,14 +249,25 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 
 | concept | today it is spelled | distilled to |
 |---|---|---|
-| **Tone** — how serious, how it looks | `ValueTone` (6) · `Status.State` / `ToolBlock.State` · `AffordanceStyle` · `Palette` roles | one `Tone` enum; `Palette` keyed by it — [#10](../../issues/10) |
+| **Tone** — how serious, how it looks | shared `Tone` (6 roles) is defined; deprecated `ValueTone`, operational states, `AffordanceStyle`, and `Palette` consumers still retain their existing APIs | additive consumer adoption and precedence; `Palette` keyed by `Tone`; per-renderer theme proof — [#10](../../issues/10) |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
-| **Rhythm & layout** | `Metrics` is empty; four layout modes with no per-modality realization; `NestedForm.element` is an empty oneof | `Metrics` defined; a degradation ladder per layout like `panel.proto` gives each arm; `schemas/DESIGN_LANGUAGE.md` as the glossary — [#13](../../issues/13) |
+| **Rhythm & layout** | `Metrics` has radius/unit fields but no full spacing/density/stroke contract; four layout modes need a per-modality realization table; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | complete Metrics and Typography adoption; layout degradation ladders; cross-modality form validation and glossary audit — [#13](../../issues/13) |
 
 The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): every
 current concept is mapped to its meaning, modality ladder, and theme roles while
 the proto remains the source of truth.
+
+The shared `Tone` definition and legacy deprecation ([#43](../../issues/43)) are
+integrated without changing existing field types, wire numbers, or
+`VALUE_TONE_*` JSON names. Consumer migration ([#44](../../issues/44)) and theme
+conformance ([#45](../../issues/45)) remain open. The additive ValueDisplay schema
+slots ([#49](../../issues/49)) are also integrated, with real-descriptor tests
+for stable tags, unset wire/JSON behavior, and old-reader field preservation.
+Neither schema milestone completes formatter consolidation: [#50](../../issues/50)
+still requires one core implementation compiled to WASM and linked into the TUI,
+and [#51](../../issues/51) requires removing per-renderer formatting paths.
+Matching fixture outputs alone do not satisfy that by-construction requirement.
 
 The first `ValueDisplay` migration slice is now shared at the table, native
 read-surface, and browser read-surface boundaries: `meridian-uiview` honors a
@@ -373,8 +391,14 @@ also supplies deliberate Bazel-native golden recorders for both k8s and projecto
 ordinary tests only compare committed expectations. Clean-runner CI provisions
 the same pinned `protoc` version as Bazel instead of relying on a developer's PATH.
 The remaining service-side hardening includes the contract items the merge shipped with notes attached
-([#10](https://github.com/meridian-ux/meridian-internal/issues/10)), and the playground
-as the place parity is *seen* ([#11](https://github.com/meridian-ux/meridian-internal/issues/11)).
+([#10](https://github.com/meridian-ux/meridian-internal/issues/10)). The playground
+harness epic ([#11](https://github.com/meridian-ux/meridian-internal/issues/11)) is
+complete: its selectable canonical corpus and side-by-side HTML/Shadcn/MUI kits
+are integrated, and all nine Block kinds pass through the real local host's
+authenticated HTTP/SSE path into the production browser bundle. Committed computed
+accessibility goldens cover each Block and the composed canvas for View.
+The public manifest declares this private development consumer explicitly;
+View remains `separate-entrypoint`, not an inline panel-renderer claim.
 
 The reference web-components renderer now enforces the descriptor admission policy
 at every RPC boundary: populate and stream calls are read-tier, while row/resource
