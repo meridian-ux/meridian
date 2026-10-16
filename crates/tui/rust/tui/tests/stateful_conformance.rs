@@ -259,6 +259,174 @@ fn json_value(value: Value) -> Json {
     }
 }
 
+#[test]
+fn constrained_options_keep_raw_copy_identity_and_native_reveal_state() {
+    use meridian_uiview::proto::{
+        ConnectFlowPanel, ConnectTarget, CopyValue, CopyValuePanel, FormattedValue,
+        PanelDescriptor, StatPanel, ValueDisplay,
+    };
+    fn count(buffer: &ratatui::buffer::Buffer, text: &str) -> usize {
+        let width = ratatui::text::Line::from(text).width() as u16;
+        assert!(width > 0 && width <= buffer.area.width);
+        let area = ratatui::layout::Rect::new(0, 0, width, 1);
+        let mut expected = ratatui::buffer::Buffer::empty(area);
+        ratatui::widgets::Widget::render(
+            ratatui::widgets::Paragraph::new(text),
+            area,
+            &mut expected,
+        );
+        let pattern: Vec<_> = (0..width).map(|x| expected[(x, 0)].symbol()).collect();
+        (0..buffer.area.height)
+            .map(|y| {
+                let row: Vec<_> = (0..buffer.area.width)
+                    .map(|x| buffer[(x, y)].symbol())
+                    .collect();
+                row.windows(pattern.len())
+                    .filter(|cells| *cells == pattern.as_slice())
+                    .count()
+            })
+            .sum()
+    }
+    let corpus: Json =
+        serde_json::from_slice(&std::fs::read(data_root().join("core.json")).unwrap()).unwrap();
+    let mut checked = 0;
+    for case in corpus["valueFormats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|case| case.get("nowMs").is_none())
+    {
+        let display = ValueDisplay::decode(option_wire(&case["display"]).as_slice()).unwrap();
+        let formatted = FormattedValue::decode(option_wire(&case["expected"]).as_slice()).unwrap();
+        let mut variants = Vec::new();
+        if let Some(raw) = case["input"].as_str() {
+            let expected = if display.r#type == 0 {
+                raw
+            } else {
+                &formatted.text
+            };
+            // The encoder is pure: prove raw clipboard identity without writing
+            // OSC52 to stdout or touching a real terminal's clipboard.
+            let command = meridian_tui::osc52(raw);
+            let payload = command
+                .strip_prefix("\x1b]52;c;")
+                .unwrap()
+                .strip_suffix('\x07')
+                .unwrap();
+            assert_eq!(
+                option_wire(&Json::String(payload.into())).as_slice(),
+                raw.as_bytes()
+            );
+            for secret in [false, true] {
+                let value = CopyValue {
+                    value: raw.into(),
+                    label: "Value".into(),
+                    secret,
+                    display: Some(display.clone()),
+                    ..Default::default()
+                };
+                variants.push((
+                    "copy_value",
+                    Body::CopyValue(CopyValuePanel {
+                        value: Some(value.clone()),
+                    }),
+                    secret,
+                    expected.to_owned(),
+                ));
+                variants.push((
+                    "connect_flow",
+                    Body::ConnectFlow(ConnectFlowPanel {
+                        endpoint: Some(value),
+                        targets: vec![ConnectTarget {
+                            id: "fixture".into(),
+                            label: "Fixture target".into(),
+                            ..Default::default()
+                        }],
+                        default_target_id: "fixture".into(),
+                        ..Default::default()
+                    }),
+                    secret,
+                    expected.to_owned(),
+                ));
+            }
+        } else if let Some(raw) = case["input"].as_f64() {
+            variants.push((
+                "stat",
+                Body::Stat(StatPanel {
+                    label: "Value".into(),
+                    value: raw,
+                    format: 5,
+                    value_display: Some(display.clone()),
+                    ..Default::default()
+                }),
+                false,
+                formatted.text.clone(),
+            ));
+        }
+        for (arm, body, secret, expected) in variants {
+            checked += 1;
+            let authored = PanelDescriptor {
+                panel_id: format!("{arm}-{}-{secret}", case["name"].as_str().unwrap()),
+                title: "Option fixture".into(),
+                body: Some(body),
+            };
+            let bytes = authored.encode_to_vec();
+            let panel = PanelDescriptor::decode(bytes.as_slice()).unwrap();
+            let host = CorpusHost {
+                responses: json!({}),
+                calls: RefCell::new(BTreeSet::new()),
+                closed: Arc::new(AtomicUsize::new(0)),
+            };
+            let mut widget = PanelView::new();
+            let draw = |widget: &mut PanelView| {
+                let mut terminal = Terminal::new(TestBackend::new(1024, 24)).unwrap();
+                terminal
+                    .draw(|frame| {
+                        widget.render(frame, frame.area(), &panel, &Context::default(), &host)
+                    })
+                    .unwrap();
+                terminal.backend().buffer().clone()
+            };
+            let initial = draw(&mut widget);
+            assert!(
+                count(
+                    &initial,
+                    if secret {
+                        "••••••••"
+                    } else {
+                        &expected
+                    }
+                ) > 0,
+                "{arm}/{}",
+                case["name"]
+            );
+            if secret {
+                assert_eq!(
+                    count(&initial, &expected),
+                    0,
+                    "secret label leaked before reveal"
+                );
+                widget.toggle_reveal();
+                assert!(
+                    count(&draw(&mut widget), &expected) > 0,
+                    "{arm}/{} revealed",
+                    case["name"]
+                );
+                widget.toggle_reveal();
+                let hidden = draw(&mut widget);
+                assert!(count(&hidden, "••••••••") > 0);
+                assert_eq!(count(&hidden, &expected), 0);
+            }
+            assert!(host.calls.borrow().is_empty());
+            assert_eq!(panel.encode_to_vec(), bytes);
+        }
+    }
+    assert_eq!(
+        checked, 757,
+        "180 string cases x 2 arms x 2 mask states + 37 numeric Stats"
+    );
+}
+
 fn json_struct(value: Struct) -> Json {
     Json::Object(
         value
