@@ -117,6 +117,14 @@ UTF-8 names; canonically equivalent names are distinct, while exact duplicates
 fail. The pure C builder takes a 64 KiB call and 1 MiB context, returns at most
 4 MiB, and applies the existing finite dynamic-number/depth-64 policy. It never
 admits or invokes. Message bytes use the same Rust-owned result/free contract.
+The native boundary uses `RequestBuilder::build_bounded`: cumulative intermediate
+copy work (JSON value bytes plus request paths, including overwritten and nested
+copies) is capped at 4 MiB, separately from the final 4 MiB wire-output cap.
+Combined dotted/nested/value depth is capped at 64 before path construction or
+insertion. This prevents a small final request from hiding excessive copies or
+deep transient objects. The legacy trusted Rust `build` API remains compatible;
+remaining WASM/TUI boundary callers must migrate to the fallible bounded API
+before the full descriptor-hardening roadmap can close.
 
 The view's keyed `.task` loads on mount and descriptor/context/capability changes;
 Refresh/Retry rechecks policy. Rendering and inspection themselves stay inert.

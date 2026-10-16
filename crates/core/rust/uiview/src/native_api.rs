@@ -318,8 +318,9 @@ pub unsafe extern "C" fn meridian_core_build_request(
             signals: context_bag(context.signals)?,
             selections: context_bag(context.selections)?,
         };
-        let result =
-            protobuf_value(crate::RequestBuilder::build(&call, &context), 0)?.encode_to_vec();
+        let request = crate::RequestBuilder::build_bounded(&call, &context, MAX_RESULT_BYTES, 64)
+            .map_err(|_| LIMIT_EXCEEDED)?;
+        let result = protobuf_value(request, 0)?.encode_to_vec();
         if result.len() > MAX_RESULT_BYTES {
             return Err(LIMIT_EXCEEDED);
         }
@@ -518,6 +519,47 @@ mod tests {
             INVALID_ARGUMENT
         );
         assert_eq!(len, 0);
+    }
+
+    #[test]
+    fn request_bridge_rejects_deep_paths_before_constructing_objects() {
+        use crate::proto::{field_binding::Source, FieldBinding, RpcCall};
+        let call = RpcCall {
+            bindings: vec![FieldBinding {
+                request_field: "a.".repeat(32_000) + "leaf",
+                source: Some(Source::Literal("value".into())),
+            }],
+            ..Default::default()
+        }
+        .encode_to_vec();
+        assert!(call.len() < MAX_DECLARATION_BYTES);
+        assert_eq!(unsafe { request(&call, &[]) }.0, LIMIT_EXCEEDED);
+    }
+
+    #[test]
+    fn request_bridge_rejects_copy_amplification_even_when_final_output_would_be_small() {
+        use crate::proto::{
+            field_binding::Source, ContextSource, FieldBinding, RequestContext, RpcCall,
+        };
+        let call = RpcCall {
+            bindings: (0..10)
+                .map(|_| FieldBinding {
+                    request_field: "same".into(),
+                    source: Some(Source::Context(ContextSource::UiIdentity as i32)),
+                })
+                .collect(),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        let context = RequestContext {
+            ui_identity: Some(prost_types::Value {
+                kind: Some(prost_types::value::Kind::StringValue("x".repeat(700_000))),
+            }),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        assert!(context.len() < MAX_VALUE_BYTES);
+        assert_eq!(unsafe { request(&call, &context) }.0, LIMIT_EXCEEDED);
     }
 
     unsafe fn stat(panel: &[u8], response: Option<&[u8]>) -> (i32, Option<ComputedStat>) {

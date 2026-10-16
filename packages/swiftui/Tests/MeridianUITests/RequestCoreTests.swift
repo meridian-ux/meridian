@@ -59,4 +59,25 @@ final class RequestCoreTests: XCTestCase {
             XCTAssertEqual($0 as? MeridianCoreError, .nativeStatus(3))
         }
     }
+
+    func testCoreRejectsDeepPathsAndOverwrittenCopyAmplificationBeforeDispatch() throws {
+        var binding = Meridian_Ui_V1_FieldBinding()
+        binding.requestField = String(repeating: "a.", count: 32_000) + "leaf"
+        binding.literal = "value"
+        var call = Meridian_Ui_V1_RpcCall()
+        call.bindings = [binding]
+        XCTAssertLessThan(try call.serializedData().count, 64 * 1024)
+        XCTAssertThrowsError(try MeridianCore.buildRequest(call, context: .init())) {
+            XCTAssertEqual($0 as? MeridianCoreError, .nativeStatus(3))
+        }
+        binding.requestField = "same"
+        binding.context = .uiIdentity
+        call.bindings = Array(repeating: binding, count: 10)
+        var context = Meridian_Ui_V1_RequestContext()
+        context.uiIdentity.stringValue = String(repeating: "x", count: 700_000)
+        XCTAssertLessThan(try context.serializedData().count, 1024 * 1024)
+        XCTAssertThrowsError(try MeridianCore.buildRequest(call, context: context)) {
+            XCTAssertEqual($0 as? MeridianCoreError, .nativeStatus(3))
+        }
+    }
 }

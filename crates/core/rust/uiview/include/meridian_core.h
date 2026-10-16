@@ -40,8 +40,11 @@ int32_t meridian_core_compute_stat(
     uint8_t **output, size_t *output_len);
 /* RpcCall (64 KiB) + RequestContext (1 MiB) -> google.protobuf.Value (4 MiB).
    Assembles through RequestBuilder; performs no admission or transport.
-   Exact duplicate context-bag keys, nonfinite dynamic numbers, malformed or
-   over-depth (64) values fail closed, with the same ownership/status contract. */
+   Cumulative intermediate-copy work is capped at 4 MiB (JSON value sizes plus
+   request paths, including overwritten/nested copies). Combined request/value
+   depth is capped at 64 before path construction/insertion. Duplicate exact
+   context keys, nonfinite numbers, malformed or excessive work/depth fail
+   closed, with the same ownership/status contract. */
 int32_t meridian_core_build_request(
     const uint8_t *call, size_t call_len,
     const uint8_t *context, size_t context_len,
