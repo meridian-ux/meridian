@@ -103,13 +103,37 @@ export function themeToCss(theme: Theme, mode: Mode = "dark", selector = ":root"
   return `${selector} {\n${body}\n}\n`;
 }
 
-/** Apply a theme at runtime by setting the `--mer-*` vars on an element (default :root). */
+// Runtime ownership only; these declarations never cross a serialized boundary.
+type Declaration = { value: string; priority: string };
+type OwnedDeclaration = { before: Declaration; applied: Declaration };
+const appliedThemes = new WeakMap<HTMLElement, Map<string, OwnedDeclaration>>();
+const declaration = (el: HTMLElement, key: string): Declaration => ({
+  value: el.style.getPropertyValue(key), priority: el.style.getPropertyPriority(key),
+});
+const sameDeclaration = (a: Declaration, b: Declaration): boolean =>
+  a.value === b.value && a.priority === b.priority;
+
+/** Apply a complete theme snapshot (default :root). Omitted tokens restore the
+ * pre-theme host declaration or stylesheet fallback; external edits survive. */
 export function applyTheme(
   theme: Theme,
   mode: Mode = "dark",
   el: HTMLElement = document.documentElement,
 ): void {
-  for (const [k, v] of Object.entries(themeToCssVars(theme, mode))) {
-    el.style.setProperty(k, v);
+  const next = themeToCssVars(theme, mode);
+  const previous = appliedThemes.get(el) ?? new Map<string, OwnedDeclaration>();
+  for (const [key, owned] of previous) {
+    if (Object.hasOwn(next, key) || !sameDeclaration(declaration(el, key), owned.applied)) continue;
+    if (owned.before.value) el.style.setProperty(key, owned.before.value, owned.before.priority);
+    else el.style.removeProperty(key);
   }
+  const managed = new Map<string, OwnedDeclaration>();
+  for (const [key, value] of Object.entries(next)) {
+    const current = declaration(el, key), owned = previous.get(key);
+    const before = owned && sameDeclaration(current, owned.applied) ? owned.before : current;
+    el.style.setProperty(key, value);
+    managed.set(key, { before, applied: declaration(el, key) });
+  }
+  if (managed.size) appliedThemes.set(el, managed);
+  else appliedThemes.delete(el);
 }

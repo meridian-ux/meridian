@@ -53,6 +53,14 @@ the stylesheet fallback intact. Unit and hermetic Chrome tests verify both the
 binding and the computed, inherited styles. This does not complete the broader
 spacing-scale/density/stroke contract in roadmap #52.
 
+`applyTheme` replaces its previous snapshot on the same element; it does not
+accumulate tokens from old skins. Omitted tokens restore the host's pre-theme
+inline declaration (including priority), or the stylesheet fallback when none
+existed. Only declarations owned by the binding are restored; unrelated styles
+and host overrides made after an application are preserved. Applying an empty
+theme releases the binding's remaining declarations. Ownership is per element
+and runtime-only, not a new serialized theme type.
+
 ## Gallery and Steps layouts
 
 The base stylesheet lays out Gallery cards in responsive columns with a 16rem
