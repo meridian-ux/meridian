@@ -15,7 +15,7 @@ import { escHtml as esc } from "./dom.js";
 import { renderBlockInner } from "./render_html.js";
 import { ASSISTANT_PANEL_CSS } from "./styles.js";
 import type { Block, ConversationEvent } from "./wire.js";
-import { conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
+import { conversationSequenceKey, conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
 
 export { ASSISTANT_PANEL_CSS };
 
@@ -26,7 +26,7 @@ export class MAssistantPanel extends HTMLElement {
   private inputEl: HTMLInputElement | null = null;
   private sendEl: HTMLButtonElement | null = null;
   private blocks = new Map<string, HTMLElement>();
-  private seen = new Set<number>();
+  private seen = new Set<string>();
 
   static get observedAttributes(): string[] {
     return ["sse-url", "turn-url"];
@@ -87,8 +87,8 @@ export class MAssistantPanel extends HTMLElement {
   }
 
   private handle(ev: ConversationEvent): void {
-    const seq = typeof ev.seq === "number" ? ev.seq : ev.seq != null ? Number(ev.seq) : undefined;
-    if (seq !== undefined && !Number.isNaN(seq)) {
+    const seq = conversationSequenceKey(ev.seq);
+    if (seq !== undefined) {
       if (this.seen.has(seq)) return;
       this.seen.add(seq);
     }

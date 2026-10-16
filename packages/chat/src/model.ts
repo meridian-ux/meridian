@@ -5,17 +5,12 @@
 // own DOM upsert but shares the same semantics.
 
 import { isActiveStatus, type Block, type ConversationEvent, type Status } from "./wire.js";
-
-function seqNumber(seq: number | string | undefined): number | undefined {
-  if (seq === undefined) return undefined;
-  const n = typeof seq === "number" ? seq : Number(seq);
-  return Number.isNaN(n) ? undefined : n;
-}
+import { conversationSequenceKey } from "@savvifi/meridian-schemas/uiview";
 
 export class ConversationModel {
   private order: string[] = [];
   private byId = new Map<string, Block>();
-  private seen = new Set<number>();
+  private seen = new Set<string>();
   private status: Status | null = null;
   private error: string | null = null;
 
@@ -24,7 +19,7 @@ export class ConversationModel {
    * duplicate (already-seen seq) and was ignored.
    */
   ingest(ev: ConversationEvent): boolean {
-    const seq = seqNumber(ev.seq);
+    const seq = conversationSequenceKey(ev.seq);
     if (seq !== undefined) {
       if (this.seen.has(seq)) return false;
       this.seen.add(seq);

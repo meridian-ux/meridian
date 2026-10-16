@@ -32,6 +32,16 @@ existing behavior.
   running→ok in place).
 - `turn-url` (default `/api/noc-agent/turn`) — POST `{ message }`.
 
+`seq` is a protobuf `uint64`: send canonical decimal strings for the full range
+`0` through `18446744073709551615`. Deduplication preserves the exact integer,
+including adjacent IDs above JavaScript's safe-integer limit. Safe nonnegative
+legacy numeric IDs remain accepted and deduplicate with the equivalent decimal
+string. Missing, malformed, out-of-range, or already-rounded numeric IDs do not
+receive a deduplication key; the event still follows the existing rendering path.
+This is replay suppression, not authentication, ordering, or replay protection
+across independent connections. Do not convert canonical sequence strings to
+JavaScript numbers in a transport adapter.
+
 ## React usage
 
 ```tsx

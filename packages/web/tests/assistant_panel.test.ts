@@ -1,13 +1,30 @@
 // @vitest-environment jsdom
 
-import { fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
-import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
+import { BlockSchema, ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
 import { CONVERSATION_VALUES, conversationValueBlocks } from "../../../schemas/conformance/conversation_values.js";
 import { ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
 import { describe, expect, it } from "vitest";
 
 import { registerAssistantPanel } from "../src/assistant_panel.js";
+
+it("keeps adjacent canonical uint64 sequence IDs distinct and suppresses exact replays", () => {
+  registerAssistantPanel();
+  const panel = document.createElement("m-assistant-panel") as HTMLElement;
+  const internals = panel as unknown as { render(): void; handle(event: unknown): void };
+  internals.render();
+  Object.defineProperty(panel.querySelector("[data-log]"), "scrollTo", { value: () => undefined });
+  for (const seq of [9007199254740992n, 9007199254740993n, 18446744073709551614n, 18446744073709551615n]) {
+    for (const text of [String(seq), "replayed"]) {
+      const message = create(ConversationEventSchema, { seq, event: { case: "block", value: {
+        blockId: "progress", kind: { case: "markdown", value: { text } },
+      } } });
+      internals.handle(toJson(ConversationEventSchema, fromBinary(ConversationEventSchema, toBinary(ConversationEventSchema, message))));
+      expect(panel.querySelector(".asst-row")?.textContent).toBe(String(seq));
+    }
+  }
+});
 
 function renderBlock(block: Record<string, unknown>): string {
   registerAssistantPanel();

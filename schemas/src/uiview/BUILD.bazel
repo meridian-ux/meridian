@@ -11,6 +11,12 @@ vitest_test(
 )
 
 vitest_test(
+    name = "conversation_sequence_test",
+    srcs = ["conversation_sequence.test.ts"],
+    deps = [":seam", "//schemas:node_modules/vitest"],
+)
+
+vitest_test(
     name = "conversation_tone_test",
     srcs = ["conversation_tone.test.ts"],
     deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
@@ -60,6 +66,7 @@ ts_project(
         "affordance_presentation.ts",
         "core_runtime.ts",
         "conversation_tone.ts",
+        "conversation_sequence.ts",
         "index.ts",
         "navigation.ts",
         "masked_multiline.ts",

@@ -30,6 +30,7 @@ vitest_test(
         "render.test.tsx",
         "value_corpus.test.tsx",
         "tone.test.tsx",
+        "sequence.test.tsx",
         "fixtures.ts",
     ],
     deps = [
