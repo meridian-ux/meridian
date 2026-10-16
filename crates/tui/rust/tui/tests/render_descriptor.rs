@@ -2409,6 +2409,82 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
 }
 
 #[test]
+fn native_enum_labels_use_every_semantic_theme_color_after_wire_decode() {
+    use meridian_uiview::proto::ValueTone;
+    use ratatui::style::{Color, Modifier};
+    let cases = [
+        (ValueTone::Neutral, "Neutral", 1),
+        (ValueTone::Info, "Info", 2),
+        (ValueTone::Success, "Success", 3),
+        (ValueTone::Warning, "Warning", 4),
+        (ValueTone::Danger, "Danger", 5),
+        (ValueTone::Accent, "Accent", 6),
+    ];
+    let descriptor = PanelDescriptor {
+        body: Some(Body::Form(FormPanel {
+            mode: FormMode::Readonly as i32,
+            fields: cases
+                .iter()
+                .map(|(tone, name, _)| FormField {
+                    field_id: name.to_string(),
+                    label: name.to_string(),
+                    kind: Some(Kind::EnumSelection(EnumSelection {
+                        default_value: "raw".into(),
+                        options: vec![EnumOption {
+                            value: "raw".into(),
+                            label: format!("{name} value"),
+                            tone: *tone as i32,
+                        }],
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        })),
+        ..Default::default()
+    };
+    let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+    let mut proto = meridian_tui::Theme::default().light.unwrap_or_default();
+    proto.fg = "#010101".into();
+    proto.info = "#020202".into();
+    proto.success = "#030303".into();
+    proto.warning = "#040404".into();
+    proto.danger = "#050505".into();
+    proto.accent = "#060606".into();
+    let palette = Palette::from_proto_palette(&proto);
+    let mut view = PanelView::with_palette(palette);
+    let mut terminal = Terminal::new(TestBackend::new(80, 20)).unwrap();
+    terminal
+        .draw(|frame| {
+            view.render(
+                frame,
+                frame.area(),
+                &descriptor,
+                &Context::default(),
+                &Refuse,
+            )
+        })
+        .unwrap();
+    let buffer = terminal.backend().buffer();
+    for (_, name, channel) in cases {
+        let label = format!("{name} value");
+        let cells = buffer
+            .content
+            .windows(label.len())
+            .find(|cells| cells.iter().map(|cell| cell.symbol()).collect::<String>() == label)
+            .expect("declared enum label must be visible");
+        for cell in cells {
+            assert_eq!(cell.fg, Color::Rgb(channel, channel, channel), "{name}");
+            assert!(
+                !cell.modifier.contains(Modifier::BOLD),
+                "tone must not invent emphasis: {name}"
+            );
+        }
+    }
+}
+
+#[test]
 fn form_prefill_renders_and_submit_contains_edited_values() {
     let descriptor = form_descriptor();
     let form = match descriptor.body.as_ref() {
