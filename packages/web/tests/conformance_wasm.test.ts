@@ -31,10 +31,12 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { PrincipalDisplay, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
 import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
+import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 
@@ -51,7 +53,7 @@ type NodeFs = { readFileSync(path: URL | string): Uint8Array };
 const GLUE = "./meridian_uiview.js";
 const WASM = "./meridian_uiview_bg.wasm";
 
-let wasm: UiviewWasm;
+let wasm: UiviewWasm & ValueFormatterWasm;
 let core: ReturnType<typeof JSON.parse>;
 let values: ReturnType<typeof JSON.parse>;
 let renderView: typeof import("../src/uiview/view_renderer.js").renderView;
@@ -71,7 +73,7 @@ beforeAll(async () => {
   const wasmUrl = new URL(WASM, import.meta.url);
   const mod = await import(glueUrl.href);
   await mod.default({ module_or_path: readFileSync(wasmUrl) });
-  wasm = mod as unknown as UiviewWasm;
+  wasm = mod as unknown as UiviewWasm & ValueFormatterWasm;
   const text = (path: string) => new TextDecoder().decode(readFileSync(new URL(path, import.meta.url)));
   core = JSON.parse(text("../../../schemas/conformance/core.json"));
   values = JSON.parse(text("../../../schemas/conformance/value_types.json"));
@@ -275,6 +277,34 @@ const tablePanel: PanelDescriptor = create(PanelDescriptorSchema, {
 const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
 describe("the native crate's shared fixture corpus through real WASM", () => {
+  it("formats every typed fixture through the standalone protobuf result boundary", () => {
+    for (const entry of values.cases) {
+      const display = create(ValueDisplaySchema, {
+        type: entry.type,
+        ...(entry.digits === undefined ? {} : { options: { case: "number", value: { fractionDigits: entry.digits } } }),
+      });
+      const raw = JSON.stringify(entry.raw);
+      expect(formatByCore(entry.raw, display, wasm), entry.name).toEqual({ text: entry.expected });
+      expect(formatByCore(null, display, wasm), entry.name).toEqual({ text: "—" });
+      expect(JSON.stringify(entry.raw), entry.name).toBe(raw);
+    }
+    for (const entry of core.tables.filter((entry: { name: string }) => entry.name.startsWith("temporal-"))) {
+      const table = fromBinary(TablePanelSchema, wire(entry.table));
+      expect(formatByCore(entry.response.rows[0].value, table.columns[0]!.valueDisplay!, wasm), entry.name)
+        .toEqual({ text: entry.expected[0].cells[0] });
+    }
+  });
+
+  it("carries principal supporting text from Rust rather than reconstructing it in JavaScript", () => {
+    for (const mode of [PrincipalDisplay.UNSPECIFIED, PrincipalDisplay.NAME, PrincipalDisplay.EMAIL, PrincipalDisplay.NAME_WITH_EMAIL_TITLE]) {
+      const display = create(ValueDisplaySchema, { type: ValueType.PRINCIPAL, options: { case: "principal", value: { display: mode } } });
+      for (const raw of ["Ada <ada@example.com>", "ada@example.com", "Ada <not-an-address>", "", null]) {
+        expect(formatByCore(raw, display, wasm)).toEqual(formatByDisplay(raw, display));
+      }
+    }
+    expect(() => wasm.formatValueDisplay(new Uint8Array([255]), "raw")).toThrow();
+  });
+
   it("reads the same path fixtures, including false, zero, absent fields, and empty paths", () => {
     for (const entry of core.paths) {
       expect(wasm.readPath(entry.input, entry.path), entry.name).toEqual(entry.expected);

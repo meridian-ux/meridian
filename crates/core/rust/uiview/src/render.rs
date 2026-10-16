@@ -1,7 +1,7 @@
 use crate::paths::ProtoPaths;
 use crate::proto::{
-    value_display, ColumnFormat, GalleryPanel, NumberOptions, PrincipalDisplay, PrincipalOptions,
-    TableColumn, TablePanel, TemporalPrecision, ValueDisplay, ValueType,
+    value_display, ColumnFormat, FormattedValue, GalleryPanel, NumberOptions, PrincipalDisplay,
+    PrincipalOptions, TableColumn, TablePanel, TemporalPrecision, ValueDisplay, ValueType,
 };
 use serde_json::Value;
 
@@ -210,6 +210,34 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
     }
 }
 
+/// Rich result for native and WASM consumers of a declared display. Legacy
+/// text-only callers keep their API; supporting text is computed once here.
+/// Clock-aware temporal presentation remains a separate formatter migration.
+pub fn format_display_value_with_metadata(value: &Value, display: &ValueDisplay) -> FormattedValue {
+    if !value.is_null() && value.as_str() != Some("") {
+        let kind = ValueType::try_from(display.r#type).unwrap_or(ValueType::Unspecified);
+        if matches!(kind, ValueType::Principal | ValueType::Email) {
+            let options = match display.options.as_ref() {
+                Some(value_display::Options::Principal(options)) => Some(options),
+                _ => None,
+            };
+            return formatted_principal(
+                value,
+                options,
+                if kind == ValueType::Email {
+                    PrincipalDisplay::Email
+                } else {
+                    PrincipalDisplay::Unspecified
+                },
+            );
+        }
+    }
+    FormattedValue {
+        text: format_display_value(value, display),
+        title: None,
+    }
+}
+
 /// Format the scalar principal label shared by native read surfaces.
 ///
 /// The wire-compatible rich form is `Name <email>`; a plain name or address
@@ -221,9 +249,20 @@ fn format_principal_value(
     options: Option<&PrincipalOptions>,
     default_display: PrincipalDisplay,
 ) -> String {
+    formatted_principal(value, options, default_display).text
+}
+
+fn formatted_principal(
+    value: &Value,
+    options: Option<&PrincipalOptions>,
+    default_display: PrincipalDisplay,
+) -> FormattedValue {
     let text = format_display_scalar(value);
     if text.is_empty() {
-        return "—".to_string();
+        return FormattedValue {
+            text: "—".to_string(),
+            title: None,
+        };
     }
     let is_email = |email: &str| {
         let Some((local, domain)) = email.split_once('@') else {
@@ -258,9 +297,17 @@ fn format_principal_value(
         .and_then(|value| PrincipalDisplay::try_from(value.display).ok())
         .unwrap_or(default_display);
     if display == PrincipalDisplay::Email {
-        return email.unwrap_or(name);
+        return FormattedValue {
+            text: email.unwrap_or(name),
+            title: None,
+        };
     }
-    name
+    let title = if display == PrincipalDisplay::NameWithEmailTitle {
+        email.filter(|email| email != &name)
+    } else {
+        None
+    };
+    FormattedValue { text: name, title }
 }
 
 fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
@@ -644,6 +691,56 @@ mod tests {
                 format_display_value(&json!(raw), &display),
                 expected,
                 "{raw}"
+            );
+        }
+    }
+
+    #[test]
+    fn rich_principal_results_share_text_and_preserve_optional_supporting_text() {
+        use prost::Message;
+        for (mode, expected, title) in [
+            (PrincipalDisplay::Unspecified, "Ada", None),
+            (PrincipalDisplay::Name, "Ada", None),
+            (PrincipalDisplay::Email, "ada@example.com", None),
+            (
+                PrincipalDisplay::NameWithEmailTitle,
+                "Ada",
+                Some("ada@example.com"),
+            ),
+        ] {
+            let display = ValueDisplay {
+                r#type: ValueType::Principal as i32,
+                options: Some(value_display::Options::Principal(PrincipalOptions {
+                    display: mode as i32,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            };
+            for (raw, expected_text, expected_title) in [
+                (json!("Ada <ada@example.com>"), expected, title),
+                (json!("ada@example.com"), "ada@example.com", None),
+                (json!("Ada <not-an-address>"), "Ada <not-an-address>", None),
+                (json!(""), "—", None),
+                (Value::Null, "—", None),
+            ] {
+                let shown = format_display_value_with_metadata(&raw, &display);
+                assert_eq!(shown.text, expected_text);
+                assert_eq!(shown.title.as_deref(), expected_title);
+                assert_eq!(shown.text, format_display_value(&raw, &display));
+                assert_eq!(
+                    FormattedValue::decode(shown.encode_to_vec().as_slice()).unwrap(),
+                    shown
+                );
+            }
+        }
+        for title in [None, Some(String::new())] {
+            let shown = FormattedValue {
+                text: String::new(),
+                title,
+            };
+            assert_eq!(
+                FormattedValue::decode(shown.encode_to_vec().as_slice()).unwrap(),
+                shown
             );
         }
     }

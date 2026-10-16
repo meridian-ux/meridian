@@ -5,12 +5,29 @@
 // React kits, and future browser renderers agree without importing one another.
 
 import {
+  FormattedValueSchema,
   PrincipalDisplay,
   TemporalDisplay,
   TemporalPrecision,
   ValueType,
+  ValueDisplaySchema,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { fromBinary, toBinary } from "@bufbuild/protobuf";
+
+/** Standalone core capability, separate from panel rendering and host setup. */
+export interface ValueFormatterWasm {
+  /** Initialized Rust bindings. Raw input must be JSON-compatible. */
+  formatValueDisplay(display: Uint8Array, value: unknown): Uint8Array;
+}
+
+/** Decode a core-produced rich result; no browser date/principal formatter runs
+ * on this path. The host owns initialization, routing, and tooltip realization.
+ * This additive seam does not yet replace the legacy formatter or its clock. */
+export function formatByCore(value: unknown, display: ValueDisplay, core: ValueFormatterWasm): DisplayedValue {
+  const result = fromBinary(FormattedValueSchema, core.formatValueDisplay(toBinary(ValueDisplaySchema, display), value));
+  return { text: result.text, ...(result.title === undefined ? {} : { title: result.title }) };
+}
 
 /** Strict ISO-8601 date/time values that are safe to humanize. */
 const ISO_8601 =

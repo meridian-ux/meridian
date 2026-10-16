@@ -15,13 +15,24 @@
 
 use crate::paths::ProtoPaths;
 use crate::payload_budget::{elapsed_from_monotonic_millis, PayloadBudget};
-use crate::proto::{GalleryPanel, PanelDescriptor, RpcCall, TablePanel};
+use crate::proto::{GalleryPanel, PanelDescriptor, RpcCall, TablePanel, ValueDisplay};
 use crate::render::{render_gallery, render_table};
 use crate::request::{Context, RequestBuilder};
 use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+
+/// Standalone declared-value formatting without constructing a table. Raw RPC
+/// data uses the bridge's existing JSON value layer; the declaration and rich
+/// result are protobuf wire messages (ValueDisplay -> FormattedValue).
+#[wasm_bindgen(js_name = "formatValueDisplay")]
+pub fn format_value_display(display: &[u8], value: JsValue) -> Result<Vec<u8>, JsError> {
+    let display = ValueDisplay::decode(display).map_err(|e| JsError::new(&e.to_string()))?;
+    let value: Value =
+        serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(crate::format_display_value_with_metadata(&value, &display).encode_to_vec())
+}
 
 /// Stateful JavaScript handle backed by the same payload policy used by native
 /// stream consumers. A separate instance is used for each direction/session.

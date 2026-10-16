@@ -209,6 +209,27 @@ with `bazel test //packages/web/tests:conformance_wasm`; this compiles the WASM
 and binds it with the pinned toolchain rather than substituting a mock. CI runs
 both paths, so a divergence from either set of expectations fails the build.
 
+### Standalone value formatter boundary
+
+The core also exports `format_display_value_with_metadata`, returning the
+canonical `FormattedValue` protobuf (visible text plus presence-tracked
+supporting title). Text-only native callers retain their existing API and share
+the same principal parser. The initialized WASM binding exposes
+`formatValueDisplay(ValueDisplay bytes, raw JSON value) -> FormattedValue bytes`;
+`formatByCore(value, display, bindings)` at the framework-neutral browser seam
+encodes and decodes those messages without reformatting the result in JavaScript.
+Raw values are never replaced with their formatted labels, and routing remains
+host-owned. Malformed wire messages fail rather than selecting a hidden fallback.
+
+Actual-WASM tests exercise all 29 current typed-value cases and null fallbacks,
+the thirteen temporal core vectors, and the principal mode/supporting-title
+matrix through this standalone entrypoint. Adapter tests separately preserve
+absent versus empty title presence.
+This additive capability is not yet the default formatter for existing browser
+consumers. Clock-aware temporal results, the complete option matrix, synchronous
+browser/SSR initialization, and removal of the legacy TypeScript implementation
+remain requirements of #50/#51; this boundary does not close either task.
+
 After editing the corpus authoring inputs or intentionally changing the core
 contract, regenerate with `node schemas/tools/write_core_corpus.mjs --write`
 after `pnpm install --frozen-lockfile`, then review the expectation changes.
