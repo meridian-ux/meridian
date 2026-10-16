@@ -2447,7 +2447,10 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
       return;
     }
     try {
-      source = (await invoker.invoke(
+      // Finalization is the user-started workflow's follow-up action, not an
+      // automatic read. Admitting Start must not grant arbitrary producer-chosen
+      // finalize methods through the default-open read tier.
+      source = (await mutationInvoker.invoke(
         finalize.service,
         finalize.method,
         finalizeRequest,

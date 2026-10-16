@@ -22,7 +22,7 @@
 //
 //   read      TablePanel.populate, Slot.sub_view_populate, detail fetch,
 //             gallery populate            — fires automatically on mount
-//   mutation  Action.call, form submit, LRO start
+//   mutation  Action.call, form submit, LRO start and finalize
 //                                         — only from a user gesture
 //
 // Because the tier is fixed by which code path the renderer took, a descriptor
