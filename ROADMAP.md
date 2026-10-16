@@ -19,7 +19,7 @@ The roadmap exists to make three things true:
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
 | **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
-| **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts |
+| **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · ~~internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts~~ |
 
 M1 is ordered first because everything after it is cheaper once it lands: the seam
 unblocks eight cells at once, the manifest becomes something CI can enforce rather
@@ -350,6 +350,12 @@ populated cards, including media alternatives, host-resolved icons, and href act
 Richer non-browser realizations remain open.
 Conversation list title/subtitle slots now share the field display contract in
 chat HTML/React and TUI, with wire-roundtrip coverage and literal string fallback.
+The shared formatter corpus now has 353 fixed-expectation cases, including a
+no-clock twin for all 133 explicit-clock cases. Native and actual WASM checks
+independently verify absolute temporal fallback and preserved principal titles;
+all 48 temporal mode/precision combinations and eight principal modes are covered.
+These formatter-boundary cases do not replace per-renderer option propagation
+or the outstanding external SwiftUI evidence.
 
 ## Track C — Hardening
 
@@ -396,8 +402,16 @@ suite. Its merged [PR #23](https://github.com/meridian-ux/meridian-internal/pull
 also supplies deliberate Bazel-native golden recorders for both k8s and projector;
 ordinary tests only compare committed expectations. Clean-runner CI provisions
 the same pinned `protoc` version as Bazel instead of relying on a developer's PATH.
-The remaining service-side hardening includes the contract items the merge shipped with notes attached
-([#10](https://github.com/meridian-ux/meridian-internal/issues/10)). The playground
+The service-contract epic
+([#10](https://github.com/meridian-ux/meridian-internal/issues/10)) is complete:
+the projector title is configurable through flag/env/Helm with a compatible
+default; k8s tests pin absent launchpad together with standalone UNIMPLEMENTED;
+both services test unary/watch AppShell behavior; and five build-definition
+facades share one OCI and one descriptor implementation. Per-crate compiler,
+image-layer, and archive guards preserve the existing build contract. Selected-site
+watches reject unrelated updates, and the combined Cargo workspace and strict
+all-targets Clippy pass. This does not imply production deployment or a v1 release.
+The playground
 harness epic ([#11](https://github.com/meridian-ux/meridian-internal/issues/11)) is
 complete: its selectable canonical corpus and side-by-side HTML/Shadcn/MUI kits
 are integrated, and all nine Block kinds pass through the real local host's
