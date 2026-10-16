@@ -183,7 +183,7 @@ declarations and explicit delegation rather than claiming to execute private cod
 
 ## Native and WASM core fixtures
 
-`core.proto` defines the test-only envelope for `core.json`. Its 182 cases cover
+`core.proto` defines the test-only envelope for `core.json`. Its 264 cases cover
 field paths, request bindings, tables, galleries, LRO status text, and stateful
 payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
 and the real wasm-bindgen bridge compare their outputs with the same committed
@@ -214,11 +214,21 @@ table entrypoints, and the default Rust-backed browser adapter. They cover UTC o
 normalization, day/year/leap-day rollover, midnight presentation, explicit day
 precision, and malformed suffixes or Unicode input. Invalid inputs retain raw
 text rather than becoming a partial timestamp or panicking on a UTF-8 slice.
-Explicit day precision retains the authored calendar date rather than shifting
-it with the timestamp's offset; zone-free native timestamps retain UTC behavior.
+DATE retains the authored calendar day after validating the complete optional
+timestamp. DATE_TIME remains an instant: DAY precision shows its UTC date,
+including offset-driven day/year/leap-day rollovers. Zone-free timestamps retain
+the documented UTC convention.
 These fixed expectations remain independent of the implementation even though
 browser and native formatting now execute the same core. They do not establish
-every invalid-input or calendar-day relative-time acceptance requirement.
+every invalid-input or modality acceptance requirement.
+
+The additional 82 calendar cases include all four TemporalDisplay modes crossed
+with all four TemporalPrecision values for DATE, DATE_TIME, and TIME. DATE uses
+the explicit clock's UTC day: same-day values read `today`, including before the
+Unix epoch, and stored offsets/times do not turn a calendar day into an instant.
+DATE_TIME relative text remains elapsed-time based even when its absolute title
+uses DAY precision. TIME never invents a calendar. Malformed suffixes, invalid
+seconds/offsets/calendar dates, and Unicode cannot hide behind a valid date prefix.
 
 The native suites run with `cargo test -p meridian-uiview --lib` or
 `bazel test //crates/core/rust/uiview:uiview_test`. The real bridge suite runs
@@ -289,8 +299,9 @@ gzipped, an explicit startup/bundle cost, not a completed performance-budget aud
 Twelve fixed fallback cases protect literal declared text, unknown types/modes,
 strict calendar validation, and UTC zone-free timestamps. UNSPECIFIED retains
 the existing inference contract, now implemented in core; unknown future types
-stay literal. Calendar-day relative semantics and the broader #50/#51 acceptance
-audit remain open; default adoption alone does not close either task.
+stay literal. Calendar semantics now have the explicit cross-mode matrix above;
+the broader input/options/modality audit remains open. Neither default adoption
+nor a finite fixture set alone closes #50/#51.
 
 After editing the corpus authoring inputs or intentionally changing the core
 contract, regenerate with `node schemas/tools/write_core_corpus.mjs --write`

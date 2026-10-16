@@ -271,7 +271,8 @@ and numeric algorithms are removed. Legacy stat and table numeric labels also
 delegate to core. Real HTML/Shadcn SSR hydration and detached, no-fetch Node
 imports are tested in addition to fixed native/WASM expectations.
 [#50](../../issues/50) and [#51](../../issues/51) remain open for the complete
-input/options and modality audit, including calendar-day relative semantics;
+input/options and modality audit. Calendar-day relative labels and
+UTC day-only instant labels now have a fixed cross-mode/precision matrix;
 matching fixtures or default adoption alone does not establish full acceptance.
 
 The first `ValueDisplay` migration slice is now shared at the table, native
