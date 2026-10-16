@@ -84,8 +84,10 @@ Degradation removes capability before it removes meaning:
 
 The ladder explains the current exceptions in `coverage.json`: TUI terminal
 content is a non-interactive placeholder because a PTY has no terminal transport
-there; prompt and LLM-prompt TUI views use dedicated entrypoints; and adhoc
-content is owned by the host handler registry.
+there, and adhoc content is owned by the host handler registry. Prompt and
+LLM-prompt panels now render through native `PanelView`, with typed response
+collection; they are not separate-entrypoint exceptions. Native composed-view
+layout remains a separate requirement from those panel-level proofs.
 
 ## Theme roles
 
