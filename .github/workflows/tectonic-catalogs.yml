@@ -1,9 +1,20 @@
 name: Tectonic catalogs
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/tectonic-catalogs.yml"
+      - ".bazelrc"
+      - "MODULE.bazel"
+      - "MODULE.bazel.lock"
+      - "packages/mui-kit/**"
+      - "packages/web/**"
+      - "packages/web-react/**"
+      - "schemas/**"
   push:
     branches: [main]
     paths:
+      - ".github/workflows/tectonic-catalogs.yml"
       - ".bazelrc"
       - "MODULE.bazel"
       - "MODULE.bazel.lock"

@@ -6,9 +6,11 @@
 //   argv[2] = @chrome launcher path
 //   argv[3] = the harness bundle path
 //   argv[4] = output directory (declared out_dir)
+//   argv[5] = JSON array of fixture names declared as Bazel outputs
 
 const fs = require("node:fs");
 const path = require("node:path");
+const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 
 // js_run_binary runs from BINDIR; inputs are passed as execroot-relative
@@ -40,6 +42,7 @@ function resolveOutput(p) {
 const chromePath = resolveInput(process.argv[2]);
 const bundlePath = resolveInput(process.argv[3]);
 const outDir = resolveOutput(process.argv[4]);
+const declaredFixtures = JSON.parse(process.argv[5]);
 const bundle = fs.readFileSync(bundlePath, "utf8");
 const html =
   '<!doctype html><html><head><meta charset="utf-8"></head>' +
@@ -66,6 +69,10 @@ async function main() {
     await page.setContent(html, { waitUntil: "load" });
     await page.waitForFunction(() => !!window.meridianHarness, null, { timeout: 15000 });
     const list = await page.evaluate(() => window.meridianHarness.list());
+    // Fail the producer before emitting a TeX fragment that references undeclared
+    // PNGs. Such files disappear on cache restore and cannot be staged by Tectonic.
+    assert.deepStrictEqual(list.map(fixture => fixture.name).sort(), [...declaredFixtures].sort(),
+      "Harness fixtures must exactly match catalog_figures declared outputs");
 
     for (const fixture of list) {
       await page.evaluate((n) => window.meridianHarness.render(n), fixture.name);
