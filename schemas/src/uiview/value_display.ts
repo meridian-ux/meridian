@@ -54,6 +54,16 @@ const DATE_TIME = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
+const DATE_TIME_SECONDS = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  second: "2-digit",
+  timeZone: "UTC",
+});
+
 /** Format a strict timestamp in a stable UTC representation. */
 export function formatTimestamp(text: string): string | undefined {
   const match = ISO_8601.exec(text);
@@ -118,6 +128,13 @@ function formatTemporal(text: string, precision: TemporalPrecision): string | un
   if (precision === TemporalPrecision.DAY) {
     const iso = /^(\d{4}-\d{2}-\d{2})/.exec(text);
     return iso ? formatTimestamp(iso[1] as string) : formatTimestamp(text);
+  }
+  if (precision === TemporalPrecision.MINUTE || precision === TemporalPrecision.SECOND) {
+    if (formatTimestamp(text) === undefined) return undefined;
+    // A calendar-only input does not acquire a time merely from a display hint.
+    if (text.length === 10) return formatTimestamp(text);
+    const parsed = new Date(text);
+    return `${(precision === TemporalPrecision.SECOND ? DATE_TIME_SECONDS : DATE_TIME).format(parsed)} UTC`;
   }
   return formatTimestamp(text);
 }

@@ -179,17 +179,22 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
             let text = value.as_str();
             match value_type {
                 ValueType::Date | ValueType::DateTime => {
-                    let day_precision = matches!(display.options.as_ref(),
-                        Some(value_display::Options::Temporal(options))
-                            if options.precision == TemporalPrecision::Day as i32);
+                    let precision = match display.options.as_ref() {
+                        Some(value_display::Options::Temporal(options)) => {
+                            TemporalPrecision::try_from(options.precision)
+                                .unwrap_or(TemporalPrecision::Unspecified)
+                        }
+                        _ => TemporalPrecision::Unspecified,
+                    };
                     text.and_then(|text| {
                         format_temporal(
                             text,
-                            if day_precision {
+                            if precision == TemporalPrecision::Day {
                                 ValueType::Date
                             } else {
                                 value_type
                             },
+                            precision,
                         )
                     })
                     .unwrap_or_else(|| format_display_scalar(value))
@@ -560,7 +565,11 @@ fn parse_temporal(text: &str, day_only: bool) -> Option<ParsedTemporal> {
     })
 }
 
-fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
+fn format_temporal(
+    text: &str,
+    value_type: ValueType,
+    precision: TemporalPrecision,
+) -> Option<String> {
     let ParsedTemporal {
         year,
         month,
@@ -573,11 +582,11 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
     let months = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
-    // Match the web's stable UTC timestamp presentation, including its
-    // date-only representation for midnight (milliseconds do not add precision).
+    // Unspecified precision keeps the date-only midnight default. An explicit
+    // minute/second request retains midnight; calendar-only inputs stay dates.
     if value_type == ValueType::Date
         || text.len() == 10
-        || (hour == 0 && minute == 0 && second == 0)
+        || (precision == TemporalPrecision::Unspecified && hour == 0 && minute == 0 && second == 0)
     {
         return Some(format!(
             "{} {}, {}",
@@ -591,13 +600,19 @@ fn format_temporal(text: &str, value_type: ValueType) -> Option<String> {
         0 => 12,
         value => value,
     };
+    let seconds = if precision == TemporalPrecision::Second {
+        format!(":{:02}", second)
+    } else {
+        String::new()
+    };
     Some(format!(
-        "{} {}, {}, {}:{:02} {} UTC",
+        "{} {}, {}, {}:{:02}{} {} UTC",
         months[(month - 1) as usize],
         day,
         year,
         display_hour,
         minute,
+        seconds,
         suffix
     ))
 }

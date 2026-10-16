@@ -1,6 +1,7 @@
 // Explicit expectation inventories, not an automatic default for future modes.
 export const FORMATTER_MODES = Object.freeze({
   TemporalDisplay: Object.freeze([0, 1, 2, 3]),
+  TemporalPrecision: Object.freeze([0, 1, 2, 3]),
   PrincipalDisplay: Object.freeze([0, 1, 2, 3]),
 });
 
