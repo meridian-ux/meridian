@@ -627,7 +627,11 @@ native suite independently round-trips the same values through Block and checks
 its rendered lines. Rich table cells override stale legacy values even when
 empty. A native TestBackend test additionally verifies multiline table cells,
 blank continuation lines, and neighboring column alignment in the actual terminal
-buffer. These checks do not establish external SwiftUI conformance or every
+buffer.
+Conversation field/list spans also expand into physical lines before wrapping
+and tail-scroll calculation; public draw-path TestBackend checks protect blank
+lines, subsequent styled spans, and two-row viewport tails.
+These checks do not establish external SwiftUI conformance or every
 temporal/principal option combination in every modality; roadmap #51 stays open.
 
 The native descriptor suite now has inline text goldens for populated Gallery,

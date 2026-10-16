@@ -471,7 +471,9 @@ pub fn conversation_lines(
     if let Some(error) = model.error() {
         lines.push(Line::styled(format!("  ✗ {error}"), palette.danger_style()));
     }
-    lines
+    // Expand before the draw path calculates tail scrolling as well as before
+    // Paragraph wrapping: authored newlines occupy real transcript rows.
+    crate::content::expand_embedded_lines(lines)
 }
 
 /// Render a conversation transcript into `area`, tailing the newest lines when
@@ -1136,6 +1138,68 @@ mod tests {
                 "  last"
             ]
         );
+    }
+
+    #[test]
+    fn multiline_fields_and_list_slots_reach_the_real_terminal_without_merging_words() {
+        use prost::Message;
+        use ratatui::{backend::TestBackend, Terminal};
+        let cases = [
+            (
+                block::Kind::Fields(block::Fields {
+                    fields: vec![block::Field {
+                        key: "Value".into(),
+                        value: "first\n\nsecond".into(),
+                        display: None,
+                    }],
+                }),
+                vec!["  Value  first", "", "second"],
+            ),
+            (
+                block::Kind::List(block::ListBlock {
+                    items: vec![block::ListItem {
+                        title: "alpha\nbeta".into(),
+                        subtitle: "meta\nend".into(),
+                        badges: vec!["ready".into()],
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }),
+                vec!["   • alpha", "beta  meta", "end  [ready]"],
+            ),
+        ];
+        for (kind, expected) in cases {
+            let event = ConversationEvent {
+                seq: 1,
+                event: Some(conversation_event::Event::Block(block_of(kind))),
+                ..Default::default()
+            };
+            let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+            let mut model = ConversationModel::new();
+            assert!(model.ingest(&decoded));
+            for height in [8, 2] {
+                let mut terminal = Terminal::new(TestBackend::new(40, height)).unwrap();
+                terminal
+                    .draw(|frame| {
+                        render_conversation(frame, frame.area(), &model, &palette(), "Empty")
+                    })
+                    .unwrap();
+                let buffer = terminal.backend().buffer();
+                let visible = expected.len().min(height as usize);
+                let rows: Vec<String> = (0..visible as u16)
+                    .map(|y| {
+                        (0..40)
+                            .map(|x| buffer[(x, y)].symbol())
+                            .collect::<String>()
+                            .trim_end()
+                            .to_owned()
+                    })
+                    .collect();
+                // Tailing counts physical continuation rows, not the original
+                // one-Line-per-slot representation.
+                assert_eq!(rows, expected[expected.len() - visible..]);
+            }
+        }
     }
 
     #[test]

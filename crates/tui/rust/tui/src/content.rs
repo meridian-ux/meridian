@@ -1783,7 +1783,7 @@ impl JsonDisplayValue for Value {
 // A ratatui Line cannot contain a newline: drawing it silently joins words.
 // Split authored/formatted multiline spans into real lines before wrapping,
 // preserving each span's styling and the parent line's style/alignment.
-fn expand_embedded_lines(lines: Vec<Line<'static>>) -> Vec<Line<'static>> {
+pub(crate) fn expand_embedded_lines(lines: Vec<Line<'static>>) -> Vec<Line<'static>> {
     let mut expanded = Vec::new();
     for line in lines {
         let fresh = || Line {
