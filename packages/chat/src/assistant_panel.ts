@@ -39,7 +39,8 @@ export class MAssistantPanel extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.render();
+    // A DOM move reconnects the same conversation instance, not a new model.
+    if (!this.logEl) this.render();
     this.connectSse();
   }
   disconnectedCallback(): void {
@@ -47,8 +48,7 @@ export class MAssistantPanel extends HTMLElement {
     this.source = null;
   }
   attributeChangedCallback(name: string): void {
-    if (name === "sse-url" && this.isConnected) {
-      this.source?.close();
+    if (name === "sse-url" && this.isConnected && this.logEl) {
       this.connectSse();
     }
   }
@@ -75,15 +75,21 @@ export class MAssistantPanel extends HTMLElement {
   }
 
   private connectSse(): void {
-    this.source = new EventSource(this.sseUrl);
-    this.source.onmessage = (msg) => {
+    this.source?.close();
+    this.source = null;
+    const source = new EventSource(this.sseUrl);
+    this.source = source;
+    source.onmessage = (msg) => {
+      if (this.source !== source) return;
       try {
         this.handle(JSON.parse(msg.data) as ConversationEvent);
       } catch (e) {
         console.error("assistant-panel: bad SSE frame", e, msg.data);
       }
     };
-    this.source.onerror = (e) => console.warn("assistant-panel: SSE error (will retry)", e);
+    source.onerror = (e) => {
+      if (this.source === source) console.warn("assistant-panel: SSE error (will retry)", e);
+    };
   }
 
   private handle(ev: ConversationEvent): void {

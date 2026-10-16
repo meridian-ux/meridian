@@ -42,6 +42,16 @@ This is replay suppression, not authentication, ordering, or replay protection
 across independent connections. Do not convert canonical sequence strings to
 JavaScript numbers in a transport adapter.
 
+A mounted React component or one web-component instance owns one conversation's
+transcript and replay identities. Changing the SSE URL reconnects the transport;
+it does not reset that conversation. Remount with a new React `key`, or create a
+new web-component instance, when switching conversations. Removing/reinserting
+the same element retains its rows and unsent draft, closes the old stream, and
+opens one current stream. Frames from closed/replaced streams are ignored before
+they can mutate state or consume replay identities. Reconnecting never posts a
+turn by itself. Hosts must scope both transport endpoints to their conversation;
+these lifecycle rules are not an authorization boundary.
+
 ## React usage
 
 ```tsx
