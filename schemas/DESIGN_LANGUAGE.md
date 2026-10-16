@@ -88,6 +88,13 @@ bullets. Grids degrade to ordered cards or text. A renderer may change spacing,
 typography, and control density, but it must not change ordering, labels, or
 the meaning of an action.
 
+The [layout realization contract](LAYOUT_REALIZATION.md) defines `list`,
+`stacked`, `tabbed`, and `two_column` for wide/narrow browsers, terminals
+(including 80 columns), compact touch surfaces, and static conversation output.
+It separates required behavior from the current implementation audit: a panel
+fixture does not prove a composed layout, and external SwiftUI behavior remains
+unverified until its source and runtime evidence are available.
+
 ## Degradation ladders
 
 Degradation removes capability before it removes meaning:
