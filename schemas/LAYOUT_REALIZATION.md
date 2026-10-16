@@ -53,11 +53,19 @@ pointer. Terminal selectors must document their keys. Responsive reflow must
 retain meaningful reading and focus order. These are acceptance requirements,
 not evidence that role attributes alone establish accessibility.
 
+The shared React selector uses manual activation: Left/Right wrap focus,
+Home/End reach the first/last tab, and Enter/Space or click selects the panel.
+Up/Down retain page scrolling. Only the selected body mounts, so browsing labels
+does not fetch inactive content; hidden panel containers retain valid
+`aria-controls` targets. Labels wrap at compact widths without changing order.
+This follows the [WAI tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/)
+for panels whose activation may load data.
+
 ## Current implementation audit
 
 | Surface | Source evidence | Verified support and remaining gap |
 |---|---|---|
-| Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs currently have click/selected-state behavior but lack complete keyboard/panel-association semantics. Narrow-viewport focus/reflow proof is still required. |
+| Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts); [tab interaction tests](../packages/web-react/tests/view_tabs.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs provide manual keyboard activation, roving focus, unique tab/panel associations, and wrapping labels. Complete cross-kit narrow-view geometry/focus and two-column reflow proof remain separate requirements. |
 | Web-components composition | [`renderView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts) | List/stacked retain ordered slots. Two-column creates main/aside containers, but the renderer supplies no responsive column styling itself; a class name is not reflow evidence. Tabs support arrow/Home/End selection, but every slot becomes a tab, unlike the region rule above. Header-row, nested-view/repeated composition, and selection-gated slots are not implemented by this slot renderer. These are gaps, not intentional degradation. |
 | TUI panels and transcript | [`PanelView`](../crates/tui/rust/tui/src/widget.rs); [conversation view arm](../crates/tui/rust/tui/src/conversation.rs) | Panels render individually. The transcript's `Block.view` shows the view title and slot count with an explicit “not drawn” message; it does not realize any layout mode. The native stateful suite extracts panels from view fixtures and therefore is not composed-layout proof. A real view host and 80-column buffer/navigation tests remain required. |
 | SwiftUI | [renderer catalog](conformance/renderer_catalog.json) | Advertised external preview in `meridian-ui`; source and view-dump evidence are unavailable here. All four layout realizations remain unverified. “Tabbed on iOS” in the required table is a target contract, not a report of current behavior. |

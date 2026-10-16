@@ -296,7 +296,7 @@ export function ViewRenderer({
   let body: ReactNode;
   switch (layout?.case) {
     case "tabbed":
-      body = <TabbedSlots slots={slots} />;
+      body = <TabbedSlots slots={slots} label={`${view.title || view.id || "View"} sections`} />;
       break;
     case "twoColumn":
       body = <TwoColumnSlots slots={slots} />;
@@ -376,8 +376,11 @@ export function ViewRenderer({
   );
 }
 
-function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
+function TabbedSlots({ slots, label }: { slots: Slot[]; label: string }): ReactNode {
   const [active, setActive] = useState(0);
+  const [focused, setFocused] = useState(0);
+  const id = useId();
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   // Partition: ONLY slots carrying a `tab_label` are tabs. Everything else is a
   // REGION — a normal section rendered ABOVE the strip in `position` order, which
   // is where a detail view's header and summary cards belong. Without this split
@@ -392,6 +395,7 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
   // `active` index (a descriptor swap), which would otherwise render an empty
   // body. -1 ⇒ no tabs at all (regions still render; the strip does not).
   const activeIndex = tabs.length > 0 ? Math.min(active, tabs.length - 1) : -1;
+  const focusIndex = tabs.length > 0 ? Math.min(focused, tabs.length - 1) : -1;
 
   return (
     <div className="mer-tabs">
@@ -409,11 +413,17 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
           <div
             className="mer-tabstrip"
             role="tablist"
+            aria-label={label}
+            onBlur={(event) => {
+              // Reenter through the selected tab, not a previously explored tab.
+              if (!event.currentTarget.contains(event.relatedTarget)) setFocused(activeIndex);
+            }}
             // Structural + affordance styling (kit-neutral). Colors read the --mer-*
             // theme vars a kit exposes (MeridianMuiProvider / htmlKit set these),
             // falling back to sensible defaults so tabs look like tabs in any kit.
             style={{
               display: "flex",
+              flexWrap: "wrap",
               gap: 4,
               borderBottom: "1px solid var(--mer-border, #e0e0e0)",
               marginBottom: 16,
@@ -426,9 +436,27 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
                   key={s.id}
                   type="button"
                   role="tab"
+                  id={`${id}-tab-${i}`}
+                  aria-controls={`${id}-panel-${i}`}
                   aria-selected={isActive}
+                  tabIndex={i === focusIndex ? 0 : -1}
+                  ref={(element) => { tabRefs.current[i] = element; }}
                   className={isActive ? "mer-tab active" : "mer-tab"}
-                  onClick={() => setActive(i)}
+                  onFocus={() => setFocused(i)}
+                  onClick={() => { setActive(i); setFocused(i); }}
+                  onKeyDown={(event) => {
+                    if (event.altKey || event.ctrlKey || event.metaKey) return;
+                    let next = i;
+                    if (event.key === "ArrowRight") next = (i + 1) % tabs.length;
+                    else if (event.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
+                    else if (event.key === "Home") next = 0;
+                    else if (event.key === "End") next = tabs.length - 1;
+                    else return;
+                    event.preventDefault();
+                    // Manual activation: navigation must not mount/fetch a panel
+                    // until Enter, Space, or click activates its native button.
+                    tabRefs.current[next]?.focus();
+                  }}
                   style={{
                     appearance: "none",
                     background: "transparent",
@@ -443,6 +471,8 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
                       ? "2px solid var(--mer-accent, #1976d2)"
                       : "2px solid transparent",
                     marginBottom: "-1px",
+                    maxWidth: "100%",
+                    overflowWrap: "anywhere",
                   }}
                 >
                   {/* isTab guarantees a non-empty tab_label — no title/id fallback.
@@ -453,7 +483,12 @@ function TabbedSlots({ slots }: { slots: Slot[] }): ReactNode {
               );
             })}
           </div>
-          {tabs[activeIndex] ? <SlotView slot={tabs[activeIndex]} /> : null}
+          {tabs.map((slot, i) => (
+            <div key={slot.id} role="tabpanel" id={`${id}-panel-${i}`}
+              aria-labelledby={`${id}-tab-${i}`} hidden={i !== activeIndex} tabIndex={0}>
+              {i === activeIndex ? <SlotView slot={slot} /> : null}
+            </div>
+          ))}
         </>
       ) : null}
     </div>
