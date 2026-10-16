@@ -163,6 +163,279 @@
   ],
   "tables": [
     {
+      "name": "temporal-offset",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:45:30+02:30"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:45:30+02:30"
+          },
+          "cells": [
+            "Mar 29, 2026, 11:15 AM UTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-next-day",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T23:30:00-02:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T23:30:00-02:00"
+          },
+          "cells": [
+            "Mar 30, 2026, 1:30 AM UTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-previous-year",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-01-01T00:15:00+01:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-01-01T00:15:00+01:00"
+          },
+          "cells": [
+            "Dec 31, 2025, 11:15 PM UTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-leap-day",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2024-03-01T00:15:00+01:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2024-03-01T00:15:00+01:00"
+          },
+          "cells": [
+            "Feb 29, 2024, 11:15 PM UTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-midnight",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T02:00:00+02:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T02:00:00+02:00"
+          },
+          "cells": [
+            "Mar 29, 2026"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-compact-offset",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:45:30.123-0230"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:45:30.123-0230"
+          },
+          "cells": [
+            "Mar 29, 2026, 4:15 PM UTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-bad-suffix",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:45Zgarbage"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:45Zgarbage"
+          },
+          "cells": [
+            "2026-03-29T13:45Zgarbage"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-bad-second",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:45:99Z"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:45:99Z"
+          },
+          "cells": [
+            "2026-03-29T13:45:99Z"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-bad-offset",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:45+24:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:45+24:00"
+          },
+          "cells": [
+            "2026-03-29T13:45+24:00"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-unicode-hour",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29Té:45Z"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29Té:45Z"
+          },
+          "cells": [
+            "2026-03-29Té:45Z"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-unicode-minute",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICQ==",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T13:中Z"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T13:中Z"
+          },
+          "cells": [
+            "2026-03-29T13:中Z"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-day-precision",
+      "table": "EgRyb3dzKg8SBXZhbHVlMgYICRICEAE=",
+      "response": {
+        "rows": [
+          {
+            "value": "2026-03-29T23:30:00-02:00"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "2026-03-29T23:30:00-02:00"
+          },
+          "cells": [
+            "Mar 29, 2026"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "temporal-unicode-time",
+      "table": "EgRyb3dzKgsSBXZhbHVlMgIICg==",
+      "response": {
+        "rows": [
+          {
+            "value": "13:😀Z"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "raw": {
+            "value": "13:😀Z"
+          },
+          "cells": [
+            "13:😀Z"
+          ]
+        }
+      ]
+    },
+    {
       "name": "populated-nested-rows",
       "table": "EgtyZXN1bHQucm93cyoMCgROYW1lEgRuYW1lKhQKBkFjdGl2ZRIGYWN0aXZlMgIIBSoUCgRDb3N0EgRjb3N0MgYIBBoCCAIqEAoGQWJzZW50EgZhYnNlbnQqHQoPRGVjbGFyZWQgYWJzZW50EgZhYnNlbnQyAggB",
       "response": {

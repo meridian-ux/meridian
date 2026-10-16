@@ -7,6 +7,8 @@
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 import fixture from "../../../schemas/conformance/value_types.json";
+import coreCorpus from "../../../schemas/conformance/core.json";
+import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 import {
   PrincipalDisplay,
@@ -25,6 +27,15 @@ import {
 } from "../src/display_format.js";
 
 const corpus = fixture.cases;
+
+describe("native/WASM temporal table parity vectors", () => {
+  it.each(coreCorpus.tables.filter(entry => entry.name.startsWith("temporal-")))("formats $name with the same UTC text", entry => {
+    const table = fromBinary(TablePanelSchema, Uint8Array.from(atob(entry.table), char => char.charCodeAt(0)));
+    const row = entry.response as { rows: { value: string }[] };
+    const expected = entry.expected as { cells: string[] }[];
+    expect(formatByDisplay(row.rows[0]!.value, table.columns[0]!.valueDisplay).text).toBe(expected[0]!.cells[0]);
+  });
+});
 
 describe("shared ValueType conformance corpus", () => {
   it("covers every declared semantic type", () => {
