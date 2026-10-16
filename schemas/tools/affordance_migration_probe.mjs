@@ -1,0 +1,277 @@
+#!/usr/bin/env node
+// Proposal-only experiment. Nothing is generated into production source/package
+// directories, and expected FILE rejection is evidence, not a gate exception.
+import assert from "node:assert/strict";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
+import { createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
+import { DescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const BUF = join(ROOT, "node_modules/.bin/buf");
+const PLUGIN = join(ROOT, "node_modules/.bin/protoc-gen-es");
+const TSC = join(ROOT, "node_modules/typescript/bin/tsc");
+const UNIT = "proto/interaction.proto";
+export const PROPOSED_COMPONENT = Object.freeze([
+  "proto/affordance.proto", "proto/catalog.proto", "proto/command_palette.proto",
+  "proto/connect_flow.proto", "proto/lro.proto", "proto/panel.proto", "proto/steps.proto",
+  "proto/table.proto", "proto/view.proto",
+]);
+
+export function componentContaining(graph, start) {
+  // The SCC of start is the intersection of forward and reverse reachability.
+  const reachable = (edges, root) => {
+    const seen = new Set(), queue = [root];
+    while (queue.length) {
+      const node = queue.pop();
+      if (seen.has(node)) continue;
+      seen.add(node);
+      queue.push(...(edges.get(node) ?? []));
+    }
+    return seen;
+  };
+  const reverse = new Map();
+  for (const [node, deps] of graph)
+    for (const dependency of deps) reverse.set(dependency, [...(reverse.get(dependency) ?? []), node]);
+  const forward = reachable(graph, start), backward = reachable(reverse, start);
+  return [...forward].filter(node => backward.has(node)).sort();
+}
+
+function run(command, args, { expectedFailure = false } = {}) {
+  const result = spawnSync(command, args, { cwd: ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  if (result.error) throw result.error;
+  if (expectedFailure) assert.notEqual(result.status, 0, `unexpected success: ${command}`);
+  else assert.equal(result.status, 0, `${command} ${args.join(" ")}\n${result.stdout}\n${result.stderr}`);
+  return result;
+}
+
+function build(directory, output) {
+  run(BUF, ["build", directory, "--as-file-descriptor-set", "--exclude-source-info", "-o", output]);
+  return fromBinary(FileDescriptorSetSchema, readFileSync(output));
+}
+
+function declarations(descriptor) {
+  const entries = new Map();
+  const visit = (message, prefix) => {
+    const name = `${prefix}.${message.name}`;
+    entries.set(name, message);
+    for (const nested of message.nestedType) visit(nested, name);
+    for (const enumeration of message.enumType) entries.set(`${name}.${enumeration.name}`, enumeration);
+  };
+  for (const file of descriptor.file) {
+    for (const message of file.messageType) visit(message, file.package);
+    for (const enumeration of file.enumType) entries.set(`${file.package}.${enumeration.name}`, enumeration);
+  }
+  return entries;
+}
+
+function exportNames(source) {
+  return [...source.matchAll(/^export (?:declare )?(type|const|enum) (\w+)/gm)]
+    .map(([, kind, name]) => ({ kind, name })).filter(({ name }) => !name.startsWith("file_"));
+}
+
+function generate(image, directory, mode) {
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, "package.json"), '{"type":"module"}\n');
+  symlinkSync(join(ROOT, "schemas/node_modules"), join(directory, "node_modules"), "dir");
+  run(BUF, ["generate", image, "--template", JSON.stringify({ version: "v2", plugins: [{
+    local: PLUGIN, out: directory, opt: [`target=${mode}`, "import_extension=js"],
+  }] })]);
+}
+
+export async function probe() {
+  const work = mkdtempSync(join(tmpdir(), "meridian-affordance-proposal-"));
+  try {
+    const old = join(work, "old"), candidate = join(work, "candidate");
+    mkdirSync(old);
+    cpSync(join(ROOT, "schemas/proto"), join(old, "proto"), { recursive: true });
+    // Build only proto sources; Bazel/TS files copied alongside are not inputs.
+    cpSync(join(ROOT, "third_party/googleapis/google"), join(old, "google"), { recursive: true });
+    writeFileSync(join(old, "buf.yaml"), "version: v2\nbreaking:\n  use: [FILE]\n");
+    cpSync(old, candidate, { recursive: true });
+    const oldImage = join(work, "old.binpb"), nextImage = join(work, "candidate.binpb");
+    const before = build(old, oldImage);
+    const graph = new Map(before.file.map(file => [file.name, [...file.dependency]]));
+    // Proposed typed targets, placement/predicate reuse, palette envelope and
+    // table adoption. FormPanel already lives in panel.proto; form.proto does
+    // not acquire an Affordance dependency just to adapt a submit RPC.
+    const edges = {
+      "proto/affordance.proto": ["proto/panel.proto", "proto/command_palette.proto", "proto/view.proto", "proto/table.proto"],
+      "proto/command_palette.proto": ["proto/affordance.proto"],
+      "proto/table.proto": ["proto/affordance.proto"],
+    };
+    for (const [name, dependencies] of Object.entries(edges))
+      graph.set(name, [...new Set([...graph.get(name), ...dependencies])]);
+    const component = componentContaining(graph, "proto/affordance.proto");
+    assert.deepEqual(component, PROPOSED_COMPONENT, "migration boundary changed; review the proposal before updating it");
+    const members = new Set(component);
+    const files = new Map(before.file.map(file => [file.name, file]));
+    const dependencies = [...new Set(component.flatMap(name => graph.get(name)).filter(name => !members.has(name)))].sort();
+    const originalBodies = [];
+    const bodies = component.map(name => {
+      let source = readFileSync(join(old, name), "utf8");
+      const first = source.search(/^(?:message|enum) \w+/m);
+      assert(first >= 0, name);
+      source = source.slice(first);
+      originalBodies.push(source);
+      if (name === "proto/affordance.proto") {
+        source = source.replace(/(oneof invoke \{[\s\S]*?)(\n  \})/, `$1
+    RpcCall rpc = 10;
+    Navigate navigate = 11;
+    PanelDescriptor open_panel = 12;
+    string open_view = 13;
+    string copy = 14;$2`);
+      }
+      return source;
+    });
+    const header = 'syntax = "proto3";\npackage meridian.ui.v1;\n'
+      + 'option java_multiple_files = true;\noption java_package = "meridian.ui.v1";\n'
+      + 'option java_outer_classname = "InteractionProto";\n';
+    const unitHeader = header + dependencies.map(name => `import "${name}";\n`).join("");
+    for (const name of component) {
+      const holder = files.get(name).options.javaOuterClassname;
+      writeFileSync(join(candidate, name), header.replace("InteractionProto", holder) + `import public "${UNIT}";\n`);
+    }
+    writeFileSync(join(candidate, UNIT), unitHeader + originalBodies.join("\n"));
+    const relocatedImage = join(work, "relocated.binpb");
+    const relocated = build(candidate, relocatedImage);
+    const oldDeclarations = declarations(before);
+    assert.deepEqual(declarations(relocated), oldDeclarations, "pure relocation changed declaration contents");
+    const relocationRejection = run(BUF, ["breaking", relocatedImage, "--against", oldImage, "--config", join(ROOT, "buf.yaml")],
+      { expectedFailure: true });
+    assert.match(relocationRejection.stdout + relocationRejection.stderr, /previously present|deleted/i);
+    writeFileSync(join(candidate, UNIT), unitHeader + bodies.join("\n"));
+    const after = build(candidate, nextImage);
+    const newDeclarations = declarations(after);
+    for (const [name, original] of oldDeclarations) {
+      const next = newDeclarations.get(name);
+      assert(next, `declaration disappeared: ${name}`);
+      // Affordance gains five proposed fields in its existing oneof. Everything
+      // else, including nested types/options/reserved ranges, is byte-identical.
+      if (name === "meridian.ui.v1.Affordance") {
+        const copy = structuredClone(next);
+        copy.field = copy.field.filter(field => field.number < 10);
+        assert.deepEqual(toBinary(DescriptorProtoSchema, copy), toBinary(DescriptorProtoSchema, original));
+        assert.deepEqual(next.field.filter(field => field.number >= 10).map(field => [field.name, field.number, field.oneofIndex]),
+          [["rpc", 10, 0], ["navigate", 11, 0], ["open_panel", 12, 0], ["open_view", 13, 0], ["copy", 14, 0]]);
+      } else assert.deepEqual(next, original, name);
+    }
+    assert.equal(newDeclarations.size, oldDeclarations.size);
+    const rejection = run(BUF, ["breaking", nextImage, "--against", oldImage, "--config", join(ROOT, "buf.yaml")],
+      { expectedFailure: true });
+    assert.match(rejection.stdout + rejection.stderr, /previously present|deleted/i);
+    run(BUF, ["breaking", oldImage, "--against", oldImage, "--config", join(ROOT, "buf.yaml")]);
+
+    const registries = [before, after].map(descriptor => createFileRegistry(descriptor));
+    const panelSchemas = registries.map(registry => registry.getMessage("meridian.ui.v1.PanelDescriptor"));
+    const fixtureNames = readdirSync(join(ROOT, "schemas/conformance/binpb")).filter(name => name.endsWith(".binpb"));
+    for (const name of fixtureNames) {
+      const bytes = readFileSync(join(ROOT, "schemas/conformance/binpb", name));
+      const values = panelSchemas.map(schema => fromBinary(schema, bytes));
+      assert.deepEqual(toJson(panelSchemas[0], values[0]), toJson(panelSchemas[1], values[1]), name);
+      assert.deepEqual(toBinary(panelSchemas[0], values[0]), toBinary(panelSchemas[1], values[1]), name);
+    }
+    const newPanel = fromJson(panelSchemas[1], { panelId: "recursive", action: { action: {
+      label: "Open", openPanel: { panelId: "child", choice: { options: [{ id: "a", label: "A" }] } },
+    } } });
+    const bytes = toBinary(panelSchemas[1], newPanel);
+    assert.deepEqual(toBinary(panelSchemas[0], fromBinary(panelSchemas[0], bytes)), bytes,
+      "old binary readers must preserve unknown new invocation fields");
+    const affordanceSchemas = registries.map(registry => registry.getMessage("meridian.ui.v1.Affordance"));
+    const invocations = [
+      { uri: "https://example.test" }, { command: "printf '$raw'\n" },
+      { rpc: { service: "Demo", method: "Run", bindings: [{ requestField: "id", rowField: "raw.id" }] } },
+      { navigate: { route: "/items/raw" } }, { openPanel: { panelId: "inline", snippet: { snippet: { content: "raw\n" } } } },
+      { openView: "host-owned-view" }, { copy: "" },
+    ];
+    for (const invocation of invocations) {
+      const value = fromJson(affordanceSchemas[1], { label: "Test", ...invocation });
+      const wire = toBinary(affordanceSchemas[1], value);
+      const oldReaderWire = toBinary(affordanceSchemas[0], fromBinary(affordanceSchemas[0], wire));
+      assert.deepEqual(oldReaderWire, wire);
+      const recovered = fromBinary(affordanceSchemas[1], oldReaderWire);
+      assert.deepEqual(toJson(affordanceSchemas[1], recovered), { label: "Test", ...invocation });
+    }
+
+    let namedExports = 0;
+    for (const mode of ["js+dts", "ts"]) {
+      const baseline = join(work, `before-${mode}`), generated = join(work, `after-${mode}`);
+      generate(oldImage, baseline, mode);
+      generate(nextImage, generated, mode);
+      const productionOptions = JSON.parse(readFileSync(join(ROOT, "schemas/proto/tsconfig.es.json"), "utf8")).compilerOptions;
+      writeFileSync(join(generated, "tsconfig.json"), JSON.stringify({
+        compilerOptions: { ...productionOptions, noEmit: true }, include: ["**/*.ts"], exclude: ["node_modules"],
+      }));
+      writeFileSync(join(generated, "consumer.ts"),
+        'import { type Affordance, AffordanceSchema } from "./proto/affordance_pb.js";\n');
+      const missingExports = run(process.execPath, [TSC, "-p", join(generated, "tsconfig.json")], { expectedFailure: true });
+      assert.match(missingExports.stdout + missingExports.stderr, /TS2305.*Affordance/);
+      const suffix = mode === "ts" ? ".ts" : ".d.ts";
+      const importChecks = [];
+      for (const name of component) {
+        const module = name.replace(/\.proto$/, "_pb");
+        const exports = exportNames(readFileSync(join(baseline, module + suffix), "utf8"));
+        assert(exports.length > 0, module);
+        namedExports += exports.length;
+        const types = exports.filter(entry => entry.kind === "type").map(entry => entry.name);
+        const values = exports.filter(entry => entry.kind !== "type").map(entry => entry.name);
+        const index = importChecks.length;
+        importChecks.push(`import { ${exports.map(entry => `${entry.kind === "type" ? "type " : ""}${entry.name} as Check${index}_${entry.name}`).join(", ")} } from "./${module}.js";`);
+        const target = "./interaction_pb.js";
+        const facade = (values.length ? `\nexport { ${values.join(", ")} } from "${target}";\n` : "")
+          + (types.length ? `export type { ${types.join(", ")} } from "${target}";\n` : "");
+        const path = join(generated, module + suffix);
+        writeFileSync(path, readFileSync(path, "utf8") + facade);
+        if (mode === "js+dts") {
+          const js = join(generated, module + ".js");
+          writeFileSync(js, readFileSync(js, "utf8") + (values.length ? `\nexport { ${values.join(", ")} } from "${target}";\n` : ""));
+          const [previous, relocated] = await Promise.all([
+            import(pathToFileURL(join(baseline, module + ".js")).href),
+            import(pathToFileURL(js).href),
+          ]);
+          assert.deepEqual(Object.keys(relocated).sort(), Object.keys(previous).sort(), module);
+          for (const name of values) {
+            assert(relocated[name] !== undefined, name);
+            if (name.endsWith("Schema")) assert.equal(relocated[name].typeName, previous[name].typeName, name);
+          }
+        }
+      }
+      // Match the existing generated-package compiler settings, including its
+      // dependency-only skipLibCheck. Import/type errors in this consumer and
+      // generated .ts facades are not skipped.
+      writeFileSync(join(generated, "consumer.ts"), `import { type Affordance, AffordanceSchema } from "./proto/affordance_pb.js";
+import { type PanelDescriptor, PanelDescriptorSchema } from "./proto/panel_pb.js";
+declare const action: Affordance;
+declare const panel: PanelDescriptor;
+const label: string = action.label;
+const id: string = panel.panelId;
+// @ts-expect-error Reject any-eroded facade types.
+const invalid: number = action.label;
+void [label, id, AffordanceSchema, PanelDescriptorSchema, invalid];
+${importChecks.join("\n")}
+`);
+      run(process.execPath, [TSC, "-p", join(generated, "tsconfig.json")]);
+    }
+    return { component, declarations: oldDeclarations.size, fixtures: fixtureNames.length,
+      invocations: invocations.length, namedExports, work };
+  } catch (error) {
+    rmSync(work, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  assert(args.length === 0 || (args.length === 1 && args[0] === "--keep"), "usage: affordance_migration_probe.mjs [--keep]");
+  const result = await probe();
+  try {
+    console.log(JSON.stringify({ ...result, work: args.includes("--keep") ? result.work : undefined,
+      fileGate: "expected rejection; unchanged" }, null, 2));
+  } finally { if (!args.includes("--keep")) rmSync(result.work, { recursive: true, force: true }); }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+  await main();

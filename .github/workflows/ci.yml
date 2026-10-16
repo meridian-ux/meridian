@@ -39,6 +39,41 @@ jobs:
         run: python3 tools/swiftui.py --ios
       - name: Swift dependency lock is current
         run: git diff --exit-code -- Package.resolved
+      - name: Proposal-only Swift migration-consumer probe
+        run: |
+          set -euo pipefail
+          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
+          probe_dir="$(jq -r .work "$RUNNER_TEMP/swift-affordance-probe.json")"
+          generator_dir="$(swift build --package-path .build/checkouts/swift-protobuf --scratch-path .build/swift-protobuf-generator --show-bin-path)"
+          python3 tools/affordance_swift_probe.py --scratch "$probe_dir" --generator "$generator_dir/protoc-gen-swift"
+
+  affordance-java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Compiled Java migration-consumer and descriptor-ownership probe
+        run: |
+          set -euo pipefail
+          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/affordance-probe.json"
+          probe_dir="$(jq -r .work "$RUNNER_TEMP/affordance-probe.json")"
+          protoc_archive="$RUNNER_TEMP/meridian-protoc.zip"
+          curl --fail --location --silent --show-error -o "$protoc_archive" https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protoc-33.4-linux-x86_64.zip
+          printf '%s  %s\n' c0040ea9aef08fdeb2c74ca609b18d5fdbfc44ea0042fcfbfb38860d35f7dd66 "$protoc_archive" | sha256sum --check -
+          unzip -q "$protoc_archive" -d "$RUNNER_TEMP/meridian-protoc"
+          runtime_jar="$RUNNER_TEMP/protobuf-java-4.33.4.jar"
+          curl --fail --location --silent --show-error -o "$runtime_jar" https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/4.33.4/protobuf-java-4.33.4.jar
+          python3 tools/affordance_java_probe.py --scratch "$probe_dir" \
+            --protoc "$RUNNER_TEMP/meridian-protoc/bin/protoc" \
+            --java "$JAVA_HOME/bin/java" --javac "$JAVA_HOME/bin/javac" --runtime-jar "$runtime_jar"
 
   core-runtime:
     runs-on: ubuntu-latest
@@ -178,6 +213,9 @@ jobs:
 
       - name: Mirror conformance self-test
         run: node --test "schemas/tools/*.test.mjs"
+
+      - name: Proposal-only Affordance migration and import-facade probe
+        run: node schemas/tools/affordance_migration_probe.mjs
 
       - name: Admission gate
         run: pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.test.json --noEmit
