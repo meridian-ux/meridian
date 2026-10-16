@@ -9,7 +9,7 @@
 // from a graph-backed host's a host's internal MUI component library patterns) — no a host's internal MUI component library dependency — so the MUI table +
 // form patterns are reusable by any meridian host, not just a studio console.
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useActionFeedback } from "./action_feedback.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
@@ -338,7 +338,8 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
   const selection = useMeridianSelection();
-  const feedback = useActionFeedback();
+  const actionScope = useMemo(() => ({ panel, mutationInvoker, values: selection.values, viewRowActions }), [panel, mutationInvoker, selection.values, viewRowActions]);
+  const feedback = useActionFeedback(actionScope);
   const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
     const result: MeridianRowAction<Row>[] = [];
     (panel.actions ?? []).forEach((action, index) => {
@@ -355,8 +356,8 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           if (action.rpc?.service && action.rpc.method && rowActionEnabled(action, row)) {
             void feedback.run(async () => {
               const call = action.rpc!;
-              await mutationInvoker.invoke(call.service, call.method, call.bindings.length
-                ? buildActionBindingRequest(call, selection.values, row) : id != null ? { id } : {});
+              await mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
+                !call.bindings.length && id != null ? { id } : undefined));
               // proto3 cannot distinguish an omitted bool from authored false,
               // while RowAction documents refresh_on_success as default true.
               // Match the browser reference renderers and always refresh.
@@ -376,8 +377,8 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           if (action.call) {
             void feedback.run(() => {
               const call = action.call!;
-              return mutationInvoker.invoke(call.service, call.method, call.bindings.length
-                ? buildActionBindingRequest(call, selection.values, row) : id != null ? { id } : {});
+              return mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
+                !call.bindings.length && id != null ? { id } : undefined));
             });
             return;
           }
@@ -732,11 +733,11 @@ function buildFields(
  * rejection and rejected promises share one retryable failure boundary. */
 function useSubmissionState(scope: object) {
   const current = useRef<object | undefined>(scope);
-  current.current = scope;
   const busy = useRef<object | undefined>(undefined);
   const [pending, setPending] = useState<object>();
   const [failed, setFailed] = useState<{ scope: object; message: string }>();
-  useEffect(() => {
+  // Render can be abandoned by Suspense. Only a commit replaces the live call.
+  useLayoutEffect(() => {
     current.current = scope;
     return () => { current.current = undefined; };
   }, [scope]);
@@ -1059,7 +1060,10 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
 }
 
 function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
-  const feedback = useActionFeedback();
+  const selection = useMeridianSelection();
+  const record = useContext(MeridianRecordContext);
+  const scope = useMemo(() => ({ actions, invoker, values: selection.values, record }), [actions, invoker, selection.values, record]);
+  const feedback = useActionFeedback(scope);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const { subjectKind } = useContext(MeridianViewContext);
   const onAction = useActionHandler();
@@ -1068,7 +1072,7 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
   // the view subject (no row id at the header level).
   const fire = (action: Action): void => {
     if (action.call) {
-      void feedback.run(() => invoke(invoker, action.call));
+      void feedback.run(() => invoke(invoker, action.call, buildActionBindingRequest(action.call, selection.values, record)));
       return;
     }
     onAction?.(action.id, subjectKind);

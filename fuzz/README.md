@@ -44,7 +44,8 @@ run, not a proof that every possible descriptor is safe.
 
 The actual WebAssembly artifact has deterministic mutations in
 `packages/web/tests/conformance_wasm.test.ts`: every typical E6 panel arm plus
-typed RPC/table/gallery/display seeds cross all seven binary decoder exports.
+typed RPC/table/gallery/display seeds cross all eight binary decoder exports,
+including combined form/LRO submission assembly.
 Truncation, invalid wire tags, overlong varints, future fields, and byte flips
 may return valid results or ordinary errors, but must not trap or overflow the
 JavaScript stack. These tests run under the real Bazel-built bridge, not mocks.

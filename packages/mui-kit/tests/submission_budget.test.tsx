@@ -1,13 +1,15 @@
 import { create } from "@bufbuild/protobuf";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { act } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, startTransition, Suspense, useState } from "react";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelRenderer } from "@savvifi/meridian-web-react";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);
+beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
+afterAll(() => vi.unstubAllGlobals());
 
 function descriptor(kind: "form" | "lro", scope: string) {
   const call = { service: "demo.Inputs", method: "Submit", bindings: [{ requestField: "scope", source: { case: "literal" as const, value: scope } }] };
@@ -18,6 +20,37 @@ function descriptor(kind: "form" | "lro", scope: string) {
 
 describe("MUI submission boundary", () => {
   for (const kind of ["form", "lro"] as const) {
+    it(`${kind}: a suspended replacement does not strand the committed submission`, async () => {
+      const panel = descriptor(kind, "scope");
+      let replace!: () => void;
+      let finish!: (value: object) => void;
+      let suspended = false;
+      const never = new Promise<void>(() => {});
+      const old: RpcInvoker = { invoke: () => new Promise(resolve => { finish = resolve; }) };
+      const next: RpcInvoker = { invoke: async () => ({}) };
+      function Hold({ replacement }: { replacement: boolean }) {
+        if (replacement) { suspended = true; throw never; }
+        return null;
+      }
+      function App() {
+        const [replacement, setReplacement] = useState(false);
+        replace = () => setReplacement(true);
+        return <Suspense fallback={<p>Replacement loading</p>}>
+          <MeridianMuiProvider invoker={replacement ? next : old} admission={{ mutations: ["demo.Inputs/Submit"] }}>
+            <PanelRenderer descriptor={panel} /><Hold replacement={replacement} />
+          </MeridianMuiProvider>
+        </Suspense>;
+      }
+      render(<App />);
+      fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
+      await act(async () => startTransition(replace));
+      expect(suspended).toBe(true);
+      expect(screen.queryByText("Replacement loading")).toBeNull();
+      await act(async () => finish({}));
+      expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false);
+      expect(screen.queryByRole("status")).toBeNull();
+    });
+
     it(`${kind}: retains oversized input on rejection and permits a smaller retry`, async () => {
       const panel = descriptor(kind, "s".repeat(400_000));
       const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));

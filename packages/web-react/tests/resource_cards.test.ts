@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
-import { createElement } from "react";
+import { createElement, startTransition, Suspense, useState } from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
@@ -22,6 +22,43 @@ const invoker: RpcInvoker = { invoke: async () => ({ items: [] }) };
 
 describe("ResourceCardPanel (React)", () => {
   for (const [name, kit] of [["HTML", htmlKit], ["Shadcn", shadcnKit]] as const) {
+    it(`${name} keeps a committed card action live while a replacement render suspends`, async () => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: { titleField: "id", actions: { actions: [{
+          id: "run", label: "Run", invoke: { service: "demo.Items", method: "Run" },
+        }] } },
+      } } });
+      let replace!: () => void;
+      let finish!: (value: object) => void;
+      let suspended = false;
+      const never = new Promise<void>(() => {});
+      const old: RpcInvoker = { invoke: (_s, method) => method === "List" ? Promise.resolve({ items: [{ id: "One" }] })
+        : new Promise(resolve => { finish = resolve; }) };
+      const next: RpcInvoker = { invoke: async () => ({ items: [] }) };
+      function Hold({ replacement }: { replacement: boolean }) {
+        if (replacement) { suspended = true; throw never; }
+        return null;
+      }
+      function App() {
+        const [replacement, setReplacement] = useState(false);
+        replace = () => setReplacement(true);
+        return createElement(Suspense, { fallback: createElement("p", null, "Replacement loading") },
+          createElement(MeridianProvider, { kit, adhoc: {}, invoker: replacement ? next : old, admission: { mutations: ["demo.Items/Run"] } },
+            createElement(PanelRenderer, { descriptor }), createElement(Hold, { replacement })));
+      }
+      const container = document.createElement("div"); const root = createRoot(container);
+      try {
+        await act(async () => root.render(createElement(App)));
+        await act(async () => container.querySelector<HTMLButtonElement>(".mer-resource-action")!.click());
+        await act(async () => startTransition(replace));
+        expect(suspended).toBe(true);
+        expect(container.textContent).not.toContain("Replacement loading");
+        await act(async () => finish({}));
+        expect(container.querySelector<HTMLButtonElement>(".mer-resource-action")!.disabled).toBe(false);
+        expect(container.querySelector('[aria-busy="true"]')).toBeNull();
+      } finally { await act(async () => root.unmount()); }
+    });
+
     it.each(["unsafe", "large", "cycle"])(`${name} rejects %s action requests before dispatch`, async mode => {
       const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
         populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {

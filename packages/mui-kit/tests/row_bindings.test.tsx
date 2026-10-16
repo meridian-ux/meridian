@@ -11,6 +11,47 @@ import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);
+for (const viewAction of [false, true]) {
+  it(`bounds the legacy ${viewAction ? "view" : "panel"} bare-ID fallback without mutating its source`, async () => {
+    const id = { raw: "001.20", zero: 0 };
+    const call = { service: "demo.Rows", method: "Run" };
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: {
+      populate: { service: "demo.Rows", method: "List" }, rowsField: "items", columns: [{ header: "Name", fieldPath: "label" }],
+      actions: viewAction ? [] : [{ label: "Run", rpc: call }],
+    } } });
+    let sent: unknown;
+    render(<MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={{ invoke: async (_s, method, request) => {
+      if (method === "List") return { items: [{ id, label: "Row" }] };
+      sent = request; (request as { id: { zero: number } }).id.zero = 9; return {};
+    } }}><MeridianRowActionsContext.Provider value={viewAction ? [create(ActionSchema, { id: "run", label: "Run", call })] : []}>
+      <PanelRenderer descriptor={descriptor} />
+    </MeridianRowActionsContext.Provider></MeridianMuiProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Row actions" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Run" }));
+    await waitFor(() => expect(sent).toEqual({ id: { raw: "001.20", zero: 9 } }));
+    expect(id).toEqual({ raw: "001.20", zero: 0 });
+  });
+
+  it.each(["large", "cycle"])(`rejects a %s legacy ${viewAction ? "view" : "panel"} ID before mutation`, async mode => {
+    const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+    const call = { service: "demo.Rows", method: "Run" };
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: {
+      populate: { service: "demo.Rows", method: "List" }, rowsField: "items", columns: [{ header: "Name", fieldPath: "label" }],
+      actions: viewAction ? [] : [{ label: "Run", rpc: call }],
+    } } });
+    let mutations = 0;
+    render(<MeridianMuiProvider admission={{ mutations: ["*"] }} invoker={{ invoke: async (_s, method) => {
+      if (method === "List") return { items: [{ id: mode === "cycle" ? cyclic : "x".repeat(800_000), label: "Row" }] };
+      mutations++; return {};
+    } }}><MeridianRowActionsContext.Provider value={viewAction ? [create(ActionSchema, { id: "run", label: "Run", call })] : []}>
+      <PanelRenderer descriptor={descriptor} />
+    </MeridianRowActionsContext.Provider></MeridianMuiProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Row actions" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Run" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("Request construction rejected");
+    expect(mutations).toBe(0);
+  });
+}
 for (const viewAction of [false, true]) for (const bound of [false, true]) for (const denied of [false, true]) {
   it(`resolves ${viewAction ? "view" : "panel"} row requests, bound=${bound}, denied=${denied}`, async () => {
     const requests: unknown[] = [];

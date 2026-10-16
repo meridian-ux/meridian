@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type {
@@ -77,13 +77,13 @@ function ResourceCardAction({ action, row, invoker }: { action: ResourceAction; 
   // not a replacement that happens to reuse the same React key.
   const scope = useMemo(() => ({ action, row, invoker, selection: selection.values }), [action, row, invoker, selection.values]);
   const currentScope = useRef<typeof scope | undefined>(scope);
-  currentScope.current = scope;
   const busy = useRef<typeof scope | undefined>(undefined);
   const [pending, setPending] = useState<typeof scope>();
   const [failed, setFailed] = useState<typeof scope>();
   const [confirming, setConfirming] = useState<typeof scope>();
   const errorId = useId();
-  useEffect(() => {
+  // A suspended replacement is not yet the owner of pending action feedback.
+  useLayoutEffect(() => {
     currentScope.current = scope;
     return () => { currentScope.current = undefined; };
   }, [scope]);

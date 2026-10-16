@@ -7,7 +7,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { ValueType, PrincipalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
+import { MeridianSelectionContext, PanelRenderer } from "@savvifi/meridian-web-react";
 
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
@@ -16,6 +16,49 @@ import { MeridianMuiProvider } from "../src/provider.js";
 afterEach(cleanup);
 
 describe("ResourceCardPanel (MUI)", () => {
+  it("resolves nested card bindings from raw rows and live selection without mutating source data", async () => {
+    const row = { id: "row", data: { zero: 0, no: false, raw: "001.20" } };
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+      populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: { titleField: "id", actions: { actions: [{
+        id: "run", label: "Run", invoke: { service: "demo.Items", method: "Run", bindings: [
+          { requestField: "payload", source: { case: "rowField", value: "data" } },
+          { requestField: "payload.extra.scope", source: { case: "selectionKey", value: "tenant" } },
+          { requestField: "nested", source: { case: "nested", value: { fields: [{ requestField: "empty", source: { case: "literal", value: "" } }] } } },
+        ] },
+      }] } },
+    } } });
+    let sent: unknown;
+    render(<MeridianMuiProvider admission={{ mutations: ["demo.Items/Run"] }} invoker={{ invoke: async (_s, method, request) => {
+      if (method === "List") return { items: [row] };
+      sent = request; return {};
+    } }}><MeridianSelectionContext.Provider value={{ values: { tenant: "live" }, set: () => {} }}>
+      <PanelRenderer descriptor={descriptor} />
+    </MeridianSelectionContext.Provider></MeridianMuiProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Run" }));
+    await waitFor(() => expect(sent).toEqual({ payload: { zero: 0, no: false, raw: "001.20", extra: { scope: "live" } }, nested: { empty: "" } }));
+    expect(row).toEqual({ id: "row", data: { zero: 0, no: false, raw: "001.20" } });
+  });
+
+  it.each(["unsafe", "large", "cycle"])("rejects %s card bindings as a whole request", async mode => {
+    const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+      populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: { titleField: "id", actions: { actions: [{
+        id: "run", label: "Run", invoke: { service: "demo.Items", method: "Run", bindings: [
+          { requestField: "valid", source: { case: "literal", value: "must not dispatch alone" } },
+          { requestField: mode === "unsafe" ? "__proto__.scope" : "payload", source: { case: "rowField", value: "payload" } },
+        ] },
+      }] } },
+    } } });
+    const mutations: object[] = [];
+    render(<MeridianMuiProvider admission={{ mutations: ["demo.Items/Run"] }} invoker={{ invoke: async (_s, method, request) => {
+      if (method === "List") return { items: [{ id: "row", payload: mode === "cycle" ? cyclic : "x".repeat(800_000) }] };
+      mutations.push(request); return {};
+    } }}><PanelRenderer descriptor={descriptor} /></MeridianMuiProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Run" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("Request construction rejected");
+    expect(mutations).toEqual([]);
+  });
+
   it.each([false, true])("reports resource mutation feedback (admitted=%s)", async (admitted) => {
     let mutations = 0;
     let denials = 0;

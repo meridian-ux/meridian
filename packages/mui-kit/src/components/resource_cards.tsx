@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Alert, Box, Button, Card, CardContent, Chip, Link, Stack, Typography } from "@mui/material";
 import type { ResourceAction, ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { resolvePath, useHrefResolver, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
+import { buildActionBindingRequest, resolvePath, useHrefResolver, useMeridianSelection, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import { useActionFeedback } from "../action_feedback.js";
@@ -19,18 +19,6 @@ function visible(action: ResourceAction, row: Record<string, unknown>): boolean 
   return !!match && String(resolvePath(row, match[1].trim()) ?? "") === match[2].trim();
 }
 
-function requestFor(action: ResourceAction, row: Record<string, unknown>): Record<string, unknown> {
-  const request: Record<string, unknown> = {};
-  for (const binding of action.invoke?.bindings ?? []) {
-    const source = binding.source;
-    const value = source.case === "rowField"
-      ? resolvePath(row, source.value)
-      : source.case === "literal" ? source.value : undefined;
-    if (value !== undefined && value !== null) request[binding.requestField] = value;
-  }
-  return request;
-}
-
 export function MeridianResourceCards({
   panel,
   invoker,
@@ -40,7 +28,9 @@ export function MeridianResourceCards({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const mutationInvoker = useMutationRpcInvoker();
-  const feedback = useActionFeedback();
+  const selection = useMeridianSelection();
+  const scope = useMemo(() => ({ panel, rows, mutationInvoker, values: selection.values }), [panel, rows, mutationInvoker, selection.values]);
+  const feedback = useActionFeedback(scope);
   const resolveHref = useHrefResolver();
   const now = useDisplayNow();
   const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
@@ -52,7 +42,8 @@ export function MeridianResourceCards({
   const actions = template.actions?.actions ?? [];
   const invoke = (action: ResourceAction, row: Record<string, unknown>) => {
     if (action.invoke) {
-      void feedback.run(() => mutationInvoker.invoke(action.invoke!.service, action.invoke!.method, requestFor(action, row)));
+      void feedback.run(() => mutationInvoker.invoke(action.invoke!.service, action.invoke!.method,
+        buildActionBindingRequest(action.invoke, selection.values, row)));
     }
   };
   return (
