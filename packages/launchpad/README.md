@@ -49,6 +49,24 @@ filtering, keyboard navigation (↑/↓/↵/Esc), and dispatch. It must render i
 transport, so they are denied by default unless the host allows their exact
 service/method in `admission.mutations`.
 
+## Query resolver lifecycle
+
+`onResolveQuery?: (query: string) => Promise<Command[]>` optionally supplies
+agent-resolved commands under `agentGroupTitle` (default `Ask the agent`). The
+callback receives the trimmed, nonempty query after a 250 ms debounce, only
+while the palette is open. Memoize the callback to avoid unnecessary restarts.
+
+Changing the query, replacing/removing the callback, closing, or unmounting
+invalidates previous results and cancels pending debounce work. Old commands
+are withdrawn while the current query is pending; late responses cannot restore
+them. Already-started host work is not aborted by this API: hosts must manage
+their own transport cancellation if needed. Synchronous throws and rejected
+promises clear the pending state and leave local commands available.
+
+Resolution does not execute a command. Returned commands use the existing
+user-triggered dispatch and admission checks, including mutation denial by
+default and navigation validation.
+
 ## Development
 
 ```bash

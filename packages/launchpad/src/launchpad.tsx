@@ -51,6 +51,9 @@ export interface LaunchpadProps {
    * group. This is how a natural-language query ("show me failing builds") becomes
    * a command — the host wires it to its agent/LLM (e.g. the meridian-chat MCP
    * host). Memoize it (useCallback) so it doesn't re-run every keystroke's render.
+   * Runs only while open. Query/resolver changes withdraw old commands; closing
+   * cancels the debounce and ignores pending results (it cannot abort host work
+   * already started). Synchronous throws and rejected promises show no results.
    */
   onResolveQuery?: (query: string) => Promise<Command[]>;
   /** Heading for the agent-resolved commands group. Default "Ask the agent". */
@@ -198,17 +201,17 @@ export function Launchpad({
   // AI-launchpad seam: debounce-hand a non-empty query to the host's agent
   // resolver and surface the returned commands. Stale results are dropped.
   useEffect(() => {
-    if (!onResolveQuery) return;
+    // Results belong to the current visible query and host resolver. Keeping
+    // an old command runnable while asking a new question is not a cache hit.
+    setAgentCommands([]);
+    setAgentPending(false);
     const q = query.trim();
-    if (!q) {
-      setAgentCommands([]);
-      setAgentPending(false);
-      return;
-    }
+    if (!open || !onResolveQuery || !q) return;
     let cancelled = false;
     setAgentPending(true);
     const timer = setTimeout(() => {
-      onResolveQuery(q)
+      Promise.resolve()
+        .then(() => cancelled ? [] : onResolveQuery(q))
         .then((commands) => {
           if (cancelled) return;
           setAgentCommands(commands);
@@ -224,7 +227,7 @@ export function Launchpad({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, onResolveQuery]);
+  }, [open, query, onResolveQuery]);
 
   const finish = useCallback(() => {
     setFocusedPanel(undefined);
