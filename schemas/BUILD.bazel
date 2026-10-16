@@ -24,7 +24,7 @@ js_library(
 
 js_library(
     name = "conversation_value_data",
-    srcs = ["conformance/conversation_values.ts", "conformance/constrained_value_types.json"],
+    srcs = ["conformance/conversation_values.ts", "conformance/constrained_value_types.json", "conformance/core.json"],
     deps = [
         ":node_modules/@bufbuild/protobuf",
         ":node_modules/@savvifi/meridian-proto-ts",
