@@ -100,6 +100,13 @@ Node presence gate independently requires both viewport files for every case.
 
 Generate or verify deterministically with the pinned protobuf runtime:
 
+Before comparing or recording, the generator checks a complete, non-overlapping
+partition of every value-bearing panel arm into its natural read, constrained
+string/number, or input/default family. Every family must cover every declared
+ValueType, and input cases must cover every declared FormField kind. Invalid
+coverage fails before writing even the input index. These inventory checks do
+not substitute for renderer execution, accessibility, or layout evidence.
+
 ```sh
 python3 -m pip install -r tools/conformance_requirements.txt
 python3 tools/stateful_corpus.py --write  # deliberate update; review all twins
