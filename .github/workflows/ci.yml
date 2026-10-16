@@ -234,8 +234,10 @@ jobs:
 
       # Build the extracted archives, including unpublished first-party deps in
       # Cargo's temporary workspace registry. This never invokes cargo publish.
+      # Keep its registry-origin artifacts out of the workspace build cache:
+      # mixing these with path-origin crates can duplicate prost trait identity.
       - name: Rust distribution archives
-        run: cargo package --workspace --locked
+        run: cargo package --workspace --locked --target-dir "$RUNNER_TEMP/meridian-crate-packages"
 
       # The binary exists now. Smoke it: --help must work, and a non-descriptor
       # must be REJECTED with a readable error rather than a panic.

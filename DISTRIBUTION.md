@@ -21,14 +21,16 @@ Release version changes must update those pins with the workspace version.
 Verify without publication:
 
 ```sh
-cargo package --workspace --locked
+cargo package --workspace --locked --target-dir /tmp/meridian-crate-packages
 ```
 
 Cargo assembles archives and compiles their extracted contents, using its
 temporary registry for the not-yet-published workspace dependencies. This catches
 missing descriptor sets and invalid registry dependency specifications without
-uploading anything. The core and theme build scripts consume descriptor sets
-inside their own archives, with no consumer-side protoc requirement. This build
+uploading anything. The archive verifier uses a separate target directory so
+temporary-registry artifacts cannot contaminate subsequent path-origin workspace
+builds. The core and theme build scripts consume descriptor sets inside their own
+archives, with no consumer-side protoc requirement. This build
 verification does not replace the repository's full Cargo/Bazel conformance tests;
 some of those tests depend on the shared repository fixture corpus.
 
