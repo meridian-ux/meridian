@@ -97,6 +97,49 @@ def check_input_index(write=False):
             raise ValueError(f"Missing/stale {name}; run tools/stateful_corpus.py --write and review")
 
 
+def declared_value_types():
+    field = classes()["meridian.ui.v1.FormField"].DESCRIPTOR
+    return {value.number for value in field.file.pool.FindEnumTypeByName("meridian.ui.v1.ValueType").values}
+
+
+def validate_value_coverage(read, constrained, inputs):
+    """Validate corpus completeness before either comparison or recording.
+
+    Read, constrained string/number, and input/default cases preserve different
+    payload types. A new declared type must reach every family, not just one
+    convenient read surface. The descriptor defines the value-bearing arms.
+    """
+    def carries_display(descriptor, seen):
+        if descriptor.full_name == "meridian.ui.v1.ValueDisplay":
+            return True
+        if descriptor.full_name in seen:
+            return False
+        return any(field.message_type and carries_display(field.message_type, seen | {descriptor.full_name})
+                   for field in descriptor.fields)
+    panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
+    declared_arms = {field.name for field in panel.oneofs_by_name["body"].fields
+                     if carries_display(field.message_type, set())}
+    groups = [read["panelArms"], constrained["stringArms"], constrained["numberArms"], list(INPUT_ARMS)]
+    arms = [arm for group in groups for arm in group]
+    if len(arms) != len(set(arms)) or set(arms) != declared_arms:
+        raise ValueError("ValueDisplay arms need one complete, non-overlapping typed fixture family")
+    required = declared_value_types()
+    families = {
+        "read": {case["type"] for case in read["cases"]},
+        "string": {case["type"] for case in constrained["strings"]},
+        "number": {case["type"] for case in constrained["numbers"]},
+        "input": {case["field"]["display"]["type"] for case in inputs},
+    }
+    for name, types in families.items():
+        if required - types:
+            raise ValueError(f"{name}: missing declared ValueType fixtures {sorted(required - types)}")
+    Field = classes()["meridian.ui.v1.FormField"]
+    kinds = {json_format.ParseDict(case["field"], Field()).WhichOneof("kind") for case in inputs}
+    required_kinds = {field.name for field in Field.DESCRIPTOR.oneofs_by_name["kind"].fields}
+    if required_kinds - kinds:
+        raise ValueError(f"Missing input kind fixtures: {sorted(required_kinds - kinds)}")
+
+
 def response_rows(state):
     if state == "empty":
         return []
@@ -200,6 +243,10 @@ def scenario(panel_json, arm, state):
 def artifacts():
     types = classes()
     coverage = json.loads((ROOT / "schemas/conformance/coverage.json").read_text())
+    value_corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+    constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+    inputs = input_cases()
+    validate_value_coverage(value_corpus, constrained, inputs)
     files = {}
     def add(arm, state, view, responses):
         for suffix, name, data in (("view", "meridian.ui.v1.ViewDescriptor", view),
@@ -218,7 +265,6 @@ def artifacts():
             view, responses = scenario(panel_json, arm, state)
             add(arm, state, view, responses)
     # Typed response values pass unchanged through every unrestricted read arm.
-    value_corpus = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
     for case in value_corpus["cases"]:
         if not re.fullmatch(r"[a-z][a-z0-9-]*", case["name"]):
             raise ValueError(f"Invalid value case filename: {case['name']}")
@@ -256,7 +302,6 @@ def artifacts():
             raw = {"value": case["raw"]}
             response = raw if arm in ("record_card", "detail_header") else {"rows": [raw]}
             add(arm, name, view, {"fixture.Values.List": response})
-    constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
     for arms, cases in ((constrained["stringArms"], constrained["strings"]),
                         (constrained["numberArms"], constrained["numbers"])):
         for arm in arms:
@@ -283,7 +328,7 @@ def artifacts():
                 identity = f"{arm}-{name}"
                 view = {"id": identity, "title": name, "layout": {"stacked": {}}, "slots": [{"id": "content", "panel": {"panelId": identity, "title": case["name"], key: body}}]}
                 add(arm, name, view, responses)
-    for case in input_cases():
+    for case in inputs:
         field = case["field"]
         for arm in (*INPUT_ARMS, "readonly-form"):
             readonly = arm == "readonly-form"
@@ -327,8 +372,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
+    expected = artifacts()  # Validate all families before writing even the index.
     check_input_index(args.write)
-    count = check(ROOT / "schemas/conformance/fixtures", artifacts(), args.write)
+    count = check(ROOT / "schemas/conformance/fixtures", expected, args.write)
     print(f"Stateful corpus OK: {count} ViewDescriptor/response cases, binary/text twins")
 
 

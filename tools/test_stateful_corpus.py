@@ -1,12 +1,57 @@
 import json
+import copy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 from google.protobuf import json_format, text_format
-from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, classes, input_cases, input_index
+from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, classes, input_cases, input_index, declared_value_types, validate_value_coverage, main
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_recording_validates_before_writing_the_index_or_any_fixture(self):
+        with mock.patch("sys.argv", ["stateful_corpus.py", "--write"]), \
+                mock.patch("tools.stateful_corpus.artifacts", side_effect=ValueError("incomplete family")), \
+                mock.patch("tools.stateful_corpus.check_input_index") as index, \
+                mock.patch("tools.stateful_corpus.check") as fixtures:
+            with self.assertRaisesRegex(ValueError, "incomplete family"):
+                main()
+            index.assert_not_called()
+            fixtures.assert_not_called()
+
+    def test_generator_rejects_missing_duplicate_and_unknown_value_arms(self):
+        read = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        validate_value_coverage(read, constrained, input_cases())
+        for replacement in ([], ["copy_value"], ["copy_value", "copy_value"], ["copy_value", "ghost"]):
+            invalid = copy.deepcopy(constrained)
+            invalid["stringArms"] = replacement
+            with self.subTest(arms=replacement), self.assertRaisesRegex(ValueError, "typed fixture family"):
+                validate_value_coverage(read, invalid, input_cases())
+
+    def test_generator_requires_each_declared_type_in_every_payload_family(self):
+        read = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        for family in ("read", "string", "number", "input"):
+            a, b, c = copy.deepcopy(read), copy.deepcopy(constrained), input_cases()
+            if family == "read": a["cases"] = [case for case in a["cases"] if case["type"] != 3]
+            elif family == "input": c = [case for case in c if case["field"]["display"]["type"] != 3]
+            else:
+                key = "strings" if family == "string" else "numbers"
+                b[key] = [case for case in b[key] if case["type"] != 3]
+            with self.subTest(family=family), self.assertRaisesRegex(ValueError, f"{family}: missing declared ValueType"):
+                validate_value_coverage(a, b, c)
+        with mock.patch("tools.stateful_corpus.declared_value_types", return_value=declared_value_types() | {123}):
+            with self.assertRaisesRegex(ValueError, "missing declared ValueType fixtures.*123"):
+                validate_value_coverage(read, constrained, input_cases())
+
+    def test_generator_rejects_loss_of_an_input_kind_even_when_types_remain_covered(self):
+        read = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        inputs = [case for case in input_cases() if "masked" not in case["field"]]
+        with self.assertRaisesRegex(ValueError, "Missing input kind fixtures.*masked"):
+            validate_value_coverage(read, constrained, inputs)
+
     def test_input_index_covers_every_value_type_and_input_kind_as_protobuf(self):
         cases = input_cases()
         Field = classes()["meridian.ui.v1.FormField"]
