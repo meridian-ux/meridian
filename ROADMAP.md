@@ -333,8 +333,10 @@ pass their trusted loaded enum registry, including nested and repeated input
 paths; submitted DOM options cannot enlarge that registry. Web-components use
 canonical static enum membership rather than trusting editable option markup.
 Empty and duplicate object-field IDs are rejected before mutation, while scalar
-list elements may remain anonymous. This adoption does not resolve the separate
-native/JavaScript regex-dialect decision in [#54](../../issues/54).
+list elements may remain anonymous. The selected v1 pattern contract now uses
+Rust Unicode regex semantics in native and the embedded browser WASM core;
+[FORM_PATTERNS.md](schemas/FORM_PATTERNS.md) documents unsupported browser-only
+patterns and migration. Shared native/WASM fixtures pin this part of [#54](../../issues/54).
 Broader interaction parity remains separate work.
 The native one-shot `PromptPanel` path now accepts scalar `RepeatedField` values
 as JSON arrays and string `KeyValueMapField` values as JSON objects. It validates

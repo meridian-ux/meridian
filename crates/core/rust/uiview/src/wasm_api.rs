@@ -23,6 +23,13 @@ use serde_json::Value;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
+/// Pattern and input are runtime strings, never a JavaScript regex or callback.
+/// Invalid/unsupported patterns fail closed without exposing submitted values.
+#[wasm_bindgen(js_name = "matchesFormPattern")]
+pub fn matches_form_pattern(pattern: &str, value: &str) -> Result<bool, JsError> {
+    crate::form_values::matches_pattern(pattern, value).map_err(|_| JsError::new("invalid pattern"))
+}
+
 #[wasm_bindgen(js_name = "formatInferredValue")]
 pub fn format_inferred_value(value: JsValue) -> Result<String, JsError> {
     let value: Value =

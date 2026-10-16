@@ -84,9 +84,12 @@ message IntegerSpinner {
 message TextInput {
   // Pre-filled value.
   string default_value = 1 [(google.api.field_behavior) = OPTIONAL];
-  // Regex the value must match (e.g. `"^[a-z0-9-]+$"`). Validated
-  // by the renderer on submit; renderers display
-  // `pattern_error_msg` (if set) or a generic message on failure.
+  // Rust regex crate syntax, Unicode enabled by default, evaluated by the shared
+  // native/WASM core on submit. A search match is sufficient; use ^...$ for an
+  // entire-value constraint (e.g. "^[a-z0-9-]+$"). \d matches Unicode decimal
+  // digits; use [0-9] for ASCII. Lookaround and backreferences are unsupported.
+  // Invalid or over-budget patterns reject submission with an invalid-pattern
+  // error. A valid nonmatching pattern uses pattern_error_msg or a generic error.
   string pattern = 2 [(google.api.field_behavior) = OPTIONAL];
   // Custom error message shown when `pattern` doesn't match.
   string pattern_error_msg = 3 [(google.api.field_behavior) = OPTIONAL];

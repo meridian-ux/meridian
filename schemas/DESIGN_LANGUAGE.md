@@ -247,6 +247,9 @@ existing enum's wire/JSON type.
 
 - Web: typed controls and shared validation before host callbacks; preserve raw
   tokens, false, zero, empty text, recursive object/array structure, and errors.
+- Text and masked patterns: [Rust Unicode regex semantics](FORM_PATTERNS.md),
+  executed by the same native/WASM core. Unsupported patterns fail closed;
+  browser-only lookaround/backreferences require migration, not a JS fallback.
 - Native/SwiftUI target: native or key-driven typed editing; unsupported editing
   must be visible and must not fabricate a submitted value. Read-only stays read-only.
 - Conversation/static: show a labeled request or read-only value and the supported

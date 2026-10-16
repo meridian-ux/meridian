@@ -15,6 +15,15 @@ message CoreCorpus {
   repeated MetadataCase metadata = 5;
   repeated BudgetCase budgets = 6;
   repeated ValueFormatCase value_formats = 7;
+  repeated FormPatternCase form_patterns = 8;
+}
+
+message FormPatternCase {
+  string name = 1;
+  string pattern = 2;
+  string input = 3;
+  bool valid_pattern = 4;
+  bool matches = 5;
 }
 
 message ValueFormatCase {

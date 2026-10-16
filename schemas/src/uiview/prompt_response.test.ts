@@ -7,6 +7,28 @@ import { assertFormDefaultBudget, defaultFormValue, defaultFormValues, validateF
 import { hasMaskedField, renderPromptTemplate } from "./prompt_template.js";
 import { editMaskedSelection, maskedLines, replaceMaskedLine } from "./masked_multiline.js";
 
+describe("shared Rust pattern validation", () => {
+  it.each(["text", "masked"] as const)("uses Rust Unicode semantics for %s without invoking JavaScript RegExp", kind => {
+    const field = (pattern: string) => create(FormFieldSchema, {fieldId: "value", kind: {case: kind, value: {pattern, patternErrorMsg: "use ASCII"}}});
+    vi.stubGlobal("RegExp", function () { throw new Error("JavaScript regex must not execute"); });
+    try {
+      expect(validateFormValues([field("^\\d+$")], {value: "١"})).toBeUndefined();
+      expect(validateFormValues([field("^[0-9]+$")], {value: "١"})).toContain("use ASCII");
+      expect(validateFormValues([field("ready(?=!)")], {value: "ready!"})).toContain("invalid pattern");
+      expect(validateFormValues([field("^(.)\\1$")], {value: "aa"})).toContain("invalid pattern");
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("applies the same matcher inside nested and repeated fields", () => {
+    const field = create(FormFieldSchema, {fieldId: "object", kind: {case: "nested", value: {fields: [
+      {fieldId: "items", kind: {case: "repeated", value: {element: {case: "scalar", value: {
+        kind: {case: "masked", value: {pattern: "^\\w+$"}},
+      }}}}},
+    ]}}});
+    expect(validateFormValues([field], {object: {items: ["東京"]}})).toBeUndefined();
+    expect(validateFormValues([field], {object: {items: ["not a word"]}})).toContain("invalid value");
+  });
+});
+
 it("constructs typed recursive defaults without coercing false, zero, or strings", () => {
   const fields = [
     create(FormFieldSchema, { fieldId: "flag", kind: { case: "boolean", value: {} } }),
