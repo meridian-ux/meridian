@@ -202,6 +202,8 @@ fn canonical_value_options_reach_every_native_read_surface() {
                     (0..width)
                         .map(|x| buffer[(x, y)].symbol())
                         .collect::<String>()
+                        .trim_end()
+                        .to_owned()
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
