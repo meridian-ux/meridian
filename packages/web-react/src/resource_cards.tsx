@@ -6,11 +6,10 @@ import type {
   ResourceAction,
   ResourceCardPanel,
 } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
 
-import { buildBindingRequest, resolvePath, selectionDeps, useMeridianSelection } from "./pagination.js";
+import { buildActionBindingRequest, buildBindingRequest, resolvePath, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { useHrefResolver, useMutationRpcInvoker } from "./provider.js";
 import { useDisplayNow } from "./display_now.js";
 
@@ -27,35 +26,6 @@ function rowsFromResponse(response: unknown, rowsField: string): Row[] {
   return Array.isArray(value)
     ? value.filter((row): row is Row => !!row && typeof row === "object")
     : [];
-}
-
-function setNested(target: Row, path: string, value: unknown): void {
-  const parts = path.split(".").filter(Boolean);
-  if (!parts.length) return;
-  let cursor = target;
-  for (const part of parts.slice(0, -1)) {
-    const child = cursor[part];
-    if (!child || typeof child !== "object" || Array.isArray(child)) cursor[part] = {};
-    cursor = cursor[part] as Row;
-  }
-  cursor[parts[parts.length - 1]] = value;
-}
-
-function buildActionRequest(call: RpcCall | undefined, row: Row): Row {
-  const request: Row = {};
-  for (const binding of call?.bindings ?? []) {
-    const source = binding.source;
-    if (source.case === "rowField") {
-      const value = resolvePath(row, source.value);
-      if (value !== undefined && value !== null) setNested(request, binding.requestField, value);
-    } else if (source.case === "literal") {
-      setNested(request, binding.requestField, source.value);
-    } else if (source.case === "nested") {
-      const nested = buildActionRequest({ bindings: source.value.fields } as RpcCall, row);
-      setNested(request, binding.requestField, nested);
-    }
-  }
-  return request;
 }
 
 export function useResourceCardRows(
@@ -102,9 +72,10 @@ function styleName(style: ActionStyle): string {
 }
 
 function ResourceCardAction({ action, row, invoker }: { action: ResourceAction; row: Row; invoker: RpcInvoker }): ReactNode {
+  const selection = useMeridianSelection();
   // Feedback belongs to the exact row/action/transport that started the call,
   // not a replacement that happens to reuse the same React key.
-  const scope = useMemo(() => ({ action, row, invoker }), [action, row, invoker]);
+  const scope = useMemo(() => ({ action, row, invoker, selection: selection.values }), [action, row, invoker, selection.values]);
   const currentScope = useRef<typeof scope | undefined>(scope);
   currentScope.current = scope;
   const busy = useRef<typeof scope | undefined>(undefined);
@@ -125,7 +96,7 @@ function ResourceCardAction({ action, row, invoker }: { action: ResourceAction; 
     setConfirming(undefined);
     try {
       if (!action.invoke) throw new Error("Missing resource action call");
-      await invoker.invoke(action.invoke.service, action.invoke.method, buildActionRequest(action.invoke, row));
+      await invoker.invoke(action.invoke.service, action.invoke.method, buildActionBindingRequest(action.invoke, selection.values, row));
     } catch {
       if (currentScope.current === scope) setFailed(scope);
     } finally {

@@ -22,6 +22,34 @@ const invoker: RpcInvoker = { invoke: async () => ({ items: [] }) };
 
 describe("ResourceCardPanel (React)", () => {
   for (const [name, kit] of [["HTML", htmlKit], ["Shadcn", shadcnKit]] as const) {
+    it.each(["unsafe", "large", "cycle"])(`${name} rejects %s action requests before dispatch`, async mode => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+          titleField: "name", actions: { actions: [{ id: "run", label: "Run", invoke: {
+            service: "demo.Items", method: "Run", bindings: [
+              { requestField: "valid", source: { case: "literal", value: "must not dispatch alone" } },
+              { requestField: mode === "unsafe" ? "__proto__.scope" : "payload", source: { case: "rowField", value: "payload" } },
+            ],
+          } }] },
+        },
+      } } });
+      const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+      const calls: string[] = [];
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      try {
+        await act(async () => root.render(createElement(MeridianProvider, {
+          kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] }, invoker: { invoke: async (_service, method) => {
+            calls.push(method);
+            return { items: [{ name: "One", payload: mode === "cycle" ? cyclic : "x".repeat(800_000) }] };
+          } },
+        }, createElement(PanelRenderer, { descriptor }))));
+        await act(async () => container.querySelector<HTMLButtonElement>(".mer-resource-action")!.click());
+        expect(calls).toEqual(["List"]);
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      } finally { await act(async () => root.unmount()); }
+    });
+
     it(`${name} reports synchronous populate failures`, async () => {
       const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
         populate: { service: "demo.Items", method: "List" }, template: { titleField: "name" },

@@ -37,6 +37,29 @@ async function session(kit: ComponentKit, run: (root: Root, container: HTMLEleme
 }
 
 for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} fetched Stat lifecycle`, () => {
+  it.each(["large", "cycle", "unsafe"])("rejects %s bindings without invocation or stale values, then recovers", async mode => {
+    await session(kit, async (_root, container, render) => {
+      const descriptor = panel();
+      if (descriptor.body.case !== "stat") throw new Error("stat required");
+      descriptor.body.value.populate!.bindings.push(create(FieldBindingSchema, {
+        requestField: mode === "unsafe" ? "constructor.prototype.scope" : "payload", source: { case: "rowField", value: "payload" },
+      }));
+      const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+      const invoke = vi.fn(async () => ({ shown: "Current metric" }));
+      const transport = { invoke };
+      await render(panel(), transport);
+      expect(container.textContent).toContain("Current metric");
+      await render(descriptor, transport, { payload: mode === "cycle" ? cyclic : "\0".repeat(800_000) });
+      expect(invoke).toHaveBeenCalledOnce();
+      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Failed to load metric.");
+      expect(container.textContent).not.toContain("Current metric");
+      await render(panel(), transport);
+      expect(invoke).toHaveBeenCalledTimes(2);
+      expect(container.querySelector('[role="alert"]')).toBeNull();
+      expect(container.textContent).toContain("Current metric");
+    });
+  });
+
   it("builds nested populate bindings from a repeated-view record without losing false or zero", async () => {
     await session(kit, async (_root, _container, render) => {
       const descriptor = panel();

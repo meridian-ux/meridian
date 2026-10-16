@@ -150,7 +150,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
-  it("omits unavailable sources and unsafe paths without inventing action context", async () => {
+  it.each([false, true])("omits unavailable sources but rejects an unsafe request as a whole (unsafe=%s)", async unsafe => {
     const invoke = vi.fn(async () => ({}));
     const view = create(ViewDescriptorSchema, { id: "missing", actions: [{ id: "run", label: "Run", call: {
       service: "demo.Reports", method: "Run", bindings: [
@@ -159,13 +159,16 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
         { requestField: "scope", source: { case: "nested", value: { fields: [
           { requestField: "id", source: { case: "selectionKey", value: "unset" } },
         ] } } },
-        { requestField: "__proto__.meridianTest", source: { case: "literal", value: "unsafe" } },
+        ...(unsafe ? [{ requestField: "__proto__.meridianTest", source: { case: "literal" as const, value: "unsafe" } }] : []),
       ],
     } }] });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
       createElement(ViewRenderer, { view })), async container => {
       await act(async () => container.querySelector("button")!.click());
-      expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
+      if (unsafe) {
+        expect(invoke).not.toHaveBeenCalled();
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      } else expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
       expect(Object.hasOwn(Object.prototype, "meridianTest")).toBe(false);
     });
   });

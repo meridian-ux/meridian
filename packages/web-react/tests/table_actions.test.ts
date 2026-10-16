@@ -46,7 +46,6 @@ function fixture() {
           { requestField: "missing", source: { case: "rowField", value: "absent.id" } },
           { requestField: "form", source: { case: "formField", value: "id" } },
         ] } } },
-        { requestField: "__proto__.meridianTableTest", source: { case: "literal", value: "unsafe" } },
       ] } },
       { label: "Archive", rpc: { service: "demo.Builds", method: "Archive" },
         enabledWhen: { fieldPath: "phase", equals: "Succeeded" }, refreshOnSuccess: true },
@@ -99,6 +98,23 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
     await render();
     return { container, render, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
+
+  it.each(["__proto__.meridianTableTest", "constructor.prototype.meridianTableTest"])("rejects the whole %s request before dispatch", async path => {
+    const descriptor = fixture();
+    table(descriptor).actions[0].rpc!.bindings.push(create(FieldBindingSchema, {
+      requestField: path, source: { case: "literal", value: "unsafe" },
+    }));
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
+    const view = await mount(descriptor, invoke);
+    try {
+      await act(async () => rows(view.container)[0].cells[0].click());
+      await act(async () => buttons(view.container)[0].click());
+      expect(invoke).toHaveBeenCalledTimes(1);
+      expect(invoke.mock.calls[0][1]).toBe("List");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Action failed");
+      expect(({} as { meridianTableTest?: string }).meridianTableTest).toBeUndefined();
+    } finally { await view.close(); }
+  });
 
   it("selects raw rows by pointer, Enter, and Space and evaluates filters without changing cell displays", async () => {
     const descriptor = fixture();

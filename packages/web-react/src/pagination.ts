@@ -22,6 +22,7 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { actionRequestJson, boundedActionRequest, hasDynamicBindings } from "./action_request.js";
 
 export { PaginationMode } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
@@ -123,32 +124,11 @@ export function buildBindingRequest(
 }
 
 /** Resolve actions from selection and an optional selected or repeated-view row.
- * Unavailable form, signal, and host runtime-context sources remain omitted. */
+ * Unavailable form, signal, and host runtime-context sources remain omitted.
+ * Throws on invalid paths, non-JSON data, or admission limits; callers must not
+ * substitute an empty/partial request. The result owns every referenced value. */
 export function buildActionBindingRequest(call: RpcCall | undefined, selection: Record<string, string>, record?: Row): Row {
-  const request: Row = {};
-  for (const binding of call?.bindings ?? []) {
-    let value: unknown;
-    if (binding.source.case === "nested") {
-      value = buildActionBindingRequest({ bindings: binding.source.value.fields } as RpcCall, selection, record);
-      if (Object.keys(value as Row).length === 0) continue;
-    } else if (binding.source.case === "rowField" && record) {
-      value = binding.source.value.split(".").reduce<unknown>((current, key) =>
-        current && typeof current === "object" && Object.hasOwn(current, key)
-          ? (current as Row)[key] : undefined, record);
-    } else if (binding.source.case === "literal") {
-      value = binding.source.value;
-    } else if (binding.source.case === "selectionKey") {
-      value = selection[binding.source.value];
-      // An unset scope must not silently widen the query; authored literals and
-      // row fields, in contrast, can intentionally contain an empty string.
-      if (value === "") continue;
-    }
-    if (value === undefined || value === null) continue;
-    // Descriptor paths must never traverse JavaScript prototypes.
-    if (binding.requestField.split(".").some(key => ["__proto__", "constructor", "prototype"].includes(key))) continue;
-    setNested(request, binding.requestField, value);
-  }
-  return request;
+  return boundedActionRequest(call, selection, record);
 }
 
 /**
@@ -479,11 +459,6 @@ function isRecord(value: unknown): value is Row {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function hasDynamicRecordBindings(bindings: RpcCall["bindings"]): boolean {
-  return bindings.some(binding => binding.source.case === "nested"
-    ? hasDynamicRecordBindings(binding.source.value.fields) : binding.source.case !== "literal");
-}
-
 /**
  * Fetch the single record a detail panel binds to. The counterpart of
  * `usePagedRows` for a one-record view: it invokes `populate` once with the
@@ -505,22 +480,21 @@ export function useRecord(
   const selection = useMeridianSelection();
   const [revision, setRevision] = useState(0);
   const reload = useCallback(() => setRevision(value => value + 1), []);
-  const request: Row = {};
-  if (subjectId != null && subjectId !== "") request[idField || "id"] = subjectId;
+  const defaults: Row = {};
+  if (subjectId != null && subjectId !== "") Object.defineProperty(defaults, idField || "id", { value: subjectId, enumerable: true });
   // Authored bindings override the subject default. Only available runtime
   // values are used; missing form/signal/host context is never invented.
-  Object.assign(request, buildActionBindingRequest(populate, selection.values, ambientRecord));
-  const requestJson = JSON.stringify(request);
+  const requestJson = actionRequestJson(populate, selection.values, ambientRecord, defaults);
   const service = populate?.service;
   const method = populate?.method;
   const enabled = Boolean(populate);
-  const key = JSON.stringify([service, method, requestJson, revision]);
+  const key = JSON.stringify([requestJson === undefined ? null : service, requestJson === undefined ? null : method, requestJson, revision]);
   // Effective request keys are primitive; the memoized generation additionally
   // distinguishes A → disabled/B → A from the old, no-longer-active A request.
   const identity = useMemo(() => ({ key, invoker, enabled }), [key, invoker, enabled]);
   // The service/method-only SSR envelope cannot identify live selection or row
   // scopes, including those nested inside another binding.
-  const seed = populate && !hasDynamicRecordBindings(populate.bindings) ? initialData?.[`${service}.${method}`]?.rows?.[0] : undefined;
+  const seed = requestJson !== undefined && populate && !hasDynamicBindings(populate.bindings) ? initialData?.[`${service}.${method}`]?.rows?.[0] : undefined;
   type Result = { identity: typeof identity; record?: Row; error: boolean };
   const [result, setResult] = useState<Result | undefined>(() => isRecord(seed)
     ? { identity, record: seed, error: false } : undefined);
@@ -531,7 +505,7 @@ export function useRecord(
     // stops being eligible on any request, transport, enable, or retry change.
     if (enabled && initialSeed.current === identity) return;
     initialSeed.current = undefined;
-    if (!enabled) return;
+    if (!enabled || requestJson === undefined) return;
     let active = true;
     void Promise.resolve().then(() => {
       if (!active) return;
@@ -546,6 +520,7 @@ export function useRecord(
   }, [enabled, service, method, requestJson, identity, invoker]);
 
   if (!enabled) return { record: ambientRecord, loading: false, error: false, reload };
+  if (requestJson === undefined) return { record: undefined, loading: false, error: true, reload };
   // Do not expose stale data even in the render before effect cleanup runs.
   return result?.identity === identity
     ? { record: result.record, loading: false, error: result.error, reload }
