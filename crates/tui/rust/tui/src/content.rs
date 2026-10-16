@@ -1457,8 +1457,8 @@ pub fn render_grammar(frame: &mut Frame, area: Rect, panel: &GrammarPanel, palet
                     format!(
                         "{} points  min {}  max {}",
                         series.len(),
-                        fmt_num(min(&series)),
-                        fmt_num(max(&series))
+                        meridian_uiview::format_summary_number(min(&series)),
+                        meridian_uiview::format_summary_number(max(&series))
                     ),
                     palette.meta(),
                 )));
@@ -1613,14 +1613,6 @@ fn min(s: &[f64]) -> f64 {
 fn max(s: &[f64]) -> f64 {
     s.iter().copied().fold(f64::NEG_INFINITY, f64::max)
 }
-fn fmt_num(n: f64) -> String {
-    if n.fract() == 0.0 {
-        format!("{}", n as i64)
-    } else {
-        format!("{n:.2}")
-    }
-}
-
 // ── StatPanel (KPI tile) — full-parity content shape ─────────────────────────
 
 /// Render a StatPanel as a stat line: label, formatted value + unit, the
@@ -2094,6 +2086,29 @@ mod tests {
         assert_eq!(grammar_language_name(5), "vega-lite");
         assert_eq!(grammar_language_name(6), "vega");
         assert_eq!(grammar_language_name(0), "");
+    }
+
+    #[test]
+    fn grammar_summary_uses_core_without_clipping_large_extrema() {
+        use ratatui::{backend::TestBackend, Terminal};
+        let panel = GrammarPanel {
+            language: 5,
+            source: r#"{"data":{"values":[-1e20,1e20]}}"#.into(),
+            ..Default::default()
+        };
+        let palette = Palette::default();
+        let mut term = Terminal::new(TestBackend::new(100, 6)).unwrap();
+        term.draw(|f| render_grammar(f, f.area(), &panel, &palette))
+            .unwrap();
+        let text: String = term
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect();
+        assert!(text.contains("2 points  min -100000000000000000000  max 100000000000000000000"));
+        assert!(!text.contains("9223372036854775807"));
     }
 
     #[test]

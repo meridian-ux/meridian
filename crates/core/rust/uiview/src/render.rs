@@ -852,6 +852,17 @@ fn format_declared_fixed(number: f64, digits: usize) -> String {
     text
 }
 
+/// Compact numeric summaries retain whole numbers and two fractional places.
+/// Do not cast integral floats to machine integers: valid JSON numbers can
+/// exceed their range. This is the shared policy for grammar extrema labels.
+pub fn format_summary_number(number: f64) -> String {
+    if number.fract() == 0.0 {
+        format_inferred_value(&serde_json::json!(number))
+    } else {
+        format_value(&serde_json::json!(number), ColumnFormat::Float2dp)
+    }
+}
+
 /// Standalone formatter — also used by wasm wrappers that want to
 /// format a single value without a TableColumn handy.
 pub fn format_value(value: &Value, format: ColumnFormat) -> String {
@@ -892,6 +903,20 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn summary_numbers_do_not_saturate_machine_integers() {
+        for (number, expected) in [
+            (42.0, "42"),
+            (-0.0, "0"),
+            (1.125, "1.12"),
+            (-1.125, "-1.12"),
+            (1e20, "100000000000000000000"),
+            (-1e20, "-100000000000000000000"),
+        ] {
+            assert_eq!(format_summary_number(number), expected);
+        }
+    }
 
     #[test]
     fn inferred_values_share_strict_native_temporal_parsing() {

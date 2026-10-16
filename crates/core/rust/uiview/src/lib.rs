@@ -79,9 +79,9 @@ pub use payload_budget::{
 };
 pub use render::{
     format_cell, format_display_value, format_display_value_with_context,
-    format_display_value_with_metadata, format_inferred_value, format_lro_metadata, format_value,
-    render_gallery, render_table, try_format_relative_timestamp, try_format_timestamp,
-    RenderedCard, RenderedRow,
+    format_display_value_with_metadata, format_inferred_value, format_lro_metadata,
+    format_summary_number, format_value, render_gallery, render_table,
+    try_format_relative_timestamp, try_format_timestamp, RenderedCard, RenderedRow,
 };
 pub use request::{Context, RequestBuilder};
 pub use stat::{
