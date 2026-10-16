@@ -7,6 +7,12 @@ js_library(
     srcs = ["web/meridian.css"],
 )
 
+# Stage the binding from its owning package for hermetic unit/browser tests.
+js_library(
+    name = "binding",
+    srcs = ["web/theme.ts"],
+)
+
 # Meridian's style layer (web binding). Pure static assets a host stages next
 # to the renderer, the same way @brand//mdbook:theme is staged:
 #   - web/meridian.css : the base stylesheet (all look via --mer-* tokens)

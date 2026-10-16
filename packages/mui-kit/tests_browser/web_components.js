@@ -37,7 +37,22 @@ async function main() {
     for (const text of ["Keep the narration", "First", "Second", "Start here", "Finish here"]) await page.getByText(text, { exact: false }).first().waitFor({ state: "visible" });
     if (await page.locator("ol > li").count() !== 2 || await page.locator("img").count() !== 0) throw new Error("Failed step lost its ordered structure");
     if (await page.getByRole("link", { name: "Continue", exact: true }).getAttribute("href") !== "/next") throw new Error("Step lost its action");
-    console.log("Web-components gallery layout, theme spacing, keyboard access, and failed-step alternatives passed.");
+    await page.evaluate(() => {
+      window.webConformance.typography();
+      const root = document.getElementById("root");
+      const heading = document.createElement("h2");
+      heading.className = "meridian-uiview-header";
+      heading.textContent = "Themed heading";
+      const body = document.createElement("p");
+      body.textContent = "Themed body";
+      root.append(heading, body);
+      if (getComputedStyle(root).fontSize !== "19px") throw new Error("Typography base size was dropped");
+      if (getComputedStyle(heading).fontWeight !== "700") throw new Error("Typography heading weight was dropped");
+      if (getComputedStyle(body).fontWeight !== "500") throw new Error("Typography body weight was dropped");
+      root.style.removeProperty("--mer-body-weight");
+      if (getComputedStyle(body).fontWeight !== "400") throw new Error("Unset body weight lost neutral fallback");
+    });
+    console.log("Web-components gallery layout, theme spacing, keyboard access, failed-step alternatives, and computed typography passed.");
   } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exit(1); });

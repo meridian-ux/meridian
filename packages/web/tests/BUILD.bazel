@@ -8,7 +8,7 @@ package(default_visibility = ["//visibility:public"])
 # Chrome/Playwright runner in mui-kit; the rendered bundle contains no MUI code.
 esbuild(
     name = "browser_fixture_bundle",
-    srcs = ["browser_fixture.ts", ":src_lib"],
+    srcs = ["browser_fixture.ts", ":src_lib", "//packages/web/theme:binding"],
     entry_point = "browser_fixture.ts",
     bundle = True,
     format = "iife",
@@ -45,6 +45,18 @@ vitest_test(
         "//packages/web:node_modules/@savvifi/meridian-schemas",
         "//packages/web:node_modules/vitest",
         ":src_lib",
+    ],
+)
+
+vitest_test(
+    name = "theme",
+    srcs = ["theme.test.ts"],
+    deps = [
+        "//packages/web:node_modules/@bufbuild/protobuf",
+        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/jsdom",
+        "//packages/web:node_modules/vitest",
+        "//packages/web/theme:binding",
     ],
 )
 

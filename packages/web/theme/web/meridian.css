@@ -30,6 +30,7 @@
   background: var(--_bg);
   font-family: var(--_sans);
   font-size: var(--mer-font-size, 14px);
+  font-weight: var(--mer-body-weight, 400);
   line-height: 1.5;
 }
 

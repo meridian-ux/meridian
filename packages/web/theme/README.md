@@ -44,7 +44,14 @@ Stage it like any meridian asset (mirrors `@brand//mdbook:theme`):
 
 The `--mer-*` tokens: `--mer-{bg,surface,fg,muted,border,accent,accent-strong,
 on-accent,danger,success,code-bg,code-fg}`, `--mer-font-{sans,mono,size}`,
-`--mer-heading-{weight,tracking}`, `--mer-{radius,unit}`.
+`--mer-heading-{weight,tracking}`, `--mer-body-weight`, `--mer-{radius,unit}`.
+
+Typography fields 3–5 bind body size, heading weight, and body weight. Body
+text inherits `--mer-body-weight` (400 when unset); headings retain their
+separate `--mer-heading-weight`. Existing proto3 zero/unset scalar values leave
+the stylesheet fallback intact. Unit and hermetic Chrome tests verify both the
+binding and the computed, inherited styles. This does not complete the broader
+spacing-scale/density/stroke contract in roadmap #52.
 
 ## Gallery and Steps layouts
 
