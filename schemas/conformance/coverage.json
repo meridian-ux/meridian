@@ -40,8 +40,8 @@
       "entrypoint": "rust/tui/src/widget.rs"
     },
     "swiftui": {
-      "repo": "meridian-ui",
-      "entrypoint": "External preview; source is not available in this repository."
+      "repo": "meridian",
+      "entrypoint": "packages/swiftui/Sources/MeridianUI/MeridianPanel.swift"
     }
   },
   "modalities": {
@@ -156,7 +156,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -184,7 +184,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -215,7 +215,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -244,7 +244,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -276,7 +276,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -305,7 +305,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -333,7 +333,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -360,7 +360,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -388,7 +388,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -416,7 +416,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -444,7 +444,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -472,7 +472,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -500,7 +500,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -533,7 +533,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -560,7 +560,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -587,7 +587,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -618,7 +618,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -648,7 +648,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -677,7 +677,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -707,7 +707,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -738,7 +738,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }
@@ -770,7 +770,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository."
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate."
         }
       }
     },
@@ -797,7 +797,7 @@
         },
         "swiftui": {
           "status": "unverified",
-          "reason": "The SwiftUI renderer is an external preview; its behavior has not been verified in this repository.",
+          "reason": "The local SwiftUI preview has not yet passed the full native semantic conformance gate.",
           "waiver": "External preview parity has not been verified here; retain the waiver until its owner supplies evidence."
         }
       }

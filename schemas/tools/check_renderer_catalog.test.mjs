@@ -37,17 +37,17 @@ test("a new panel catalog row needs a coverage declaration", () => {
   assert.ok(check(catalog, coverage).some((error) => /catalog panel renderer "native-panel"/.test(error)));
 });
 
-test("an external preview must have a coverage row", () => {
+test("the local SwiftUI preview must have a coverage row", () => {
   const catalog = read("renderer_catalog.json");
   const coverage = read("coverage.json");
   const swiftui = catalog.renderers.find((entry) => entry.id === "swiftui");
   assert.equal(swiftui.status, "preview");
-  assert.equal(swiftui.source.kind, "external");
+  assert.equal(swiftui.source.kind, "local");
   delete coverage.renderers.swiftui;
   assert.ok(check(catalog, coverage).some((error) => /catalog panel renderer "swiftui"/.test(error)));
 });
 
-test("the committed external preview coverage row is complete", () => {
+test("the committed preview coverage row is complete", () => {
   const catalog = read("renderer_catalog.json");
   const coverage = read("coverage.json");
   assert.deepEqual(check(catalog, coverage), []);
@@ -66,6 +66,6 @@ test("local entrypoints cannot silently disappear", () => {
 test("external preview rows explain why they have no local path", () => {
   const catalog = read("renderer_catalog.json");
   const coverage = read("coverage.json");
-  delete catalog.renderers.find((entry) => entry.id === "swiftui").source.note;
-  assert.ok(check(catalog, coverage).some((error) => /swiftui: external source needs an explanatory note/.test(error)));
+  delete catalog.renderers.find((entry) => entry.id === "playground").source.note;
+  assert.ok(check(catalog, coverage).some((error) => /playground: external source needs an explanatory note/.test(error)));
 });

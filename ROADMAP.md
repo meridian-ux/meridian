@@ -135,9 +135,9 @@ Three facts shape the order of work:
   bounded tail, and lets readers scroll back without losing their place as frames
   arrive. Its follow behavior is covered with `TestBackend`.
 - **The renderer catalog is now complete at the tier level.** The panel matrix includes
-  every catalog panel renderer, including SwiftUI. Its external preview cells are marked
+  every catalog panel renderer, including SwiftUI. Its local preview cells are marked
   `unverified`, with explicit waivers on full-parity arms; conversation and launchpad
-  retain their separate modality rows. External preview verification remains
+  retain their separate modality rows. Native preview verification remains
   explicit rather than being inferred from catalog completeness.
 
 Declared is not proven. [#9](../../issues/9) builds the conformance corpus — fixtures per
@@ -202,7 +202,7 @@ proof covers all 427 cases across four browser realizations (1,708 trees).
 The gate rejects unsupported `renders` promotions, requires committed goldens,
 and CI explicitly executes the seven registered panel proof targets in addition
 to its wildcard test suite. Presence alone is not proof of passing output.
-This is not field-complete parity: external SwiftUI view dumps, general native
+This is not field-complete parity: SwiftUI view dumps, general native
 ViewDescriptor layout, renderer-specific overflow/layout, and broader interactive
 surfaces remain in [#9](../../issues/9) and [#40](../../issues/40). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
@@ -365,7 +365,7 @@ no-clock twin for all 133 explicit-clock cases. Native and actual WASM checks
 independently verify absolute temporal fallback and preserved principal titles;
 all 48 temporal mode/precision combinations and eight principal modes are covered.
 These formatter-boundary cases do not replace per-renderer option propagation
-or the outstanding external SwiftUI evidence.
+or the outstanding SwiftUI semantic conformance evidence.
 
 ## Track C — Hardening
 
@@ -490,7 +490,9 @@ archive verification and release prerequisites. Preparation is not publication
 and does not close the remaining v1 contract/conformance work.
 
 - Verified SwiftUI rendering. Its public preview is now represented in the matrix as
-  `unverified`; implementation evidence remains with the external `meridian-ui` project.
+  `unverified`; the public monorepo now owns a tested SwiftPM foundation under
+  [packages/swiftui](packages/swiftui/README.md), not an external source dependency.
+  Native layout smoke tests do not satisfy full semantic conformance.
   The conformance guide records the verification limits independently of catalog completeness.
 - Dates beyond M4. A 1.0 is the *criterion* of M4, not a date.
 - Anything the compiler has not yet found. The monorepo merge surfaced two unimplemented
