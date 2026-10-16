@@ -65,6 +65,7 @@ pub mod native_api;
 mod paths;
 mod payload_budget;
 mod render;
+mod render_limits;
 mod request;
 mod stat;
 mod stream;
@@ -87,6 +88,9 @@ pub use render::{
     format_display_value_with_metadata, format_inferred_value, format_lro_metadata,
     format_summary_number, format_value, render_gallery, render_table,
     try_format_relative_timestamp, try_format_timestamp, RenderedCard, RenderedRow,
+};
+pub use render_limits::{
+    admit_formatted_value, render_gallery_bounded, render_table_bounded, RenderLimitExceeded,
 };
 pub use request::{
     Context, RequestBudget, RequestBuilder, RequestLimitExceeded, RequestOverrides, SubmissionKind,

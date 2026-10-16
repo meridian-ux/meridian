@@ -16,8 +16,8 @@
 use crate::paths::ProtoPaths;
 use crate::payload_budget::{elapsed_from_monotonic_millis, PayloadBudget};
 use crate::proto::{GalleryPanel, PanelDescriptor, RpcCall, TablePanel, ValueDisplay};
-use crate::render::{render_gallery, render_table};
 use crate::request::{Context, RequestBuilder};
+use crate::{admit_formatted_value, render_gallery_bounded, render_table_bounded};
 use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -32,9 +32,9 @@ pub fn matches_form_pattern(pattern: &str, value: &str) -> Result<bool, JsError>
 
 #[wasm_bindgen(js_name = "formatInferredValue")]
 pub fn format_inferred_value(value: JsValue) -> Result<String, JsError> {
-    let value: Value =
-        serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
-    Ok(crate::render::format_inferred_value(&value))
+    let value = value_input(value)?;
+    admit_formatted_value(&value).map_err(|_| JsError::new("render construction rejected"))?;
+    bounded_text(crate::render::format_inferred_value(&value))
 }
 
 #[wasm_bindgen(js_name = "formatTimestamp")]
@@ -84,10 +84,18 @@ fn format_value_display_impl(
     value: JsValue,
     now_ms: Option<f64>,
 ) -> Result<Vec<u8>, JsError> {
-    let display = ValueDisplay::decode(display).map_err(|e| JsError::new(&e.to_string()))?;
-    let value: Value =
-        serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
-    Ok(crate::format_display_value_with_context(&value, &display, now_ms).encode_to_vec())
+    if display.len() > 64 * 1024 {
+        return Err(JsError::new("display declaration rejected"));
+    }
+    let display =
+        ValueDisplay::decode(display).map_err(|_| JsError::new("display declaration rejected"))?;
+    let value = value_input(value)?;
+    admit_formatted_value(&value).map_err(|_| JsError::new("render construction rejected"))?;
+    let formatted = crate::format_display_value_with_context(&value, &display, now_ms);
+    if formatted.encoded_len() > 4 * 1024 * 1024 {
+        return Err(JsError::new("render output rejected"));
+    }
+    Ok(formatted.encode_to_vec())
 }
 
 /// Stateful JavaScript handle backed by the same payload policy used by native
@@ -152,26 +160,53 @@ impl WasmPayloadBudget {
 // indexing setter in serde-wasm-bindgen would invoke Object.prototype's setter
 // and silently drop that own property. JSON.parse creates inert own data keys.
 fn request_to_js(value: &Value) -> Result<JsValue, JsError> {
-    let encoded =
-        serde_json::to_string(value).map_err(|_| JsError::new("request output rejected"))?;
-    if encoded.len() > 4 * 1024 * 1024 {
-        return Err(JsError::new("request output rejected"));
-    }
-    js_sys::JSON::parse(&encoded).map_err(|_| JsError::new("request output rejected"))
+    bounded_json_output(value, "request output rejected")
 }
 
 fn to_js<T: serde::Serialize + ?Sized>(value: &T) -> Result<JsValue, JsError> {
-    // `Serializer` is cheap to construct; there is no shared-state win in
-    // caching it, and a fresh one keeps this free of statics.
-    value
-        .serialize(
-            &serde_wasm_bindgen::Serializer::new()
-                .serialize_maps_as_objects(true)
-                // JSON null must remain null across the bridge. The default
-                // maps it to undefined, dropping raw-row properties on stringify.
-                .serialize_missing_as_null(true),
-        )
-        .map_err(|e| JsError::new(&e.to_string()))
+    bounded_json_output(value, "render output rejected")
+}
+
+struct JsonOutput(Vec<u8>);
+impl std::io::Write for JsonOutput {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        if self
+            .0
+            .len()
+            .checked_add(bytes.len())
+            .is_none_or(|n| n > 4 * 1024 * 1024)
+        {
+            return Err(std::io::Error::other("JSON output limit"));
+        }
+        self.0.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+fn bounded_json_output<T: serde::Serialize + ?Sized>(
+    value: &T,
+    message: &str,
+) -> Result<JsValue, JsError> {
+    let mut output = JsonOutput(Vec::new());
+    serde_json::to_writer(&mut output, value).map_err(|_| JsError::new(message))?;
+    let json = String::from_utf8(output.0).map_err(|_| JsError::new(message))?;
+    js_sys::JSON::parse(&json).map_err(|_| JsError::new(message))
+}
+
+fn value_input(value: JsValue) -> Result<Value, JsError> {
+    crate::wasm_input::InputBudget::new()
+        .decode(value)
+        .map_err(|_| JsError::new("render input rejected"))
+}
+
+fn bounded_text(text: String) -> Result<String, JsError> {
+    if text.len() > 4 * 1024 * 1024 {
+        return Err(JsError::new("render output rejected"));
+    }
+    Ok(text)
 }
 
 /// Reads a field from a JSON-shaped object by dotted path. Mirrors
@@ -179,10 +214,13 @@ fn to_js<T: serde::Serialize + ?Sized>(value: &T) -> Result<JsValue, JsError> {
 /// to extract column cell values from response objects.
 #[wasm_bindgen(js_name = "readPath")]
 pub fn read_path(value: JsValue, path: &str) -> Result<JsValue, JsError> {
-    let json: Value =
-        serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
-    let result = ProtoPaths::get(&json, path).clone();
-    to_js(&result)
+    if path.len() > 64 * 1024 {
+        return Err(JsError::new("path declaration rejected"));
+    }
+    let json = value_input(value)?;
+    let result = ProtoPaths::get(&json, path);
+    admit_formatted_value(result).map_err(|_| JsError::new("render construction rejected"))?;
+    to_js(result)
 }
 
 /// Renders a TablePanel against a JSON response value.
@@ -196,14 +234,17 @@ pub fn read_path(value: JsValue, path: &str) -> Result<JsValue, JsError> {
 /// `RenderedRow`.
 #[wasm_bindgen(js_name = "renderTable")]
 pub fn render_table_wasm(descriptor: &[u8], response: JsValue) -> Result<JsValue, JsError> {
+    if descriptor.len() > 1024 * 1024 {
+        return Err(JsError::new("panel declaration rejected"));
+    }
     let d = PanelDescriptor::decode(descriptor).map_err(|e| JsError::new(&e.to_string()))?;
     let table = match d.body {
         Some(crate::proto::panel_descriptor::Body::Table(t)) => t,
         _ => return Err(JsError::new("descriptor body is not TABLE")),
     };
-    let response_json: Value =
-        serde_wasm_bindgen::from_value(response).map_err(|e| JsError::new(&e.to_string()))?;
-    let rows = render_table(&response_json, &table);
+    let response_json = value_input(response)?;
+    let rows = render_table_bounded(&response_json, &table)
+        .map_err(|_| JsError::new("render construction rejected"))?;
     let serializable: Vec<RenderedRowJs> = rows
         .into_iter()
         .map(|r| RenderedRowJs {
@@ -291,10 +332,13 @@ pub fn render_gallery_panel_wasm(
     gallery_panel: &[u8],
     response: JsValue,
 ) -> Result<JsValue, JsError> {
+    if gallery_panel.len() > 1024 * 1024 {
+        return Err(JsError::new("gallery declaration rejected"));
+    }
     let gallery = GalleryPanel::decode(gallery_panel).map_err(|e| JsError::new(&e.to_string()))?;
-    let response_json: Value =
-        serde_wasm_bindgen::from_value(response).map_err(|e| JsError::new(&e.to_string()))?;
-    let cards = render_gallery(&response_json, &gallery);
+    let response_json = value_input(response)?;
+    let cards = render_gallery_bounded(&response_json, &gallery)
+        .map_err(|_| JsError::new("render construction rejected"))?;
     let serializable: Vec<RenderedCardJs> = cards
         .into_iter()
         .map(|c| RenderedCardJs {
@@ -389,10 +433,13 @@ pub fn build_request_wasm(rpc_call: &[u8], context_value: JsValue) -> Result<JsV
 /// callers can render LroPanel.result with the same code path.
 #[wasm_bindgen(js_name = "renderTablePanel")]
 pub fn render_table_panel_wasm(table_panel: &[u8], response: JsValue) -> Result<JsValue, JsError> {
+    if table_panel.len() > 1024 * 1024 {
+        return Err(JsError::new("table declaration rejected"));
+    }
     let table = TablePanel::decode(table_panel).map_err(|e| JsError::new(&e.to_string()))?;
-    let response_json: Value =
-        serde_wasm_bindgen::from_value(response).map_err(|e| JsError::new(&e.to_string()))?;
-    let rows = render_table(&response_json, &table);
+    let response_json = value_input(response)?;
+    let rows = render_table_bounded(&response_json, &table)
+        .map_err(|_| JsError::new("render construction rejected"))?;
     let serializable: Vec<RenderedRowJs> = rows
         .into_iter()
         .map(|r| RenderedRowJs {
@@ -410,9 +457,9 @@ pub fn render_table_panel_wasm(table_panel: &[u8], response: JsValue) -> Result<
 /// display this on a status line while polling WaitOperation.
 #[wasm_bindgen(js_name = "formatLroMetadata")]
 pub fn format_lro_metadata(metadata: JsValue) -> Result<String, JsError> {
-    let value: Value =
-        serde_wasm_bindgen::from_value(metadata).map_err(|e| JsError::new(&e.to_string()))?;
-    Ok(crate::format_lro_metadata(&value))
+    let value = value_input(metadata)?;
+    admit_formatted_value(&value).map_err(|_| JsError::new("render construction rejected"))?;
+    bounded_text(crate::format_lro_metadata(&value))
 }
 
 // NOTE: bundle decoding (formerly `decodePanelBundle`) now lives on the TS side —

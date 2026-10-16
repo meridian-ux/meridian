@@ -26,6 +26,7 @@
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import {
   PanelDescriptorSchema,
@@ -883,6 +884,84 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
       expect(invoke).not.toHaveBeenCalled();
     } finally { disposePanel(root); }
+  });
+
+  it.each(["cycle", "deep", "wide", "accessor"])("rejects %s data across every dynamic render-input export", kind => {
+    const getter = vi.fn(() => { throw new Error("private value"); });
+    let value: object = {};
+    if (kind === "cycle") (value as Record<string, unknown>).self = value;
+    if (kind === "deep") for (let i = 0; i < 80; i++) value = { child: value };
+    if (kind === "wide") value = new Array(65_537);
+    if (kind === "accessor") Object.defineProperty(value, "secret", { enumerable: true, get: getter });
+    const table = create(TablePanelSchema, { rowsField: "rows" });
+    const panel = create(PanelDescriptorSchema, { body: { case: "table", value: table } });
+    const galleryWire = toBinary(GalleryPanelSchema, create(GalleryPanelSchema, { rowsField: "rows" }));
+    const bridge = wasm as typeof wasm & { renderGalleryPanel(bytes: Uint8Array, value: object): unknown; formatInferredValue(value: object): string };
+    for (const call of [
+      () => bridge.formatInferredValue(value),
+      () => wasm.formatValueDisplay(toBinary(ValueDisplaySchema, create(ValueDisplaySchema)), value),
+      () => wasm.formatValueDisplayAt!(toBinary(ValueDisplaySchema, create(ValueDisplaySchema)), value, 0),
+      () => wasm.readPath(value, "field"),
+      () => wasm.renderTable(toBinary(PanelDescriptorSchema, panel), value),
+      () => wasm.renderTablePanel(toBinary(TablePanelSchema, table), value),
+      () => bridge.renderGalleryPanel(galleryWire, value),
+      () => wasm.formatLroMetadata(value),
+    ]) {
+      try { call(); expect.fail("unsafe render input accepted"); }
+      catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error).not.toBeInstanceOf(WebAssembly.RuntimeError);
+        expect(error).not.toBeInstanceOf(RangeError);
+        expect((error as Error).message).toBe("render input rejected");
+      }
+    }
+    expect(getter).not.toHaveBeenCalled();
+  });
+
+  it("preflights repeated table cells and gallery slots before output amplification", async () => {
+    const response = { rows: [{ value: "x".repeat(400_000) }] };
+    const table = create(TablePanelSchema, { rowsField: "rows", columns: Array.from({ length: 8 }, () => ({ fieldPath: "value" })), populate: { service: "fixture.Data", method: "List" } });
+    expect(() => wasm.renderTablePanel(toBinary(TablePanelSchema, table), response)).toThrow("render construction rejected");
+    const empty = create(TablePanelSchema, { rowsField: "rows", columns: Array.from({ length: 4096 }, () => ({})) });
+    expect(() => wasm.renderTablePanel(toBinary(TablePanelSchema, empty), { rows: [] })).toThrow("render construction rejected");
+    const gallery = create(GalleryPanelSchema, { rowsField: "rows", card: {
+      titleField: "value", subtitleField: "value", statusField: "value", hrefField: "value", iconField: "value", actionLabelField: "value",
+    } });
+    const bridge = wasm as typeof wasm & { renderGalleryPanel(bytes: Uint8Array, value: object): unknown };
+    expect(() => bridge.renderGalleryPanel(toBinary(GalleryPanelSchema, gallery), response)).toThrow("render construction rejected");
+    const root = document.createElement("main"), invoke = vi.fn(async () => response);
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: table } });
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    try {
+      await renderPanel({ root, descriptor, wasm, context: CTX, invoker: { invoke } });
+      expect(invoke).toHaveBeenCalledTimes(1);
+      expect(root.textContent).toContain("render construction rejected");
+      expect(root.querySelectorAll("tbody tr[data-row]")).toHaveLength(0);
+    } finally { disposePanel(root); }
+  });
+
+  it("preserves raw prototype-looking row keys across render and readPath output", () => {
+    const raw = JSON.parse('{"__proto__":{"enabled":false},"name":"Ada","nullable":null}');
+    const table = create(TablePanelSchema, { rowsField: "rows", columns: [{ fieldPath: "name" }] });
+    const rows = wasm.renderTablePanel(toBinary(TablePanelSchema, table), { rows: [raw] });
+    const result = rows[0].raw;
+    expect(Object.hasOwn(result, "__proto__")).toBe(true);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(JSON.stringify(result)).toBe(JSON.stringify(raw));
+    expect(JSON.stringify(wasm.readPath(raw, ""))).toBe(JSON.stringify(raw));
+  });
+
+  it("rejects expanded render JSON at the streaming output ceiling", () => {
+    const table = create(TablePanelSchema, { rowsField: "rows", columns: [] });
+    // Raw-row copying fits; the result's raw/cells wrapper crosses the ceiling.
+    const response = { rows: [{ value: "x".repeat(4 * 1024 * 1024 - 16) }] };
+    expect(() => wasm.renderTablePanel(toBinary(TablePanelSchema, table), response)).toThrow("render output rejected");
+  });
+
+  it("rejects oversized standalone formatting before computing the text", () => {
+    const bridge = wasm as typeof wasm & { formatInferredValue(value: unknown): string };
+    expect(() => bridge.formatInferredValue("x".repeat(5 * 1024 * 1024))).toThrow("render construction rejected");
+    expect(() => wasm.formatLroMetadata({ status_message: "x".repeat(5 * 1024 * 1024) })).toThrow("render construction rejected");
   });
 
   it("readPath resolves dotted paths over a plain object", () => {

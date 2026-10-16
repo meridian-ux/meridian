@@ -149,7 +149,11 @@ mod bounded_requests {
             .unwrap();
         assert_eq!(submitted.request, serde_json::json!({"input.name":"raw"}));
     }
-    fn buffer(view: &mut PanelView, descriptor: &PanelDescriptor, invoker: &Spy) -> String {
+    fn buffer<I: RpcInvoker>(
+        view: &mut PanelView,
+        descriptor: &PanelDescriptor,
+        invoker: &I,
+    ) -> String {
         let mut terminal = Terminal::new(TestBackend::new(120, 30)).unwrap();
         terminal
             .draw(|frame| {
@@ -201,6 +205,137 @@ mod bounded_requests {
             let output = buffer(&mut view, &descriptor, &spy);
             assert_eq!(spy.0.get(), 0, "{name}");
             assert!(output.contains(ERROR), "{name}: {output}");
+        }
+    }
+    struct Data {
+        calls: Cell<usize>,
+        response: serde_json::Value,
+    }
+    #[test]
+    fn excessive_descriptor_only_headers_fail_before_constructing_terminal_cells() {
+        use meridian_uiview::proto::{TableColumn, TablePanel};
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Table(TablePanel {
+                columns: vec![TableColumn::default(); 4096],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        let spy = Spy(Cell::new(0));
+        assert!(
+            buffer(&mut view, &descriptor, &spy).contains("Render construction limit exceeded.")
+        );
+        assert_eq!(spy.0.get(), 0);
+    }
+    impl RpcInvoker for Data {
+        fn invoke(
+            &self,
+            _: &str,
+            _: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            self.calls.set(self.calls.get() + 1);
+            Ok(self.response.clone())
+        }
+    }
+    #[test]
+    fn repeated_table_and_gallery_projections_fail_visibly_without_rows() {
+        use meridian_uiview::proto::{CardSpec, TableColumn, TablePanel};
+        let call = RpcCall {
+            service: "fixture.Data".into(),
+            method: "List".into(),
+            ..Default::default()
+        };
+        for body in [
+            Body::Table(TablePanel {
+                rows_field: "rows".into(),
+                populate: Some(call.clone()),
+                columns: vec![
+                    TableColumn {
+                        field_path: "value".into(),
+                        ..Default::default()
+                    };
+                    8
+                ],
+                ..Default::default()
+            }),
+            Body::Gallery(GalleryPanel {
+                rows_field: "rows".into(),
+                populate: Some(call.clone()),
+                card: Some(CardSpec {
+                    title_field: "value".into(),
+                    subtitle_field: "value".into(),
+                    status_field: "value".into(),
+                    href_field: "value".into(),
+                    icon_field: "value".into(),
+                    action_label_field: "value".into(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+        ] {
+            let descriptor = PanelDescriptor {
+                body: Some(body),
+                ..Default::default()
+            };
+            let descriptor =
+                PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+            let data = Data {
+                calls: Cell::new(0),
+                response: serde_json::json!({"rows":[{"value":"x".repeat(400_000)}]}),
+            };
+            let mut view = PanelView::new();
+            assert!(buffer(&mut view, &descriptor, &data)
+                .contains("Render construction limit exceeded."));
+            assert!(view.selected_row().is_none());
+            assert!(buffer(&mut view, &descriptor, &data)
+                .contains("Render construction limit exceeded."));
+            assert_eq!(data.calls.get(), 1);
+        }
+    }
+
+    #[test]
+    fn every_populate_family_rejects_oversized_responses_before_retaining_them() {
+        for name in [
+            "table",
+            "stat",
+            "chart",
+            "resource_cards",
+            "gallery",
+            "record_card",
+            "detail_header",
+        ] {
+            let mut descriptor = PanelDescriptor::decode(
+                read_canonical_fixture(&format!("{name}.binpb")).as_slice(),
+            )
+            .unwrap();
+            let call = RpcCall {
+                service: "fixture.Data".into(),
+                method: "Get".into(),
+                ..Default::default()
+            };
+            match descriptor.body.as_mut().unwrap() {
+                Body::Table(p) => p.populate = Some(call),
+                Body::Stat(p) => p.populate = Some(call),
+                Body::Chart(p) => p.chart.as_mut().unwrap().populate = Some(call),
+                Body::ResourceCards(p) => p.populate = Some(call),
+                Body::Gallery(p) => p.populate = Some(call),
+                Body::RecordCard(p) => p.populate = Some(call),
+                Body::DetailHeader(p) => p.populate = Some(call),
+                _ => unreachable!(),
+            }
+            let data = Data {
+                calls: Cell::new(0),
+                response: serde_json::json!({"unused":"x".repeat(5*1024*1024)}),
+            };
+            let mut view = PanelView::new();
+            let result = buffer(&mut view, &descriptor, &data);
+            assert!(
+                result.contains("Response construction limit exceeded."),
+                "{name}: {result}"
+            );
+            assert_eq!(data.calls.get(), 1);
         }
     }
     #[test]
@@ -3108,6 +3243,32 @@ mod lro_progress {
         assert!(!view.update_lro_progress(&run.run_id, "operations/valid", &invalid));
         assert!(draw(&mut view, &descriptor, &context, 80).contains("Last good state"));
         assert!(view.complete_lro(&run.run_id, &Struct::default()));
+    }
+
+    #[test]
+    fn amplified_lro_result_is_rejected_without_replacing_last_good_progress() {
+        let mut descriptor = descriptor();
+        if let Some(Body::Lro(panel)) = descriptor.body.as_mut() {
+            let table = panel.result.as_mut().unwrap();
+            table.columns = vec![table.columns[0].clone(); 8];
+        }
+        let context = Context::default();
+        let mut view = PanelView::new();
+        draw(&mut view, &descriptor, &context, 80);
+        let run = view
+            .handle_lro_key(panel(&descriptor), &context, KeyCode::Enter)
+            .unwrap();
+        assert!(view.update_lro_progress(
+            &run.run_id,
+            "operations/valid",
+            &wire_object(serde_json::json!({"status_message":"Last good state"}))
+        ));
+        let before = draw(&mut view, &descriptor, &context, 80);
+        let result = wire_object(serde_json::json!({"rows":[{"value":"x".repeat(400_000)}]}));
+        assert!(!view.complete_lro(&run.run_id, &result));
+        assert_eq!(draw(&mut view, &descriptor, &context, 80), before);
+        assert!(view.fail_lro(&run.run_id, "Result rejected by host"));
+        assert!(draw(&mut view, &descriptor, &context, 80).contains("Result rejected by host"));
     }
 }
 

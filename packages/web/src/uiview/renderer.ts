@@ -461,10 +461,14 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   // `id_field`, then read dotted paths out of it. They share that tier, so they
   // share an implementation here. See panel.proto.
   if (body.case === "detailHeader") {
-    return renderRecordPanel(renderOpts, body.value, meta, "header");
+    return renderRecordPanel(renderOpts, body.value, meta, "header").catch(() => {
+      meta.textContent = "Render construction rejected.";
+    });
   }
   if (body.case === "recordCard") {
-    return renderRecordPanel(renderOpts, body.value, meta, "card");
+    return renderRecordPanel(renderOpts, body.value, meta, "card").catch(() => {
+      meta.textContent = "Render construction rejected.";
+    });
   }
   if (body.case === "resourceCards") {
     return renderResourceCards(renderOpts, body.value, meta);
@@ -1598,17 +1602,20 @@ async function renderTablePanel(
     try {
       const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
       response = await invoker.invoke(populate.service, populate.method, request as object);
+      rows = wasm.renderTable(descriptorBytes, response);
+      // A re-fetch can shrink the list out from under the selection.
+      if (selectedIndex >= rows.length) selectedIndex = -1;
+      metaEl.textContent = `${rows.length} ${table.itemNoun || "items"}`;
+      draw();
+      syncButtons();
     } catch (err) {
+      rows = [];
+      selectedIndex = -1;
+      host.replaceChildren();
+      syncButtons();
       metaEl.textContent = `Failed: ${(err as Error).message}`;
       return;
     }
-    rows = wasm.renderTable(descriptorBytes, response);
-    // A re-fetch can shrink the list out from under the selection; clamp rather
-    // than silently pointing at a different record than the one highlighted.
-    if (selectedIndex >= rows.length) selectedIndex = -1;
-    metaEl.textContent = `${rows.length} ${table.itemNoun || "items"}`;
-    draw();
-    syncButtons();
   };
 
   for (const action of table.actions) {

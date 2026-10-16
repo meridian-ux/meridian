@@ -114,6 +114,7 @@ pub unsafe extern "C" fn meridian_core_format_value(
             prost_types::Value::decode(value).map_err(|_| INVALID_PAYLOAD)?,
             0,
         )?;
+        crate::admit_formatted_value(&value).map_err(|_| LIMIT_EXCEEDED)?;
         let result = crate::format_display_value_with_context(
             &value,
             &display,
@@ -856,6 +857,23 @@ mod tests {
         assert_eq!(unsafe { format(&[0xff], &[], 0) }.0, INVALID_PAYLOAD);
         assert_eq!(unsafe { format(&[], &[0xff], 0) }.0, INVALID_PAYLOAD);
         assert_eq!(unsafe { format(&[], &[], 2) }.0, INVALID_ARGUMENT);
+    }
+
+    #[test]
+    fn native_format_preflights_escaped_value_work_before_computing_text() {
+        let display = ValueDisplay {
+            r#type: ValueType::Text as i32,
+            ..Default::default()
+        }
+        .encode_to_vec();
+        let value = prost_types::Value {
+            kind: Some(prost_types::value::Kind::StringValue("\0".repeat(900_000))),
+        }
+        .encode_to_vec();
+        assert!(value.len() < MAX_VALUE_BYTES);
+        let (status, output) = unsafe { format(&display, &value, 0) };
+        assert_eq!(status, LIMIT_EXCEEDED);
+        assert!(output.is_empty());
     }
 
     #[test]

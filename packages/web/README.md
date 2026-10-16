@@ -27,7 +27,20 @@ graphs. Conversion errors are generic and return no request. Request output has
 a 4 MiB JSON ceiling and preserves literal data keys, including `__proto__`, as
 own properties. These limits do not bound allocation already performed by host
 JavaScript, key enumeration in the JavaScript engine, or time spent in host
-proxy/iterator code. Other formatter/render response inputs have separate paths.
+proxy/iterator code.
+
+Dynamic formatter, metadata, path, table, and gallery WASM inputs now use the
+same bounded conversion. Standalone formatting and table/gallery projections
+have a separate 4 MiB cumulative work budget, checked before cloning rows or
+building repeated cells/slots. Each formatted cell/slot reserves 1 KiB for
+fixed expansion plus its path and twice its selected JSON value. Static table
+headers reserve 1 KiB plus header bytes even when there are no rows. Whole table /
+gallery declarations are limited to 1 MiB; standalone displays and paths to
+64 KiB. JSON outputs stream into a 4 MiB capped buffer before returning plain
+objects, preserving raw data keys rather than invoking prototype setters.
+Rejection is an error, not a truncated/partial result; failed table refreshes
+clear old rows and disable their actions. This does not bound all JavaScript
+DOM projections or establish full renderer robustness.
 Form saves and LRO starts require the initialized core's `buildSubmissionRequest`
 capability: it assembles explicit bindings and automatic fields together under
 one budget. An older core without that capability rejects submissions visibly;

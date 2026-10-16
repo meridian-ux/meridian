@@ -400,9 +400,18 @@ budget before copying into Rust; submission context and fields share it.
 Cycles/accessors/opaque values fail closed, and JSON request output preserves
 literal prototype-looking data keys instead of invoking JavaScript setters.
 This is not completion of [#17](../../issues/17): the separate React action
-builder, other WASM response conversion paths, and host JavaScript allocation
+builder, host JavaScript allocation, and remaining DOM/native projections
 still require their own boundary audit. The trusted Rust
 `RequestBuilder::build` API remains compatible and is not the untrusted seam.
+
+All dynamic JSON WASM input exports now share the bounded converter. Table and
+gallery boundaries use a shared preflight before cloning raw rows or formatting
+repeated cells/slots, then a capped JSON writer that retains inert data keys.
+The TUI adopts the same table/gallery preflight and rejects over-budget populate
+responses before caching them; the native formatter bridge preflights value
+work too. Trusted render APIs remain available for compatible in-process use.
+These scoped guards do not establish every remaining DOM/TUI projection,
+React builder, or full native stateful/value/modality parity requirement.
 
 Baseline, 2026‑09‑11:
 
