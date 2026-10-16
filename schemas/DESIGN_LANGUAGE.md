@@ -31,6 +31,11 @@ URI or a command, and its optional icon, description, and style provide context.
 same primitive. Web renderers use links or buttons; TUI renders a keybinding-like
 action line; non-interactive surfaces retain the label and destination as text.
 
+The proposed [unified Affordance contract](AFFORDANCE_RFC.md) inventories the
+existing shapes, typed-schema dependency cycle, host admission requirements,
+compatibility window, and acceptance tests. It is the design artifact for #46,
+not evidence that #47's schema migration or #48's renderer adoption has landed.
+
 ## Value display
 
 `ValueDisplay` declares how a value should be read rather than asking each
