@@ -19,8 +19,8 @@ copies of @savvifi/meridian-proto-ts unrepresentable inside the repo. But
 meridian-schemas already solved this for its two packages, by hand: a
 `schemas.package.json` / `proto/proto-ts.package.json` with real versions,
 mapped onto `package.json` by npm_package's `replace_prefixes`. The pattern is
-right and this generalises it to all six — GENERATED rather than hand-written,
-because six hand-maintained parallel manifests is six chances to drift, and the
+right and this generalizes it to every package — GENERATED rather than hand-written,
+because hand-maintained parallel manifests are separate chances to drift, and the
 drift is invisible until it ships. It shipped twice already: 0.14.0 and 0.15.0
 both went out with a stale dependency range, which is why check_versions.py was
 written in the first place. That script compared two manifests it could not fix;
@@ -55,6 +55,7 @@ PACKAGES = [
     ("packages/mui-kit/package.json", "packages/mui-kit/mui-kit.package.json"),
     ("packages/chat/package.json", "packages/chat/chat.package.json"),
     ("packages/launchpad/package.json", "packages/launchpad/launchpad.package.json"),
+    ("packages/web/package.json", "packages/web/web.package.json"),
 ]
 
 # Fields that are development-only and must not ship. `devDependencies` in
@@ -82,7 +83,7 @@ def published(dev: dict, version: str) -> dict:
         resolved = {}
         for name, spec in deps.items():
             if spec == "workspace:*":
-                # An EXACT pin, not a caret. These six release in lockstep, so a
+                # An EXACT pin, not a caret. These packages use one version, so a
                 # range would only ever widen to versions that were never tested
                 # together — and at 0.x a caret does not widen anyway
                 # (^0.25.0 is >=0.25.0 <0.26.0), so the range buys nothing while
@@ -163,7 +164,7 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
-        print(f"published manifests OK — all six at {version}")
+        print(f"published manifests OK — all {len(PACKAGES)} at {version}")
 
     return 0
 

@@ -1,0 +1,53 @@
+{
+  "name": "@savvifi/meridian-web",
+  "version": "0.25.1",
+  "meridian": {
+    "rendererIds": [
+      "web-components"
+    ]
+  },
+  "description": "Framework-neutral web-components renderer for Meridian protobuf descriptors.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/web"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./src/browser.js",
+  "types": "./src/browser.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/browser.d.ts",
+      "import": "./src/browser.js"
+    },
+    "./toolkit": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./theme": {
+      "types": "./theme/web/theme.d.ts",
+      "import": "./theme/web/theme.js"
+    },
+    "./theme.css": "./theme/web/meridian.css"
+  },
+  "files": [
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "src/**/*.json",
+    "theme/**/*.js",
+    "theme/**/*.d.ts",
+    "theme/**/*.css",
+    "README.md"
+  ],
+  "dependencies": {
+    "@bufbuild/protobuf": "2.12.1",
+    "@savvifi/meridian-proto-ts": "0.25.1",
+    "@savvifi/meridian-schemas": "0.25.1",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0"
+  }
+}

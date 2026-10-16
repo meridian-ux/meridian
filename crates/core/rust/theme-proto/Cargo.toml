@@ -3,6 +3,7 @@ name = "theme-proto"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 description = "prost types for meridian.theme.v1 — the cargo half of the theme_proto rust_prost_library."
 
 # The crate name matters. Under Bazel these types come from

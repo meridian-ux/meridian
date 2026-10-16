@@ -482,6 +482,11 @@ error transition without reaching `fetch`.
 
 ## What is deliberately not here
 
+The selected distribution direction is crates.io for the three Rust packages
+and npm for `@savvifi/meridian-web`; [DISTRIBUTION.md](DISTRIBUTION.md) records
+archive verification and release prerequisites. Preparation is not publication
+and does not close the remaining v1 contract/conformance work.
+
 - Verified SwiftUI rendering. Its public preview is now represented in the matrix as
   `unverified`; implementation evidence remains with the external `meridian-ui` project.
   The conformance guide records the verification limits independently of catalog completeness.
