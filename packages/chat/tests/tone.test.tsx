@@ -43,7 +43,7 @@ it.each([undefined, 0, 1, 2, 3, 4, 5, 6, 999])("conversation Tone %s stays indep
       });
       await emit(json);
       const html = document.createElement("main");
-      html.innerHTML = renderBlockInner((json as { block: Block }).block);
+      html.innerHTML = renderBlockInner((json as unknown as { block: Block }).block);
       for (const surface of [vanilla, host, html]) {
         expect(surface.querySelector(".tool.err")?.getAttribute("data-mer-tone")).toBe(expected);
         expect(surface.querySelector(".dot.err")).not.toBeNull();
