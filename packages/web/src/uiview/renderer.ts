@@ -154,6 +154,9 @@ export interface UiviewWasm {
 }
 
 export interface RenderPanelOptions {
+  /** Owned ambient row supplied by a repeated sub-view. No-populate record,
+   * table, and form shapes read this without inventing a fetch. */
+  record?: Record<string, unknown>;
   onPromptResponse?: import("@savvifi/meridian-schemas/uiview").PromptResponseHandler;
   /** Initialized wasm bindings (the host calls `init()` first). */
   wasm: UiviewWasm;
@@ -394,6 +397,7 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   if (body.case === "form") {
     meta.textContent = "";
     const form = buildInteractiveForm(body.value, {
+      initialValues: renderOpts.record,
       allowed: (call) => createAdmissionGate(renderOpts.admission).admits("mutation", call.service, call.method),
       invoke: (call, values, mutation) => {
         const request = mutation ? buildSubmission(renderOpts, values) : plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
@@ -1531,7 +1535,7 @@ async function renderTablePanel(
 ): Promise<void> {
   const { wasm, root, descriptor, invoker } = opts;
   const populate = table.populate;
-  if (!populate) {
+  if (!populate && opts.record === undefined) {
     metaEl.textContent = "(table has no populate RPC)";
     return;
   }
@@ -1600,8 +1604,10 @@ async function renderTablePanel(
   const refresh = async (): Promise<void> => {
     let response: object;
     try {
-      const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
-      response = await invoker.invoke(populate.service, populate.method, request as object);
+      if (populate) {
+        const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
+        response = await invoker.invoke(populate.service, populate.method, request as object);
+      } else response = opts.record!;
       rows = wasm.renderTable(descriptorBytes, response);
       // A re-fetch can shrink the list out from under the selection.
       if (selectedIndex >= rows.length) selectedIndex = -1;
@@ -1866,17 +1872,17 @@ async function renderRecordPanel(
 ): Promise<void> {
   const { root, invoker, wasm } = opts;
   const populate = panel.populate;
-  if (!populate) {
+  if (!populate && opts.record === undefined) {
     metaEl.textContent = "(no populate RPC)";
     return;
   }
   const idField = panel.idField || "id";
   const subject = opts.context.currentResourcePath;
-  let record: object;
+  let record: object = opts.record ?? {};
   try {
     const request: Record<string, unknown> = {};
     if (subject) request[idField] = subject;
-    record = await invoker.invoke(populate.service, populate.method, request);
+    if (populate) record = await invoker.invoke(populate.service, populate.method, request);
   } catch (err) {
     metaEl.textContent = `Failed: ${(err as Error).message}`;
     return;

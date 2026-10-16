@@ -45,12 +45,27 @@ export type RenderViewOptions = Omit<
 
 // Runtime ownership only: a disposed/hidden slot cannot finish mounting a live
 // resource or invoke a detached action. No transport state is serialized here.
-interface SlotSession { active: boolean; panels: Set<HTMLElement> }
-interface ViewSession { active: boolean; slots: Set<SlotSession> }
+interface SlotSession { active: boolean; panels: Set<HTMLElement>; views: Set<HTMLElement> }
+interface ViewSession { active: boolean; slots: Set<SlotSession>; budget: { used: number }; cost: number; depth: number }
 const VIEWS = new WeakMap<HTMLElement, ViewSession>();
+const MAX_VIEW_NODES = 1000;
+function viewCost(view: ViewDescriptor, depth = 0, ancestors = new Set<ViewDescriptor>()): number {
+  if (depth > 64 || ancestors.has(view) || view.slots.length > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
+  ancestors.add(view);
+  let cost = 1 + view.slots.length;
+  try {
+    for (const slot of view.slots) {
+      if (slot.subView) cost += viewCost(slot.subView, depth + 1, ancestors);
+      if (cost > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
+    }
+    return cost;
+  } finally { ancestors.delete(view); }
+}
 let nextViewId = 0;
 function disposeSlot(session: SlotSession): void {
   session.active = false;
+  for (const view of session.views) disposeView(view);
+  session.views.clear();
   for (const panel of session.panels) disposePanel(panel);
   session.panels.clear();
 }
@@ -61,6 +76,7 @@ export function disposeView(root: HTMLElement): void {
   if (!session) return;
   VIEWS.delete(root);
   session.active = false;
+  session.budget.used -= session.cost;
   for (const slot of session.slots) disposeSlot(slot);
   session.slots.clear();
 }
@@ -80,11 +96,25 @@ function gatedInvoker(
 
 /** Renders a ViewDescriptor. The layout mode selects the arrangement of slots. */
 export async function renderView(opts: RenderViewOptions): Promise<void> {
+  return renderViewTree(opts, { used: 0 }, 0);
+}
+
+async function renderViewTree(opts: RenderViewOptions, budget: { used: number }, depth: number): Promise<void> {
   const gate = createAdmissionGate(opts.admission);
   const mutationInvoker = gatedInvoker(opts.invoker, gate, "mutation");
   const { root, view } = opts;
   disposeView(root);
-  const session: ViewSession = { active: true, slots: new Set() };
+  try {
+    viewCost(view, depth);
+    if (budget.used + view.slots.length + 1 > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
+  } catch (reason) {
+    const error = document.createElement("p"); error.setAttribute("role", "alert");
+    error.textContent = reason instanceof Error ? reason.message : String(reason);
+    root.replaceChildren(error); return;
+  }
+  const cost = view.slots.length + 1;
+  budget.used += cost;
+  const session: ViewSession = { active: true, slots: new Set(), budget, cost, depth };
   VIEWS.set(root, session);
   root.innerHTML = "";
   root.classList.add("meridian-uiview-view");
@@ -165,7 +195,7 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
         panel.hidden = i !== index;
         tabs.children[i].setAttribute("aria-selected", i === index ? "true" : "false");
       });
-      activeSlot = { active: true, panels: new Set() };
+      activeSlot = { active: true, panels: new Set(), views: new Set() };
       await renderSlot(tabSections[index], ordered[index], opts, mutationInvoker, session, activeSlot);
     };
 
@@ -228,7 +258,7 @@ async function renderSlot(
   opts: RenderViewOptions,
   mutationInvoker: RpcInvoker,
   session: ViewSession,
-  mount: SlotSession = { active: true, panels: new Set() },
+  mount: SlotSession = { active: true, panels: new Set(), views: new Set() },
 ): Promise<HTMLElement> {
   const section = document.createElement("section");
   const alive = () => session.active && mount.active;
@@ -239,7 +269,7 @@ async function renderSlot(
   if (slot.role) section.dataset.role = slot.role;
 
   const panel = slot.panel;
-  const label = slot.title || panel?.title;
+  const label = slot.title || (!slot.subView ? panel?.title : undefined);
   if (label) {
     const h = document.createElement("h3");
     h.className = "meridian-uiview-slot-title";
@@ -248,7 +278,73 @@ async function renderSlot(
   }
   parent.appendChild(section);
 
-  if (panel) {
+  const dependency = slot.dependsOnSelectionKey;
+  const selected = dependency && opts.context.selections ? Object.getOwnPropertyDescriptor(opts.context.selections, dependency) : undefined;
+  if (dependency && (!selected || !("value" in selected) || !selected.value)) {
+    section.dataset.awaitingSelection = dependency;
+    const placeholder = document.createElement("p");
+    placeholder.className = "meridian-uiview-slot-placeholder";
+    placeholder.textContent = slot.dependsOnPlaceholder || "Make a selection to view this section.";
+    section.append(placeholder); return section;
+  }
+
+  if (slot.subView) {
+    const content = document.createElement("div"), status = document.createElement("p"), retry = document.createElement("button");
+    section.append(content, status, retry);
+    retry.type = "button"; retry.textContent = "Retry section"; retry.hidden = true;
+    let loading = false;
+    const sub = slot.subView;
+    const load = async () => {
+      if (!alive() || loading) return;
+      loading = true; retry.hidden = true;
+      status.setAttribute("role", "status"); status.textContent = "Loading…";
+      for (const view of mount.views) disposeView(view);
+      mount.views.clear(); content.replaceChildren();
+      try {
+        let records: Array<Record<string, unknown> | undefined> = [opts.record];
+        if (slot.subViewPopulate) {
+          const call = slot.subViewPopulate;
+          createAdmissionGate(opts.admission).check("read", call.service, call.method);
+          const request = plainValue(opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context)) as object;
+          const response = await opts.invoker.invoke(call.service, call.method, request);
+          if (!alive()) return;
+          const found = opts.wasm.readPath(response, slot.subViewRowsField);
+          const rows = found == null && Array.isArray(response) ? response : found;
+          if (!Array.isArray(rows)) throw new Error("Repeated view response must contain a row array.");
+          // Reject the entire repeated expansion before mounting any row. The
+          // core's readPath bounds JSON conversion/output; this caps DOM expansion.
+          if (rows.length * viewCost(sub, session.depth + 1) > MAX_VIEW_NODES - session.budget.used)
+            throw new Error("View composition limit exceeded.");
+          records = rows.map(row => {
+            if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("Repeated view rows must be objects.");
+            return plainValue(opts.wasm.readPath(row, "")) as Record<string, unknown>;
+          });
+        }
+        for (const [index, record] of records.entries()) {
+          if (!alive()) return;
+          const nested = document.createElement("div");
+          if (slot.subViewPopulate) nested.dataset.subviewItem = String(index);
+          content.append(nested); mount.views.add(nested);
+          await renderViewTree({ ...opts, root: nested, view: sub, record,
+            context: record === undefined ? opts.context : { ...opts.context, selectedRow: record } }, session.budget, session.depth + 1);
+        }
+        if (alive()) status.textContent = records.length ? "" : "No items.";
+      } catch (reason) {
+        if (alive()) {
+          for (const view of mount.views) disposeView(view);
+          mount.views.clear(); content.replaceChildren();
+          status.setAttribute("role", "alert");
+          status.textContent = `Could not load section: ${reason instanceof Error ? reason.message : String(reason)}`;
+          retry.hidden = false;
+        }
+      } finally { loading = false; }
+    };
+    retry.onclick = () => { void load(); };
+    await load();
+    if (!alive()) return section;
+  }
+
+  if (!slot.subView && panel) {
     const panelRoot = document.createElement("div");
     section.appendChild(panelRoot);
     mount.panels.add(panelRoot);
@@ -256,7 +352,16 @@ async function renderSlot(
     // see the RenderViewOptions note on why this is a spread and not a list.
     const { view: _view, ...panelOpts } = opts;
     try {
-      await renderPanel({ ...panelOpts, root: panelRoot, descriptor: panel });
+      await renderPanel({ ...panelOpts, root: panelRoot, descriptor: panel,
+        invoker: { invoke(service, method, request) {
+          if (!alive()) return Promise.reject(new Error("View section is no longer active."));
+          return opts.invoker.invoke(service, method, request);
+        } },
+        streamInvoker: opts.streamInvoker ? { subscribe(service, method, request, handlers) {
+          if (!alive()) throw new Error("View section is no longer active.");
+          return opts.streamInvoker!.subscribe(service, method, request, handlers);
+        } } : undefined,
+      });
     } catch (reason) {
       if (alive()) {
         const error = document.createElement("p"); error.setAttribute("role", "alert");
