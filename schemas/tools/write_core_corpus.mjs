@@ -6,6 +6,7 @@ import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { readFileSync, writeFileSync } from "node:fs";
 import { CoreCorpusSchema } from "../../packages/proto-ts/conformance/core_pb.js";
 import { FORMATTER_MODES, assertFormatterModes, assertNumberOptions } from "./formatter_modes.mjs";
+import { assertValueClockContract } from "./value_clock_contract.mjs";
 
 // Cargo and this writer use the same committed descriptor set. Avoid depending
 // on generated JS module resolution in this dependency-light Node tool.
@@ -22,11 +23,27 @@ assertFormatterModes(name => registry.getEnum(name));
 assertNumberOptions(registry.getMessage("meridian.ui.v1.NumberOptions"));
 
 const wire = (schema, json) => Buffer.from(toBinary(schema, fromJson(schema, json))).toString("base64");
-const valueFormat = (name, input, display, nowMs, text, title) => ({
-  name, input, display: wire(ValueDisplaySchema, display),
-  ...(nowMs === undefined ? {} : { nowMs }),
-  expected: wire(FormattedValueSchema, { text, ...(title === undefined ? {} : { title }) }),
-});
+const unclockedValueFormats = [];
+const valueFormat = (name, input, display, nowMs, text, title, unclockedText) => {
+  const encodedDisplay = wire(ValueDisplaySchema, display);
+  const expected = (text, title) => wire(FormattedValueSchema,
+    { text, ...(title === undefined ? {} : { title }) });
+  if (nowMs !== undefined) {
+    // Fixed expectations, not a call to the formatter under test. Temporal
+    // relative-with-title already authors its absolute fallback; relative-only
+    // cases must explicitly supply one. Principal titles are clock-independent.
+    const relative = display.temporal?.display === 2 || display.temporal?.display === 3;
+    if (display.temporal?.display === 2 && unclockedText === undefined) {
+      throw new Error(`${name}: relative-only case needs an authored no-clock expectation`);
+    }
+    unclockedValueFormats.push({
+      name: `no-clock-${name}`, input, display: encodedDisplay,
+      expected: relative ? expected(unclockedText ?? title ?? text) : expected(text, title),
+    });
+  }
+  return { name, input, display: encodedDisplay,
+    ...(nowMs === undefined ? {} : { nowMs }), expected: expected(text, title) };
+};
 const instant = Date.parse("2026-03-29T13:45:00Z"); // Authoring constant, not a runtime clock.
 const stamp = "2026-03-29T13:45:00Z";
 const absoluteStamp = "Mar 29, 2026, 1:45 PM UTC";
@@ -102,7 +119,7 @@ const corpus = {
     ].flatMap(([type, input, absolute, relative]) => temporalModes.flatMap(mode => precisions.map((precision, index) =>
       valueFormat(`calendar-grid-${type}-${mode}-${precision}`, input, temporalDisplay(mode, type, precision), Date.parse("2026-03-30T03:30:07Z"),
         relative !== undefined && mode >= 2 ? relative : absolute[index],
-        relative !== undefined && mode === 3 ? absolute[index] : undefined)))),
+        relative !== undefined && mode === 3 ? absolute[index] : undefined, absolute[index])))),
     ...[
       ["today-late", "2026-03-29", "2026-03-29T23:59:59Z", "today", "Mar 29, 2026"],
       ["today-offset", "2026-03-29T23:30:00-02:00", "2026-03-29T12:00:00Z", "today", "Mar 29, 2026"],
@@ -198,7 +215,7 @@ const corpus = {
     valueFormat("principal-invalid-clock", "Ada <ada@example.com>", { type: 12, principal: { display: 3 } }, "NaN", "Ada", "ada@example.com"),
     ...relativeDeltas.map(([name, delta, text]) => valueFormat(name, stamp, temporalDisplay(), instant - delta, text, absoluteStamp)),
     ...temporalModes.map(mode => valueFormat(`display-mode-${mode}`, stamp, temporalDisplay(mode), instant - 2 * 86_400_000,
-      mode < 2 ? absoluteStamp : "in 2 days", mode === 3 ? absoluteStamp : undefined)),
+      mode < 2 ? absoluteStamp : "in 2 days", mode === 3 ? absoluteStamp : undefined, absoluteStamp)),
     valueFormat("date-only", "2026-03-29", temporalDisplay(3, 8), Date.parse("2026-03-31T00:00:00Z"), "2 days ago", "Mar 29, 2026"),
     valueFormat("date-offset", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 8), Date.parse("2026-03-31T01:30:00Z"), "2 days ago", "Mar 29, 2026"),
     valueFormat("day-precision", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 9, 1), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 30, 2026"),
@@ -287,6 +304,10 @@ const corpus = {
     ] },
   ],
 };
+// Every explicit-clock case has an independent no-clock twin with identical
+// input/display bytes. Existing unclocked cases already carry fixed expectations.
+corpus.valueFormats.push(...unclockedValueFormats);
+assertValueClockContract(corpus.valueFormats);
 const target = new URL("../conformance/core.json", import.meta.url);
 // Validate bytes, field names, and special floating-point values against the
 // generated test-only envelope before writing or checking its JSON projection.

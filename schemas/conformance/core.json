@@ -1455,6 +1455,804 @@
       "display": "CAkSAggD",
       "nowMs": 1774791900000,
       "expected": "CgPigJQ="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-0-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAA==",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-0-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAhAB",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-0-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAhAC",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-0-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAhAD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-1-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAggB",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-1-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgBEAE=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-1-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgBEAI=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-1-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgBEAM=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-2-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAggC",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-2-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgCEAE=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-2-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgCEAI=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-2-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgCEAM=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-3-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-3-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgDEAE=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-3-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgDEAI=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-8-3-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAgSBAgDEAM=",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-9-0-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAA==",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-0-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAhAB",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-9-0-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAhAC",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-0-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAhAD",
+      "expected": "ChxNYXIgMzAsIDIwMjYsIDE6MzA6MDcgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-1-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAggB",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-1-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgBEAE=",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-9-1-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgBEAI=",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-1-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgBEAM=",
+      "expected": "ChxNYXIgMzAsIDIwMjYsIDE6MzA6MDcgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-2-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAggC",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-2-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgCEAE=",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-9-2-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgCEAI=",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-2-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgCEAM=",
+      "expected": "ChxNYXIgMzAsIDIwMjYsIDE6MzA6MDcgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-3-0",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-3-1",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgDEAE=",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-grid-9-3-2",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgDEAI=",
+      "expected": "ChlNYXIgMzAsIDIwMjYsIDE6MzAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-9-3-3",
+      "input": "2026-03-29T23:30:07-02:00",
+      "display": "CAkSBAgDEAM=",
+      "expected": "ChxNYXIgMzAsIDIwMjYsIDE6MzA6MDcgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-calendar-grid-10-0-0",
+      "input": "23:30:07",
+      "display": "CAoSAA==",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-0-1",
+      "input": "23:30:07",
+      "display": "CAoSAhAB",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-0-2",
+      "input": "23:30:07",
+      "display": "CAoSAhAC",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-0-3",
+      "input": "23:30:07",
+      "display": "CAoSAhAD",
+      "expected": "Cg8xMTozMDowNyBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-1-0",
+      "input": "23:30:07",
+      "display": "CAoSAggB",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-1-1",
+      "input": "23:30:07",
+      "display": "CAoSBAgBEAE=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-1-2",
+      "input": "23:30:07",
+      "display": "CAoSBAgBEAI=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-1-3",
+      "input": "23:30:07",
+      "display": "CAoSBAgBEAM=",
+      "expected": "Cg8xMTozMDowNyBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-2-0",
+      "input": "23:30:07",
+      "display": "CAoSAggC",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-2-1",
+      "input": "23:30:07",
+      "display": "CAoSBAgCEAE=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-2-2",
+      "input": "23:30:07",
+      "display": "CAoSBAgCEAI=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-2-3",
+      "input": "23:30:07",
+      "display": "CAoSBAgCEAM=",
+      "expected": "Cg8xMTozMDowNyBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-3-0",
+      "input": "23:30:07",
+      "display": "CAoSAggD",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-3-1",
+      "input": "23:30:07",
+      "display": "CAoSBAgDEAE=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-3-2",
+      "input": "23:30:07",
+      "display": "CAoSBAgDEAI=",
+      "expected": "CgwxMTozMCBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-grid-10-3-3",
+      "input": "23:30:07",
+      "display": "CAoSBAgDEAM=",
+      "expected": "Cg8xMTozMDowNyBQTSBVVEM="
+    },
+    {
+      "name": "no-clock-calendar-today-late",
+      "input": "2026-03-29",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-today-offset",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-tomorrow",
+      "input": "2026-03-30",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-yesterday-offset",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-calendar-pre-epoch-today",
+      "input": "1969-12-31",
+      "display": "CAgSAggD",
+      "expected": "CgxEZWMgMzEsIDE5Njk="
+    },
+    {
+      "name": "no-clock-calendar-epoch-tomorrow",
+      "input": "1970-01-01",
+      "display": "CAgSAggD",
+      "expected": "CgtKYW4gMSwgMTk3MA=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-0-8-1",
+      "input": "2026-03-29garbage",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChEyMDI2LTAzLTI5Z2FyYmFnZQ=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-0-8-3",
+      "input": "2026-03-29garbage",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChEyMDI2LTAzLTI5Z2FyYmFnZQ=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-0-9-1",
+      "input": "2026-03-29garbage",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChEyMDI2LTAzLTI5Z2FyYmFnZQ=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-0-9-3",
+      "input": "2026-03-29garbage",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChEyMDI2LTAzLTI5Z2FyYmFnZQ=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-1-8-1",
+      "input": "2026-03-29T13:45:99Z",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChQyMDI2LTAzLTI5VDEzOjQ1Ojk5Wg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-1-8-3",
+      "input": "2026-03-29T13:45:99Z",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChQyMDI2LTAzLTI5VDEzOjQ1Ojk5Wg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-1-9-1",
+      "input": "2026-03-29T13:45:99Z",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChQyMDI2LTAzLTI5VDEzOjQ1Ojk5Wg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-1-9-3",
+      "input": "2026-03-29T13:45:99Z",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChQyMDI2LTAzLTI5VDEzOjQ1Ojk5Wg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-2-8-1",
+      "input": "2026-03-29T13:45+24:00",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChYyMDI2LTAzLTI5VDEzOjQ1KzI0OjAw"
+    },
+    {
+      "name": "no-clock-calendar-invalid-2-8-3",
+      "input": "2026-03-29T13:45+24:00",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChYyMDI2LTAzLTI5VDEzOjQ1KzI0OjAw"
+    },
+    {
+      "name": "no-clock-calendar-invalid-2-9-1",
+      "input": "2026-03-29T13:45+24:00",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChYyMDI2LTAzLTI5VDEzOjQ1KzI0OjAw"
+    },
+    {
+      "name": "no-clock-calendar-invalid-2-9-3",
+      "input": "2026-03-29T13:45+24:00",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChYyMDI2LTAzLTI5VDEzOjQ1KzI0OjAw"
+    },
+    {
+      "name": "no-clock-calendar-invalid-3-8-1",
+      "input": "2026-03-29T13:中Z",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChIyMDI2LTAzLTI5VDEzOuS4rVo="
+    },
+    {
+      "name": "no-clock-calendar-invalid-3-8-3",
+      "input": "2026-03-29T13:中Z",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChIyMDI2LTAzLTI5VDEzOuS4rVo="
+    },
+    {
+      "name": "no-clock-calendar-invalid-3-9-1",
+      "input": "2026-03-29T13:中Z",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChIyMDI2LTAzLTI5VDEzOuS4rVo="
+    },
+    {
+      "name": "no-clock-calendar-invalid-3-9-3",
+      "input": "2026-03-29T13:中Z",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChIyMDI2LTAzLTI5VDEzOuS4rVo="
+    },
+    {
+      "name": "no-clock-calendar-invalid-4-8-1",
+      "input": "2026-03-29T13:45Zgarbage",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChgyMDI2LTAzLTI5VDEzOjQ1WmdhcmJhZ2U="
+    },
+    {
+      "name": "no-clock-calendar-invalid-4-8-3",
+      "input": "2026-03-29T13:45Zgarbage",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChgyMDI2LTAzLTI5VDEzOjQ1WmdhcmJhZ2U="
+    },
+    {
+      "name": "no-clock-calendar-invalid-4-9-1",
+      "input": "2026-03-29T13:45Zgarbage",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChgyMDI2LTAzLTI5VDEzOjQ1WmdhcmJhZ2U="
+    },
+    {
+      "name": "no-clock-calendar-invalid-4-9-3",
+      "input": "2026-03-29T13:45Zgarbage",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChgyMDI2LTAzLTI5VDEzOjQ1WmdhcmJhZ2U="
+    },
+    {
+      "name": "no-clock-calendar-invalid-5-8-1",
+      "input": "2026-02-31T13:45:00Z",
+      "display": "CAgSBAgBEAE=",
+      "expected": "ChQyMDI2LTAyLTMxVDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-5-8-3",
+      "input": "2026-02-31T13:45:00Z",
+      "display": "CAgSBAgDEAE=",
+      "expected": "ChQyMDI2LTAyLTMxVDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-5-9-1",
+      "input": "2026-02-31T13:45:00Z",
+      "display": "CAkSBAgBEAE=",
+      "expected": "ChQyMDI2LTAyLTMxVDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "no-clock-calendar-invalid-5-9-3",
+      "input": "2026-02-31T13:45:00Z",
+      "display": "CAkSBAgDEAE=",
+      "expected": "ChQyMDI2LTAyLTMxVDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "no-clock-relative-title-seconds",
+      "input": "2026-03-29T13:45:07Z",
+      "display": "CAkSBAgDEAM=",
+      "expected": "ChxNYXIgMjksIDIwMjYsIDE6NDU6MDcgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-principal-12-0",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAA==",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "no-clock-principal-12-1",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggB",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "no-clock-principal-12-2",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggC",
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "no-clock-principal-12-3",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggD",
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "no-clock-principal-13-0",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAA==",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "no-clock-principal-13-1",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggB",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "no-clock-principal-13-2",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggC",
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "no-clock-principal-13-3",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggD",
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "no-clock-principal-default",
+      "input": "Ada <ada@example.com>",
+      "display": "CAw=",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "no-clock-email-default",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0=",
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "no-clock-principal-invalid-clock",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggD",
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "no-clock-recent-past",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-recent-future",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-past-minute",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-future-minute",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-negative-half",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-positive-half",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-before-hour",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-hour",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-before-day",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-tomorrow",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-yesterday",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-future-days",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-past-days",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-next-month",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-last-month",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-months",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-past-months",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-next-year",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-last-year",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-years",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-grouped-years",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-display-mode-0",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAA==",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-display-mode-1",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggB",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-display-mode-2",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggC",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-display-mode-3",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-date-only",
+      "input": "2026-03-29",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-date-offset",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAgSAggD",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "no-clock-day-precision",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAkSBAgDEAE=",
+      "expected": "CgxNYXIgMzAsIDIwMjY="
+    },
+    {
+      "name": "no-clock-time-has-no-calendar",
+      "input": "13:45:00",
+      "display": "CAoSAggD",
+      "expected": "CgsxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "no-clock-absent-invalid-clock-1",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-absent-invalid-clock-2",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-absent-invalid-clock-3",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-absent-invalid-clock-4",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-epoch-zero-clock",
+      "input": "1970-01-01T00:01:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlKYW4gMSwgMTk3MCwgMTI6MDEgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-negative-clock",
+      "input": "1970-01-01T00:00:00Z",
+      "display": "CAkSAggD",
+      "expected": "CgtKYW4gMSwgMTk3MA=="
+    },
+    {
+      "name": "no-clock-fraction-truncation",
+      "input": "1970-01-01T00:00:59.9999Z",
+      "display": "CAkSAggD",
+      "expected": "ChlKYW4gMSwgMTk3MCwgMTI6MDAgQU0gVVRD"
+    },
+    {
+      "name": "no-clock-pre-epoch",
+      "input": "1969-12-31T23:59:59.999Z",
+      "display": "CAkSAggD",
+      "expected": "ChpEZWMgMzEsIDE5NjksIDExOjU5IFBNIFVUQw=="
+    },
+    {
+      "name": "no-clock-non-leap-century",
+      "input": "1900-03-01",
+      "display": "CAgSAggD",
+      "expected": "CgtNYXIgMSwgMTkwMA=="
+    },
+    {
+      "name": "no-clock-leap-century",
+      "input": "2000-03-01",
+      "display": "CAgSAggD",
+      "expected": "CgtNYXIgMSwgMjAwMA=="
+    },
+    {
+      "name": "no-clock-unknown-mode",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAwjnBw==",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "no-clock-invalid-stamp",
+      "input": "not-a-timestamp",
+      "display": "CAkSAggD",
+      "expected": "Cg9ub3QtYS10aW1lc3RhbXA="
+    },
+    {
+      "name": "no-clock-null",
+      "input": null,
+      "display": "CAkSAggD",
+      "expected": "CgPigJQ="
+    },
+    {
+      "name": "no-clock-empty",
+      "input": "",
+      "display": "CAkSAggD",
+      "expected": "CgPigJQ="
     }
   ],
   "paths": [
