@@ -183,7 +183,7 @@ fn shared_core_corpus_keeps_every_operation_and_unique_names() {
         ("galleries", 4),
         ("metadata", 5),
         ("budgets", 4),
-        ("valueFormats", 86),
+        ("valueFormats", 126),
     ] {
         let cases = corpus[operation].as_array().unwrap();
         assert_eq!(cases.len(), count, "{operation}");

@@ -1,6 +1,246 @@
 {
   "valueFormats": [
     {
+      "name": "number-grouped-default",
+      "input": 12345.625,
+      "display": "CAQaAA==",
+      "expected": "CgoxMiwzNDUuNjI1"
+    },
+    {
+      "name": "number-grouped-fixed",
+      "input": 12345.625,
+      "display": "CAQaAggC",
+      "expected": "CgkxMiwzNDUuNjM="
+    },
+    {
+      "name": "number-ungrouped",
+      "input": -12345.625,
+      "display": "CAQaBAgCGAE=",
+      "expected": "CgktMTIzNDUuNjM="
+    },
+    {
+      "name": "number-fraction-not-grouped",
+      "input": 1.123456,
+      "display": "CAQaAA==",
+      "expected": "CggxLjEyMzQ1Ng=="
+    },
+    {
+      "name": "number-integer-grouped",
+      "input": 1234567,
+      "display": "CAMaAA==",
+      "expected": "CgkxLDIzNCw1Njc="
+    },
+    {
+      "name": "number-negative-zero",
+      "input": 0,
+      "display": "CAQaAA==",
+      "expected": "CgEw"
+    },
+    {
+      "name": "number-compact-k",
+      "input": 1234.5,
+      "display": "CAQaBAgCIAE=",
+      "expected": "CgUxLjIzSw=="
+    },
+    {
+      "name": "number-compact-m",
+      "input": -1250000,
+      "display": "CAQaAiAB",
+      "expected": "CgYtMS4yNU0="
+    },
+    {
+      "name": "number-compact-b",
+      "input": 2500000000,
+      "display": "CAMaBAgAIAE=",
+      "expected": "CgIzQg=="
+    },
+    {
+      "name": "number-compact-t",
+      "input": 3500000000000,
+      "display": "CAQaAiAB",
+      "expected": "CgQzLjVU"
+    },
+    {
+      "name": "number-compact-below",
+      "input": 999,
+      "display": "CAQaAiAB",
+      "expected": "CgM5OTk="
+    },
+    {
+      "name": "number-compact-boundary",
+      "input": 1000,
+      "display": "CAQaAiAB",
+      "expected": "CgIxSw=="
+    },
+    {
+      "name": "number-compact-precision",
+      "input": 12345.625,
+      "display": "CAQaBAgDIAE=",
+      "expected": "CgcxMi4zNDZL"
+    },
+    {
+      "name": "number-currency-usd",
+      "input": 12345.625,
+      "display": "CBAaBwgCEgNVU0Q=",
+      "expected": "Cg1VU0QgMTIsMzQ1LjYz"
+    },
+    {
+      "name": "number-currency-jpy",
+      "input": -12345.625,
+      "display": "CBAaBwgAEgNKUFk=",
+      "expected": "CgtKUFkgLTEyLDM0Ng=="
+    },
+    {
+      "name": "number-currency-no-invented-precision",
+      "input": 12.5,
+      "display": "CBAaBRIDS1dE",
+      "expected": "CghLV0QgMTIuNQ=="
+    },
+    {
+      "name": "number-currency-compact",
+      "input": 1234500,
+      "display": "CBAaCQgCEgNFVVIgAQ==",
+      "expected": "CglFVVIgMS4yM00="
+    },
+    {
+      "name": "number-currency-ungrouped",
+      "input": 12345.5,
+      "display": "CBAaBxIDVVNEGAE=",
+      "expected": "CgtVU0QgMTIzNDUuNQ=="
+    },
+    {
+      "name": "number-currency-lowercase",
+      "input": 12.5,
+      "display": "CBAaBRIDdXNk",
+      "expected": "CgQxMi41"
+    },
+    {
+      "name": "number-currency-control",
+      "input": 12.5,
+      "display": "CBAaBRIDVVMK",
+      "expected": "CgQxMi41"
+    },
+    {
+      "name": "number-currency-wrong-type",
+      "input": 12345.5,
+      "display": "CAQaBRIDVVNE",
+      "expected": "CggxMiwzNDUuNQ=="
+    },
+    {
+      "name": "number-percent-ratio",
+      "input": 0.125,
+      "display": "CBEaAA==",
+      "expected": "CgUxMi41JQ=="
+    },
+    {
+      "name": "number-percent-fixed",
+      "input": 0.125,
+      "display": "CBEaAggD",
+      "expected": "CgcxMi41MDAl"
+    },
+    {
+      "name": "number-percent-negative-tie",
+      "input": -0.125,
+      "display": "CBEaAggA",
+      "expected": "CgQtMTMl"
+    },
+    {
+      "name": "number-percent-grouped",
+      "input": 12.625,
+      "display": "CBEaAA==",
+      "expected": "CggxLDI2Mi41JQ=="
+    },
+    {
+      "name": "number-percent-ungrouped",
+      "input": 12.625,
+      "display": "CBEaAhgB",
+      "expected": "CgcxMjYyLjUl"
+    },
+    {
+      "name": "number-percent-compact",
+      "input": 12.5,
+      "display": "CBEaAiAB",
+      "expected": "CgYxLjI1SyU="
+    },
+    {
+      "name": "number-percent-invalid-precision",
+      "input": 0.125,
+      "display": "CBEaAghl",
+      "expected": "CgUxMi41JQ=="
+    },
+    {
+      "name": "number-percent-zero",
+      "input": 0,
+      "display": "CBEaAggC",
+      "expected": "CgUwLjAwJQ=="
+    },
+    {
+      "name": "number-numeric-string-options",
+      "input": "0012.50",
+      "display": "CBAaCQgAEgNVU0QgAQ==",
+      "expected": "CgcwMDEyLjUw"
+    },
+    {
+      "name": "number-null-options",
+      "input": null,
+      "display": "CBAaBxIDVVNEIAE=",
+      "expected": "CgPigJQ="
+    },
+    {
+      "name": "number-empty-options",
+      "input": "",
+      "display": "CBEaAiAB",
+      "expected": "CgPigJQ="
+    },
+    {
+      "name": "number-large-fixed-binary",
+      "input": 1e+23,
+      "display": "CAQaAggC",
+      "expected": "CiE5OSw5OTksOTk5LDk5OSw5OTksOTkxLDYxMSwzOTIuMDA="
+    },
+    {
+      "name": "number-small-scalar",
+      "input": 1e-7,
+      "display": "CAQaAA==",
+      "expected": "CgkwLjAwMDAwMDE="
+    },
+    {
+      "name": "number-large-scalar",
+      "input": 1e+23,
+      "display": "CAQaAA==",
+      "expected": "Ch8xMDAsMDAwLDAwMCwwMDAsMDAwLDAwMCwwMDAsMDAw"
+    },
+    {
+      "name": "number-percent-overflow",
+      "input": 1e+308,
+      "display": "CBEaAggC",
+      "expected": "CgYxZSszMDg="
+    },
+    {
+      "name": "number-negative-percent-overflow",
+      "input": -1e+308,
+      "display": "CBEaAiAB",
+      "expected": "CgctMWUrMzA4"
+    },
+    {
+      "name": "number-compact-rounding-boundary",
+      "input": 999999,
+      "display": "CAQaBAgAIAE=",
+      "expected": "CgYxLDAwMEs="
+    },
+    {
+      "name": "number-compact-rounding-ungrouped",
+      "input": 999999,
+      "display": "CAQaBggAGAEgAQ==",
+      "expected": "CgUxMDAwSw=="
+    },
+    {
+      "name": "number-tiny-fixed",
+      "input": 5e-324,
+      "display": "CAQaAghk",
+      "expected": "CmYwLjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
+    },
+    {
       "name": "precision-date-0",
       "input": "2026-03-29T13:45:07Z",
       "display": "CAgSAggB",

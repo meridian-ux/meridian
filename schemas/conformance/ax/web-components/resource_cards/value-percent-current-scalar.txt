@@ -8,13 +8,13 @@ RootWebArea name="Meridian AX conformance" focusable=true
     StaticText name="percent-current-scalar"
     list name=""
       listitem name="" level=1
-        heading name="0.125" level=3
-          StaticText name="0.125"
+        heading name="12.500%" level=3
+          StaticText name="12.500%"
         paragraph name=""
-          StaticText name="0.125"
-        StaticText name="0.125"
+          StaticText name="12.500%"
+        StaticText name="12.500%"
         DescriptionList name=""
           term name="Declared value"
             StaticText name="Declared value"
           definition name=""
-            StaticText name="0.125"
+            StaticText name="12.500%"

@@ -183,7 +183,7 @@ declarations and explicit delegation rather than claiming to execute private cod
 
 ## Native and WASM core fixtures
 
-`core.proto` defines the test-only envelope for `core.json`. Its 130 cases cover
+`core.proto` defines the test-only envelope for `core.json`. Its 170 cases cover
 field paths, request bindings, tables, galleries, LRO status text, and stateful
 payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
 and the real wasm-bindgen bridge compare their outputs with the same committed
@@ -198,6 +198,16 @@ DATE, DATE_TIME, and TIME, including midnight, absent seconds, and date-only
 inputs. Explicit minute/second precision retains midnight, and second precision
 retains timestamp seconds in both visible text and relative supporting titles.
 DATE remains calendar-only; a date-only input does not acquire an invented time.
+
+Numeric cases cover default grouping, explicit grouping suppression, K/M/B/T
+compact magnitudes, currency-code prefixes, percentage ratios, fixed rounding,
+large/small scalars, invalid precision, and literal numeric-looking strings.
+All NumberOptions fields have an inventory gate. The historical fixture name
+`percent-current-scalar` is retained to avoid churning fixture identities, but
+its expected value now correctly represents the ratio as `12.500%`.
+These semantic corrections intentionally update percentage render goldens and
+native whole-number labels (`42`, not a JSON floating-point artifact `42.0`).
+Raw values, clipboard values, and submitted inputs are unchanged.
 
 Thirteen temporal vectors additionally compare native core, both real WASM
 table entrypoints, and the current TypeScript formatter. They cover UTC offset
@@ -554,8 +564,9 @@ UNSPECIFIED and an unknown type are additional fallback cases. The tests round-t
 each ValueDisplay through protobuf, assert deterministic text without a clock,
 check null fallback, and preserve raw inputs and descriptor bytes. Invalid dates,
 times, principal labels, precision, and mismatched options have explicit cases.
-Money/percent cases record the current scalar precision behavior, not currency
-symbols or percentage scaling. This corpus does not prove renderer decoration,
+Money without a currency code retains its numeric precision; percent ratios
+scale by 100 and carry a percent suffix. The extended `core.json` cases exercise
+currency-code prefixes, grouping, and compact magnitudes separately. This corpus does not prove renderer decoration,
 layout, all option combinations, or universal Rust/TypeScript parity.
 
 The native descriptor suite now has inline text goldens for populated Gallery,

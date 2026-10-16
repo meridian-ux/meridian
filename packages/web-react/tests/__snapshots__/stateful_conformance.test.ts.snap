@@ -1847,7 +1847,7 @@ dl
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'detail_header/value-principal' > html/detail_header/value-principal 1`] = `
@@ -3591,7 +3591,7 @@ h2
 form
   label
     "Declared input"
-    "0.125""
+    "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'form/read-principal' > html/form/read-principal 1`] = `
@@ -4556,11 +4556,11 @@ h2
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
+      "12.500%"
     span role="status"
-      "0.125""
+      "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'gallery/value-principal' > html/gallery/value-principal 1`] = `
@@ -7131,7 +7131,7 @@ dl aria-label="Record details"
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'record_card/value-principal' > html/record_card/value-principal 1`] = `
@@ -7932,15 +7932,15 @@ h2
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
-    "0.125"
+      "12.500%"
+    "12.500%"
     dl
       dt
         "Declared value"
       dd
-        "0.125""
+        "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'resource_cards/value-principal' > html/resource_cards/value-principal 1`] = `
@@ -8350,7 +8350,7 @@ h3
 h2
   "percent"
 "Typed metric"
-"0.125""
+"12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'stat/typed-principal' > html/stat/typed-principal 1`] = `
@@ -9750,7 +9750,7 @@ table
   tbody
     tr
       td
-        "0.125""
+        "12.500%""
 `;
 
 exports[`html stateful ViewDescriptor corpus > 'table/value-principal' > html/table/value-principal 1`] = `
@@ -11758,7 +11758,7 @@ dl aria-label="Record summary"
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'detail_header/value-principal' > shadcn/detail_header/value-principal 1`] = `
@@ -13502,7 +13502,7 @@ h3
 form
   label
     "Declared input"
-    "0.125""
+    "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'form/read-principal' > shadcn/form/read-principal 1`] = `
@@ -14467,11 +14467,11 @@ h3
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
+      "12.500%"
     span role="status"
-      "0.125""
+      "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'gallery/value-principal' > shadcn/gallery/value-principal 1`] = `
@@ -17042,7 +17042,7 @@ dl aria-label="Record details"
   dt
     "Declared value"
   dd
-    "0.125""
+    "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'record_card/value-principal' > shadcn/record_card/value-principal 1`] = `
@@ -17843,15 +17843,15 @@ h3
 div role="list"
   article role="listitem"
     h3
-      "0.125"
+      "12.500%"
     p
-      "0.125"
-    "0.125"
+      "12.500%"
+    "12.500%"
     dl
       dt
         "Declared value"
       dd
-        "0.125""
+        "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'resource_cards/value-principal' > shadcn/resource_cards/value-principal 1`] = `
@@ -18261,7 +18261,7 @@ h3
 h3
   "percent"
 "Typed metric"
-"0.125""
+"12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'stat/typed-principal' > shadcn/stat/typed-principal 1`] = `
@@ -19664,7 +19664,7 @@ table
   tbody
     tr
       td
-        "0.125""
+        "12.500%""
 `;
 
 exports[`shadcn stateful ViewDescriptor corpus > 'table/value-principal' > shadcn/table/value-principal 1`] = `

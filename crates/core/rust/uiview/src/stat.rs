@@ -394,7 +394,7 @@ mod tests {
             ..Default::default()
         };
         let computed = compute_stat(&panel);
-        assert_eq!(computed.formatted_value, "1234");
+        assert_eq!(computed.formatted_value, "1,234");
         assert_eq!(computed.formatted_delta.as_deref(), Some("+234"));
     }
 
@@ -439,7 +439,7 @@ mod tests {
                 };
                 let decoded = StatPanel::decode(panel.encode_to_vec().as_slice()).unwrap();
                 let computed = compute_stat(&decoded);
-                let (value, delta) = match digits {
+                let (mut value, mut delta) = match digits {
                     Some(0) => ("13".into(), "+2".into()),
                     Some(100) => (
                         format!("12.625{}", "0".repeat(97)),
@@ -447,6 +447,17 @@ mod tests {
                     ),
                     _ => ("12.625".into(), "+2.375".into()),
                 };
+                if kind == ValueType::Percent {
+                    (value, delta) = match digits {
+                        Some(0) => ("1,263%".into(), "+238%".into()),
+                        Some(3) => ("1,262.500%".into(), "+237.500%".into()),
+                        Some(100) => (
+                            format!("1,262.5{}%", "0".repeat(99)),
+                            format!("+237.5{}%", "0".repeat(99)),
+                        ),
+                        _ => ("1,262.5%".into(), "+237.5%".into()),
+                    };
+                }
                 let suffix = if matches!(kind, ValueType::Money | ValueType::Percent) {
                     ""
                 } else {

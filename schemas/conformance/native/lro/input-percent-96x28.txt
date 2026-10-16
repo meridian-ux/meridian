@@ -4,7 +4,7 @@ percent
 │Run                                                                                           │
 │↑/↓ select · ←/→ numeric · F2 JSON · Enter start                                              │
 │                                                                                              │
-│▶ Declared input: 0.125                                                                       │
+│▶ Declared input: 12.500%                                                                     │
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │

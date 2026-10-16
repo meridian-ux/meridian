@@ -31,7 +31,7 @@ import {
 const corpus = fixture.cases;
 
 describe("shared temporal precision contract", () => {
-  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
+  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name.startsWith("number-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
     const bytes = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
     const display = fromBinary(ValueDisplaySchema, bytes(entry.display));
     const expected = fromBinary(FormattedValueSchema, bytes(entry.expected));
@@ -209,7 +209,7 @@ describe("declared numeric rounding (paired with native wire/table/stat tests)",
         "0.0000000000000000000000000000003944304526105059027058642826413931148366032175545115023851394653320313"],
       [Number.MIN_VALUE, 100, `0.${"0".repeat(100)}`],
     ] as const) {
-      for (const type of [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.PERCENT]) {
+      for (const type of [ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY]) {
         const display = fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema,
           create(ValueDisplaySchema, { type, options: { case: "number", value: { fractionDigits: digits } } })));
         expect(formatByDisplay(value, display).text).toBe(expected);
@@ -227,9 +227,11 @@ describe.each([ValueType.INTEGER, ValueType.DECIMAL, ValueType.MONEY, ValueType.
       [100, `1.125${"0".repeat(97)}`],
       [-1, "1.125"], [-2147483648, "1.125"], [101, "1.125"], [2147483647, "1.125"],
     ] as const)("preserves bounded behavior for precision %s", (fractionDigits, expected) => {
+      const output = type === ValueType.PERCENT ? (fractionDigits === 0 ? "113%"
+        : fractionDigits === 3 ? "112.500%" : fractionDigits === 100 ? `112.5${"0".repeat(99)}%` : "112.5%") : expected;
       const display = fromBinary(ValueDisplaySchema, toBinary(ValueDisplaySchema,
         create(ValueDisplaySchema, { type, options: { case: "number", value: { fractionDigits } } })));
-      expect(formatByDisplay(1.125, display).text).toBe(expected);
+      expect(formatByDisplay(1.125, display).text).toBe(output);
       expect(formatByDisplay("001.125", display).text).toBe("001.125");
       expect(formatByDisplay(null, display).text).toBe(EMPTY_DISPLAY);
     });

@@ -55,7 +55,7 @@ def input_cases():
         ("url", 14, text("https://example.com/a?b=1"), "https://example.com/a?b=1", "https://example.com/a?b=1"),
         ("identifier", 15, text("000123"), "000123", "000123"),
         ("money", 16, number(12.5), 12.5, "12.50"),
-        ("percent", 17, number(.125), .125, "0.125"),
+        ("percent", 17, number(.125), .125, "12.500%"),
         ("json", 18, {"nested": {"fields": [{"fieldId": "ready", "label": "Ready",
             "boolean": {"defaultValue": True}}]}}, {"ready": True}, '{"ready":true}'),
         ("map", 18, {"keyValueMap": {}}, {}, "{}"),

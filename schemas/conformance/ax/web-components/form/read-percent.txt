@@ -10,6 +10,6 @@ RootWebArea name="Meridian AX conformance" focusable=true
       group name="Declared input" invalid="false"
         Legend name=""
           StaticText name="Declared input"
-        StaticText name="0.125"
+        StaticText name="12.500%"
     status name="" atomic=true live="polite"
     alert name="" atomic=true live="assertive"

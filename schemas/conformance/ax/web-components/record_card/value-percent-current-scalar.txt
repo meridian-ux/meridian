@@ -10,4 +10,4 @@ RootWebArea name="Meridian AX conformance" focusable=true
       term name="Declared value"
         StaticText name="Declared value"
       definition name=""
-        StaticText name="0.125"
+        StaticText name="12.500%"

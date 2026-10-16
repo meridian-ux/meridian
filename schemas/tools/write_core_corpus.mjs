@@ -5,7 +5,7 @@ import { createFileRegistry, fromBinary, fromJson, toBinary } from "@bufbuild/pr
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { readFileSync, writeFileSync } from "node:fs";
 import { CoreCorpusSchema } from "../../packages/proto-ts/conformance/core_pb.js";
-import { FORMATTER_MODES, assertFormatterModes } from "./formatter_modes.mjs";
+import { FORMATTER_MODES, assertFormatterModes, assertNumberOptions } from "./formatter_modes.mjs";
 
 // Cargo and this writer use the same committed descriptor set. Avoid depending
 // on generated JS module resolution in this dependency-light Node tool.
@@ -19,6 +19,7 @@ const ValueDisplaySchema = registry.getMessage("meridian.ui.v1.ValueDisplay");
 const FormattedValueSchema = registry.getMessage("meridian.ui.v1.FormattedValue");
 const { TemporalDisplay: temporalModes, TemporalPrecision: precisions, PrincipalDisplay: principalModes } = FORMATTER_MODES;
 assertFormatterModes(name => registry.getEnum(name));
+assertNumberOptions(registry.getMessage("meridian.ui.v1.NumberOptions"));
 
 const wire = (schema, json) => Buffer.from(toBinary(schema, fromJson(schema, json))).toString("base64");
 const valueFormat = (name, input, display, nowMs, text, title) => ({
@@ -95,6 +96,48 @@ const temporalCases = [
 
 const corpus = {
   valueFormats: [
+    ...[
+      ["grouped-default", 4, 12345.625, {}, "12,345.625"],
+      ["grouped-fixed", 4, 12345.625, { fractionDigits: 2 }, "12,345.63"],
+      ["ungrouped", 4, -12345.625, { omitGroupSeparators: true, fractionDigits: 2 }, "-12345.63"],
+      ["fraction-not-grouped", 4, 1.123456, {}, "1.123456"],
+      ["integer-grouped", 3, 1234567, {}, "1,234,567"],
+      ["negative-zero", 4, 0, {}, "0"],
+      ["compact-k", 4, 1234.5, { compact: true, fractionDigits: 2 }, "1.23K"],
+      ["compact-m", 4, -1250000, { compact: true }, "-1.25M"],
+      ["compact-b", 3, 2500000000, { compact: true, fractionDigits: 0 }, "3B"],
+      ["compact-t", 4, 3500000000000, { compact: true }, "3.5T"],
+      ["compact-below", 4, 999, { compact: true }, "999"],
+      ["compact-boundary", 4, 1000, { compact: true }, "1K"],
+      ["compact-precision", 4, 12345.625, { compact: true, fractionDigits: 3 }, "12.346K"],
+      ["currency-usd", 16, 12345.625, { currencyCode: "USD", fractionDigits: 2 }, "USD 12,345.63"],
+      ["currency-jpy", 16, -12345.625, { currencyCode: "JPY", fractionDigits: 0 }, "JPY -12,346"],
+      ["currency-no-invented-precision", 16, 12.5, { currencyCode: "KWD" }, "KWD 12.5"],
+      ["currency-compact", 16, 1234500, { currencyCode: "EUR", compact: true, fractionDigits: 2 }, "EUR 1.23M"],
+      ["currency-ungrouped", 16, 12345.5, { currencyCode: "USD", omitGroupSeparators: true }, "USD 12345.5"],
+      ["currency-lowercase", 16, 12.5, { currencyCode: "usd" }, "12.5"],
+      ["currency-control", 16, 12.5, { currencyCode: "US\n" }, "12.5"],
+      ["currency-wrong-type", 4, 12345.5, { currencyCode: "USD" }, "12,345.5"],
+      ["percent-ratio", 17, 0.125, {}, "12.5%"],
+      ["percent-fixed", 17, 0.125, { fractionDigits: 3 }, "12.500%"],
+      ["percent-negative-tie", 17, -0.125, { fractionDigits: 0 }, "-13%"],
+      ["percent-grouped", 17, 12.625, {}, "1,262.5%"],
+      ["percent-ungrouped", 17, 12.625, { omitGroupSeparators: true }, "1262.5%"],
+      ["percent-compact", 17, 12.5, { compact: true }, "1.25K%"],
+      ["percent-invalid-precision", 17, 0.125, { fractionDigits: 101 }, "12.5%"],
+      ["percent-zero", 17, 0, { fractionDigits: 2 }, "0.00%"],
+      ["numeric-string-options", 16, "0012.50", { currencyCode: "USD", compact: true, fractionDigits: 0 }, "0012.50"],
+      ["null-options", 16, null, { currencyCode: "USD", compact: true }, "—"],
+      ["empty-options", 17, "", { compact: true }, "—"],
+      ["large-fixed-binary", 4, 1e23, { fractionDigits: 2 }, "99,999,999,999,999,991,611,392.00"],
+      ["small-scalar", 4, 1e-7, {}, "0.0000001"],
+      ["large-scalar", 4, 1e23, {}, "100,000,000,000,000,000,000,000"],
+      ["percent-overflow", 17, 1e308, { fractionDigits: 2 }, "1e+308"],
+      ["negative-percent-overflow", 17, -1e308, { compact: true }, "-1e+308"],
+      ["compact-rounding-boundary", 4, 999999, { compact: true, fractionDigits: 0 }, "1,000K"],
+      ["compact-rounding-ungrouped", 4, 999999, { compact: true, fractionDigits: 0, omitGroupSeparators: true }, "1000K"],
+      ["tiny-fixed", 4, 5e-324, { fractionDigits: 100 }, `0.${"0".repeat(100)}`],
+    ].map(([name, type, input, number, text]) => valueFormat(`number-${name}`, input, { type, number }, undefined, text)),
     // Fixed expectations for every precision, plus the forward-compatible
     // unknown fallback. Explicit precision must not lose seconds or midnight.
     ...[

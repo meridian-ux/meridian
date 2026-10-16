@@ -8,4 +8,4 @@ RootWebArea name="Meridian AX conformance" focusable=true
     heading name="percent" level=2
       StaticText name="percent"
     StaticText name="Typed metric"
-    StaticText name="0.125"
+    StaticText name="12.500%"
