@@ -17,7 +17,7 @@ const TablePanelSchema = registry.getMessage("meridian.ui.v1.TablePanel");
 const GalleryPanelSchema = registry.getMessage("meridian.ui.v1.GalleryPanel");
 const ValueDisplaySchema = registry.getMessage("meridian.ui.v1.ValueDisplay");
 const FormattedValueSchema = registry.getMessage("meridian.ui.v1.FormattedValue");
-const { TemporalDisplay: temporalModes, PrincipalDisplay: principalModes } = FORMATTER_MODES;
+const { TemporalDisplay: temporalModes, TemporalPrecision: precisions, PrincipalDisplay: principalModes } = FORMATTER_MODES;
 assertFormatterModes(name => registry.getEnum(name));
 
 const wire = (schema, json) => Buffer.from(toBinary(schema, fromJson(schema, json))).toString("base64");
@@ -95,6 +95,18 @@ const temporalCases = [
 
 const corpus = {
   valueFormats: [
+    // Fixed expectations for every precision, plus the forward-compatible
+    // unknown fallback. Explicit precision must not lose seconds or midnight.
+    ...[
+      ["date", 8, "2026-03-29T13:45:07Z", ["Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026"]],
+      ["timestamp", 9, "2026-03-29T13:45:07Z", [absoluteStamp, "Mar 29, 2026", absoluteStamp, "Mar 29, 2026, 1:45:07 PM UTC", absoluteStamp]],
+      ["midnight", 9, "2026-03-29T00:00:00Z", ["Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026, 12:00 AM UTC", "Mar 29, 2026, 12:00:00 AM UTC", "Mar 29, 2026"]],
+      ["time", 10, "13:45:07", ["1:45 PM UTC", "1:45 PM UTC", "1:45 PM UTC", "1:45:07 PM UTC", "1:45 PM UTC"]],
+      ["time-no-seconds", 10, "13:45", ["1:45 PM UTC", "1:45 PM UTC", "1:45 PM UTC", "1:45 PM UTC", "1:45 PM UTC"]],
+      ["calendar-only", 9, "2026-03-29", ["Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026"]],
+    ].flatMap(([name, type, input, expected]) => [...precisions, 999].map((precision, index) =>
+      valueFormat(`precision-${name}-${precision}`, input, temporalDisplay(1, type, precision), undefined, expected[index]))),
+    valueFormat("relative-title-seconds", "2026-03-29T13:45:07Z", temporalDisplay(3, 9, 3), instant, "just now", "Mar 29, 2026, 1:45:07 PM UTC"),
     ...[12, 13].flatMap(type => principalModes.map(mode => valueFormat(`principal-${type}-${mode}`,
       "Ada <ada@example.com>", { type, principal: { display: mode } }, instant,
       mode === 2 ? "ada@example.com" : "Ada", mode === 3 ? "ada@example.com" : undefined))),

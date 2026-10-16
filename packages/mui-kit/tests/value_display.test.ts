@@ -30,6 +30,19 @@ import {
 
 const corpus = fixture.cases;
 
+describe("shared temporal precision contract", () => {
+  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
+    const bytes = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
+    const display = fromBinary(ValueDisplaySchema, bytes(entry.display));
+    const expected = fromBinary(FormattedValueSchema, bytes(entry.expected));
+    const now = "nowMs" in entry ? Number(entry.nowMs) : undefined;
+    expect(formatByDisplay(entry.input, display, now)).toEqual({
+      text: expected.text,
+      ...(expected.title === undefined ? {} : { title: expected.title }),
+    });
+  });
+});
+
 describe("native/WASM temporal table parity vectors", () => {
   it.each(coreCorpus.tables.filter(entry => entry.name.startsWith("temporal-")))("formats $name with the same UTC text", entry => {
     const table = fromBinary(TablePanelSchema, Uint8Array.from(atob(entry.table), char => char.charCodeAt(0)));
