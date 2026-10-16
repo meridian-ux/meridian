@@ -40,7 +40,8 @@ final class NativeStatState: ObservableObject {
     }
 
     func load(panel: Meridian_Ui_V1_StatPanel, host: MeridianHost, key requested: NativeStatIdentity) async {
-        guard panel.hasPopulate, (try? NativeStatIdentity(panel: panel, host: host)) == requested else { return }
+        guard panel.hasPopulate else { cancel(); return }
+        guard (try? NativeStatIdentity(panel: panel, host: host)) == requested else { return }
         if pending && key == requested { return }
         cancel()
         key = requested
@@ -133,6 +134,7 @@ struct StatContent: View {
         }
         .task(id: key) {
             if let key, panel.hasPopulate { await state.load(panel: panel, host: host, key: key) }
+            else { state.cancel() }
         }
         .onDisappear { state.cancel() }
     }

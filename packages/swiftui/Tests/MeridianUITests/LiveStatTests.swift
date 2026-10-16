@@ -223,7 +223,8 @@ final class LiveStatTests: XCTestCase {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 240),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: view)
+        let hosting = NSHostingView(rootView: view)
+        window.contentView = hosting
         defer { window.orderOut(nil); window.close() }
         window.orderFront(nil) // Own short-lived test window; never activate another app.
         window.layoutIfNeeded()
@@ -234,6 +235,16 @@ final class LiveStatTests: XCTestCase {
         XCTAssertEqual(calls, 2)
         XCTAssertFalse(state.pending)
         XCTAssertTrue(try NativeViewDump.render(view).contains("\"12 ms\""))
+        var staticPanel = panel
+        staticPanel.clearPopulate()
+        hosting.rootView = StatContent(panel: staticPanel, host: host, state: state)
+        for _ in 0..<100 {
+            if state.key == nil { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertNil(state.key)
+        XCTAssertNil(state.response)
+        XCTAssertEqual(calls, 2, "Removing populate must clear cached data without another RPC")
     }
 
     func testInvalidAndStaleRequestsNeverReachAdmission() async throws {
