@@ -24,8 +24,27 @@ option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
 option java_outer_classname = "ValueProto";
 
-// The semantic role a value carries, resolved to a colour by the active
-// Palette — never a colour itself.
+// The semantic role a value, state, or action carries, resolved to a color by
+// the active Palette — never a color itself. Unspecified uses the receiving
+// surface's existing default; NEUTRAL explicitly requests ordinary emphasis.
+// Operational state and action emphasis remain separate concepts.
+//
+// This is the shared vocabulary for new tone-bearing APIs. Existing ValueTone
+// fields retain their type and JSON names until an additive migration is made;
+// equal numeric assignments do not authorize changing an existing field type.
+enum Tone {
+  TONE_UNSPECIFIED = 0;
+  TONE_NEUTRAL = 1;
+  TONE_INFO = 2;
+  TONE_SUCCESS = 3;
+  TONE_WARNING = 4;
+  TONE_DANGER = 5;
+  TONE_ACCENT = 6;
+}
+
+// Legacy value-only vocabulary. Prefer Tone for new fields. Keep this enum,
+// its numeric assignments, and existing fields intact for wire, JSON, and
+// generated source compatibility; do not rename VALUE_TONE_* JSON tokens.
 //
 // This is the same contract Palette already states for its own roles ("Roles
 // are semantic, not literal — a renderer never sees 'amber', only 'accent'"),
@@ -35,6 +54,7 @@ option java_outer_classname = "ValueProto";
 //
 // Names correspond to Palette roles of the same name.
 enum ValueTone {
+  option deprecated = true;
   VALUE_TONE_UNSPECIFIED = 0;
   // Default. No emphasis — the value is ordinary.
   VALUE_TONE_NEUTRAL = 1;

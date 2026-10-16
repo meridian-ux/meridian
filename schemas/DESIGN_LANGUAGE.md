@@ -5,12 +5,23 @@ protos. It is a rendering contract, not a proposal for new schema fields.
 
 ## Tone
 
-`ValueTone` communicates the meaning of a value or state: neutral, positive,
-warning, danger, informative, or accent. Renderers map tone to their own
+`Tone` is the shared semantic vocabulary: neutral, info, success, warning,
+danger, and accent, with unspecified retaining the receiving surface's default.
+It describes meaning, not a literal color, operational state, or action emphasis.
+Renderers map tone to their own
 palette roles; producers do not provide colors. `Status.State` and
 `ToolBlock.State` carry operational state, while `AffordanceStyle` carries
 emphasis for an action. A renderer may combine those signals, but must preserve
 the distinction between what something means and what the user can do.
+
+`ValueTone` is deprecated but retained for existing fields, including
+`EnumOption.tone`. Its numeric assignments match `Tone`, but its generated type
+and `VALUE_TONE_*` JSON tokens remain unchanged. Do not change the enum type of
+an existing field in place: matching wire numbers do not preserve generated
+source APIs or JSON enum names. New tone-bearing fields should use `Tone`;
+consumer adoption and precedence during migration remain roadmap #44. This
+definition alone does not make existing renderers consume a new tone field or
+prove theme conformance (#45).
 
 ## Affordance
 
