@@ -11,6 +11,9 @@ pub fn validate_form_values(fields: &[FormField], values: &Value) -> Result<(), 
 }
 
 fn validate_object(fields: &[FormField], values: &Value, depth: usize) -> Result<(), String> {
+    if depth > 64 {
+        return Err("form nesting exceeds 64 levels".into());
+    }
     let object = values.as_object().ok_or("invalid object")?;
     let mut names = HashSet::new();
     for field in fields {
@@ -272,5 +275,81 @@ mod tests {
         )
         .is_err());
         assert!(check(Kind::Repeated(Box::default()), json!([])).is_err());
+    }
+
+    #[test]
+    fn recursion_limit_applies_to_each_kind_of_compound_value() {
+        for shape in ["nested", "scalar", "object"] {
+            for (levels, empty, valid) in [(64, false, true), (65, false, false), (64, true, false)]
+            {
+                let mut leaf = field(if empty {
+                    Kind::Nested(NestedForm::default())
+                } else {
+                    Kind::Text(TextInput::default())
+                });
+                let mut value = if empty { json!({}) } else { json!("") };
+                for _ in 0..levels {
+                    if shape == "nested" {
+                        leaf = field(Kind::Nested(NestedForm { fields: vec![leaf] }));
+                        value = json!({"value": value});
+                    } else {
+                        let element = if shape == "scalar" {
+                            Element::Scalar(Box::new(leaf))
+                        } else {
+                            Element::Object(NestedForm { fields: vec![leaf] })
+                        };
+                        leaf = field(Kind::Repeated(Box::new(RepeatedField {
+                            element: Some(element),
+                            ..Default::default()
+                        })));
+                        value = if shape == "scalar" {
+                            json!([value])
+                        } else {
+                            json!([{ "value": value }])
+                        };
+                    }
+                }
+                let result = validate_form_values(&[leaf], &json!({"value": value}));
+                assert_eq!(
+                    result.is_ok(),
+                    valid,
+                    "{shape}, {levels}, empty={empty}: {result:?}"
+                );
+                if !valid {
+                    assert!(result.unwrap_err().contains("64"));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn object_identity_rules_do_not_apply_to_positional_scalar_elements() {
+        let leaf = field(Kind::Text(TextInput::default()));
+        for fields in [
+            vec![leaf.clone(), leaf],
+            vec![FormField {
+                field_id: String::new(),
+                kind: Some(Kind::Text(TextInput::default())),
+                ..Default::default()
+            }],
+        ] {
+            let nested = Kind::Nested(NestedForm {
+                fields: fields.clone(),
+            });
+            assert!(check(nested, json!({"value": "", "": ""})).is_err());
+            let repeated = Kind::Repeated(Box::new(RepeatedField {
+                element: Some(Element::Object(NestedForm { fields })),
+                ..Default::default()
+            }));
+            assert!(check(repeated, json!([{ "value": "", "": "" }])).is_err());
+        }
+        let scalar = Kind::Repeated(Box::new(RepeatedField {
+            element: Some(Element::Scalar(Box::new(FormField {
+                kind: Some(Kind::Text(TextInput::default())),
+                ..Default::default()
+            }))),
+            ..Default::default()
+        }));
+        assert!(check(scalar, json!([""])).is_ok());
     }
 }

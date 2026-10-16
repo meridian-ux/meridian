@@ -39,10 +39,24 @@ export function defaultFormValue(field: FormField): unknown {
 }
 
 /** Validate local form values before any host callback/RPC. No coercion: empty
- * numbers, fractions in integer fields, and string booleans are not defaults. */
+ * numbers, fractions in integer fields, and string booleans are not defaults.
+ * Match the native core's 64-level nesting limit and object-field identity rules. */
 export function validateFormValues(fields: readonly FormField[], values: unknown): string | undefined {
   const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
-  const validate = (field: FormField, value: unknown): string | undefined => {
+  const validateObject = (fields: readonly FormField[], values: unknown, depth: number): string | undefined => {
+    if (depth > 64) return "Form nesting exceeds 64 levels.";
+    if (!object(values)) return "Invalid form values.";
+    const names = new Set<string>();
+    for (const field of fields) {
+      if (!field.fieldId || names.has(field.fieldId)) return "Field identifiers must be nonempty and unique.";
+      names.add(field.fieldId);
+      const error = validate(field, Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined, depth);
+      if (error) return error;
+    }
+    return undefined;
+  };
+  const validate = (field: FormField, value: unknown, depth: number): string | undefined => {
+    if (depth > 64) return "Form nesting exceeds 64 levels.";
     const label = field.label || field.fieldId, kind = field.kind;
     const fail = (message: string) => `${label}: ${message}.`;
     switch (kind.case) {
@@ -66,14 +80,14 @@ export function validateFormValues(fields: readonly FormField[], values: unknown
         const options = kind.value.options.length ? kind.value.options.map(option => option.value) : kind.value.allowedValues;
         return typeof value === "string" && options.includes(value) ? undefined : fail("select an allowed value");
       }
-      case "nested": return object(value) ? validateFormValues(kind.value.fields, value) : fail("invalid object");
+      case "nested": return object(value) ? validateObject(kind.value.fields, value, depth + 1) : fail("invalid object");
       case "repeated": {
         if (!Array.isArray(value) || value.length < kind.value.minItems || (kind.value.maxItems && value.length > kind.value.maxItems)) return fail("invalid item count");
         const element = kind.value.element;
         if (!element.case) return fail("unsupported repeated element");
         for (const item of value) {
-          const error = element.case === "scalar" ? validate(element.value, item)
-            : element.case === "object" ? validateFormValues(element.value.fields, item) : fail("unsupported repeated element");
+          const error = element.case === "scalar" ? validate(element.value, item, depth + 1)
+            : element.case === "object" ? validateObject(element.value.fields, item, depth + 1) : fail("unsupported repeated element");
           if (error) return error;
         }
         return;
@@ -83,10 +97,5 @@ export function validateFormValues(fields: readonly FormField[], values: unknown
       default: return fail("unsupported field kind");
     }
   };
-  if (!object(values)) return "Invalid form values.";
-  for (const field of fields) {
-    const error = validate(field, Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined);
-    if (error) return error;
-  }
-  return undefined;
+  return validateObject(fields, values, 0);
 }
