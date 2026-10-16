@@ -9,10 +9,10 @@ name: ci
 # for months behind a missing --experimental_isolated_extension_usages and nobody
 # knew.
 #
-# The node and cargo jobs need no Bazel, no private registry and no credentials,
-# so they cannot be blocked by a toolchain fetch. Bazel gets its own job because
-# it needs registry.tbzl.dev and is much slower; it is allowed to be the long pole
-# rather than the gate everything waits behind.
+# Browser formatting now executes Rust by construction. A narrow pinned-core
+# build supplies the same self-contained module that ships to npm; Node tests
+# consume that artifact instead of maintaining a JavaScript formatter twin.
+# Cargo and the full Bazel suite remain independent of the Node coverage job.
 
 on:
   pull_request:
@@ -24,8 +24,32 @@ permissions:
   contents: read
 
 jobs:
+  core-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+      - name: Build the default synchronous formatter
+        run: bazel build --announce_rc=false //schemas:core_runtime
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-runtime
+          path: |
+            bazel-bin/schemas/src/uiview/generated/meridian_uiview.js
+            bazel-bin/schemas/src/uiview/generated/meridian_uiview.d.ts
+          if-no-files-found: error
+          retention-days: 1
+
   node:
     runs-on: ubuntu-latest
+    needs: [core-runtime]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,6 +76,13 @@ jobs:
       # Slot.sub_view without anything noticing.
       - name: Install (runs codegen via prepare)
         run: pnpm install --frozen-lockfile
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-runtime
+          path: ${{ runner.temp }}/meridian-core-runtime
+      - name: Prepare the same core runtime used by published packages
+        run: node schemas/tools/prepare_core_runtime.mjs "$RUNNER_TEMP/meridian-core-runtime"
 
       # THE headline check. @savvifi/meridian-proto-ts resolved to FIVE versions
       # across these packages before the merge (^0.23.0 / ^0.24.0 / 0.21.0 /

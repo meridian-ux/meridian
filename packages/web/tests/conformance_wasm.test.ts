@@ -278,16 +278,14 @@ const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCode
 
 describe("the native crate's shared fixture corpus through real WASM", () => {
   it("uses the same explicit-clock corpus as native Rust without reading a browser clock", () => {
-    expect(core.valueFormats).toHaveLength(126);
+    expect(core.valueFormats).toHaveLength(138);
     for (const entry of core.valueFormats) {
       const display = fromBinary(ValueDisplaySchema, wire(entry.display));
       const expected = fromBinary(FormattedValueSchema, wire(entry.expected));
       const now = entry.nowMs === undefined ? undefined : Number(entry.nowMs);
       const actual = formatByCore(entry.input, display, wasm, now);
       expect(actual, entry.name).toEqual({ text: expected.text, ...(expected.title === undefined ? {} : { title: expected.title }) });
-      if (now === undefined || (Number.isFinite(now) && Math.abs(now) <= 8_640_000_000_000_000)) {
-        expect(actual, `legacy valid-clock parity: ${entry.name}`).toEqual(formatByDisplay(entry.input, display, now));
-      }
+      expect(actual, `default-core explicit-clock result: ${entry.name}`).toEqual(formatByDisplay(entry.input, display, now));
       expect(formatByCore(entry.input, display, wasm), entry.name).toEqual(formatByDisplay(entry.input, display));
     }
   });
@@ -397,7 +395,7 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("retains every operation and unique fixture names", () => {
-    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 126 })) {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 138 })) {
       const cases = core[operation];
       expect(cases, operation).toHaveLength(count);
       expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);

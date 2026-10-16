@@ -27,6 +27,19 @@
 // events only. That matches `Agora.Trace.same_view_audit_replayable`:
 // the projection is determined by the trace.
 
+import { create } from "@bufbuild/protobuf";
+import { TemporalPrecision, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+
+const BID_DISPLAY = create(ValueDisplaySchema, { type: ValueType.DECIMAL,
+  options: { case: "number", value: { fractionDigits: 4, omitGroupSeparators: true } } });
+const BALANCE_DISPLAY = create(ValueDisplaySchema, { type: ValueType.DECIMAL,
+  options: { case: "number", value: { fractionDigits: 2, omitGroupSeparators: true } } });
+const TIMESTAMP_DISPLAY = create(ValueDisplaySchema, { type: ValueType.DATE_TIME,
+  options: { case: "temporal", value: { precision: TemporalPrecision.SECOND } } });
+// These labels enter HTML strings, unlike JSX's automatic escaping.
+const fixedLabel = (value: number, display: typeof BID_DISPLAY) => esc(formatByDisplay(value, display).text);
+
 interface ChatTriple {
   subject: string;
   predicate: string;
@@ -592,13 +605,13 @@ function renderSubRound(
       return [
         `<tr class="${isWin ? 'winner' : ''}">`,
         `<td>${mark}${esc(b.tool)}${strat}</td>`,
-        `<td>${b.value.toFixed(4)}</td>`,
+        `<td>${fixedLabel(b.value, BID_DISPLAY)}</td>`,
         `</tr>`,
       ].join('');
     })
     .join('');
   const winnerLine = sr.winner
-    ? `→ ${esc(sr.winner)} (price ${sr.price.toFixed(4)})`
+    ? `→ ${esc(sr.winner)} (price ${fixedLabel(sr.price, BID_DISPLAY)})`
     : '(no bidder)';
   const empty = `<tr><td colspan="2" class="chat-empty" style="padding:6px;">no bids</td></tr>`;
   return [
@@ -617,7 +630,7 @@ function renderSubRound(
 }
 
 function renderTurn(ev: KgViewEvent, manifest: BidderManifest | null): string {
-  const ts = ev.ts ? new Date(ev.ts).toLocaleTimeString() : '';
+  const ts = ev.ts ? formatByDisplay(ev.ts, TIMESTAMP_DISPLAY).text : '';
   const winner = ev.winner || '(no bid)';
   const subRounds = ev.sub_rounds || [];
   const hasFanOut = subRounds.length > 1;
@@ -659,9 +672,9 @@ function renderBidder(
     const lowClass = balance.balance < 50 ? 'bal bal-low' : 'bal';
     balanceRow =
       `<div class="chat-bidder-balance">` +
-      `<span>balance <span class="${lowClass}">${balance.balance.toFixed(2)}</span></span>` +
+      `<span>balance <span class="${lowClass}">${fixedLabel(balance.balance, BALANCE_DISPLAY)}</span></span>` +
       `<span>won <span class="bal">${balance.total_won}</span></span>` +
-      `<span>paid <span class="bal">${balance.total_paid.toFixed(2)}</span></span>` +
+      `<span>paid <span class="bal">${fixedLabel(balance.total_paid, BALANCE_DISPLAY)}</span></span>` +
       `</div>`;
   }
   let tokensRow = '';
@@ -724,15 +737,15 @@ function renderAuction(ev: KgViewEvent, manifest: BidderManifest | null): string
       return [
         `<tr class="${isWin ? 'winner' : ''}">`,
         `<td>${mark}${esc(b.tool)}${strat}</td>`,
-        `<td>${b.value.toFixed(4)}</td>`,
+        `<td>${fixedLabel(b.value, BID_DISPLAY)}</td>`,
         `</tr>`,
       ].join('');
     })
     .join('');
   const priceLine =
     ev.bids.length > 1
-      ? `Vickrey price (2nd-highest bid): <b>${ev.price.toFixed(4)}</b>`
-      : `Solo bidder; price <b>${ev.price.toFixed(4)}</b>`;
+      ? `Vickrey price (2nd-highest bid): <b>${fixedLabel(ev.price, BID_DISPLAY)}</b>`
+      : `Solo bidder; price <b>${fixedLabel(ev.price, BID_DISPLAY)}</b>`;
   return [
     `<details class="chat-auction">`,
     `<summary class="chat-auction-summary">auction (${bids.length} bidder${bids.length === 1 ? '' : 's'})</summary>`,

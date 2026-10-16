@@ -1,7 +1,27 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@rules_vite//vite:defs.bzl", "vitest_test")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 
 package(default_visibility = ["//visibility:public"])
+
+js_run_binary(
+    name = "core_runtime",
+    tool = "//schemas:embed_core_wasm",
+    srcs = ["//schemas:core_glue.js", "//schemas:core_bytes.wasm", "//schemas:core_glue.d.ts"],
+    args = [
+        "$(execpath //schemas:core_glue.js)",
+        "$(execpath //schemas:core_bytes.wasm)",
+        "$(execpath //schemas:core_glue.d.ts)",
+        "$(RULEDIR)/generated/meridian_uiview.js",
+        "$(RULEDIR)/generated/meridian_uiview.d.ts",
+    ],
+    outs = ["generated/meridian_uiview.js", "generated/meridian_uiview.d.ts"],
+)
+
+js_library(
+    name = "core_runtime_library",
+    srcs = [":core_runtime"],
+)
 
 vitest_test(
     name = "prompt_response_test",
@@ -16,7 +36,8 @@ vitest_test(
 
 # @savvifi/meridian-schemas/uiview — the framework-neutral WebRenderer seam. Pure
 # interfaces over the canonical @savvifi/meridian-proto-ts PanelDescriptor + Theme; no
-# renderer, no React, no wasm. meridian-web AND meridian-web-react implement it,
+# renderer or React. Formatting delegates to the pinned embedded Rust core.
+# meridian-web AND meridian-web-react implement it,
 # so both depend on this module rather than on each other. Emits .js + .d.ts
 # alongside the sources (out_dir "."). Packaged as @savvifi/meridian-schemas in
 # //:BUILD.bazel (so the package paths stay rooted at src/uiview/).
@@ -24,6 +45,7 @@ ts_project(
     name = "seam",
     srcs = [
         "admission.ts",
+        "core_runtime.ts",
         "index.ts",
         "navigation.ts",
         "masked_multiline.ts",
@@ -41,6 +63,7 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
     deps = [
+        ":core_runtime_library",
         "//schemas:node_modules/@bufbuild/protobuf",
         "//schemas:node_modules/@savvifi/meridian-proto-ts",
     ],

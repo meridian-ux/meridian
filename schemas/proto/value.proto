@@ -122,8 +122,10 @@ message EnumOption {
 // `ColumnLink`; producers can now state the same route intent on any declared
 // value without making a renderer invent a URL.
 message ValueDisplay {
-  // What KIND of thing the value is. Unspecified ⇒ the renderer's default
-  // handling (today: the raw string), so an unformatted descriptor is unchanged.
+  // What KIND of thing the value is. Unspecified uses core's legacy inference
+  // (including strict ISO timestamp labels); declared TEXT stays literal. An
+  // unknown future enum value stays literal rather than guessing its meaning.
+  // Absence of this message preserves each legacy surface's existing behavior.
   ValueType type = 1 [(google.api.field_behavior) = OPTIONAL];
   // Per-type display options. A renderer that does not recognize the case
   // ignores it and renders the type's default form — never an error.

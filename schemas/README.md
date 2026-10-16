@@ -21,10 +21,15 @@ It ships three things:
   `meridian-web-react` (kit-driven React), and any future web renderer. Because
   the seam lives here, those renderers depend on `meridian-schemas` rather than on
   each other. See [`src/uiview/`](src/uiview/).
+  Value formatting is backed by the pinned Rust core, packaged as a synchronous
+  self-contained WASM module. Browser and Node SSR consumers use the same
+  implementation as native surfaces, without a runtime asset fetch or a second
+  JavaScript formatter. Host routing and renderer decoration remain separate.
 
-Language bindings for the non-web renderers (Java/JavaFX, Rust/TUI, Swift/SwiftUI)
-and the wasm web-components core live in their own renderer repos, each depending
-back on these protos.
+The shared native core lives under `crates/core` and depends only on the proto
+contract layer, not the JavaScript seam. The seam packages its WASM output; this
+does not create a renderer dependency cycle. Native/external renderer status is
+recorded in `conformance/renderer_catalog.json`, not inferred from old repo links.
 
 ## Layering
 
@@ -47,6 +52,18 @@ The module stays brand- and framework-neutral; brand (a `Theme`) and framework
 ```bash
 bazel build //...        # proto contracts, @savvifi/meridian-proto-ts, the seam
 ```
+
+For local source-based Node development and tests:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm core:prepare        # repeat after changing Rust formatting code
+```
+
+Published packages already include the generated core module; consumers do not
+run these build steps. The host must support synchronous WebAssembly compilation
+(including its CSP permission). See `conformance/README.md` for SSR/hydration
+proofs, artifact size, and the remaining formatter acceptance audit.
 
 Codegen uses a prebuilt `protoc` (`//bazel:protoc_prebuilt.bzl`) so it never
 compiles protoc from source.

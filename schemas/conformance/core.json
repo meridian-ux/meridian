@@ -1,6 +1,81 @@
 {
   "valueFormats": [
     {
+      "name": "fallback-text",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAE=",
+      "expected": "ChQyMDI2LTAzLTI5VDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "fallback-multiline",
+      "input": "2026-03-29",
+      "display": "CAI=",
+      "expected": "CgoyMDI2LTAzLTI5"
+    },
+    {
+      "name": "fallback-number-string",
+      "input": "2026-03-29",
+      "display": "CAQ=",
+      "expected": "CgoyMDI2LTAzLTI5"
+    },
+    {
+      "name": "fallback-boolean-string",
+      "input": "2026-03-29",
+      "display": "CAU=",
+      "expected": "CgoyMDI2LTAzLTI5"
+    },
+    {
+      "name": "fallback-list-scalars",
+      "input": [
+        false,
+        true
+      ],
+      "display": "CAc=",
+      "expected": "CgtmYWxzZSwgdHJ1ZQ=="
+    },
+    {
+      "name": "fallback-email-unknown-mode",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAwjnBw==",
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "fallback-principal-unknown-mode",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAwjnBw==",
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "fallback-invalid-calendar",
+      "input": "2026-02-31T13:45:00Z",
+      "display": "CAk=",
+      "expected": "ChQyMDI2LTAyLTMxVDEzOjQ1OjAwWg=="
+    },
+    {
+      "name": "fallback-zone-free",
+      "input": "2026-03-29T13:45:00",
+      "display": "CAk=",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "fallback-unknown-type",
+      "input": "2026-03-29",
+      "display": "COcH",
+      "expected": "CgoyMDI2LTAzLTI5"
+    },
+    {
+      "name": "fallback-unspecified-type",
+      "input": "2026-03-29",
+      "display": "",
+      "expected": "CgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "fallback-invalid-date",
+      "input": "1900-02-29",
+      "display": "CAg=",
+      "expected": "CgoxOTAwLTAyLTI5"
+    },
+    {
       "name": "number-grouped-default",
       "input": 12345.625,
       "display": "CAQaAA==",

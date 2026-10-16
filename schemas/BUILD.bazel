@@ -1,4 +1,4 @@
-load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 
@@ -25,6 +25,32 @@ js_library(
 # one lost it when the npm_link_package calls moved to //:BUILD.bazel, which was
 # a mistake on my part rather than a consequence of the merge.
 npm_link_all_packages(name = "node_modules")
+
+# One pinned Rust producer, also consumed by the local development preparer.
+genrule(
+    name = "core_bindings",
+    srcs = ["//crates/core/rust/uiview:uiview_wasm"],
+    outs = ["core_glue.js", "core_glue.d.ts", "core_bytes.wasm"],
+    cmd = """
+for f in $(SRCS); do
+  case $$f in
+    *meridian_uiview.js) cp $$f $(location core_glue.js) ;;
+    *meridian_uiview.d.ts) cp $$f $(location core_glue.d.ts) ;;
+    *meridian_uiview_bg.wasm) cp $$f $(location core_bytes.wasm) ;;
+  esac
+done
+""",
+)
+
+js_binary(
+    name = "embed_core_wasm",
+    entry_point = "tools/embed_core_wasm.mjs",
+)
+
+alias(
+    name = "core_runtime",
+    actual = "//schemas/src/uiview:core_runtime",
+)
 
 # Renderer conformance consumes the same protobuf fixture messages from every
 # modality. This is test infrastructure, not a published schemas entrypoint.
@@ -88,6 +114,7 @@ npm_package(
     name = "schemas_pkg",
     srcs = [
         "schemas.package.json",
+        "//schemas/src/uiview:core_runtime",
         "//schemas/src/uiview:seam",
     ],
     package = "@savvifi/meridian-schemas",

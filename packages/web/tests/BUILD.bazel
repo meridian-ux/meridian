@@ -39,6 +39,7 @@ vitest_test(
         "patch.test.ts",
         "proto_json.test.ts",
         "workers.test.ts",
+        "chat_formatting.test.ts",
     ],
     deps = [
         "//packages/web:node_modules/@savvifi/meridian-schemas",
