@@ -41,6 +41,7 @@ import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES, OPTION_INPUT_CASES } from "../../../schemas/conformance/value_option_cases.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { FORM_DEFAULT_BUDGET_CASES } from "../../../schemas/conformance/value_option_cases.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and
 // pulling in @types/node for a single readFileSync would widen the global scope
@@ -87,6 +88,31 @@ const CTX = {
   selectedRow: { name: "row-1", repo: "fastverk/botnoc" },
   formValues: {},
 };
+
+describe("web-components default budget through real WASM", () => {
+  it.each(FORM_DEFAULT_BUDGET_CASES)("$name", async fixture => {
+    const container = document.createElement("main"); document.body.append(container);
+    const invoke = vi.fn(async () => ({})), onPromptResponse = vi.fn();
+    const nativeFrom = Array.from;
+    const allocation = vi.spyOn(Array, "from").mockImplementation((source: any, map?: any, receiver?: any) => {
+      if (source && !source[Symbol.iterator] && source.length > 1000) throw new Error("unbounded allocation sentinel");
+      return nativeFrom(source, map, receiver);
+    });
+    try {
+      await renderView({ root: container, view: fixture.view, wasm, context: CTX, invoker: { invoke }, onPromptResponse,
+        admission: { mutations: ["fixture.Inputs/Submit", "fixture.Inputs/Start"] } });
+      expect(container.textContent).toContain(fixture.reason);
+      expect(container.querySelectorAll("input,select,textarea")).toHaveLength(0);
+      container.querySelector("form")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      for (const button of container.querySelectorAll<HTMLButtonElement>('button[type="submit"]')) {
+        expect(button.disabled).toBe(true); button.click();
+      }
+      await Promise.resolve();
+      expect(invoke).not.toHaveBeenCalled(); expect(onPromptResponse).not.toHaveBeenCalled();
+      expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
+    } finally { allocation.mockRestore(); disposePanel(container); container.remove(); }
+  });
+});
 
 describe("web-components typed input option defaults through real WASM", () => {
   it.each(OPTION_INPUT_CASES)("$name", async fixture => {

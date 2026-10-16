@@ -1,7 +1,7 @@
 import { clone } from "@bufbuild/protobuf";
 import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import { createPromptResponder, promptValues, validateFormValues, type PromptResponseHandler, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, createPromptResponder, promptValues, validateFormValues, type PromptResponseHandler, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { buildFormField } from "./form.js";
 import { hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 
@@ -37,6 +37,7 @@ export function buildPrompt(panel: PromptPanel, panelId: string, handler: Prompt
   };
   responder.subscribe(refresh);
   const draw = (inputs: FormField[]) => {
+    assertFormDefaultBudget(inputs);
     fields.replaceChildren();
     const readers = inputs.map(field => [field.fieldId, buildFormField(fields, field, undefined, true)] as const);
     read = () => {
@@ -49,14 +50,19 @@ export function buildPrompt(panel: PromptPanel, panelId: string, handler: Prompt
     if (!alive || loading) return;
     ready = false; loading = true; optionError = ""; refresh();
     try {
+      assertFormDefaultBudget(panel.fields);
       const inputs = await Promise.all(panel.fields.map(field => resolveOptions(field, invoker)));
       if (alive && !responder.getSnapshot().done) { draw(inputs); ready = true; }
     } catch (reason) { if (alive && !responder.getSnapshot().done) optionError = `Could not load inputs: ${reason instanceof Error ? reason.message : String(reason)}`; }
     finally { loading = false; if (alive) refresh(); }
   };
   if (!panel.isConfirmation) {
-    draw(panel.fields.map(field => clone(FormFieldSchema, field)));
-    if (panel.fields.some(hasOptionsSource)) void load();
+    try { draw(panel.fields.map(field => clone(FormFieldSchema, field))); }
+    catch (reason) {
+      ready = false;
+      optionError = reason instanceof Error ? reason.message : String(reason);
+    }
+    if (ready && panel.fields.some(hasOptionsSource)) void load();
   }
   element.addEventListener("submit", event => {
     event.preventDefault(); if (!ready) return;

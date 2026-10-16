@@ -1,5 +1,6 @@
 import { toBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { FORM_DEFAULT_BUDGET_CASES } from "../../../schemas/conformance/value_option_cases.js";
 import { OPTION_INPUT_CASES, OPTION_INPUT_VALUES } from "../../../schemas/conformance/value_option_cases.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { act, createElement } from "react";
@@ -16,6 +17,31 @@ vi.mock("../src/use_display_now.js", () => ({ useDisplayNow: () => clock.now }))
 
 beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterAll(() => vi.unstubAllGlobals());
+for (const kit of [muiKit]) it.each(FORM_DEFAULT_BUDGET_CASES)(`${kit.id} bounded defaults: $name`, async fixture => {
+  const container = document.createElement("main"); document.body.append(container);
+  const root = createRoot(container), invoke = vi.fn(async () => ({})), onPromptResponse = vi.fn();
+  const nativeFrom = Array.from;
+  const allocation = vi.spyOn(Array, "from").mockImplementation((source: any, map?: any, receiver?: any) => {
+    if (source && !source[Symbol.iterator] && source.length > 1000) throw new Error("unbounded allocation sentinel");
+    return nativeFrom(source, map, receiver);
+  });
+  try {
+    await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, onPromptResponse,
+      admission: { mutations: ["fixture.Inputs/Submit", "fixture.Inputs/Start"] },
+      children: createElement(ViewRenderer, { view: fixture.view }) })));
+    expect(container.textContent).toContain(fixture.reason);
+    expect(container.querySelectorAll("input,select,textarea")).toHaveLength(0);
+    await act(async () => {
+      container.querySelector("form")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      for (const button of container.querySelectorAll<HTMLButtonElement>('button[type="submit"]')) {
+        expect(button.disabled).toBe(true); button.click();
+      }
+    });
+    expect(invoke).not.toHaveBeenCalled();
+    expect(onPromptResponse).not.toHaveBeenCalled();
+    expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
+  } finally { allocation.mockRestore(); await act(async () => root.unmount()); container.remove(); }
+});
 it("covers every representable no-clock scalar option as a typed default", () => {
   expect(OPTION_INPUT_VALUES).toHaveLength(217);
   expect(OPTION_INPUT_CASES).toHaveLength(1265);

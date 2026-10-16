@@ -1,25 +1,31 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
 import { buildBindingRequest, selectionDeps, useMeridianSelection } from "./pagination.js";
-import { FormEnumValues, FormFieldRow, FormInitialValues, type FormFieldClasses } from "./form_fields.js";
+import { FormEnumValues, FormFieldRow, FormInitialValues, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
-function readField(field: FormField, name: string, data: FormData, depth: number): unknown {
+export function formDefaultsError(fields: readonly FormField[]): string | undefined {
+  try { assertFormDefaultBudget(fields); }
+  catch (reason) { return reason instanceof Error ? reason.message : String(reason); }
+  return undefined;
+}
+
+function readField(field: FormField, name: string, data: FormData, counts: Map<string, number>, depth: number): unknown {
   if (depth > 64) throw new Error("Form nesting exceeds 64 levels.");
   const kind = field.kind;
   if (!kind.case) throw new Error(`${field.label || name}: unsupported field kind.`);
-  if (kind.case === "nested") return collectFields(kind.value.fields, data, name, depth + 1);
+  if (kind.case === "nested") return collectFields(kind.value.fields, data, counts, name, depth + 1);
   if (kind.case === "repeated") {
-    const count = Number(data.get(`${name}.__count`) || 0);
-    if (!Number.isSafeInteger(count) || count < kind.value.minItems || (kind.value.maxItems > 0 && count > kind.value.maxItems))
+    const count = counts.get(name);
+    if (count === undefined || !Number.isSafeInteger(count) || count < kind.value.minItems || (kind.value.maxItems > 0 && count > kind.value.maxItems))
       throw new Error(`${field.label || name}: invalid item count.`);
     const element = kind.value.element;
     return Array.from({ length: count }, (_, i) => element.case === "scalar"
-      ? readField(element.value, `${name}[${i}]`, data, depth + 1)
-      : element.case === "object" ? collectFields(element.value.fields, data, `${name}[${i}]`, depth + 1) : null);
+      ? readField(element.value, `${name}[${i}]`, data, counts, depth + 1)
+      : element.case === "object" ? collectFields(element.value.fields, data, counts, `${name}[${i}]`, depth + 1) : null);
   }
   if (kind.case === "keyValueMap") {
     return JSON.parse(String(data.get(name) || "{}"));
@@ -31,13 +37,13 @@ function readField(field: FormField, name: string, data: FormData, depth: number
   }
   return text;
 }
-function collectFields(fields: FormField[], data: FormData, prefix: string, depth = 0): Record<string, unknown> {
+function collectFields(fields: FormField[], data: FormData, counts: Map<string, number>, prefix: string, depth = 0): Record<string, unknown> {
   if (depth > 64) throw new Error("Form nesting exceeds 64 levels.");
   return Object.fromEntries(fields.map(field => [field.fieldId, readField(field,
-    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, depth)]));
+    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, counts, depth)]));
 }
-export function readFormFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
-  const values = collectFields(fields, data, prefix);
+export function readFormFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, counts: Map<string, number>, prefix = ""): Record<string, unknown> {
+  const values = collectFields(fields, data, counts, prefix);
   const error = validateFormValues(fields, values, (_field, path) => enums.get(path) ?? [], prefix);
   if (error) throw new Error(error);
   return values;
@@ -81,13 +87,15 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     request: Record<string, unknown>; selection: ReturnType<typeof useMeridianSelection>;
   }) {
   const edit = panel.mode === 2;
-  const prefill = edit && panel.prefill?.service && panel.prefill.method ? panel.prefill : undefined;
+  const defaultError = useMemo(() => formDefaultsError(panel.fields), [panel.fields]);
+  const prefill = !defaultError && edit && panel.prefill?.service && panel.prefill.method ? panel.prefill : undefined;
   const [loading, setLoading] = useState(Boolean(prefill));
   const [initial, setInitial] = useState<Record<string, unknown>>({});
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const busy = useRef(false);
   const enums = useRef(new Map<string, readonly string[]>());
+  const counts = useRef(new Map<string, number>());
   const alive = useRef(true);
   const call = panel.submit;
   const allowed = Boolean(call?.service && call.method && createAdmissionGate(admission).admits("mutation", call.service, call.method));
@@ -104,10 +112,10 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!edit || !allowed || !call || loading || busy.current) return;
+    if (defaultError || !edit || !allowed || !call || loading || busy.current) return;
     setError(""); setStatus("");
     try {
-      const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current);
+      const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current, counts.current);
       busy.current = true; setStatus(submittingLabel ?? "Saving…");
       await mutationInvoker.invoke(call.service, call.method, { ...buildBindingRequest(call, selection.values), ...values });
       if (alive.current) setStatus(successLabel ?? "Saved.");
@@ -116,10 +124,10 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     } finally { busy.current = false; }
   }
   return <form className={className} data-mode={panel.mode} onSubmit={submit}>
-    {loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormInitialValues.Provider value={initial}>
+    {defaultError ? <p role="alert">{defaultError}</p> : loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormRepeatedCounts.Provider value={counts.current}><FormInitialValues.Provider value={initial}>
       {panel.fields.map(field => <FormFieldRow key={field.fieldId} c={c} field={field} mode={panel.mode} />)}
-    </FormInitialValues.Provider></FormEnumValues.Provider>}
-    {edit && call && <button type="submit" disabled={loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
+    </FormInitialValues.Provider></FormRepeatedCounts.Provider></FormEnumValues.Provider>}
+    {edit && call && <button type="submit" disabled={!!defaultError || loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
     {edit && call && !allowed && <p role="status">Saving is not permitted.</p>}
     {status && <p role="status">{status}</p>}
     {error && <p role="alert">{error}</p>}

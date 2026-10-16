@@ -3,7 +3,7 @@ import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/prot
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { buildFormField } from "./form.js";
-import { hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 
 // All state here is local DOM state. The descriptor stays a canonical protobuf;
 // preview does not execute an LLM, invoke mutations, or serialize a new DTO.
@@ -60,6 +60,7 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   let alive = true, pending = false, ready = false;
   let readers: Array<{ name: string; read: () => unknown }> = [];
   const draw = (inputs: Array<FormField | undefined>) => {
+    assertFormDefaultBudget(inputs.filter((field): field is FormField => !!field));
     fields.replaceChildren(); readers = [];
     panel.slots.forEach((slot, index) => {
       const field = inputs[index];
@@ -74,6 +75,7 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
     pending = true; ready = false; fields.disabled = true; preview.disabled = true; retry.hidden = true;
     loading.textContent = "Loading inputs…"; error.textContent = "";
     try {
+      assertFormDefaultBudget(panel.slots.flatMap(slot => slot.field ? [slot.field] : []));
       const inputs = await Promise.all(panel.slots.map(slot => slot.field ? resolveOptions(slot.field, invoker) : undefined));
       if (!alive) return;
       draw(inputs); ready = true;
@@ -86,7 +88,14 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   };
   // Static descriptors render synchronously, including before an options RPC
   // resolves; the disabled fieldset prevents editing data that must be redrawn.
-  draw(panel.slots.map(slot => slot.field ? clone(FormFieldSchema, slot.field) : undefined));
+  let initialReady = false;
+  try {
+    draw(panel.slots.map(slot => slot.field ? clone(FormFieldSchema, slot.field) : undefined));
+    initialReady = true;
+  } catch (reason) {
+    error.textContent = reason instanceof Error ? reason.message : String(reason);
+    fields.disabled = true; preview.disabled = true;
+  }
   form.addEventListener("submit", event => {
     event.preventDefault(); if (!alive || !ready) return;
     try {
@@ -99,8 +108,10 @@ export function buildLlmPrompt(panel: LlmPromptPanel, invoker: RpcInvoker) {
   });
   retry.addEventListener("click", () => { void load(); });
   revealButton.addEventListener("click", () => { if (alive) { reveal = !reveal; updatePreview(); } });
-  if (panel.slots.some(slot => slot.field && hasOptionsSource(slot.field))) void load();
-  else ready = true;
+  if (initialReady) {
+    if (panel.slots.some(slot => slot.field && hasOptionsSource(slot.field))) void load();
+    else ready = true;
+  }
   return { element, dispose: () => { alive = false; } };
 }
 

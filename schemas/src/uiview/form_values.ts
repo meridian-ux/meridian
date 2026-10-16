@@ -1,5 +1,33 @@
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
+/** Allocation-free preflight for descriptor-driven initializers, including
+ * legacy read-only fields without an input kind. This checks resource bounds,
+ * not input validity; unknown kinds retain each surface's existing fallback. */
+export function assertFormDefaultBudget(fields: readonly FormField[]): void {
+  let remaining = 1000;
+  const group = (fields: readonly FormField[], depth: number): void => {
+    if (depth > 64) throw new Error("Default expansion exceeds 64 nested levels.");
+    for (const field of fields) value(field, depth);
+  };
+  const value = (field: FormField, depth: number): void => {
+    if (depth > 64 || --remaining < 0) throw new Error("Default expansion exceeds 1000 value nodes or 64 nested levels.");
+    const kind = field.kind;
+    if (kind.case === "nested") group(kind.value.fields, depth + 1);
+    if (kind.case === "repeated") {
+      if (kind.value.minItems > remaining) throw new Error("Default expansion exceeds 1000 value nodes.");
+      const element = kind.value.element;
+      for (let index = 0; index < kind.value.minItems; index++) {
+        if (element.case === "scalar") value(element.value, depth + 1);
+        else {
+          if (--remaining < 0) throw new Error("Default expansion exceeds 1000 value nodes.");
+          if (element.case === "object") group(element.value.fields, depth + 1);
+        }
+      }
+    }
+  };
+  group(fields, 0);
+}
+
 /** Canonical local defaults. Bound recursive minimum-row expansion rather than
  * allocating producer-controlled arrays or silently truncating their values. */
 export function defaultFormValues(fields: readonly FormField[]): Record<string, unknown> {
