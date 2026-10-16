@@ -106,6 +106,33 @@ first-party descriptors. `useRpcInvoker()` is the read-tier transport;
 action and submit implementations use `useMutationRpcInvoker()` so the tier
 cannot be selected by descriptor data.
 
+`buildActionBindingRequest` additionally admits JSON request construction before
+copying referenced row/selection data. One invocation shares a conservative
+4 MiB work budget, a 64-level depth limit, and a 65,536-node ceiling. Dotted paths
+and source names are limited to 64 KiB. String accounting reserves six bytes per
+UTF-16 unit before copying to cover JSON escaping. Repeated references consume
+the budget on every copy; overlapping writes mutate only an owned request tree.
+Borrowed rows and prior requests are never mutated.
+
+Unsafe or empty assignment path segments, cycles, accessors, nonfinite numbers,
+and non-JSON runtime values reject the **whole request**. Raw own-data keys such
+as `__proto__` inside a copied JSON value remain data, not prototype writes.
+Unavailable form/signal/host context and unset selection sources remain omitted;
+available zero, false, and authored empty strings remain unchanged. Direct users
+of this helper must catch rejection and must not dispatch an empty or partial
+fallback request.
+
+The shared view/table actions and resource-card actions use this path, as do
+`useRecord` and fetched Stat requests. Invalid record/Stat requests expose an
+error without dispatch or consumption of an SSR seed. Resource-card controls
+report generic, accessible failures, preserve confirmation and retry, and ignore
+obsolete completions. Admission authorization still applies independently.
+
+These are work/copy limits, not a hard JavaScript heap or execution-time sandbox:
+host allocations, proxy traps, and key enumeration are outside the budget.
+Populate-only `buildBindingRequest`, pagination, form submission assembly,
+response rendering, and arbitrary host callbacks are not covered by this helper.
+
 ## Build & test
 
 HTML and Shadcn media players degrade on playback errors to a safe poster, then

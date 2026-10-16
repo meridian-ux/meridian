@@ -46,6 +46,28 @@ async function session(kit: ComponentKit, run: (container: HTMLElement, render: 
 
 for (const kit of [htmlKit, shadcnKit]) for (const shape of ["detailHeader", "recordCard"] as const)
 describe(`${kit.id} ${shape} record lifecycle`, () => {
+  it.each(["large", "cycle", "unsafe"])("rejects %s bindings without invocation or trusting a seed, then recovers", async mode => {
+    await session(kit, async (container, render) => {
+      const descriptor = panel(shape);
+      if (descriptor.body.case !== shape) throw new Error("record required");
+      descriptor.body.value.populate!.bindings.push(create(FieldBindingSchema, {
+        requestField: mode === "unsafe" ? "__proto__.scope" : "payload", source: { case: "rowField", value: "payload" },
+      }));
+      const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+      const invoke = vi.fn(async () => ({ name: "Recovered record" }));
+      const transport = { invoke };
+      await render(descriptor, transport, { ambient: { payload: mode === "cycle" ? cyclic : "x".repeat(800_000) },
+        seed: { "fixture.Records.Get": { rows: [{ name: "Wrong seed" }] } } });
+      expect(invoke).not.toHaveBeenCalled();
+      expect(container.querySelector('[role="alert"]')?.textContent).toContain("Failed to load record");
+      expect(container.textContent).not.toContain("Wrong seed");
+      await render(panel(shape), transport, { subject: "ok" });
+      expect(invoke).toHaveBeenCalledOnce();
+      expect(container.textContent).toContain("Recovered record");
+      expect(container.querySelector('[role="alert"]')).toBeNull();
+    });
+  });
+
   it("does not refetch equal wire descriptors or expose a previous subject while loading", async () => {
     await session(kit, async (container, render) => {
       let finish!: (value: object) => void;
