@@ -78,7 +78,16 @@ authorization, confirmations, authenticated execution, and cancellation of
 host-owned work when its presentation lifecycle ends.
 
 Current controls: native Choice picker, preformatted Snippet with host-gated
-copy, masked/revealable CopyValue with host-gated raw copy, Action, and Catalog.
+copy, masked/revealable CopyValue with host-gated raw copy, Action, Catalog,
+numbered Steps, and ConnectFlow with target selection and per-target actions/configs.
+Choice and ConnectFlow use exact UTF-8 IDs: empty/duplicate IDs show an explanation
+instead of a picker. Valid remembered selection survives reordering; removal
+falls back to the declared default or first target. Selection never activates.
+Steps includes actor badges and frame alternatives. Hosts may supply already
+materialized `images: [Data: Image]` and `symbols: [Data: String]` maps keyed by
+exact UTF-8 descriptor URI/icon bytes. Rendering only reads these maps; it never
+fetches an image URI, guesses an icon name, or calls admission. Missing frames
+show authored alternative text (or an explicit unavailable label).
 CopyValue uses Rust formatting for a present, non-unspecified declaration;
 absent/unspecified declarations keep raw literal text. Hidden secrets bypass
 formatting entirely and expose neither formatted labels nor supporting titles.
@@ -97,12 +106,24 @@ preserve unknown wire arms, construct/layout real NSHostingViews without effects
 and exercise current policy, missing capability, empty/raw copy, raw commands,
 unknown targets, pending duplicates, cancellation, safe errors, and retry.
 Theme parsing/presence and Choice defaults are tested too.
-The package's 17 native tests also execute all 355 authored shared formatter
+The package's native tests also execute all 355 authored shared formatter
 goldens (including 133 explicit-clock cases and their no-clock twins), all 16
 authored regex cases, embedded NUL input, oversized/nonfinite rejection, and
 visible/hidden CopyValue formatting through the actual static Rust library.
 
-Native layout is not an accessibility-tree snapshot or user-interaction test.
+The test-only ViewInspector dependency is pinned to 0.10.5. Content-flow tests
+inspect actual SwiftUI view bodies, compare an authored ordered Steps text
+golden, and invoke real Picker/Button callbacks. They verify inactive-target
+removal, raw clipboard bytes, current policy, malformed IDs, exact-byte selection
+and asset keys, declared image alternatives, hidden-secret output, empty states,
+and unknown-panel fallback. This is reflection-based runtime view inspection,
+not a computed OS accessibility tree, VoiceOver test, pixel snapshot, overflow
+check, or iOS runtime interaction test. It adds no production inspection hooks.
+A local public AppKit accessibility probe returned no SwiftUI child tree in the
+non-accessibility-trusted test process; that probe is not counted as passing
+accessibility evidence and no permission changes are requested by the suite.
+
+Native layout and view-body inspection are not accessibility-tree snapshots.
 All 23 coverage cells remain `unverified`, with the existing full-parity waivers.
 Remaining work includes all other panels; recursive view layouts; further shared
 core request/normalization/form-validation bridging; populated state, bounded

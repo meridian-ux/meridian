@@ -1,5 +1,6 @@
 import Combine
 import MeridianProtos
+import SwiftUI
 
 /// In-process requests, not a serialized interchange type. No URL, shell, or
 /// clipboard capability is installed by the renderer itself.
@@ -19,6 +20,10 @@ public enum MeridianAdmission: Equatable, Sendable {
 public final class MeridianHost: ObservableObject {
     @Published public private(set) var pending = false
     @Published public private(set) var feedback = ""
+    /// Host-admitted, already materialized images and icon-name mappings.
+    /// Reading these never fetches a descriptor URI or invokes admission.
+    @Published public var images: [Data: Image]
+    @Published public var symbols: [Data: String]
 
     public var admit: (MeridianActivation) -> MeridianAdmission
     public var execute: ((MeridianActivation) async throws -> Void)?
@@ -27,11 +32,18 @@ public final class MeridianHost: ObservableObject {
         admit: @escaping (MeridianActivation) -> MeridianAdmission = { _ in
             .deny("This host has not enabled this action.")
         },
-        execute: ((MeridianActivation) async throws -> Void)? = nil
+        execute: ((MeridianActivation) async throws -> Void)? = nil,
+        images: [Data: Image] = [:],
+        symbols: [Data: String] = [:]
     ) {
         self.admit = admit
         self.execute = execute
+        self.images = images
+        self.symbols = symbols
     }
+
+    public func image(for uri: String) -> Image? { images[Data(uri.utf8)] }
+    public func symbol(for key: String) -> String? { symbols[Data(key.utf8)] }
 
     public func activate(_ request: MeridianActivation) async {
         guard !pending else { return }
