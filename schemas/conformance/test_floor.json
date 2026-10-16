@@ -15,7 +15,7 @@
       "id": "web-wasm-ffi",
       "kind": "javascript",
       "roots": ["packages/web/tests/conformance_wasm.test.ts"],
-      "floor": 31
+      "floor": 40
     },
     { "id": "web-react", "kind": "javascript", "roots": ["packages/web-react/tests"], "floor": 193 },
     { "id": "schemas-seam", "kind": "javascript", "roots": ["schemas/src/uiview"], "floor": 46 },

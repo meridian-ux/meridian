@@ -395,9 +395,13 @@ Rejection makes
 no RPC, subscription, form submission, or LRO start. Browser Stream no longer
 falls back to an empty subscription request, and live grammar signals enter
 the core context instead of mutating its output afterward.
+WASM request exports now convert host values under a separate depth/node/work
+budget before copying into Rust; submission context and fields share it.
+Cycles/accessors/opaque values fail closed, and JSON request output preserves
+literal prototype-looking data keys instead of invoking JavaScript setters.
 This is not completion of [#17](../../issues/17): the separate React action
-builder and pre-conversion host
-context allocation still require their own boundary audit. The trusted Rust
+builder, other WASM response conversion paths, and host JavaScript allocation
+still require their own boundary audit. The trusted Rust
 `RequestBuilder::build` API remains compatible and is not the untrusted seam.
 
 Baseline, 2026‑09‑11:

@@ -101,6 +101,7 @@ rust_shared_library(
         "src/stat.rs",
         "src/stream.rs",
         "src/wasm_api.rs",
+        "src/wasm_input.rs",
     ],
     crate_name = "meridian_uiview",
     edition = "2021",

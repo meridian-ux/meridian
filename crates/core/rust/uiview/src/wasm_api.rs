@@ -148,6 +148,18 @@ impl WasmPayloadBudget {
 ///
 /// So: one serializer, used by EVERY js-facing return, that makes the declared
 /// types true.
+// Request maps may contain literal data keys such as __proto__. The ordinary
+// indexing setter in serde-wasm-bindgen would invoke Object.prototype's setter
+// and silently drop that own property. JSON.parse creates inert own data keys.
+fn request_to_js(value: &Value) -> Result<JsValue, JsError> {
+    let encoded =
+        serde_json::to_string(value).map_err(|_| JsError::new("request output rejected"))?;
+    if encoded.len() > 4 * 1024 * 1024 {
+        return Err(JsError::new("request output rejected"));
+    }
+    js_sys::JSON::parse(&encoded).map_err(|_| JsError::new("request output rejected"))
+}
+
 fn to_js<T: serde::Serialize + ?Sized>(value: &T) -> Result<JsValue, JsError> {
     // `Serializer` is cheap to construct; there is no shared-state win in
     // caching it, and a fresh one keeps this free of statics.
@@ -224,14 +236,13 @@ pub fn build_submission_request(
         _ => return Err(JsError::new("not a submission panel")),
     };
     let call = call.ok_or_else(|| JsError::new("submission RPC missing"))?;
-    let context: ContextJs = serde_wasm_bindgen::from_value(context_value)
-        .map_err(|_| JsError::new("invalid submission context"))?;
-    let values: Value = serde_wasm_bindgen::from_value(form_values)
-        .map_err(|_| JsError::new("invalid submission values"))?;
+    let mut input = crate::wasm_input::InputBudget::new();
+    let context: ContextJs = input.decode(context_value)?;
+    let values: Value = input.decode(form_values)?;
     let request =
         RequestBuilder::build_submission(&call, &context.into_context(), &fields, &values, kind)
             .map_err(|_| JsError::new("request construction limit exceeded"))?;
-    to_js(&request)
+    request_to_js(&request)
 }
 
 /// Builds the JSON request object for a TablePanel's populate RPC.
@@ -262,14 +273,13 @@ pub fn build_populate_request(
     let populate = table
         .populate
         .ok_or_else(|| JsError::new("TablePanel has no populate RpcCall"))?;
-    let ctx_in: ContextJs =
-        serde_wasm_bindgen::from_value(context_value).map_err(|e| JsError::new(&e.to_string()))?;
+    let ctx_in: ContextJs = crate::wasm_input::InputBudget::new().decode(context_value)?;
     if populate.encoded_len() > 64 * 1024 {
         return Err(JsError::new("RPC declaration exceeds limits"));
     }
     let request = RequestBuilder::build_for_boundary(&populate, &ctx_in.into_context())
         .map_err(|_| JsError::new("request construction limit exceeded"))?;
-    to_js(&request)
+    request_to_js(&request)
 }
 
 /// Renders a GalleryPanel against a JSON response value. `gallery_panel` is a
@@ -367,11 +377,10 @@ pub fn build_request_wasm(rpc_call: &[u8], context_value: JsValue) -> Result<JsV
         return Err(JsError::new("RPC declaration exceeds limits"));
     }
     let call = RpcCall::decode(rpc_call).map_err(|e| JsError::new(&e.to_string()))?;
-    let ctx_in: ContextJs =
-        serde_wasm_bindgen::from_value(context_value).map_err(|e| JsError::new(&e.to_string()))?;
+    let ctx_in: ContextJs = crate::wasm_input::InputBudget::new().decode(context_value)?;
     let request = RequestBuilder::build_for_boundary(&call, &ctx_in.into_context())
         .map_err(|_| JsError::new("request construction limit exceeded"))?;
-    to_js(&request)
+    request_to_js(&request)
 }
 
 /// Renders any TablePanel against any JSON response value. The existing
