@@ -1172,7 +1172,6 @@ mod tests {
             let event = ConversationEvent {
                 seq: 1,
                 event: Some(conversation_event::Event::Block(block_of(kind))),
-                ..Default::default()
             };
             let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
             let mut model = ConversationModel::new();
