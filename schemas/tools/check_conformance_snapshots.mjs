@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { checkPanelEvidenceOwners } from "./panel_evidence.mjs";
 
 export const SNAPSHOT_SUITES = {
   "packages/web-react/tests/__snapshots__/conformance.test.ts.snap": ["html-kit", "shadcn-kit"],
@@ -97,7 +98,7 @@ export function checkSnapshotFiles(coverage) {
     }
   }
   walkNative();
-  return [...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained, inputs)];
+  return [...checkPanelEvidenceOwners(coverage), ...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained, inputs)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

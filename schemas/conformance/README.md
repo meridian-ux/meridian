@@ -623,6 +623,17 @@ headers, response schemas, or host network policy.
 
 ## Remaining coverage and tooling
 
+Panel `renders` claims must have an explicit owner in
+`schemas/tools/panel_evidence.mjs`. The coverage/snapshot gate rejects an
+unregistered renderer even when all existing renderers' goldens are present.
+CI also runs the owners' seven unique Bazel test targets explicitly, so deleting
+an owner target or excluding it from `//...` cannot silently drop its proof.
+Run `node schemas/tools/panel_evidence.mjs --required-targets` to inspect the
+selection or `--verify` to execute it read-only. Registration and snapshot
+presence are necessary, not sufficient: the owning tests must pass on the same
+revision. This registry covers panels, not external conversation consumers;
+SwiftUI remains unverified until its own evidence and verifier are integrated.
+
 Epic #9 still owns external SwiftUI view-tree evidence, renderer-specific visual
 overflow/layout proof, and broader interactive snapshots. The shared panel corpus
 now has 427 canonical cases across all current arms, including typed input/default
