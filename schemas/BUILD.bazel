@@ -5,9 +5,19 @@ load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
+    "conformance/constrained_value_types.json",
     "conformance/value_types.json",
     "conformance/core.json",
 ])
+
+js_library(
+    name = "conversation_value_data",
+    srcs = ["conformance/conversation_values.ts", "conformance/constrained_value_types.json"],
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@savvifi/meridian-proto-ts",
+    ],
+)
 
 # rules_js copies runtime data through a producer in the owning package.
 # Native tests also use exports_files above for compile-time include_str!.

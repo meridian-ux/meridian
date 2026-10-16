@@ -376,7 +376,13 @@ fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line
             let cells = table
                 .rows
                 .iter()
-                .map(|r| table_cell_text(r, &col.key).chars().count())
+                .map(|r| {
+                    table_cell_text(r, &col.key)
+                        .split('\n')
+                        .map(|line| line.chars().count())
+                        .max()
+                        .unwrap_or(0)
+                })
                 .max()
                 .unwrap_or(0);
             cells.max(headers[i].chars().count())
@@ -396,22 +402,38 @@ fn table_lines(table: &block::Table, palette: &Palette, base: Style) -> Vec<Line
         palette.header(),
     ));
     for row in &table.rows {
-        lines.push(Line::styled(
-            format!(
-                "  {}",
-                table
-                    .columns
-                    .iter()
-                    .enumerate()
-                    .map(|(i, col)| {
-                        let v = table_cell_text(row, &col.key);
-                        format!("{:width$}", v, width = widths[i])
-                    })
-                    .collect::<Vec<_>>()
-                    .join("  ")
-            ),
-            base,
-        ));
+        let cells: Vec<String> = table
+            .columns
+            .iter()
+            .map(|col| table_cell_text(row, &col.key))
+            .collect();
+        let cell_lines: Vec<Vec<&str>> = cells
+            .iter()
+            .map(|cell| cell.split('\n').collect())
+            .collect();
+        let height = cell_lines.iter().map(Vec::len).max().unwrap_or(1);
+        // Line::styled discards embedded newlines. Materialize physical rows so
+        // a multiline value cannot silently merge words or shift other columns.
+        for line in 0..height {
+            lines.push(Line::styled(
+                format!(
+                    "  {}",
+                    cell_lines
+                        .iter()
+                        .enumerate()
+                        .map(|(i, cell)| {
+                            format!(
+                                "{:width$}",
+                                cell.get(line).copied().unwrap_or(""),
+                                width = widths[i]
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join("  ")
+                ),
+                base,
+            ));
+        }
     }
     lines
 }
@@ -941,6 +963,179 @@ mod tests {
             assert_eq!(&line[11..], expected);
         }
         assert_eq!(actual.len(), 8);
+    }
+
+    #[test]
+    fn every_string_value_type_survives_each_conversation_slot_and_wire_round_trip() {
+        use meridian_uiview::proto::{value_display, NumberOptions, ValueDisplay};
+        use prost::Message;
+        let corpus: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../schemas/conformance/constrained_value_types.json"
+        ))
+        .unwrap();
+        let cases = corpus["strings"].as_array().unwrap();
+        for kind in 1..=18 {
+            assert!(
+                cases.iter().any(|case| case["type"] == kind),
+                "missing type {kind}"
+            );
+        }
+        for case in cases {
+            let raw = case["raw"].as_str().unwrap();
+            // Conversation's schema explicitly preserves empty strings, unlike
+            // the panel read-value corpus's missing-value dash.
+            let expected = if case["name"] == "empty" {
+                ""
+            } else {
+                case["expected"].as_str().unwrap()
+            };
+            let display = Some(ValueDisplay {
+                r#type: case["type"].as_i64().unwrap() as i32,
+                options: case.get("digits").map(|digits| {
+                    value_display::Options::Number(NumberOptions {
+                        fraction_digits: Some(digits.as_i64().unwrap() as i32),
+                        ..Default::default()
+                    })
+                }),
+                ..Default::default()
+            });
+            let blocks = [
+                block_of(block::Kind::Fields(block::Fields {
+                    fields: vec![block::Field {
+                        key: "Value".into(),
+                        value: raw.into(),
+                        display: display.clone(),
+                    }],
+                })),
+                block_of(block::Kind::List(block::ListBlock {
+                    items: vec![block::ListItem {
+                        title: raw.into(),
+                        subtitle: raw.into(),
+                        title_display: display.clone(),
+                        subtitle_display: display.clone(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })),
+                block_of(block::Kind::Table(block::Table {
+                    columns: vec![block::Column {
+                        key: "value".into(),
+                        ..Default::default()
+                    }],
+                    rows: vec![block::Row {
+                        cells: [("value".into(), "stale legacy cell".into())]
+                            .into_iter()
+                            .collect(),
+                        display_cells: [(
+                            "value".into(),
+                            block::Cell {
+                                value: raw.into(),
+                                display,
+                            },
+                        )]
+                        .into_iter()
+                        .collect(),
+                    }],
+                    ..Default::default()
+                })),
+            ];
+            for (slot, block) in blocks.iter().enumerate() {
+                let bytes = block.encode_to_vec();
+                let decoded = Block::decode(bytes.as_slice()).unwrap();
+                let lines = block_lines(&decoded, &palette());
+                match slot {
+                    0 => assert_eq!(
+                        lines[0].spans[1].content, expected,
+                        "field {}",
+                        case["name"]
+                    ),
+                    1 => {
+                        assert_eq!(
+                            lines[0].spans[1].content, expected,
+                            "list title {}",
+                            case["name"]
+                        );
+                        if raw.is_empty() {
+                            assert_eq!(lines[0].spans.len(), 2);
+                        } else {
+                            assert_eq!(
+                                lines[0].spans[2].content,
+                                format!("  {expected}"),
+                                "list subtitle {}",
+                                case["name"]
+                            );
+                        }
+                    }
+                    _ => assert_eq!(
+                        lines[1..]
+                            .iter()
+                            .map(|line| text_of(line)[2..].trim_end().to_owned())
+                            .collect::<Vec<_>>()
+                            .join("\n"),
+                        expected,
+                        "table {}",
+                        case["name"]
+                    ),
+                }
+                assert_eq!(decoded.encode_to_vec(), bytes);
+            }
+        }
+    }
+
+    #[test]
+    fn multiline_table_cells_keep_lines_and_column_alignment_in_the_terminal_buffer() {
+        use ratatui::{backend::TestBackend, widgets::Paragraph, Terminal};
+        let block = block_of(block::Kind::Table(block::Table {
+            columns: vec![
+                block::Column {
+                    key: "left".into(),
+                    ..Default::default()
+                },
+                block::Column {
+                    key: "right".into(),
+                    ..Default::default()
+                },
+            ],
+            rows: vec![block::Row {
+                cells: [
+                    ("left".into(), "first\nsecond\n\nlast".into()),
+                    ("right".into(), "peer\nnext".into()),
+                ]
+                .into_iter()
+                .collect(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        }));
+        let mut terminal = Terminal::new(TestBackend::new(40, 8)).unwrap();
+        terminal
+            .draw(|frame| {
+                frame.render_widget(
+                    Paragraph::new(block_lines(&block, &palette())),
+                    frame.area(),
+                )
+            })
+            .unwrap();
+        let buffer = terminal.backend().buffer();
+        let rows: Vec<String> = (0..5)
+            .map(|y| {
+                (0..40)
+                    .map(|x| buffer[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_owned()
+            })
+            .collect();
+        assert_eq!(
+            rows,
+            [
+                "  left    right",
+                "  first   peer",
+                "  second  next",
+                "",
+                "  last"
+            ]
+        );
     }
 
     #[test]
