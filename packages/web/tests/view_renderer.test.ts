@@ -8,7 +8,7 @@ import {
   TabbedLayoutSchema,
   ViewDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { renderView } from "../src/uiview/view_renderer.js";
+import { disposeView, renderView } from "../src/uiview/view_renderer.js";
 import { mermaidGrammarFixture } from "./fixtures.js";
 
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
@@ -22,15 +22,87 @@ const wasm = {
 };
 
 describe("renderView tab keyboard navigation", () => {
-  it("uses roving tabindex and wraps arrow navigation", async () => {
+  it.each(["list", "stacked", "tabbed", "twoColumn"] as const)("partitions header rows under %s without inventing unlabeled tabs", async mode => {
     const root = document.createElement("div");
+    await renderView({ root, wasm, context, invoker: { invoke: async () => ({}) }, view: create(ViewDescriptorSchema, {
+      layout: { mode: { case: mode, value: {} } }, slots: [
+        { id: "last", position: 2, title: "Last" },
+        { id: "header", position: 5, title: "Header", placement: { headerRow: true, tabLabel: "Not a tab" } },
+        { id: "first", position: 1, title: "First" },
+        { id: "tied", position: 1, title: "Tied" },
+      ],
+    }) });
+    expect([...root.querySelectorAll("header [data-slot]")].map(section => (section as HTMLElement).dataset.slot)).toEqual(["header"]);
+    expect([...root.querySelectorAll(".meridian-uiview-view-body [data-slot]")].map(section => (section as HTMLElement).dataset.slot)).toEqual(["first", "tied", "last"]);
+    expect(root.querySelector('[role="tablist"]')).toBeNull();
+    disposeView(root);
+  });
+
+  it("keeps reused slot IDs unique across view roots and expands unlabeled regions", async () => {
+    const roots = [document.createElement("div"), document.createElement("div")];
+    document.body.append(...roots);
+    try {
+      for (const root of roots) await renderView({ root, wasm, context, invoker: { invoke: async () => ({}) }, view: create(ViewDescriptorSchema, {
+        layout: { mode: { case: "tabbed", value: {} } }, slots: [
+          { id: "same", title: "Region" },
+          { id: "same", placement: { tabLabel: "One" } },
+          { id: "same", placement: { tabLabel: "Two" } },
+        ],
+      }) });
+      const controls = roots.flatMap(root => [...root.querySelectorAll<HTMLElement>('[role="tab"],[role="tabpanel"]')]);
+      expect(new Set(controls.map(control => control.id)).size).toBe(8);
+      for (const root of roots) expect(root.querySelectorAll('[data-slot="same"]')).toHaveLength(2); // Region + selected tab only.
+    } finally { for (const root of roots) { disposeView(root); root.remove(); } }
+  });
+
+  it("closes a hidden stream and view disposal is idempotent", async () => {
+    const root = document.createElement("div"), close = vi.fn(), subscribe = vi.fn(() => ({ close }));
+    await renderView({ root, wasm: { ...wasm, WasmPayloadBudget: class { admit() { return 0; } } }, context,
+      invoker: { invoke: async () => ({}) }, streamInvoker: { subscribe }, view: create(ViewDescriptorSchema, {
+        layout: { mode: { case: "tabbed", value: {} } }, slots: [
+          { id: "live", placement: { tabLabel: "Live" }, panel: { body: { case: "stream", value: { subscribe: { service: "demo.Logs", method: "Watch" } } } } },
+          { id: "other", title: "Other", placement: { tabLabel: "Other" } },
+        ],
+      }) });
+    expect(subscribe).toHaveBeenCalledOnce();
+    root.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1].click();
+    expect(close).toHaveBeenCalledOnce();
+    root.querySelectorAll<HTMLButtonElement>('[role="tab"]')[0].click();
+    await vi.waitFor(() => expect(subscribe).toHaveBeenCalledTimes(2));
+    disposeView(root); disposeView(root);
+    expect(close).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops an obsolete render after a pending header and disables detached actions", async () => {
+    const root = document.createElement("div");
+    let finish!: (value: object) => void;
+    const invoke = vi.fn((_service: string, method: string, _request: object) => method === "Header" ? new Promise<object>(resolve => { finish = resolve; }) : Promise.resolve({}));
+    const old = renderView({ root, wasm, context, invoker: { invoke }, admission: "unrestricted", view: create(ViewDescriptorSchema, {
+      title: "Old view", actions: [{ label: "Old action", call: { service: "demo", method: "Mutate" } }], slots: [
+        { id: "header", placement: { headerRow: true }, panel: { body: { case: "table", value: { populate: { service: "demo", method: "Header" } } } } },
+        { id: "never", panel: { body: { case: "table", value: { populate: { service: "demo", method: "Never" } } } } },
+      ],
+    }) });
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalledOnce());
+    const detached = root.querySelector<HTMLButtonElement>("button")!;
+    await renderView({ root, wasm, context, invoker: { invoke }, view: create(ViewDescriptorSchema, { title: "Replacement" }) });
+    finish({}); await old; detached.click();
+    expect(invoke).toHaveBeenCalledOnce();
+    expect(root.textContent).toContain("Replacement");
+    expect(root.textContent).not.toContain("Old view");
+    disposeView(root);
+  });
+
+  it("uses manual activation, roving focus, and associated panels", async () => {
+    const root = document.createElement("div");
+    document.body.append(root);
     const view = create(ViewDescriptorSchema, {
       id: "settings",
       title: "Settings",
       layout: { mode: { case: "tabbed", value: create(TabbedLayoutSchema, {}) } },
       slots: [
-        create(SlotSchema, { id: "general", title: "General", placement: { tabPosition: 0 } }),
-        create(SlotSchema, { id: "advanced", title: "Advanced", placement: { tabPosition: 1 } }),
+        create(SlotSchema, { id: "general", title: "General", placement: { tabLabel: "General", tabPosition: 0 } }),
+        create(SlotSchema, { id: "advanced", title: "Advanced", placement: { tabLabel: "Advanced", tabPosition: 1 } }),
       ],
     });
     await renderView({
@@ -44,10 +116,45 @@ describe("renderView tab keyboard navigation", () => {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     expect(tabs.map((tab) => tab.tabIndex)).toEqual([0, -1]);
     tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    expect(tabs.map((tab) => tab.getAttribute("aria-selected"))).toEqual(["false", "true"]);
+    expect(document.activeElement).toBe(tabs[1]);
+    expect(tabs.map((tab) => tab.getAttribute("aria-selected"))).toEqual(["true", "false"]);
     expect(tabs.map((tab) => tab.tabIndex)).toEqual([-1, 0]);
+    tabs[1].dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await vi.waitFor(() => expect(tabs[1].getAttribute("aria-selected")).toBe("true"));
     tabs[1].dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+    for (const tab of tabs) {
+      const panel = document.getElementById(tab.getAttribute("aria-controls")!)!;
+      expect(panel.getAttribute("aria-labelledby")).toBe(tab.id);
+    }
+    disposeView(root); root.remove();
+  });
+
+  it("partitions header/persistent regions, orders labeled tabs, and fetches only activated content", async () => {
+    const root = document.createElement("div"), invoke = vi.fn(async (_service: string, _method: string, _request: object) => ({}));
+    const table = (method: string) => ({ body: { case: "table" as const, value: { populate: { service: "demo.Read", method }, rowsField: "items" } } });
+    await renderView({ root, wasm, context, invoker: { invoke }, view: create(ViewDescriptorSchema, {
+      title: "Sections", layout: { mode: { case: "tabbed", value: {} } }, slots: [
+        { id: "second", position: 0, placement: { tabLabel: "Second", tabPosition: 2 }, panel: table("Second") },
+        { id: "header", position: 4, title: "Header region", placement: { headerRow: true, tabLabel: "Not a tab" } },
+        { id: "summary", position: 2, title: "Persistent summary", panel: table("Summary") },
+        { id: "first", position: 3, placement: { tabLabel: "First", tabPosition: 1 }, panel: table("First") },
+      ],
+    }) });
+    try {
+      expect(root.querySelector("header [data-slot=header]")).not.toBeNull();
+      expect(root.querySelector(".meridian-uiview-view-body [data-slot=header]")).toBeNull();
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      expect(tabs.map(tab => tab.textContent)).toEqual(["First", "Second"]);
+      expect(root.querySelector('[data-slot="summary"]')!.closest('[role="tabpanel"]')).toBeNull();
+      expect(invoke.mock.calls.map(call => call[1])).toEqual(["Summary", "First"]);
+      tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+      expect(invoke).toHaveBeenCalledTimes(2);
+      tabs[1].click();
+      await vi.waitFor(() => expect(invoke.mock.calls.map(call => call[1])).toEqual(["Summary", "First", "Second"]));
+      expect(root.querySelector('[data-slot="summary"]')).not.toBeNull();
+      expect(root.querySelector('[data-slot="first"]')).toBeNull();
+    } finally { disposeView(root); }
   });
 });
 

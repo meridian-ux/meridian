@@ -45,7 +45,7 @@ export type {
   UiviewWasm,
 } from "./uiview/renderer.js";
 // The composition/layout tier: renders a ViewDescriptor (layout of panels).
-export { renderView } from "./uiview/view_renderer.js";
+export { disposeView, renderView } from "./uiview/view_renderer.js";
 export type { RenderViewOptions } from "./uiview/view_renderer.js";
 
 // The framework-neutral transport contracts the host implements (type-only;
