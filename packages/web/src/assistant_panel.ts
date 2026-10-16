@@ -165,8 +165,8 @@ function renderAssistantBlock(b: BlockMsg): string {
     const state = conversationToolState(t.state), err = state === 'ERROR';
     const tone = conversationToneRole(t.tone);
     const ind = state === 'RUNNING'
-      ? '<span class="spin"></span>'
-      : `<span class="dot ${err ? 'err' : 'ok'}"></span>`;
+      ? '<span class="spin" role="img" aria-label="RUNNING" title="RUNNING"></span>'
+      : `<span class="dot ${err ? 'err' : 'ok'}" role="img" aria-label="${state}" title="${state}"></span>`;
     const args = t.argsJson && t.argsJson !== '{}' ? ` <span class="targs">${esc(t.argsJson)}</span>` : '';
     const summary = t.summary ? ` — ${esc(t.summary)}` : '';
     return `<div class="tool${err ? ' err' : ''}"${tone ? ` data-mer-tone="${tone}"` : ''}>${ind}<span class="tname">${esc(t.name)}</span>${args}${summary}</div>`;

@@ -44,7 +44,7 @@ export function BlockView({
     const state = conversationToolState(t.state), err = state === "ERROR";
     return (
       <div className={"tool" + (err ? " err" : "")} data-mer-tone={conversationToneRole(t.tone)}>
-        {state === "RUNNING" ? <span className="spin" /> : <span className={"dot " + (err ? "err" : "ok")} />}
+        {state === "RUNNING" ? <span className="spin" role="img" aria-label={state} title={state} /> : <span className={"dot " + (err ? "err" : "ok")} role="img" aria-label={state} title={state} />}
         <span className="tname">{t.name}</span>
         {t.argsJson && t.argsJson !== "{}" ? <span className="targs"> {t.argsJson}</span> : null}
         {t.summary ? <> — {t.summary}</> : null}

@@ -1285,52 +1285,57 @@ mod tests {
             (Some(6), palette.accent),
             (Some(999), palette.fg),
         ] {
-            let mut model = ConversationModel::new();
-            for event in [
-                ConversationEvent {
-                    seq: 1,
-                    event: Some(conversation_event::Event::Block(block_of(
-                        block::Kind::Tool(block::ToolBlock {
-                            name: "Task".into(),
-                            state: block::tool_block::State::Error as i32,
+            for (state, marker) in [(0, "◐"), (1, "✓"), (2, "✗")] {
+                let mut model = ConversationModel::new();
+                for event in [
+                    ConversationEvent {
+                        seq: 1,
+                        event: Some(conversation_event::Event::Block(block_of(
+                            block::Kind::Tool(block::ToolBlock {
+                                name: "Task".into(),
+                                state,
+                                tone,
+                                ..Default::default()
+                            }),
+                        ))),
+                    },
+                    ConversationEvent {
+                        seq: 2,
+                        event: Some(conversation_event::Event::Status(Status {
+                            state: status::State::Working as i32,
+                            detail: "Working".into(),
                             tone,
-                            ..Default::default()
-                        }),
-                    ))),
-                },
-                ConversationEvent {
-                    seq: 2,
+                        })),
+                    },
+                ] {
+                    let decoded =
+                        ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+                    assert!(model.ingest(&decoded));
+                }
+                let mut terminal = Terminal::new(TestBackend::new(40, 4)).unwrap();
+                terminal
+                    .draw(|frame| {
+                        render_conversation(frame, frame.area(), &model, &palette, "Empty")
+                    })
+                    .unwrap();
+                let buffer = terminal.backend().buffer();
+                assert_eq!(buffer[(2, 0)].symbol(), marker);
+                assert_eq!(buffer[(2, 0)].fg, expected);
+                assert_eq!(buffer[(2, 1)].symbol(), "◐");
+                assert_eq!(buffer[(2, 1)].fg, expected);
+                model.ingest(&ConversationEvent {
+                    seq: 3,
                     event: Some(conversation_event::Event::Status(Status {
-                        state: status::State::Working as i32,
-                        detail: "Working".into(),
-                        tone,
+                        state: status::State::Idle as i32,
+                        detail: "Hidden".into(),
+                        tone: Some(Tone::Danger as i32),
                     })),
-                },
-            ] {
-                let decoded = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
-                assert!(model.ingest(&decoded));
+                });
+                assert!(
+                    model.status().is_none(),
+                    "Tone cannot turn IDLE into an active status"
+                );
             }
-            let mut terminal = Terminal::new(TestBackend::new(40, 4)).unwrap();
-            terminal
-                .draw(|frame| render_conversation(frame, frame.area(), &model, &palette, "Empty"))
-                .unwrap();
-            let buffer = terminal.backend().buffer();
-            assert_eq!(buffer[(2, 0)].symbol(), "✗");
-            assert_eq!(buffer[(2, 0)].fg, expected);
-            assert_eq!(buffer[(2, 1)].symbol(), "◐");
-            assert_eq!(buffer[(2, 1)].fg, expected);
-            model.ingest(&ConversationEvent {
-                seq: 3,
-                event: Some(conversation_event::Event::Status(Status {
-                    state: status::State::Idle as i32,
-                    detail: "Hidden".into(),
-                    tone: Some(Tone::Danger as i32),
-                })),
-            });
-            assert!(
-                model.status().is_none(),
-                "Tone cannot turn IDLE into an active status"
-            );
         }
         assert_eq!(
             conversation_tone_style(&palette, None, palette.danger_style()),

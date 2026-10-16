@@ -80,13 +80,18 @@ async function main() {
       const colors = ["rgb(1, 2, 3)", "rgb(1, 2, 3)", "rgb(4, 5, 6)", "rgb(7, 8, 9)", "rgb(10, 11, 12)", "rgb(13, 14, 15)", "rgb(16, 17, 18)"];
       roles.forEach((role, index) => root.style.setProperty(`--mer-${role}`, colors[index]));
       for (const tone of [0, 1, 2, 3, 4, 5, 6, 999]) {
-        window.webConformance.conversationTone(tone);
-        const marker = root.querySelector(".tool .dot.err"), status = root.querySelector(".status.on");
-        const expected = colors[tone <= 6 ? tone : 0];
-        if (!marker || !status || getComputedStyle(marker).backgroundColor !== expected || getComputedStyle(status).color !== expected)
-          throw new Error(`Conversation Tone ${tone}: marker=${marker && getComputedStyle(marker).backgroundColor}, status=${status && getComputedStyle(status).color}, expected=${expected}`);
-        if (root.querySelector(".tool").getAttribute("data-mer-tone") !== (tone <= 1 || tone === 999 ? "neutral" : roles[tone]))
-          throw new Error("Conversation Tone attribute is not canonical");
+        for (const state of [0, 1, 2]) {
+          window.webConformance.conversationTone(tone, state);
+          const marker = root.querySelector(state === 0 ? ".tool .spin" : ".tool .dot"), status = root.querySelector(".status.on");
+          const expected = colors[tone <= 6 ? tone : 0];
+          if (!marker || !status || getComputedStyle(marker)[state === 0 ? "borderTopColor" : "backgroundColor"] !== expected || getComputedStyle(status).color !== expected)
+            throw new Error(`Conversation Tone ${tone}: marker=${marker && getComputedStyle(marker).backgroundColor}, status=${status && getComputedStyle(status).color}, expected=${expected}`);
+          if (Boolean(root.querySelector(".tool.err")) !== (state === 2)) throw new Error("Tone changed tool operational state");
+          if (marker.getAttribute("aria-label") !== ["RUNNING", "OK", "ERROR"][state] || marker.getAttribute("title") !== ["RUNNING", "OK", "ERROR"][state])
+            throw new Error("Tone hid the non-color tool state label");
+          if (root.querySelector(".tool").getAttribute("data-mer-tone") !== (tone <= 1 || tone === 999 ? "neutral" : roles[tone]))
+            throw new Error("Conversation Tone attribute is not canonical");
+        }
       }
       window.webConformance.conversationTone();
       if (root.querySelector(".tool").hasAttribute("data-mer-tone") || getComputedStyle(root.querySelector(".dot.err")).backgroundColor !== "rgb(239, 68, 68)")

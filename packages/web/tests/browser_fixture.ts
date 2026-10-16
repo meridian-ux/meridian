@@ -14,7 +14,7 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
-  conversationTone: (tone?: number) => {
+  conversationTone: (tone?: number, state: 0 | 1 | 2 = 2) => {
     if (!document.getElementById("conversation-styles")) {
       const style = document.createElement("style");
       style.id = "conversation-styles";
@@ -34,7 +34,7 @@ const controls = {
       root().replaceChildren(document.createElement("m-assistant-panel"));
       for (const event of [
         create(ConversationEventSchema, { seq: 1n, event: { case: "block", value: {
-          blockId: "tone", role: "assistant", kind: { case: "tool", value: { name: "Failed task", state: 2, tone } },
+          blockId: "tone", role: "assistant", kind: { case: "tool", value: { name: "Task", state, tone } },
         } } }),
         create(ConversationEventSchema, { seq: 2n, event: { case: "status", value: { state: 3, detail: "Working", tone } } }),
       ]) source.onmessage!(new MessageEvent("message", { data: JSON.stringify(toJson(ConversationEventSchema, event, { enumAsInteger: true })) }));

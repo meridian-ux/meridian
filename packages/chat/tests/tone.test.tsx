@@ -47,6 +47,7 @@ it.each([undefined, 0, 1, 2, 3, 4, 5, 6, 999])("conversation Tone %s stays indep
       for (const surface of [vanilla, host, html]) {
         expect(surface.querySelector(".tool.err")?.getAttribute("data-mer-tone")).toBe(expected);
         expect(surface.querySelector(".dot.err")).not.toBeNull();
+        expect(surface.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe("ERROR");
         expect(surface.textContent).toContain("Task");
       }
       await emit(toJson(ConversationEventSchema, create(ConversationEventSchema, { seq: ++seq,
@@ -60,6 +61,17 @@ it.each([undefined, 0, 1, 2, 3, 4, 5, 6, 999])("conversation Tone %s stays indep
         event: { case: "status", value: { state: 1, tone: 5 } },
       }), { enumAsInteger }));
       for (const surface of [vanilla, host]) expect(surface.querySelector(".status.on")).toBeNull();
+      for (const state of [0, 1]) {
+        await emit(toJson(ConversationEventSchema, create(ConversationEventSchema, { seq: ++seq,
+          event: { case: "block", value: { blockId: "tone", kind: { case: "tool", value: { name: "Task", state, tone } } } },
+        }), { enumAsInteger }));
+        for (const surface of [vanilla, host]) {
+          expect(surface.querySelector(".tool")?.getAttribute("data-mer-tone")).toBe(expected);
+          expect(surface.querySelector(state === 0 ? ".tool .spin" : ".tool .dot.ok")).not.toBeNull();
+          expect(surface.querySelector('.tool [role="img"]')?.getAttribute("aria-label")).toBe(state === 0 ? "RUNNING" : "OK");
+          expect(surface.querySelector(".tool.err")).toBeNull();
+        }
+      }
     }
     expect(fetch).not.toHaveBeenCalled();
   } finally { await act(async () => root.unmount()); }
