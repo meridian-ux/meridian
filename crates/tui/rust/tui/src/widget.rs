@@ -5,8 +5,8 @@ use meridian_uiview::proto::{
     PanelDescriptor, ResourceCardPanel, RpcCall, StreamFrame, TablePanel,
 };
 use meridian_uiview::{
-    render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBudget,
-    RequestBuilder, RequestOverrides, SubmissionKind,
+    render_gallery_bounded, render_table_bounded, Context, RenderedCard, RenderedRow,
+    RequestBudget, RequestBuilder, RequestOverrides, SubmissionKind,
 };
 use prost::Message as _;
 use ratatui::layout::{Constraint, Layout};
@@ -38,7 +38,10 @@ fn invoke_request<I: RpcInvoker>(
     invoker: &I,
 ) -> Result<serde_json::Value, RpcError> {
     let request = build_request(call, context)?;
-    invoker.invoke(&call.service, &call.method, request)
+    let response = invoker.invoke(&call.service, &call.method, request)?;
+    RequestBudget::for_boundary(&response)
+        .map_err(|_| RpcError::Other("Response construction limit exceeded.".into()))?;
+    Ok(response)
 }
 
 /// Stateful ratatui widget rendering one PanelDescriptor. For
@@ -879,9 +882,11 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker) {
-            Ok(response) => {
-                let rows = render_table(&response, table);
+        match invoke_request(populate, context, invoker).and_then(|response| {
+            render_table_bounded(&response, table)
+                .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+        }) {
+            Ok(rows) => {
                 self.cached = Some(CachedTable {
                     rows,
                     item_noun: table.item_noun.clone(),
@@ -995,12 +1000,12 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker) {
-            Ok(response) => {
-                self.cached_gallery = Some(CachedGallery {
-                    cards: render_gallery(&response, panel),
-                    error: None,
-                });
+        match invoke_request(populate, context, invoker).and_then(|response| {
+            render_gallery_bounded(&response, panel)
+                .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+        }) {
+            Ok(cards) => {
+                self.cached_gallery = Some(CachedGallery { cards, error: None });
             }
             Err(error) => {
                 self.cached_gallery = Some(CachedGallery {
@@ -1360,6 +1365,13 @@ impl PanelView {
         table_state: &mut TableState,
         [meta_area, body_area]: [ratatui::layout::Rect; 2],
     ) {
+        if render_table_bounded(&serde_json::Value::Null, table_panel).is_err() {
+            frame.render_widget(
+                Paragraph::new("Render construction limit exceeded."),
+                meta_area,
+            );
+            return;
+        }
         let meta = Paragraph::new(Span::styled(
             format!("{} {}", cached.rows.len(), cached.item_noun),
             palette.meta(),

@@ -7,7 +7,8 @@ use meridian_uiview::{
         panel_descriptor::Body, ComputedStat, FormattedValue, GalleryPanel, PanelDescriptor,
         RpcCall, TablePanel, ValueDisplay,
     },
-    render_gallery, render_table, Context, RequestBuilder, SubmissionKind,
+    render_gallery_bounded as render_gallery, render_table_bounded as render_table, Context,
+    RequestBuilder, SubmissionKind,
 };
 
 fuzz_target!(|bytes: &[u8]| {

@@ -2,7 +2,7 @@
 // metadata/results cross the host seam as canonical protobuf Struct messages.
 use std::sync::Arc;
 
-use meridian_uiview::{format_lro_metadata, proto::LroPanel, render_table};
+use meridian_uiview::{format_lro_metadata, proto::LroPanel, render_table_bounded};
 use prost_types::{value::Kind, Struct, Value};
 
 use crate::widget::CachedTable;
@@ -76,10 +76,18 @@ impl LroRun {
         let Some(source) = struct_json(source) else {
             return false;
         };
-        self.result = self.panel.result.as_ref().map(|table| CachedTable {
-            rows: render_table(&source, table),
-            item_noun: table.item_noun.clone(),
-        });
+        let result = if let Some(table) = self.panel.result.as_ref() {
+            let Ok(rows) = render_table_bounded(&source, table) else {
+                return false;
+            };
+            Some(CachedTable {
+                rows,
+                item_noun: table.item_noun.clone(),
+            })
+        } else {
+            None
+        };
+        self.result = result;
         self.phase = Phase::Complete;
         true
     }
