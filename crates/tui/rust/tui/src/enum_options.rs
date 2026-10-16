@@ -1,6 +1,6 @@
 //! Static enum realization. Hosts resolve options_source before native rendering.
 use crate::theme::Palette;
-use meridian_uiview::proto::{EnumSelection, ValueTone};
+use meridian_uiview::proto::{EnumSelection, Tone};
 use ratatui::style::Style;
 
 pub(crate) fn options(spec: &EnumSelection) -> Vec<(&str, &str, i32)> {
@@ -28,12 +28,36 @@ pub(crate) fn options(spec: &EnumSelection) -> Vec<(&str, &str, i32)> {
 }
 
 pub(crate) fn style(tone: i32, palette: &Palette) -> Style {
-    match ValueTone::try_from(tone) {
-        Ok(ValueTone::Success) => Style::default().fg(palette.success),
-        Ok(ValueTone::Danger) => palette.danger_style(),
-        Ok(ValueTone::Info | ValueTone::Accent) => Style::default().fg(palette.accent),
-        // The native palette has no warning role; retain emphasis without a literal color.
-        Ok(ValueTone::Warning) => palette.value().add_modifier(ratatui::style::Modifier::BOLD),
-        _ => palette.value(),
+    // ValueTone's existing wire numbers deliberately match shared Tone. Keep
+    // old field/JSON names; adapt only at the runtime presentation boundary.
+    palette.tone_style(Tone::try_from(tone).unwrap_or(Tone::Unspecified))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use meridian_uiview::proto::ValueTone;
+    use ratatui::style::Color;
+
+    #[test]
+    fn legacy_enum_tones_resolve_shared_roles_without_invented_emphasis() {
+        let palette = Palette::from_proto_palette(&crate::theme::ProtoPalette {
+            warning: "#123456".into(),
+            info: "#654321".into(),
+            ..Default::default()
+        });
+        assert_eq!(
+            style(ValueTone::Warning as i32, &palette),
+            Style::default().fg(Color::Rgb(0x12, 0x34, 0x56))
+        );
+        assert_eq!(
+            style(ValueTone::Info as i32, &palette),
+            Style::default().fg(Color::Rgb(0x65, 0x43, 0x21))
+        );
+        assert_eq!(
+            style(ValueTone::Unspecified as i32, &palette),
+            palette.value()
+        );
+        assert_eq!(style(999, &palette), palette.value());
     }
 }

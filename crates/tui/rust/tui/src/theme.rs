@@ -10,6 +10,7 @@
 // `@meridian_schemas//proto:theme_proto`), re-exported here as an ordinary crate
 // dep — the single, Bazel-native codegen path (no cargo/prost-build fallback).
 
+use meridian_uiview::proto::Tone;
 use ratatui::style::{Color, Modifier, Style};
 
 /// prost-generated types for meridian.theme.v1.
@@ -48,6 +49,8 @@ pub struct Palette {
     pub on_accent: Color,
     pub danger: Color,
     pub success: Color,
+    pub warning: Color,
+    pub info: Color,
     pub code_bg: Color,
     pub code_fg: Color,
 }
@@ -82,6 +85,8 @@ impl Palette {
             on_accent: parse_hex(&p.on_accent).unwrap_or(d.on_accent),
             danger: parse_hex(&p.danger).unwrap_or(d.danger),
             success: parse_hex(&p.success).unwrap_or(d.success),
+            warning: parse_hex(&p.warning).unwrap_or(d.warning),
+            info: parse_hex(&p.info).unwrap_or(d.info),
             code_bg: parse_hex(&p.code_bg).unwrap_or(d.code_bg),
             code_fg: parse_hex(&p.code_fg).unwrap_or(d.code_fg),
         }
@@ -93,6 +98,22 @@ impl Palette {
     /// Primary body text on the canvas background.
     pub fn text(&self) -> Style {
         Style::default().fg(self.fg)
+    }
+
+    /// Shared semantic color vocabulary. Unspecified retains the legacy value
+    /// style; explicit neutral uses ordinary foreground. Tone chooses color,
+    /// not prominence, boldness, or operational state.
+    pub fn tone_style(&self, tone: Tone) -> Style {
+        let color = match tone {
+            Tone::Unspecified => self.code_fg,
+            Tone::Neutral => self.fg,
+            Tone::Info => self.info,
+            Tone::Success => self.success,
+            Tone::Warning => self.warning,
+            Tone::Danger => self.danger,
+            Tone::Accent => self.accent,
+        };
+        Style::default().fg(color)
     }
 
     /// Section / panel titles — accent-colored and bold.
@@ -169,6 +190,8 @@ impl Default for Palette {
             on_accent: Color::Rgb(0x10, 0x12, 0x16),
             danger: Color::Rgb(0xE0, 0x6C, 0x6C),
             success: Color::Rgb(0x6C, 0xC4, 0x86),
+            warning: Color::Rgb(0xFF, 0xAA, 0x00),
+            info: Color::Rgb(0x00, 0x88, 0xFF),
             code_bg: Color::Rgb(0x20, 0x22, 0x28),
             code_fg: Color::Rgb(0xD8, 0xD2, 0xC4),
         }
@@ -235,5 +258,65 @@ mod tests {
         };
         let pal = Palette::from_theme(&theme, Mode::Dark);
         assert_eq!(pal.bg, Color::Rgb(0xFF, 0xFF, 0xFF));
+    }
+
+    #[test]
+    fn every_shared_tone_uses_its_wire_decoded_palette_role() {
+        use meridian_uiview::prost::Message;
+        let proto = ProtoPalette {
+            fg: "#010101".into(),
+            info: "#020202".into(),
+            success: "#030303".into(),
+            warning: "#040404".into(),
+            danger: "#050505".into(),
+            accent: "#060606".into(),
+            code_fg: "#070707".into(),
+            ..Default::default()
+        };
+        let theme = Theme {
+            light: Some(proto.clone()),
+            dark: Some(proto),
+            ..Default::default()
+        };
+        let decoded = Theme::decode(theme.encode_to_vec().as_slice()).unwrap();
+        for mode in [Mode::Light, Mode::Dark] {
+            let palette = Palette::from_theme(&decoded, mode);
+            for (tone, channel) in [
+                (Tone::Unspecified, 7),
+                (Tone::Neutral, 1),
+                (Tone::Info, 2),
+                (Tone::Success, 3),
+                (Tone::Warning, 4),
+                (Tone::Danger, 5),
+                (Tone::Accent, 6),
+            ] {
+                assert_eq!(
+                    palette.tone_style(tone),
+                    Style::default().fg(Color::Rgb(channel, channel, channel))
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn missing_or_malformed_status_roles_use_palette_defaults() {
+        let palette = Palette::from_proto_palette(&ProtoPalette {
+            warning: "invalid".into(),
+            info: String::new(),
+            ..Default::default()
+        });
+        assert_eq!(palette.warning, Palette::default().warning);
+        assert_eq!(palette.info, Palette::default().info);
+        let theme = Theme {
+            light: Some(ProtoPalette {
+                warning: "#123456".into(),
+                info: "#654321".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let dark = Palette::from_theme(&theme, Mode::Dark);
+        assert_eq!(dark.warning, Color::Rgb(0x12, 0x34, 0x56));
+        assert_eq!(dark.info, Color::Rgb(0x65, 0x43, 0x21));
     }
 }

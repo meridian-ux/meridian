@@ -23,6 +23,16 @@ consumer adoption and precedence during migration remain roadmap #44. This
 definition alone does not make existing renderers consume a new tone field or
 prove theme conformance (#45).
 
+The native `Palette.tone_style` maps all six shared roles to their named theme
+colors. In particular, `info` and `warning` no longer collapse into accent or
+bold code text. Legacy enum-option numbers adapt to this mapping without
+changing their wire type or JSON names. Unspecified and unknown enum tones keep
+the prior value style; explicit neutral uses ordinary foreground. A partial
+theme falls back per role, and dark mode falls back to light when absent.
+Wire-decoded theme and real terminal-cell color tests verify this native path;
+they do not establish the remaining conversation/affordance migration or the
+cross-renderer conformance required by #44/#45.
+
 ## Affordance
 
 An `Affordance` is a labeled invitation to act. Its `invoke` oneof is either a
