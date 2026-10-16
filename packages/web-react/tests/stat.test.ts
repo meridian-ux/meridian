@@ -30,6 +30,30 @@ import { shadcnKit } from "../src/shadcn_kit.js";
 
 // ── the parity vectors (identical to stat.rs) ────────────────────────────────
 describe("formatStatNumber parity vectors (must match the Rust formatter)", () => {
+  it("keeps the exact largest binary64 integer without scaling overflow", () => {
+    // BigInt converts the stored binary64 integer independently of core's
+    // fixed-decimal implementation; Number.toString would hide lower digits.
+    expect(formatStatNumber(Number.MAX_VALUE, 5)).toBe(BigInt(Number.MAX_VALUE).toString());
+    expect(formatStatNumber(-Number.MAX_VALUE, 5)).toBe(BigInt(-Number.MAX_VALUE).toString());
+  });
+
+  it.each([
+    [1e20, 1, "100,000,000,000,000,000,000"],
+    [-1e20, 1, "-100,000,000,000,000,000,000"],
+    [1e20, 5, "100000000000000000000"],
+    [1e20, 2, "100000000000000000000%"],
+    [1e20, 3, "$100,000,000,000,000,000,000.00"],
+    [-1e20, 3, "-$100,000,000,000,000,000,000.00"],
+    [1e20, 4, "100000000T"],
+    [1e32, 4, "100000000000000000000T"],
+    [100000000000000.125, 5, "100000000000000.13"],
+    [1.005, 5, "1.01"], [-1.005, 5, "-1.01"],
+    [1.125, 5, "1.13"], [-0, 3, "$0.00"],
+    [Infinity, 1, "inf"], [-Infinity, 3, "-inf"], [NaN, 5, "NaN"],
+  ] as const)("formats %s in legacy mode %s through the default WASM core", (value, format, expected) => {
+    expect(formatStatNumber(value, format)).toBe(expected);
+  });
+
   it("formats each ValueFormat deterministically", () => {
     expect(formatStatNumber(1234.5, 1)).toBe("1,234.5"); // NUMBER grouped
     expect(formatStatNumber(1234, 5)).toBe("1234"); // PLAIN
