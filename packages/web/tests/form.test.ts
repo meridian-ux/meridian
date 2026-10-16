@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { create, fromBinary } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
@@ -23,6 +23,63 @@ const wasm: UiviewWasm = {
   buildRequest: (bytes, context) => { const rpc = fromBinary(RpcCallSchema, bytes); return rpc.method === "Save" ? { resource: "record", ...context.formValues } : {}; },
 };
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
+it("keeps anonymous scalar list elements valid and preserves raw false", async () => {
+  const p = descriptor(); if (p.body.case !== "form") throw new Error("form fixture");
+  p.body.value.prefill = undefined;
+  p.body.value.fields = [fromJson(FormFieldSchema, { fieldId: "items", repeated: { minItems: 1, scalar: { boolean: {} } } })];
+  const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+  await renderPanel({ root, wasm, descriptor: p, context, invoker: { invoke }, admission: "unrestricted" });
+  try {
+    root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); await flush();
+    expect(invoke).toHaveBeenCalledWith("demo.Form", "Save", { resource: "record", items: [false] });
+  } finally { disposePanel(root); }
+});
+const kinds: Record<string, JsonObject> = { integer: {}, number: {}, boolean: {}, text: {}, masked: {},
+  enumSelection: { allowedValues: ["one"], defaultValue: "one" }, nested: {},
+  repeated: { scalar: { fieldId: "item", text: {} } }, keyValueMap: {} };
+it.each(Object.keys(kinds))("rejects an empty object-field ID for %s before transport", async kind => {
+  const p = descriptor(); if (p.body.case !== "form") throw new Error("form fixture");
+  p.body.value.prefill = undefined;
+  p.body.value.fields = [fromJson(FormFieldSchema, { label: "Missing identity", [kind]: kinds[kind] })];
+  const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+  await renderPanel({ root, wasm, descriptor: fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, p)), context, invoker: { invoke }, admission: "unrestricted" });
+  try {
+    root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); await flush();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain("nonempty");
+    expect(invoke).not.toHaveBeenCalled();
+  } finally { disposePanel(root); }
+});
+it.each(["root", "nested", "repeated"])("rejects duplicate field IDs at the %s object boundary", async shape => {
+  const p = descriptor(); if (p.body.case !== "form") throw new Error("form fixture");
+  p.body.value.prefill = undefined;
+  const duplicate = [{ fieldId: "same", text: {} }, { fieldId: "same", text: {} }];
+  p.body.value.fields = (shape === "root" ? duplicate : [{ fieldId: "outer", ...(shape === "nested"
+    ? { nested: { fields: duplicate } } : { repeated: { minItems: 1, object: { fields: duplicate } } }) }])
+    .map(field => fromJson(FormFieldSchema, field));
+  const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+  await renderPanel({ root, wasm, descriptor: p, context, invoker: { invoke }, admission: "unrestricted" });
+  try {
+    root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); await flush();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain("unique");
+    expect(invoke).not.toHaveBeenCalled();
+  } finally { disposePanel(root); }
+});
+it("reports malformed patterns through shared validation and rejects forged DOM enum options", async () => {
+  for (const field of [fromJson(FormFieldSchema, { fieldId: "value", text: { defaultValue: "raw", pattern: "[" } }),
+    fromJson(FormFieldSchema, { fieldId: "value", enumSelection: { allowedValues: ["one"], defaultValue: "one" } })]) {
+    const p = descriptor(); if (p.body.case !== "form") throw new Error("form fixture");
+    p.body.value.prefill = undefined; p.body.value.fields = [field];
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    await renderPanel({ root, wasm, descriptor: p, context, invoker: { invoke }, admission: "unrestricted" });
+    try {
+      const select = root.querySelector("select");
+      if (select) { const option = document.createElement("option"); option.value = "forged"; select.append(option); select.value = "forged"; }
+      root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); await flush();
+      expect(root.querySelector('[role="alert"]')?.textContent).toContain(select ? "select an allowed value" : "invalid pattern");
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { disposePanel(root); }
+  }
+});
 const lroDescriptor = () => create(PanelDescriptorSchema, { body: { case: "lro", value: {
   start: { service: "demo.Lro", method: "Start" }, inputs: [
     { fieldId: "enabled", requestField: "config.enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: false } } },

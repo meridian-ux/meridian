@@ -1,7 +1,7 @@
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { defaultFormValue, formatByDisplay, hasMaskedField } from "@savvifi/meridian-schemas/uiview";
+import { defaultFormValue, formatByDisplay, hasMaskedField, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { buildMaskedMultiline } from "./masked_multiline.js";
 
@@ -63,10 +63,25 @@ export function buildInteractiveForm(panel: FormPanel, host: {
 function buildFields(parent: HTMLElement, fields: FormField[], values: Record<string, unknown>, edit: boolean) {
   const entries = fields.map(field => [field.fieldId, buildFormField(parent, field,
     Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined, edit)] as const);
-  return () => Object.fromEntries(entries.map(([key, get]) => [key, get()]));
+  return () => {
+    const values = Object.fromEntries(entries.map(([key, get]) => [key, get()]));
+    const error = validateFormValues(fields, values);
+    if (error) throw new Error(error);
+    return values;
+  };
 }
 
 export function buildFormField(parent: HTMLElement, field: FormField, initial: unknown, edit: boolean, multilineRows = 0): () => unknown {
+  const read = collectFormField(parent, field, initial, edit, multilineRows);
+  return () => {
+    const value = read();
+    const error = validateFormValues([field], { [field.fieldId]: value });
+    if (error) throw new Error(error);
+    return value;
+  };
+}
+
+function collectFormField(parent: HTMLElement, field: FormField, initial: unknown, edit: boolean, multilineRows: number): () => unknown {
   const box = document.createElement("fieldset");
   box.className = "meridian-uiview-field";
   const legend = document.createElement("legend"); legend.textContent = field.label;
@@ -99,7 +114,9 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
     };
     const append = (value?: unknown) => {
       const node = document.createElement("div"); box.insertBefore(node, edit ? add : null);
-      const get = spec.element.case === "scalar" ? buildFormField(node, spec.element.value, value, edit)
+      // A scalar element is not an object member and need not carry a field ID.
+      // Its parent repeated-field validator checks the element's kind/value.
+      const get = spec.element.case === "scalar" ? collectFormField(node, spec.element.value, value, edit, 0)
         : spec.element.case === "object" ? buildFields(node, spec.element.value.fields,
           value && typeof value === "object" ? value as Record<string, unknown> : {}, edit) : () => null;
       const row = { node, get }; rows.push(row);
@@ -111,10 +128,7 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
     };
     if (edit) { box.append(add); add.onclick = () => append(); }
     (Array.isArray(initial) ? initial : Array.from({ length: spec.minItems })).forEach(append);
-    return () => {
-      if (rows.length < spec.minItems || (spec.maxItems && rows.length > spec.maxItems)) throw new Error(`${field.label}: invalid item count.`);
-      return rows.map(row => row.get());
-    };
+    return () => rows.map(row => row.get());
   }
   const value = initial ?? (kind.value && "defaultValue" in kind.value ? kind.value.defaultValue : kind.case === "keyValueMap" ? {} : "");
   if (!edit) {
@@ -130,12 +144,7 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
     const editor = buildMaskedMultiline(field.fieldId, field.label || field.fieldId, String(value), multilineRows);
     box.append(editor.element);
     if (field.description) { const help = document.createElement("p"); help.textContent = field.description; box.append(help); }
-    return () => {
-      const text = editor.read(), spec = kind.value;
-      if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength)) throw new Error(`${field.label}: invalid length.`);
-      if (spec.pattern && !new RegExp(spec.pattern).test(text)) throw new Error(spec.patternErrorMsg || `${field.label}: invalid value.`);
-      return text;
-    };
+    return () => editor.read();
   }
   const input = kind.case === "keyValueMap" || (multilineRows > 0 && kind.case === "text") ? document.createElement("textarea")
     : kind.case === "enumSelection" ? document.createElement("select") : document.createElement("input");
@@ -173,23 +182,12 @@ export function buildFormField(parent: HTMLElement, field: FormField, initial: u
   if (field.description) { const help = document.createElement("p"); help.textContent = field.description; box.append(help); }
   return () => {
     const text = input.value;
-    const fail = (message = "invalid value") => { throw new Error(`${field.label || field.fieldId}: ${message}.`); };
     if (kind.case === "boolean") return (input as HTMLInputElement).checked;
     if (kind.case === "integer" || kind.case === "number") {
-      const number = Number(text), { min, max } = kind.value;
-      if (!text.trim() || !Number.isFinite(number) || (kind.case === "integer" && !Number.isSafeInteger(number)) || (min !== 0 && number < min) || (max !== 0 && number > max)) fail("invalid number");
-      return number;
+      return text.trim() ? Number(text) : NaN;
     }
-    if (kind.case === "text" || kind.case === "masked") {
-      const spec = kind.value;
-      if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength)) fail("invalid length");
-      if (spec.pattern && !new RegExp(spec.pattern).test(text)) fail(spec.patternErrorMsg || "invalid value");
-    }
-    if (kind.case === "enumSelection" && !Array.from((input as HTMLSelectElement).options).some(option => !option.disabled && option.value === text)) fail("select an allowed value");
     if (kind.case === "keyValueMap") {
-      const map = JSON.parse(text);
-      if (!map || typeof map !== "object" || Array.isArray(map) || Object.values(map).some(item => typeof item !== "string") || (kind.value.maxItems && Object.keys(map).length > kind.value.maxItems)) fail("invalid map");
-      return map;
+      return JSON.parse(text);
     }
     return text;
   };

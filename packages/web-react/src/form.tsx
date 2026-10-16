@@ -1,52 +1,46 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { createAdmissionGate } from "@savvifi/meridian-schemas/uiview";
+import { createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
 import { buildBindingRequest, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { FormEnumValues, FormFieldRow, FormInitialValues, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
-function readField(field: FormField, name: string, data: FormData, enums: Map<string, readonly string[]>): unknown {
+function readField(field: FormField, name: string, data: FormData, depth: number): unknown {
+  if (depth > 64) throw new Error("Form nesting exceeds 64 levels.");
   const kind = field.kind;
   if (!kind.case) throw new Error(`${field.label || name}: unsupported field kind.`);
-  if (kind.case === "nested") return readFormFields(kind.value.fields, data, enums, name);
+  if (kind.case === "nested") return collectFields(kind.value.fields, data, name, depth + 1);
   if (kind.case === "repeated") {
     const count = Number(data.get(`${name}.__count`) || 0);
     if (!Number.isSafeInteger(count) || count < kind.value.minItems || (kind.value.maxItems > 0 && count > kind.value.maxItems))
       throw new Error(`${field.label || name}: invalid item count.`);
     const element = kind.value.element;
     return Array.from({ length: count }, (_, i) => element.case === "scalar"
-      ? readField(element.value, `${name}[${i}]`, data, enums)
-      : element.case === "object" ? readFormFields(element.value.fields, data, enums, `${name}[${i}]`) : null);
+      ? readField(element.value, `${name}[${i}]`, data, depth + 1)
+      : element.case === "object" ? collectFields(element.value.fields, data, `${name}[${i}]`, depth + 1) : null);
   }
   if (kind.case === "keyValueMap") {
-    const value = JSON.parse(String(data.get(name) || "{}"));
-    if (!value || typeof value !== "object" || Array.isArray(value) || Object.values(value).some(item => typeof item !== "string") ||
-      (kind.value.maxItems > 0 && Object.keys(value).length > kind.value.maxItems)) throw new Error(`${field.label || name}: invalid map.`);
-    return value;
+    return JSON.parse(String(data.get(name) || "{}"));
   }
   if (kind.case === "boolean") return data.has(name);
   const text = String(data.get(name) ?? "");
   if (kind.case === "integer" || kind.case === "number") {
-    const value = Number(text);
-    const { min, max } = kind.value;
-    if (!text || !Number.isFinite(value) || (kind.case === "integer" && !Number.isSafeInteger(value)) ||
-        (min !== 0 && value < min) || (max !== 0 && value > max)) throw new Error(`${field.label || name}: invalid number.`);
-    return value;
+    return text.trim() ? Number(text) : NaN;
   }
-  if (kind.case === "text" || kind.case === "masked") {
-    const spec = kind.value;
-    if ((spec.minLength && text.length < spec.minLength) || (spec.maxLength && text.length > spec.maxLength))
-      throw new Error(`${field.label || name}: invalid length.`);
-    if (spec.pattern && !new RegExp(spec.pattern).test(text)) throw new Error(spec.patternErrorMsg || `${field.label || name}: invalid value.`);
-  }
-  if (kind.case === "enumSelection" && !(enums.get(name) ?? []).includes(text)) throw new Error(`${field.label || name}: select an allowed value.`);
   return text;
 }
-export function readFormFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
+function collectFields(fields: FormField[], data: FormData, prefix: string, depth = 0): Record<string, unknown> {
+  if (depth > 64) throw new Error("Form nesting exceeds 64 levels.");
   return Object.fromEntries(fields.map(field => [field.fieldId, readField(field,
-    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, enums)]));
+    `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`, data, depth)]));
+}
+export function readFormFields(fields: FormField[], data: FormData, enums: Map<string, readonly string[]>, prefix = ""): Record<string, unknown> {
+  const values = collectFields(fields, data, prefix);
+  const error = validateFormValues(fields, values, (_field, path) => enums.get(path) ?? [], prefix);
+  if (error) throw new Error(error);
+  return values;
 }
 
 function inputValues(fields: FormField[], values: Record<string, unknown>, prefix = ""): Record<string, unknown> {
