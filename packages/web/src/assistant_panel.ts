@@ -15,7 +15,7 @@
 
 import { fromJson, type JsonObject } from '@bufbuild/protobuf';
 import { ValueDisplaySchema, ValueType } from '@savvifi/meridian-proto-ts/proto/value_pb.js';
-import { formatByDisplay, type DisplayedValue, conversationToneRole, conversationToolState, conversationStatusState, CONVERSATION_TONE_CSS } from '@savvifi/meridian-schemas/uiview';
+import { formatByDisplay, type DisplayedValue, conversationSequenceKey, conversationToneRole, conversationToolState, conversationStatusState, CONVERSATION_TONE_CSS } from '@savvifi/meridian-schemas/uiview';
 
 import { escHtml as esc } from './dom.js';
 
@@ -218,7 +218,7 @@ export class MAssistantPanel extends HTMLElement {
   private inputEl: HTMLInputElement | null = null;
   private sendEl: HTMLButtonElement | null = null;
   private blocks = new Map<string, HTMLElement>();
-  private seen = new Set<number>();
+  private seen = new Set<string>();
 
   static get observedAttributes(): string[] {
     return ['sse-url', 'turn-url'];
@@ -279,8 +279,8 @@ export class MAssistantPanel extends HTMLElement {
   }
 
   private handle(ev: HostEvent): void {
-    const seq = typeof ev.seq === 'number' ? ev.seq : Number(ev.seq);
-    if (!Number.isNaN(seq)) {
+    const seq = conversationSequenceKey(ev.seq);
+    if (seq !== undefined) {
       if (this.seen.has(seq)) return;
       this.seen.add(seq);
     }
