@@ -107,7 +107,7 @@ filegroup(
 
 filegroup(
     name = "stateful_conformance_data",
-    srcs = ["conformance/value_types.json", "conformance/constrained_value_types.json", "conformance/input_values.binpb", "conformance/coverage.json"] + glob([
+    srcs = ["conformance/core.json", "conformance/value_types.json", "conformance/constrained_value_types.json", "conformance/input_values.binpb", "conformance/coverage.json"] + glob([
         "conformance/fixtures/**/*.binpb",
         "conformance/native/**/*.txt",
     ], allow_empty = True),  # The test rejects missing goldens; permits first recording.

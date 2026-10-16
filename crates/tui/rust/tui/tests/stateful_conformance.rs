@@ -33,6 +33,220 @@ fn data_root() -> PathBuf {
         .expect("shared stateful protobuf corpus must be available")
 }
 
+// Test-only reader of the canonical corpus's proto3-JSON bytes. This is not a
+// formatter or a new serialized type; the decoded messages remain canonical.
+fn option_wire(value: &Json) -> Vec<u8> {
+    let alphabet = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut bytes = Vec::new();
+    let (mut bits, mut available) = (0u32, 0);
+    for byte in value
+        .as_str()
+        .unwrap()
+        .bytes()
+        .take_while(|byte| *byte != b'=')
+    {
+        let digit = alphabet
+            .iter()
+            .position(|candidate| *candidate == byte)
+            .expect("base64 digit") as u32;
+        bits = (bits << 6) | digit;
+        available += 6;
+        if available >= 8 {
+            available -= 8;
+            bytes.push((bits >> available) as u8);
+            bits &= (1 << available) - 1;
+        }
+    }
+    bytes
+}
+
+#[test]
+fn canonical_value_options_reach_every_native_read_surface() {
+    use meridian_uiview::proto::{
+        CardSpec, DescriptorRow, DetailHeaderPanel, FormField, FormattedValue, GalleryPanel,
+        MetaField, PanelDescriptor, RecordCardPanel, ResourceCardPanel, ResourceCardTemplate,
+        TableColumn, TablePanel, ValueDisplay,
+    };
+    let corpus: Json =
+        serde_json::from_slice(&std::fs::read(data_root().join("core.json")).unwrap()).unwrap();
+    let cases: Vec<_> = corpus["valueFormats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|entry| entry.get("nowMs").is_none())
+        .collect();
+    assert_eq!(cases.len(), 220, "every independent no-clock expectation");
+    for case in cases {
+        let display = ValueDisplay::decode(option_wire(&case["display"]).as_slice()).unwrap();
+        let expected = FormattedValue::decode(option_wire(&case["expected"]).as_slice()).unwrap();
+        let call = Some(RpcCall {
+            service: "fixture.Options".into(),
+            method: "Get".into(),
+            ..Default::default()
+        });
+        let bodies = [
+            (
+                "table",
+                Body::Table(TablePanel {
+                    populate: call.clone(),
+                    rows_field: "rows".into(),
+                    columns: vec![TableColumn {
+                        header: "Value".into(),
+                        field_path: "value".into(),
+                        value_display: Some(display.clone()),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }),
+            ),
+            (
+                "record_card",
+                Body::RecordCard(RecordCardPanel {
+                    populate: call.clone(),
+                    fields: vec![FormField {
+                        field_id: "value".into(),
+                        label: "Value".into(),
+                        display: Some(display.clone()),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }),
+            ),
+            (
+                "detail_header",
+                Body::DetailHeader(DetailHeaderPanel {
+                    populate: call.clone(),
+                    title: "Fixture".into(),
+                    descriptor_rows: vec![DescriptorRow {
+                        label: "Value".into(),
+                        source_path: "value".into(),
+                        display: Some(display.clone()),
+                    }],
+                    ..Default::default()
+                }),
+            ),
+            (
+                "gallery",
+                Body::Gallery(GalleryPanel {
+                    populate: call.clone(),
+                    rows_field: "rows".into(),
+                    card: Some(CardSpec {
+                        title_field: "value".into(),
+                        subtitle_field: "value".into(),
+                        status_field: "value".into(),
+                        title_display: Some(display.clone()),
+                        subtitle_display: Some(display.clone()),
+                        status_display: Some(display.clone()),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }),
+            ),
+            (
+                "resource_cards",
+                Body::ResourceCards(ResourceCardPanel {
+                    populate: call.clone(),
+                    rows_field: "rows".into(),
+                    template: Some(ResourceCardTemplate {
+                        title_field: "value".into(),
+                        subtitle_field: "value".into(),
+                        status_field: "value".into(),
+                        title_display: Some(display.clone()),
+                        subtitle_display: Some(display.clone()),
+                        status_display: Some(display.clone()),
+                        meta: vec![MetaField {
+                            label: "Value".into(),
+                            field_path: "value".into(),
+                            display: Some(display.clone()),
+                        }],
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }),
+            ),
+        ];
+        for (arm, body) in bodies {
+            let authored = PanelDescriptor {
+                panel_id: format!("{arm}-{}", case["name"].as_str().unwrap()),
+                title: "Option fixture".into(),
+                body: Some(body),
+                ..Default::default()
+            };
+            let bytes = authored.encode_to_vec();
+            let panel = PanelDescriptor::decode(bytes.as_slice()).unwrap();
+            let record = json!({ "value": case["input"] });
+            let response = if matches!(arm, "record_card" | "detail_header") {
+                record
+            } else {
+                json!({"rows": [record]})
+            };
+            let host = CorpusHost {
+                responses: json!({"fixture.Options.Get": response}),
+                calls: RefCell::new(BTreeSet::new()),
+                closed: Arc::new(AtomicUsize::new(0)),
+            };
+            let original = host.responses.clone();
+            let mut widget = PanelView::new();
+            // Wide viewport prevents this option test from conflating formatting
+            // with truncation; the existing golden suite pins narrow layouts.
+            let (width, height) = (1024, 24);
+            let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+            terminal
+                .draw(|frame| {
+                    widget.render(frame, frame.area(), &panel, &Context::default(), &host)
+                })
+                .unwrap();
+            let buffer = terminal.backend().buffer();
+            let output = (0..height)
+                .map(|y| {
+                    (0..width)
+                        .map(|x| buffer[(x, y)].symbol())
+                        .collect::<String>()
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
+            let slots = match arm {
+                "gallery" => 3,
+                "resource_cards" => 4,
+                _ => 1,
+            };
+            // A wide glyph occupies a continuation cell. Compare terminal
+            // cells with an independently drawn expected label rather than
+            // flattening that continuation into an invented authored space.
+            let expected_width = ratatui::text::Line::from(expected.text.as_str()).width() as u16;
+            assert!(expected_width > 0 && expected_width <= width);
+            let area = ratatui::layout::Rect::new(0, 0, expected_width, 1);
+            let mut expected_buffer = ratatui::buffer::Buffer::empty(area);
+            ratatui::widgets::Widget::render(
+                ratatui::widgets::Paragraph::new(expected.text.as_str()),
+                area,
+                &mut expected_buffer,
+            );
+            let pattern: Vec<_> = (0..expected_width)
+                .map(|x| expected_buffer[(x, 0)].symbol())
+                .collect();
+            let occurrences = (0..height)
+                .map(|y| {
+                    let row: Vec<_> = (0..width).map(|x| buffer[(x, y)].symbol()).collect();
+                    row.windows(pattern.len())
+                        .filter(|cells| *cells == pattern.as_slice())
+                        .count()
+                })
+                .sum::<usize>();
+            assert!(
+                occurrences >= slots,
+                "{arm}/{}: expected {slots} occurrences of {:?}\n{output}",
+                case["name"],
+                expected.text
+            );
+            assert!(host.calls.borrow().contains("fixture.Options.Get"));
+            assert_eq!(host.responses, original);
+            assert_eq!(panel.encode_to_vec(), bytes);
+            // Native buffers intentionally omit hover-only supporting titles.
+        }
+    }
+}
+
 fn json_value(value: Value) -> Json {
     match value.kind.expect("corpus Struct values must have a kind") {
         Kind::NullValue(_) => Json::Null,
