@@ -459,6 +459,17 @@ describe("wasm `raw` arrives as a Map (serde-wasm-bindgen's default)", () => {
 });
 
 describe("wasm-built REQUESTS must reach the host as plain objects", () => {
+  it("does not subscribe with an empty request after construction fails", async () => {
+    const subscribe = vi.fn(() => ({ close() {} }));
+    const root = document.createElement("div");
+    await renderPanel({ root, descriptor: streamFixture, context: CTX,
+      wasm: { ...wasmWith([]), buildRequest: () => { throw new Error("secret must not appear"); } },
+      invoker: { invoke: async () => ({}) }, streamInvoker: { subscribe },
+    });
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(root.textContent).toContain("stream request construction rejected");
+    expect(root.textContent).not.toContain("secret must not appear");
+  });
   // The damaging half of the Map problem. A request goes straight to the host's
   // RpcInvoker, and hosts do the obvious things with it:
   //   JSON.stringify(new Map([["name","x"]]))  === "{}"

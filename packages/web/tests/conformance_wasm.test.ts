@@ -663,6 +663,33 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(JSON.stringify(request)).toContain("row-1");
   });
 
+  it("rejects excessive request depth and cumulative copying at the real wasm boundary", () => {
+    const deep = create(RpcCallSchema, {
+      bindings: [{ requestField: "a.".repeat(100) + "leaf", source: { case: "literal", value: "secret" } }],
+    });
+    expect(() => wasm.buildRequest(toBinary(RpcCallSchema, deep), CTX))
+      .toThrow("request construction limit exceeded");
+    const repeated = create(RpcCallSchema, {
+      bindings: Array.from({ length: 10 }, () => ({
+        requestField: "value", source: { case: "context" as const, value: 2 },
+      })),
+    });
+    expect(() => wasm.buildRequest(toBinary(RpcCallSchema, repeated), {
+      ...CTX, uiIdentity: { payload: "x".repeat(700_000) },
+    })).toThrow("request construction limit exceeded");
+  });
+
+  it("resolves live signals in the core without losing false or zero", () => {
+    const rpc = create(RpcCallSchema, {
+      bindings: ["zero", "disabled", "empty", "missing"].map(name => ({
+        requestField: `selection.${name}`, source: { case: "signal" as const, value: name },
+      })),
+    });
+    expect(wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
+      ...CTX, signals: { zero: 0, disabled: false, empty: null },
+    })).toEqual({ selection: { zero: 0, disabled: false } });
+  });
+
   it("readPath resolves dotted paths over a plain object", () => {
     expect(wasm.readPath(RESPONSE.builds[0], "repo")).toBe("fastverk/botnoc");
     expect(wasm.readPath({ a: { b: { c: 7 } } }, "a.b.c")).toBe(7);

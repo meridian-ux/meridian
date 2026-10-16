@@ -1022,27 +1022,41 @@ async function invokeSignalBound(
   call: RpcCall,
   handle: GrammarHandle,
 ): Promise<void> {
-  const request = plainValue(
-    opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context),
-  ) as Record<string, unknown>;
-  applySignalBindings(request, call.bindings, handle);
-  await opts.invoker.invoke(call.service, call.method, request);
+  try {
+    const signals: Record<string, unknown> = Object.create(null);
+    const seen = new Set<string>();
+    collectSignalValues(call.bindings, handle, signals, seen);
+    const request = plainValue(opts.wasm.buildRequest(toBinary(RpcCallSchema, call), { ...opts.context, signals })) as object;
+    await opts.invoker.invoke(call.service, call.method, request);
+    opts.root.querySelector(".mer-signal-error")?.remove();
+  } catch {
+    let feedback = opts.root.querySelector<HTMLElement>(".mer-signal-error");
+    if (!feedback) {
+      feedback = el("p", "mer-signal-error");
+      feedback.setAttribute("role", "alert");
+      opts.root.appendChild(feedback);
+    }
+    feedback.textContent = "Signal request failed.";
+  }
 }
 
-function applySignalBindings(
-  request: Record<string, unknown>,
+function collectSignalValues(
   bindings: RpcCall["bindings"],
   handle: GrammarHandle,
-  prefix = "",
+  signals: Record<string, unknown>,
+  seen: Set<string>,
+  depth = 0,
 ): void {
+  if (depth > 64) throw new Error("Signal binding depth limit exceeded.");
   for (const binding of bindings) {
-    const path = prefix ? `${prefix}.${binding.requestField}` : binding.requestField;
     if (binding.source.case === "signal") {
-      const value = handle.getSignal?.(binding.source.value);
-      if (value === undefined) deletePath(request, path);
-      else setPath(request, path, value);
+      const name = binding.source.value;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      const value = handle.getSignal?.(name);
+      if (value !== undefined) signals[name] = value;
     } else if (binding.source.case === "nested") {
-      applySignalBindings(request, binding.source.value.fields, handle, path);
+      collectSignalValues(binding.source.value.fields, handle, signals, seen, depth + 1);
     }
   }
 }
@@ -1061,19 +1075,6 @@ function setPath(root: Record<string, unknown>, path: string, value: unknown): v
     cursor = cursor[key] as Record<string, unknown>;
   }
   cursor[leaf] = value;
-}
-
-function deletePath(root: Record<string, unknown>, path: string): void {
-  const keys = path.split(".");
-  const leaf = keys.pop();
-  if (!leaf) return;
-  let cursor: Record<string, unknown> | undefined = root;
-  for (const key of keys) {
-    const next = cursor[key];
-    if (!next || typeof next !== "object") return;
-    cursor = next as Record<string, unknown>;
-  }
-  delete cursor[leaf];
 }
 
 // GrammarLanguage enum → the lowercase token on data-grammar-language + passed to
@@ -1219,6 +1220,7 @@ async function renderChartPanel(
       data = await opts.invoker.invoke(spec.populate.service, spec.populate.method, request);
     } catch (err) {
       metaEl.textContent = `Failed: ${(err as Error).message}`;
+      return;
     }
   }
   metaEl.textContent = "";
@@ -2144,8 +2146,9 @@ function renderStreamPanel(
       wasm.buildRequest(toBinary(RpcCallSchema, subscribe), opts.context),
     ) as object;
   } catch {
-    // A binding that can't be resolved yet (no selected row, no subject) is not
-    // fatal — subscribe with what we have and let the server decide.
+    // Construction failures must not widen a scoped subscription to {}.
+    metaEl.textContent = "Failed: stream request construction rejected.";
+    return;
   }
 
   try {

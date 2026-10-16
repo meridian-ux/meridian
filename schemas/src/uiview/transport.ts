@@ -11,6 +11,8 @@ export interface RenderContext {
   uiIdentity: object | null;
   selectedRow: object | null;
   formValues: Record<string, unknown>;
+  /** Host-captured live grammar signals; resolved by the bounded Rust builder. */
+  signals?: Record<string, unknown>;
 }
 
 /** Host-supplied transport. Mirrors the Rust RpcInvoker trait. */

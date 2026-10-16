@@ -12,6 +12,13 @@ for the detached-tarball consumer check and release prerequisites.
 
 Hosts still supply the initialized WASM rendering seam.
 
+The matching WASM core rejects RPC declarations over 64 KiB and request assembly
+over depth 64 or 4 MiB of cumulative copy work. A rejected Stream request never
+subscribes with an empty fallback. Live grammar signals are supplied to that
+same core at activation; construction/transport failure shows a generic alert
+without echoing request values. These assembly limits do not bound the host's
+JavaScript object allocation or replace transport admission policy.
+
 The **web-components renderer** of the meridian design language — the reference,
 React-free renderer that proves the [`WebRenderer` seam](../../schemas/src/uiview)
 isn't anchored to any framework.

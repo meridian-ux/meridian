@@ -219,6 +219,9 @@ pub fn build_populate_request(
     descriptor: &[u8],
     context_value: JsValue,
 ) -> Result<JsValue, JsError> {
+    if descriptor.len() > 1024 * 1024 {
+        return Err(JsError::new("descriptor exceeds request limits"));
+    }
     let d = PanelDescriptor::decode(descriptor).map_err(|e| JsError::new(&e.to_string()))?;
     let table = match d.body {
         Some(crate::proto::panel_descriptor::Body::Table(t)) => t,
@@ -229,7 +232,11 @@ pub fn build_populate_request(
         .ok_or_else(|| JsError::new("TablePanel has no populate RpcCall"))?;
     let ctx_in: ContextJs =
         serde_wasm_bindgen::from_value(context_value).map_err(|e| JsError::new(&e.to_string()))?;
-    let request = RequestBuilder::build(&populate, &ctx_in.into_context());
+    if populate.encoded_len() > 64 * 1024 {
+        return Err(JsError::new("RPC declaration exceeds limits"));
+    }
+    let request = RequestBuilder::build_for_boundary(&populate, &ctx_in.into_context())
+        .map_err(|_| JsError::new("request construction limit exceeded"))?;
     to_js(&request)
 }
 
@@ -291,6 +298,8 @@ struct ContextJs {
     /// The view's selection bag, keyed by selection key. Optional: a host with
     /// no scope pickers omits it and every `selection_key` binding is inert.
     selections: Option<HashMap<String, Value>>,
+    /// Live grammar values supplied by the host at activation, never authored.
+    signals: Option<HashMap<String, Value>>,
 }
 
 impl ContextJs {
@@ -300,9 +309,7 @@ impl ContextJs {
             ui_identity: self.ui_identity,
             selected_row: self.selected_row,
             form_values: self.form_values.unwrap_or_default(),
-            // Live Vega/panel signals are set by the JS host via the renderGrammar
-            // handle, not passed through this construction context — start empty.
-            signals: Default::default(),
+            signals: self.signals.unwrap_or_default(),
             // View-level selection scope, unlike signals, IS a property of the
             // render context, so it crosses here.
             selections: self.selections.unwrap_or_default(),
@@ -324,10 +331,14 @@ impl ContextJs {
 /// wasm-bindgen wrapper.
 #[wasm_bindgen(js_name = "buildRequest")]
 pub fn build_request_wasm(rpc_call: &[u8], context_value: JsValue) -> Result<JsValue, JsError> {
+    if rpc_call.len() > 64 * 1024 {
+        return Err(JsError::new("RPC declaration exceeds limits"));
+    }
     let call = RpcCall::decode(rpc_call).map_err(|e| JsError::new(&e.to_string()))?;
     let ctx_in: ContextJs =
         serde_wasm_bindgen::from_value(context_value).map_err(|e| JsError::new(&e.to_string()))?;
-    let request = RequestBuilder::build(&call, &ctx_in.into_context());
+    let request = RequestBuilder::build_for_boundary(&call, &ctx_in.into_context())
+        .map_err(|_| JsError::new("request construction limit exceeded"))?;
     to_js(&request)
 }
 

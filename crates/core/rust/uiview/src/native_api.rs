@@ -324,7 +324,7 @@ pub unsafe extern "C" fn meridian_core_build_request(
             signals: context_bag(context.signals)?,
             selections: context_bag(context.selections)?,
         };
-        let request = crate::RequestBuilder::build_bounded(&call, &context, MAX_RESULT_BYTES, 64)
+        let request = crate::RequestBuilder::build_for_boundary(&call, &context)
             .map_err(|_| LIMIT_EXCEEDED)?;
         let result = protobuf_value(request, 0)?.encode_to_vec();
         if result.len() > MAX_RESULT_BYTES {
