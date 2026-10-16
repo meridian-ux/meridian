@@ -1,0 +1,4 @@
+module MeridianCoreFFI {
+  header "meridian_core.h"
+  export *
+}

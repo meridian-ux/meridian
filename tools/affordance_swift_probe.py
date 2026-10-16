@@ -34,12 +34,17 @@ def main():
             package.mkdir()
             for manifest in ["Package.swift", "Package.resolved"]:
                 shutil.copyfile(ROOT / manifest, package / manifest)
+            native = ROOT / ".build/MeridianCoreFFI.xcframework"
+            if not native.is_dir():
+                raise RuntimeError("Prepare the canonical native core with tools/swiftui.py first")
+            shutil.copytree(native, package / ".build/MeridianCoreFFI.xcframework")
             for directory in ["Sources", "Tests"]:
                 shutil.copytree(ROOT / "packages/swiftui" / directory, package / "packages/swiftui" / directory)
             generated = package / "packages/swiftui/Generated"
             generated.mkdir()
             shutil.copyfile(ROOT / "packages/swiftui/Generated/Schema.swift", generated / "Schema.swift")
             shutil.copytree(ROOT / "schemas/conformance/binpb", package / "schemas/conformance/binpb")
+            shutil.copyfile(ROOT / "schemas/conformance/core.json", package / "schemas/conformance/core.json")
             image = args.scratch / f"{name}.binpb"
             if not image.is_file():
                 raise RuntimeError(f"Missing retained descriptor: {image}")

@@ -46,4 +46,27 @@ final class NativeViewTests: XCTestCase {
             XCTAssertNil(MeridianSurface.rgba(invalid), invalid)
         }
     }
+
+    func testCopyValueUsesCoreOnlyWhenDeclaredAndVisible() throws {
+        var value = Meridian_Ui_V1_CopyValue()
+        value.value = "2026-03-29T23:30:07-02:00"
+        XCTAssertEqual(try CopyValueContent.formatted(value, revealed: false).text, value.value)
+        value.display = .init() // Present unspecified also retains raw text.
+        XCTAssertEqual(try CopyValueContent.formatted(value, revealed: false).text, value.value)
+        let golden = try XCTUnwrap(CoreTests.corpus().valueFormats.first { $0.name == "no-clock-calendar-grid-8-0-0" })
+        value.display = try Meridian_Ui_V1_ValueDisplay(serializedBytes: golden.display)
+        let expected = try Meridian_Ui_V1_FormattedValue(serializedBytes: golden.expected)
+        XCTAssertEqual(try CopyValueContent.formatted(value, revealed: false), expected)
+        value.secret = true
+        let masked = try CopyValueContent.formatted(value, revealed: false)
+        XCTAssertEqual(masked.text, "••••••••")
+        XCTAssertFalse(masked.hasTitle)
+        XCTAssertEqual(try CopyValueContent.formatted(value, revealed: true), expected)
+        value.value = String(repeating: "secret", count: 200_000)
+        XCTAssertEqual(try CopyValueContent.formatted(value, revealed: false).text, "••••••••")
+        XCTAssertThrowsError(try CopyValueContent.formatted(value, revealed: true))
+        XCTAssertFalse(CopyValueContent.revealApplies(current: "new-secret", revealed: "old-secret"))
+        XCTAssertFalse(CopyValueContent.revealApplies(current: "é", revealed: "e\u{301}"))
+        XCTAssertTrue(CopyValueContent.revealApplies(current: " raw\0 ", revealed: " raw\0 "))
+    }
 }

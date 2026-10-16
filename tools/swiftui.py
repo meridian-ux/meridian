@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from native_core import prepare as prepare_native_core
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,6 +20,7 @@ def main():
     parser.add_argument("--generate-only", action="store_true")
     parser.add_argument("--ios", action="store_true", help="Also cross-compile for iOS 16 (no deployment)")
     args = parser.parse_args()
+    prepare_native_core()
     run("swift", "package", "resolve")
     dependency = ROOT / ".build/checkouts/swift-protobuf"
     build = ROOT / ".build/swift-protobuf-generator"
@@ -49,12 +51,22 @@ def main():
         for stale in destination.glob("*.pb.swift"):
             if stale.name not in names:
                 stale.unlink()  # Only this tool's ignored generated outputs.
+    run(str(ROOT / "node_modules/.bin/buf"), "generate", "--path", "schemas/conformance/core.proto",
+        "--template", json.dumps({"version": "v2", "plugins": [{
+            "local": str(Path(binary_dir) / "protoc-gen-swift"),
+            "out": "packages/swiftui/Tests/Generated",
+            "opt": ["Visibility=Public", "FileNaming=PathToUnderscores"],
+        }]}))
     if not args.generate_only:
         run("swift", "test", "--parallel")
     if args.ios:
-        sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
-        run("swift", "build", "--triple", "arm64-apple-ios16.0", "--sdk", sdk,
-            "--scratch-path", str(ROOT / ".build/ios"))
+        for sdk_name, triple, directory in [
+            ("iphoneos", "arm64-apple-ios16.0", "ios"),
+            ("iphonesimulator", "arm64-apple-ios16.0-simulator", "ios-simulator"),
+        ]:
+            sdk = subprocess.check_output(["xcrun", "--sdk", sdk_name, "--show-sdk-path"], text=True).strip()
+            run("swift", "build", "--triple", triple, "--sdk", sdk,
+                "--scratch-path", str(ROOT / ".build" / directory))
 
 
 if __name__ == "__main__":

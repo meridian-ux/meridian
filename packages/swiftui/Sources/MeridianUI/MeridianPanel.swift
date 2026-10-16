@@ -102,15 +102,44 @@ struct SnippetContent: View {
 struct CopyValueContent: View {
     let value: Meridian_Ui_V1_CopyValue
     @ObservedObject var host: MeridianHost
-    @State private var revealed = false
+    @State private var revealedRawValue: String?
+    private var revealed: Bool { Self.revealApplies(current: value.value, revealed: revealedRawValue) }
+
+    static func revealApplies(current: String, revealed: String?) -> Bool {
+        // Key disclosure to exact raw bytes, not Swift's canonically equivalent
+        // String equality. A changed secret is masked before onChange runs.
+        revealed.map { $0.utf8.elementsEqual(current.utf8) } ?? false
+    }
+
+    static func formatted(_ value: Meridian_Ui_V1_CopyValue, revealed: Bool) throws -> Meridian_Ui_V1_FormattedValue {
+        var literal = Meridian_Ui_V1_FormattedValue()
+        if value.secret && !revealed {
+            literal.text = "••••••••"
+            return literal
+        }
+        // CopyValue's absence/unspecified rule is raw literal text, not core's
+        // legacy inference. No coercion of a string into a number/boolean.
+        guard value.hasDisplay, value.display.type != .unspecified else {
+            literal.text = value.value
+            return literal
+        }
+        var input = Google_Protobuf_Value()
+        input.stringValue = value.value
+        return try MeridianCore.format(input, display: value.display)
+    }
+
     var body: some View {
-        VStack(alignment: .leading) {
+        let formatted = try? Self.formatted(value, revealed: revealed)
+        return VStack(alignment: .leading) {
             if !value.label.isEmpty { Text(value.label).font(.headline) }
-            Text(value.secret && !revealed ? "••••••••" : value.value)
+            Text(formatted?.text ?? "Value could not be formatted.")
                 .font(.system(.body, design: .monospaced))
-                .accessibilityLabel(value.secret && !revealed ? "Hidden value" : value.value)
+                .accessibilityLabel(value.secret && !revealed ? "Hidden value" : (formatted?.text ?? "Value could not be formatted."))
+                .help(formatted?.hasTitle == true ? (formatted?.title ?? "") : "")
             if value.secret {
-                Button(revealed ? "Hide value" : "Reveal value") { revealed.toggle() }
+                Button(revealed ? "Hide value" : "Reveal value") {
+                    revealedRawValue = revealed ? nil : value.value
+                }
             }
             Button {
                 Task { await host.activate(.copy(value.value)) }
@@ -118,7 +147,7 @@ struct CopyValueContent: View {
                 .disabled(host.pending)
             if !value.help.isEmpty { Text(value.help).foregroundStyle(.secondary) }
         }
-        .onChange(of: value) { _ in revealed = false }
+        .onChange(of: value) { _ in revealedRawValue = nil }
     }
 }
 

@@ -1,6 +1,31 @@
 {
   "valueFormats": [
     {
+      "name": "json-safe-integer-structure",
+      "input": {
+        "count": 1,
+        "enabled": true,
+        "value": [
+          0,
+          2.5
+        ]
+      },
+      "display": "CBI=",
+      "expected": "Cip7ImNvdW50IjoxLCJlbmFibGVkIjp0cnVlLCJ2YWx1ZSI6WzAsMi41XX0="
+    },
+    {
+      "name": "list-safe-integer-scalars",
+      "input": [
+        0,
+        1,
+        2.5,
+        false,
+        null
+      ],
+      "display": "CAc=",
+      "expected": "ChUwLCAxLCAyLjUsIGZhbHNlLCDigJQ="
+    },
+    {
       "name": "calendar-grid-8-0-0",
       "input": "2026-03-29T23:30:07-02:00",
       "display": "CAgSAA==",

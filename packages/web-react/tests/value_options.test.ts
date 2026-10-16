@@ -95,8 +95,8 @@ for (const kit of [htmlKit, shadcnKit]) it.each(OPTION_INPUT_CASES)(`${kit.id} i
   } finally { await act(async () => root.unmount()); container.remove(); }
 });
 it("covers every clocked and no-clock formatter case through each unrestricted read surface", () => {
-  expect(OPTION_VALUES).toHaveLength(353);
-  expect(OPTION_READ_CASES).toHaveLength(1765);
+  expect(OPTION_VALUES).toHaveLength(355);
+  expect(OPTION_READ_CASES).toHaveLength(1775);
 });
 
 it("keeps every applicable string and numeric option case in constrained surfaces", () => {

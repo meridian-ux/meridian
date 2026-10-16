@@ -216,7 +216,7 @@ fn canonical_value_options_reach_every_native_read_surface() {
         .iter()
         .filter(|entry| entry.get("nowMs").is_none())
         .collect();
-    assert_eq!(cases.len(), 220, "every independent no-clock expectation");
+    assert_eq!(cases.len(), 222, "every independent no-clock expectation");
     for case in cases {
         let display = ValueDisplay::decode(option_wire(&case["display"]).as_slice()).unwrap();
         let expected = FormattedValue::decode(option_wire(&case["expected"]).as_slice()).unwrap();
