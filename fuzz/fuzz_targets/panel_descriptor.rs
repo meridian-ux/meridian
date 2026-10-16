@@ -76,6 +76,33 @@ fuzz_target!(|bytes: &[u8]| {
             assert_eq!(length, 0);
         }
     }
+    for (call, context) in [(bytes, &[][..]), (&[][..], bytes)] {
+        let mut output = std::ptr::null_mut();
+        let mut length = 0;
+        // SAFETY: borrowed live slices and nonoverlapping stack output slots.
+        let status = unsafe {
+            meridian_uiview::native_api::meridian_core_build_request(
+                call.as_ptr(),
+                call.len(),
+                context.as_ptr(),
+                context.len(),
+                &mut output,
+                &mut length,
+            )
+        };
+        if status == 0 {
+            assert!(!output.is_null());
+            assert!(length > 0 && length <= 4 * 1024 * 1024);
+            // SAFETY: free exactly the successful owned result, once.
+            unsafe {
+                meridian_uiview::native_api::meridian_core_buffer_free(output, length);
+            }
+        } else {
+            assert!((1..=3).contains(&status), "unexpected request status");
+            assert!(output.is_null());
+            assert_eq!(length, 0);
+        }
+    }
     let mut matched = 99;
     // SAFETY: live slice regions, separate writable output byte.
     let status = unsafe {

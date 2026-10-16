@@ -18,7 +18,8 @@ let package = Package(
         .target(name: "MeridianProtos", dependencies: [
             .product(name: "SwiftProtobuf", package: "swift-protobuf"),
         ], path: "packages/swiftui/Generated"),
-        .target(name: "MeridianUI", dependencies: ["MeridianProtos", "MeridianCoreFFI"],
+        .target(name: "MeridianUI", dependencies: ["MeridianProtos", "MeridianCoreFFI",
+            .product(name: "SwiftProtobuf", package: "swift-protobuf")],
                 path: "packages/swiftui/Sources/MeridianUI",
                 linkerSettings: [.linkedLibrary("iconv")]),
         .target(name: "MeridianConformance", dependencies: [

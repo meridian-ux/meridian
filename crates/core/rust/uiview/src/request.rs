@@ -43,18 +43,124 @@ pub struct Context {
 /// mode, whatever).
 pub struct RequestBuilder;
 
-impl RequestBuilder {
-    pub fn build(call: &RpcCall, ctx: &Context) -> Value {
-        let mut root = Map::new();
-        for binding in &call.bindings {
-            Self::apply_binding(&mut root, binding, ctx);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[error("request construction limit exceeded")]
+pub struct RequestLimitExceeded;
+
+struct BuildBudget {
+    remaining: Option<usize>,
+    max_depth: Option<usize>,
+}
+
+impl BuildBudget {
+    fn check_depth(&self, value: &Value, depth: usize) -> Result<(), RequestLimitExceeded> {
+        let Some(max) = self.max_depth else {
+            return Ok(());
+        };
+        if depth > max {
+            return Err(RequestLimitExceeded);
         }
-        Value::Object(root)
+        match value {
+            Value::Array(values) => {
+                for value in values {
+                    self.check_depth(value, depth + 1)?;
+                }
+            }
+            Value::Object(values) => {
+                for value in values.values() {
+                    self.check_depth(value, depth + 1)?;
+                }
+            }
+            _ => {}
+        }
+        Ok(())
     }
 
-    fn apply_binding(root: &mut Map<String, Value>, binding: &FieldBinding, ctx: &Context) {
+    fn charge(
+        &mut self,
+        value: &Value,
+        path: &str,
+        depth: usize,
+    ) -> Result<(), RequestLimitExceeded> {
+        if self.remaining.is_none() {
+            return Ok(());
+        }
+        self.check_depth(value, depth)?;
+        // Charge every intermediate copy, including overwritten destinations
+        // and nested assembly. A small final object must not hide huge work.
+        let size = serde_json::to_vec(value)
+            .map_err(|_| RequestLimitExceeded)?
+            .len()
+            .checked_add(path.len())
+            .ok_or(RequestLimitExceeded)?;
+        let remaining = self.remaining.as_mut().expect("checked above");
+        *remaining = remaining.checked_sub(size).ok_or(RequestLimitExceeded)?;
+        Ok(())
+    }
+}
+
+impl RequestBuilder {
+    pub fn build(call: &RpcCall, ctx: &Context) -> Value {
+        Self::build_inner(
+            &call.bindings,
+            ctx,
+            &mut BuildBudget {
+                remaining: None,
+                max_depth: None,
+            },
+            0,
+        )
+        .expect("unlimited trusted request construction")
+    }
+
+    /// For descriptor boundaries: cap cumulative intermediate copy work and
+    /// assembled depth BEFORE inserting values or constructing dotted paths.
+    /// Nested/overwritten values still consume work; no partial request escapes.
+    pub fn build_bounded(
+        call: &RpcCall,
+        ctx: &Context,
+        max_work: usize,
+        max_depth: usize,
+    ) -> Result<Value, RequestLimitExceeded> {
+        Self::build_inner(
+            &call.bindings,
+            ctx,
+            &mut BuildBudget {
+                remaining: Some(max_work),
+                max_depth: Some(max_depth),
+            },
+            0,
+        )
+    }
+
+    fn build_inner(
+        bindings: &[FieldBinding],
+        ctx: &Context,
+        budget: &mut BuildBudget,
+        depth: usize,
+    ) -> Result<Value, RequestLimitExceeded> {
+        let mut root = Map::new();
+        for binding in bindings {
+            Self::apply_binding(&mut root, binding, ctx, budget, depth)?;
+        }
+        Ok(Value::Object(root))
+    }
+
+    fn apply_binding(
+        root: &mut Map<String, Value>,
+        binding: &FieldBinding,
+        ctx: &Context,
+        budget: &mut BuildBudget,
+        depth: usize,
+    ) -> Result<(), RequestLimitExceeded> {
         if binding.request_field.is_empty() {
-            return;
+            return Ok(());
+        }
+        let depth = depth
+            .checked_add(binding.request_field.split('.').count())
+            .ok_or(RequestLimitExceeded)?;
+        if budget.max_depth.is_some_and(|max| depth > max) {
+            return Err(RequestLimitExceeded);
         }
         let value = match binding.source.as_ref() {
             Some(Source::Context(code)) => Self::resolve_context(*code, ctx),
@@ -65,7 +171,7 @@ impl RequestBuilder {
                 .unwrap_or(Value::Null),
             Some(Source::FormField(id)) => ctx.form_values.get(id).cloned().unwrap_or(Value::Null),
             Some(Source::Literal(s)) => Value::String(s.clone()),
-            Some(Source::Nested(nested)) => Self::build_nested(nested, ctx),
+            Some(Source::Nested(nested)) => Self::build_nested(nested, ctx, budget, depth)?,
             // A live grammar/panel signal (a Vega selection). Resolves from
             // ctx.signals like form_field resolves from form_values; absent on
             // static/degraded surfaces → Null → the field is skipped (inert).
@@ -77,20 +183,23 @@ impl RequestBuilder {
             Some(Source::SelectionKey(key)) => {
                 ctx.selections.get(key).cloned().unwrap_or(Value::Null)
             }
-            None => return,
+            None => return Ok(()),
         };
         if value.is_null() {
-            return;
+            return Ok(());
         }
+        budget.charge(&value, &binding.request_field, depth)?;
         Self::set_path(root, &binding.request_field, value);
+        Ok(())
     }
 
-    fn build_nested(nested: &NestedBinding, ctx: &Context) -> Value {
-        let mut inner = Map::new();
-        for child in &nested.fields {
-            Self::apply_binding(&mut inner, child, ctx);
-        }
-        Value::Object(inner)
+    fn build_nested(
+        nested: &NestedBinding,
+        ctx: &Context,
+        budget: &mut BuildBudget,
+        depth: usize,
+    ) -> Result<Value, RequestLimitExceeded> {
+        Self::build_inner(&nested.fields, ctx, budget, depth)
     }
 
     fn resolve_context(code: i32, ctx: &Context) -> Value {
@@ -128,6 +237,71 @@ impl RequestBuilder {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn bounded_builder_preserves_requests_and_rejects_intermediate_copy_amplification() {
+        let ctx = Context {
+            ui_identity: Some(json!("x".repeat(4096))),
+            ..Default::default()
+        };
+        let call = RpcCall {
+            bindings: (0..10)
+                .map(|_| fb("same", Source::Context(ContextSource::UiIdentity as i32)))
+                .collect(),
+            ..Default::default()
+        };
+        // Final output is one value, but ten copies still cost work.
+        assert_eq!(
+            RequestBuilder::build(&call, &ctx)
+                .as_object()
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            RequestBuilder::build_bounded(&call, &ctx, 8192, 64),
+            Err(RequestLimitExceeded)
+        );
+        assert_eq!(
+            RequestBuilder::build_bounded(&call, &ctx, 100_000, 64).unwrap(),
+            RequestBuilder::build(&call, &ctx)
+        );
+    }
+
+    #[test]
+    fn bounded_builder_checks_combined_dotted_nested_and_value_depth_before_insertion() {
+        let mut call = RpcCall {
+            bindings: vec![fb("a.b.c", Source::Literal("value".into()))],
+            ..Default::default()
+        };
+        assert!(RequestBuilder::build_bounded(&call, &Context::default(), 1000, 3).is_ok());
+        assert_eq!(
+            RequestBuilder::build_bounded(&call, &Context::default(), 1000, 2),
+            Err(RequestLimitExceeded)
+        );
+        call.bindings = vec![fb(
+            "outer",
+            Source::Nested(NestedBinding {
+                fields: vec![fb("a.b", Source::Literal("value".into()))],
+            }),
+        )];
+        assert_eq!(
+            RequestBuilder::build_bounded(&call, &Context::default(), 1000, 2),
+            Err(RequestLimitExceeded)
+        );
+        call.bindings = vec![fb(
+            "identity",
+            Source::Context(ContextSource::UiIdentity as i32),
+        )];
+        let ctx = Context {
+            ui_identity: Some(json!({"nested":{"leaf":0}})),
+            ..Default::default()
+        };
+        assert_eq!(
+            RequestBuilder::build_bounded(&call, &ctx, 1000, 2),
+            Err(RequestLimitExceeded)
+        );
+    }
 
     // A SET selection key resolves like any other source; an UNSET one OMITS the
     // field. The omission is the load-bearing half: rpc.proto specifies that an

@@ -202,9 +202,14 @@ proof covers all 427 cases across four browser realizations (1,708 trees).
 The gate rejects unsupported `renders` promotions, requires committed goldens,
 and CI explicitly executes the seven registered panel proof targets in addition
 to its wildcard test suite. Presence alone is not proof of passing output.
-This is not field-complete parity: SwiftUI view dumps, general native
-ViewDescriptor layout, renderer-specific overflow/layout, and broader interactive
-surfaces remain in [#9](../../issues/9) and [#40](../../issues/40). See the
+The SwiftUI initial view-dump normalizer is now integrated in
+[#156](../../pull/156), completing the normalizer infrastructure in
+[#40](../../issues/40): 24 committed canonical panel projections, independent
+presence/format gates, native runtime comparison, and shared Bazel recording.
+Unsupported arms snapshot their current explanation, not completed rendering.
+This is not field-complete parity: unsupported SwiftUI content, stateful native
+proofs, general ViewDescriptor layout, renderer-specific overflow/layout, and
+broader interactive surfaces remain in [#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
 Bounded slices now cover canonical `resource_cards`, `gallery`, and `table`
 descriptors with shared responses across HTML, Shadcn, MUI, web-components, and
@@ -372,7 +377,10 @@ protobuf C ABI in a statically linked macOS/iOS XCFramework. Its native tests
 execute all 355 formatter cases and the 16 shared Rust Unicode regex cases.
 CopyValue adopts declared formatting while preserving literal copy, absent
 declaration behavior, and hidden-secret masking. These are kernel/consumer
-proofs, not full SwiftUI panel parity or a semantic view-dump verifier.
+proofs, not full SwiftUI panel parity. The separate initial view-dump verifier
+now checks actual SwiftUI text, control labels/disabled state, picker selection,
+image names, and declared labels. It does not claim computed OS accessibility
+or close the remaining stateful/composed-view conformance work.
 
 ## Track C — Hardening
 
