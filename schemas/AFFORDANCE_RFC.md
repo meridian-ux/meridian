@@ -78,6 +78,12 @@ pending, denied, failed, or completed. Tone does not replace those states.
 
 ## Typed schema dependency plan
 
+The [tested migration proposal](AFFORDANCE_MIGRATION.md) now recomputes the
+current prospective graph, exercises old import facades in both protobuf-es
+generation modes, and records the separate approval required for cutover.
+Its nine-file boundary supersedes the preliminary seven-file sketch below;
+production declaration ownership and the FILE policy remain unchanged.
+
 The union cannot be implemented by adding imports to `affordance.proto` alone.
 Today `command_palette.proto` imports `panel.proto`, which imports
 `affordance.proto` and several messages that themselves contain Affordances.
