@@ -118,6 +118,37 @@ mod bounded_requests {
             }],
         }
     }
+    #[test]
+    fn form_field_ids_are_literal_and_lro_only_request_paths_are_ignored() {
+        let form = FormPanel {
+            mode: FormMode::Edit as i32,
+            fields: vec![FormField {
+                field_id: "input.name".into(),
+                request_field: "ignored.".repeat(100),
+                kind: Some(Kind::Text(TextInput {
+                    default_value: "raw".into(),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }],
+            submit: Some(RpcCall {
+                service: "fixture.Form".into(),
+                method: "Save".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Form(form.clone())),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        buffer(&mut view, &descriptor, &Spy(Cell::new(0)));
+        let submitted = view
+            .handle_form_key(&form, &Context::default(), KeyCode::Enter)
+            .unwrap();
+        assert_eq!(submitted.request, serde_json::json!({"input.name":"raw"}));
+    }
     fn buffer(view: &mut PanelView, descriptor: &PanelDescriptor, invoker: &Spy) -> String {
         let mut terminal = Terminal::new(TestBackend::new(120, 30)).unwrap();
         terminal
@@ -193,7 +224,7 @@ mod bounded_requests {
         let form = FormPanel {
             mode: FormMode::Edit as i32,
             fields: vec![field.clone()],
-            submit: Some(call.clone()),
+            submit: Some(bad_call()),
             ..Default::default()
         };
         let descriptor = PanelDescriptor {

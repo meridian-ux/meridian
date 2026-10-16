@@ -202,6 +202,38 @@ pub fn render_table_wasm(descriptor: &[u8], response: JsValue) -> Result<JsValue
     to_js(&serializable)
 }
 
+/// Build FormPanel/LroPanel submission bindings and automatic fields together.
+#[wasm_bindgen(js_name = "buildSubmissionRequest")]
+pub fn build_submission_request(
+    descriptor: &[u8],
+    context_value: JsValue,
+    form_values: JsValue,
+) -> Result<JsValue, JsError> {
+    if descriptor.len() > 1024 * 1024 {
+        return Err(JsError::new("submission declaration exceeds limits"));
+    }
+    let panel = PanelDescriptor::decode(descriptor)
+        .map_err(|_| JsError::new("invalid submission descriptor"))?;
+    let (call, fields, kind) = match panel.body {
+        Some(crate::proto::panel_descriptor::Body::Form(panel)) => {
+            (panel.submit, panel.fields, crate::SubmissionKind::Form)
+        }
+        Some(crate::proto::panel_descriptor::Body::Lro(panel)) => {
+            (panel.start, panel.inputs, crate::SubmissionKind::Lro)
+        }
+        _ => return Err(JsError::new("not a submission panel")),
+    };
+    let call = call.ok_or_else(|| JsError::new("submission RPC missing"))?;
+    let context: ContextJs = serde_wasm_bindgen::from_value(context_value)
+        .map_err(|_| JsError::new("invalid submission context"))?;
+    let values: Value = serde_wasm_bindgen::from_value(form_values)
+        .map_err(|_| JsError::new("invalid submission values"))?;
+    let request =
+        RequestBuilder::build_submission(&call, &context.into_context(), &fields, &values, kind)
+            .map_err(|_| JsError::new("request construction limit exceeded"))?;
+    to_js(&request)
+}
+
 /// Builds the JSON request object for a TablePanel's populate RPC.
 /// Hosts pass the runtime context as a JS object:
 ///

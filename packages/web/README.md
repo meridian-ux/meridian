@@ -18,6 +18,12 @@ subscribes with an empty fallback. Live grammar signals are supplied to that
 same core at activation; construction/transport failure shows a generic alert
 without echoing request values. These assembly limits do not bound the host's
 JavaScript object allocation or replace transport admission policy.
+Form saves and LRO starts require the initialized core's `buildSubmissionRequest`
+capability: it assembles explicit bindings and automatic fields together under
+one budget. An older core without that capability rejects submissions visibly;
+there is no unbounded JavaScript fallback. Form values use literal field IDs
+(explicit bindings win), while LRO inputs use declared request paths (inputs
+win). Nested LRO paths compose at every level; repeated values and maps stay raw.
 
 The **web-components renderer** of the meridian design language — the reference,
 React-free renderer that proves the [`WebRenderer` seam](../../schemas/src/uiview)

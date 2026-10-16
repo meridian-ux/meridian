@@ -7,7 +7,7 @@ use meridian_uiview::{
         panel_descriptor::Body, ComputedStat, FormattedValue, GalleryPanel, PanelDescriptor,
         RpcCall, TablePanel, ValueDisplay,
     },
-    render_gallery, render_table, Context, RequestBuilder,
+    render_gallery, render_table, Context, RequestBuilder, SubmissionKind,
 };
 
 fuzz_target!(|bytes: &[u8]| {
@@ -130,6 +130,28 @@ fuzz_target!(|bytes: &[u8]| {
             }
             Some(Body::Gallery(gallery)) => {
                 let _ = render_gallery(&response, &gallery);
+            }
+            Some(Body::Form(form)) => {
+                if let Some(call) = form.submit {
+                    let _ = RequestBuilder::build_submission(
+                        &call,
+                        &Context::default(),
+                        &form.fields,
+                        &serde_json::json!({}),
+                        SubmissionKind::Form,
+                    );
+                }
+            }
+            Some(Body::Lro(panel)) => {
+                if let Some(call) = panel.start {
+                    let _ = RequestBuilder::build_submission(
+                        &call,
+                        &Context::default(),
+                        &panel.inputs,
+                        &serde_json::json!({}),
+                        SubmissionKind::Lro,
+                    );
+                }
             }
             _ => {}
         }

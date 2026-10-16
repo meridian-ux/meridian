@@ -147,6 +147,8 @@ export interface UiviewWasm {
   readPath(value: object, path: string): unknown;
   /** Generic primitives used by LRO + future panel shapes. */
   buildRequest(rpcCall: Uint8Array, context: RenderContext): object;
+  /** Shared binding + automatic-field budget. Missing capability fails closed. */
+  buildSubmissionRequest?(panel: Uint8Array, context: RenderContext, formValues: Record<string, unknown>): object;
   renderTablePanel(tablePanel: Uint8Array, response: object): RenderedRow[];
   formatLroMetadata(metadata: object): string;
 }
@@ -394,11 +396,11 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     const form = buildInteractiveForm(body.value, {
       allowed: (call) => createAdmissionGate(renderOpts.admission).admits("mutation", call.service, call.method),
       invoke: (call, values, mutation) => {
-        const request = plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
+        const request = mutation ? buildSubmission(renderOpts, values) : plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
           ...renderOpts.context, formValues: values,
         })) as object;
         return (mutation ? renderOpts.mutationInvoker : renderOpts.invoker).invoke(call.service, call.method,
-          mutation ? { ...values, ...request } : request);
+          request);
       },
     });
     root.appendChild(form.element);
@@ -1059,22 +1061,6 @@ function collectSignalValues(
       collectSignalValues(binding.source.value.fields, handle, signals, seen, depth + 1);
     }
   }
-}
-
-function setPath(root: Record<string, unknown>, path: string, value: unknown): void {
-  const keys = path.split(".");
-  if (keys.some(key => !key || key === "__proto__" || key === "constructor" || key === "prototype")) {
-    throw new Error("Unsafe request path.");
-  }
-  const leaf = keys.pop();
-  if (!leaf) return;
-  let cursor = root;
-  for (const key of keys) {
-    const next = Object.hasOwn(cursor, key) ? cursor[key] : undefined;
-    if (!next || typeof next !== "object" || Array.isArray(next)) cursor[key] = {};
-    cursor = cursor[key] as Record<string, unknown>;
-  }
-  cursor[leaf] = value;
 }
 
 // GrammarLanguage enum → the lowercase token on data-grammar-language + passed to
@@ -2370,6 +2356,17 @@ function bytesForRpc(call: RpcCall): Uint8Array {
   return toBinary(RpcCallSchema, call);
 }
 
+function buildSubmission(opts: PreparedRenderPanelOptions, values: Record<string, unknown>): object {
+  try {
+    if (!opts.wasm.buildSubmissionRequest) throw new Error("Submission capability missing.");
+    return plainValue(opts.wasm.buildSubmissionRequest(
+      toBinary(PanelDescriptorSchema, opts.descriptor), { ...opts.context, formValues: {} }, values,
+    )) as object;
+  } catch {
+    throw new Error("Submission request construction rejected.");
+  }
+}
+
 async function driveLro(args: DriveLroArgs): Promise<void> {
   const { opts, metaEl, resultArea, panel, formValues, alive } = args;
   const { wasm, invoker, context } = opts;
@@ -2382,23 +2379,7 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
   }
 
   metaEl.textContent = "Submitting…";
-  const startCtx: RenderContext = { ...context, formValues };
-  const startRequest = plainValue(wasm.buildRequest(bytesForRpc(start), startCtx)) as Record<string, unknown>;
-  const mergeInputs = (fields: readonly FormField[], values: Record<string, unknown>, prefix = "") => {
-    for (const field of fields) {
-      const path = [prefix, field.requestField || field.fieldId].filter(Boolean).join(".");
-      const value = Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined;
-      if (field.kind.case === "nested") {
-        mergeInputs(field.kind.value.fields, value as Record<string, unknown>, path);
-      } else {
-        if (path.split(".").some(key => !key || key === "__proto__" || key === "constructor" || key === "prototype")) {
-          throw new Error("Unsafe form request path.");
-        }
-        setPath(startRequest, path, value);
-      }
-    }
-  };
-  mergeInputs(panel.inputs, formValues);
+  const startRequest = buildSubmission(opts, formValues);
   let op: Operation;
   try {
     op = (await mutationInvoker.invoke(
@@ -2451,7 +2432,13 @@ async function driveLro(args: DriveLroArgs): Promise<void> {
       selectedRow: lroResponse,
       formValues,
     };
-    const finalizeRequest = plainValue(wasm.buildRequest(bytesForRpc(finalize), finalizeCtx)) as object;
+    let finalizeRequest: object;
+    try {
+      finalizeRequest = plainValue(wasm.buildRequest(bytesForRpc(finalize), finalizeCtx)) as object;
+    } catch {
+      metaEl.textContent = "Finalize request construction rejected.";
+      return;
+    }
     try {
       source = (await invoker.invoke(
         finalize.service,

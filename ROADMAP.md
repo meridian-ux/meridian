@@ -387,13 +387,16 @@ or close the remaining stateful/composed-view conformance work.
 Request assembly now uses a fallible shared Rust boundary policy for native,
 WASM, and TUI calls: 64 KiB encoded RPC declarations, depth 64, and 4 MiB of
 cumulative value/path copy work, including overwritten and nested bindings.
-Borrowed row/form overrides are checked before copying; TUI automatic form
-fields continue the binding budget rather than restarting it. Rejection makes
+Borrowed row/form overrides are checked before copying; TUI and web-components
+automatic form/LRO fields continue the binding budget rather than restarting it.
+Forms preserve literal field IDs with explicit bindings taking precedence;
+LRO inputs apply their declared paths after bindings, including nested inputs.
+Rejection makes
 no RPC, subscription, form submission, or LRO start. Browser Stream no longer
 falls back to an empty subscription request, and live grammar signals enter
 the core context instead of mutating its output afterward.
-This is not completion of [#17](../../issues/17): browser post-core automatic
-form/LRO assembly, the separate React action builder, and pre-conversion host
+This is not completion of [#17](../../issues/17): the separate React action
+builder and pre-conversion host
 context allocation still require their own boundary audit. The trusted Rust
 `RequestBuilder::build` API remains compatible and is not the untrusted seam.
 

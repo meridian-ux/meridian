@@ -1,5 +1,7 @@
 use crate::proto::field_binding::Source;
-use crate::proto::{ContextSource, FieldBinding, NestedBinding, RpcCall};
+use crate::proto::{
+    form_field::Kind, ContextSource, FieldBinding, FormField, NestedBinding, RpcCall,
+};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 
@@ -42,6 +44,19 @@ pub struct Context {
 /// own marshaling layer (tonic + a serde-aware codec, gRPC-Web JSON
 /// mode, whatever).
 pub struct RequestBuilder;
+
+/// In-process assembly policy selected by the canonical panel arm.
+#[derive(Clone, Copy)]
+pub enum SubmissionKind {
+    /// Field-ID values with explicit binding assignments taking precedence.
+    Form,
+    /// LRO input request paths, applied after explicit bindings.
+    Lro,
+}
+
+fn unsafe_segment(key: &str) -> bool {
+    matches!(key, "__proto__" | "constructor" | "prototype")
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 #[error("request construction limit exceeded")]
@@ -243,6 +258,107 @@ impl Resolved<'_> {
 }
 
 impl RequestBuilder {
+    /// Assemble bindings AND automatic fields using one cumulative work budget.
+    /// Values are borrowed and never added to a second unbounded output object.
+    pub fn build_submission(
+        call: &RpcCall,
+        ctx: &Context,
+        fields: &[FormField],
+        values: &Value,
+        kind: SubmissionKind,
+    ) -> Result<Value, RequestLimitExceeded> {
+        use prost::Message;
+        let mut declaration_bytes = 0usize;
+        for field in fields {
+            declaration_bytes = declaration_bytes
+                .checked_add(field.encoded_len())
+                .ok_or(RequestLimitExceeded)?;
+            if declaration_bytes > 1024 * 1024 {
+                return Err(RequestLimitExceeded);
+            }
+        }
+        if !values.is_object() {
+            return Err(RequestLimitExceeded);
+        }
+        let declared = fields.iter().map(|field| field.field_id.as_str()).collect();
+        let (mut request, mut budget) = Self::start_for_boundary(
+            call,
+            ctx,
+            RequestOverrides {
+                form_values: Some(values),
+                form_fields: Some(&declared),
+                ..Default::default()
+            },
+        )?;
+        match kind {
+            SubmissionKind::Form => {
+                for field in fields {
+                    let key = &field.field_id;
+                    if key.is_empty() || unsafe_segment(key) {
+                        return Err(RequestLimitExceeded);
+                    }
+                    if request.get(key).is_some() {
+                        continue;
+                    }
+                    let value = values.get(key).unwrap_or(&Value::Null);
+                    budget.charge(value, key, 1)?;
+                    request
+                        .as_object_mut()
+                        .expect("assembled object")
+                        .insert(key.clone(), value.clone());
+                }
+            }
+            SubmissionKind::Lro => {
+                Self::merge_lro_fields(&mut request, fields, values, "", &mut budget, 0)?
+            }
+        }
+        Ok(request)
+    }
+
+    fn merge_lro_fields(
+        request: &mut Value,
+        fields: &[FormField],
+        values: &Value,
+        prefix: &str,
+        budget: &mut RequestBudget,
+        nesting: usize,
+    ) -> Result<(), RequestLimitExceeded> {
+        if nesting > BOUNDARY_DEPTH {
+            return Err(RequestLimitExceeded);
+        }
+        for field in fields {
+            let segment = if field.request_field.is_empty() {
+                &field.field_id
+            } else {
+                &field.request_field
+            };
+            if segment
+                .split('.')
+                .any(|key| key.is_empty() || unsafe_segment(key))
+            {
+                return Err(RequestLimitExceeded);
+            }
+            // Reject excessive paths before creating their combined string.
+            if prefix.split('.').filter(|key| !key.is_empty()).count() + segment.split('.').count()
+                > BOUNDARY_DEPTH
+            {
+                return Err(RequestLimitExceeded);
+            }
+            let path = if prefix.is_empty() {
+                segment.clone()
+            } else {
+                format!("{prefix}.{segment}")
+            };
+            let value = values.get(&field.field_id).unwrap_or(&Value::Null);
+            if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
+                Self::merge_lro_fields(request, &nested.fields, value, &path, budget, nesting + 1)?;
+            } else {
+                budget.assign(request, &path, value)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn build(call: &RpcCall, ctx: &Context) -> Value {
         Self::build_inner(
             &call.bindings,
@@ -335,6 +451,9 @@ impl RequestBuilder {
     ) -> Result<(), RequestLimitExceeded> {
         if binding.request_field.is_empty() {
             return Ok(());
+        }
+        if budget.remaining.is_some() && binding.request_field.split('.').any(unsafe_segment) {
+            return Err(RequestLimitExceeded);
         }
         let depth = depth
             .checked_add(binding.request_field.split('.').count())
@@ -436,6 +555,140 @@ impl RequestBuilder {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn forms_keep_literal_field_ids_ignore_lro_paths_and_prefer_explicit_bindings() {
+        let fields = vec![
+            FormField {
+                field_id: "a.b".into(),
+                request_field: "ignored.path".into(),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "title".into(),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "nested".into(),
+                ..Default::default()
+            },
+        ];
+        let call = RpcCall {
+            bindings: vec![
+                fb("title", Source::Literal("bound".into())),
+                fb("leaked", Source::FormField("secret".into())),
+            ],
+            ..Default::default()
+        };
+        let values =
+            json!({"a.b":false, "title":"raw", "nested":{"child":0}, "secret":"do not send"});
+        assert_eq!(
+            RequestBuilder::build_submission(
+                &call,
+                &Context::default(),
+                &fields,
+                &values,
+                SubmissionKind::Form
+            )
+            .unwrap(),
+            json!({"a.b":false, "title":"bound", "nested":{"child":0}})
+        );
+    }
+
+    #[test]
+    fn lro_fields_map_all_nested_paths_and_keep_null_raw_lists_and_maps() {
+        let leaf = FormField {
+            field_id: "value".into(),
+            request_field: "data.value".into(),
+            ..Default::default()
+        };
+        let middle = FormField {
+            field_id: "middle".into(),
+            request_field: "inner".into(),
+            kind: Some(Kind::Nested(crate::proto::NestedForm {
+                fields: vec![leaf],
+            })),
+            ..Default::default()
+        };
+        let fields = vec![
+            FormField {
+                field_id: "outer".into(),
+                request_field: "config".into(),
+                kind: Some(Kind::Nested(crate::proto::NestedForm {
+                    fields: vec![middle],
+                })),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "items".into(),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "missing".into(),
+                ..Default::default()
+            },
+        ];
+        let values = json!({"outer":{"middle":{"value":false}},"items":[{"raw.key":"001.20"},0]});
+        assert_eq!(
+            RequestBuilder::build_submission(
+                &RpcCall::default(),
+                &Context::default(),
+                &fields,
+                &values,
+                SubmissionKind::Lro
+            )
+            .unwrap(),
+            json!({"config":{"inner":{"data":{"value":false}}}, "items":[{"raw.key":"001.20"},0],"missing":null})
+        );
+    }
+
+    #[test]
+    fn submissions_share_binding_and_automatic_field_work_and_reject_unsafe_paths() {
+        let ctx = Context {
+            ui_identity: Some(json!("x".repeat(700_000))),
+            ..Default::default()
+        };
+        let call = RpcCall {
+            bindings: (0..5)
+                .map(|_| fb("same", Source::Context(ContextSource::UiIdentity as i32)))
+                .collect(),
+            ..Default::default()
+        };
+        let fields = vec![FormField {
+            field_id: "extra".into(),
+            ..Default::default()
+        }];
+        for kind in [SubmissionKind::Form, SubmissionKind::Lro] {
+            assert!(RequestBuilder::build_submission(
+                &call,
+                &ctx,
+                &fields,
+                &json!({"extra":"y".repeat(900_000)}),
+                kind
+            )
+            .is_err());
+        }
+        for path in ["__proto__.polluted", "constructor.prototype.value"] {
+            let fields = vec![FormField {
+                field_id: "value".into(),
+                request_field: path.into(),
+                ..Default::default()
+            }];
+            assert!(RequestBuilder::build_submission(
+                &RpcCall::default(),
+                &Context::default(),
+                &fields,
+                &json!({"value":false}),
+                SubmissionKind::Lro
+            )
+            .is_err());
+            let call = RpcCall {
+                bindings: vec![fb(path, Source::Literal("no".into()))],
+                ..Default::default()
+            };
+            assert!(RequestBuilder::build_for_boundary(&call, &Context::default()).is_err());
+        }
+    }
 
     #[test]
     fn borrowed_overrides_filter_prefill_and_do_not_copy_unused_large_rows() {

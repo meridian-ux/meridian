@@ -6,7 +6,7 @@ use meridian_uiview::proto::{
 };
 use meridian_uiview::{
     render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBudget,
-    RequestBuilder, RequestOverrides,
+    RequestBuilder, RequestOverrides, SubmissionKind,
 };
 use prost::Message as _;
 use ratatui::layout::{Constraint, Layout};
@@ -1138,7 +1138,13 @@ impl PanelView {
                     return None;
                 }
                 let submit = panel.submit.as_ref()?;
-                let request = match form_request(submit, context, &panel.fields, &cached.values) {
+                let request = match form_request(
+                    submit,
+                    context,
+                    &panel.fields,
+                    &cached.values,
+                    SubmissionKind::Form,
+                ) {
                     Ok(request) => request,
                     Err(_) => {
                         cached.validation_error = Some(REQUEST_ERROR.into());
@@ -1232,7 +1238,13 @@ impl PanelView {
                     return None;
                 }
                 let start = panel.start.as_ref()?;
-                let request = match form_request(start, context, &panel.inputs, &cached.values) {
+                let request = match form_request(
+                    start,
+                    context,
+                    &panel.inputs,
+                    &cached.values,
+                    SubmissionKind::Lro,
+                ) {
                     Ok(request) => request,
                     Err(_) => {
                         cached.validation_error = Some(REQUEST_ERROR.into());
@@ -1554,71 +1566,10 @@ fn form_request(
     context: &Context,
     fields: &[FormField],
     values: &serde_json::Value,
+    kind: SubmissionKind,
 ) -> Result<serde_json::Value, RpcError> {
-    let declared = fields.iter().map(|field| field.field_id.as_str()).collect();
-    let (mut request, mut budget) = RequestBuilder::start_for_boundary(
-        call,
-        context,
-        RequestOverrides {
-            form_values: Some(values),
-            form_fields: Some(&declared),
-            ..Default::default()
-        },
-    )
-    .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
-    merge_form_request(&mut request, fields, values, &mut budget)
-        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
-    Ok(request)
-}
-
-fn join_form_path(prefix: &str, segment: &str) -> String {
-    if prefix.is_empty() {
-        segment.to_string()
-    } else if segment.is_empty() {
-        prefix.to_string()
-    } else {
-        format!("{prefix}.{segment}")
-    }
-}
-
-fn merge_form_request(
-    root: &mut serde_json::Value,
-    fields: &[FormField],
-    values: &serde_json::Value,
-    budget: &mut RequestBudget,
-) -> Result<(), meridian_uiview::RequestLimitExceeded> {
-    for field in fields {
-        let value = values
-            .get(&field.field_id)
-            .unwrap_or(&serde_json::Value::Null);
-        let path = if field.request_field.is_empty() {
-            field.field_id.clone()
-        } else {
-            field.request_field.clone()
-        };
-        if let Some(Kind::Nested(nested)) = field.kind.as_ref() {
-            let nested_values = values
-                .get(&field.field_id)
-                .unwrap_or(&serde_json::Value::Null);
-            for child in &nested.fields {
-                let child_value = nested_values
-                    .get(&child.field_id)
-                    .unwrap_or(&serde_json::Value::Null);
-                let child_path = join_form_path(
-                    &path,
-                    if child.request_field.is_empty() {
-                        &child.field_id
-                    } else {
-                        &child.request_field
-                    },
-                );
-                budget.assign(root, &child_path, child_value)?;
-            }
-        } else {
-            budget.assign(root, &path, value)?;
-        }
-    }
-    Ok(())
+    RequestBuilder::build_submission(call, context, fields, values, kind)
+        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
 }
 
 fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) {
