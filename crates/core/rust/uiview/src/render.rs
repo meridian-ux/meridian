@@ -809,7 +809,7 @@ fn format_display_number(
 // Group only the integer part; never insert separators into an exponent or
 // fraction. All input here is formatter-produced ASCII, not descriptor text.
 #[allow(clippy::manual_is_multiple_of)]
-fn group_decimal(text: &str) -> String {
+pub(super) fn group_decimal(text: &str) -> String {
     let end = text.find(['.', 'e', 'E']).unwrap_or(text.len());
     let start = usize::from(text.starts_with('-'));
     let mut grouped = String::with_capacity(text.len() + end / 3);
@@ -825,7 +825,7 @@ fn group_decimal(text: &str) -> String {
 /// Fixed precision rounds the stored binary64 value to nearest, with exact
 /// ties away from zero. Unlike ECMAScript toFixed at magnitudes >= 1e21, retain
 /// fixed notation and the actual binary value. Legacy ColumnFormat is unchanged.
-fn format_declared_fixed(number: f64, digits: usize) -> String {
+pub(super) fn format_declared_fixed(number: f64, digits: usize) -> String {
     // Negative zero itself has no sign in toFixed; negative nonzero values that
     // round to zero still do. Rust's formatter otherwise handles sign/precision.
     let number = if number == 0.0 { 0.0 } else { number };

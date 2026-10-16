@@ -79,6 +79,15 @@ resolution plus the schema-defined display override. Computed delta/direction
 do not trust server trend metadata. React guards late responses, changed
 descriptors/requests/transports, and failures. Dedicated lifecycle tests cover
 those paths; the hook also resolves nested bindings from repeated-view records.
+Legacy Stat labels preserve their existing epsilon-assisted two-place rounding
+while scaled cents remain exact binary64 integers. Larger magnitudes use the
+shared exact fixed-decimal formatter without an integer cast or scaling overflow;
+grouping, percent suffixes (no ratio conversion), currency, and compact suffixes
+retain their legacy meanings. Native and default-WASM vectors cover large signed
+values, fractional ties, and non-finite values; the latter retain explicit core
+spellings (`inf`, `-inf`, `NaN`) rather than fabricating zero. Browser checks also
+compare the largest finite binary64 integer against an independent BigInt
+conversion, and a DOM regression verifies the visible value and computed delta.
 Form/Prompt/LRO/LLM-prompt typed input/default cases now have their own wire
 fixtures rather than coercing read-only payloads. Native Form/LRO inputs validate through
 the platform-neutral core before returning host-owned requests, with focused

@@ -1,16 +1,16 @@
 //! Shared StatPanel computation — the ONE Rust implementation of a KPI tile's
-//! delta / trend / formatting, mirroring the TypeScript `computeStat`
-//! (@savvifi/meridian-schemas/uiview stat.ts) EXACTLY so the tui and the web
-//! renderers never diverge. A parity test in each language asserts identical
-//! output for identical input.
+//! delta / trend / formatting. TypeScript `computeStat` adapters call this
+//! numeric formatter through WASM, so native and browser labels share one
+//! implementation. Cross-runtime tests assert identical fixed expectations.
 //!
 //! The delta/trend is COMPUTED from the data (previous / series), never trusted
 //! from an author-marked direction. Semantic good/bad color applies ONLY when
-//! `higher_is_better` is explicitly set. Legacy number formatting uses
-//! deterministic integer math; numeric ValueDisplay uses the read-surface formatter.
+//! `higher_is_better` is explicitly set. Legacy labels retain their small-number
+//! epsilon policy without limiting magnitude to a machine integer; numeric
+//! ValueDisplay uses the read-surface formatter.
 
 use crate::proto::{StatPanel, ValueType};
-use crate::render::format_display_value;
+use crate::render::{format_declared_fixed, format_display_value, group_decimal};
 
 /// Resolve numeric populate fields without coercing strings or trusting a
 /// server-supplied trend. The optional display string overrides only the value.
@@ -73,44 +73,29 @@ pub struct StatComputed {
     pub series: Vec<f64>,
 }
 
-// Decompose |round(n, 2dp)| into (negative, integer part, frac 0..99).
-fn parts(n: f64) -> (bool, u64, u64) {
-    let scaled = ((n.abs() * 100.0) + 1e-9).round() as i64 * if n < 0.0 { -1 } else { 1 };
-    let neg = scaled < 0;
-    let a = scaled.unsigned_abs();
-    (neg, a / 100, a % 100)
-}
-
-// Bazel's pinned Rust toolchain predates `is_multiple_of`; keep this compatible
-// modulo check and suppress Clippy's newer-toolchain preference locally.
-#[allow(clippy::manual_is_multiple_of)]
-fn group(int: u64) -> String {
-    let s = int.to_string();
-    let mut out = String::new();
-    let len = s.len();
-    for (i, ch) in s.chars().enumerate() {
-        if i > 0 && (len - i) % 3 == 0 {
-            out.push(',');
-        }
-        out.push(ch);
-    }
-    out
+// Use scaled cents only where binary64 represents every integer exactly.
+// Above that range, scaling can lose digits or overflow even for finite input.
+// Format the original binary64 directly, sharing the exact fixed formatter.
+fn parts(n: f64) -> (bool, String, String) {
+    let scaled = ((n.abs() * 100.0) + 1e-9).round();
+    let fixed = if scaled < 9_007_199_254_740_992.0 {
+        let cents = scaled as u64;
+        format!("{}.{:02}", cents / 100, cents % 100)
+    } else {
+        format_declared_fixed(n.abs(), 2)
+    };
+    let (integer, fraction) = fixed.split_once('.').expect("finite fixed decimal");
+    (n < 0.0 && fixed != "0.00", integer.into(), fraction.into())
 }
 
 fn trim_num(n: f64, grouped: bool) -> String {
     let (neg, int, frac) = parts(n);
-    let mut s = if grouped { group(int) } else { int.to_string() };
-    if frac != 0 {
-        let mut f = format!("{frac:02}");
-        while f.ends_with('0') {
-            f.pop();
-        }
-        if f.is_empty() {
-            f.push('0');
-        }
-        s = format!("{s}.{f}");
+    let mut s = if grouped { group_decimal(&int) } else { int };
+    let fraction = frac.trim_end_matches('0');
+    if !fraction.is_empty() {
+        s = format!("{s}.{fraction}");
     }
-    if neg && !(int == 0 && frac == 0) {
+    if neg {
         format!("-{s}")
     } else {
         s
@@ -119,8 +104,8 @@ fn trim_num(n: f64, grouped: bool) -> String {
 
 fn currency(n: f64) -> String {
     let (neg, int, frac) = parts(n);
-    let s = format!("${}.{:02}", group(int), frac);
-    if neg && !(int == 0 && frac == 0) {
+    let s = format!("${}.{frac}", group_decimal(&int));
+    if neg {
         format!("-{s}")
     } else {
         s
@@ -140,6 +125,12 @@ fn compact(n: f64) -> String {
 /// Format a raw number per a ValueFormat enum value (0/1 number, 2 percent,
 /// 3 currency, 4 compact, 5 plain). Deterministic.
 pub fn format_stat_number(n: f64, format: i32) -> String {
+    // A protobuf double (or an overflowing computed delta) can be non-finite.
+    // Preserve its explicit core spelling rather than fabricating zero or
+    // passing it through the finite decimal decomposition.
+    if !n.is_finite() {
+        return n.to_string();
+    }
     match format {
         2 => format!("{}%", trim_num(n, false)),
         3 => currency(n),
@@ -338,6 +329,42 @@ mod tests {
         assert_eq!(format_stat_number(-5.0, 3), "-$5.00");
         assert_eq!(format_stat_number(12.567, 1), "12.57"); // rounds to 2dp
         assert_eq!(format_stat_number(1234567.0, 1), "1,234,567");
+    }
+
+    #[test]
+    fn legacy_stat_format_preserves_large_finite_magnitudes() {
+        for (number, format, expected) in [
+            (1e20, 1, "100,000,000,000,000,000,000"),
+            (-1e20, 1, "-100,000,000,000,000,000,000"),
+            (1e20, 5, "100000000000000000000"),
+            (1e20, 2, "100000000000000000000%"),
+            (1e20, 3, "$100,000,000,000,000,000,000.00"),
+            (-1e20, 3, "-$100,000,000,000,000,000,000.00"),
+            (1e20, 4, "100000000T"),
+            (1e32, 4, "100000000000000000000T"),
+            // Beyond exact scaled cents, preserve the binary64 value without
+            // introducing a second rounding through multiplication by 100.
+            (100_000_000_000_000.0 + 0.125, 5, "100000000000000.13"),
+            (1.005, 5, "1.01"), // existing small-number epsilon policy
+            (-1.005, 5, "-1.01"),
+            (1.125, 5, "1.13"),
+            (-0.0, 3, "$0.00"),
+        ] {
+            assert_eq!(
+                format_stat_number(number, format),
+                expected,
+                "{number}, {format}"
+            );
+        }
+    }
+
+    #[test]
+    fn legacy_stat_nonfinite_values_do_not_fabricate_zero() {
+        for format in 0..=5 {
+            assert_eq!(format_stat_number(f64::INFINITY, format), "inf");
+            assert_eq!(format_stat_number(f64::NEG_INFINITY, format), "-inf");
+            assert_eq!(format_stat_number(f64::NAN, format), "NaN");
+        }
     }
 
     #[test]
