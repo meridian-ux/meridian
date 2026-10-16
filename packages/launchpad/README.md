@@ -69,6 +69,9 @@ default and navigation validation.
 
 ## Development
 
+See the repository's [v1 API review](../../API_STABILITY.md) for callback ordering,
+dispatch-versus-success semantics, exports, and declaration-consumer checks.
+
 ```bash
 pnpm install
 pnpm test        # vitest: the pure filter + a react-dom/server render smoke

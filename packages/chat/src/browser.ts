@@ -2,8 +2,8 @@
 // into a single self-contained ESM (`meridian_chat.bundle.js`) that bundler-free
 // hosts (botnoc's static frontend) load directly and:
 //   import { registerAssistantPanel, ASSISTANT_PANEL_CSS } from "…"
-// It has NO framework dependency (no React, no protobuf-es) — the wire types are
-// structural — so the bundle is tiny.
+// It has no React dependency. Shared schema formatting and protobuf decoding
+// are bundled; the public conversation wire types remain structural JSON.
 
 export {
   ASSISTANT_PANEL_CSS,

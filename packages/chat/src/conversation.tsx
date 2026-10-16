@@ -40,7 +40,8 @@ export interface ConversationProps {
    */
   renderView?: ViewRenderer;
   /**
-   * Send this message once, on mount, as if the user had typed it.
+   * Send the first nonempty prop value at most once per mounted instance, as if
+   * the user had typed it. A later first value is accepted if initially absent.
    *
    * Lets a host deep-link a conversation (`?q=…`) so a demo or a bug report is a
    * URL rather than a sentence to retype — and so a headless browser can drive a

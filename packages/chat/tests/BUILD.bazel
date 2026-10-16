@@ -1,6 +1,30 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@rules_vite//vite:defs.bzl", "vitest_test")
 
 package(default_visibility = ["//visibility:public"])
+
+# Compile a consumer against the emitted public declarations, not private types.
+ts_project(
+    name = "api_contract_types",
+    srcs = ["api_contract_types.ts"],
+    declaration = True,
+    transpiler = "tsc",
+    tsconfig = {"compilerOptions": {
+        "target": "ES2022",
+        "module": "ES2022",
+        "moduleResolution": "Bundler",
+        "lib": ["ES2022", "DOM"],
+        "strict": True,
+        "skipLibCheck": True,
+        "declaration": True,
+        "types": [],
+    }},
+    deps = [
+        "//packages/chat:chat",
+        "//packages/chat:node_modules/@types/react",
+        "//packages/chat:node_modules/react",
+    ],
+)
 
 # The tests + their dev-only @rules_vite load live here (NOT in the root package)
 # so a bazel_dep consumer of @meridian_chat//:browser_bundle (botnoc) can evaluate
@@ -28,6 +52,7 @@ vitest_test(
     name = "render",
     srcs = [
         "render.test.tsx",
+        "api_contract.test.tsx",
         "value_corpus.test.tsx",
         "tone.test.tsx",
         "sequence.test.tsx",
@@ -40,6 +65,7 @@ vitest_test(
         "//packages/chat:node_modules/react",
         "//packages/chat:node_modules/react-dom",
         "//packages/chat:chat_lib",
+        "//packages/chat:api_manifests",
         "//packages/chat:node_modules/@bufbuild/protobuf",
         "//packages/chat:node_modules/@savvifi/meridian-proto-ts",
         "//packages/chat:node_modules/vitest",
