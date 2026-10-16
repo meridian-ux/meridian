@@ -135,6 +135,24 @@ describe("canonical prompt responses", () => {
 });
 
 describe("typed local form validation", () => {
+  it("validates loaded enum tokens through trusted input paths without mutating descriptors", () => {
+    const option = create(FormFieldSchema, { fieldId: "choice", requestField: "config.choice", kind: { case: "enumSelection", value: {
+      optionsSource: { service: "fixture.Options", method: "List" }, allowedValues: ["legacy"] } } });
+    const fields = [
+      create(FormFieldSchema, { fieldId: "nested", requestField: "settings", kind: { case: "nested", value: { fields: [option] } } }),
+      create(FormFieldSchema, { fieldId: "rows", requestField: "items", kind: { case: "repeated", value: { element: { case: "object", value: { fields: [option] } } } } }),
+      create(FormFieldSchema, { fieldId: "tokens", requestField: "choices", kind: { case: "repeated", value: { element: { case: "scalar", value: option } } } }),
+    ];
+    const raw = { nested: { choice: "loaded" }, rows: [{ choice: "loaded" }], tokens: ["loaded"] };
+    const before = fields.map(field => toBinary(FormFieldSchema, field));
+    const lookup = vi.fn((_field: typeof option, _path: string) => ["loaded"]);
+    expect(validateFormValues(fields, raw, lookup, "outer")).toBeUndefined();
+    expect(lookup.mock.calls.map(([, path]) => path)).toEqual(["outer.settings.config.choice", "outer.items[0].config.choice", "outer.choices[0]"]);
+    expect(validateFormValues(fields, raw)).toContain("select an allowed value");
+    expect(validateFormValues(fields, raw, () => [])).toContain("select an allowed value");
+    expect(validateFormValues(fields, raw, () => undefined)).toContain("select an allowed value");
+    expect(fields.map(field => toBinary(FormFieldSchema, field))).toEqual(before);
+  });
   const fields = [
     create(FormFieldSchema, { fieldId: "integer", kind: { case: "integer", value: { min: -2, max: 2 } } }),
     create(FormFieldSchema, { fieldId: "number", kind: { case: "number", value: {} } }),

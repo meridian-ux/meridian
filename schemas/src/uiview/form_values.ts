@@ -41,21 +41,26 @@ export function defaultFormValue(field: FormField): unknown {
 /** Validate local form values before any host callback/RPC. No coercion: empty
  * numbers, fractions in integer fields, and string booleans are not defaults.
  * Match the native core's 64-level nesting limit and object-field identity rules. */
-export function validateFormValues(fields: readonly FormField[], values: unknown): string | undefined {
+export function validateFormValues(fields: readonly FormField[], values: unknown,
+  // Runtime-only option lookup supplied by a renderer's trusted loaded registry,
+  // never by submitted form data. No callback means canonical static options.
+  enumOptions?: (field: FormField, inputPath: string) => readonly string[] | undefined,
+  prefix = ""): string | undefined {
   const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
-  const validateObject = (fields: readonly FormField[], values: unknown, depth: number): string | undefined => {
+  const validateObject = (fields: readonly FormField[], values: unknown, depth: number, prefix: string): string | undefined => {
     if (depth > 64) return "Form nesting exceeds 64 levels.";
     if (!object(values)) return "Invalid form values.";
     const names = new Set<string>();
     for (const field of fields) {
       if (!field.fieldId || names.has(field.fieldId)) return "Field identifiers must be nonempty and unique.";
       names.add(field.fieldId);
-      const error = validate(field, Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined, depth);
+      const path = `${prefix ? `${prefix}.` : ""}${field.requestField || field.fieldId}`;
+      const error = validate(field, Object.hasOwn(values, field.fieldId) ? values[field.fieldId] : undefined, depth, path);
       if (error) return error;
     }
     return undefined;
   };
-  const validate = (field: FormField, value: unknown, depth: number): string | undefined => {
+  const validate = (field: FormField, value: unknown, depth: number, path: string): string | undefined => {
     if (depth > 64) return "Form nesting exceeds 64 levels.";
     const label = field.label || field.fieldId, kind = field.kind;
     const fail = (message: string) => `${label}: ${message}.`;
@@ -77,17 +82,18 @@ export function validateFormValues(fields: readonly FormField[], values: unknown
         return;
       }
       case "enumSelection": {
-        const options = kind.value.options.length ? kind.value.options.map(option => option.value) : kind.value.allowedValues;
+        const options = enumOptions?.(field, path) ?? (kind.value.options.length ? kind.value.options.map(option => option.value) : kind.value.allowedValues);
         return typeof value === "string" && options.includes(value) ? undefined : fail("select an allowed value");
       }
-      case "nested": return object(value) ? validateObject(kind.value.fields, value, depth + 1) : fail("invalid object");
+      case "nested": return object(value) ? validateObject(kind.value.fields, value, depth + 1, path) : fail("invalid object");
       case "repeated": {
         if (!Array.isArray(value) || value.length < kind.value.minItems || (kind.value.maxItems && value.length > kind.value.maxItems)) return fail("invalid item count");
         const element = kind.value.element;
         if (!element.case) return fail("unsupported repeated element");
-        for (const item of value) {
-          const error = element.case === "scalar" ? validate(element.value, item, depth + 1)
-            : element.case === "object" ? validateObject(element.value.fields, item, depth + 1) : fail("unsupported repeated element");
+        for (const [index, item] of value.entries()) {
+          const itemPath = `${path}[${index}]`;
+          const error = element.case === "scalar" ? validate(element.value, item, depth + 1, itemPath)
+            : element.case === "object" ? validateObject(element.value.fields, item, depth + 1, itemPath) : fail("unsupported repeated element");
           if (error) return error;
         }
         return;
@@ -97,5 +103,5 @@ export function validateFormValues(fields: readonly FormField[], values: unknown
       default: return fail("unsupported field kind");
     }
   };
-  return validateObject(fields, values, 0);
+  return validateObject(fields, values, 0, prefix);
 }

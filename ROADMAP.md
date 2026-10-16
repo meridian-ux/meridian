@@ -270,8 +270,8 @@ synchronously initialized WASM module; duplicate JavaScript temporal, principal,
 and numeric algorithms are removed. Legacy stat and table numeric labels also
 delegate to core. Real HTML/Shadcn SSR hydration and detached, no-fetch Node
 imports are tested in addition to fixed native/WASM expectations.
-[#50](../../issues/50) and [#51](../../issues/51) remain open for the complete
-input/options and modality audit. Calendar-day relative labels and
+[#50](../../issues/50) is integrated; [#51](../../issues/51) remains open for the
+complete input/options and modality audit. Calendar-day relative labels and
 UTC day-only instant labels now have a fixed cross-mode/precision matrix;
 matching fixtures or default adoption alone does not establish full acceptance.
 
@@ -327,7 +327,15 @@ the same read/mutation admission tiers, typed nested/repeated/map input, prefill
 defaults, and visible save/retry states; its submit bindings use the WASM request
 builder. HTML/Shadcn dynamic enum sources now load through the read-tier invoker,
 preserve prefilled tokens, expose loading/failure states, and validate submitted
-values against resolved options. Broader interaction parity remains separate work.
+values against resolved options. Browser Form collection now delegates scalar
+and compound constraints to the shared `validateFormValues` path. HTML/Shadcn
+pass their trusted loaded enum registry, including nested and repeated input
+paths; submitted DOM options cannot enlarge that registry. Web-components use
+canonical static enum membership rather than trusting editable option markup.
+Empty and duplicate object-field IDs are rejected before mutation, while scalar
+list elements may remain anonymous. This adoption does not resolve the separate
+native/JavaScript regex-dialect decision in [#54](../../issues/54).
+Broader interaction parity remains separate work.
 The native one-shot `PromptPanel` path now accepts scalar `RepeatedField` values
 as JSON arrays and string `KeyValueMapField` values as JSON objects. It validates
 every array element against its declared scalar kind, enforces array and map item

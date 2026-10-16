@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbuild/protobuf";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
-import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { EnumSelectionSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { EnumSelectionSchema, FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { ValueType, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
@@ -25,16 +25,76 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     document.body.append(container);
     const root = createRoot(container);
     await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
-      admission: { mutations: allowed ? ["demo.Records/Update"] : [] } }, createElement(kit.Form, { panel: p, invoker: { invoke } }))));
+      admission: { mutations: allowed ? ["demo.Records/Update"] : [] }, children: createElement(kit.Form, {
+        descriptor: create(PanelDescriptorSchema, { body: { case: "form", value: p } }), panel: p, invoker: { invoke } }) })));
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  const kinds: Record<string, JsonObject> = { integer: {}, number: {}, boolean: {}, text: {}, masked: {},
+    enumSelection: { allowedValues: ["one"], defaultValue: "one" }, nested: {},
+    repeated: { scalar: { fieldId: "item", text: {} } }, keyValueMap: {} };
+  it.each(Object.keys(kinds))("rejects an empty object-field ID for %s before transport", async kind => {
+    const p = panel();
+    p.fields = [fromJson(FormFieldSchema, { label: "Missing identity", [kind]: kinds[kind] })];
+    const invoke = vi.fn(async () => ({}));
+    const view = await mount(fromBinary(FormPanelSchema, toBinary(FormPanelSchema, p)), invoke);
+    try {
+      await act(async () => { submit(view.container); });
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("nonempty");
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { await view.close(); }
+  });
+  it.each(["root", "nested", "repeated"])("rejects duplicate field IDs at the %s object boundary", async shape => {
+    const p = panel();
+    const duplicate = [{ fieldId: "same", text: {} }, { fieldId: "same", text: {} }];
+    p.fields = (shape === "root" ? duplicate : [{ fieldId: "outer", ...(shape === "nested"
+      ? { nested: { fields: duplicate } } : { repeated: { minItems: 1, object: { fields: duplicate } } }) }])
+      .map(field => fromJson(FormFieldSchema, field));
+    const invoke = vi.fn(async () => ({}));
+    const view = await mount(p, invoke);
+    try {
+      await act(async () => { submit(view.container); });
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("unique");
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { await view.close(); }
+  });
+  it("reports malformed patterns through shared validation without invoking", async () => {
+    const p = panel(); p.fields = [fromJson(FormFieldSchema, { fieldId: "value", text: { defaultValue: "raw", pattern: "[" } })];
+    const invoke = vi.fn(async () => ({})); const view = await mount(p, invoke);
+    try {
+      await act(async () => { submit(view.container); });
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("invalid pattern");
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { await view.close(); }
+  });
   const enumPanel = () => create(FormPanelSchema, { mode: 2,
     submit: { service: "demo.Records", method: "Update" }, fields: [
       { fieldId: "region", label: "Region", kind: { case: "enumSelection", value: {
         defaultValue: "west", optionsSource: { service: "demo.Options", method: "List", optionsField: "outer.items", valueField: "id", labelField: "display.label" },
       } } },
     ] });
+  it.each(["nested", "scalar-list", "object-list"])("keeps loaded enum membership authoritative inside %s", async shape => {
+    const p = enumPanel(), option = p.fields[0]; option.requestField = "config.region";
+    p.fields = [create(FormFieldSchema, { fieldId: "outer", requestField: "settings", kind: shape === "nested"
+      ? { case: "nested", value: { fields: [option] } }
+      : { case: "repeated", value: { minItems: 1, element: shape === "scalar-list"
+        ? { case: "scalar", value: option } : { case: "object", value: { fields: [option] } } } } })];
+    const invoke = vi.fn(async (_service: string, method: string) => method === "List"
+      ? { outer: { items: [{ id: "west", display: { label: "Western region" } }] } } : {});
+    const view = await mount(p, invoke);
+    try {
+      const select = view.container.querySelector("select")!;
+      expect(select.disabled).toBe(false);
+      const forged = document.createElement("option"); forged.value = "forged"; select.append(forged); select.value = "forged";
+      await act(async () => { submit(view.container); });
+      expect(invoke.mock.calls.some(([, method]) => method === "Update")).toBe(false);
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("select an allowed value");
+      select.value = "west";
+      await act(async () => { submit(view.container); });
+      const value = shape === "nested" ? { region: "west" } : shape === "scalar-list" ? ["west"] : [{ region: "west" }];
+      expect(invoke).toHaveBeenCalledWith("demo.Records", "Update", { outer: value });
+    } finally { await view.close(); }
+  });
   it("loads read-tier options after prefill and submits only resolved tokens", async () => {
     const p = enumPanel();
     p.prefill = create(FormPanelSchema, { prefill: { service: "demo.Records", method: "Get" } }).prefill;
@@ -109,7 +169,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     kind.value.options = create(EnumSelectionSchema, { options: [
       { value: "west", label: "Western region", tone: 3 },
       { value: "east", label: "", tone: 5 },
-      { value: "other", tone: 99 },
+      { value: "other", tone: 99 as ValueTone },
     ] }).options;
     const invoke = vi.fn(async () => ({})); const view = await mount(p, invoke);
     try {
