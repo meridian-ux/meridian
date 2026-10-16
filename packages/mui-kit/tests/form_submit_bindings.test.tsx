@@ -95,7 +95,7 @@ describe("FormPanel(EDIT) submit — RpcCall bindings", () => {
     });
   });
 
-  it("lets a typed value win over a binding on the same field", () => {
+  it("matches the shared core: an explicit binding wins over an automatic field-ID value", () => {
     const read = submitWith(
       composerPanel([
         create(FieldBindingSchema, {
@@ -105,7 +105,7 @@ describe("FormPanel(EDIT) submit — RpcCall bindings", () => {
       ]),
       "from-the-user",
     );
-    expect((read() as { text: string }).text).toBe("from-the-user");
+    expect((read() as { text: string }).text).toBe("from-the-binding");
   });
 
   it("sends only the typed values when the call binds nothing", () => {

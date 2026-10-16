@@ -2,6 +2,7 @@
 // RpcCall/FieldBinding protos; this budget and its owned tree never serialize.
 import type { FieldBinding, RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { PaginationMode, type Pagination } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 
 type Row = Record<string, unknown>;
 const WORK = 4 * 1024 * 1024;
@@ -108,7 +109,7 @@ function fromRow(row: Row, path: string, budget: Budget): unknown {
 }
 
 function bindingsInto(bindings: FieldBinding[], selection: Record<string, string>, record: Row | undefined,
-  budget: Budget, depth: number, target: Row): void {
+  budget: Budget, depth: number, target: Row, form?: { values: Row; declared: ReadonlySet<string> }): void {
   for (const binding of bindings) {
     budget.visit(depth);
     const keys = budget.path(binding.requestField);
@@ -117,7 +118,7 @@ function bindingsInto(bindings: FieldBinding[], selection: Record<string, string
     switch (binding.source.case) {
       case "nested": {
         const nested: Row = {};
-        bindingsInto(binding.source.value.fields, selection, record, budget, depth + keys.length, nested);
+        bindingsInto(binding.source.value.fields, selection, record, budget, depth + keys.length, nested, form);
         if (Object.keys(nested).length === 0) continue;
         value = nested;
         owned = true;
@@ -125,6 +126,12 @@ function bindingsInto(bindings: FieldBinding[], selection: Record<string, string
       }
       case "rowField": value = record ? fromRow(record, binding.source.value, budget) : undefined; break;
       case "literal": value = binding.source.value; break;
+      case "formField":
+        if (!form) continue;
+        if (binding.source.value.length > DECLARATION) reject();
+        budget.text(binding.source.value);
+        value = form.declared.has(binding.source.value) ? own(form.values, binding.source.value) : undefined;
+        break;
       case "selectionKey":
         if (binding.source.value.length > DECLARATION) reject();
         budget.text(binding.source.value);
@@ -132,7 +139,7 @@ function bindingsInto(bindings: FieldBinding[], selection: Record<string, string
         if (value !== undefined && typeof value !== "string") reject();
         if (value === "") continue;
         break;
-      default: continue; // No invented form, signal, or host context.
+      default: continue; // No invented signal or host context.
     }
     if (value === undefined || value === null) continue;
     put(target, keys, owned ? value : budget.clone(value, depth + keys.length));
@@ -239,4 +246,60 @@ export function boundedPopulateRequest(call: RpcCall | undefined, selection: Rec
 export function bindingRequestJson(call: RpcCall | undefined, selection: Record<string, string>): string | undefined {
   try { return JSON.stringify(boundedPopulateRequest(call, selection)); }
   catch { return undefined; }
+}
+
+/** Mirrors RequestBuilder::build_submission: Form IDs are literal keys and
+ * explicit bindings win; LRO inputs map request paths after explicit bindings.
+ * Authored declarations have their own bounded preflight. All referenced value
+ * copies and automatic assignments then consume ONE shared request budget. */
+export function buildSubmissionRequest(call: RpcCall, fields: FormField[], values: Row,
+  selection: Record<string, string>, kind: "form" | "lro", record?: Row): Row {
+  if (!call.service || !call.method || call.service.length > DECLARATION || call.method.length > DECLARATION) reject();
+  if (!values || typeof values !== "object" || Array.isArray(values)) reject();
+  // Do not serialize declarations or let cyclic/huge authored trees reach the
+  // recursive LRO path planner. Optional proto properties are not RPC values.
+  new Budget().clone(fields, 0, new Set(), true);
+  const budget = new Budget();
+  const declared = new Set<string>();
+  for (const field of fields) {
+    budget.visit(0);
+    const id = field.fieldId;
+    if (!id || id.length > DECLARATION || unsafe(id) || declared.has(id)) reject();
+    budget.text(id);
+    declared.add(id);
+  }
+  const request: Row = {};
+  bindingsInto(call.bindings, selection, record, budget, 0, request, { values, declared });
+  function fieldValue(source: unknown, id: string): unknown {
+    if (!source || typeof source !== "object" || !Object.hasOwn(source, id)) return null;
+    const value = own(source, id);
+    if (value === undefined) reject();
+    return value;
+  }
+  if (kind === "form") {
+    for (const field of fields) {
+      if (Object.hasOwn(request, field.fieldId)) continue;
+      const value = budget.clone(fieldValue(values, field.fieldId), 1);
+      // IDs such as a.b remain literal keys; request_field is LRO-only.
+      Object.defineProperty(request, field.fieldId, { value, enumerable: true, writable: true, configurable: true });
+    }
+  } else {
+    function merge(inputs: FormField[], source: unknown, prefix: string[], depth: number): void {
+      const ids = new Set<string>();
+      for (const field of inputs) {
+        budget.visit(depth);
+        if (!field.fieldId || field.fieldId.length > DECLARATION || unsafe(field.fieldId) || ids.has(field.fieldId)) reject();
+        budget.text(field.fieldId);
+        ids.add(field.fieldId);
+        const segment = budget.path(field.requestField || field.fieldId);
+        if (prefix.length + segment.length > DEPTH) reject();
+        const keys = [...prefix, ...segment];
+        const value = fieldValue(source, field.fieldId);
+        if (field.kind.case === "nested") merge(field.kind.value.fields, value, keys, depth + 1);
+        else put(request, keys, budget.clone(value, keys.length));
+      }
+    }
+    merge(fields, values, [], 0);
+  }
+  return request;
 }

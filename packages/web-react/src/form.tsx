@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useContext, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { assertFormDefaultBudget, createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
-import { bindingRequestJson, boundedDescriptorJson, buildBindingRequest, useMeridianSelection } from "./pagination.js";
+import { bindingRequestJson, boundedDescriptorJson, MeridianRecordContext, useMeridianSelection } from "./pagination.js";
+import { buildSubmissionRequest } from "./action_request.js";
 import { FormEnumValues, FormFieldRow, FormInitialValues, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
@@ -69,9 +70,10 @@ function inputValues(fields: FormField[], values: Record<string, unknown>, prefi
   return result;
 }
 
-export function FormContent({ panel, c, className, submitLabel, submittingLabel = "Saving…", successLabel = "Saved." }: {
+export function FormContent({ panel, c, className, submitLabel, submittingLabel = "Saving…", successLabel = "Saved.", submissionKind = "form" }: {
   panel: FormPanel; c: FormFieldClasses; className: string;
   submitLabel?: string; submittingLabel?: string; successLabel?: string;
+  submissionKind?: "form" | "lro";
 }) {
   const { invoker, mutationInvoker, admission } = useMeridian();
   const selection = useMeridianSelection();
@@ -80,16 +82,17 @@ export function FormContent({ panel, c, className, submitLabel, submittingLabel 
   let descriptor: string | undefined;
   try { descriptor = boundedDescriptorJson(panel); } catch { /* Reject before mounting form fields or dispatching. */ }
   // A changed descriptor/selection starts a fresh instance, isolating late responses.
-  const key = JSON.stringify([descriptor, requestJson]);
+  const key = JSON.stringify([descriptor, requestJson, submissionKind]);
   if (!request || descriptor === undefined) return <p role="alert">{formDefaultsError(panel.fields) || "Form request or descriptor rejected."}</p>;
-  return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, invoker, mutationInvoker, admission, request, selection }} />;
+  return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, invoker, mutationInvoker, admission, request, selection }} />;
 }
 
-function FormSession({ panel, c, className, submitLabel, submittingLabel, successLabel, invoker, mutationInvoker, admission, request, selection }:
+function FormSession({ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, invoker, mutationInvoker, admission, request, selection }:
   Parameters<typeof FormContent>[0] & Pick<ReturnType<typeof useMeridian>, "invoker" | "mutationInvoker" | "admission"> & {
     request: Record<string, unknown>; selection: ReturnType<typeof useMeridianSelection>;
   }) {
   const edit = panel.mode === 2;
+  const record = useContext(MeridianRecordContext);
   const defaultError = useMemo(() => formDefaultsError(panel.fields), [panel.fields]);
   const prefill = !defaultError && edit && panel.prefill?.service && panel.prefill.method ? panel.prefill : undefined;
   const [loading, setLoading] = useState(Boolean(prefill));
@@ -105,7 +108,8 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
   useEffect(() => {
     alive.current = true;
     let active = true;
-    if (prefill) void Promise.resolve().then(() => invoker.invoke(prefill.service, prefill.method, request)).then(value => {
+    if (prefill) void Promise.resolve().then(() => active ? invoker.invoke(prefill.service, prefill.method, request) : undefined).then(value => {
+      if (!active) return;
       if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid prefill response.");
       if (active) setInitial(inputValues(panel.fields, value as Record<string, unknown>));
     }).catch(reason => { if (active) setError(`Could not load initial values: ${String(reason instanceof Error ? reason.message : reason)}`); })
@@ -120,7 +124,7 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     try {
       const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current, counts.current);
       busy.current = true; setStatus(submittingLabel ?? "Saving…");
-      await mutationInvoker.invoke(call.service, call.method, { ...buildBindingRequest(call, selection.values), ...values });
+      await mutationInvoker.invoke(call.service, call.method, buildSubmissionRequest(call, panel.fields, values, selection.values, submissionKind ?? "form", record));
       if (alive.current) setStatus(successLabel ?? "Saved.");
     } catch (reason) {
       if (alive.current) { setStatus(""); setError(reason instanceof Error ? reason.message : String(reason)); }

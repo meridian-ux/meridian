@@ -93,6 +93,21 @@ Reads remain open by default; `onDenied` can be supplied on the policy for
 logging or host-side feedback. `admission: "unrestricted"` is an explicit
 opt-out for first-party-only descriptor sources.
 
+Form submits and LRO starts use the shared React submission builder under one
+cumulative binding/automatic-field copy budget. Form output uses literal field
+IDs and **explicit bindings take precedence**, matching the integrated core.
+This replaces the older MUI behavior where typed values won on collision; remove
+a conflicting authored binding to make that field user-controlled. LRO inputs
+instead map `request_field || field_id` recursively and apply after bindings.
+Declared `formField` bindings read raw field-ID values, not hidden prefill data.
+
+Request failures retain entered values for retry. Pending submissions suppress
+duplicates, controls disable while pending, and obsolete transport completions
+cannot reset a replacement form or show its error. Admission denials are visible
+as not permitted; other submission errors use generic feedback. No-input LRO
+starts use the same request/feedback boundary. Successful start only acknowledges
+the start RPC; it does not mean the operation completed.
+
 For a single panel (no layout tier), use the kit as a `WebRenderer`:
 
 ```ts

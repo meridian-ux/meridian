@@ -150,8 +150,33 @@ wrappers; existing 64-level semantic form and request limits remain unchanged.
 
 These are work/copy limits, not a hard JavaScript heap or execution-time sandbox:
 host allocations, proxy traps, and key enumeration are outside the budget.
-Collected form/LRO values still need admission together with submit bindings;
-response rendering and arbitrary host callbacks are separate boundaries.
+Response rendering, form-control collection itself, and arbitrary host callbacks
+are separate boundaries.
+
+### Form and LRO submission contract
+
+`buildSubmissionRequest` admits authored declarations separately, then charges
+all referenced binding copies and automatic field assignments to one shared
+request budget. It takes raw field-ID values, live selection, and an optional
+ambient record. `formField` bindings can read only declared top-level field IDs;
+unmodeled prefill properties cannot become a hidden binding context. Source
+values are not mutated, reformatted, or copied into a second unbounded request.
+
+For `FormPanel`, IDs are literal keys (including an ID such as `a.b`),
+`request_field` is ignored for output mapping, and explicit bindings take
+precedence over automatic field values. For LRO start, automatic inputs apply
+after bindings using `request_field || field_id`, recursively including nested
+field paths. Repeated values/maps retain raw JSON content. Missing automatic
+values become null, matching the shared core.
+
+Migration: older React/MUI forms let typed values win over a colliding binding;
+the v1 path now follows the integrated shared-core rule above. Remove the
+conflicting binding if a field should remain user-controlled. Submission errors
+retain entered values for retry; an authored binding does not rewrite the editor.
+HTML/Shadcn and MUI use the same builder, including no-input MUI LRO starts.
+MUI contains synchronous/rejected failures, reports admission denial distinctly,
+blocks pending duplicates, and ignores obsolete completions. A successful LRO
+start is not operation completion or a production deployment authorization.
 
 ## Build & test
 
