@@ -53,6 +53,25 @@ The offline executable displays these local states without executing responses.
 The legacy one-shot helpers remain available; their established `FieldValue`
 API retains compound JSON as text, while the embedded API returns typed protobuf.
 
+## Ambient records for embedded panels
+
+Hosts may call `PanelView::set_record(Some(Arc::new(record)))` with an immutable
+JSON object. No-populate headers, cards, forms, and tables use that record;
+explicit populate calls still take precedence, and explicit form prefill
+overrides ambient defaults. Row-field bindings borrow the record for reads,
+streams, and host-owned form/LRO submissions without cloning the full context.
+Raw strings, false, and zero retain their original types.
+
+Records are checked against the shared 4 MiB work and 64-level depth limits
+before retention. Invalid records leave the previous state intact; hosts must
+surface the returned error and must not display that previous row as the rejected
+one. Reusing the same `Arc` preserves edits and caches. Replacing it (even with
+an equal object) or clearing it resets local state, closes live streams, and
+invalidates outstanding LRO tokens. Retain the `Arc` across redraws.
+
+This is a panel embedding API, not a composed `ViewDescriptor` host. Native
+section/tab navigation and repeated-view layout remain separate work.
+
 ## Native gallery and media
 
 Gallery renders populated cards in a responsive grid with one-cell gutters and

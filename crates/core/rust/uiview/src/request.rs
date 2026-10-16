@@ -280,6 +280,20 @@ impl RequestBuilder {
         values: &Value,
         kind: SubmissionKind,
     ) -> Result<Value, RequestLimitExceeded> {
+        Self::build_submission_with_row(call, ctx, fields, values, kind, None)
+    }
+
+    /// Borrow an ambient record for row bindings without cloning the rest of
+    /// the host context. Collected fields remain authoritative for form sources;
+    /// all bindings and automatic assignments still share one boundary budget.
+    pub fn build_submission_with_row(
+        call: &RpcCall,
+        ctx: &Context,
+        fields: &[FormField],
+        values: &Value,
+        kind: SubmissionKind,
+        row: Option<&Value>,
+    ) -> Result<Value, RequestLimitExceeded> {
         use prost::Message;
         let mut declaration_bytes = 0usize;
         for field in fields {
@@ -298,9 +312,9 @@ impl RequestBuilder {
             call,
             ctx,
             RequestOverrides {
+                selected_row: row,
                 form_values: Some(values),
                 form_fields: Some(&declared),
-                ..Default::default()
             },
         )?;
         match kind {
@@ -849,6 +863,61 @@ mod tests {
         assert_eq!(
             RequestBuilder::build_bounded(&call, &ctx, 1000, 2),
             Err(RequestLimitExceeded)
+        );
+    }
+
+    #[test]
+    fn ambient_submission_rows_share_the_copy_budget_without_cloning_context() {
+        let call = RpcCall {
+            service: "fixture.Records".into(),
+            method: "Save".into(),
+            bindings: (0..5)
+                .map(|_| fb("same", Source::RowField("payload".into())))
+                .collect(),
+        };
+        let fields = vec![FormField {
+            field_id: "extra".into(),
+            ..Default::default()
+        }];
+        let values = json!({"extra": "001.20"});
+        let context = Context {
+            ui_identity: Some(json!("x".repeat(5 * 1024 * 1024))),
+            selected_row: Some(json!({"payload": "outer"})),
+            ..Default::default()
+        };
+        assert!(matches!(
+            RequestBuilder::build_submission_with_row(
+                &call,
+                &context,
+                &fields,
+                &values,
+                SubmissionKind::Form,
+                Some(&json!({"payload": "y".repeat(900_000)}))
+            ),
+            Err(RequestLimitExceeded)
+        ));
+        assert_eq!(
+            RequestBuilder::build_submission_with_row(
+                &call,
+                &context,
+                &fields,
+                &values,
+                SubmissionKind::Form,
+                Some(&json!({"payload": "ambient"}))
+            )
+            .unwrap(),
+            json!({"same": "ambient", "extra": "001.20"})
+        );
+        assert_eq!(
+            RequestBuilder::build_submission(
+                &call,
+                &context,
+                &fields,
+                &values,
+                SubmissionKind::Form
+            )
+            .unwrap(),
+            json!({"same": "outer", "extra": "001.20"})
         );
     }
 
