@@ -49,6 +49,7 @@ test("argument parsing rejects misspelled destructive update flags", () => {
     bazel: true,
     wasm: false,
     native: false,
+    swiftui: false,
     dryRun: true,
     help: false,
   });
@@ -72,4 +73,16 @@ test("native golden recording is explicit and read-only mode overrides an inheri
   assert.deepEqual(recording.env, { UPDATE_SNAPSHOTS: "1" });
   assert.deepEqual(buildCommands({ native: true }).at(-2).env, { UPDATE_SNAPSHOTS: "0" });
   assert.equal(parseArgs(["--native"]).native, true);
+});
+
+test("SwiftUI uses real native tests and the same explicit snapshot-update contract", () => {
+  const recording = buildCommands({ swiftui: true, update: true }).at(-2);
+  assert.equal(recording.command, "python3");
+  assert.deepEqual(recording.args, ["tools/swiftui.py"]);
+  assert.equal(recording.env.UPDATE_SNAPSHOTS, "1");
+  assert.ok(recording.env.PYTHONPATH.endsWith("/tools"));
+  assert.equal(recording.requiresDarwin, true);
+  assert.deepEqual(buildCommands({ swiftui: true }).at(-2).env,
+    { UPDATE_SNAPSHOTS: "0", PYTHONPATH: recording.env.PYTHONPATH });
+  assert.equal(parseArgs(["--swiftui"]).swiftui, true);
 });

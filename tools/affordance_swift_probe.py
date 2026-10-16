@@ -44,6 +44,7 @@ def main():
             generated.mkdir()
             shutil.copyfile(ROOT / "packages/swiftui/Generated/Schema.swift", generated / "Schema.swift")
             shutil.copytree(ROOT / "schemas/conformance/binpb", package / "schemas/conformance/binpb")
+            shutil.copytree(ROOT / "schemas/conformance/swiftui", package / "schemas/conformance/swiftui")
             shutil.copyfile(ROOT / "schemas/conformance/core.json", package / "schemas/conformance/core.json")
             image = args.scratch / f"{name}.binpb"
             if not image.is_file():

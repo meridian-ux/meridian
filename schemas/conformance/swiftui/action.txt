@@ -1,0 +1,5 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Install"
+text view(MeridianPanel.self).vStack().tupleView(1).descendants(0indexed:) "One click adds it to Cursor."
+text view(MeridianPanel.self).vStack().tupleView(1).view(AffordanceContent.self, 1).vStack().button(0).labelView().init(type:genericTypeName:children:supplementary:) "Add to Cursor"
+button view(MeridianPanel.self).vStack().tupleView(1).view(AffordanceContent.self, 1).vStack().descendants(0indexed:) label="Add to Cursor" disabled=false

@@ -1,0 +1,8 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Cursor config"
+text view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().descendants(1indexed:) "~/.cursor/mcp.json"
+text view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().scrollView(2).descendants(_:) "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"
+text view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().button(3).labelView().label(0).title().init(type:genericTypeName:children:supplementary:) "Copy snippet"
+label view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().button(3).labelView().init(type:genericTypeName:children:supplementary:) title="Copy snippet"
+button view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().descendants(3indexed:) label="Copy snippet" disabled=false
+image view(MeridianPanel.self).vStack().view(SnippetContent.self, 1).vStack().button(3).labelView().label(0).icon().init(type:genericTypeName:children:supplementary:) name="doc.on.doc"
