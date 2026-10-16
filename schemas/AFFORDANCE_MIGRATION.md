@@ -128,7 +128,7 @@ package consumers need separate checks.
 | Cargo core/TUI | Keep meridian_uiview::proto and existing crate names; test pure relocation separately, adapt new boxing/enum arms intentionally, run full workspace and archive consumers |
 | Bazel Rust/private producers | Keep aggregate proto/prost labels; compile private canonical imports and registry clients against the candidate, not a stale pinned descriptor |
 | Java | Preserve public message classes and source-level holder entrypoints where possible; compile old consumers with the actual shipped toolchain/runtime; explicitly review descriptor-file/index identity changes |
-| SwiftUI | Preserve MeridianProtos module and package-scoped generated type names; build the public foundation and recursive descriptors on macOS/iOS |
+| SwiftUI | Pure relocation passes all 13 macOS foundation tests; expanded union correctly requires host dispatch updates; test the final migrated implementation and recursive descriptors on macOS/iOS |
 | Descriptor/registry consumers | Regenerate checked-in descriptor sets; compare package/name/tag identity and explicit ownership map; admit/hash new artifact revisions intentionally |
 
 The probe proves the generator-mode facade strategy, not all rows of this
@@ -148,8 +148,14 @@ with JDK 21. This is bounded compiled-consumer proof, not an audit of unknown
 external Java/JavaFX applications. Descriptor-holder methods returning old
 file descriptors, positional message lists, dependency lists, and descriptor
 object identity cannot silently be treated as equivalent to a new canonical file.
-The SwiftUI foundation merged separately in PR #152; this
-proposal has not yet rerun its native package against the relocated descriptor.
+The SwiftUI foundation merged separately in PR #152. A copied isolated package
+with the same pinned SwiftProtobuf 1.39.0 generator/runtime passes all 13 public
+macOS tests against pure relocation, including native view layout and host
+policy checks. The expanded candidate correctly fails compilation at the
+host's exhaustive invoke switch; handling new targets is required adoption
+work, not an implicit capability grant. The Swift CI job repeats this
+proposal-only check. Final migrated-host behavior and candidate iOS runtime
+proof remain outstanding.
 Public registry/external consumers require an explicit migration notice.
 
 ## Exact proposed cutover policy — requires separate approval

@@ -39,6 +39,13 @@ jobs:
         run: python3 tools/swiftui.py --ios
       - name: Swift dependency lock is current
         run: git diff --exit-code -- Package.resolved
+      - name: Proposal-only Swift migration-consumer probe
+        run: |
+          set -euo pipefail
+          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
+          probe_dir="$(jq -r .work "$RUNNER_TEMP/swift-affordance-probe.json")"
+          generator_dir="$(swift build --package-path .build/checkouts/swift-protobuf --scratch-path .build/swift-protobuf-generator --show-bin-path)"
+          python3 tools/affordance_swift_probe.py --scratch "$probe_dir" --generator "$generator_dir/protoc-gen-swift"
 
   affordance-java:
     runs-on: ubuntu-latest
