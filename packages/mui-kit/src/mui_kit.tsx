@@ -15,7 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -805,6 +805,12 @@ function startsBlank(value: unknown): boolean {
   return false;
 }
 
+function BoundedDefaults({ fields, children }: { fields: readonly FormField[]; children: ReactNode }): ReactNode {
+  try { assertFormDefaultBudget(fields); }
+  catch (reason) { return <Alert severity="error">{reason instanceof Error ? reason.message : String(reason)}</Alert>; }
+  return children;
+}
+
 function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
   const mutationInvoker = useMutationRpcInvoker();
   const edit = panel.mode === FormMode.EDIT;
@@ -1098,12 +1104,12 @@ export const muiKit: ComponentKit = {
   Table: ({ panel, invoker }: ShapeProps<TablePanel>) => (
     <TableShape panel={panel} invoker={invoker} />
   ),
-  Prompt: props => <PromptShape {...props} />,
-  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <LlmPromptShape key={JSON.stringify(panel)} panel={panel} />,
+  Prompt: props => <BoundedDefaults fields={props.panel.isConfirmation ? [] : props.panel.fields}><PromptShape {...props} /></BoundedDefaults>,
+  LlmPrompt: ({ panel }: ShapeProps<LlmPromptPanel>) => <BoundedDefaults fields={panel.slots.flatMap(slot => slot.field ? [slot.field] : [])}><LlmPromptShape key={JSON.stringify(panel)} panel={panel} /></BoundedDefaults>,
   Terminal: ({ panel }: ShapeProps<TerminalPanel>) => <TerminalShape panel={panel} />,
-  Lro: ({ panel }: ShapeProps<LroPanel>) => <LroShape panel={panel} />,
+  Lro: ({ panel }: ShapeProps<LroPanel>) => <BoundedDefaults fields={panel.inputs}><LroShape panel={panel} /></BoundedDefaults>,
   Form: ({ panel, invoker }: ShapeProps<FormPanel>) => (
-    <FormShape panel={panel} invoker={invoker} />
+    <BoundedDefaults fields={panel.fields}><FormShape panel={panel} invoker={invoker} /></BoundedDefaults>
   ),
   // ── detail-view shapes (MUI) ────────────────────────────────────────────────
   DetailHeader: ({ panel, invoker }: ShapeProps<DetailHeaderPanel>) => (

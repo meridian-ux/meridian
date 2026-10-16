@@ -28,7 +28,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { defaultFormValues, resolveMediaKind, validateFormValues, affordancePresentation } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, affordancePresentation } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -2288,6 +2288,7 @@ async function renderLroPanel(
     if (!alive || loading || busy) return;
     loading = true; ready = false; retry.hidden = true; refresh();
     try {
+      assertFormDefaultBudget(panel.inputs);
       const fields = panel.inputs.some(hasOptionsSource)
         ? await Promise.all(panel.inputs.map(field => resolveOptions(field, opts.invoker)))
         : panel.inputs;

@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { useMeridian } from "./provider.js";
 import { buildBindingRequest, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { FormEnumValues, FormFieldRow, FormInitialValues, type FormFieldClasses } from "./form_fields.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
+export function formDefaultsError(fields: readonly FormField[]): string | undefined {
+  try { assertFormDefaultBudget(fields); }
+  catch (reason) { return reason instanceof Error ? reason.message : String(reason); }
+  return undefined;
+}
+
 function readField(field: FormField, name: string, data: FormData, depth: number): unknown {
   if (depth > 64) throw new Error("Form nesting exceeds 64 levels.");
   const kind = field.kind;
@@ -81,7 +87,8 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     request: Record<string, unknown>; selection: ReturnType<typeof useMeridianSelection>;
   }) {
   const edit = panel.mode === 2;
-  const prefill = edit && panel.prefill?.service && panel.prefill.method ? panel.prefill : undefined;
+  const defaultError = useMemo(() => formDefaultsError(panel.fields), [panel.fields]);
+  const prefill = !defaultError && edit && panel.prefill?.service && panel.prefill.method ? panel.prefill : undefined;
   const [loading, setLoading] = useState(Boolean(prefill));
   const [initial, setInitial] = useState<Record<string, unknown>>({});
   const [error, setError] = useState("");
@@ -104,7 +111,7 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!edit || !allowed || !call || loading || busy.current) return;
+    if (defaultError || !edit || !allowed || !call || loading || busy.current) return;
     setError(""); setStatus("");
     try {
       const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current);
@@ -116,10 +123,10 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     } finally { busy.current = false; }
   }
   return <form className={className} data-mode={panel.mode} onSubmit={submit}>
-    {loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormInitialValues.Provider value={initial}>
+    {defaultError ? <p role="alert">{defaultError}</p> : loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormInitialValues.Provider value={initial}>
       {panel.fields.map(field => <FormFieldRow key={field.fieldId} c={c} field={field} mode={panel.mode} />)}
     </FormInitialValues.Provider></FormEnumValues.Provider>}
-    {edit && call && <button type="submit" disabled={loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
+    {edit && call && <button type="submit" disabled={!!defaultError || loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
     {edit && call && !allowed && <p role="status">Saving is not permitted.</p>}
     {status && <p role="status">{status}</p>}
     {error && <p role="alert">{error}</p>}

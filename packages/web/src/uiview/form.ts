@@ -1,7 +1,7 @@
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { defaultFormValue, formatByDisplay, hasMaskedField, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, defaultFormValue, formatByDisplay, hasMaskedField, validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { buildMaskedMultiline } from "./masked_multiline.js";
 
@@ -23,12 +23,20 @@ export function buildInteractiveForm(panel: FormPanel, host: {
   const allowed = !!(call?.service && call.method && host.allowed(call));
   const save = document.createElement("button"); save.type = "submit";
   save.textContent = `Save ${panel.itemNoun}`.trim();
-  let alive = true, busy = false, loading = false;
+  let alive = true, busy = false, loading = false, ready = false;
   let read = () => ({} as Record<string, unknown>);
-  const update = () => { fields.disabled = busy || loading; save.disabled = !allowed || busy || loading; };
+  const update = () => { fields.disabled = !ready || busy || loading; save.disabled = !ready || !allowed || busy || loading; };
   const draw = (values: Record<string, unknown> = {}) => {
     fields.replaceChildren();
-    read = buildFields(fields, panel.fields, values, edit);
+    ready = false;
+    try {
+      assertFormDefaultBudget(panel.fields);
+      read = buildFields(fields, panel.fields, values, edit);
+      ready = true;
+    } catch (reason) {
+      fields.replaceChildren();
+      error.textContent = reason instanceof Error ? reason.message : String(reason);
+    }
   };
   draw(); element.append(fields);
   if (edit && call) element.append(save);
@@ -36,7 +44,7 @@ export function buildInteractiveForm(panel: FormPanel, host: {
   if (edit && call && !allowed) status.textContent = "Saving is not permitted.";
   element.addEventListener("submit", async event => {
     event.preventDefault();
-    if (!alive || !edit || !allowed || !call || busy || loading) return;
+    if (!alive || !ready || !edit || !allowed || !call || busy || loading) return;
     error.textContent = ""; status.textContent = "";
     try {
       const values = read();
@@ -47,7 +55,7 @@ export function buildInteractiveForm(panel: FormPanel, host: {
       if (alive) { status.textContent = ""; error.textContent = reason instanceof Error ? reason.message : String(reason); }
     } finally { busy = false; if (alive) update(); }
   });
-  if (edit && panel.prefill?.service && panel.prefill.method) {
+  if (ready && edit && panel.prefill?.service && panel.prefill.method) {
     loading = true; status.textContent = "Loading…";
     void Promise.resolve().then(() => host.invoke(panel.prefill!, {}, false)).then(value => {
       if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid prefill response.");

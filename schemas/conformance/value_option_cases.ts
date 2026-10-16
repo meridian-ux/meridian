@@ -6,6 +6,38 @@ import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.j
 import corpus from "./core.json";
 
 const wire = (text: string) => Uint8Array.from(atob(text), byte => byte.charCodeAt(0));
+// Hostile defaults use canonical descriptors, not actual large allocations.
+// Tests guard Array.from with a sentinel before rendering these inputs.
+const repeatedDefault = (id: string, minItems: number): JsonObject => ({ fieldId: id,
+  repeated: { minItems, scalar: { text: {} } } });
+let deepDefault: JsonObject = { fieldId: "leaf", text: {} };
+for (let depth = 0; depth < 66; depth++) deepDefault = { fieldId: `level-${depth}`, nested: { fields: [deepDefault] } };
+export const FORM_DEFAULT_BUDGET_CASES = [
+  { name: "huge-minimum", fields: [repeatedDefault("items", 4294967295)], reason: "1000 value nodes" },
+  { name: "aggregate-minimum", fields: [repeatedDefault("first", 600), repeatedDefault("second", 600)], reason: "1000 value nodes" },
+  { name: "deep-default", fields: [deepDefault], reason: "64 nested levels" },
+].flatMap(fixture => {
+  const call = { service: "fixture.Inputs", method: "Submit" };
+  const fields: JsonObject[] = [{ fieldId: "choice", enumSelection: { optionsSource: {
+    service: "fixture.Options", method: "List", optionsField: "items", valueField: "value" } } }, ...fixture.fields];
+  const bodies: Record<string, { arm: string; body: JsonObject }> = {
+    form: { arm: "form", body: { fields, mode: 2, submit: call,
+      prefill: { service: "fixture.Inputs", method: "Get" } } },
+    readonlyForm: { arm: "form", body: { fields, mode: 1 } },
+    prompt: { arm: "prompt", body: { fields } },
+    lro: { arm: "lro", body: { inputs: fields, start: { ...call, method: "Start" } } },
+    llmPrompt: { arm: "llmPrompt", body: { userTemplate: "{{value}}", slots: fields.map((field, index) => ({ name: `value-${index}`, field })) } },
+  };
+  return Object.entries(bodies).map(([surface, { arm, body }]) => {
+    const message = fromJson(ViewDescriptorSchema, { id: `${surface}-${fixture.name}`, layout: { stacked: {} },
+      slots: [{ id: "content", panel: { panelId: `${surface}-${fixture.name}`, [arm]: body } }] }, { recursionLimit: 300 });
+    const bytes = toBinary(ViewDescriptorSchema, message);
+    return { name: `${surface}/${fixture.name}`, surface, reason: fixture.reason,
+      // Test-only reader permits the deeper message so render-time limits are
+      // exercised even for callers that already hold decoded descriptors.
+      view: fromBinary(ViewDescriptorSchema, bytes, { recursionLimit: 300 }), bytes };
+  });
+});
 export const OPTION_VALUES = corpus.valueFormats.map(entry => ({
   name: entry.name,
   raw: entry.input,

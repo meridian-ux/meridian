@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
 import { FormEnumValues, FormFieldRow, type FormFieldClasses } from "./form_fields.js";
-import { readFormFields } from "./form.js";
+import { formDefaultsError, readFormFields } from "./form.js";
 import { hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
 import { MaskedMultiline } from "./masked_multiline.js";
 
@@ -16,12 +16,14 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
   const fields = useMemo(() => panel.slots.flatMap((slot, index) => slot.field ? [{ ...slot.field,
     fieldId: `slot-${index}`, requestField: `slot-${index}`, label: slot.field.label || slot.name }] : []), [panel.slots]);
   const system = renderPromptTemplate(panel.systemTemplate, values, reveal ? undefined : masked);
+  const defaultError = useMemo(() => formDefaultsError(fields), [fields]);
   const user = renderPromptTemplate(panel.userTemplate, values, reveal ? undefined : masked);
   const unresolved = [...new Set([...system.unresolved, ...user.unresolved])];
   const model = panel.modelHint;
 
   function preview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (defaultError) return;
     setReveal(false);
     try {
       const input = readFormFields(fields, new FormData(event.currentTarget), enums.current);
@@ -44,7 +46,7 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
       </dl>}
       <form className={c.nested} onSubmit={preview}>
         <FormEnumValues.Provider value={enums.current}>
-        {panel.slots.map((slot, index) => {
+        {defaultError ? <p role="alert">{defaultError}</p> : panel.slots.map((slot, index) => {
           const field = slot.field;
           if (!field) return <p key={index} role="status">No input declared for {slot.name}.</p>;
           const multiline = slot.multiLine && (field.kind.case === "text" || field.kind.case === "masked");
@@ -66,7 +68,7 @@ export function LlmPromptContent({ panel, c }: { panel: LlmPromptPanel; c: FormF
           );
         })}
         </FormEnumValues.Provider>
-        {panel.slots.some((slot) => slot.field) && <button type="submit" className={c.addBtn}>Preview</button>}
+        {panel.slots.some((slot) => slot.field) && <button type="submit" className={c.addBtn} disabled={!!defaultError}>Preview</button>}
       </form>
       {[...masked].some(name => values.has(name)) && <button type="button" onClick={() => setReveal(value => !value)}>{reveal ? "Hide masked values in preview" : "Show masked values in preview"}</button>}
       {panel.systemTemplate && <section aria-label="System prompt"><h4>System prompt</h4><pre>{system.text}</pre></section>}

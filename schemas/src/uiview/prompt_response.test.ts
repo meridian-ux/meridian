@@ -3,7 +3,7 @@ import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { createPromptResponder, promptValues } from "./prompt_response.js";
-import { defaultFormValue, defaultFormValues, validateFormValues } from "./form_values.js";
+import { assertFormDefaultBudget, defaultFormValue, defaultFormValues, validateFormValues } from "./form_values.js";
 import { hasMaskedField, renderPromptTemplate } from "./prompt_template.js";
 import { editMaskedSelection, maskedLines, replaceMaskedLine } from "./masked_multiline.js";
 
@@ -135,6 +135,27 @@ describe("canonical prompt responses", () => {
 });
 
 describe("typed local form validation", () => {
+  it("preflights exact aggregate default budgets without allocating or rejecting legacy kinds", () => {
+    const leaf = create(FormFieldSchema, { fieldId: "leaf", kind: { case: "text", value: {} } });
+    expect(() => assertFormDefaultBudget([create(FormFieldSchema, { fieldId: "legacy" })])).not.toThrow();
+    expect(() => assertFormDefaultBudget(Array(1000).fill(leaf))).not.toThrow();
+    expect(() => assertFormDefaultBudget(Array(1001).fill(leaf))).toThrow("1000 value nodes");
+    for (const [count, allowed] of [[999, true], [1000, false], [4294967295, false]] as const) {
+      const fields = [create(FormFieldSchema, { fieldId: "items", kind: { case: "repeated", value: { minItems: count,
+        element: { case: "scalar", value: leaf } } } })];
+      if (allowed) expect(() => assertFormDefaultBudget(fields)).not.toThrow();
+      else expect(() => assertFormDefaultBudget(fields)).toThrow("1000 value nodes");
+    }
+    const objectRows = (count: number) => [create(FormFieldSchema, { fieldId: "rows", kind: { case: "repeated", value: {
+      minItems: count, element: { case: "object", value: { fields: [leaf] } } } } })];
+    expect(() => assertFormDefaultBudget(objectRows(499))).not.toThrow();
+    expect(() => assertFormDefaultBudget(objectRows(500))).toThrow("1000 value nodes");
+    let deep = leaf;
+    for (let depth = 0; depth < 64; depth++) deep = create(FormFieldSchema, { fieldId: "outer", kind: { case: "nested", value: { fields: [deep] } } });
+    expect(() => assertFormDefaultBudget([deep])).not.toThrow();
+    deep = create(FormFieldSchema, { fieldId: "outer", kind: { case: "nested", value: { fields: [deep] } } });
+    expect(() => assertFormDefaultBudget([deep])).toThrow("64 nested levels");
+  });
   it("validates loaded enum tokens through trusted input paths without mutating descriptors", () => {
     const option = create(FormFieldSchema, { fieldId: "choice", requestField: "config.choice", kind: { case: "enumSelection", value: {
       optionsSource: { service: "fixture.Options", method: "List" }, allowedValues: ["legacy"] } } });
