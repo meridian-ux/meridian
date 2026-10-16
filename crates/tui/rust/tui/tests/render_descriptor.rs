@@ -2349,7 +2349,7 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
             .to_string(),
             "▶ Due: Mar 29, 2026".into(),
             "Legacy: 2026-03-29".into(),
-            "Unspecified: 2026-03-29".into(),
+            "Unspecified: Mar 29, 2026".into(),
             "Invalid: not-a-date".into(),
             "Unknown: 0012.50".into(),
             "State: Approved".into(),

@@ -22,7 +22,7 @@ use meridian_uiview::proto::{
     ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis,
     FormField, FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel,
     ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
-    Tone, ValueType,
+    Tone,
 };
 use meridian_uiview::RenderedCard;
 use meridian_uiview::{format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics};
@@ -713,11 +713,7 @@ fn form_value_text(field: &FormField, value: &Value) -> String {
         }
         .to_owned();
     }
-    if let Some(display) = field
-        .display
-        .as_ref()
-        .filter(|display| display.r#type != ValueType::Unspecified as i32)
-    {
+    if let Some(display) = field.display.as_ref() {
         if crate::prompt::has_masked_field(field) {
             return "••••••".to_owned();
         }

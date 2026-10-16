@@ -39,7 +39,8 @@ import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
-import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
+import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES, OPTION_INPUT_CASES } from "../../../schemas/conformance/value_option_cases.js";
+import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and
 // pulling in @types/node for a single readFileSync would widen the global scope
@@ -86,6 +87,45 @@ const CTX = {
   selectedRow: { name: "row-1", repo: "fastverk/botnoc" },
   formValues: {},
 };
+
+describe("web-components typed input option defaults through real WASM", () => {
+  it.each(OPTION_INPUT_CASES)("$name", async fixture => {
+    const container = document.createElement("main"); document.body.append(container);
+    const invoke = vi.fn(async () => ({ name: "operations/fixture", done: true, response: {} }));
+    const onPromptResponse = vi.fn();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(NaN);
+    try {
+      await renderView({ root: container, view: fixture.view, wasm, context: CTX, invoker: { invoke },
+        onPromptResponse, admission: { mutations: ["fixture.Inputs/Submit", "fixture.Inputs/Start"] } });
+      expect(invoke).not.toHaveBeenCalled();
+      if (fixture.surface === "readonlyForm") {
+        const shown = container.querySelector("[data-field]");
+        expect(shown?.textContent).toBe(fixture.expected.text);
+        expect(shown?.getAttribute("title") ?? undefined).toBe(fixture.expected.title);
+        expect(container.querySelector('button[type="submit"]')).toBeNull();
+      } else {
+        const control = container.querySelector<HTMLInputElement>("textarea,input:not([type=hidden])");
+        expect(control).not.toBeNull();
+        if (typeof fixture.raw === "number") expect(Number(control!.value)).toBe(fixture.raw);
+        else expect(control!.value).toBe(fixture.raw);
+        if (fixture.surface === "lro") {
+          const run = [...container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Run");
+          expect(run).toBeDefined(); run!.click();
+        } else container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        if (fixture.surface === "prompt") {
+          expect(onPromptResponse).toHaveBeenCalledTimes(1);
+          expect(toJson(StructSchema, onPromptResponse.mock.calls[0][1])).toEqual({ value: fixture.raw });
+          expect(invoke).not.toHaveBeenCalled();
+        } else if (fixture.surface === "llmPrompt") {
+          expect(container.querySelector('[aria-label="User prompt"] pre')?.textContent)
+            .toBe(`Value=${typeof fixture.raw === "string" ? fixture.raw : JSON.stringify(fixture.raw)}`);
+          expect(invoke).not.toHaveBeenCalled();
+        } else await vi.waitFor(() => expect(invoke).toHaveBeenCalledWith("fixture.Inputs", fixture.surface === "lro" ? "Start" : "Submit", { value: fixture.raw }));
+      }
+      expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
+    } finally { disposePanel(container); container.remove(); clock.mockRestore(); }
+  });
+});
 
 describe("web-components value options through real WASM and DOM", () => {
   it.each(OPTION_CONSTRAINED_CASES)("constrained: $name", async fixture => {

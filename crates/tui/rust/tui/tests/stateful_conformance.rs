@@ -1003,6 +1003,162 @@ fn typed_input_defaults_collect_raw_protobuf_values_without_transport() {
 }
 
 #[test]
+fn native_input_options_preserve_raw_defaults_and_readonly_presentation() {
+    use meridian_uiview::proto::{
+        form_field, FormattedValue, MaskedInput, NumberInput, TextInput, ValueDisplay,
+    };
+    let root = data_root();
+    let corpus: Json =
+        serde_json::from_slice(&std::fs::read(root.join("core.json")).unwrap()).unwrap();
+    let cases: Vec<_> = corpus["valueFormats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|case| {
+            case.get("nowMs").is_none() && (case["input"].is_string() || case["input"].is_number())
+        })
+        .collect();
+    assert_eq!(
+        cases.len(),
+        217,
+        "all representable no-clock scalar defaults"
+    );
+    let mut checked = 0;
+    for case in cases {
+        let display = ValueDisplay::decode(option_wire(&case["display"]).as_slice()).unwrap();
+        let expected = FormattedValue::decode(option_wire(&case["expected"]).as_slice()).unwrap();
+        for surface in ["form", "prompt", "lro", "llm_prompt", "readonly", "masked"] {
+            if surface == "masked" && !case["input"].is_string() {
+                continue;
+            }
+            checked += 1;
+            let readonly = surface == "readonly" || surface == "masked";
+            let arm = if readonly { "form" } else { surface };
+            let state = if readonly { "read-text" } else { "input-text" };
+            let mut view = ViewDescriptor::decode(
+                std::fs::read(root.join(format!("fixtures/{arm}/{state}.view.binpb")))
+                    .unwrap()
+                    .as_slice(),
+            )
+            .unwrap();
+            let panel = view.slots[0].panel.as_mut().unwrap();
+            let field = match panel.body.as_mut().unwrap() {
+                Body::Form(form) => &mut form.fields[0],
+                Body::Prompt(prompt) => &mut prompt.fields[0],
+                Body::Lro(lro) => &mut lro.inputs[0],
+                Body::LlmPrompt(prompt) => prompt.slots[0].field.as_mut().unwrap(),
+                _ => unreachable!(),
+            };
+            field.display = Some(display.clone());
+            field.kind = Some(if surface == "masked" {
+                form_field::Kind::Masked(MaskedInput {
+                    default_value: case["input"].as_str().unwrap().into(),
+                    ..Default::default()
+                })
+            } else if let Some(raw) = case["input"].as_str() {
+                form_field::Kind::Text(TextInput {
+                    default_value: raw.into(),
+                    ..Default::default()
+                })
+            } else {
+                form_field::Kind::Number(NumberInput {
+                    default_value: case["input"].as_f64().unwrap(),
+                    ..Default::default()
+                })
+            });
+            // Test-authored panels still cross the canonical protobuf boundary.
+            let bytes = panel.encode_to_vec();
+            let panel = meridian_uiview::proto::PanelDescriptor::decode(bytes.as_slice()).unwrap();
+            let host = CorpusHost {
+                responses: json!({}),
+                calls: RefCell::new(BTreeSet::new()),
+                closed: Arc::new(AtomicUsize::new(0)),
+            };
+            let context = Context::default();
+            let mut widget = PanelView::new();
+            let mut terminal = Terminal::new(TestBackend::new(1024, 24)).unwrap();
+            terminal
+                .draw(|frame| widget.render(frame, frame.area(), &panel, &context, &host))
+                .unwrap();
+            let name = format!("{surface}/{}", case["name"].as_str().unwrap());
+            if readonly {
+                let shown = if surface == "masked" {
+                    if case["input"].as_str().unwrap().is_empty() {
+                        "(empty)"
+                    } else {
+                        "••••••"
+                    }
+                } else {
+                    &expected.text
+                };
+                for line in shown.lines().filter(|line| !line.is_empty()) {
+                    let width = ratatui::text::Line::from(line).width() as u16;
+                    let area = ratatui::layout::Rect::new(0, 0, width, 1);
+                    let mut expected_buffer = ratatui::buffer::Buffer::empty(area);
+                    ratatui::widgets::Widget::render(
+                        ratatui::widgets::Paragraph::new(line),
+                        area,
+                        &mut expected_buffer,
+                    );
+                    let pattern: Vec<_> = (0..width)
+                        .map(|x| expected_buffer[(x, 0)].symbol())
+                        .collect();
+                    let buffer = terminal.backend().buffer();
+                    assert!(
+                        (0..buffer.area.height).any(|y| {
+                            let row: Vec<_> = (0..buffer.area.width)
+                                .map(|x| buffer[(x, y)].symbol())
+                                .collect();
+                            row.windows(pattern.len())
+                                .any(|cells| cells == pattern.as_slice())
+                        }),
+                        "{name}: read-only label missing: {line:?}"
+                    );
+                }
+            } else {
+                let collected = match panel.body.as_ref().unwrap() {
+                    Body::Form(form) => {
+                        widget
+                            .handle_form_key(form, &context, KeyCode::Enter)
+                            .unwrap_or_else(|| panic!("{name}: valid submit"))
+                            .request
+                    }
+                    Body::Lro(lro) => {
+                        widget
+                            .handle_lro_key(lro, &context, KeyCode::Enter)
+                            .unwrap_or_else(|| panic!("{name}: valid start"))
+                            .request
+                    }
+                    Body::Prompt(_) | Body::LlmPrompt(_) => match widget
+                        .handle_prompt_key(
+                            &panel,
+                            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+                        )
+                        .unwrap_or_else(|| panic!("{name}: valid collection"))
+                    {
+                        PanelPromptResponse::Submitted(values) => json_struct(values),
+                        PanelPromptResponse::Preview { slots, .. } => json_struct(slots),
+                        other => panic!("{name}: unexpected {other:?}"),
+                    },
+                    _ => unreachable!(),
+                };
+                assert_eq!(
+                    protobuf_json_numbers(collected),
+                    protobuf_json_numbers(json!({"value": case["input"]})),
+                    "{name}: preserve raw defaults"
+                );
+            }
+            assert!(
+                host.calls.borrow().is_empty(),
+                "{name}: collection must not execute transport"
+            );
+            assert_eq!(panel.encode_to_vec(), bytes, "{name}: immutable descriptor");
+        }
+    }
+    assert_eq!(checked, 1265);
+}
+
+#[test]
 fn excessive_form_and_lro_default_expansion_fails_visibly_without_execution() {
     let root = data_root();
     for arm in ["form", "lro"] {
