@@ -203,7 +203,9 @@ impl Default for Palette {
 /// malformed input so callers can fall back to a default role.
 pub fn parse_hex(s: &str) -> Option<Color> {
     let h = s.strip_prefix('#')?;
-    if h.len() != 6 && h.len() != 8 {
+    // Validate all channels (including ignored alpha) before byte slicing.
+    // A byte-length check alone does not establish UTF-8 character boundaries.
+    if (h.len() != 6 && h.len() != 8) || !h.bytes().all(|byte| byte.is_ascii_hexdigit()) {
         return None;
     }
     let r = u8::from_str_radix(&h[0..2], 16).ok()?;
@@ -232,6 +234,20 @@ mod tests {
         assert_eq!(parse_hex("F2C46A"), None); // missing '#'
         assert_eq!(parse_hex("#xyz"), None);
         assert_eq!(parse_hex("#12345"), None);
+    }
+
+    #[test]
+    fn malformed_unicode_and_alpha_colors_never_panic_or_bypass_fallback() {
+        for color in ["#aé123", "#12aé3", "#1234é", "#123456é", "#123456ZZ"] {
+            assert_eq!(parse_hex(color), None, "{color}");
+            let palette = Palette::from_proto_palette(&ProtoPalette {
+                warning: color.into(),
+                info: color.into(),
+                ..Default::default()
+            });
+            assert_eq!(palette.warning, Palette::default().warning);
+            assert_eq!(palette.info, Palette::default().info);
+        }
     }
 
     #[test]
