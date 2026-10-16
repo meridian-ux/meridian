@@ -43,7 +43,8 @@ export interface LaunchpadProps {
   /** Host handler for an `open_view_id` command. Absent ⇒ the MeridianProvider
    *  action handler is called with ("open-view", viewId). */
   onOpenView?: (viewId: string) => void;
-  /** Notified for every command run (telemetry / recents), after dispatch. */
+  /** After local dispatch (telemetry / recents), not RPC completion or success.
+   * Default-denied mutations still notify; rejected navigation does not. */
   onRun?: (command: Command) => void;
   /**
    * AI-launchpad seam: hand a non-empty query to a host-provided agent resolver

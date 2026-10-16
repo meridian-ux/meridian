@@ -43,6 +43,11 @@ js_library(
     srcs = [":chat"],
 )
 
+js_library(
+    name = "api_manifests",
+    srcs = ["package.json", "chat.package.json"],
+)
+
 # The publishable @savvifi/meridian-chat npm package.
 npm_package(
     name = "pkg",

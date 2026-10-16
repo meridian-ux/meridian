@@ -68,6 +68,9 @@ imperative `panel.submit(text?)` is also provided.
 
 ## Development
 
+See the repository's [v1 API review](../../API_STABILITY.md) for the exported
+surface, submission events, and declaration-consumer regression checks.
+
 ```bash
 pnpm install
 pnpm test               # vitest: model + renderers + proto conformance
