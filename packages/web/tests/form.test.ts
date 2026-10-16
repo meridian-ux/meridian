@@ -21,6 +21,29 @@ const descriptor = () => create(PanelDescriptorSchema, { body: { case: "form", v
 const wasm: UiviewWasm = {
   renderTable: () => [], renderTablePanel: () => [], buildPopulateRequest: () => ({}), readPath: () => null, formatLroMetadata: () => "",
   buildRequest: (bytes, context) => { const rpc = fromBinary(RpcCallSchema, bytes); return rpc.method === "Save" ? { resource: "record", ...context.formValues } : {}; },
+  // DOM plumbing mock only. The actual shared limits/mappings are exercised by
+  // conformance_wasm.test.ts against the compiled Rust implementation.
+  buildSubmissionRequest: (bytes, context, values) => {
+    const body = fromBinary(PanelDescriptorSchema, bytes).body;
+    if (body.case === "form") return { ...values, ...wasm.buildRequest(toBinary(RpcCallSchema, body.value.submit!), { ...context, formValues: values }) };
+    if (body.case !== "lro") throw new Error("not a submission");
+    const result: Record<string, unknown> = {};
+    const merge = (fields: typeof body.value.inputs, input: Record<string, unknown>, prefix = "") => {
+      for (const field of fields) {
+        const path = [prefix, field.requestField || field.fieldId].filter(Boolean).join(".");
+        const keys = path.split(".");
+        if (keys.some(key => ["__proto__", "constructor", "prototype"].includes(key))) throw new Error("unsafe path");
+        const value = input[field.fieldId];
+        if (field.kind.case === "nested") merge(field.kind.value.fields, value as Record<string, unknown>, path);
+        else {
+          let target = result;
+          for (const key of keys.slice(0, -1)) target = (target[key] ??= {}) as Record<string, unknown>;
+          target[keys.at(-1)!] = value;
+        }
+      }
+    };
+    merge(body.value.inputs, values); return result;
+  },
 };
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 it("keeps anonymous scalar list elements valid and preserves raw false", async () => {
@@ -149,7 +172,7 @@ it("rejects unsafe LRO request paths and excessive repeated defaults without inv
     const root = document.createElement("div"); const invoke = vi.fn(async () => ({ done: true }));
     await renderPanel({ root, wasm, descriptor: panel, context, invoker: { invoke }, admission: "unrestricted" });
     root.querySelector<HTMLButtonElement>("button")!.click(); await flush();
-    expect(invoke).not.toHaveBeenCalled(); expect(root.textContent).toContain(excessive ? "Default expansion" : "Unsafe form request path");
+    expect(invoke).not.toHaveBeenCalled(); expect(root.textContent).toContain(excessive ? "Default expansion" : "Submission request construction rejected");
     expect(Object.hasOwn(Object.prototype, "polluted")).toBe(false); disposePanel(root);
   }
 });

@@ -255,6 +255,7 @@ function assertWireDoesNotTrap(bytes: Uint8Array, label: string): void {
     () => wasm.renderTable(bytes, response),
     () => wasm.buildPopulateRequest(bytes, CTX),
     () => wasm.buildRequest(bytes, CTX),
+    () => wasm.buildSubmissionRequest!(bytes, CTX, {}),
     () => boundary.renderTablePanel(bytes, response),
     () => boundary.renderGalleryPanel(bytes, response),
     () => wasm.formatValueDisplay(bytes, "2026-03-29"),
@@ -688,6 +689,83 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
       ...CTX, signals: { zero: 0, disabled: false, empty: null },
     })).toEqual({ selection: { zero: 0, disabled: false } });
+  });
+
+  it.each(["form", "lro"] as const)("assembles %s automatic fields and bindings in the real core", arm => {
+    const fields = [{ fieldId: "input.name", requestField: "settings.name", kind: { case: "text" as const, value: {} } }];
+    const call = { bindings: [{ requestField: "bound", source: { case: "formField" as const, value: "input.name" } }] };
+    const descriptor = create(PanelDescriptorSchema, {
+      body: arm === "form" ? { case: "form", value: { fields, submit: call } }
+        : { case: "lro", value: { inputs: fields, start: call } },
+    });
+    const request = wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, { "input.name": "001.20", hidden: "not sent" });
+    expect(request).toEqual(arm === "form"
+      ? { bound: "001.20", "input.name": "001.20" }
+      : { bound: "001.20", settings: { name: "001.20" } });
+    expect(request).not.toBeInstanceOf(Map);
+  });
+
+  it.each(["form", "lro"] as const)("rejects combined %s copy amplification without dispatch, then permits a corrected retry", async arm => {
+    const fields = [{ fieldId: "extra", kind: { case: "text" as const, value: {} } }];
+    const call = { service: "fixture.Submit", method: "Run", bindings: Array.from({ length: 5 }, () => ({
+      requestField: "same", source: { case: "context" as const, value: 2 },
+    })) };
+    const descriptor = create(PanelDescriptorSchema, {
+      body: arm === "form" ? { case: "form", value: { fields, mode: 2, submit: call } }
+        : { case: "lro", value: { inputs: fields, start: call } },
+    });
+    const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(700_000) } };
+    const invoke = vi.fn(async () => ({ done: true }));
+    const root = document.createElement("main");
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    try {
+      await renderPanel({ root, descriptor, wasm, context: ctx, invoker: { invoke }, admission: "unrestricted" });
+      const input = root.querySelector<HTMLInputElement>("input")!;
+      input.value = "y".repeat(900_000);
+      const submit = () => arm === "form"
+        ? root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
+        : root.querySelector<HTMLButtonElement>("button")!.click();
+      submit();
+      await vi.waitFor(() => expect(root.textContent).toContain("Submission request construction rejected."));
+      expect(invoke).not.toHaveBeenCalled();
+      input.value = "ok"; submit();
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+      expect(invoke.mock.calls[0][2]).toEqual({ same: ctx.uiIdentity, extra: "ok" });
+    } finally { disposePanel(root); }
+  });
+
+  it.each(["missing", "rejects"])("fails closed when submission assembly %s", async failure => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
+      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+    } } });
+    try {
+      await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : () => { throw new Error("private payload"); } }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
+      root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
+      expect(invoke).not.toHaveBeenCalled();
+      expect(root.textContent).not.toContain("private payload");
+    } finally { disposePanel(root); }
+  });
+
+  it("rejects an excessive finalize request without a second RPC", async () => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({ done: true, response: {} }));
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "fixture.Lro", method: "Start" }, finalize: {
+        service: "fixture.Lro", method: "Finalize", bindings: [{
+          requestField: "a.".repeat(100) + "leaf", source: { case: "literal", value: "not sent" },
+        }],
+      },
+    } } });
+    try {
+      await renderPanel({ root, descriptor, wasm, context: CTX, invoker: { invoke }, admission: "unrestricted" });
+      root.querySelector<HTMLButtonElement>("button")!.click();
+      await vi.waitFor(() => expect(root.textContent).toContain("Finalize request construction rejected."));
+      expect(invoke).toHaveBeenCalledTimes(1);
+      expect(invoke.mock.calls[0][1]).toBe("Start");
+    } finally { disposePanel(root); }
   });
 
   it("readPath resolves dotted paths over a plain object", () => {
