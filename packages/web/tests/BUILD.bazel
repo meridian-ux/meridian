@@ -214,6 +214,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:core_conformance_data",
+        "//schemas:value_option_data",
         "//schemas:conformance_fixtures",
         ":src_lib",
     ],

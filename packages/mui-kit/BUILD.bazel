@@ -35,6 +35,7 @@ vitest_test(
         "tests/form_repeat.test.tsx",
         "tests/gallery.test.tsx",
         "tests/stateful_conformance.test.ts",
+        "tests/value_options.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
         "vitest.config.ts",
@@ -55,6 +56,7 @@ vitest_test(
         ":node_modules/vitest",
         ":node_modules/@testing-library/react",
         "//schemas:conformance_fixtures",
+        "//schemas:value_option_data",
     ],
 )
 

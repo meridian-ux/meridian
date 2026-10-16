@@ -39,6 +39,7 @@ import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
+import { OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and
 // pulling in @types/node for a single readFileSync would widen the global scope
@@ -85,6 +86,36 @@ const CTX = {
   selectedRow: { name: "row-1", repo: "fastverk/botnoc" },
   formValues: {},
 };
+
+describe("web-components value options through real WASM and DOM", () => {
+  it.each(OPTION_READ_CASES)("$name", async fixture => {
+    const container = document.createElement("main");
+    document.body.append(container);
+    const raw = JSON.stringify(fixture.response);
+    const invoke = vi.fn(async () => fixture.response);
+    // Imperative read surfaces capture Date.now at mount. An invalid clock
+    // explicitly exercises the core's absolute fallback for no-clock cases.
+    const clock = vi.spyOn(Date, "now").mockReturnValue(fixture.nowMs ?? NaN);
+    // The core table FFI has no clock argument; its documented rung is absolute.
+    const expected = fixture.arm === "table" ? fixture.expectedWithoutClock : fixture.expected;
+    try {
+      await renderView({ root: container, view: fixture.view, wasm, context: CTX, invoker: { invoke } });
+      expect(invoke).toHaveBeenCalledWith("fixture.Options", "Get", expect.anything());
+      if (fixture.arm === "table") expect(container.querySelector("tbody td")?.textContent).toBe(expected.text);
+      else expect(container.textContent).toContain(expected.text);
+      const slots = fixture.arm === "gallery" ? 3 : fixture.arm === "resourceCards" ? 4 : 1;
+      expect((container.textContent ?? "").split(expected.text).length - 1).toBeGreaterThanOrEqual(slots);
+      if (expected.title !== undefined) {
+        expect([...container.querySelectorAll("[title]")].filter(node => node.getAttribute("title") === expected.title).length).toBeGreaterThanOrEqual(slots);
+      }
+      expect(JSON.stringify(fixture.response)).toBe(raw);
+    } finally {
+      for (const panel of container.querySelectorAll<HTMLElement>("[data-panel]")) disposePanel(panel);
+      clock.mockRestore();
+      container.remove();
+    }
+  });
+});
 
 // Fixed, reproducible wire mutations complement (not replace) native libFuzzer.
 // The corpus remains immutable and every invocation crosses the real bridge.

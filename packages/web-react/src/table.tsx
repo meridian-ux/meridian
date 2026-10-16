@@ -1,6 +1,5 @@
 import { useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ColumnFormat, type TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { createAdmissionGate, formatByDisplay, formatLegacyNumber, isSafeHttpUrl, resolveValueLink, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { useDisplayNow } from "./display_now.js";
 import { buildActionBindingRequest, resolvePath, selectionDeps, useMeridianSelection, usePagedRows } from "./pagination.js";
@@ -136,7 +135,7 @@ export function TableContent({ panel, invoker, styled = false }: { panel: TableP
         } : undefined}>{panel.columns.map((column, columnIndex) => {
         const raw = resolvePath(row, column.fieldPath);
         const display = column.valueDisplay;
-        const shown = display && display.type !== ValueType.UNSPECIFIED ? formatByDisplay(raw, display, now) : { text: raw == null ? "" : column.format === ColumnFormat.FLOAT_2DP && typeof raw === "number" ? formatLegacyNumber(raw, column.format) : column.format === ColumnFormat.STRING_LIST && Array.isArray(raw) ? raw.join(", ") : typeof raw === "object" ? JSON.stringify(raw) : String(raw) };
+        const shown = display ? formatByDisplay(raw, display, now) : { text: raw == null ? "" : column.format === ColumnFormat.FLOAT_2DP && typeof raw === "number" ? formatLegacyNumber(raw, column.format) : column.format === ColumnFormat.STRING_LIST && Array.isArray(raw) ? raw.join(", ") : typeof raw === "object" ? JSON.stringify(raw) : String(raw) };
         const link = resolveValueLink(raw, display);
         const target = column.link ? column.link.targetKind || subjectKind : link?.targetKind;
         const id = column.link ? raw == null ? "" : String(raw) : link?.id;
