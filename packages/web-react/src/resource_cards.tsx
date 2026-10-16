@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type {
@@ -73,9 +73,12 @@ export function useResourceCardRows(
       setState({ rows: [], loading: false, error: true });
       return () => { cancelled = true; };
     }
-    const request = buildBindingRequest(panel.populate, selection.values);
-    invoker
-      .invoke(panel.populate.service, panel.populate.method, request)
+    const populate = panel.populate;
+    Promise.resolve()
+      .then(() => {
+        if (cancelled) return;
+        return invoker.invoke(populate.service, populate.method, buildBindingRequest(populate, selection.values));
+      })
       .then((response) => {
         if (!cancelled) setState({ rows: rowsFromResponse(response, panel.rowsField), loading: false, error: false });
       })
@@ -98,6 +101,56 @@ function styleName(style: ActionStyle): string {
   return style === 2 ? "primary" : style === 3 ? "danger" : "default";
 }
 
+function ResourceCardAction({ action, row, invoker }: { action: ResourceAction; row: Row; invoker: RpcInvoker }): ReactNode {
+  // Feedback belongs to the exact row/action/transport that started the call,
+  // not a replacement that happens to reuse the same React key.
+  const scope = useMemo(() => ({ action, row, invoker }), [action, row, invoker]);
+  const currentScope = useRef<typeof scope | undefined>(scope);
+  currentScope.current = scope;
+  const busy = useRef<typeof scope | undefined>(undefined);
+  const [pending, setPending] = useState<typeof scope>();
+  const [failed, setFailed] = useState<typeof scope>();
+  const [confirming, setConfirming] = useState<typeof scope>();
+  const errorId = useId();
+  useEffect(() => {
+    currentScope.current = scope;
+    return () => { currentScope.current = undefined; };
+  }, [scope]);
+
+  async function run(): Promise<void> {
+    if (busy.current === scope) return;
+    busy.current = scope;
+    setPending(scope);
+    setFailed(undefined);
+    setConfirming(undefined);
+    try {
+      if (!action.invoke) throw new Error("Missing resource action call");
+      await invoker.invoke(action.invoke.service, action.invoke.method, buildActionRequest(action.invoke, row));
+    } catch {
+      if (currentScope.current === scope) setFailed(scope);
+    } finally {
+      if (busy.current === scope) busy.current = undefined;
+      if (currentScope.current === scope) setPending(undefined);
+    }
+  }
+
+  return <span>
+    <button type="button" className={`mer-resource-action mer-resource-action-${styleName(action.style)}`}
+      disabled={pending === scope} aria-busy={pending === scope || undefined}
+      aria-describedby={failed === scope ? errorId : undefined}
+      onClick={() => { if (action.confirm) setConfirming(scope); else void run(); }}>
+      {action.label}
+    </button>
+    {confirming === scope && <span className="mer-resource-confirm" role="alertdialog">
+      <strong>{action.confirm?.title}</strong>
+      <span>{action.confirm?.message}</span>
+      <button type="button" onClick={() => { void run(); }}>{action.confirm?.confirmLabel || "Confirm"}</button>
+      <button type="button" onClick={() => setConfirming(undefined)}>Cancel</button>
+    </span>}
+    {failed === scope && <span id={errorId} role="alert">Action failed. Try again.</span>}
+  </span>;
+}
+
 export function ResourceCardsView({
   panel,
   invoker,
@@ -109,22 +162,12 @@ export function ResourceCardsView({
   const mutationInvoker = useMutationRpcInvoker();
   const resolveHref = useHrefResolver();
   const now = useDisplayNow();
-  const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Row } | null>(null);
   if (loading) return <div className="mer-resource-cards"><p className="mer-empty">Loading…</p></div>;
   if (error) return <div className="mer-resource-cards"><p className="mer-empty">Failed to load resources.</p></div>;
   if (!rows.length) return <div className="mer-resource-cards"><p className="mer-empty">{panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`}</p></div>;
   const template = panel.template;
   if (!template) return <div className="mer-resource-cards"><p className="mer-empty">Invalid resource card descriptor.</p></div>;
   const actions = template.actions?.actions ?? [];
-  const run = (action: ResourceAction, row: Row) => {
-    if (!action.invoke) return;
-    void mutationInvoker
-      .invoke(action.invoke.service, action.invoke.method, buildActionRequest(action.invoke, row))
-      .catch(() => {
-        // The host admission policy reports the actionable reason through its
-        // onDenied callback; the card remains mounted and retryable.
-      });
-  };
   return (
     <div className="mer-resource-cards" role="list">
       {rows.map((row, index) => {
@@ -157,23 +200,7 @@ export function ResourceCardsView({
           )}
           <div className="mer-resource-card-actions">
             {actions.filter((action) => visible(action, row)).map((action) => (
-              <span key={action.id}>
-                <button
-                  type="button"
-                  className={`mer-resource-action mer-resource-action-${styleName(action.style)}`}
-                  onClick={() => action.confirm ? setConfirming({ action, row }) : run(action, row)}
-                >
-                  {action.label}
-                </button>
-                {confirming?.action === action && confirming.row === row && (
-                  <span className="mer-resource-confirm" role="alertdialog">
-                    <strong>{action.confirm?.title}</strong>
-                    <span>{action.confirm?.message}</span>
-                    <button type="button" onClick={() => { setConfirming(null); run(action, row); }}>{action.confirm?.confirmLabel || "Confirm"}</button>
-                    <button type="button" onClick={() => setConfirming(null)}>Cancel</button>
-                  </span>
-                )}
-              </span>
+              <ResourceCardAction key={action.id} action={action} row={row} invoker={mutationInvoker} />
             ))}
           </div>
         </article>
