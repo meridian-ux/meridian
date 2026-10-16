@@ -39,7 +39,7 @@ import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
-import { OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
+import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and
 // pulling in @types/node for a single readFileSync would widen the global scope
@@ -88,6 +88,49 @@ const CTX = {
 };
 
 describe("web-components value options through real WASM and DOM", () => {
+  it.each(OPTION_CONSTRAINED_CASES)("constrained: $name", async fixture => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const container = document.createElement("main");
+    document.body.append(container);
+    const invoke = vi.fn(async () => ({}));
+    const prior = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    const writeText = vi.fn(async (_text: string) => {});
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    try {
+      await renderView({ root: container, view: fixture.view, wasm, context: CTX, invoker: { invoke } });
+      expect(writeText).not.toHaveBeenCalled();
+      if (fixture.arm === "stat") expect(container.querySelector(".mer-stat-value")?.textContent).toBe(fixture.expectedText);
+      else {
+        const copy = container.querySelector<HTMLButtonElement>(".mer-copyvalue-btn")!;
+        expect(copy.textContent).toBe(fixture.secret ? "••••••••" : fixture.expectedText);
+        expect(copy.querySelector("a")).toBeNull();
+        copy.click();
+        await Promise.resolve();
+        expect(writeText).toHaveBeenCalledWith(fixture.raw);
+        expect(writeText).toHaveBeenCalledOnce();
+        expect(copy.textContent).toBe("Copied");
+        await vi.advanceTimersByTimeAsync(1200);
+        expect(copy.textContent).toBe(fixture.secret ? "••••••••" : fixture.expectedText);
+        if (fixture.secret) {
+          const reveal = container.querySelector<HTMLButtonElement>(".mer-reveal")!;
+          reveal.click();
+          expect(reveal.getAttribute("aria-pressed")).toBe("true");
+          expect(copy.textContent).toBe(fixture.expectedText);
+          reveal.click();
+          expect(reveal.getAttribute("aria-pressed")).toBe("false");
+          expect(copy.textContent).toBe("••••••••");
+          expect(writeText).toHaveBeenCalledOnce();
+        }
+      }
+      expect(invoke).not.toHaveBeenCalled();
+    } finally {
+      for (const panel of container.querySelectorAll<HTMLElement>("[data-panel]")) disposePanel(panel);
+      container.remove();
+      if (prior) Object.defineProperty(navigator, "clipboard", prior);
+      else Reflect.deleteProperty(navigator, "clipboard");
+      vi.useRealTimers();
+    }
+  });
   it.each(OPTION_READ_CASES)("$name", async fixture => {
     const container = document.createElement("main");
     document.body.append(container);

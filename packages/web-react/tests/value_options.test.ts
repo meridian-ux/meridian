@@ -4,7 +4,7 @@ import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.j
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, expect, it, vi } from "vitest";
-import { OPTION_READ_CASES, OPTION_VALUES } from "../../../schemas/conformance/value_option_cases.js";
+import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES, OPTION_VALUES } from "../../../schemas/conformance/value_option_cases.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
@@ -21,6 +21,38 @@ afterAll(() => vi.unstubAllGlobals());
 it("covers every clocked and no-clock formatter case through each unrestricted read surface", () => {
   expect(OPTION_VALUES).toHaveLength(353);
   expect(OPTION_READ_CASES).toHaveLength(1765);
+});
+
+it("keeps every applicable string and numeric option case in constrained surfaces", () => {
+  expect(OPTION_CONSTRAINED_CASES).toHaveLength(757);
+});
+for (const kit of [htmlKit, shadcnKit]) it.each(OPTION_CONSTRAINED_CASES)(`${kit.id} constrained: $name`, async fixture => {
+  const container = document.createElement("main");
+  document.body.append(container);
+  const root = createRoot(container);
+  const invoke = vi.fn(async () => ({}));
+  try {
+    await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
+      children: createElement(ViewRenderer, { view: fixture.view }) })));
+    if (fixture.arm === "stat") expect(container.textContent).toContain(fixture.expectedText);
+    else {
+      const copy = container.querySelector<HTMLButtonElement>("button[data-copy]")!;
+      expect(copy).not.toBeNull();
+      expect(copy.textContent).toBe(fixture.secret ? "••••••••" : fixture.expectedText);
+      expect(copy.dataset.copy).toBe(fixture.raw);
+      expect(copy.querySelector("a")).toBeNull();
+      if (fixture.secret) {
+        const plain = container.querySelector<HTMLElement>("[data-plain]")!;
+        expect(plain.hidden).toBe(true);
+        expect(plain.textContent).toBe(fixture.expectedText);
+        expect(container.querySelector("[data-reveal]")?.getAttribute("aria-pressed")).toBe("false");
+      }
+      // Reference-kit data attributes are host-owned copy/reveal instructions;
+      // do not silently add a second clipboard handler to this existing tier.
+    }
+    expect(invoke).not.toHaveBeenCalled();
+    expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(fixture.bytes);
+  } finally { await act(async () => root.unmount()); container.remove(); }
 });
 for (const kit of [htmlKit, shadcnKit]) it.each(OPTION_READ_CASES)(`${kit.id}: $name`, async fixture => {
   clock.now = fixture.nowMs;
