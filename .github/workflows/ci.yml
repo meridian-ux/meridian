@@ -274,7 +274,6 @@ jobs:
     env:
       RUSTUP_TOOLCHAIN: nightly-2026-04-29
       CARGO_BUILD_JOBS: 2
-      FUZZ_WORK: ${{ runner.temp }}/meridian-descriptor-fuzz
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -283,6 +282,8 @@ jobs:
       - name: Corpus seeding tests
         run: node --test fuzz/seed_corpus.test.mjs
       - name: Install the pinned sanitizer toolchain and runner
+        env:
+          FUZZ_WORK: ${{ runner.temp }}/meridian-descriptor-fuzz
         run: |
           set -euo pipefail
           rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal
@@ -290,6 +291,8 @@ jobs:
       - name: Fetch locked fuzz dependencies
         run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
       - name: Seed and run the bounded native descriptor campaign
+        env:
+          FUZZ_WORK: ${{ runner.temp }}/meridian-descriptor-fuzz
         run: |
           set -euo pipefail
           mkdir -p "$FUZZ_WORK/corpus" "$FUZZ_WORK/artifacts"
@@ -306,7 +309,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: descriptor-fuzz-crashes
-          path: ${{ env.FUZZ_WORK }}/artifacts
+          path: ${{ runner.temp }}/meridian-descriptor-fuzz/artifacts
           if-no-files-found: ignore
           retention-days: 7
 
