@@ -95,6 +95,7 @@ vitest_test(
         "tests/core_hydration.test.ts",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",
         "tests/gallery.test.ts",
+        "tests/resource_cards.test.ts",
         "tests/table_actions.test.ts",
         "tests/fixtures.ts",
         "tests/__snapshots__/conformance.test.ts.snap",

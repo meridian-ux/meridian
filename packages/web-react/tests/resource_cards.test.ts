@@ -22,6 +22,162 @@ const invoker: RpcInvoker = { invoke: async () => ({ items: [] }) };
 
 describe("ResourceCardPanel (React)", () => {
   for (const [name, kit] of [["HTML", htmlKit], ["Shadcn", shadcnKit]] as const) {
+    it(`${name} reports synchronous populate failures`, async () => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, template: { titleField: "name" },
+      } } });
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      try {
+        await act(async () => root.render(createElement(MeridianProvider, {
+          kit, adhoc: {}, invoker: { invoke: () => { throw new Error("private transport detail"); } },
+        }, createElement(PanelRenderer, { descriptor }))));
+        expect(container.textContent).toContain("Failed to load resources.");
+        expect(container.textContent).not.toContain("private transport detail");
+      } finally { await act(async () => root.unmount()); }
+    });
+
+    for (const synchronous of [true, false]) {
+      it(`${name} reports ${synchronous ? "synchronous" : "asynchronous"} action failures and allows retry`, async () => {
+        const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+          populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+            titleField: "name", actions: { actions: [{ id: "run", label: "Run", invoke: {
+              service: "demo.Items", method: "Run", bindings: [{ requestField: "id", source: { case: "rowField", value: "id" } }],
+            } }] },
+          },
+        } } });
+        let attempts = 0;
+        const container = document.createElement("div");
+        const root = createRoot(container);
+        const requests: object[] = [];
+        try {
+          await act(async () => root.render(createElement(MeridianProvider, {
+            kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] }, invoker: { invoke: (_service, method, request) => {
+              if (method !== "Run") return Promise.resolve({ items: [{ id: 0, name: "Zero" }] });
+              requests.push(request);
+              if (++attempts === 1) {
+                if (synchronous) throw new Error("private action detail");
+                return Promise.reject(new Error("private action detail"));
+              }
+              return Promise.resolve({});
+            } },
+          }, createElement(PanelRenderer, { descriptor }))));
+          const button = container.querySelector(".mer-resource-action") as HTMLButtonElement;
+          await act(async () => button.click());
+          const alert = container.querySelector('[role="alert"]');
+          expect(alert?.textContent).toBe("Action failed. Try again.");
+          expect(button.getAttribute("aria-describedby")).toBe(alert?.id);
+          expect(button.disabled).toBe(false);
+          expect(container.textContent).not.toContain("private action detail");
+          await act(async () => button.click());
+          expect(attempts).toBe(2);
+          expect(requests).toEqual([{ id: 0 }, { id: 0 }]);
+          expect(container.querySelector('[role="alert"]')).toBeNull();
+        } finally { await act(async () => root.unmount()); }
+      });
+    }
+
+    it(`${name} preserves explicit confirmation before dispatch and reports its failure`, async () => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+          titleField: "name", actions: { actions: [{ id: "run", label: "Run", confirm: { title: "Run it?", confirmLabel: "Proceed" },
+            invoke: { service: "demo.Items", method: "Run" } }] },
+        },
+      } } });
+      let calls = 0;
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      try {
+        await act(async () => root.render(createElement(MeridianProvider, {
+          kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] }, invoker: { invoke: async (_service, method) => {
+            if (method === "Run") { calls++; throw new Error("rejected"); }
+            return { items: [{ name: "One" }] };
+          } },
+        }, createElement(PanelRenderer, { descriptor }))));
+        const button = container.querySelector(".mer-resource-action") as HTMLButtonElement;
+        await act(async () => button.click());
+        expect(calls).toBe(0);
+        expect(container.querySelector('[role="alertdialog"]')?.textContent).toContain("Run it?");
+        const controls = container.querySelectorAll<HTMLButtonElement>('[role="alertdialog"] button');
+        await act(async () => controls[1].click());
+        expect(calls).toBe(0);
+        expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+        await act(async () => button.click());
+        await act(async () => container.querySelector<HTMLButtonElement>('[role="alertdialog"] button')!.click());
+        expect(calls).toBe(1);
+        expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      } finally { await act(async () => root.unmount()); }
+    });
+
+    it(`${name} contains request-construction failure without invoking or losing retry`, async () => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+          titleField: "name", actions: { actions: [{ id: "run", label: "Run", invoke: {
+            service: "demo.Items", method: "Run", bindings: [{ requestField: "id", source: { case: "rowField", value: "id" } }],
+          } }] },
+        },
+      } } });
+      if (descriptor.body.case !== "resourceCards") throw new Error("Wrong fixture arm");
+      const binding = descriptor.body.value.template!.actions!.actions[0].invoke!.bindings[0];
+      let rejectConstruction = true;
+      Object.defineProperty(binding, "requestField", { get: () => {
+        if (rejectConstruction) throw new Error("request construction rejected");
+        return "id";
+      } });
+      let calls = 0;
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      try {
+        await act(async () => root.render(createElement(MeridianProvider, {
+          kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] }, invoker: { invoke: async (_service, method) => {
+            if (method === "Run") { calls++; return {}; }
+            return { items: [{ id: false, name: "False" }] };
+          } },
+        }, createElement(PanelRenderer, { descriptor }))));
+        const button = container.querySelector(".mer-resource-action") as HTMLButtonElement;
+        await act(async () => button.click());
+        expect(calls).toBe(0);
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+        rejectConstruction = false;
+        await act(async () => button.click());
+        expect(calls).toBe(1);
+        expect(container.querySelector('[role="alert"]')).toBeNull();
+      } finally { await act(async () => root.unmount()); }
+    });
+
+    it(`${name} suppresses duplicate actions and ignores a replaced transport's late failure`, async () => {
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: {
+          titleField: "name", actions: { actions: [{ id: "run", label: "Run", invoke: { service: "demo.Items", method: "Run" } }] },
+        },
+      } } });
+      let rejectOld!: (reason: Error) => void;
+      const oldRequest = new Promise((_, reject) => { rejectOld = reject; });
+      let attempts = 0;
+      const oldInvoker: RpcInvoker = { invoke: (_service, method) => method === "Run"
+        ? (++attempts, oldRequest) : Promise.resolve({ items: [{ name: "Old" }] }) };
+      const newInvoker: RpcInvoker = { invoke: async () => ({ items: [{ name: "New" }] }) };
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      const render = (transport: RpcInvoker) => root.render(createElement(MeridianProvider, {
+        kit, adhoc: {}, admission: { mutations: ["demo.Items/Run"] }, invoker: transport,
+      }, createElement(PanelRenderer, { descriptor })));
+      try {
+        await act(async () => render(oldInvoker));
+        const button = container.querySelector(".mer-resource-action") as HTMLButtonElement;
+        await act(async () => { button.click(); button.click(); });
+        expect(attempts).toBe(1);
+        expect(button.disabled).toBe(true);
+        expect(button.getAttribute("aria-busy")).toBe("true");
+        await act(async () => render(newInvoker));
+        expect(container.textContent).toContain("New");
+        await act(async () => rejectOld(new Error("late old failure")));
+        expect(container.querySelector('[role="alert"]')).toBeNull();
+        expect((container.querySelector(".mer-resource-action") as HTMLButtonElement).disabled).toBe(false);
+      } finally { await act(async () => root.unmount()); }
+    });
+
     it(`${name} renders the canonical populated resource-card scenario`, async () => {
       const fixture = FIXTURES.find((candidate) => candidate.shape === "resource_cards")!;
       const descriptor = fromBinary(
