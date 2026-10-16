@@ -278,7 +278,7 @@ const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCode
 
 describe("the native crate's shared fixture corpus through real WASM", () => {
   it("uses the same explicit-clock corpus as native Rust without reading a browser clock", () => {
-    expect(core.valueFormats).toHaveLength(138);
+    expect(core.valueFormats).toHaveLength(220);
     for (const entry of core.valueFormats) {
       const display = fromBinary(ValueDisplaySchema, wire(entry.display));
       const expected = fromBinary(FormattedValueSchema, wire(entry.expected));
@@ -395,7 +395,7 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("retains every operation and unique fixture names", () => {
-    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 138 })) {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 220 })) {
       const cases = core[operation];
       expect(cases, operation).toHaveLength(count);
       expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);

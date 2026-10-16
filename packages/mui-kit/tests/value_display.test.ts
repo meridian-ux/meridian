@@ -38,7 +38,7 @@ it("preserves native legacy rounding without confusing it with declared precisio
 });
 
 describe("shared temporal precision contract", () => {
-  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name.startsWith("number-") || entry.name.startsWith("fallback-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
+  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name.startsWith("number-") || entry.name.startsWith("fallback-") || entry.name.startsWith("calendar-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
     const bytes = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
     const display = fromBinary(ValueDisplaySchema, bytes(entry.display));
     const expected = fromBinary(FormattedValueSchema, bytes(entry.expected));

@@ -76,8 +76,7 @@ const card = { titleField: "name", subtitleField: "active", subtitleDisplay: { t
 const cardRow = { name: "Alpha", active: false, icon: "repo", status: "ready", href: "/alpha", action: "Open" };
 const renderedCard = { raw: cardRow, title: "Alpha", subtitle: "No", icon: "repo", status: "ready", href: "/alpha", action_label: "Open" };
 
-// Fixed expectations shared by native core, the real WASM bridge, and the
-// current TypeScript formatter while #50 consolidates the implementations.
+// Independent fixed expectations shared by native and default browser core.
 const temporalCases = [
   ["offset", "2026-03-29T13:45:30+02:30", "Mar 29, 2026, 11:15 AM UTC"],
   ["next-day", "2026-03-29T23:30:00-02:00", "Mar 30, 2026, 1:30 AM UTC"],
@@ -90,12 +89,39 @@ const temporalCases = [
   ["bad-offset", "2026-03-29T13:45+24:00", "2026-03-29T13:45+24:00"],
   ["unicode-hour", "2026-03-29Té:45Z", "2026-03-29Té:45Z"],
   ["unicode-minute", "2026-03-29T13:中Z", "2026-03-29T13:中Z"],
-  ["day-precision", "2026-03-29T23:30:00-02:00", "Mar 29, 2026", { precision: 1 }],
+  ["day-precision", "2026-03-29T23:30:00-02:00", "Mar 30, 2026", { precision: 1 }],
   ["unicode-time", "13:😀Z", "13:😀Z", undefined, 10],
 ];
 
 const corpus = {
   valueFormats: [
+    ...[
+      [8, "2026-03-29T23:30:07-02:00", ["Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026", "Mar 29, 2026"], "yesterday"],
+      [9, "2026-03-29T23:30:07-02:00", ["Mar 30, 2026, 1:30 AM UTC", "Mar 30, 2026", "Mar 30, 2026, 1:30 AM UTC", "Mar 30, 2026, 1:30:07 AM UTC"], "2 hours ago"],
+      [10, "23:30:07", ["11:30 PM UTC", "11:30 PM UTC", "11:30 PM UTC", "11:30:07 PM UTC"], undefined],
+    ].flatMap(([type, input, absolute, relative]) => temporalModes.flatMap(mode => precisions.map((precision, index) =>
+      valueFormat(`calendar-grid-${type}-${mode}-${precision}`, input, temporalDisplay(mode, type, precision), Date.parse("2026-03-30T03:30:07Z"),
+        relative !== undefined && mode >= 2 ? relative : absolute[index],
+        relative !== undefined && mode === 3 ? absolute[index] : undefined)))),
+    ...[
+      ["today-late", "2026-03-29", "2026-03-29T23:59:59Z", "today", "Mar 29, 2026"],
+      ["today-offset", "2026-03-29T23:30:00-02:00", "2026-03-29T12:00:00Z", "today", "Mar 29, 2026"],
+      ["tomorrow", "2026-03-30", "2026-03-29T23:59:59Z", "tomorrow", "Mar 30, 2026"],
+      ["yesterday-offset", "2026-03-29T23:30:00-02:00", "2026-03-30T00:00:00Z", "yesterday", "Mar 29, 2026"],
+      ["pre-epoch-today", "1969-12-31", "1969-12-31T23:59:59.999Z", "today", "Dec 31, 1969"],
+      ["epoch-tomorrow", "1970-01-01", "1969-12-31T23:59:59.999Z", "tomorrow", "Jan 1, 1970"],
+    ].map(([name, input, now, text, title]) => valueFormat(`calendar-${name}`, input, temporalDisplay(3, 8), Date.parse(now), text, title)),
+    ...[
+      ["year-date", 8, "2026-01-01T00:15:00+01:00", "Jan 1, 2026"],
+      ["year-instant", 9, "2026-01-01T00:15:00+01:00", "Dec 31, 2025"],
+      ["leap-date", 8, "2024-03-01T00:15:00+01:00", "Mar 1, 2024"],
+      ["leap-instant", 9, "2024-03-01T00:15:00+01:00", "Feb 29, 2024"],
+    ].map(([name, type, input, text]) => valueFormat(`calendar-${name}`, input, temporalDisplay(1, type, 1), undefined, text)),
+    ...[
+      "2026-03-29garbage", "2026-03-29T13:45:99Z", "2026-03-29T13:45+24:00",
+      "2026-03-29T13:中Z", "2026-03-29T13:45Zgarbage", "2026-02-31T13:45:00Z",
+    ].flatMap((input, index) => [8, 9].flatMap(type => [1, 3].map(mode =>
+      valueFormat(`calendar-invalid-${index}-${type}-${mode}`, input, temporalDisplay(mode, type, 1), instant, input)))),
     ...[
       ["text", 1, "2026-03-29T13:45:00Z", {}, "2026-03-29T13:45:00Z"],
       ["multiline", 2, "2026-03-29", {}, "2026-03-29"],
@@ -174,8 +200,8 @@ const corpus = {
     ...temporalModes.map(mode => valueFormat(`display-mode-${mode}`, stamp, temporalDisplay(mode), instant - 2 * 86_400_000,
       mode < 2 ? absoluteStamp : "in 2 days", mode === 3 ? absoluteStamp : undefined)),
     valueFormat("date-only", "2026-03-29", temporalDisplay(3, 8), Date.parse("2026-03-31T00:00:00Z"), "2 days ago", "Mar 29, 2026"),
-    valueFormat("date-offset", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 8), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 29, 2026"),
-    valueFormat("day-precision", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 9, 1), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 29, 2026"),
+    valueFormat("date-offset", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 8), Date.parse("2026-03-31T01:30:00Z"), "2 days ago", "Mar 29, 2026"),
+    valueFormat("day-precision", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 9, 1), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 30, 2026"),
     valueFormat("time-has-no-calendar", "13:45:00", temporalDisplay(3, 10), instant, "1:45 PM UTC"),
     ...[undefined, "NaN", "Infinity", "-Infinity", 8_640_000_000_000_001].map((now, index) =>
       valueFormat(`absent-invalid-clock-${index}`, stamp, temporalDisplay(), now, absoluteStamp)),

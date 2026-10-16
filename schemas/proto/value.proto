@@ -183,6 +183,9 @@ enum ValueType {
   // A calendar day with no meaningful time-of-day (a due date, a plan-year
   // start). Distinct from DATE_TIME because printing "12:00 AM" on a stored
   // midnight-Z reads as a real time the user never set.
+  // Preserve the authored calendar day even when stored as a valid timestamp.
+  // Relative labels compare it with the explicit clock's UTC calendar day;
+  // the same day reads "today", not an elapsed-hours estimate.
   VALUE_TYPE_DATE = 8;
   // A moment: a posting time, a last-modified stamp.
   VALUE_TYPE_DATE_TIME = 9;
@@ -241,8 +244,11 @@ enum TemporalDisplay {
   TEMPORAL_DISPLAY_RELATIVE_WITH_ABSOLUTE_TITLE = 3;
 }
 
-// How much of the value to show. A due date wants the day; a log line wants the
-// second.
+// How much of the absolute value to show. A due date wants the day; a log line
+// wants the second. DATE_TIME remains an instant: DAY shows its UTC date and
+// relative labels still use elapsed time. DATE instead preserves its authored
+// day and uses whole-day relative differences. TIME has no calendar, so DAY
+// cannot invent one and retains the type's minute default.
 enum TemporalPrecision {
   // Renderer default: DAY for DATE, MINUTE for DATE_TIME / TIME.
   TEMPORAL_PRECISION_UNSPECIFIED = 0;

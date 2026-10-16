@@ -188,18 +188,8 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
                         }
                         _ => TemporalPrecision::Unspecified,
                     };
-                    text.and_then(|text| {
-                        format_temporal(
-                            text,
-                            if precision == TemporalPrecision::Day {
-                                ValueType::Date
-                            } else {
-                                value_type
-                            },
-                            precision,
-                        )
-                    })
-                    .unwrap_or_else(|| format_display_scalar(value))
+                    text.and_then(|text| format_temporal(text, value_type, precision))
+                        .unwrap_or_else(|| format_display_scalar(value))
                 }
                 ValueType::Time => {
                     let precision = match display.options.as_ref() {
@@ -250,11 +240,26 @@ pub fn format_display_value_with_context(
     ) {
         return absolute;
     }
-    let Some(instant) = value.as_str().and_then(|text| parse_temporal(text, false)) else {
+    let calendar_day = kind == ValueType::Date;
+    let Some(instant) = value
+        .as_str()
+        .and_then(|text| parse_temporal(text, calendar_day))
+    else {
         return absolute;
     };
+    let delta = if calendar_day {
+        // DATE has no meaningful time-of-day. Compare authored day to the
+        // explicit clock's UTC day, including negative epoch instants.
+        instant.epoch_millis() - (now / 86_400_000.0).floor() * 86_400_000.0
+    } else {
+        instant.epoch_millis() - now
+    };
     FormattedValue {
-        text: format_relative_time(instant.epoch_millis() - now),
+        text: if calendar_day && delta == 0.0 {
+            "today".into()
+        } else {
+            format_relative_time(delta)
+        },
         title: (mode == TemporalDisplay::RelativeWithAbsoluteTitle).then_some(absolute.text),
     }
 }
@@ -454,7 +459,7 @@ fn parse_temporal(text: &str, day_only: bool) -> Option<ParsedTemporal> {
     if !(1..=12).contains(&month) || day == 0 || day > days_in_month(year, month) {
         return None;
     }
-    if day_only || text.len() == 10 {
+    if text.len() == 10 {
         return Some(ParsedTemporal {
             year,
             month,
@@ -526,6 +531,19 @@ fn parse_temporal(text: &str, day_only: bool) -> Option<ParsedTemporal> {
         }
         _ => return None,
     };
+    if day_only {
+        // Preserve the authored calendar day only after validating the complete
+        // optional timestamp. A valid date prefix must not hide a bad suffix.
+        return Some(ParsedTemporal {
+            year,
+            month,
+            day,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+        });
+    }
     let utc_minutes = hour * 60 + minute - offset;
     let shift = utc_minutes.div_euclid(24 * 60);
     if shift < 0 {
@@ -587,6 +605,7 @@ fn format_temporal(
     // Unspecified precision keeps the date-only midnight default. An explicit
     // minute/second request retains midnight; calendar-only inputs stay dates.
     if value_type == ValueType::Date
+        || precision == TemporalPrecision::Day
         || text.len() == 10
         || (precision == TemporalPrecision::Unspecified && hour == 0 && minute == 0 && second == 0)
     {
