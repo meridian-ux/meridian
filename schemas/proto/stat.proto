@@ -120,3 +120,16 @@ enum Trend {
   TREND_DOWN = 2;
   TREND_FLAT = 3;
 }
+
+// Shared-core result for native consumers. This is computed output, not an
+// alternate authored StatPanel. Values/deltas already include the kernel's
+// formatting and unit policy; renderers must not recompute direction or tone.
+message ComputedStat {
+  string formatted_value = 1;
+  Trend trend = 2;
+  optional string formatted_delta = 3;
+  // NEUTRAL unless higher_is_better explicitly makes the direction good/bad.
+  // The kernel emits only NEUTRAL, SUCCESS, or DANGER here.
+  Tone tone = 4;
+  repeated double series = 5;
+}

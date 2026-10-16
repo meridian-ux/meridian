@@ -43,6 +43,25 @@ bounded Rust Unicode regex helper as native forms and WASM; invalid patterns
 throw without echoing input. There is no Swift formatter or Foundation regex
 fallback. ABI version mismatch fails closed.
 
+`MeridianCore.computeStat` accepts the canonical StatPanel and an optional,
+already host-admitted google.protobuf.Value response. It returns the canonical
+ComputedStat protobuf: formatted value, optional formatted delta (including
+present empty), Trend, shared Tone, and series. Rust owns every computation,
+including previous/series precedence, explicit overrides, numeric ValueDisplay,
+unit suppression, dotted response paths, and the server display-string escape
+hatch. No Swift numeric formatter, delta calculation, or trend inference is
+added. Good/bad maps to SUCCESS/DANGER only when higher_is_better is present;
+otherwise Tone stays NEUTRAL. This pure bridge does not fetch, admit, or execute
+a populate RPC, and does not yet implement the native Stat view or live-data
+lifecycle. Its existence does not promote Stat coverage.
+
+The additive ABI symbol takes at most 1 MiB per panel/response, 64 KiB for its
+nested ValueDisplay, and returns at most 4 MiB. Optional-response presence is
+explicit. Dynamic protobuf Value numbers must be finite, matching the existing
+native JSON-input policy. Authored StatPanel doubles follow the Rust kernel's
+explicit nonfinite spellings rather than substituting zero. Output slots reset
+on failure and use the same Rust-owned buffer/free contract as value formatting.
+
 The C interface in crates/core/rust/uiview/include documents pointer ownership
 and non-overlap obligations. It borrows inputs and returns Rust-owned output;
 the Swift wrapper always frees that exact pointer/length after copying/decoding,

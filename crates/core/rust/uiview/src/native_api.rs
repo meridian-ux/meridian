@@ -1,7 +1,7 @@
 //! Bounded in-process C ABI for native renderers. Semantic inputs/results are
 //! protobuf bytes; pointers, lengths and status codes are runtime ownership
 //! metadata, not an alternate serialized DTO contract.
-use crate::proto::ValueDisplay;
+use crate::proto::{ComputedStat, StatPanel, Tone, Trend, ValueDisplay};
 use prost::Message;
 use serde_json::Value;
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -139,6 +139,98 @@ pub unsafe extern "C" fn meridian_core_format_value(
     }
 }
 
+/// Compute an authored StatPanel, optionally applying a host-admitted protobuf
+/// Value response, using the same Rust kernel as TUI and browser adapters.
+/// No RPC, request construction, admission, or fetch occurs in this function.
+///
+/// # Safety
+/// Inputs must be valid immutable byte regions; output slots must be aligned,
+/// writable, and nonoverlapping with each other and the inputs. Successful
+/// output is a ComputedStat protobuf owned by Rust; free its exact pointer/len
+/// once with meridian_core_buffer_free.
+#[no_mangle]
+pub unsafe extern "C" fn meridian_core_compute_stat(
+    panel: *const u8,
+    panel_len: usize,
+    has_response: u8,
+    response: *const u8,
+    response_len: usize,
+    output: *mut *mut u8,
+    output_len: *mut usize,
+) -> i32 {
+    unsafe {
+        if !output.is_null() {
+            output.write(std::ptr::null_mut());
+        }
+        if !output_len.is_null() {
+            output_len.write(0);
+        }
+    }
+    if output.is_null() || output_len.is_null() {
+        return INVALID_ARGUMENT;
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<Box<[u8]>, i32> {
+        if has_response > 1 || (has_response == 0 && response_len != 0) {
+            return Err(INVALID_ARGUMENT);
+        }
+        let panel = StatPanel::decode(unsafe { bytes(panel, panel_len, MAX_VALUE_BYTES)? })
+            .map_err(|_| INVALID_PAYLOAD)?;
+        if panel
+            .value_display
+            .as_ref()
+            .is_some_and(|display| display.encoded_len() > MAX_DECLARATION_BYTES)
+        {
+            return Err(LIMIT_EXCEEDED);
+        }
+        let response = if has_response == 1 {
+            Some(json(
+                prost_types::Value::decode(unsafe {
+                    bytes(response, response_len, MAX_VALUE_BYTES)?
+                })
+                .map_err(|_| INVALID_PAYLOAD)?,
+                0,
+            )?)
+        } else {
+            None
+        };
+        let computed = crate::compute_stat_with_response(&panel, response.as_ref());
+        let result = ComputedStat {
+            formatted_value: computed.formatted_value,
+            trend: match computed.trend {
+                crate::StatTrend::Up => Trend::Up,
+                crate::StatTrend::Down => Trend::Down,
+                crate::StatTrend::Flat => Trend::Flat,
+                crate::StatTrend::None => Trend::Unspecified,
+            } as i32,
+            formatted_delta: computed.formatted_delta,
+            tone: match computed.semantics {
+                crate::StatSemantics::Good => Tone::Success,
+                crate::StatSemantics::Bad => Tone::Danger,
+                crate::StatSemantics::Neutral => Tone::Neutral,
+            } as i32,
+            series: computed.series,
+        }
+        .encode_to_vec();
+        if result.len() > MAX_RESULT_BYTES {
+            return Err(LIMIT_EXCEEDED);
+        }
+        Ok(result.into_boxed_slice())
+    }));
+    match result {
+        Ok(Ok(result)) => {
+            let len = result.len();
+            let pointer = Box::into_raw(result) as *mut u8;
+            unsafe {
+                output.write(pointer);
+                output_len.write(len);
+            }
+            OK
+        }
+        Ok(Err(status)) => status,
+        Err(_) => INTERNAL_FAILURE,
+    }
+}
+
 /// Runtime strings use UTF-8 with explicit lengths, including embedded NULs.
 /// No browser regex translation, shell execution, or input-dependent error text.
 ///
@@ -179,7 +271,7 @@ pub unsafe extern "C" fn meridian_core_matches_form_pattern(
 }
 
 /// # Safety
-/// pointer/len must be the exact pair returned by a successful native format
+/// pointer/len must be the exact pair returned by a successful native result
 /// call and not previously freed. Null is accepted as a no-op.
 #[no_mangle]
 pub unsafe extern "C" fn meridian_core_buffer_free(pointer: *mut u8, len: usize) {
@@ -196,6 +288,244 @@ pub unsafe extern "C" fn meridian_core_buffer_free(pointer: *mut u8, len: usize)
 mod tests {
     use super::*;
     use crate::proto::{FormattedValue, ValueType};
+
+    unsafe fn stat(panel: &[u8], response: Option<&[u8]>) -> (i32, Option<ComputedStat>) {
+        let mut pointer = std::ptr::null_mut();
+        let mut len = 0;
+        let status = unsafe {
+            meridian_core_compute_stat(
+                panel.as_ptr(),
+                panel.len(),
+                u8::from(response.is_some()),
+                response.unwrap_or_default().as_ptr(),
+                response.unwrap_or_default().len(),
+                &mut pointer,
+                &mut len,
+            )
+        };
+        if status != OK {
+            assert!(pointer.is_null());
+            assert_eq!(len, 0);
+            return (status, None);
+        }
+        let result =
+            ComputedStat::decode(unsafe { std::slice::from_raw_parts(pointer, len) }).unwrap();
+        unsafe {
+            meridian_core_buffer_free(pointer, len);
+        }
+        (status, Some(result))
+    }
+
+    #[test]
+    fn stat_bridge_preserves_presence_computation_and_semantic_tone() {
+        let panel = StatPanel {
+            value: 12.0,
+            previous: Some(0.0),
+            higher_is_better: Some(false),
+            unit: "ms".into(),
+            series: vec![0.0, 12.0],
+            ..Default::default()
+        };
+        let (status, result) = unsafe { stat(&panel.encode_to_vec(), None) };
+        assert_eq!(status, OK);
+        let result = result.unwrap();
+        assert_eq!(result.formatted_value, "12 ms");
+        assert_eq!(result.formatted_delta.as_deref(), Some("+12"));
+        assert_eq!(result.trend, Trend::Up as i32);
+        assert_eq!(result.tone, Tone::Danger as i32);
+        assert_eq!(result.series, vec![0.0, 12.0]);
+        let panel = StatPanel {
+            delta_override: Some(String::new()),
+            ..Default::default()
+        };
+        let (_, result) = unsafe { stat(&panel.encode_to_vec(), None) };
+        let result = result.unwrap();
+        assert_eq!(result.formatted_delta, Some(String::new()));
+        assert_eq!(result.trend, Trend::Unspecified as i32);
+        assert_eq!(result.tone, Tone::Neutral as i32);
+    }
+
+    #[test]
+    fn stat_bridge_response_uses_core_paths_and_never_server_trend() {
+        let panel = StatPanel {
+            value: 7.0,
+            previous: Some(3.0),
+            higher_is_better: Some(true),
+            value_field: "metric.current".into(),
+            previous_field: "metric.prior".into(),
+            display_field: "shown".into(),
+            ..Default::default()
+        };
+        let response = prost_types::Value {
+            kind: Some(prost_types::value::Kind::StructValue(prost_types::Struct {
+                fields: [
+                    (
+                        "metric".into(),
+                        prost_types::Value {
+                            kind: Some(prost_types::value::Kind::StructValue(
+                                prost_types::Struct {
+                                    fields: [
+                                        (
+                                            "current".into(),
+                                            prost_types::Value {
+                                                kind: Some(prost_types::value::Kind::NumberValue(
+                                                    0.0,
+                                                )),
+                                            },
+                                        ),
+                                        (
+                                            "prior".into(),
+                                            prost_types::Value {
+                                                kind: Some(prost_types::value::Kind::NumberValue(
+                                                    2.0,
+                                                )),
+                                            },
+                                        ),
+                                    ]
+                                    .into(),
+                                },
+                            )),
+                        },
+                    ),
+                    (
+                        "shown".into(),
+                        prost_types::Value {
+                            kind: Some(prost_types::value::Kind::StringValue(
+                                "Server\0amount".into(),
+                            )),
+                        },
+                    ),
+                    (
+                        "trend".into(),
+                        prost_types::Value {
+                            kind: Some(prost_types::value::Kind::StringValue("up".into())),
+                        },
+                    ),
+                ]
+                .into(),
+            })),
+        };
+        let (status, result) =
+            unsafe { stat(&panel.encode_to_vec(), Some(&response.encode_to_vec())) };
+        assert_eq!(status, OK);
+        let result = result.unwrap();
+        assert_eq!(result.formatted_value, "Server\0amount");
+        assert_eq!(result.formatted_delta.as_deref(), Some("-2"));
+        assert_eq!(result.trend, Trend::Down as i32);
+        assert_eq!(result.tone, Tone::Danger as i32);
+    }
+
+    #[test]
+    fn stat_bridge_matches_kernel_for_numeric_modes_and_nonfinite_authored_values() {
+        for format in [-1, 0, 1, 2, 3, 4, 5, 999] {
+            for value in [
+                0.0,
+                -0.0,
+                1234.6,
+                -2.675,
+                f64::MAX,
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+                f64::NAN,
+            ] {
+                for declaration in [
+                    None,
+                    Some(ValueType::Integer),
+                    Some(ValueType::Decimal),
+                    Some(ValueType::Money),
+                    Some(ValueType::Percent),
+                    Some(ValueType::Text),
+                ] {
+                    let panel = StatPanel {
+                        value,
+                        format,
+                        previous: Some(0.0),
+                        unit: "units".into(),
+                        value_display: declaration.map(|kind| ValueDisplay {
+                            r#type: kind as i32,
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    };
+                    let expected = crate::compute_stat(&panel);
+                    let (status, actual) = unsafe { stat(&panel.encode_to_vec(), None) };
+                    assert_eq!(status, OK);
+                    let actual = actual.unwrap();
+                    assert_eq!(actual.formatted_value, expected.formatted_value);
+                    assert_eq!(actual.formatted_delta, expected.formatted_delta);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn stat_bridge_rejects_malformed_and_oversized_inputs_and_resets_slots() {
+        assert_eq!(unsafe { stat(&[0xff], None) }.0, INVALID_PAYLOAD);
+        assert_eq!(unsafe { stat(&[], Some(&[0xff])) }.0, INVALID_PAYLOAD);
+        assert_eq!(
+            unsafe { stat(&vec![0; MAX_VALUE_BYTES + 1], None) }.0,
+            LIMIT_EXCEEDED
+        );
+        assert_eq!(
+            unsafe { stat(&[], Some(&vec![0; MAX_VALUE_BYTES + 1])) }.0,
+            LIMIT_EXCEEDED
+        );
+        let mut pointer = std::ptr::null_mut();
+        let mut len = 99;
+        assert_eq!(
+            unsafe {
+                meridian_core_compute_stat(
+                    std::ptr::null(),
+                    1,
+                    0,
+                    std::ptr::null(),
+                    0,
+                    &mut pointer,
+                    &mut len,
+                )
+            },
+            INVALID_ARGUMENT
+        );
+        assert_eq!(len, 0);
+        len = 99;
+        assert_eq!(
+            unsafe {
+                meridian_core_compute_stat(
+                    std::ptr::null(),
+                    0,
+                    2,
+                    std::ptr::null(),
+                    0,
+                    std::ptr::null_mut(),
+                    &mut len,
+                )
+            },
+            INVALID_ARGUMENT
+        );
+        assert_eq!(len, 0);
+        assert_eq!(
+            unsafe {
+                meridian_core_compute_stat(
+                    std::ptr::null(),
+                    0,
+                    0,
+                    std::ptr::null(),
+                    1,
+                    &mut pointer,
+                    &mut len,
+                )
+            },
+            INVALID_ARGUMENT
+        );
+        assert!(pointer.is_null());
+        let response = prost_types::Value {
+            kind: Some(prost_types::value::Kind::NumberValue(f64::NAN)),
+        };
+        assert_eq!(
+            unsafe { stat(&[], Some(&response.encode_to_vec())) }.0,
+            INVALID_PAYLOAD
+        );
+    }
 
     unsafe fn format(display: &[u8], value: &[u8], has_now: u8) -> (i32, Vec<u8>) {
         let mut pointer = std::ptr::null_mut();

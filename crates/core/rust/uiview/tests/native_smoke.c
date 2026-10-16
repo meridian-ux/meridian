@@ -13,6 +13,11 @@ int main(void) {
   assert(length == sizeof(expected));
   assert(memcmp(output, expected, length) == 0);
   meridian_core_buffer_free(output, length);
+  assert(meridian_core_compute_stat(NULL, 0, 0, NULL, 0, &output, &length) == MERIDIAN_CORE_OK);
+  const uint8_t stat_expected[] = {0x0a, 1, '0', 0x20, 1}; /* ComputedStat value=0, neutral */
+  assert(length == sizeof(stat_expected));
+  assert(memcmp(output, stat_expected, length) == 0);
+  meridian_core_buffer_free(output, length);
   const uint8_t malformed[] = {0xff};
   assert(meridian_core_format_value(malformed, 1, NULL, 0, 0, 0, &output, &length) == MERIDIAN_CORE_INVALID_PAYLOAD);
   assert(output == NULL && length == 0);
