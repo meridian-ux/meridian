@@ -69,6 +69,9 @@ mod request;
 mod stat;
 mod stream;
 
+#[cfg(target_arch = "wasm32")]
+mod wasm_input;
+
 #[cfg(test)]
 mod conformance;
 

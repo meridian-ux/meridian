@@ -768,6 +768,123 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     } finally { disposePanel(root); }
   });
 
+  it("converts inert request maps and null-prototype records without losing raw values", () => {
+    const selection = Object.assign(Object.create(null), { zero: 0, disabled: false });
+    const rpc = create(RpcCallSchema, { bindings: [
+      { requestField: "identity", source: { case: "context", value: 2 } },
+      { requestField: "zero", source: { case: "selectionKey", value: "zero" } },
+      { requestField: "disabled", source: { case: "selectionKey", value: "disabled" } },
+    ] });
+    expect(wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
+      ...CTX, uiIdentity: new Map([["raw", "001.20"]]), selections: selection,
+    })).toEqual({ identity: { raw: "001.20" }, zero: 0, disabled: false });
+  });
+
+  it.each(["cycle", "deep", "wide", "string", "aliases", "nonfinite", "opaque"])(
+    "rejects %s request input before unbounded conversion across all request exports", kind => {
+      let value: unknown;
+      if (kind === "cycle") { const cycle: Record<string, unknown> = {}; cycle.self = cycle; value = cycle; }
+      if (kind === "deep") { value = 0; for (let i = 0; i < 80; i++) value = { child: value }; }
+      if (kind === "wide") value = new Array(65_537);
+      if (kind === "string") value = "x".repeat(6 * 1024 * 1024);
+      if (kind === "aliases") value = Array(32).fill("x".repeat(200_000));
+      if (kind === "nonfinite") value = Number.POSITIVE_INFINITY;
+      if (kind === "opaque") value = new Date();
+      const rpc = create(RpcCallSchema, {});
+      const table = create(PanelDescriptorSchema, { body: { case: "table", value: { populate: rpc } } });
+      const form = create(PanelDescriptorSchema, { body: { case: "form", value: { submit: rpc } } });
+      const context = { ...CTX, uiIdentity: value as object };
+      for (const call of [
+        () => wasm.buildRequest(toBinary(RpcCallSchema, rpc), context),
+        () => wasm.buildPopulateRequest(toBinary(PanelDescriptorSchema, table), context),
+        () => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, form), context, {}),
+      ]) {
+        try { call(); expect.fail("unsafe input accepted"); }
+        catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect(error).not.toBeInstanceOf(WebAssembly.RuntimeError);
+          expect(error).not.toBeInstanceOf(RangeError);
+          expect((error as Error).message).toBe("request input rejected");
+        }
+      }
+    },
+  );
+
+  it("preserves prototype-looking raw data keys without inherited request properties", () => {
+    const raw = JSON.parse('{"__proto__":{"enabled":false},"constructor":"raw","value":0}');
+    const rpc = create(RpcCallSchema, { bindings: [{ requestField: "identity", source: { case: "context", value: 2 } }] });
+    const request = wasm.buildRequest(toBinary(RpcCallSchema, rpc), { ...CTX, uiIdentity: raw }) as { identity: Record<string, unknown> };
+    expect(Object.getPrototypeOf(request.identity)).toBe(Object.prototype);
+    expect(Object.hasOwn(request.identity, "__proto__")).toBe(true);
+    expect(JSON.stringify(request.identity)).toBe(JSON.stringify(raw));
+    expect(Object.hasOwn(Object.prototype, "enabled")).toBe(false);
+  });
+
+  it("enforces the request JSON output ceiling independently of copy-work accounting", () => {
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
+      submit: {}, fields: [{ fieldId: "x", kind: { case: "text", value: {} } }],
+    } } });
+    const bytes = toBinary(PanelDescriptorSchema, descriptor);
+    const limit = 4 * 1024 * 1024;
+    expect(JSON.stringify(wasm.buildSubmissionRequest!(bytes, CTX, { x: "a".repeat(limit - 8) })).length).toBe(limit);
+    expect(() => wasm.buildSubmissionRequest!(bytes, CTX, { x: "a".repeat(limit - 3) })).toThrow("request output rejected");
+  });
+
+  it("accepts the input depth boundary and bounded unused data without changing requests", () => {
+    const rpc = toBinary(RpcCallSchema, create(RpcCallSchema));
+    let value: unknown = 0;
+    for (let i = 0; i < 63; i++) value = { child: value };
+    expect(wasm.buildRequest(rpc, { ...CTX, uiIdentity: value as object })).toEqual({});
+    expect(() => wasm.buildRequest(rpc, { ...CTX, uiIdentity: { child: value } })).toThrow("request input rejected");
+    expect(wasm.buildRequest(rpc, { ...CTX, uiIdentity: { unused: "x".repeat(5 * 1024 * 1024) } })).toEqual({});
+  });
+
+  it("bounds a repeating Map iterator instead of trusting its eventual completion", () => {
+    let iterations = 0;
+    const map = new Map();
+    map[Symbol.iterator] = function* () { while (true) { iterations++; yield ["same", null]; } };
+    const rpc = toBinary(RpcCallSchema, create(RpcCallSchema));
+    expect(() => wasm.buildRequest(rpc, { ...CTX, uiIdentity: map })).toThrow("request input rejected");
+    expect(iterations).toBeGreaterThan(0);
+    expect(iterations).toBeLessThanOrEqual(65_536);
+  });
+
+  it("rejects accessors without invoking them and sanitizes proxy exceptions", () => {
+    const getter = vi.fn(() => { throw new Error("private getter payload"); });
+    const record = Object.defineProperty({}, "secret", { enumerable: true, get: getter });
+    const array = Object.defineProperty([0], "0", { get: getter });
+    const proxy = new Proxy({}, { ownKeys() { throw new Error("private proxy payload"); } });
+    const rpc = toBinary(RpcCallSchema, create(RpcCallSchema));
+    for (const value of [record, array, proxy]) {
+      expect(() => wasm.buildRequest(rpc, { ...CTX, uiIdentity: value })).toThrow("request input rejected");
+    }
+    expect(getter).not.toHaveBeenCalled();
+  });
+
+  it("shares one input conversion budget between submission context and field values", () => {
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
+      submit: {}, fields: [{ fieldId: "extra", kind: { case: "text", value: {} } }],
+    } } });
+    expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), {
+      ...CTX, uiIdentity: { unused: "x".repeat(2 * 1024 * 1024) },
+    }, { extra: "y".repeat(4 * 1024 * 1024) })).toThrow("request input rejected");
+  });
+
+  it("shows a safe submission error instead of dispatching cyclic context", async () => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
+      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+    } } });
+    try {
+      await renderPanel({ root, descriptor, wasm, context: { ...CTX, uiIdentity: cyclic }, invoker: { invoke }, admission: "unrestricted" });
+      root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { disposePanel(root); }
+  });
+
   it("readPath resolves dotted paths over a plain object", () => {
     expect(wasm.readPath(RESPONSE.builds[0], "repo")).toBe("fastverk/botnoc");
     expect(wasm.readPath({ a: { b: { c: 7 } } }, "a.b.c")).toBe(7);

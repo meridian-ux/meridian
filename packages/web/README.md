@@ -18,6 +18,16 @@ subscribes with an empty fallback. Live grammar signals are supplied to that
 same core at activation; construction/transport failure shows a generic alert
 without echoing request values. These assembly limits do not bound the host's
 JavaScript object allocation or replace transport admission policy.
+Request exports also bound conversion into Rust before copying context strings
+and containers: depth 64, 65,536 value nodes, and 16 MiB of conservative conversion
+work (strings charge three bytes per UTF-16 code unit). Submission context and
+field values share that budget. Supply own-data JSON records, arrays, or
+string-key Maps, not accessors, class instances, nonfinite numbers, or cyclic
+graphs. Conversion errors are generic and return no request. Request output has
+a 4 MiB JSON ceiling and preserves literal data keys, including `__proto__`, as
+own properties. These limits do not bound allocation already performed by host
+JavaScript, key enumeration in the JavaScript engine, or time spent in host
+proxy/iterator code. Other formatter/render response inputs have separate paths.
 Form saves and LRO starts require the initialized core's `buildSubmissionRequest`
 capability: it assembles explicit bindings and automatic fields together under
 one budget. An older core without that capability rejects submissions visibly;
