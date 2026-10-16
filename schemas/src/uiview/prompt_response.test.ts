@@ -162,4 +162,47 @@ describe("typed local form validation", () => {
     expect(validateFormValues([field], { integer: Number.MAX_SAFE_INTEGER })).toBeUndefined();
     expect(validateFormValues([field], { integer: Number.MAX_SAFE_INTEGER + 1 })).toContain("invalid number");
   });
+
+  it("rejects empty or duplicate object-field IDs at every object boundary", () => {
+    const leaf = create(FormFieldSchema, { fieldId: "value", kind: { case: "text", value: {} } });
+    expect(validateFormValues([leaf, leaf], { value: "" })).toContain("unique");
+    expect(validateFormValues([{ ...leaf, fieldId: "" }], { "": "" })).toContain("nonempty");
+    for (const shape of ["nested", "repeated"] as const) {
+      const field = create(FormFieldSchema, { fieldId: "outer", kind: shape === "nested"
+        ? { case: "nested", value: { fields: [leaf, leaf] } }
+        : { case: "repeated", value: { element: { case: "object", value: { fields: [leaf, leaf] } } } } });
+      expect(validateFormValues([field], { outer: shape === "nested" ? { value: "" } : [{ value: "" }] })).toContain("unique");
+    }
+    // Scalar array elements are positional: their ignored field_id may be empty.
+    const scalar = create(FormFieldSchema, { fieldId: "items", kind: { case: "repeated", value: {
+      element: { case: "scalar", value: { kind: { case: "text", value: {} } } },
+    } } });
+    expect(validateFormValues([scalar], { items: [""] })).toBeUndefined();
+  });
+
+  it.each(["nested", "scalar", "object"] as const)("bounds recursive %s validation at 64 levels without throwing", shape => {
+    const wrap = (levels: number, empty = false) => {
+      let field = create(FormFieldSchema, { fieldId: "value", kind: empty
+        ? { case: "nested", value: { fields: [] } }
+        : { case: "text", value: {} } });
+      let value: unknown = empty ? {} : "";
+      for (let i = 0; i < levels; ++i) {
+        if (shape === "nested") {
+          field = create(FormFieldSchema, { fieldId: "value", kind: { case: "nested", value: { fields: [field] } } });
+          value = { value };
+        } else {
+          field = create(FormFieldSchema, { fieldId: "value", kind: { case: "repeated", value: { element: shape === "scalar"
+            ? { case: "scalar", value: field }
+            : { case: "object", value: { fields: [field] } } } } });
+          value = shape === "scalar" ? [value] : [{ value }];
+        }
+      }
+      return validateFormValues([field], { value });
+    };
+    expect(wrap(64)).toBeUndefined();
+    expect(wrap(65)).toContain("64");
+    expect(wrap(200)).toContain("64");
+    // Even an empty object beyond the boundary must not bypass the limit.
+    expect(wrap(64, true)).toContain("64");
+  });
 });
