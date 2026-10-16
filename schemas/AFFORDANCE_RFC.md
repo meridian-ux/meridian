@@ -87,8 +87,9 @@ affordance -> view -> panel
 panel -> catalog / connect_flow / steps -> affordance
 ```
 
-Recommendation: co-locate the mutually recursive message definitions in one
-canonical proto compilation unit, with leaf types kept separate where possible.
+Candidate, not an approved additive migration: co-locate the mutually recursive
+message definitions in one canonical proto compilation unit, with leaf types
+kept separate where possible.
 Recompute the component after adding table/form adoption edges; the seven-file
 baseline is not proof that the future graph is complete. Preserve package/full
 message names, field tags, oneof membership, and enum numbers. Keep old proto
@@ -100,6 +101,35 @@ the existing generation/package pipeline; test Java descriptor-holder accessors,
 Rust module paths, Bazel labels, and descriptor consumers. Moving declarations
 changes file-descriptor metadata even when message wire bytes stay compatible.
 Inventory those consumers before choosing the final compilation-unit boundary.
+
+### Compatibility probe: public imports are insufficient
+
+A minimal before/after generator probe moved two messages, with their full names,
+fields, and tags unchanged, into a shared `interaction.proto`. The old files
+remained as `import public` facades. This is analogous to the proposed cycle
+refactor, not evidence that the complete production graph has been solved.
+
+- The repository's pinned protobuf-es 2.12.1 generator emitted only the old
+  file descriptor from the facade module, not the moved message type or schema
+  exports. The old-path TypeScript consumer compiled before the move and failed
+  afterward with TS2305 for both exports. Explicit tested compatibility exports
+  are necessary in both the Bazel and development generation/package paths.
+- The unchanged `buf breaking` `FILE` policy rejected both moved messages as
+  deleted from their original files. Preserving wire names and tags does not
+  satisfy this policy; a successful wire round trip cannot substitute for it.
+- An exploratory Java generation with protoc 36.1 retained the public message
+  class name but changed its descriptor-holder reference to the new file's
+  holder. This was a generated-source inspection, not a compiled Java consumer
+  or proof of compatibility with every shipped Java toolchain.
+
+Therefore, public-import facades alone are not an additive compatibility plan.
+The compilation-unit boundary and any v1 descriptor-file migration require an
+explicit consumer inventory and reviewed migration contract before production
+declarations move. Keep the existing compatibility gate in force; do not switch
+it to wire-only checking or suppress its findings to make this proposal pass.
+If descriptor file ownership must remain unchanged, revise the typed graph
+design and demonstrate that alternative rather than silently using untyped
+payloads or claiming this prerequisite complete.
 
 Do not hide the cycle with JSON strings, untyped bytes, or a renderer-specific
 DTO. A general `Any` panel payload would also weaken static target typing and
