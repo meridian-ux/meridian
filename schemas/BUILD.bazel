@@ -11,6 +11,12 @@ exports_files([
 ])
 
 js_library(
+    name = "tone_conformance_data",
+    srcs = ["conformance/tone_cases.ts"],
+    deps = [":node_modules/@savvifi/meridian-proto-ts"],
+)
+
+js_library(
     name = "conversation_value_data",
     srcs = ["conformance/conversation_values.ts", "conformance/constrained_value_types.json"],
     deps = [

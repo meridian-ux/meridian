@@ -2077,22 +2077,47 @@ mod tests {
         use prost::Message;
         use ratatui::{backend::TestBackend, style::Modifier, Terminal};
         let palette = Palette::default();
+        // Enumerate canonical descriptors, not a fixed numeric range. The
+        // expected colors are independent of the production tone_style mapper.
+        let descriptors = prost_types::FileDescriptorSet::decode(
+            include_bytes!("../../../../core/rust/uiview/proto/gen/meridian_ui_v1.binpb")
+                .as_slice(),
+        )
+        .unwrap();
+        let tone_enum = descriptors
+            .file
+            .iter()
+            .find(|file| file.name.as_deref() == Some("proto/value.proto"))
+            .unwrap()
+            .enum_type
+            .iter()
+            .find(|enumeration| enumeration.name.as_deref() == Some("Tone"))
+            .unwrap();
+        let mut cases = vec![(None, palette.accent), (Some(999), palette.fg)];
+        for value in &tone_enum.value {
+            let color = match value.name.as_deref().unwrap() {
+                "TONE_UNSPECIFIED" | "TONE_NEUTRAL" => palette.fg,
+                "TONE_INFO" => palette.info,
+                "TONE_SUCCESS" => palette.success,
+                "TONE_WARNING" => palette.warning,
+                "TONE_DANGER" => palette.danger,
+                "TONE_ACCENT" => palette.accent,
+                name => panic!("Missing independent terminal expectation for {name}"),
+            };
+            cases.push((Some(value.number.unwrap()), color));
+        }
         for emphasis in [None, Some(0), Some(1), Some(2), Some(999)] {
-            for (tone, color) in [
-                (Some(0), palette.fg),
-                (Some(1), palette.fg),
-                (Some(2), palette.info),
-                (Some(3), palette.success),
-                (Some(4), palette.warning),
-                (Some(5), palette.danger),
-                (Some(6), palette.accent),
-                (Some(999), palette.fg),
-            ] {
+            for &(tone, role_color) in &cases {
                 for invoke in [
                     Invoke::Uri("/next".into()),
                     Invoke::Command("echo raw command".into()),
                 ] {
                     let primary = emphasis.is_none() || emphasis == Some(1);
+                    let color = if tone.is_none() && !primary {
+                        palette.fg
+                    } else {
+                        role_color
+                    };
                     let action = Affordance {
                         label: "Action".into(),
                         style: AffordanceStyle::Primary as i32,

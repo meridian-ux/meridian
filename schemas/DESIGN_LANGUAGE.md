@@ -58,6 +58,15 @@ cross-renderer conformance required by #44/#45.
 
 ## Affordance
 
+The theme conformance cases in `conformance/tone_cases.ts` enumerate the generated
+Tone descriptor and require the corresponding Palette field (`neutral` uses
+`fg`). Hermetic Chrome tests consume these cases for HTML, Shadcn, MUI, and
+web-component actions and web-component conversation states; the native action
+TestBackend test independently enumerates the committed descriptor set. Expected
+colors remain independent of production mappers. New roles fail until both the
+palette binding and renderer expectations exist. This is first-party evidence,
+not an external SwiftUI view-dump proof or completion of #45.
+
 An `Affordance` is a labeled invitation to act. Its `invoke` oneof is either a
 URI or a command, and its optional icon, description, and style provide context.
 `ActionPanel`, catalog items, connect-flow targets, and step actions reuse this

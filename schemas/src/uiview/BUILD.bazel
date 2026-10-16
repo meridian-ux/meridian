@@ -13,7 +13,7 @@ vitest_test(
 vitest_test(
     name = "conversation_tone_test",
     srcs = ["conversation_tone.test.ts"],
-    deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+    deps = [":seam", "//schemas:tone_conformance_data", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
 )
 
 js_run_binary(

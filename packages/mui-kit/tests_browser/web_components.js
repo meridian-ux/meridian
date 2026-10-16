@@ -76,20 +76,20 @@ async function main() {
     });
     await page.evaluate(() => {
       const root = document.getElementById("root");
-      const roles = ["fg", "fg", "info", "success", "warning", "danger", "accent"];
-      const colors = ["rgb(1, 2, 3)", "rgb(1, 2, 3)", "rgb(4, 5, 6)", "rgb(7, 8, 9)", "rgb(10, 11, 12)", "rgb(13, 14, 15)", "rgb(16, 17, 18)"];
-      roles.forEach((role, index) => root.style.setProperty(`--mer-${role}`, colors[index]));
-      for (const tone of [0, 1, 2, 3, 4, 5, 6, 999]) {
+      const colors = { fg: "rgb(1, 2, 3)", info: "rgb(4, 5, 6)", success: "rgb(7, 8, 9)", warning: "rgb(10, 11, 12)", danger: "rgb(13, 14, 15)", accent: "rgb(16, 17, 18)" };
+      Object.entries(colors).forEach(([role, color]) => root.style.setProperty(`--mer-${role}`, color));
+      for (const { tone, role, palette } of [...window.webConformance.toneCases, { tone: 999, role: "neutral", palette: "fg" }]) {
         for (const state of [0, 1, 2]) {
           window.webConformance.conversationTone(tone, state);
           const marker = root.querySelector(state === 0 ? ".tool .spin" : ".tool .dot"), status = root.querySelector(".status.on");
-          const expected = colors[tone <= 6 ? tone : 0];
+          const expected = colors[palette];
+          if (!expected) throw new Error(`Missing independent color expectation for Palette.${palette}`);
           if (!marker || !status || getComputedStyle(marker)[state === 0 ? "borderTopColor" : "backgroundColor"] !== expected || getComputedStyle(status).color !== expected)
             throw new Error(`Conversation Tone ${tone}: marker=${marker && getComputedStyle(marker).backgroundColor}, status=${status && getComputedStyle(status).color}, expected=${expected}`);
           if (Boolean(root.querySelector(".tool.err")) !== (state === 2)) throw new Error("Tone changed tool operational state");
           if (marker.getAttribute("aria-label") !== ["RUNNING", "OK", "ERROR"][state] || marker.getAttribute("title") !== ["RUNNING", "OK", "ERROR"][state])
             throw new Error("Tone hid the non-color tool state label");
-          if (root.querySelector(".tool").getAttribute("data-mer-tone") !== (tone <= 1 || tone === 999 ? "neutral" : roles[tone]))
+          if (root.querySelector(".tool").getAttribute("data-mer-tone") !== role)
             throw new Error("Conversation Tone attribute is not canonical");
         }
       }
@@ -98,12 +98,14 @@ async function main() {
         throw new Error("Absent conversation Tone changed legacy error styling");
     });
     await page.evaluate(async () => {
-      const colors = ["rgb(1, 2, 3)", "rgb(1, 2, 3)", "rgb(4, 5, 6)", "rgb(7, 8, 9)", "rgb(10, 11, 12)", "rgb(13, 14, 15)", "rgb(16, 17, 18)"];
-      for (const emphasis of [undefined, 0, 1, 2, 999]) for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
+      const colors = { fg: "rgb(1, 2, 3)", info: "rgb(4, 5, 6)", success: "rgb(7, 8, 9)", warning: "rgb(10, 11, 12)", danger: "rgb(13, 14, 15)", accent: "rgb(16, 17, 18)" };
+      const cases = [...window.webConformance.toneCases, { tone: undefined, palette: "fg" }, { tone: 999, palette: "fg" }];
+      for (const emphasis of [undefined, 0, 1, 2, 999]) for (const { tone, palette } of cases) {
         await window.webConformance.affordance(tone, emphasis);
         const control = document.querySelector(".mer-affordance"), computed = getComputedStyle(control);
         if (control.getAttribute("href") !== "/next") throw new Error("Presentation changed destination");
-        if (tone !== undefined && computed.color !== colors[tone <= 6 ? tone : 0]) throw new Error(`Affordance Tone ${tone} was dropped`);
+        if (!colors[palette]) throw new Error(`Missing independent color expectation for Palette.${palette}`);
+        if (tone !== undefined && computed.color !== colors[palette]) throw new Error(`Affordance Tone ${tone} was dropped`);
         if (tone === undefined && control.hasAttribute("data-mer-tone")) throw new Error("Missing Tone gained a semantic role");
         if (emphasis !== undefined && (computed.fontWeight !== (emphasis === 1 ? "700" : "500") || computed.borderWidth !== (emphasis === 1 ? "2px" : "1px")))
           throw new Error("Affordance emphasis presence was dropped");
