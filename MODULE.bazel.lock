@@ -1210,10 +1210,10 @@
           "REPO_MAPPING:rules_rust+,rules_cc rules_cc+",
           "REPO_MAPPING:rules_rust+,rules_rust rules_rust+",
           "FILE:@@//Cargo.lock f9afa017a5c1f4bb09b614beeb80aec8bda9ee6698fc7c33797cf32f662ddc0c",
-          "FILE:@@//Cargo.toml 5976ad7896d73cede3caf3e1e2e332b61b59aa63274fb0cfe12627220b5dbf58",
-          "FILE:@@//crates/core/rust/uiview/Cargo.toml 60330ba55a829730db843b116ca11f951b6df9e031e368a92fa1fbab431a442b",
-          "FILE:@@//crates/core/rust/theme-proto/Cargo.toml bae283d13b0e91cc037dda83f3e7148d55039b86e61fba46c88236f55a4f91b4",
-          "FILE:@@//crates/tui/rust/tui/Cargo.toml 527bd8408054d83b7bd73265df9453f559720752767d54eb628457812f0d9b47"
+          "FILE:@@//Cargo.toml aa39da3178ffa703c0a61d5807894e052dcccf8785ea2a7f8f66aec132dd4487",
+          "FILE:@@//crates/core/rust/uiview/Cargo.toml d2f0bedd66bd6bcd5a5cdf9c369e7f470980d1246f7a653fd9857ea6c5590323",
+          "FILE:@@//crates/core/rust/theme-proto/Cargo.toml 17657efee77a5da726400db2bf459234c54324114f741b811ddf8e05504d1851",
+          "FILE:@@//crates/tui/rust/tui/Cargo.toml a423d43b6fc8c54f72bb659c7b24f2a01a7474b54437b1ae5390a1c14860486c"
         ],
         "generatedRepoSpecs": {
           "meridian_crates": {

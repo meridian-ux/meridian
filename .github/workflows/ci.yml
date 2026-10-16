@@ -184,7 +184,7 @@ jobs:
       - name: Coverage — MUI kit
         run: pnpm --filter @savvifi/meridian-mui-kit exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/mui-kit --coverage.include='src/**/*.{js,jsx,ts,tsx}' --coverage.exclude='src/**/*.test.{ts,tsx}'
       - name: Coverage — web components
-        run: pnpm --filter meridian-web-workspace exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/web --coverage.include='src/**/*.{js,jsx,ts,tsx}' --exclude=tests/conformance_wasm.test.ts
+        run: pnpm --filter @savvifi/meridian-web exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/web --coverage.include='src/**/*.{js,jsx,ts,tsx}' --exclude=tests/conformance_wasm.test.ts
       - name: Coverage — web React
         run: pnpm --filter @savvifi/meridian-web-react exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/web-react --coverage.include='src/**/*.{js,jsx,ts,tsx}' --coverage.exclude='src/**/*.test.{ts,tsx}'
 
@@ -231,6 +231,11 @@ jobs:
 
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+      # Build the extracted archives, including unpublished first-party deps in
+      # Cargo's temporary workspace registry. This never invokes cargo publish.
+      - name: Rust distribution archives
+        run: cargo package --workspace --locked
 
       # The binary exists now. Smoke it: --help must work, and a non-descriptor
       # must be REJECTED with a readable error rather than a panic.
@@ -378,6 +383,11 @@ jobs:
       # either of which could otherwise remove it from the wildcard suite.
       - name: Required panel render proofs
         run: node schemas/tools/panel_evidence.mjs --verify
+
+      - name: Detached web-components npm consumer
+        run: |
+          bazel build --announce_rc=false //packages/web:pkg //schemas:schemas_pkg //schemas/proto:proto_ts_pkg
+          node tools/check_web_package.mjs
 
   registry-admission:
     runs-on: ubuntu-latest

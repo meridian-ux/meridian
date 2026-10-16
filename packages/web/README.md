@@ -1,7 +1,19 @@
 # meridian-web
 
+## npm distribution preparation
+
+The selected v1 npm name is `@savvifi/meridian-web`. The locally buildable
+`//packages/web:pkg` artifact exposes the renderer at the package root, toolkit
+helpers at `/toolkit`, the compiled theme binding at `/theme`, and CSS at
+`/theme.css`. The development manifest remains private; the generated
+`web.package.json` is the publication manifest. No new npm version has been
+published by this preparation. See [distribution verification](../../DISTRIBUTION.md)
+for the detached-tarball consumer check and release prerequisites.
+
+Hosts still supply the initialized WASM rendering seam.
+
 The **web-components renderer** of the meridian design language — the reference,
-React-free renderer that proves the [`WebRenderer` seam](https://github.com/meridian-ux/meridian-schemas)
+React-free renderer that proves the [`WebRenderer` seam](../../schemas/src/uiview)
 isn't anchored to any framework.
 
 It ships:
@@ -23,12 +35,11 @@ It ships:
   `PanelBundle` to binpb. Consumer-parameterized: callers pass the `proto`
   (e.g. `@meridian_schemas//proto:uiview_proto`) and bring `rules_proto`/`protobuf`.
 
-The Rust render/request logic + the wasm bundle live in
-[meridian-uiview-core](https://github.com/meridian-ux/meridian-uiview-core); a host
-wires that `uiview_wasm` into `webComponentsRenderer`. The design language reaches
-this repo as **npm** packages (`@savvifi/meridian-schemas`,
-`@savvifi/meridian-proto-ts`) — there's no `bazel_dep` on the other meridian
-modules.
+The Rust render/request logic and WASM target live in
+[`crates/core/rust/uiview`](../../crates/core/rust/uiview); a host wires that
+initialized core into `webComponentsRenderer`. The design language is exposed
+through `@savvifi/meridian-schemas` and `@savvifi/meridian-proto-ts`, linked from
+the same monorepo during development and pinned together in npm artifacts.
 
 ## Build & test
 

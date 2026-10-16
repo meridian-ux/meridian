@@ -1,6 +1,16 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 
 package(default_visibility = ["//visibility:public"])
+
+# The npm artifact ships executable JavaScript and declarations, not raw TS.
+ts_project(
+    name = "compiled",
+    srcs = ["web/theme.ts"],
+    declaration = True,
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+)
 
 js_library(
     name = "css",

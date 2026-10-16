@@ -3,6 +3,7 @@ name = "meridian-uiview"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 description = "Platform-neutral core for Meridian's proto-driven UI: PanelDescriptor types + field-path accessor + request builder + scoring helpers."
 
 [dependencies]

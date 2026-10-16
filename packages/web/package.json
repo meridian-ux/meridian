@@ -1,13 +1,28 @@
 {
-  "name": "meridian-web-workspace",
-  "version": "0.12.0",
+  "name": "@savvifi/meridian-web",
+  "version": "0.25.1",
   "meridian": {
     "rendererIds": ["web-components"]
   },
   "private": true,
-  "description": "Workspace root for meridian-web — the web-components renderer of the meridian design language. Consumed by hosts via Bazel (//src:core) + the //bazel:panel_bundle.bzl rule. The TS surface depends on the design language via npm (@savvifi/meridian-schemas + @savvifi/meridian-proto-ts).",
+  "description": "Framework-neutral web-components renderer for Meridian protobuf descriptors.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meridian-ux/meridian.git",
+    "directory": "packages/web"
+  },
+  "publishConfig": { "access": "public" },
+  "main": "./src/browser.js",
+  "types": "./src/browser.d.ts",
+  "exports": {
+    ".": { "types": "./src/browser.d.ts", "import": "./src/browser.js" },
+    "./toolkit": { "types": "./src/index.d.ts", "import": "./src/index.js" },
+    "./theme": { "types": "./theme/web/theme.d.ts", "import": "./theme/web/theme.js" },
+    "./theme.css": "./theme/web/meridian.css"
+  },
+  "files": ["src/**/*.js", "src/**/*.d.ts", "src/**/*.json", "theme/**/*.js", "theme/**/*.d.ts", "theme/**/*.css", "README.md"],
   "scripts": {
     "test": "vitest run --exclude tests/conformance_wasm.test.ts"
   },

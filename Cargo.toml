@@ -39,8 +39,8 @@ repository = "https://github.com/meridian-ux/meridian"
 
 [workspace.dependencies]
 # ── first-party, by path. The whole reason this workspace exists. ─────────────
-meridian-uiview = { path = "crates/core/rust/uiview" }
-theme-proto = { path = "crates/core/rust/theme-proto" }
+meridian-uiview = { path = "crates/core/rust/uiview", version = "=0.25.1" }
+theme-proto = { path = "crates/core/rust/theme-proto", version = "=0.25.1" }
 
 # ── shared third-party ────────────────────────────────────────────────────────
 # The two absorbed workspaces already agreed on everything here. The three splits
