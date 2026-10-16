@@ -51,7 +51,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer, MeridianProvider, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";
@@ -893,10 +893,27 @@ declare global {
       list: () => { name: string; label: string; group: string }[];
       render: (name: string) => Promise<void>;
     };
+    meridianPresentation: (tone?: number, emphasis?: number, denied?: boolean, kit?: "mui" | "html" | "shadcn") => Promise<void>;
   }
 }
 
 window.meridianHarness = {
   list: () => fixtures.map((f) => ({ name: f.name, label: f.label, group: f.group })),
   render,
+};
+
+window.meridianPresentation = async (tone?: number, emphasis?: number, denied = false, kit: "mui" | "html" | "shadcn" = "mui") => {
+    const container = document.getElementById("root")!;
+    if (!root) root = createRoot(container);
+    container.style.color = "#102030";
+    const theme = create(ThemeSchema, { typography: { headingWeight: 700, bodyWeight: 500 }, light: { fg: "#102030", bg: "#ffffff", surface: "#ffffff",
+      info: "#205070", success: "#307050", warning: "#806020", danger: "#802030", accent: "#604080" } });
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+      label: "Presentation action", style: 1, tone, emphasis,
+      invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
+    } } } });
+    const panel = createElement(PanelRenderer, { descriptor });
+    root.render(createElement(MeridianMuiProvider, { invoker: noRpc, theme }, kit === "mui" ? panel :
+      createElement(MeridianProvider, { invoker: noRpc, kit: kit === "html" ? htmlKit : shadcnKit, adhoc: {}, children: panel })));
+    await new Promise(resolve => setTimeout(resolve, 50));
 };

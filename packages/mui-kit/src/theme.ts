@@ -15,6 +15,11 @@ export interface ThemeConfig {
   mode: "light" | "dark";
   primary: { main: string; light: string; dark: string };
   secondary: { main: string };
+  // Runtime-only MUI palette projection; serialized skins remain Theme protos.
+  info?: { main: string };
+  success?: { main: string };
+  warning?: { main: string };
+  error?: { main: string };
   background: { default: string; paper: string };
   text: { primary: string; secondary: string };
   border: { card: string; button: string };
@@ -132,6 +137,10 @@ export function themeProtoToThemeConfig(
     mode,
     primary: { main: accent, light: accent, dark: accentStrong },
     secondary: { main: accentStrong },
+    ...(palette.info ? { info: { main: palette.info } } : {}),
+    ...(palette.success ? { success: { main: palette.success } } : {}),
+    ...(palette.warning ? { warning: { main: palette.warning } } : {}),
+    ...(palette.danger ? { error: { main: palette.danger } } : {}),
     background: {
       default: pick(palette.bg, FALLBACK.bg),
       paper: pick(palette.surface, FALLBACK.surface),
@@ -165,6 +174,10 @@ export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
       mode: config.mode,
       primary: config.primary,
       secondary: config.secondary,
+      ...(config.info ? { info: config.info } : {}),
+      ...(config.success ? { success: config.success } : {}),
+      ...(config.warning ? { warning: config.warning } : {}),
+      ...(config.error ? { error: config.error } : {}),
       background: config.background,
       text: config.text,
     },
@@ -346,5 +359,8 @@ export function themeProtoToCssVars(
     "--mer-radius": `${config.metrics.radiusPx}px`,
     "--mer-unit": `${config.metrics.unitPx}px`,
   };
+  for (const role of ["info", "success", "warning", "danger"] as const) {
+    if (palette[role]) vars[`--mer-${role}`] = palette[role];
+  }
   return vars as CSSProperties;
 }

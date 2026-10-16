@@ -97,7 +97,21 @@ async function main() {
       if (root.querySelector(".tool").hasAttribute("data-mer-tone") || getComputedStyle(root.querySelector(".dot.err")).backgroundColor !== "rgb(239, 68, 68)")
         throw new Error("Absent conversation Tone changed legacy error styling");
     });
-    console.log("Web-components layouts, typography, theme replacement, and conversation semantic Tone colors passed.");
+    await page.evaluate(async () => {
+      const colors = ["rgb(1, 2, 3)", "rgb(1, 2, 3)", "rgb(4, 5, 6)", "rgb(7, 8, 9)", "rgb(10, 11, 12)", "rgb(13, 14, 15)", "rgb(16, 17, 18)"];
+      for (const emphasis of [undefined, 0, 1, 2, 999]) for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
+        await window.webConformance.affordance(tone, emphasis);
+        const control = document.querySelector(".mer-affordance"), computed = getComputedStyle(control);
+        if (control.getAttribute("href") !== "/next") throw new Error("Presentation changed destination");
+        if (tone !== undefined && computed.color !== colors[tone <= 6 ? tone : 0]) throw new Error(`Affordance Tone ${tone} was dropped`);
+        if (tone === undefined && control.hasAttribute("data-mer-tone")) throw new Error("Missing Tone gained a semantic role");
+        if (emphasis !== undefined && (computed.fontWeight !== (emphasis === 1 ? "700" : "500") || computed.borderWidth !== (emphasis === 1 ? "2px" : "1px")))
+          throw new Error("Affordance emphasis presence was dropped");
+      }
+      await window.webConformance.affordance(5, 1, true);
+      if (!document.querySelector(".mer-affordance").disabled) throw new Error("Presentation enabled a denied URI");
+    });
+    console.log("Web-components layouts, theme replacement, conversation and Affordance presentation passed.");
   } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exit(1); });

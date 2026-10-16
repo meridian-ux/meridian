@@ -73,6 +73,35 @@ function renderPanel(descriptor: Parameters<typeof PanelRenderer>[0]["descriptor
   );
 }
 
+it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, and invocation admission", emphasis => {
+  for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    for (const target of ["/next", "javascript:alert(1)", "echo raw command"]) {
+      const command = target.startsWith("echo");
+      const { container, unmount } = renderPanel(create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+        label: "Action", description: "Explain", style: 1, tone, emphasis,
+        invoke: command ? { case: "command", value: target } : { case: "uri", value: target },
+      } } } }));
+      const control = container.querySelector("button, a") as HTMLElement;
+      const primary = emphasis === undefined || emphasis === 1;
+      expect(control.className).toContain(primary ? "MuiButton-contained" : "MuiButton-outlined");
+      expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
+      if (tone !== undefined) expect(control.className).toContain(`MuiButton-color${["Inherit", "Inherit", "Info", "Success", "Warning", "Error", "Primary"][tone] ?? "Inherit"}`);
+      if (target.startsWith("javascript:")) {
+        expect((control as HTMLButtonElement).disabled).toBe(true);
+        fireEvent.click(control);
+        expect(writeText).not.toHaveBeenCalled();
+      } else if (command) {
+        expect(writeText).not.toHaveBeenCalled();
+        fireEvent.click(control);
+        expect(writeText).toHaveBeenCalledWith(target);
+      } else expect(control.getAttribute("href")).toBe("/next");
+      unmount();
+    }
+  }
+});
+
 describe("muiKit renders the brand-neutral content shapes", () => {
   it("Choice → MUI tabs of options", async () => {
     renderPanel(

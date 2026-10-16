@@ -20,7 +20,6 @@
 import type { ReactNode } from "react";
 
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel, CatalogItem } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChoicePanel, ChoiceOption } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import type { ConnectFlowPanel, ConnectTarget } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
@@ -31,6 +30,7 @@ import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import {
   computeStat,
+  affordancePresentation,
   formatByDisplay,
   safeNavigationHref,
   statSparklinePoints,
@@ -236,7 +236,7 @@ function Glyph({ c, name }: { c: ContentClasses; name: string }): ReactNode {
 
 // ── Affordance (realizes icon + description; used standalone AND nested) ──────
 export function AffordanceControl({ c, affordance }: { c: ContentClasses; affordance: Affordance }): ReactNode {
-  const primary = affordance.style === AffordanceStyle.PRIMARY;
+  const { primary, tone, style } = affordancePresentation(affordance);
   const cls = `${c.affordance}${primary ? ` ${c.affordancePrimary}` : ""}`;
   const inner = (
     <>
@@ -248,13 +248,16 @@ export function AffordanceControl({ c, affordance }: { c: ContentClasses; afford
   const unavailableUri = affordance.invoke.case === "uri" && !href;
   const control =
     href ? (
-      <a className={cls} href={href} data-icon={affordance.icon || undefined} title={affordance.description || undefined}>
+      <a className={cls} href={href} data-mer-tone={tone} data-mer-emphasis={affordance.emphasis === undefined ? undefined : primary ? "primary" : "secondary"} style={style} data-icon={affordance.icon || undefined} title={affordance.description || undefined}>
         {inner}
       </a>
     ) : (
       <button
         type="button"
         className={`${cls} mer-copy`}
+        data-mer-tone={tone}
+        data-mer-emphasis={affordance.emphasis === undefined ? undefined : primary ? "primary" : "secondary"}
+        style={style}
         data-copy={affordance.invoke.case === "command" ? affordance.invoke.value : ""}
         disabled={unavailableUri}
         aria-disabled={unavailableUri || undefined}

@@ -18,6 +18,24 @@ import {
   themeProtoToThemeConfig,
 } from "../src/theme.js";
 
+it("binds all declared semantic palette roles to MUI and shared CSS without replacing absent defaults", () => {
+  const skin = create(ThemeSchema, { light: { info: "#205070", success: "#307050", warning: "#806020", danger: "#802030" },
+    dark: { info: "#406090", success: "#609070", warning: "#b09050", danger: "#a05060" } });
+  for (const mode of ["light", "dark"] as const) {
+    const palette = mode === "light" ? skin.light! : skin.dark!;
+    const mui = themeProtoToMuiTheme(skin, mode);
+    const vars = themeProtoToCssVars(skin, mode) as Record<string, string>;
+    for (const role of ["info", "success", "warning", "danger"] as const) {
+      expect(mui.palette[role === "danger" ? "error" : role].main).toBe(palette[role]);
+      expect(vars[`--mer-${role}`]).toBe(palette[role]);
+    }
+  }
+  const bare = create(ThemeSchema);
+  for (const role of ["info", "success", "warning", "error"] as const)
+    expect(themeProtoToThemeConfig(bare)[role]).toBeUndefined();
+  expect(themeProtoToCssVars(bare)).not.toHaveProperty("--mer-warning");
+});
+
 // A two-face brand: a serif display over a geometric sans.
 const twoFaceSkin = create(ThemeSchema, {
   id: "test-two-face",

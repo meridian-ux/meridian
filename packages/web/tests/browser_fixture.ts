@@ -14,6 +14,16 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  affordance: (tone?: number, emphasis?: number, denied = false) => {
+    applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());
+    return renderPanel({ root: root(), wasm, context,
+    descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+      label: "Presentation action", style: 1, tone, emphasis,
+      invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
+    } } } }),
+    invoker: { invoke: async () => { throw new Error("Presentation cannot invoke an RPC"); } },
+    });
+  },
   conversationTone: (tone?: number, state: 0 | 1 | 2 = 2) => {
     if (!document.getElementById("conversation-styles")) {
       const style = document.createElement("style");

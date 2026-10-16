@@ -16,7 +16,6 @@ import { buildFormField, buildInteractiveForm } from "./form.js";
 import { buildLlmPrompt, hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 import { buildPrompt } from "./prompt.js";
 import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -29,7 +28,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { defaultFormValues, resolveMediaKind, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { defaultFormValues, resolveMediaKind, validateFormValues, affordancePresentation } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -591,7 +590,7 @@ function appendGlyph(opts: RenderPanelOptions, parent: HTMLElement, key: string)
 
 function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement {
   const item = el("span", "mer-affordance-item");
-  const primary = aff.style === AffordanceStyle.PRIMARY;
+  const { primary, tone, style } = affordancePresentation(aff);
   const cls = `mer-affordance${primary ? " mer-affordance-primary" : ""}`;
   let control: HTMLElement;
   if (aff.invoke.case === "uri") {
@@ -613,6 +612,9 @@ function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement
     copyOnClick(control, aff.invoke.case === "command" ? aff.invoke.value : "");
   }
   if (aff.icon) control.dataset.icon = aff.icon;
+  if (tone !== undefined) control.dataset.merTone = tone;
+  if (aff.emphasis !== undefined) control.dataset.merEmphasis = primary ? "primary" : "secondary";
+  Object.assign(control.style, style);
   if (aff.description) control.title = aff.description;
   appendGlyph(opts, control, aff.icon);
   control.appendChild(el("span", undefined, aff.label));

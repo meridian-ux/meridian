@@ -57,6 +57,35 @@ async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"],
   return root;
 }
 
+it.each([undefined, 0, 1, 2, 999])("action emphasis %s and Tone never bypass safe destinations or change copy payloads", async emphasis => {
+  for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    for (const target of ["/next", "javascript:alert(1)", "echo raw command"]) {
+      const command = target.startsWith("echo");
+      const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+        label: "Action", description: "Explain", style: 1, tone, emphasis,
+        invoke: command ? { case: "command", value: target } : { case: "uri", value: target },
+      } } } });
+      const root = await draw(descriptor);
+      const control = root.querySelector(".mer-affordance") as HTMLElement;
+      const primary = emphasis === undefined || emphasis === 1;
+      expect(control.classList.contains("mer-affordance-primary")).toBe(primary);
+      expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
+      if (emphasis !== undefined) expect(control.style.borderWidth).toBe(primary ? "2px" : "1px");
+      if (target.startsWith("javascript:")) {
+        expect((control as HTMLButtonElement).disabled).toBe(true);
+        control.click();
+        expect(writeText).not.toHaveBeenCalled();
+      } else if (command) {
+        expect(writeText).not.toHaveBeenCalled();
+        control.click();
+        await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(target));
+      } else expect(control.getAttribute("href")).toBe("/next");
+    }
+  }
+});
+
 describe("web-components content shapes (field-complete)", () => {
   it.each(["", "  "])("names an empty copy control while copying its raw value %j", async raw => {
     const writeText = vi.fn(async () => {});

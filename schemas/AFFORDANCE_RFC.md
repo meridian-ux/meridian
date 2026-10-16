@@ -41,8 +41,11 @@ Affordance
 
 This is a shape diagram, not a compilable replacement proto. #47 must allocate
 unused tags from the actual descriptors and assert them in compatibility tests.
-Existing `uri = 5`, `command = 6`, and `style = 7` remain untouched. New RPC
-targets carry the existing `RpcCall`, including bindings; `navigate` carries
+Existing `uri = 5`, `command = 6`, and `style = 7` remain untouched.
+The additive presentation fields now occupy optional `tone = 8` and
+`emphasis = 9`; future invocation work must not reuse those tags. This does not
+implement or approve the full invocation union or declaration-file migration.
+New RPC targets carry the existing `RpcCall`, including bindings; `navigate` carries
 the existing route semantics; `open_panel` carries a typed `PanelDescriptor`;
 `open_view` identifies a host-resolved view; `copy` carries literal text, not a
 shell command or a synthesized URI. Empty copy text is a valid payload.
