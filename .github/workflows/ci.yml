@@ -222,8 +222,7 @@ jobs:
         run: cargo test --workspace --all-targets
 
       # Keep the cargo-fuzz target and its standalone lockfile buildable in
-      # ordinary CI. The actual coverage-guided campaign uses the E6 corpus on
-      # demand; it is not a time-bounded substitute for the deterministic suites.
+      # ordinary stable CI, independently of the sanitizer-backed smoke job.
       - name: Descriptor fuzz target compiles
         run: cargo check --locked --manifest-path fuzz/Cargo.toml --bin panel_descriptor
 
@@ -250,7 +249,9 @@ jobs:
           esac
 
       - name: Rust formatting
-        run: cargo fmt --all -- --check
+        run: |
+          cargo fmt --all -- --check
+          cargo fmt --manifest-path fuzz/Cargo.toml -- --check
 
       - uses: taiki-e/install-action@cargo-llvm-cov
 
@@ -266,6 +267,51 @@ jobs:
           path: coverage
           if-no-files-found: error
           retention-days: 1
+
+  native-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: nightly-2026-04-29
+      CARGO_BUILD_JOBS: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Corpus seeding tests
+        run: node --test fuzz/seed_corpus.test.mjs
+      - name: Install the pinned sanitizer toolchain and runner
+        env:
+          FUZZ_WORK: ${{ runner.temp }}/meridian-descriptor-fuzz
+        run: |
+          set -euo pipefail
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal
+          cargo install cargo-fuzz --version 0.13.2 --locked --root "$FUZZ_WORK/tools"
+      - name: Fetch locked fuzz dependencies
+        run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      - name: Seed and run the bounded native descriptor campaign
+        env:
+          FUZZ_WORK: ${{ runner.temp }}/meridian-descriptor-fuzz
+        run: |
+          set -euo pipefail
+          mkdir -p "$FUZZ_WORK/corpus" "$FUZZ_WORK/artifacts"
+          node fuzz/seed_corpus.mjs "$FUZZ_WORK/corpus"
+          CARGO_NET_OFFLINE=true "$FUZZ_WORK/tools/bin/cargo-fuzz" run \
+            --fuzz-dir fuzz --target-dir "$FUZZ_WORK/target" --sanitizer address \
+            panel_descriptor "$FUZZ_WORK/corpus" -- \
+            -max_total_time=60 -timeout=5 -rss_limit_mb=2048 -max_len=65536 \
+            -seed=1 -verbosity=0 -print_final_stats=1 \
+            -artifact_prefix="$FUZZ_WORK/artifacts/"
+          git diff --exit-code -- Cargo.lock fuzz/Cargo.lock schemas/conformance/binpb
+      - name: Preserve crash reproducers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: descriptor-fuzz-crashes
+          path: ${{ runner.temp }}/meridian-descriptor-fuzz/artifacts
+          if-no-files-found: ignore
+          retention-days: 7
 
   coverage-summary:
     runs-on: ubuntu-latest
