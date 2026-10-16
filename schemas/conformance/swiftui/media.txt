@@ -1,0 +1,3 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Walkthrough"
+text view(MeridianPanel.self).vStack().descendants(1indexed:) "This panel is not supported by this SwiftUI preview yet."

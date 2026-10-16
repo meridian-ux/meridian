@@ -1,0 +1,8 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Choose your agent"
+text view(MeridianPanel.self).vStack().view(ChoicePanelContent.self, 1).view(ChoiceContent.self).vStack().picker(0).forEach(0).descendants(0indexed:) "Cursor"
+text view(MeridianPanel.self).vStack().view(ChoicePanelContent.self, 1).view(ChoiceContent.self).vStack().picker(0).forEach(0).descendants(1indexed:) "VS Code"
+text view(MeridianPanel.self).vStack().view(ChoicePanelContent.self, 1).view(ChoiceContent.self).vStack().picker(0).labelView().init(type:genericTypeName:children:supplementary:) "Which client?"
+picker view(MeridianPanel.self).vStack().view(ChoicePanelContent.self, 1).view(ChoiceContent.self).vStack().descendants(0indexed:) label="Which client?" disabled=false
+  option "Cursor" selected=true
+  option "VS Code" selected=false

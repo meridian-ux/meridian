@@ -123,6 +123,38 @@ A local public AppKit accessibility probe returned no SwiftUI child tree in the
 non-accessibility-trusted test process; that probe is not counted as passing
 accessibility evidence and no permission changes are requested by the suite.
 
+### Initial native view projections
+
+`ViewDumpTests` inspects `MeridianPanel` over all 24 canonical panel fixtures.
+The committed `schemas/conformance/swiftui/*.txt` files retain actual view paths,
+text order within node categories, Label titles, button labels/disabled state,
+picker labels/options/selection, image names, and declared accessibility labels.
+Tooltip text is included when exposed by the inspected view. These are initial
+view-body projections, not mounted application state or computed accessibility
+trees. Unsupported arms intentionally snapshot their current explanation; the
+golden does not claim they render their requested content. Separate callback
+tests exercise selection, effects, and policy changes.
+
+Ordinary `swift test` compares without writing and fails on missing/stale/extra
+goldens. The shared presence gate independently requires one correctly formatted,
+nonempty view dump for each declared panel arm plus the empty descriptor. It
+does not register SwiftUI as a proven panel evidence owner or change coverage.
+When a UI change is intentional, use the existing cross-renderer re-record path:
+
+```sh
+# macOS, with the build prerequisites above; also records browser goldens.
+UPDATE_SNAPSHOTS=1 bazel run --announce_rc=false //:re_record_conformance -- --swiftui
+# Read-only verification through the same entry point:
+UPDATE_SNAPSHOTS=0 bazel run --announce_rc=false //:re_record_conformance -- --swiftui
+```
+
+The launcher runs from the actual Bazel workspace so explicit re-recording updates
+source goldens, not runfiles. This is a developer entry point using installed
+Xcode/Rust/Node prerequisites, not a hermetic Swift toolchain action. Native CI
+executes the real Swift suite via `tools/swiftui.py --ios`; non-macOS callers of
+`--swiftui` fail rather than substituting another renderer. No update flag is
+enabled by default. Review recorded diffs and rerun read-only verification.
+
 Native layout and view-body inspection are not accessibility-tree snapshots.
 All 23 coverage cells remain `unverified`, with the existing full-parity waivers.
 Remaining work includes all other panels; recursive view layouts; further shared

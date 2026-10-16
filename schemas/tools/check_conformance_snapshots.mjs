@@ -1,6 +1,6 @@
-// Presence gate for the browser semantic goldens. Runtime conformance suites
-// prove their contents; this check prevents missing snapshots from silently
-// being auto-recorded by a local Vitest run.
+// Presence gates for browser, TUI, and initial SwiftUI goldens. Their real
+// runtime suites compare contents; this check prevents missing artifacts from
+// silently surviving an update or verification path. SwiftUI stays unverified.
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { fromBinary, toJson } from "@bufbuild/protobuf";
@@ -45,6 +45,21 @@ export function checkNativeSnapshots(coverage, valueCases, paths, valueArms = ["
     ...[...expected].filter(path => !actual.has(path)).map(path => `missing native snapshot ${path}`),
     ...[...actual].filter(path => !expected.has(path)).map(path => `unexpected native snapshot ${path}`),
   ];
+}
+
+// Presence/format only. The macOS SwiftPM job compares actual view bodies;
+// these initial projections are not stateful parity or OS accessibility proof.
+export function checkSwiftUIViewDumps(coverage, sources) {
+  const expected = new Set(["empty", ...Object.keys(coverage.arms)].map(arm => `${arm}.txt`));
+  const errors = [];
+  for (const name of expected) {
+    const source = sources[name];
+    if (source === undefined) errors.push(`missing SwiftUI view dump ${name}`);
+    else if (!source.startsWith("SwiftUI view projection v1 — not OS accessibility\n") || !/^text .+ ".*"/m.test(source))
+      errors.push(`invalid/empty SwiftUI view dump ${name}`);
+  }
+  for (const name of Object.keys(sources)) if (!expected.has(name)) errors.push(`unexpected SwiftUI view dump ${name}`);
+  return errors;
 }
 
 export function checkSnapshots(coverage, sources) {
@@ -98,7 +113,15 @@ export function checkSnapshotFiles(coverage) {
     }
   }
   walkNative();
-  return [...checkPanelEvidenceOwners(coverage), ...checkSnapshots(coverage, sources), ...statefulErrors, ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained, inputs)];
+  const swiftui = {};
+  const swiftDirectory = new URL("schemas/conformance/swiftui/", root);
+  let swiftFiles = [];
+  try { swiftFiles = readdirSync(swiftDirectory); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
+  for (const name of swiftFiles) swiftui[name] = readFileSync(new URL(name, swiftDirectory), "utf8");
+  return [...checkPanelEvidenceOwners(coverage), ...checkSnapshots(coverage, sources), ...statefulErrors,
+    ...checkNativeSnapshots(coverage, valueCases, native, valueCorpus.panelArms, constrained, inputs),
+    ...checkSwiftUIViewDumps(coverage, swiftui)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -107,5 +130,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (errors.length) {
     console.error(errors.join("\n"));
     process.exitCode = 1;
-  } else console.log("browser semantic and native buffer snapshots OK");
+  } else console.log("browser semantic, native buffer, and SwiftUI view snapshots OK");
 }

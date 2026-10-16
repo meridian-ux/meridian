@@ -1,0 +1,8 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Capabilities"
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(0).descendants(0indexed:) "list_instances"
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(0).descendants(1indexed:) "The instances you can address."
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(0).descendants(2indexed:) "tool"
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(1).descendants(0indexed:) "graph_*"
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(1).descendants(1indexed:) "RLS-respecting reads."
+text view(MeridianPanel.self).vStack().tupleView(1).forEach(1).vStack(1).descendants(3indexed:) "Next"

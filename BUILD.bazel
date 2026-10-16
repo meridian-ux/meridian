@@ -16,9 +16,9 @@ load("@rules_python//python:defs.bzl", "py_binary")
 
 package(default_visibility = ["//visibility:public"])
 
-# Re-record browser semantic snapshots from the real workspace. The launcher
-# uses BUILD_WORKSPACE_DIRECTORY so Vitest updates source goldens instead of a
-# read-only Bazel runfiles copy.
+# Re-record semantic snapshots from the real workspace (including native SwiftUI
+# on macOS with --swiftui). BUILD_WORKSPACE_DIRECTORY keeps intentional updates
+# in source goldens instead of a read-only Bazel runfiles copy.
 py_binary(
     name = "re_record_conformance",
     srcs = ["tools/re_record_conformance.py"],

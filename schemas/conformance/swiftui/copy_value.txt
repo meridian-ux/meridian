@@ -1,0 +1,9 @@
+SwiftUI view projection v1 — not OS accessibility
+text view(MeridianPanel.self).vStack().descendants(0indexed:) "Endpoint configuration for the production workspace and its regional integration service"
+text view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().descendants(0indexed:) "Primary integration endpoint for the production workspace across all supported regions"
+text view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().descendants(1indexed:) "https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming" declared-label="https://mcp.example.com/workspaces/production/integrations/regional-service/abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?region=north-america&transport=streaming"
+text view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().text(1).help() ""
+text view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().button(3).labelView().label(0).title().init(type:genericTypeName:children:supplementary:) "Copy value"
+label view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().button(3).labelView().init(type:genericTypeName:children:supplementary:) title="Copy value"
+button view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().descendants(3indexed:) label="Copy value" disabled=false
+image view(MeridianPanel.self).vStack().view(CopyValueContent.self, 1).vStack().button(3).labelView().label(0).icon().init(type:genericTypeName:children:supplementary:) name="doc.on.doc"

@@ -1,9 +1,23 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots, checkStatefulSnapshots, checkNativeSnapshots } from "./check_conformance_snapshots.mjs";
+import { SNAPSHOT_SUITES, checkSnapshotFiles, checkSnapshots, checkStatefulSnapshots, checkNativeSnapshots, checkSwiftUIViewDumps } from "./check_conformance_snapshots.mjs";
 
 const coverage = { arms: { choice: {}, stream: {} } };
+
+test("SwiftUI initial view dumps reject missing, extra, empty, and wrong-format goldens", () => {
+  const golden = 'SwiftUI view projection v1 — not OS accessibility\ntext view().text() "Visible"\n';
+  const sources = Object.fromEntries(["empty", "choice", "stream"].map(arm => [`${arm}.txt`, golden]));
+  assert.deepEqual(checkSwiftUIViewDumps(coverage, sources), []);
+  for (const key of Object.keys(sources)) {
+    const missing = { ...sources }; delete missing[key];
+    assert.match(checkSwiftUIViewDumps(coverage, missing).join("\n"), /missing SwiftUI view dump/);
+    assert.match(checkSwiftUIViewDumps(coverage, { ...sources, [key]: "" }).join("\n"), /invalid\/empty/);
+    assert.match(checkSwiftUIViewDumps(coverage, { ...sources, [key]: golden.split("\n")[0] + "\n" }).join("\n"), /invalid\/empty/);
+  }
+  assert.match(checkSwiftUIViewDumps(coverage, { ...sources, "stale.txt": golden }).join("\n"), /unexpected/);
+  assert.match(checkSwiftUIViewDumps({ arms: { ...coverage.arms, new_arm: {} } }, sources).join("\n"), /missing SwiftUI view dump new_arm/);
+});
 function sources() {
   return Object.fromEntries(Object.entries(SNAPSHOT_SUITES).map(([path, renderers]) => [path,
     renderers.flatMap((renderer) => ["unset", "choice", "stream"].map((arm) =>
