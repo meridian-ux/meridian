@@ -1,5 +1,5 @@
 {
-  "$schema-note": "The public renderer catalog. Panel renderers are cross-checked against conformance/coverage.json; local entrypoints are checked against this repository. External preview tiers must carry an explicit external source.",
+  "$schema-note": "The renderer catalog includes public tiers and explicitly tracked development consumers. Panel renderers are cross-checked against conformance/coverage.json; local entrypoints are checked against this repository. External tiers and consumers must carry an explicit external source.",
   "statuses": {
     "stable": "Supported renderer tier.",
     "preview": "Publicly advertised but still in preview.",
@@ -79,6 +79,16 @@
       "modality": "conversation",
       "status": "stable",
       "source": { "kind": "local", "root": "packages/chat", "entrypoint": "src/render_react.tsx" }
+    },
+    {
+      "id": "playground",
+      "modality": "conversation",
+      "status": "development",
+      "source": {
+        "kind": "external",
+        "repo": "meridian-internal",
+        "note": "Private development consumer at apps/playground/src/App.tsx. Uses the pinned published Conversation renderer and a host canvas delegate, not a new public renderer package. The internal playground CI gate validates all nine canonical Block fixtures through the real local chat-host HTTP/SSE path and production Chromium."
+      }
     },
     {
       "id": "launchpad",

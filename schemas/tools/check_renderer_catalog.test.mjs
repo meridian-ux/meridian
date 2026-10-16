@@ -12,6 +12,17 @@ test("the committed renderer catalog is complete", () => {
   assert.deepEqual(checkCommittedCatalog(), []);
 });
 
+test("the private playground is an explicit external development consumer, not a public panel tier", () => {
+  const catalog = read("renderer_catalog.json");
+  const consumer = catalog.renderers.find(entry => entry.id === "playground");
+  assert.equal(consumer.modality, "conversation");
+  assert.equal(consumer.status, "development");
+  assert.equal(consumer.source.kind, "external");
+  assert.equal(consumer.source.repo, "meridian-internal");
+  assert.match(consumer.source.note, /HTTP\/SSE/);
+  assert.equal(Object.hasOwn(read("coverage.json").renderers, "playground"), false);
+});
+
 test("every coverage renderer needs a catalog row", () => {
   const catalog = read("renderer_catalog.json");
   const coverage = read("coverage.json");

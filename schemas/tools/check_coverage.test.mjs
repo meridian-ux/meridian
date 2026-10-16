@@ -55,6 +55,18 @@ test("the committed non-panel modality coverage and catalog agree", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 
+test("the external playground requires every Block arm and explains canvas delegation", () => {
+  const manifest = realManifest();
+  const kinds = manifest.modalities.conversation.arms;
+  assert.equal(Object.keys(kinds).length, 9);
+  for (const [name, arm] of Object.entries(kinds)) {
+    assert.equal(arm.renderers.playground.status, name === "view" ? "separate-entrypoint" : "renders");
+  }
+  assert.match(kinds.view.renderers.playground.reason, /canvas/);
+  delete kinds.markdown.renderers.playground;
+  assert.ok(checkModalities(manifest, realCatalog()).some(error => /conversation.markdown.*playground/.test(error)));
+});
+
 test("every catalog panel renderer, including an external preview, has a coverage row", () => {
   const manifest = realManifest();
   delete manifest.renderers.swiftui;

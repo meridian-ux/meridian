@@ -51,49 +51,57 @@
         "markdown": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "context": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "tool": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "list": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "fields": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "code": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "divider": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "table": {
           "renderers": {
             "chat-html": { "status": "renders" },
-            "chat-react": { "status": "renders" }
+            "chat-react": { "status": "renders" },
+            "playground": { "status": "renders" }
           }
         },
         "view": {
@@ -105,6 +113,10 @@
             "chat-react": {
               "status": "separate-entrypoint",
               "reason": "BlockView delegates the nested ViewDescriptor to the host-supplied renderView callback rather than importing a panel renderer."
+            },
+            "playground": {
+              "status": "separate-entrypoint",
+              "reason": "The private development playground delegates View blocks to its transcript chip and composed canvas; its fixture gate exercises real host HTTP/SSE emission and this handoff."
             }
           }
         }
