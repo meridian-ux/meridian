@@ -3030,5 +3030,119 @@
         }
       ]
     }
+  ],
+  "formPatterns": [
+    {
+      "name": "unicode-digits",
+      "pattern": "^\\d+$",
+      "input": "١",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "ascii-digits-only",
+      "pattern": "^[0-9]+$",
+      "input": "١",
+      "validPattern": true,
+      "matches": false
+    },
+    {
+      "name": "ascii-digits",
+      "pattern": "^[0-9]+$",
+      "input": "012",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "unicode-word",
+      "pattern": "^\\w+$",
+      "input": "東京",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "astral-scalar-dot",
+      "pattern": "^.$",
+      "input": "🦀",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "unicode-case-fold",
+      "pattern": "(?i)^é$",
+      "input": "É",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "ascii-mode",
+      "pattern": "(?-u:^\\d+$)",
+      "input": "١",
+      "validPattern": true,
+      "matches": false
+    },
+    {
+      "name": "search-not-full-match",
+      "pattern": "ready",
+      "input": "not ready yet",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "strict-end-anchor",
+      "pattern": "^ready$",
+      "input": "ready\n",
+      "validPattern": true,
+      "matches": false
+    },
+    {
+      "name": "multiline-explicit",
+      "pattern": "(?m)^ready$",
+      "input": "ready\n",
+      "validPattern": true,
+      "matches": true
+    },
+    {
+      "name": "lookahead-unsupported",
+      "pattern": "ready(?=!)",
+      "input": "ready!",
+      "validPattern": false,
+      "matches": false
+    },
+    {
+      "name": "lookbehind-unsupported",
+      "pattern": "(?<=!)ready",
+      "input": "!ready",
+      "validPattern": false,
+      "matches": false
+    },
+    {
+      "name": "backreference-unsupported",
+      "pattern": "^(.)\\1$",
+      "input": "aa",
+      "validPattern": false,
+      "matches": false
+    },
+    {
+      "name": "malformed",
+      "pattern": "[",
+      "input": "anything",
+      "validPattern": false,
+      "matches": false
+    },
+    {
+      "name": "excessive-compiled-size",
+      "pattern": "a{999999999}",
+      "input": "a",
+      "validPattern": false,
+      "matches": false
+    },
+    {
+      "name": "empty-pattern",
+      "pattern": "",
+      "input": "anything",
+      "validPattern": true,
+      "matches": true
+    }
   ]
 }

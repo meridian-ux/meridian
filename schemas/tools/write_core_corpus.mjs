@@ -307,6 +307,25 @@ const corpus = {
 // Every explicit-clock case has an independent no-clock twin with identical
 // input/display bytes. Existing unclocked cases already carry fixed expectations.
 corpus.valueFormats.push(...unclockedValueFormats);
+// Authored Rust Unicode expectations, not JavaScript RegExp-derived answers.
+corpus.formPatterns = [
+  ["unicode-digits", "^\\d+$", "١", true, true],
+  ["ascii-digits-only", "^[0-9]+$", "١", true, false],
+  ["ascii-digits", "^[0-9]+$", "012", true, true],
+  ["unicode-word", "^\\w+$", "東京", true, true],
+  ["astral-scalar-dot", "^.$", "🦀", true, true],
+  ["unicode-case-fold", "(?i)^é$", "É", true, true],
+  ["ascii-mode", "(?-u:^\\d+$)", "١", true, false],
+  ["search-not-full-match", "ready", "not ready yet", true, true],
+  ["strict-end-anchor", "^ready$", "ready\n", true, false],
+  ["multiline-explicit", "(?m)^ready$", "ready\n", true, true],
+  ["lookahead-unsupported", "ready(?=!)", "ready!", false, false],
+  ["lookbehind-unsupported", "(?<=!)ready", "!ready", false, false],
+  ["backreference-unsupported", "^(.)\\1$", "aa", false, false],
+  ["malformed", "[", "anything", false, false],
+  ["excessive-compiled-size", "a{999999999}", "a", false, false],
+  ["empty-pattern", "", "anything", true, true],
+].map(([name, pattern, input, validPattern, matches]) => ({name, pattern, input, validPattern, matches}));
 assertValueClockContract(corpus.valueFormats);
 const target = new URL("../conformance/core.json", import.meta.url);
 // Validate bytes, field names, and special floating-point values against the

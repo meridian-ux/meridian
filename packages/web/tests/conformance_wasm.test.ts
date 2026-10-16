@@ -25,6 +25,8 @@
 
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { validateFormValues } from "@savvifi/meridian-schemas/uiview";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
@@ -56,7 +58,7 @@ type NodeFs = { readFileSync(path: URL | string): Uint8Array };
 const GLUE = "./meridian_uiview.js";
 const WASM = "./meridian_uiview_bg.wasm";
 
-let wasm: UiviewWasm & ValueFormatterWasm;
+let wasm: UiviewWasm & ValueFormatterWasm & { matchesFormPattern(pattern: string, input: string): boolean };
 let core: ReturnType<typeof JSON.parse>;
 let values: ReturnType<typeof JSON.parse>;
 let renderView: typeof import("../src/uiview/view_renderer.js").renderView;
@@ -76,7 +78,7 @@ beforeAll(async () => {
   const wasmUrl = new URL(WASM, import.meta.url);
   const mod = await import(glueUrl.href);
   await mod.default({ module_or_path: readFileSync(wasmUrl) });
-  wasm = mod as unknown as UiviewWasm & ValueFormatterWasm;
+  wasm = mod as unknown as typeof wasm;
   const text = (path: string) => new TextDecoder().decode(readFileSync(new URL(path, import.meta.url)));
   core = JSON.parse(text("../../../schemas/conformance/core.json"));
   values = JSON.parse(text("../../../schemas/conformance/value_types.json"));
@@ -460,6 +462,19 @@ const tablePanel: PanelDescriptor = create(PanelDescriptorSchema, {
 const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
 describe("the native crate's shared fixture corpus through real WASM", () => {
+  it("applies the same Rust Unicode patterns through actual WASM and browser field validation", () => {
+    expect(core.formPatterns).toHaveLength(16);
+    for (const entry of core.formPatterns) {
+      if (entry.validPattern) expect(wasm.matchesFormPattern(entry.pattern, entry.input), entry.name).toBe(entry.matches);
+      else expect(() => wasm.matchesFormPattern(entry.pattern, entry.input), entry.name).toThrow("invalid pattern");
+      for (const kind of ["text", "masked"] as const) {
+        const field = create(FormFieldSchema, {fieldId: "value", kind: {case: kind, value: {pattern: entry.pattern, patternErrorMsg: "authored mismatch"}}});
+        const error = validateFormValues([field], {value: entry.input});
+        if (entry.matches) expect(error, entry.name).toBeUndefined();
+        else expect(error, entry.name).toContain(entry.validPattern ? "authored mismatch" : "invalid pattern");
+      }
+    }
+  });
   it("uses the same explicit-clock corpus as native Rust without reading a browser clock", () => {
     expect(core.valueFormats).toHaveLength(353);
     for (const entry of core.valueFormats) {

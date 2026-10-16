@@ -1,4 +1,5 @@
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { coreValidation } from "./core_runtime.js";
 
 /** Allocation-free preflight for descriptor-driven initializers, including
  * legacy read-only fields without an input kind. This checks resource bounds,
@@ -105,7 +106,7 @@ export function validateFormValues(fields: readonly FormField[], values: unknown
         if (typeof value !== "string") return fail("invalid text");
         const spec = kind.value;
         if ((spec.minLength && value.length < spec.minLength) || (spec.maxLength && value.length > spec.maxLength)) return fail("invalid length");
-        try { if (spec.pattern && !new RegExp(spec.pattern).test(value)) return fail(spec.patternErrorMsg || "invalid value"); }
+        try { if (spec.pattern && !coreValidation.matchesFormPattern(spec.pattern, value)) return fail(spec.patternErrorMsg || "invalid value"); }
         catch { return fail("invalid pattern"); }
         return;
       }

@@ -10,6 +10,12 @@ pub fn validate_form_values(fields: &[FormField], values: &Value) -> Result<(), 
     validate_object(fields, values, 0)
 }
 
+/// One Rust Unicode regex contract for native fields and the browser WASM bridge.
+/// Default regex compilation limits reject unsupported or excessive patterns.
+pub(crate) fn matches_pattern(pattern: &str, value: &str) -> Result<bool, regex::Error> {
+    regex::Regex::new(pattern).map(|regex| regex.is_match(value))
+}
+
 fn validate_object(fields: &[FormField], values: &Value, depth: usize) -> Result<(), String> {
     if depth > 64 {
         return Err("form nesting exceeds 64 levels".into());
@@ -37,16 +43,13 @@ fn text(value: &Value, min: i32, max: i32, pattern: &str, message: &str) -> Resu
     if (min > 0 && length < min as usize) || (max > 0 && length > max as usize) {
         return Err("invalid length".into());
     }
-    if !pattern.is_empty() {
-        let regex = regex::Regex::new(pattern).map_err(|_| "invalid pattern")?;
-        if !regex.is_match(value) {
-            return Err(if message.is_empty() {
-                "invalid value"
-            } else {
-                message
-            }
-            .into());
+    if !pattern.is_empty() && !matches_pattern(pattern, value).map_err(|_| "invalid pattern")? {
+        return Err(if message.is_empty() {
+            "invalid value"
+        } else {
+            message
         }
+        .into());
     }
     Ok(())
 }

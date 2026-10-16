@@ -9,6 +9,50 @@ fn corpus() -> Value {
     serde_json::from_str(include_str!("../../../../../schemas/conformance/core.json")).unwrap()
 }
 
+#[test]
+fn shared_form_pattern_contract() {
+    use crate::proto::{form_field, FormField, MaskedInput, TextInput};
+    for case in corpus()["formPatterns"].as_array().unwrap() {
+        let pattern = case["pattern"].as_str().unwrap();
+        let input = case["input"].as_str().unwrap();
+        let actual = crate::form_values::matches_pattern(pattern, input);
+        assert_eq!(
+            actual.is_ok(),
+            case["validPattern"].as_bool().unwrap(),
+            "{}",
+            case["name"]
+        );
+        assert_eq!(
+            actual.unwrap_or(false),
+            case["matches"].as_bool().unwrap(),
+            "{}",
+            case["name"]
+        );
+        for kind in [
+            form_field::Kind::Text(TextInput {
+                pattern: pattern.into(),
+                ..Default::default()
+            }),
+            form_field::Kind::Masked(MaskedInput {
+                pattern: pattern.into(),
+                ..Default::default()
+            }),
+        ] {
+            let field = FormField {
+                field_id: "value".into(),
+                kind: Some(kind),
+                ..Default::default()
+            };
+            assert_eq!(
+                crate::validate_form_values(&[field], &json!({"value": input})).is_ok(),
+                case["matches"].as_bool().unwrap(),
+                "{}",
+                case["name"]
+            );
+        }
+    }
+}
+
 // Read proto3 JSON's bytes representation without adding a production dependency
 // for test data. The corpus writer validates the generated envelope in CI.
 fn wire(value: &Value) -> Vec<u8> {
