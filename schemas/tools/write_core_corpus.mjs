@@ -97,6 +97,20 @@ const temporalCases = [
 const corpus = {
   valueFormats: [
     ...[
+      ["text", 1, "2026-03-29T13:45:00Z", {}, "2026-03-29T13:45:00Z"],
+      ["multiline", 2, "2026-03-29", {}, "2026-03-29"],
+      ["number-string", 4, "2026-03-29", {}, "2026-03-29"],
+      ["boolean-string", 5, "2026-03-29", {}, "2026-03-29"],
+      ["list-scalars", 7, [false, true], {}, "false, true"],
+      ["email-unknown-mode", 13, "Ada <ada@example.com>", { principal: { display: 999 } }, "ada@example.com"],
+      ["principal-unknown-mode", 12, "Ada <ada@example.com>", { principal: { display: 999 } }, "Ada"],
+      ["invalid-calendar", 9, "2026-02-31T13:45:00Z", {}, "2026-02-31T13:45:00Z"],
+      ["zone-free", 9, "2026-03-29T13:45:00", {}, absoluteStamp],
+      ["unknown-type", 999, "2026-03-29", {}, "2026-03-29"],
+      ["unspecified-type", 0, "2026-03-29", {}, "Mar 29, 2026"],
+      ["invalid-date", 8, "1900-02-29", {}, "1900-02-29"],
+    ].map(([name, type, input, options, text]) => valueFormat(`fallback-${name}`, input, { type, ...options }, undefined, text)),
+    ...[
       ["grouped-default", 4, 12345.625, {}, "12,345.625"],
       ["grouped-fixed", 4, 12345.625, { fractionDigits: 2 }, "12,345.63"],
       ["ungrouped", 4, -12345.625, { omitGroupSeparators: true, fractionDigits: 2 }, "-12345.63"],

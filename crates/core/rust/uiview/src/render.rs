@@ -126,8 +126,11 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
         return EMPTY.to_string();
     }
 
-    let value_type = ValueType::try_from(display.r#type).unwrap_or(ValueType::Unspecified);
+    let Ok(value_type) = ValueType::try_from(display.r#type) else {
+        return format_display_scalar(value);
+    };
     match value_type {
+        ValueType::Unspecified => format_inferred_value(value),
         ValueType::Boolean => value
             .as_bool()
             .map(|value| if value { "Yes" } else { "No" }.to_string())
@@ -166,8 +169,7 @@ pub fn format_display_value(value: &Value, display: &ValueDisplay) -> String {
             };
             format_principal_value(value, options, PrincipalDisplay::Email)
         }
-        ValueType::Unspecified
-        | ValueType::Text
+        ValueType::Text
         | ValueType::MultilineText
         | ValueType::Enum
         | ValueType::Date
@@ -684,6 +686,47 @@ fn format_display_scalar(value: &Value) -> String {
     }
 }
 
+/// Legacy undeclared browser values still infer timestamp labels, but use the
+/// canonical parser rather than a second JavaScript date implementation.
+pub fn format_inferred_value(value: &Value) -> String {
+    match value {
+        Value::Null => "—".into(),
+        Value::String(text) if text.is_empty() => "—".into(),
+        Value::String(text) => try_format_timestamp(text).unwrap_or_else(|| text.clone()),
+        Value::Bool(value) => if *value { "Yes" } else { "No" }.into(),
+        Value::Array(items) if items.is_empty() => "—".into(),
+        Value::Array(items) => items
+            .iter()
+            .map(format_inferred_value)
+            .collect::<Vec<_>>()
+            .join(", "),
+        Value::Number(number) => number
+            .as_f64()
+            .map(|value| {
+                if value == 0.0 {
+                    "0".into()
+                } else {
+                    value.to_string()
+                }
+            })
+            .unwrap_or_else(|| number.to_string()),
+        _ => format_display_scalar(value),
+    }
+}
+
+pub fn try_format_timestamp(text: &str) -> Option<String> {
+    format_temporal(text, ValueType::DateTime, TemporalPrecision::Unspecified)
+}
+
+pub fn try_format_relative_timestamp(text: &str, now: f64) -> Option<String> {
+    if !now.is_finite() || now.abs() > 8_640_000_000_000_000.0 {
+        return None;
+    }
+    Some(format_relative_time(
+        parse_temporal(text, false)?.epoch_millis() - now,
+    ))
+}
+
 fn format_display_number(
     value: &Value,
     kind: ValueType,
@@ -830,6 +873,25 @@ pub fn format_value(value: &Value, format: ColumnFormat) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn inferred_values_share_strict_native_temporal_parsing() {
+        assert_eq!(
+            format_inferred_value(&json!([false, "2026-03-29", null, 42.0])),
+            "No, Mar 29, 2026, —, 42"
+        );
+        assert_eq!(format_inferred_value(&json!([])), "—");
+        assert_eq!(try_format_timestamp("2026-02-29T13:45:00Z"), None);
+        assert_eq!(
+            try_format_timestamp("2026-03-29T13:45:00"),
+            Some("Mar 29, 2026, 1:45 PM UTC".into())
+        );
+        assert_eq!(
+            try_format_relative_timestamp("1970-01-01T00:01:00Z", 0.0),
+            Some("in 1 minute".into())
+        );
+        assert_eq!(try_format_relative_timestamp("1970-01-01", f64::NAN), None);
+    }
 
     #[test]
     fn declared_empty_strings_use_the_shared_read_placeholder_without_boolean_coercion() {

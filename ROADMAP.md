@@ -264,10 +264,15 @@ integrated without changing existing field types, wire numbers, or
 conformance ([#45](../../issues/45)) remain open. The additive ValueDisplay schema
 slots ([#49](../../issues/49)) are also integrated, with real-descriptor tests
 for stable tags, unset wire/JSON behavior, and old-reader field preservation.
-Neither schema milestone completes formatter consolidation: [#50](../../issues/50)
-still requires one core implementation compiled to WASM and linked into the TUI,
-and [#51](../../issues/51) requires removing per-renderer formatting paths.
-Matching fixture outputs alone do not satisfy that by-construction requirement.
+Neither schema milestone alone completes formatter consolidation. The browser
+default now executes the same Rust core as native surfaces through a packaged,
+synchronously initialized WASM module; duplicate JavaScript temporal, principal,
+and numeric algorithms are removed. Legacy stat and table numeric labels also
+delegate to core. Real HTML/Shadcn SSR hydration and detached, no-fetch Node
+imports are tested in addition to fixed native/WASM expectations.
+[#50](../../issues/50) and [#51](../../issues/51) remain open for the complete
+input/options and modality audit, including calendar-day relative semantics;
+matching fixtures or default adoption alone does not establish full acceptance.
 
 The first `ValueDisplay` migration slice is now shared at the table, native
 read-surface, and browser read-surface boundaries: `meridian-uiview` honors a

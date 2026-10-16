@@ -1,213 +1,74 @@
-// Shared read-view value formatting for every web renderer.
-//
-// A descriptor's ValueDisplay is a semantic declaration, not a kit-specific
-// styling hint. Keeping the formatter at the renderer seam lets web-components,
-// React kits, and future browser renderers agree without importing one another.
-
+// All value formatting executes in the same Rust core used by native surfaces.
+// JavaScript owns protobuf adaptation, routing, and renderer decoration only.
 import {
-  FormattedValueSchema,
-  PrincipalDisplay,
-  TemporalDisplay,
-  TemporalPrecision,
-  ValueType,
-  ValueDisplaySchema,
+  FormattedValueSchema, PrincipalDisplay, ValueType, ValueDisplaySchema,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { fromBinary, toBinary } from "@bufbuild/protobuf";
+import type { ColumnFormat } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
+import { coreFormatting } from "./core_runtime.js";
 
-/** Standalone core capability, separate from panel rendering and host setup. */
+/** Standalone initialized core capability, separate from panel rendering. */
 export interface ValueFormatterWasm {
-  /** Initialized Rust bindings. Raw input must be JSON-compatible. */
   formatValueDisplay(display: Uint8Array, value: unknown): Uint8Array;
-  /** Explicit-clock capability. Older modules remain valid for clock-free use. */
+  /** Older modules remain valid for clock-free explicit adapter calls. */
   formatValueDisplayAt?(display: Uint8Array, value: unknown, nowMs: number): Uint8Array;
 }
 
-/** Decode a core-produced rich result; no browser date/principal formatter runs
- * on this path. The host owns initialization, routing, and tooltip realization.
- * The explicit instant can be shared by SSR and hydration; no clock is read. */
+/** Runtime projection of the canonical FormattedValue protobuf. */
+export interface DisplayedValue { text: string; title?: string; }
+
+/** Decode a core result without running a second formatter or hiding failures. */
 export function formatByCore(value: unknown, display: ValueDisplay, core: ValueFormatterWasm, nowMs?: number): DisplayedValue {
   const bytes = toBinary(ValueDisplaySchema, display);
   if (nowMs !== undefined && !core.formatValueDisplayAt) throw new Error("Core binding lacks explicit-clock value formatting");
-  const output = nowMs === undefined ? core.formatValueDisplay(bytes, value) : core.formatValueDisplayAt!(bytes, value, nowMs);
+  const input = value === undefined ? null : value;
+  const output = nowMs === undefined ? core.formatValueDisplay(bytes, input) : core.formatValueDisplayAt!(bytes, input, nowMs);
   const result = fromBinary(FormattedValueSchema, output);
   return { text: result.text, ...(result.title === undefined ? {} : { title: result.title }) };
 }
 
-/** Strict ISO-8601 date/time values that are safe to humanize. */
-const ISO_8601 =
-  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
-
-const DATE_ONLY = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-
-const DATE_TIME = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
-
-const DATE_TIME_SECONDS = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  second: "2-digit",
-  timeZone: "UTC",
-});
-
-/** Format a strict timestamp in a stable UTC representation. */
-export function formatTimestamp(text: string): string | undefined {
-  const match = ISO_8601.exec(text);
-  if (!match) return undefined;
-  const parsed = new Date(text.length === 10 ? `${text}T00:00:00Z` : text);
-  if (Number.isNaN(parsed.getTime())) return undefined;
-
-  const hasTime = match[4] !== undefined;
-  const isMidnightUtc =
-    parsed.getUTCHours() === 0 && parsed.getUTCMinutes() === 0 && parsed.getUTCSeconds() === 0;
-  if (!hasTime || isMidnightUtc) return DATE_ONLY.format(parsed);
-  return `${DATE_TIME.format(parsed)} UTC`;
-}
-
-/** The stable empty-value representation used by read surfaces. */
 export const EMPTY_DISPLAY = "—";
 
-/** Infer a readable value for descriptors without a declared ValueDisplay. */
+/** Legacy inference also uses the core parser; no locale or process clock. */
 export function formatDisplayValue(value: unknown): string {
-  if (value === null || value === undefined) return EMPTY_DISPLAY;
-  if (Array.isArray(value)) {
-    if (value.length === 0) return EMPTY_DISPLAY;
-    return value.map((item) => formatDisplayValue(item)).join(", ");
-  }
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (typeof value === "object") return JSON.stringify(value);
-  const text = String(value);
-  if (text === "") return EMPTY_DISPLAY;
-  return formatTimestamp(text) ?? text;
+  return coreFormatting.formatInferredValue(value === undefined ? null : value);
 }
 
-/** The individual values behind a field, for chip-like surfaces. */
+export function formatTimestamp(text: string): string | undefined {
+  return coreFormatting.formatTimestamp(text);
+}
+
+export function formatRelativeTime(text: string, nowMs: number): string | undefined {
+  return coreFormatting.formatRelativeTime(text, nowMs);
+}
+
+/** Legacy columns retain the native ColumnFormat rounding contract. */
+export function formatLegacyNumber(value: number, format: ColumnFormat): string {
+  return coreFormatting.formatLegacyNumber(value, format);
+}
+
+/** A list-shaped surface adapter, not a second scalar-formatting algorithm. */
 export function displayValueList(value: unknown): string[] {
   if (value === null || value === undefined) return [];
-  const items = Array.isArray(value) ? value : [value];
-  return items
-    .map((item) => formatDisplayValue(item))
-    .filter((item) => item !== EMPTY_DISPLAY && item !== "");
+  return (Array.isArray(value) ? value : [value]).map(formatDisplayValue)
+    .filter(item => item !== EMPTY_DISPLAY && item !== "");
 }
 
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-const RELATIVE = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
-
-/** Format a timestamp relative to an explicit instant, when supplied. */
-export function formatRelativeTime(text: string, nowMs: number): string | undefined {
-  if (formatTimestamp(text) === undefined) return undefined;
-  const parsed = new Date(text.length === 10 ? `${text}T00:00:00Z` : text);
-  const deltaMs = parsed.getTime() - nowMs;
-  const abs = Math.abs(deltaMs);
-
-  if (abs < MINUTE) return "just now";
-  if (abs < HOUR) return RELATIVE.format(Math.round(deltaMs / MINUTE), "minute");
-  if (abs < DAY) return RELATIVE.format(Math.round(deltaMs / HOUR), "hour");
-  if (abs < 30 * DAY) return RELATIVE.format(Math.round(deltaMs / DAY), "day");
-  if (abs < 365 * DAY) return RELATIVE.format(Math.round(deltaMs / (30 * DAY)), "month");
-  return RELATIVE.format(Math.round(deltaMs / (365 * DAY)), "year");
+export function formatPrincipalValue(value: unknown, display: PrincipalDisplay = PrincipalDisplay.UNSPECIFIED): DisplayedValue {
+  return formatByCore(value, create(ValueDisplaySchema, {
+    type: ValueType.PRINCIPAL, options: { case: "principal", value: { display } },
+  }), coreFormatting);
 }
 
-function formatTemporal(text: string, precision: TemporalPrecision): string | undefined {
-  if (precision === TemporalPrecision.DAY) {
-    const iso = /^(\d{4}-\d{2}-\d{2})/.exec(text);
-    return iso ? formatTimestamp(iso[1] as string) : formatTimestamp(text);
-  }
-  if (precision === TemporalPrecision.MINUTE || precision === TemporalPrecision.SECOND) {
-    if (formatTimestamp(text) === undefined) return undefined;
-    // A calendar-only input does not acquire a time merely from a display hint.
-    if (text.length === 10) return formatTimestamp(text);
-    const parsed = new Date(text);
-    return `${(precision === TemporalPrecision.SECOND ? DATE_TIME_SECONDS : DATE_TIME).format(parsed)} UTC`;
-  }
-  return formatTimestamp(text);
+/** Default browser and SSR path: the packaged initialized Rust core. */
+export function formatByDisplay(value: unknown, display: ValueDisplay | undefined, nowMs?: number): DisplayedValue {
+  if (!display) return { text: formatDisplayValue(value) };
+  return formatByCore(value, display, coreFormatting, nowMs);
 }
 
-function formatTime(text: string, precision: TemporalPrecision): string | undefined {
-  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text);
-  if (!match) return undefined;
-  const hour = Number(match[1]);
-  const minute = Number(match[2]);
-  const second = match[3] === undefined ? undefined : Number(match[3]);
-  if (hour > 23 || minute > 59 || (second !== undefined && second > 59)) return undefined;
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour % 12 || 12;
-  const seconds = precision === TemporalPrecision.SECOND && second !== undefined
-    ? `:${String(second).padStart(2, "0")}`
-    : "";
-  return `${displayHour}:${String(minute).padStart(2, "0")}${seconds} ${suffix} UTC`;
-}
-
-/** A formatted value and optional supporting text, such as an absolute time or email. */
-export interface DisplayedValue {
-  text: string;
-  title?: string;
-}
-
-/**
- * Split the wire label used for a principal when its producer has both pieces
- * of identity available. Plain names and plain email addresses remain valid
- * inputs; the angle-bracket form is the only structure this formatter infers.
- */
-function principalParts(value: unknown): { name: string; email?: string } {
-  const text = String(value);
-  const isEmail = (email: string): boolean => {
-    const parts = email.split("@");
-    return parts.length === 2 && parts.every(Boolean) && !/[<>\p{White_Space}]/u.test(email);
-  };
-  const open = text.indexOf("<");
-  if (open > 0 && text.endsWith(">")) {
-    // Unicode White_Space matches Rust's trim/is_whitespace contract.
-    const name = text.slice(0, open).replace(/^\p{White_Space}+|\p{White_Space}+$/gu, "");
-    const email = text.slice(open + 1, -1);
-    if (name && !name.includes(">") && isEmail(email)) return { name, email };
-  }
-  return { name: text, email: isEmail(text) ? text : undefined };
-}
-
-/** Format a principal according to its declared name/email preference. */
-export function formatPrincipalValue(
-  value: unknown,
-  display: PrincipalDisplay = PrincipalDisplay.UNSPECIFIED,
-): DisplayedValue {
-  if (value === null || value === undefined || value === "") return { text: EMPTY_DISPLAY };
-  const parts = principalParts(value);
-  const name = parts.name || parts.email || EMPTY_DISPLAY;
-  if (display === PrincipalDisplay.EMAIL) return { text: parts.email ?? name };
-  if (display === PrincipalDisplay.NAME_WITH_EMAIL_TITLE && parts.email && parts.email !== name) {
-    return { text: name, title: parts.email };
-  }
-  return { text: name };
-}
-
-/**
- * Return the host-routing inputs for a declared principal or email record link.
- * Empty target kinds deliberately decline to link: a renderer cannot infer an
- * entity route from a display label, and a plain value is safer than a dead URL.
- * The ID is the original scalar value, never the formatted name or email. The
- * host owns lookup, authorization, and route encoding; these inputs grant no RPC
- * capability and are not themselves a URL.
- */
-export function resolvePrincipalLink(
-  value: unknown,
-  display: ValueDisplay | undefined,
-): { targetKind: string; id: string } | undefined {
+/** Host-owned routing inputs preserve the raw scalar, never a display label. */
+export function resolvePrincipalLink(value: unknown, display: ValueDisplay | undefined): { targetKind: string; id: string } | undefined {
   if (!display || (display.type !== ValueType.PRINCIPAL && display.type !== ValueType.EMAIL)
     || display.options.case !== "principal") return undefined;
   const options = display.options.value;
@@ -219,15 +80,8 @@ export function resolvePrincipalLink(
   return id.trim() === "" ? undefined : { targetKind, id };
 }
 
-/**
- * Return the host-routing inputs for any declared ValueLink, falling back to
- * the legacy principal/email link fields for descriptors written before the
- * general link field existed.
- */
-export function resolveValueLink(
-  value: unknown,
-  display: ValueDisplay | undefined,
-): { targetKind: string; id: string } | undefined {
+/** Explicit ValueLink presence still takes precedence over legacy link fields. */
+export function resolveValueLink(value: unknown, display: ValueDisplay | undefined): { targetKind: string; id: string } | undefined {
   if (display?.link) {
     const targetKind = display.link.targetKind.trim();
     if (!targetKind) return undefined;
@@ -239,124 +93,11 @@ export function resolveValueLink(
   return resolvePrincipalLink(value, display);
 }
 
-/** Return a navigable URL only for explicitly declared, safe HTTP(S) values. */
+/** Navigation admission remains host/surface behavior, not Rust formatting. */
 export function isSafeHttpUrl(value: unknown, display: ValueDisplay | undefined): value is string {
   if (display?.type !== ValueType.URL || typeof value !== "string") return false;
   try {
     const protocol = new URL(value).protocol;
     return protocol === "http:" || protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-/** Stable decimal scalar spelling without locale or exponent grouping. */
-function plainNumber(value: number): string {
-  const text = String(value);
-  if (!/[eE]/.test(text)) return text;
-  const [mantissa, exponent] = text.split(/[eE]/);
-  const sign = mantissa!.startsWith("-") ? "-" : "";
-  const unsigned = mantissa!.replace(/^-/, "");
-  const point = unsigned.includes(".") ? unsigned.indexOf(".") : unsigned.length;
-  const digits = unsigned.replace(".", "");
-  const position = point + Number(exponent);
-  return sign + (position <= 0 ? `0.${"0".repeat(-position)}${digits}`
-    : position >= digits.length ? digits + "0".repeat(position - digits.length)
-    : `${digits.slice(0, position)}.${digits.slice(position)}`);
-}
-
-/** Round the stored binary64 value, including magnitudes where toFixed switches
- * to exponent notation. Exact ties are away from zero; precision is bounded. */
-function fixedNumber(value: number, digits: number): string {
-  const buffer = new DataView(new ArrayBuffer(8));
-  buffer.setFloat64(0, Math.abs(value));
-  const bits = buffer.getBigUint64(0);
-  const biased = Number((bits >> 52n) & 2047n);
-  const mantissa = (bits & ((1n << 52n) - 1n)) | (biased === 0 ? 0n : 1n << 52n);
-  const exponent = Math.max(1, biased) - 1023 - 52 + digits;
-  let scaled = mantissa * 5n ** BigInt(digits);
-  if (exponent >= 0) scaled <<= BigInt(exponent);
-  else {
-    const shift = BigInt(-exponent);
-    scaled = (scaled + (1n << (shift - 1n))) >> shift;
-  }
-  const text = scaled.toString().padStart(digits + 1, "0");
-  const sign = value < 0 ? "-" : "";
-  return sign + (digits === 0 ? text : `${text.slice(0, -digits)}.${text.slice(-digits)}`);
-}
-
-/** Format a value according to its declared ValueDisplay, with inference fallback. */
-export function formatByDisplay(
-  value: unknown,
-  display: ValueDisplay | undefined,
-  nowMs?: number,
-): DisplayedValue {
-  const type = display?.type ?? ValueType.UNSPECIFIED;
-  if (type === ValueType.UNSPECIFIED) return { text: formatDisplayValue(value) };
-  if (value === null || value === undefined || value === "") return { text: EMPTY_DISPLAY };
-
-  switch (type) {
-    case ValueType.DATE:
-    case ValueType.DATE_TIME:
-    case ValueType.TIME: {
-      const text = String(value);
-      const options = display?.options.case === "temporal" ? display.options.value : undefined;
-      const precision = options?.precision ?? TemporalPrecision.UNSPECIFIED;
-      const absolute =
-        (type === ValueType.TIME
-          ? formatTime(text, precision)
-          : formatTemporal(text, type === ValueType.DATE ? TemporalPrecision.DAY : precision)) ??
-        formatDisplayValue(value);
-      const wants = options?.display ?? TemporalDisplay.UNSPECIFIED;
-      const relative = nowMs === undefined ? undefined : formatRelativeTime(text, nowMs);
-      if (relative === undefined) return { text: absolute };
-      if (wants === TemporalDisplay.RELATIVE) return { text: relative };
-      if (wants === TemporalDisplay.RELATIVE_WITH_ABSOLUTE_TITLE) {
-        return { text: relative, title: absolute };
-      }
-      return { text: absolute };
-    }
-    case ValueType.INTEGER:
-    case ValueType.DECIMAL:
-    case ValueType.MONEY:
-    case ValueType.PERCENT: {
-      const options = display?.options.case === "number" ? display.options.value : undefined;
-      if (typeof value !== "number" || !Number.isFinite(value)) return { text: formatDisplayValue(value) };
-      let number = type === ValueType.PERCENT ? value * 100 : value;
-      if (!Number.isFinite(number)) return { text: formatDisplayValue(value) };
-      let suffix = "";
-      if (options?.compact) {
-        for (const [magnitude, label] of [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]] as const) {
-          if (Math.abs(number) >= magnitude) { number /= magnitude; suffix = label; break; }
-        }
-      }
-      const digits = options?.fractionDigits;
-      let text = digits !== undefined && Number.isInteger(digits) && digits >= 0 && digits <= 100
-        ? fixedNumber(number, digits) : plainNumber(number);
-      if (!options?.omitGroupSeparators) {
-        const [integer, fraction] = text.split(".");
-        text = integer!.replace(/\B(?=(\d{3})+$)/g, ",") + (fraction === undefined ? "" : `.${fraction}`);
-      }
-      const currency = type === ValueType.MONEY && /^[A-Z]{3}$/.test(options?.currencyCode ?? "")
-        ? `${options!.currencyCode} ` : "";
-      return { text: `${currency}${text}${suffix}${type === ValueType.PERCENT ? "%" : ""}` };
-    }
-    case ValueType.PRINCIPAL: {
-      const options = display?.options.case === "principal" ? display.options.value : undefined;
-      return formatPrincipalValue(value, options?.display ?? PrincipalDisplay.UNSPECIFIED);
-    }
-    case ValueType.EMAIL: {
-      const options = display?.options.case === "principal" ? display.options.value : undefined;
-      return formatPrincipalValue(value, options?.display ?? PrincipalDisplay.EMAIL);
-    }
-    case ValueType.URL:
-    case ValueType.IDENTIFIER:
-      return { text: String(value) };
-    case ValueType.BOOLEAN:
-      return { text: typeof value === "boolean" ? (value ? "Yes" : "No") : formatDisplayValue(value) };
-    case ValueType.LIST:
-      return { text: displayValueList(value).join(", ") || EMPTY_DISPLAY };
-    default:
-      return { text: formatDisplayValue(value) };
-  }
+  } catch { return false; }
 }

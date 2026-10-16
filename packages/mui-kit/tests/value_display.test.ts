@@ -8,7 +8,7 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 import fixture from "../../../schemas/conformance/value_types.json";
 import coreCorpus from "../../../schemas/conformance/core.json";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { ColumnFormat, TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 import {
   FormattedValueSchema,
@@ -18,7 +18,7 @@ import {
   ValueDisplaySchema,
   ValueType,
 } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { formatByCore } from "@savvifi/meridian-schemas/uiview";
+import { formatByCore, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import {
   EMPTY_DISPLAY,
@@ -30,8 +30,15 @@ import {
 
 const corpus = fixture.cases;
 
+it("preserves native legacy rounding without confusing it with declared precision", () => {
+  expect(formatLegacyNumber(1.125, ColumnFormat.FLOAT_2DP)).toBe("1.12");
+  expect(formatByDisplay(1.125, create(ValueDisplaySchema, {
+    type: ValueType.DECIMAL, options: { case: "number", value: { fractionDigits: 2 } },
+  })).text).toBe("1.13");
+});
+
 describe("shared temporal precision contract", () => {
-  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name.startsWith("number-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
+  it.each(coreCorpus.valueFormats.filter(entry => entry.name.startsWith("precision-") || entry.name.startsWith("number-") || entry.name.startsWith("fallback-") || entry.name === "relative-title-seconds"))("formats $name", entry => {
     const bytes = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
     const display = fromBinary(ValueDisplaySchema, bytes(entry.display));
     const expected = fromBinary(FormattedValueSchema, bytes(entry.expected));

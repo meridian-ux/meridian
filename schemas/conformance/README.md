@@ -183,7 +183,7 @@ declarations and explicit delegation rather than claiming to execute private cod
 
 ## Native and WASM core fixtures
 
-`core.proto` defines the test-only envelope for `core.json`. Its 170 cases cover
+`core.proto` defines the test-only envelope for `core.json`. Its 182 cases cover
 field paths, request bindings, tables, galleries, LRO status text, and stateful
 payload budgets. Descriptor inputs are actual protobuf wire bytes. Native Rust
 and the real wasm-bindgen bridge compare their outputs with the same committed
@@ -210,14 +210,15 @@ native whole-number labels (`42`, not a JSON floating-point artifact `42.0`).
 Raw values, clipboard values, and submitted inputs are unchanged.
 
 Thirteen temporal vectors additionally compare native core, both real WASM
-table entrypoints, and the current TypeScript formatter. They cover UTC offset
+table entrypoints, and the default Rust-backed browser adapter. They cover UTC offset
 normalization, day/year/leap-day rollover, midnight presentation, explicit day
 precision, and malformed suffixes or Unicode input. Invalid inputs retain raw
 text rather than becoming a partial timestamp or panicking on a UTF-8 slice.
 Explicit day precision retains the authored calendar date rather than shifting
 it with the timestamp's offset; zone-free native timestamps retain UTC behavior.
-These vectors expose regressions while #50 consolidates the formatter; they do
-not substitute for its required single implementation or complete option matrix.
+These fixed expectations remain independent of the implementation even though
+browser and native formatting now execute the same core. They do not establish
+every invalid-input or calendar-day relative-time acceptance requirement.
 
 The native suites run with `cargo test -p meridian-uiview --lib` or
 `bazel test //crates/core/rust/uiview:uiview_test`. The real bridge suite runs
@@ -259,10 +260,37 @@ modes, relative-time boundaries/rounding, offsets, leap centuries, invalid clock
 and PrincipalDisplay modes with and without clock context. Native Rust and actual
 WASM decode identical expected FormattedValue bytes, including title presence.
 
-This additive capability is not yet the default formatter for existing browser
-consumers. The complete precision/option matrix, synchronous browser/SSR
-initialization, and removal of the legacy TypeScript implementation
-remain requirements of #50/#51; this boundary does not close either task.
+The default `formatByDisplay` path now uses a self-contained module generated
+from the same pinned Rust WASM target that ships in the schemas package. It
+initializes synchronously from embedded bytes in browsers and Node SSR: no
+runtime fetch, filesystem access, top-level await, host formatter configuration,
+or independent clock. Legacy timestamp inference, principal APIs, StatPanel
+numeric labels, and table FLOAT_2DP numeric labels also delegate to core. The
+TypeScript date/number/principal algorithms are removed; routing and decoration
+stay in their existing host seams. Legacy column rounding retains native
+ColumnFormat semantics; declared precision retains its distinct documented rule.
+
+For local source development, run `pnpm core:prepare` after `pnpm install` and
+after Rust formatter changes. Bazel publishes the generated module directly;
+generated source copies are ignored, not checked-in binary snapshots. CI builds
+this narrow core target once, passes the two module artifacts to the Node test
+job, and independently verifies the full Bazel package/render graph. Publishing
+also prepares the same local artifact before package tests; this adds no publish
+or deployment trigger.
+
+Detached-process tests import the module with fetch, Intl date formatters, and
+Date.now disabled in two time zones. Real HTML/Shadcn field tests render server
+markup and hydrate it without replacing header nodes or producing recoverable
+errors; relative text appears after hydration while supporting titles survive.
+Synchronous WebAssembly compilation must be permitted by the host runtime/CSP.
+The current full-core module is approximately 2.09 MB uncompressed / 613 KB
+gzipped, an explicit startup/bundle cost, not a completed performance-budget audit.
+
+Twelve fixed fallback cases protect literal declared text, unknown types/modes,
+strict calendar validation, and UTC zone-free timestamps. UNSPECIFIED retains
+the existing inference contract, now implemented in core; unknown future types
+stay literal. Calendar-day relative semantics and the broader #50/#51 acceptance
+audit remain open; default adoption alone does not close either task.
 
 After editing the corpus authoring inputs or intentionally changing the core
 contract, regenerate with `node schemas/tools/write_core_corpus.mjs --write`

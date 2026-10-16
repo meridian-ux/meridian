@@ -1,21 +1,21 @@
 // Shared StatPanel computation — the ONE TypeScript implementation of a KPI
 // tile's delta / trend / formatting, imported by every TS renderer (web-react's
 // html/shadcn kits, mui-kit, and the web-components renderer) so none diverge.
-// The Rust renderer (tui, via meridian-uiview-core) mirrors this EXACTLY; a
-// parity test in each language asserts identical output for identical input.
+// Numeric labels delegate to the same Rust formatter used by the TUI. Trend,
+// semantic emphasis, and SVG geometry remain runtime presentation adapters.
 //
 // The delta/trend is COMPUTED from the data (previous / series), never trusted
 // from an author-marked direction — that catches a declining metric mislabeled
 // "up". `trend_override` / `delta_override` are escape hatches only. Semantic
 // good/bad color is applied ONLY when `higher_is_better` is explicitly set.
 //
-// Legacy number formatting uses deterministic integer math (no toLocaleString).
-// Declared numeric ValueDisplay values use the same formatter as read surfaces.
+// Both legacy and declared numeric labels execute in core, not JavaScript twins.
 
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
 import { formatByDisplay } from "./value_display.js";
+import { coreFormatting } from "./core_runtime.js";
 
 export type StatTrend = "up" | "down" | "flat" | "none";
 export type StatSemantics = "good" | "bad" | "neutral";
@@ -33,76 +33,9 @@ export interface StatComputed {
   series: number[];
 }
 
-// ValueFormat enum values (stat.proto): 0/1 = number, 2 = percent, 3 = currency,
-// 4 = compact, 5 = plain.
-// ── deterministic number formatting (matches the Rust formatter) ─────────────
-
-// Decompose |round(n, 2dp)| into (negative, integerPart, frac00..99).
-function parts(n: number): { neg: boolean; int: number; frac: number } {
-  // round half away from zero at 2 dp, via integer scaling.
-  const scaled = Math.round(Math.abs(n) * 100 + 1e-9) * (n < 0 ? -1 : 1);
-  const neg = scaled < 0;
-  const a = Math.abs(scaled);
-  return { neg, int: Math.floor(a / 100), frac: a % 100 };
-}
-
-function group(int: number): string {
-  const s = String(int);
-  let out = "";
-  for (let i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 === 0) out += ",";
-    out += s[i];
-  }
-  return out;
-}
-
-// A number → string, grouped or not, integer if whole else up to 2 dp (trailing
-// zeros stripped).
-function trimNum(n: number, grouped: boolean): string {
-  const { neg, int, frac } = parts(n);
-  let s = grouped ? group(int) : String(int);
-  if (frac !== 0) {
-    let f = String(frac).padStart(2, "0").replace(/0+$/, "");
-    if (f === "") f = "0";
-    s = `${s}.${f}`;
-  }
-  return neg && !(int === 0 && frac === 0) ? `-${s}` : s;
-}
-
-function currency(n: number): string {
-  const { neg, int, frac } = parts(n);
-  const s = `$${group(int)}.${String(frac).padStart(2, "0")}`;
-  return neg && !(int === 0 && frac === 0) ? `-${s}` : s;
-}
-
-function compact(n: number): string {
-  const a = Math.abs(n);
-  const units: [number, string][] = [
-    [1e12, "T"],
-    [1e9, "B"],
-    [1e6, "M"],
-    [1e3, "K"],
-  ];
-  for (const [div, suffix] of units) {
-    if (a >= div) return trimNum(n / div, false) + suffix;
-  }
-  return trimNum(n, false);
-}
-
 /** Format a raw number per a ValueFormat enum value. Deterministic. */
 export function formatStatNumber(n: number, format: number): string {
-  switch (format) {
-    case 2: // PERCENT
-      return `${trimNum(n, false)}%`;
-    case 3: // CURRENCY
-      return currency(n);
-    case 4: // COMPACT
-      return compact(n);
-    case 5: // PLAIN
-      return trimNum(n, false);
-    default: // 0 UNSPECIFIED / 1 NUMBER
-      return trimNum(n, true);
-  }
+  return coreFormatting.formatStatNumber(n, format);
 }
 
 /** StatPanel carries doubles; only numeric declarations replace its legacy format. */

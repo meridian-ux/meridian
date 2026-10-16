@@ -73,6 +73,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare the canonical synchronous browser formatter
+        run: pnpm core:prepare
+
       # Refuse to publish a tag that disagrees with the repo. Everything derives
       # from MODULE.bazel's module(version): the six npm manifests via
       # tools/publish_manifests.py, and //:Cargo.toml's [workspace.package]

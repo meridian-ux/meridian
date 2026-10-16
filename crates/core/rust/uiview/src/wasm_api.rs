@@ -23,6 +23,36 @@ use serde_json::Value;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(js_name = "formatInferredValue")]
+pub fn format_inferred_value(value: JsValue) -> Result<String, JsError> {
+    let value: Value =
+        serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(crate::render::format_inferred_value(&value))
+}
+
+#[wasm_bindgen(js_name = "formatTimestamp")]
+pub fn format_timestamp(text: &str) -> Option<String> {
+    crate::render::try_format_timestamp(text)
+}
+
+#[wasm_bindgen(js_name = "formatRelativeTime")]
+pub fn format_relative_time(text: &str, now_ms: f64) -> Option<String> {
+    crate::render::try_format_relative_timestamp(text, now_ms)
+}
+
+#[wasm_bindgen(js_name = "formatStatNumber")]
+pub fn format_stat_number(number: f64, format: i32) -> String {
+    crate::stat::format_stat_number(number, format)
+}
+
+#[wasm_bindgen(js_name = "formatLegacyNumber")]
+pub fn format_legacy_number(number: f64, format: i32) -> String {
+    crate::format_value(
+        &serde_json::json!(number),
+        crate::proto::ColumnFormat::try_from(format).unwrap_or_default(),
+    )
+}
+
 /// Standalone declared-value formatting without constructing a table. Raw RPC
 /// data uses the bridge's existing JSON value layer; the declaration and rich
 /// result are protobuf wire messages (ValueDisplay -> FormattedValue).

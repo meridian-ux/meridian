@@ -15,7 +15,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -144,7 +144,7 @@ function formatCell(
   if (value === null || value === undefined) return "";
   switch (format) {
     case ColumnFormat.FLOAT_2DP:
-      return typeof value === "number" ? value.toFixed(2) : String(value);
+      return typeof value === "number" ? formatLegacyNumber(value, format) : String(value);
     case ColumnFormat.STRING_LIST:
       return Array.isArray(value) ? value.join(", ") : String(value);
     default:
