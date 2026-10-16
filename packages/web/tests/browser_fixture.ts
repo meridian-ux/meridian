@@ -1,6 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { renderPanel, type UiviewWasm } from "../src/uiview/renderer.js";
+import { applyTheme } from "../theme/web/theme.js";
 
 // Runtime test controls only. Descriptors remain canonical protobuf messages;
 // the local fake transport uses the renderer's established JSON RPC contract.
@@ -11,6 +12,9 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  typography: () => applyTheme({ typography: {
+    sans: "sans-serif", base_size_px: 19, heading_weight: 700, body_weight: 500,
+  } }, "light", root()),
   gallery: () => renderPanel({ root: root(), wasm, context,
     descriptor: create(PanelDescriptorSchema, { panelId: "gallery-layout", body: { case: "gallery", value: {
       populate: { service: "fixture.Gallery", method: "List" }, rowsField: "data.items",

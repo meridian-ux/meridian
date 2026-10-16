@@ -83,6 +83,7 @@ export function themeToCssVars(theme: Theme, mode: Mode = "dark"): Record<string
     if (t.mono) vars["--mer-font-mono"] = t.mono;
     if (t.base_size_px) vars["--mer-font-size"] = `${t.base_size_px}px`;
     if (t.heading_weight) vars["--mer-heading-weight"] = String(t.heading_weight);
+    if (t.body_weight) vars["--mer-body-weight"] = String(t.body_weight);
     if (t.heading_tracking) vars["--mer-heading-tracking"] = `${t.heading_tracking}em`;
   }
   const m = theme.metrics;
