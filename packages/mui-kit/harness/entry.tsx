@@ -55,6 +55,7 @@ import { PanelRenderer, ViewRenderer, MeridianProvider, htmlKit, shadcnKit } fro
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";
+import { toneCases } from "../../../schemas/conformance/tone_cases.js";
 
 // ── sample skins, so the catalog shows themed MUI (light + dark + a 2nd skin) ──
 const skin = create(ThemeSchema, {
@@ -894,6 +895,7 @@ declare global {
       render: (name: string) => Promise<void>;
     };
     meridianPresentation: (tone?: number, emphasis?: number, denied?: boolean, kit?: "mui" | "html" | "shadcn") => Promise<void>;
+    meridianToneCases: typeof toneCases;
   }
 }
 
@@ -901,6 +903,7 @@ window.meridianHarness = {
   list: () => fixtures.map((f) => ({ name: f.name, label: f.label, group: f.group })),
   render,
 };
+window.meridianToneCases = toneCases;
 
 window.meridianPresentation = async (tone?: number, emphasis?: number, denied = false, kit: "mui" | "html" | "shadcn" = "mui") => {
     const container = document.getElementById("root")!;

@@ -8,7 +8,7 @@ package(default_visibility = ["//visibility:public"])
 # Chrome/Playwright runner in mui-kit; the rendered bundle contains no MUI code.
 esbuild(
     name = "browser_fixture_bundle",
-    srcs = ["browser_fixture.ts", ":src_lib", "//packages/web/theme:binding"],
+    srcs = ["browser_fixture.ts", ":src_lib", "//packages/web/theme:binding", "//schemas:tone_conformance_data"],
     entry_point = "browser_fixture.ts",
     bundle = True,
     format = "iife",

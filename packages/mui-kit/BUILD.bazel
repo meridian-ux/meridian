@@ -81,6 +81,7 @@ esbuild(
     target = "es2022",
     tsconfig = "tsconfig.json",
     deps = [
+        "//schemas:tone_conformance_data",
         ":node_modules/@bufbuild/protobuf",
         ":node_modules/@emotion/react",
         ":node_modules/@emotion/styled",

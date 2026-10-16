@@ -4,6 +4,7 @@ import { registerAssistantPanel, ASSISTANT_PANEL_CSS } from "../src/assistant_pa
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { renderPanel, type UiviewWasm } from "../src/uiview/renderer.js";
 import { applyTheme } from "../theme/web/theme.js";
+import { toneCases } from "../../../schemas/conformance/tone_cases.js";
 
 // Runtime test controls only. Descriptors remain canonical protobuf messages;
 // the local fake transport uses the renderer's established JSON RPC contract.
@@ -14,6 +15,7 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  toneCases,
   affordance: (tone?: number, emphasis?: number, denied = false) => {
     applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());
     return renderPanel({ root: root(), wasm, context,

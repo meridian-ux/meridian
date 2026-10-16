@@ -5,7 +5,7 @@ load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
 package(default_visibility = ["//visibility:public"])
 
 # Cargo.toml exposed for crate_universe to read manifests.
-exports_files(["Cargo.toml"])
+exports_files(["Cargo.toml", "proto/gen/meridian_ui_v1.binpb"])
 
 # Rust types for meridian.ui.v1 via prost, generated from the meridian-schemas
 # proto_library (the cross-repo Bazel contract). No serde transform: the wasm

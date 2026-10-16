@@ -22,7 +22,10 @@ rust_library(
         "src/widget.rs",
     ],
     crate_name = "meridian_tui",
-    compile_data = ["//schemas:conformance/constrained_value_types.json"],
+    compile_data = [
+        "//schemas:conformance/constrained_value_types.json",
+        "//crates/core/rust/uiview:proto/gen/meridian_ui_v1.binpb",
+    ],
     edition = "2021",
     # theme.rs re-exports the `theme_proto` rust_prost_library types directly
     # (the single, Bazel-native codegen path — no cargo/prost-build fallback).
