@@ -48,6 +48,208 @@ impl RpcInvoker for Refuse {
 
 struct GalleryData;
 
+mod bounded_requests {
+    use super::*;
+    use meridian_uiview::proto::{field_binding::Source, FieldBinding};
+    use std::cell::Cell;
+    const ERROR: &str = "Request construction limit exceeded.";
+    struct Spy(Cell<usize>);
+    impl RpcInvoker for Spy {
+        fn invoke(
+            &self,
+            _: &str,
+            _: &str,
+            _: serde_json::Value,
+        ) -> Result<serde_json::Value, RpcError> {
+            self.0.set(self.0.get() + 1);
+            Ok(serde_json::json!({}))
+        }
+    }
+    #[test]
+    fn row_action_rejection_is_fallible_and_preserves_the_selected_row() {
+        struct Rows;
+        impl RpcInvoker for Rows {
+            fn invoke(
+                &self,
+                _: &str,
+                _: &str,
+                _: serde_json::Value,
+            ) -> Result<serde_json::Value, RpcError> {
+                Ok(serde_json::json!({"claims":[{"id":0}], "services":[{"id":0}]}))
+            }
+        }
+        let descriptor =
+            PanelDescriptor::decode(read_canonical_fixture("table.binpb").as_slice()).unwrap();
+        let mut view = PanelView::new();
+        let context = Context::default();
+        Terminal::new(TestBackend::new(120, 30))
+            .unwrap()
+            .draw(|frame| {
+                view.render(frame, frame.area(), &descriptor, &context, &Rows);
+            })
+            .unwrap();
+        if view.selected_row().is_none() {
+            view.select_next();
+        }
+        let before = view.selected_row().unwrap().clone();
+        assert!(view
+            .try_selected_row_request(&bad_call(), &context, false)
+            .is_err());
+        assert!(view
+            .selected_row_request(&bad_call(), &context, false)
+            .is_none());
+        let oversized_legacy = RpcCall {
+            service: "x".repeat(65_537),
+            ..Default::default()
+        };
+        assert!(view
+            .try_selected_row_request(&oversized_legacy, &context, true)
+            .is_err());
+        assert_eq!(view.selected_row(), Some(&before));
+    }
+
+    fn bad_call() -> RpcCall {
+        RpcCall {
+            service: "fixture.Bounded".into(),
+            method: "Read".into(),
+            bindings: vec![FieldBinding {
+                request_field: "a.".repeat(100) + "leaf",
+                source: Some(Source::Literal("not sent".into())),
+            }],
+        }
+    }
+    fn buffer(view: &mut PanelView, descriptor: &PanelDescriptor, invoker: &Spy) -> String {
+        let mut terminal = Terminal::new(TestBackend::new(120, 30)).unwrap();
+        terminal
+            .draw(|frame| {
+                view.render(
+                    frame,
+                    frame.area(),
+                    descriptor,
+                    &Context::default(),
+                    invoker,
+                )
+            })
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<Vec<_>>()
+            .concat()
+    }
+    #[test]
+    fn every_populate_family_rejects_before_invocation_and_renders_the_reason() {
+        for name in [
+            "table",
+            "stat",
+            "chart",
+            "resource_cards",
+            "gallery",
+            "record_card",
+            "detail_header",
+        ] {
+            let mut descriptor = PanelDescriptor::decode(
+                read_canonical_fixture(&format!("{name}.binpb")).as_slice(),
+            )
+            .unwrap();
+            match descriptor.body.as_mut().unwrap() {
+                Body::Table(panel) => panel.populate = Some(bad_call()),
+                Body::Stat(panel) => panel.populate = Some(bad_call()),
+                Body::Chart(panel) => panel.chart.as_mut().unwrap().populate = Some(bad_call()),
+                Body::ResourceCards(panel) => panel.populate = Some(bad_call()),
+                Body::Gallery(panel) => panel.populate = Some(bad_call()),
+                Body::RecordCard(panel) => panel.populate = Some(bad_call()),
+                Body::DetailHeader(panel) => panel.populate = Some(bad_call()),
+                _ => unreachable!(),
+            }
+            let spy = Spy(Cell::new(0));
+            let mut view = PanelView::new();
+            let output = buffer(&mut view, &descriptor, &spy);
+            assert_eq!(spy.0.get(), 0, "{name}");
+            assert!(output.contains(ERROR), "{name}: {output}");
+        }
+    }
+    #[test]
+    fn automatic_form_and_lro_paths_are_bounded_without_returning_a_submission() {
+        let field = FormField {
+            field_id: "input".into(),
+            label: "Input".into(),
+            request_field: "a.".repeat(100) + "leaf",
+            kind: Some(Kind::Text(TextInput {
+                default_value: "raw".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let call = RpcCall {
+            service: "fixture.Bounded".into(),
+            method: "Start".into(),
+            ..Default::default()
+        };
+        let spy = Spy(Cell::new(0));
+        let form = FormPanel {
+            mode: FormMode::Edit as i32,
+            fields: vec![field.clone()],
+            submit: Some(call.clone()),
+            ..Default::default()
+        };
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Form(form.clone())),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        buffer(&mut view, &descriptor, &spy);
+        assert!(view
+            .handle_form_key(&form, &Context::default(), KeyCode::Enter)
+            .is_none());
+        assert!(buffer(&mut view, &descriptor, &spy).contains(ERROR));
+        let lro = LroPanel {
+            inputs: vec![field],
+            start: Some(call),
+            ..Default::default()
+        };
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Lro(lro.clone())),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        buffer(&mut view, &descriptor, &spy);
+        assert!(view
+            .handle_lro_key(&lro, &Context::default(), KeyCode::Enter)
+            .is_none());
+        assert!(buffer(&mut view, &descriptor, &spy).contains(ERROR));
+        assert_eq!(spy.0.get(), 0);
+    }
+    #[test]
+    fn rejected_stream_request_never_subscribes_or_falls_back_to_empty_scope() {
+        struct StreamSpy(Cell<usize>);
+        impl meridian_tui::StreamInvoker for StreamSpy {
+            fn subscribe(
+                &self,
+                _: &RpcCall,
+                _: serde_json::Value,
+            ) -> Result<meridian_tui::StreamSession, meridian_tui::StreamError> {
+                self.0.set(self.0.get() + 1);
+                panic!("Rejected request reached subscription")
+            }
+        }
+        let mut descriptor =
+            PanelDescriptor::decode(read_canonical_fixture("stream.binpb").as_slice()).unwrap();
+        let Some(Body::Stream(panel)) = descriptor.body.as_mut() else {
+            unreachable!()
+        };
+        panel.subscribe = Some(bad_call());
+        let mut view = PanelView::new();
+        let stream = StreamSpy(Cell::new(0));
+        view.poll_stream(&descriptor, &Context::default(), &stream);
+        assert_eq!(stream.0.get(), 0);
+        assert!(buffer(&mut view, &descriptor, &Spy(Cell::new(0))).contains(ERROR));
+    }
+}
+
 mod inline_form_validation {
     use super::*;
     use meridian_uiview::proto::{

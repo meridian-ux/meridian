@@ -5,7 +5,8 @@ use meridian_uiview::proto::{
     PanelDescriptor, ResourceCardPanel, RpcCall, StreamFrame, TablePanel,
 };
 use meridian_uiview::{
-    render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBuilder,
+    render_gallery, render_table, Context, RenderedCard, RenderedRow, RequestBudget,
+    RequestBuilder, RequestOverrides,
 };
 use prost::Message as _;
 use ratatui::layout::{Constraint, Layout};
@@ -15,7 +16,7 @@ use ratatui::Frame;
 
 use crate::content;
 use crate::inline_prompt::{InlinePrompt, PanelPromptResponse};
-use crate::invoker::{RpcInvoker, StreamInvoker, StreamSession};
+use crate::invoker::{RpcError, RpcInvoker, StreamInvoker, StreamSession};
 use crate::lro::{LroRun, LroRunId};
 use crate::prompt::{PromptResponse, PromptState};
 use crate::theme::Palette;
@@ -24,6 +25,21 @@ use crate::theme::Palette;
 // schema deliberately leaves the exact default to each surface, but it also
 // requires every renderer to prevent an unbounded stream from growing forever.
 const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
+const REQUEST_ERROR: &str = "Request construction limit exceeded.";
+
+fn build_request(call: &RpcCall, context: &Context) -> Result<serde_json::Value, RpcError> {
+    RequestBuilder::build_for_boundary(call, context)
+        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
+}
+
+fn invoke_request<I: RpcInvoker>(
+    call: &RpcCall,
+    context: &Context,
+    invoker: &I,
+) -> Result<serde_json::Value, RpcError> {
+    let request = build_request(call, context)?;
+    invoker.invoke(&call.service, &call.method, request)
+}
 
 /// Stateful ratatui widget rendering one PanelDescriptor. For
 /// TablePanels it does its own populate call against the invoker
@@ -46,10 +62,14 @@ pub struct PanelView {
     cached_form: Option<CachedForm>,
     cached_lro: Option<CachedForm>,
     lro_run: Option<LroRun>,
-    lro_identity: Option<(Vec<u8>, serde_json::Value)>,
+    lro_identity: Option<(
+        Vec<u8>,
+        Result<serde_json::Value, meridian_uiview::RequestLimitExceeded>,
+    )>,
     stream_lines: Vec<String>,
     stream_session: Option<StreamSession>,
     stream_request_key: Option<String>,
+    stream_error: Option<String>,
     stream_scroll: usize,
     stream_follow: bool,
     stream_auto_follow: bool,
@@ -197,6 +217,7 @@ impl PanelView {
             stream_lines: Vec::new(),
             stream_session: None,
             stream_request_key: None,
+            stream_error: None,
             stream_scroll: 0,
             stream_follow: true,
             stream_auto_follow: true,
@@ -227,6 +248,7 @@ impl PanelView {
             stream_lines: Vec::new(),
             stream_session: None,
             stream_request_key: None,
+            stream_error: None,
             stream_scroll: 0,
             stream_follow: true,
             stream_auto_follow: true,
@@ -279,14 +301,28 @@ impl PanelView {
         let Some(Body::Stream(panel)) = descriptor.body.as_ref() else {
             self.stream_session = None;
             self.stream_request_key = None;
+            self.stream_error = None;
             self.stream_lines.clear();
             return;
         };
-        let request = panel
+        let request = match panel
             .subscribe
             .as_ref()
-            .map(|call| RequestBuilder::build(call, context))
-            .unwrap_or_else(|| serde_json::json!({}));
+            .map(|call| build_request(call, context))
+            .transpose()
+        {
+            Ok(request) => {
+                self.stream_error = None;
+                request.unwrap_or_else(|| serde_json::json!({}))
+            }
+            Err(_) => {
+                self.stream_session = None;
+                self.stream_request_key = None;
+                self.stream_lines.clear();
+                self.stream_error = Some(REQUEST_ERROR.into());
+                return;
+            }
+        };
         let key = format!(
             "{}:{}:{}",
             panel
@@ -497,11 +533,16 @@ impl PanelView {
                         // handle_lro_key supplies this panel's collected form
                         // values, not the host's form map. Track only external
                         // bindings here so edits never reset their own form.
-                        let mut external = context.clone();
-                        external.form_values.clear();
-                        RequestBuilder::build(start, &external)
+                        RequestBuilder::build_for_boundary_with(
+                            start,
+                            context,
+                            RequestOverrides {
+                                form_values: Some(&serde_json::Value::Null),
+                                ..Default::default()
+                            },
+                        )
                     })
-                    .unwrap_or_default(),
+                    .unwrap_or_else(|| Ok(serde_json::Value::Null)),
             )),
             _ => None,
         };
@@ -509,6 +550,9 @@ impl PanelView {
             self.cached_lro = None;
             self.lro_run = None;
         }
+        let identity_error = identity
+            .as_ref()
+            .is_some_and(|(_, request)| request.is_err());
         self.lro_identity = identity;
         let chunks = Layout::vertical([
             Constraint::Length(1),
@@ -541,6 +585,12 @@ impl PanelView {
             }
             Some(Body::Lro(panel)) => {
                 self.populate_lro_if_needed(panel);
+                if identity_error {
+                    self.lro_run = None;
+                    if let Some(cached) = self.cached_lro.as_mut() {
+                        cached.validation_error = Some(REQUEST_ERROR.into());
+                    }
+                }
                 if self.lro_run.is_some() {
                     self.render_lro_run(frame, content_area, panel);
                     return;
@@ -705,13 +755,10 @@ impl PanelView {
             }
             Some(Body::Stat(panel)) => {
                 if self.cached_stat.is_none() {
-                    let fetched = panel.populate.as_ref().map(|call| {
-                        invoker.invoke(
-                            &call.service,
-                            &call.method,
-                            RequestBuilder::build(call, context),
-                        )
-                    });
+                    let fetched = panel
+                        .populate
+                        .as_ref()
+                        .map(|call| invoke_request(call, context, invoker));
                     self.cached_stat = Some(match fetched {
                         Some(Ok(record)) if record.is_object() => CachedRecord {
                             record: Some(record),
@@ -772,6 +819,10 @@ impl PanelView {
                 content::render_steps(frame, chunks[2], panel, &self.palette);
             }
             Some(Body::Stream(panel)) => {
+                if let Some(error) = self.stream_error.as_deref() {
+                    self.render_placeholder(frame, chunks[1], chunks[2], error);
+                    return;
+                }
                 self.content_len = self.stream_lines.len();
                 self.stream_view_height = chunks[2].height.saturating_sub(2).max(1) as usize;
                 let max = self.stream_lines.len();
@@ -828,8 +879,7 @@ impl PanelView {
             });
             return;
         };
-        let request = RequestBuilder::build(populate, context);
-        match invoker.invoke(&populate.service, &populate.method, request) {
+        match invoke_request(populate, context, invoker) {
             Ok(response) => {
                 let rows = render_table(&response, table);
                 self.cached = Some(CachedTable {
@@ -871,8 +921,7 @@ impl PanelView {
             });
             return;
         };
-        let request = RequestBuilder::build(populate, context);
-        let cached = match invoker.invoke(&populate.service, &populate.method, request) {
+        let cached = match invoke_request(populate, context, invoker) {
             Ok(response) => {
                 let x = chart
                     .x
@@ -913,8 +962,7 @@ impl PanelView {
             });
             return;
         };
-        let request = RequestBuilder::build(populate, context);
-        match invoker.invoke(&populate.service, &populate.method, request) {
+        match invoke_request(populate, context, invoker) {
             Ok(response) => {
                 let rows = meridian_uiview::ProtoPaths::rows(&response, &panel.rows_field)
                     .into_iter()
@@ -947,8 +995,7 @@ impl PanelView {
             });
             return;
         };
-        let request = RequestBuilder::build(populate, context);
-        match invoker.invoke(&populate.service, &populate.method, request) {
+        match invoke_request(populate, context, invoker) {
             Ok(response) => {
                 self.cached_gallery = Some(CachedGallery {
                     cards: render_gallery(&response, panel),
@@ -980,8 +1027,7 @@ impl PanelView {
             });
             return;
         };
-        let request = RequestBuilder::build(populate, context);
-        match invoker.invoke(&populate.service, &populate.method, request) {
+        match invoke_request(populate, context, invoker) {
             Ok(record) => {
                 self.cached_record = Some(CachedRecord {
                     record: Some(record),
@@ -1026,8 +1072,7 @@ impl PanelView {
         };
         if panel.mode == FormMode::Edit as i32 {
             if let Some(prefill) = panel.prefill.as_ref() {
-                let request = RequestBuilder::build(prefill, context);
-                match invoker.invoke(&prefill.service, &prefill.method, request) {
+                match invoke_request(prefill, context, invoker) {
                     Ok(prefill_values) if prefill_values.is_object() => {
                         merge_form_values(&mut values, &prefill_values);
                     }
@@ -1093,10 +1138,13 @@ impl PanelView {
                     return None;
                 }
                 let submit = panel.submit.as_ref()?;
-                let mut submit_context = context.clone();
-                submit_context.form_values = form_values_by_id(&panel.fields, &cached.values);
-                let mut request = RequestBuilder::build(submit, &submit_context);
-                merge_form_request(&mut request, &panel.fields, &cached.values);
+                let request = match form_request(submit, context, &panel.fields, &cached.values) {
+                    Ok(request) => request,
+                    Err(_) => {
+                        cached.validation_error = Some(REQUEST_ERROR.into());
+                        return None;
+                    }
+                };
                 return Some(FormSubmission {
                     service: submit.service.clone(),
                     method: submit.method.clone(),
@@ -1184,10 +1232,13 @@ impl PanelView {
                     return None;
                 }
                 let start = panel.start.as_ref()?;
-                let mut start_context = context.clone();
-                start_context.form_values = form_values_by_id(&panel.inputs, &cached.values);
-                let mut request = RequestBuilder::build(start, &start_context);
-                merge_form_request(&mut request, &panel.inputs, &cached.values);
+                let request = match form_request(start, context, &panel.inputs, &cached.values) {
+                    Ok(request) => request,
+                    Err(_) => {
+                        cached.validation_error = Some(REQUEST_ERROR.into());
+                        return None;
+                    }
+                };
                 let run = LroRun::new(panel);
                 let run_id = run.id.clone();
                 self.lro_run = Some(run);
@@ -1405,16 +1456,47 @@ impl PanelView {
         context: &Context,
         legacy_id_fallback: bool,
     ) -> Option<serde_json::Value> {
-        let row = self.selected_row()?;
+        self.try_selected_row_request(call, context, legacy_id_fallback)
+            .ok()
+            .flatten()
+    }
+
+    /// Fallible host seam: use this variant to surface rejected request limits
+    /// rather than treating them like absence of a selected row.
+    pub fn try_selected_row_request(
+        &self,
+        call: &RpcCall,
+        context: &Context,
+        legacy_id_fallback: bool,
+    ) -> Result<Option<serde_json::Value>, RpcError> {
+        let Some(row) = self.selected_row() else {
+            return Ok(None);
+        };
         if call.bindings.is_empty() && legacy_id_fallback {
-            return Some(match row.get("id").filter(|id| !id.is_null()) {
-                Some(id) => serde_json::json!({ "id": id }),
-                None => serde_json::json!({}),
-            });
+            // The compatibility fallback still crosses a descriptor boundary.
+            if call.encoded_len() > 64 * 1024 {
+                return Err(RpcError::Other(REQUEST_ERROR.into()));
+            }
+            let mut request = serde_json::json!({});
+            if let Some(id) = row.get("id").filter(|id| !id.is_null()) {
+                let mut budget = RequestBudget::for_boundary(&request)
+                    .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
+                budget
+                    .assign(&mut request, "id", id)
+                    .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
+            }
+            return Ok(Some(request));
         }
-        let mut context = context.clone();
-        context.selected_row = Some(row.clone());
-        Some(RequestBuilder::build(call, &context))
+        RequestBuilder::build_for_boundary_with(
+            call,
+            context,
+            RequestOverrides {
+                selected_row: Some(row),
+                ..Default::default()
+            },
+        )
+        .map(Some)
+        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
     }
 
     /// Convenience: returns the currently-selected row's raw JSON,
@@ -1467,19 +1549,26 @@ fn merge_form_values(destination: &mut serde_json::Value, source: &serde_json::V
     }
 }
 
-fn form_values_by_id(
+fn form_request(
+    call: &RpcCall,
+    context: &Context,
     fields: &[FormField],
     values: &serde_json::Value,
-) -> std::collections::HashMap<String, serde_json::Value> {
-    fields
-        .iter()
-        .filter_map(|field| {
-            values
-                .get(&field.field_id)
-                .cloned()
-                .map(|value| (field.field_id.clone(), value))
-        })
-        .collect()
+) -> Result<serde_json::Value, RpcError> {
+    let declared = fields.iter().map(|field| field.field_id.as_str()).collect();
+    let (mut request, mut budget) = RequestBuilder::start_for_boundary(
+        call,
+        context,
+        RequestOverrides {
+            form_values: Some(values),
+            form_fields: Some(&declared),
+            ..Default::default()
+        },
+    )
+    .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
+    merge_form_request(&mut request, fields, values, &mut budget)
+        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))?;
+    Ok(request)
 }
 
 fn join_form_path(prefix: &str, segment: &str) -> String {
@@ -1492,41 +1581,16 @@ fn join_form_path(prefix: &str, segment: &str) -> String {
     }
 }
 
-fn set_json_path(root: &mut serde_json::Value, path: &str, value: serde_json::Value) {
-    if path.is_empty() {
-        return;
-    }
-    let mut current = root;
-    let segments: Vec<&str> = path.split('.').collect();
-    for segment in &segments[..segments.len().saturating_sub(1)] {
-        if !current.is_object() {
-            *current = serde_json::json!({});
-        }
-        current = current
-            .as_object_mut()
-            .expect("object created above")
-            .entry((*segment).to_string())
-            .or_insert_with(|| serde_json::json!({}));
-    }
-    if !current.is_object() {
-        *current = serde_json::json!({});
-    }
-    current
-        .as_object_mut()
-        .expect("object created above")
-        .insert(segments.last().unwrap().to_string(), value);
-}
-
 fn merge_form_request(
     root: &mut serde_json::Value,
     fields: &[FormField],
     values: &serde_json::Value,
-) {
+    budget: &mut RequestBudget,
+) -> Result<(), meridian_uiview::RequestLimitExceeded> {
     for field in fields {
         let value = values
             .get(&field.field_id)
-            .cloned()
-            .unwrap_or(serde_json::Value::Null);
+            .unwrap_or(&serde_json::Value::Null);
         let path = if field.request_field.is_empty() {
             field.field_id.clone()
         } else {
@@ -1539,8 +1603,7 @@ fn merge_form_request(
             for child in &nested.fields {
                 let child_value = nested_values
                     .get(&child.field_id)
-                    .cloned()
-                    .unwrap_or(serde_json::Value::Null);
+                    .unwrap_or(&serde_json::Value::Null);
                 let child_path = join_form_path(
                     &path,
                     if child.request_field.is_empty() {
@@ -1549,12 +1612,13 @@ fn merge_form_request(
                         &child.request_field
                     },
                 );
-                set_json_path(root, &child_path, child_value);
+                budget.assign(root, &child_path, child_value)?;
             }
         } else {
-            set_json_path(root, &path, value);
+            budget.assign(root, &path, value)?;
         }
     }
+    Ok(())
 }
 
 fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) {

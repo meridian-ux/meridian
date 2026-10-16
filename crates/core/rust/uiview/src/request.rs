@@ -47,32 +47,132 @@ pub struct RequestBuilder;
 #[error("request construction limit exceeded")]
 pub struct RequestLimitExceeded;
 
-struct BuildBudget {
+/// Borrowed in-process overrides, not a serialized context or copied row/form.
+#[derive(Clone, Copy, Default)]
+pub struct RequestOverrides<'a> {
+    pub selected_row: Option<&'a Value>,
+    pub form_values: Option<&'a Value>,
+    /// Filter overridden form values to declared field IDs, without copying
+    /// unmodeled prefill properties into the binding context.
+    pub form_fields: Option<&'a std::collections::HashSet<&'a str>>,
+}
+
+const BOUNDARY_WORK: usize = 4 * 1024 * 1024;
+const BOUNDARY_DEPTH: usize = 64;
+
+/// Runtime work accounting shared by binding assembly and automatic form fields.
+pub struct RequestBudget {
     remaining: Option<usize>,
     max_depth: Option<usize>,
 }
 
-impl BuildBudget {
-    fn check_depth(&self, value: &Value, depth: usize) -> Result<(), RequestLimitExceeded> {
-        let Some(max) = self.max_depth else {
-            return Ok(());
+struct CountWriter {
+    remaining: usize,
+}
+
+impl std::io::Write for CountWriter {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.remaining = self
+            .remaining
+            .checked_sub(bytes.len())
+            .ok_or_else(|| std::io::Error::other("request work limit"))?;
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+impl RequestBudget {
+    pub fn for_boundary(existing: &Value) -> Result<Self, RequestLimitExceeded> {
+        let mut budget = Self {
+            remaining: Some(BOUNDARY_WORK),
+            max_depth: Some(BOUNDARY_DEPTH),
         };
-        if depth > max {
+        budget.charge(existing, "", 0)?;
+        Ok(budget)
+    }
+
+    /// Validate borrowed values before copying or constructing a dotted path.
+    /// Unlike binding omission, automatic form fields may deliberately set null.
+    pub fn assign(
+        &mut self,
+        root: &mut Value,
+        path: &str,
+        value: &Value,
+    ) -> Result<(), RequestLimitExceeded> {
+        if path.is_empty() {
+            return Ok(());
+        }
+        self.charge(value, path, path.split('.').count())?;
+        if !root.is_object() {
+            *root = Value::Object(Map::new());
+        }
+        RequestBuilder::set_path(
+            root.as_object_mut().expect("object created"),
+            path,
+            value.clone(),
+        );
+        Ok(())
+    }
+
+    fn debit(left: &mut usize, count: usize) -> Result<(), RequestLimitExceeded> {
+        *left = left.checked_sub(count).ok_or(RequestLimitExceeded)?;
+        Ok(())
+    }
+
+    // A lower bound rejects huge values/containers without scanning or cloning
+    // them in full. The bounded writer then charges exact JSON escaping/number
+    // sizes without allocating an encoded temporary buffer.
+    fn minimum(
+        &self,
+        value: &Value,
+        depth: usize,
+        left: &mut usize,
+    ) -> Result<(), RequestLimitExceeded> {
+        if self.max_depth.is_some_and(|max| depth > max) {
             return Err(RequestLimitExceeded);
         }
         match value {
+            Value::Null => Self::debit(left, 4)?,
+            Value::Bool(value) => Self::debit(left, if *value { 4 } else { 5 })?,
+            Value::Number(_) => Self::debit(left, 1)?,
+            Value::String(value) => Self::debit(
+                left,
+                value.len().checked_add(2).ok_or(RequestLimitExceeded)?,
+            )?,
             Value::Array(values) => {
+                Self::debit(left, 2 + values.len().saturating_sub(1))?;
                 for value in values {
-                    self.check_depth(value, depth + 1)?;
+                    self.minimum(value, depth + 1, left)?;
                 }
             }
             Value::Object(values) => {
-                for value in values.values() {
-                    self.check_depth(value, depth + 1)?;
+                Self::debit(left, 2 + values.len().saturating_sub(1))?;
+                for (key, value) in values {
+                    Self::debit(left, key.len().checked_add(3).ok_or(RequestLimitExceeded)?)?;
+                    self.minimum(value, depth + 1, left)?;
                 }
             }
-            _ => {}
         }
+        Ok(())
+    }
+
+    fn serialized<T: serde::Serialize + ?Sized>(
+        &mut self,
+        value: &T,
+        path: &str,
+    ) -> Result<(), RequestLimitExceeded> {
+        let Some(remaining) = self.remaining else {
+            return Ok(());
+        };
+        let mut writer = CountWriter {
+            remaining: remaining
+                .checked_sub(path.len())
+                .ok_or(RequestLimitExceeded)?,
+        };
+        serde_json::to_writer(&mut writer, value).map_err(|_| RequestLimitExceeded)?;
+        self.remaining = Some(writer.remaining);
         Ok(())
     }
 
@@ -85,17 +185,60 @@ impl BuildBudget {
         if self.remaining.is_none() {
             return Ok(());
         }
-        self.check_depth(value, depth)?;
-        // Charge every intermediate copy, including overwritten destinations
-        // and nested assembly. A small final object must not hide huge work.
-        let size = serde_json::to_vec(value)
-            .map_err(|_| RequestLimitExceeded)?
-            .len()
-            .checked_add(path.len())
+        let mut left = self
+            .remaining
+            .unwrap()
+            .checked_sub(path.len())
             .ok_or(RequestLimitExceeded)?;
-        let remaining = self.remaining.as_mut().expect("checked above");
-        *remaining = remaining.checked_sub(size).ok_or(RequestLimitExceeded)?;
-        Ok(())
+        self.minimum(value, depth, &mut left)?;
+        self.serialized(value, path)
+    }
+}
+
+enum Resolved<'a> {
+    Borrowed(&'a Value),
+    Text(&'a str),
+    Owned(Value),
+}
+
+impl Resolved<'_> {
+    fn is_null(&self) -> bool {
+        match self {
+            Self::Borrowed(value) => value.is_null(),
+            Self::Owned(value) => value.is_null(),
+            Self::Text(_) => false,
+        }
+    }
+    fn charge(
+        &self,
+        budget: &mut RequestBudget,
+        path: &str,
+        depth: usize,
+    ) -> Result<(), RequestLimitExceeded> {
+        match self {
+            Self::Borrowed(value) => budget.charge(value, path, depth),
+            Self::Owned(value) => budget.charge(value, path, depth),
+            Self::Text(value) => {
+                if let Some(left) = budget.remaining {
+                    if value
+                        .len()
+                        .checked_add(2)
+                        .and_then(|n| n.checked_add(path.len()))
+                        .is_none_or(|n| n > left)
+                    {
+                        return Err(RequestLimitExceeded);
+                    }
+                }
+                budget.serialized(value, path)
+            }
+        }
+    }
+    fn into_owned(self) -> Value {
+        match self {
+            Self::Borrowed(value) => value.clone(),
+            Self::Text(value) => Value::String(value.to_owned()),
+            Self::Owned(value) => value,
+        }
     }
 }
 
@@ -104,10 +247,11 @@ impl RequestBuilder {
         Self::build_inner(
             &call.bindings,
             ctx,
-            &mut BuildBudget {
+            &mut RequestBudget {
                 remaining: None,
                 max_depth: None,
             },
+            RequestOverrides::default(),
             0,
         )
         .expect("unlimited trusted request construction")
@@ -125,23 +269,58 @@ impl RequestBuilder {
         Self::build_inner(
             &call.bindings,
             ctx,
-            &mut BuildBudget {
+            &mut RequestBudget {
                 remaining: Some(max_work),
                 max_depth: Some(max_depth),
             },
+            RequestOverrides::default(),
             0,
         )
+    }
+
+    pub fn build_for_boundary(
+        call: &RpcCall,
+        ctx: &Context,
+    ) -> Result<Value, RequestLimitExceeded> {
+        Self::build_for_boundary_with(call, ctx, RequestOverrides::default())
+    }
+
+    pub fn build_for_boundary_with(
+        call: &RpcCall,
+        ctx: &Context,
+        overrides: RequestOverrides<'_>,
+    ) -> Result<Value, RequestLimitExceeded> {
+        Self::start_for_boundary(call, ctx, overrides).map(|(request, _)| request)
+    }
+
+    /// Continue automatic field assignment using the SAME cumulative budget.
+    pub fn start_for_boundary(
+        call: &RpcCall,
+        ctx: &Context,
+        overrides: RequestOverrides<'_>,
+    ) -> Result<(Value, RequestBudget), RequestLimitExceeded> {
+        use prost::Message;
+        if call.encoded_len() > 64 * 1024 {
+            return Err(RequestLimitExceeded);
+        }
+        let mut budget = RequestBudget {
+            remaining: Some(BOUNDARY_WORK),
+            max_depth: Some(BOUNDARY_DEPTH),
+        };
+        let request = Self::build_inner(&call.bindings, ctx, &mut budget, overrides, 0)?;
+        Ok((request, budget))
     }
 
     fn build_inner(
         bindings: &[FieldBinding],
         ctx: &Context,
-        budget: &mut BuildBudget,
+        budget: &mut RequestBudget,
+        overrides: RequestOverrides<'_>,
         depth: usize,
     ) -> Result<Value, RequestLimitExceeded> {
         let mut root = Map::new();
         for binding in bindings {
-            Self::apply_binding(&mut root, binding, ctx, budget, depth)?;
+            Self::apply_binding(&mut root, binding, ctx, budget, overrides, depth)?;
         }
         Ok(Value::Object(root))
     }
@@ -150,7 +329,8 @@ impl RequestBuilder {
         root: &mut Map<String, Value>,
         binding: &FieldBinding,
         ctx: &Context,
-        budget: &mut BuildBudget,
+        budget: &mut RequestBudget,
+        overrides: RequestOverrides<'_>,
         depth: usize,
     ) -> Result<(), RequestLimitExceeded> {
         if binding.request_field.is_empty() {
@@ -164,53 +344,72 @@ impl RequestBuilder {
         }
         let value = match binding.source.as_ref() {
             Some(Source::Context(code)) => Self::resolve_context(*code, ctx),
-            Some(Source::RowField(p)) => ctx
-                .selected_row
-                .as_ref()
-                .map(|r| crate::ProtoPaths::get(r, p).clone())
-                .unwrap_or(Value::Null),
-            Some(Source::FormField(id)) => ctx.form_values.get(id).cloned().unwrap_or(Value::Null),
-            Some(Source::Literal(s)) => Value::String(s.clone()),
-            Some(Source::Nested(nested)) => Self::build_nested(nested, ctx, budget, depth)?,
+            Some(Source::RowField(p)) => Resolved::Borrowed(crate::ProtoPaths::get(
+                overrides
+                    .selected_row
+                    .or(ctx.selected_row.as_ref())
+                    .unwrap_or(&Value::Null),
+                p,
+            )),
+            Some(Source::FormField(id)) => Resolved::Borrowed(match overrides.form_values {
+                Some(values)
+                    if overrides
+                        .form_fields
+                        .is_none_or(|fields| fields.contains(id.as_str())) =>
+                {
+                    values.get(id).unwrap_or(&Value::Null)
+                }
+                Some(_) => &Value::Null,
+                None => ctx.form_values.get(id).unwrap_or(&Value::Null),
+            }),
+            Some(Source::Literal(s)) => Resolved::Text(s),
+            Some(Source::Nested(nested)) => {
+                Resolved::Owned(Self::build_nested(nested, ctx, budget, overrides, depth)?)
+            }
             // A live grammar/panel signal (a Vega selection). Resolves from
             // ctx.signals like form_field resolves from form_values; absent on
             // static/degraded surfaces → Null → the field is skipped (inert).
-            Some(Source::Signal(name)) => ctx.signals.get(name).cloned().unwrap_or(Value::Null),
+            Some(Source::Signal(name)) => {
+                Resolved::Borrowed(ctx.signals.get(name).unwrap_or(&Value::Null))
+            }
             // A view SELECTION key (a sibling scope picker's current value).
             // Resolves from ctx.selections; UNSET → Null → omitted below, which
             // rpc.proto requires: an unset scope must not be sent as empty and
             // silently widen the query.
             Some(Source::SelectionKey(key)) => {
-                ctx.selections.get(key).cloned().unwrap_or(Value::Null)
+                Resolved::Borrowed(ctx.selections.get(key).unwrap_or(&Value::Null))
             }
             None => return Ok(()),
         };
         if value.is_null() {
             return Ok(());
         }
-        budget.charge(&value, &binding.request_field, depth)?;
-        Self::set_path(root, &binding.request_field, value);
+        value.charge(budget, &binding.request_field, depth)?;
+        Self::set_path(root, &binding.request_field, value.into_owned());
         Ok(())
     }
 
     fn build_nested(
         nested: &NestedBinding,
         ctx: &Context,
-        budget: &mut BuildBudget,
+        budget: &mut RequestBudget,
+        overrides: RequestOverrides<'_>,
         depth: usize,
     ) -> Result<Value, RequestLimitExceeded> {
-        Self::build_inner(&nested.fields, ctx, budget, depth)
+        Self::build_inner(&nested.fields, ctx, budget, overrides, depth)
     }
 
-    fn resolve_context(code: i32, ctx: &Context) -> Value {
+    fn resolve_context(code: i32, ctx: &Context) -> Resolved<'_> {
         match ContextSource::try_from(code).unwrap_or(ContextSource::Unspecified) {
             ContextSource::CurrentResourcePath => ctx
                 .current_resource_path
-                .as_ref()
-                .map(|s| Value::String(s.clone()))
-                .unwrap_or(Value::Null),
-            ContextSource::UiIdentity => ctx.ui_identity.clone().unwrap_or(Value::Null),
-            ContextSource::Unspecified => Value::Null,
+                .as_deref()
+                .map(Resolved::Text)
+                .unwrap_or(Resolved::Borrowed(&Value::Null)),
+            ContextSource::UiIdentity => {
+                Resolved::Borrowed(ctx.ui_identity.as_ref().unwrap_or(&Value::Null))
+            }
+            ContextSource::Unspecified => Resolved::Borrowed(&Value::Null),
         }
     }
 
@@ -237,6 +436,90 @@ impl RequestBuilder {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn borrowed_overrides_filter_prefill_and_do_not_copy_unused_large_rows() {
+        let row = json!({"id":0, "unused":"x".repeat(5 * 1024 * 1024)});
+        let forms = json!({"visible":false, "secret":"not a declared input"});
+        let declared = ["visible"].into_iter().collect();
+        let call = RpcCall {
+            bindings: vec![
+                fb("id", Source::RowField("id".into())),
+                fb("flag", Source::FormField("visible".into())),
+                fb("hidden", Source::FormField("secret".into())),
+            ],
+            ..Default::default()
+        };
+        let result = RequestBuilder::build_for_boundary_with(
+            &call,
+            &Context::default(),
+            RequestOverrides {
+                selected_row: Some(&row),
+                form_values: Some(&forms),
+                form_fields: Some(&declared),
+            },
+        )
+        .unwrap();
+        assert_eq!(result, json!({"id":0,"flag":false}));
+        assert_eq!(row["unused"].as_str().unwrap().len(), 5 * 1024 * 1024);
+    }
+
+    #[test]
+    fn work_counting_handles_escaping_and_rejects_borrowed_values_before_copying() {
+        for (text, bytes) in [("é", 5), ("\"", 5), ("a\0", 10)] {
+            let call = RpcCall {
+                bindings: vec![fb("v", Source::Literal(text.into()))],
+                ..Default::default()
+            };
+            assert!(RequestBuilder::build_bounded(&call, &Context::default(), bytes, 64).is_ok());
+            assert_eq!(
+                RequestBuilder::build_bounded(&call, &Context::default(), bytes - 1, 64),
+                Err(RequestLimitExceeded)
+            );
+        }
+        let ctx = Context {
+            ui_identity: Some(json!("x".repeat(5 * 1024 * 1024))),
+            ..Default::default()
+        };
+        let call = RpcCall {
+            bindings: vec![fb(
+                "identity",
+                Source::Context(ContextSource::UiIdentity as i32),
+            )],
+            ..Default::default()
+        };
+        assert_eq!(
+            RequestBuilder::build_for_boundary(&call, &ctx),
+            Err(RequestLimitExceeded)
+        );
+    }
+
+    #[test]
+    fn automatic_fields_continue_the_binding_work_budget_and_keep_null_values() {
+        let ctx = Context {
+            ui_identity: Some(json!("x".repeat(400_000))),
+            ..Default::default()
+        };
+        let call = RpcCall {
+            bindings: (0..10)
+                .map(|_| fb("same", Source::Context(ContextSource::UiIdentity as i32)))
+                .collect(),
+            ..Default::default()
+        };
+        let (mut request, mut budget) =
+            RequestBuilder::start_for_boundary(&call, &ctx, RequestOverrides::default()).unwrap();
+        assert_eq!(
+            budget.assign(&mut request, "large", &json!("x".repeat(300_000))),
+            Err(RequestLimitExceeded)
+        );
+        assert!(request.get("large").is_none());
+        let mut small = json!({});
+        let mut budget = RequestBudget::for_boundary(&small).unwrap();
+        budget
+            .assign(&mut small, "nested.null", &Value::Null)
+            .unwrap();
+        assert_eq!(small, json!({"nested":{"null":null}}));
+    }
 
     #[test]
     fn bounded_builder_preserves_requests_and_rejects_intermediate_copy_amplification() {

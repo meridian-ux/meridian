@@ -143,7 +143,7 @@ fuzz_target!(|bytes: &[u8]| {
         let _ = render_gallery(&response, &gallery);
     }
     if let Ok(call) = RpcCall::decode(bytes) {
-        let _ = RequestBuilder::build(&call, &Context::default());
+        let _ = RequestBuilder::build_for_boundary(&call, &Context::default());
     }
     if let Ok(display) = ValueDisplay::decode(bytes) {
         for value in [

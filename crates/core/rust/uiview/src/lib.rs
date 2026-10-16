@@ -85,7 +85,7 @@ pub use render::{
     format_summary_number, format_value, render_gallery, render_table,
     try_format_relative_timestamp, try_format_timestamp, RenderedCard, RenderedRow,
 };
-pub use request::{Context, RequestBuilder, RequestLimitExceeded};
+pub use request::{Context, RequestBudget, RequestBuilder, RequestLimitExceeded, RequestOverrides};
 pub use stat::{
     compute_stat, compute_stat_with_response, format_stat_number, trend_arrow, StatComputed,
     StatSemantics, StatTrend,
