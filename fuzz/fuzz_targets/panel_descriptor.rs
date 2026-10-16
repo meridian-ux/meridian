@@ -4,8 +4,8 @@ use libfuzzer_sys::fuzz_target;
 use meridian_uiview::{
     prost::Message,
     proto::{
-        panel_descriptor::Body, FormattedValue, GalleryPanel, PanelDescriptor, RpcCall, TablePanel,
-        ValueDisplay,
+        panel_descriptor::Body, ComputedStat, FormattedValue, GalleryPanel, PanelDescriptor,
+        RpcCall, TablePanel, ValueDisplay,
     },
     render_gallery, render_table, Context, RequestBuilder,
 };
@@ -41,6 +41,37 @@ fuzz_target!(|bytes: &[u8]| {
             }
         } else {
             assert!((1..=3).contains(&status), "unexpected formatter status");
+            assert!(output.is_null());
+            assert_eq!(length, 0);
+        }
+    }
+    for (panel, response, has_response) in [(bytes, &[][..], 0), (&[][..], bytes, 1)] {
+        let mut output = std::ptr::null_mut();
+        let mut length = 0;
+        // SAFETY: live borrowed slices, separate writable output slots.
+        let status = unsafe {
+            meridian_uiview::native_api::meridian_core_compute_stat(
+                panel.as_ptr(),
+                panel.len(),
+                has_response,
+                response.as_ptr(),
+                response.len(),
+                &mut output,
+                &mut length,
+            )
+        };
+        if status == 0 {
+            assert!(!output.is_null());
+            assert!(length <= 4 * 1024 * 1024);
+            // SAFETY: successful ABI output remains live until its exact free.
+            assert!(
+                ComputedStat::decode(unsafe { std::slice::from_raw_parts(output, length) }).is_ok()
+            );
+            unsafe {
+                meridian_uiview::native_api::meridian_core_buffer_free(output, length);
+            }
+        } else {
+            assert!((1..=3).contains(&status), "unexpected stat status");
             assert!(output.is_null());
             assert_eq!(length, 0);
         }

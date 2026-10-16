@@ -35,6 +35,31 @@ public enum MeridianCore {
         return try Meridian_Ui_V1_FormattedValue(serializedBytes: Data(bytes: output, count: count))
     }
 
+    /// Pure computation over already admitted data, not a fetch capability.
+    public static func computeStat(
+        _ panel: Meridian_Ui_V1_StatPanel, response: Google_Protobuf_Value? = nil
+    ) throws -> Meridian_Ui_V1_ComputedStat {
+        guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
+            throw MeridianCoreError.incompatibleABI
+        }
+        let declaration = try panel.serializedData()
+        let input = try response?.serializedData() ?? Data()
+        var output: UnsafeMutablePointer<UInt8>?
+        var count = 0
+        let status = declaration.withUnsafeBytes { declarationBytes in
+            input.withUnsafeBytes { inputBytes in
+                meridian_core_compute_stat(
+                    declarationBytes.bindMemory(to: UInt8.self).baseAddress, declarationBytes.count,
+                    response == nil ? 0 : 1,
+                    inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count, &output, &count
+                )
+            }
+        }
+        defer { meridian_core_buffer_free(output, count) }
+        guard status == 0, let output else { throw MeridianCoreError.nativeStatus(status) }
+        return try Meridian_Ui_V1_ComputedStat(serializedBytes: Data(bytes: output, count: count))
+    }
+
     public static func matchesFormPattern(_ pattern: String, value: String) throws -> Bool {
         guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
             throw MeridianCoreError.incompatibleABI
