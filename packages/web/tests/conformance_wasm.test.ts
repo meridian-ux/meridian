@@ -86,6 +86,49 @@ const CTX = {
   formValues: {},
 };
 
+// Fixed, reproducible wire mutations complement (not replace) native libFuzzer.
+// The corpus remains immutable and every invocation crosses the real bridge.
+function wireMutations(seed: Uint8Array): Uint8Array[] {
+  const variants = [seed, seed.slice(0, 1), seed.slice(0, Math.floor(seed.length / 2)),
+    seed.slice(0, -1), new Uint8Array([...seed, 0x0a, 0x80]),
+    new Uint8Array([0x0e, ...seed]), new Uint8Array([...seed, 0xa2, 0x06, 0x00]),
+    new Uint8Array([0x0a, ...Array(11).fill(0xff), ...seed])];
+  for (const position of [0, Math.floor(seed.length / 2), seed.length - 1]) {
+    if (position < 0 || position >= seed.length) continue;
+    const changed = seed.slice();
+    changed[position] ^= 0xff;
+    variants.push(changed);
+  }
+  return variants;
+}
+
+function assertWireDoesNotTrap(bytes: Uint8Array, label: string): void {
+  const boundary = wasm as typeof wasm & {
+    renderTablePanel(table: Uint8Array, response: object): unknown;
+    renderGalleryPanel(gallery: Uint8Array, response: object): unknown;
+  };
+  expect(typeof wasm.formatValueDisplayAt).toBe("function");
+  const response = { rows: [{ value: "2026-03-29", name: "Ada", count: 1, active: false }] };
+  const calls = [
+    () => wasm.renderTable(bytes, response),
+    () => wasm.buildPopulateRequest(bytes, CTX),
+    () => wasm.buildRequest(bytes, CTX),
+    () => boundary.renderTablePanel(bytes, response),
+    () => boundary.renderGalleryPanel(bytes, response),
+    () => wasm.formatValueDisplay(bytes, "2026-03-29"),
+    () => wasm.formatValueDisplayAt!(bytes, "2026-03-29", 1_774_742_400_000),
+  ];
+  for (const [index, call] of calls.entries()) {
+    try {
+      call(); // A mutation can still be valid protobuf; success is allowed.
+    } catch (failure) {
+      expect(failure, `${label}, entrypoint ${index}`).toBeInstanceOf(Error);
+      expect(failure, `${label}, entrypoint ${index}`).not.toBeInstanceOf(WebAssembly.RuntimeError);
+      expect(failure, `${label}, entrypoint ${index}`).not.toBeInstanceOf(RangeError);
+    }
+  }
+}
+
 // Transport only: no network connection or PTY interaction is claimed here.
 class CorpusSocket {
   static OPEN = 1;
@@ -485,6 +528,30 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(invalidClock.admit(1, -1)).toBe(3);
     expect(invalidClock.admit(1, 10)).toBe(0);
     expect(invalidClock.admit(1, 9)).toBe(3);
+  });
+
+  it.each(STATE_CASES.filter(fixture => fixture.state === "typical"))(
+    "$name wire mutations never trap across decoder entrypoints", fixture => {
+      const panel = fixture.view.slots[0]?.panel;
+      expect(panel, fixture.name).toBeDefined();
+      const seed = toBinary(PanelDescriptorSchema, panel!);
+      for (const [index, bytes] of wireMutations(seed).entries()) {
+        assertWireDoesNotTrap(bytes, `${fixture.name}, mutation ${index}`);
+      }
+    },
+  );
+
+  it("mutates the typed RPC/table/gallery/display seeds without trapping", () => {
+    const wire = (text: string) => Uint8Array.from(atob(text), character => character.charCodeAt(0));
+    const seeds = [wire(core.requests[0].rpc), wire(core.tables[0].table),
+      wire(core.galleries[0].gallery), toBinary(ValueDisplaySchema, create(ValueDisplaySchema, {
+        type: ValueType.DATE_TIME, options: { case: "temporal", value: { display: 3 } },
+      }))];
+    for (const [seedIndex, seed] of seeds.entries()) {
+      for (const [index, bytes] of wireMutations(seed).entries()) {
+        assertWireDoesNotTrap(bytes, `typed seed ${seedIndex}, mutation ${index}`);
+      }
+    }
   });
 
   it("rejects malformed and future descriptors without trapping across the real wasm boundary", () => {
