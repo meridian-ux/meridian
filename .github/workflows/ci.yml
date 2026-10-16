@@ -266,6 +266,9 @@ jobs:
     # dependent than the other two jobs, so it runs alongside rather than in front.
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: bazel-contrib/setup-bazel@0.9.0
         with:
           bazelisk-cache: true
@@ -290,6 +293,11 @@ jobs:
 
       - name: bazel test //...
         run: bazel test //... --test_output=errors
+
+      # Explicit labels also fail if an owner is deleted or tagged manual,
+      # either of which could otherwise remove it from the wildcard suite.
+      - name: Required panel render proofs
+        run: node schemas/tools/panel_evidence.mjs --verify
 
   registry-admission:
     runs-on: ubuntu-latest
