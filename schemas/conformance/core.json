@@ -1,4 +1,390 @@
 {
+  "valueFormats": [
+    {
+      "name": "principal-12-0",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAA==",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "principal-12-1",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggB",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "principal-12-2",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggC",
+      "nowMs": 1774791900000,
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "principal-12-3",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggD",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "principal-13-0",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAA==",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "principal-13-1",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggB",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "principal-13-2",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggC",
+      "nowMs": 1774791900000,
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "principal-13-3",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0iAggD",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "principal-default",
+      "input": "Ada <ada@example.com>",
+      "display": "CAw=",
+      "nowMs": 1774791900000,
+      "expected": "CgNBZGE="
+    },
+    {
+      "name": "email-default",
+      "input": "Ada <ada@example.com>",
+      "display": "CA0=",
+      "nowMs": 1774791900000,
+      "expected": "Cg9hZGFAZXhhbXBsZS5jb20="
+    },
+    {
+      "name": "principal-invalid-clock",
+      "input": "Ada <ada@example.com>",
+      "display": "CAwiAggD",
+      "nowMs": "NaN",
+      "expected": "CgNBZGESD2FkYUBleGFtcGxlLmNvbQ=="
+    },
+    {
+      "name": "recent-past",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791959999,
+      "expected": "CghqdXN0IG5vdxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "recent-future",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791840001,
+      "expected": "CghqdXN0IG5vdxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "past-minute",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791960000,
+      "expected": "CgwxIG1pbnV0ZSBhZ28SGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "future-minute",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791840000,
+      "expected": "CgtpbiAxIG1pbnV0ZRIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "negative-half",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791990000,
+      "expected": "CgwxIG1pbnV0ZSBhZ28SGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "positive-half",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774791810000,
+      "expected": "CgxpbiAyIG1pbnV0ZXMSGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "before-hour",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774795499999,
+      "expected": "Cg42MCBtaW51dGVzIGFnbxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "hour",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774788300000,
+      "expected": "CglpbiAxIGhvdXISGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "before-day",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774878299999,
+      "expected": "CgwyNCBob3VycyBhZ28SGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "tomorrow",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774705500000,
+      "expected": "Cgh0b21vcnJvdxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "yesterday",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774878300000,
+      "expected": "Cgl5ZXN0ZXJkYXkSGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "future-days",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774619100000,
+      "expected": "CglpbiAyIGRheXMSGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "past-days",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774964700000,
+      "expected": "CgoyIGRheXMgYWdvEhlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "next-month",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1772199900000,
+      "expected": "CgpuZXh0IG1vbnRoEhlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "last-month",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1777383900000,
+      "expected": "CgpsYXN0IG1vbnRoEhlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "months",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1769607900000,
+      "expected": "CgtpbiAyIG1vbnRocxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "past-months",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1779975900000,
+      "expected": "CgwyIG1vbnRocyBhZ28SGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "next-year",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1743255900000,
+      "expected": "CgluZXh0IHllYXISGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "last-year",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1806327900000,
+      "expected": "CglsYXN0IHllYXISGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "years",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1711719900000,
+      "expected": "CgppbiAyIHllYXJzEhlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "grouped-years",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": -29761208100000,
+      "expected": "Cg5pbiAxLDAwMCB5ZWFycxIZTWFyIDI5LCAyMDI2LCAxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "display-mode-0",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAA==",
+      "nowMs": 1774619100000,
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "display-mode-1",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggB",
+      "nowMs": 1774619100000,
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "display-mode-2",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggC",
+      "nowMs": 1774619100000,
+      "expected": "CglpbiAyIGRheXM="
+    },
+    {
+      "name": "display-mode-3",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 1774619100000,
+      "expected": "CglpbiAyIGRheXMSGU1hciAyOSwgMjAyNiwgMTo0NSBQTSBVVEM="
+    },
+    {
+      "name": "date-only",
+      "input": "2026-03-29",
+      "display": "CAgSAggD",
+      "nowMs": 1774915200000,
+      "expected": "CgoyIGRheXMgYWdvEgxNYXIgMjksIDIwMjY="
+    },
+    {
+      "name": "date-offset",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAgSAggD",
+      "nowMs": 1774920600000,
+      "expected": "Cgl5ZXN0ZXJkYXkSDE1hciAyOSwgMjAyNg=="
+    },
+    {
+      "name": "day-precision",
+      "input": "2026-03-29T23:30:00-02:00",
+      "display": "CAkSBAgDEAE=",
+      "nowMs": 1774920600000,
+      "expected": "Cgl5ZXN0ZXJkYXkSDE1hciAyOSwgMjAyNg=="
+    },
+    {
+      "name": "time-has-no-calendar",
+      "input": "13:45:00",
+      "display": "CAoSAggD",
+      "nowMs": 1774791900000,
+      "expected": "CgsxOjQ1IFBNIFVUQw=="
+    },
+    {
+      "name": "absent-invalid-clock-0",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "absent-invalid-clock-1",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": "NaN",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "absent-invalid-clock-2",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": "Infinity",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "absent-invalid-clock-3",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": "-Infinity",
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "absent-invalid-clock-4",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 8640000000000001,
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "epoch-zero-clock",
+      "input": "1970-01-01T00:01:00Z",
+      "display": "CAkSAggD",
+      "nowMs": 0,
+      "expected": "CgtpbiAxIG1pbnV0ZRIZSmFuIDEsIDE5NzAsIDEyOjAxIEFNIFVUQw=="
+    },
+    {
+      "name": "negative-clock",
+      "input": "1970-01-01T00:00:00Z",
+      "display": "CAkSAggD",
+      "nowMs": -60000,
+      "expected": "CgtpbiAxIG1pbnV0ZRILSmFuIDEsIDE5NzA="
+    },
+    {
+      "name": "fraction-truncation",
+      "input": "1970-01-01T00:00:59.9999Z",
+      "display": "CAkSAggD",
+      "nowMs": 0,
+      "expected": "CghqdXN0IG5vdxIZSmFuIDEsIDE5NzAsIDEyOjAwIEFNIFVUQw=="
+    },
+    {
+      "name": "pre-epoch",
+      "input": "1969-12-31T23:59:59.999Z",
+      "display": "CAkSAggD",
+      "nowMs": 0,
+      "expected": "CghqdXN0IG5vdxIaRGVjIDMxLCAxOTY5LCAxMTo1OSBQTSBVVEM="
+    },
+    {
+      "name": "non-leap-century",
+      "input": "1900-03-01",
+      "display": "CAgSAggD",
+      "nowMs": -2203977600000,
+      "expected": "Cgh0b21vcnJvdxILTWFyIDEsIDE5MDA="
+    },
+    {
+      "name": "leap-century",
+      "input": "2000-03-01",
+      "display": "CAgSAggD",
+      "nowMs": 951782400000,
+      "expected": "Cgh0b21vcnJvdxILTWFyIDEsIDIwMDA="
+    },
+    {
+      "name": "unknown-mode",
+      "input": "2026-03-29T13:45:00Z",
+      "display": "CAkSAwjnBw==",
+      "nowMs": 1774791900000,
+      "expected": "ChlNYXIgMjksIDIwMjYsIDE6NDUgUE0gVVRD"
+    },
+    {
+      "name": "invalid-stamp",
+      "input": "not-a-timestamp",
+      "display": "CAkSAggD",
+      "nowMs": 1774791900000,
+      "expected": "Cg9ub3QtYS10aW1lc3RhbXA="
+    },
+    {
+      "name": "null",
+      "input": null,
+      "display": "CAkSAggD",
+      "nowMs": 1774791900000,
+      "expected": "CgPigJQ="
+    },
+    {
+      "name": "empty",
+      "input": "",
+      "display": "CAkSAggD",
+      "nowMs": 1774791900000,
+      "expected": "CgPigJQ="
+    }
+  ],
   "paths": [
     {
       "name": "nested",

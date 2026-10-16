@@ -31,7 +31,7 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { PrincipalDisplay, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { FormattedValueSchema, PrincipalDisplay, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
@@ -277,6 +277,21 @@ const tablePanel: PanelDescriptor = create(PanelDescriptorSchema, {
 const wire = (base64: string) => Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
 describe("the native crate's shared fixture corpus through real WASM", () => {
+  it("uses the same explicit-clock corpus as native Rust without reading a browser clock", () => {
+    expect(core.valueFormats).toHaveLength(55);
+    for (const entry of core.valueFormats) {
+      const display = fromBinary(ValueDisplaySchema, wire(entry.display));
+      const expected = fromBinary(FormattedValueSchema, wire(entry.expected));
+      const now = entry.nowMs === undefined ? undefined : Number(entry.nowMs);
+      const actual = formatByCore(entry.input, display, wasm, now);
+      expect(actual, entry.name).toEqual({ text: expected.text, ...(expected.title === undefined ? {} : { title: expected.title }) });
+      if (now === undefined || (Number.isFinite(now) && Math.abs(now) <= 8_640_000_000_000_000)) {
+        expect(actual, `legacy valid-clock parity: ${entry.name}`).toEqual(formatByDisplay(entry.input, display, now));
+      }
+      expect(formatByCore(entry.input, display, wasm), entry.name).toEqual(formatByDisplay(entry.input, display));
+    }
+  });
+
   it("formats every typed fixture through the standalone protobuf result boundary", () => {
     for (const entry of values.cases) {
       const display = create(ValueDisplaySchema, {
@@ -382,7 +397,7 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("retains every operation and unique fixture names", () => {
-    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4 })) {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 55 })) {
       const cases = core[operation];
       expect(cases, operation).toHaveLength(count);
       expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);

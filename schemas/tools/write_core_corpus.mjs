@@ -5,6 +5,7 @@ import { createFileRegistry, fromBinary, fromJson, toBinary } from "@bufbuild/pr
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { readFileSync, writeFileSync } from "node:fs";
 import { CoreCorpusSchema } from "../../packages/proto-ts/conformance/core_pb.js";
+import { FORMATTER_MODES, assertFormatterModes } from "./formatter_modes.mjs";
 
 // Cargo and this writer use the same committed descriptor set. Avoid depending
 // on generated JS module resolution in this dependency-light Node tool.
@@ -14,8 +15,34 @@ const registry = createFileRegistry(fromBinary(FileDescriptorSetSchema, readFile
 const RpcCallSchema = registry.getMessage("meridian.ui.v1.RpcCall");
 const TablePanelSchema = registry.getMessage("meridian.ui.v1.TablePanel");
 const GalleryPanelSchema = registry.getMessage("meridian.ui.v1.GalleryPanel");
+const ValueDisplaySchema = registry.getMessage("meridian.ui.v1.ValueDisplay");
+const FormattedValueSchema = registry.getMessage("meridian.ui.v1.FormattedValue");
+const { TemporalDisplay: temporalModes, PrincipalDisplay: principalModes } = FORMATTER_MODES;
+assertFormatterModes(name => registry.getEnum(name));
 
 const wire = (schema, json) => Buffer.from(toBinary(schema, fromJson(schema, json))).toString("base64");
+const valueFormat = (name, input, display, nowMs, text, title) => ({
+  name, input, display: wire(ValueDisplaySchema, display),
+  ...(nowMs === undefined ? {} : { nowMs }),
+  expected: wire(FormattedValueSchema, { text, ...(title === undefined ? {} : { title }) }),
+});
+const instant = Date.parse("2026-03-29T13:45:00Z"); // Authoring constant, not a runtime clock.
+const stamp = "2026-03-29T13:45:00Z";
+const absoluteStamp = "Mar 29, 2026, 1:45 PM UTC";
+const temporalDisplay = (mode = 3, type = 9, precision = 0) => ({ type, temporal: { display: mode, precision } });
+const relativeDeltas = [
+  ["recent-past", -59_999, "just now"], ["recent-future", 59_999, "just now"],
+  ["past-minute", -60_000, "1 minute ago"], ["future-minute", 60_000, "in 1 minute"],
+  ["negative-half", -90_000, "1 minute ago"], ["positive-half", 90_000, "in 2 minutes"],
+  ["before-hour", -3_599_999, "60 minutes ago"], ["hour", 3_600_000, "in 1 hour"],
+  ["before-day", -86_399_999, "24 hours ago"], ["tomorrow", 86_400_000, "tomorrow"],
+  ["yesterday", -86_400_000, "yesterday"], ["future-days", 2 * 86_400_000, "in 2 days"],
+  ["past-days", -2 * 86_400_000, "2 days ago"], ["next-month", 30 * 86_400_000, "next month"],
+  ["last-month", -30 * 86_400_000, "last month"], ["months", 60 * 86_400_000, "in 2 months"],
+  ["past-months", -60 * 86_400_000, "2 months ago"], ["next-year", 365 * 86_400_000, "next year"],
+  ["last-year", -365 * 86_400_000, "last year"], ["years", 2 * 365 * 86_400_000, "in 2 years"],
+  ["grouped-years", 1000 * 365 * 86_400_000, "in 1,000 years"],
+];
 const request = (name, bindings, context, expected) => ({
   name, rpc: wire(RpcCallSchema, { service: "test.Core", method: "Call", bindings }), context, expected,
 });
@@ -67,6 +94,33 @@ const temporalCases = [
 ];
 
 const corpus = {
+  valueFormats: [
+    ...[12, 13].flatMap(type => principalModes.map(mode => valueFormat(`principal-${type}-${mode}`,
+      "Ada <ada@example.com>", { type, principal: { display: mode } }, instant,
+      mode === 2 ? "ada@example.com" : "Ada", mode === 3 ? "ada@example.com" : undefined))),
+    valueFormat("principal-default", "Ada <ada@example.com>", { type: 12 }, instant, "Ada"),
+    valueFormat("email-default", "Ada <ada@example.com>", { type: 13 }, instant, "ada@example.com"),
+    valueFormat("principal-invalid-clock", "Ada <ada@example.com>", { type: 12, principal: { display: 3 } }, "NaN", "Ada", "ada@example.com"),
+    ...relativeDeltas.map(([name, delta, text]) => valueFormat(name, stamp, temporalDisplay(), instant - delta, text, absoluteStamp)),
+    ...temporalModes.map(mode => valueFormat(`display-mode-${mode}`, stamp, temporalDisplay(mode), instant - 2 * 86_400_000,
+      mode < 2 ? absoluteStamp : "in 2 days", mode === 3 ? absoluteStamp : undefined)),
+    valueFormat("date-only", "2026-03-29", temporalDisplay(3, 8), Date.parse("2026-03-31T00:00:00Z"), "2 days ago", "Mar 29, 2026"),
+    valueFormat("date-offset", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 8), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 29, 2026"),
+    valueFormat("day-precision", "2026-03-29T23:30:00-02:00", temporalDisplay(3, 9, 1), Date.parse("2026-03-31T01:30:00Z"), "yesterday", "Mar 29, 2026"),
+    valueFormat("time-has-no-calendar", "13:45:00", temporalDisplay(3, 10), instant, "1:45 PM UTC"),
+    ...[undefined, "NaN", "Infinity", "-Infinity", 8_640_000_000_000_001].map((now, index) =>
+      valueFormat(`absent-invalid-clock-${index}`, stamp, temporalDisplay(), now, absoluteStamp)),
+    valueFormat("epoch-zero-clock", "1970-01-01T00:01:00Z", temporalDisplay(), 0, "in 1 minute", "Jan 1, 1970, 12:01 AM UTC"),
+    valueFormat("negative-clock", "1970-01-01T00:00:00Z", temporalDisplay(), -60_000, "in 1 minute", "Jan 1, 1970"),
+    valueFormat("fraction-truncation", "1970-01-01T00:00:59.9999Z", temporalDisplay(), 0, "just now", "Jan 1, 1970, 12:00 AM UTC"),
+    valueFormat("pre-epoch", "1969-12-31T23:59:59.999Z", temporalDisplay(), 0, "just now", "Dec 31, 1969, 11:59 PM UTC"),
+    valueFormat("non-leap-century", "1900-03-01", temporalDisplay(3, 8), Date.parse("1900-02-28T00:00:00Z"), "tomorrow", "Mar 1, 1900"),
+    valueFormat("leap-century", "2000-03-01", temporalDisplay(3, 8), Date.parse("2000-02-29T00:00:00Z"), "tomorrow", "Mar 1, 2000"),
+    valueFormat("unknown-mode", stamp, temporalDisplay(999), instant, absoluteStamp),
+    valueFormat("invalid-stamp", "not-a-timestamp", temporalDisplay(), instant, "not-a-timestamp"),
+    valueFormat("null", null, temporalDisplay(), instant, "—"),
+    valueFormat("empty", "", temporalDisplay(), instant, "—"),
+  ],
   paths: [
     { name: "nested", input: { a: { b: 7 } }, path: "a.b", expected: 7 },
     { name: "false", input: { a: false }, path: "a", expected: false },

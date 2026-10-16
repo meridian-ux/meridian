@@ -78,8 +78,9 @@ pub use payload_budget::{
     PayloadBudget, PayloadLimitExceeded, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_RATE,
 };
 pub use render::{
-    format_cell, format_display_value, format_display_value_with_metadata, format_lro_metadata,
-    format_value, render_gallery, render_table, RenderedCard, RenderedRow,
+    format_cell, format_display_value, format_display_value_with_context,
+    format_display_value_with_metadata, format_lro_metadata, format_value, render_gallery,
+    render_table, RenderedCard, RenderedRow,
 };
 pub use request::{Context, RequestBuilder};
 pub use stat::{

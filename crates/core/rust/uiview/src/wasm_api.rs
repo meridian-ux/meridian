@@ -28,10 +28,29 @@ use wasm_bindgen::prelude::*;
 /// result are protobuf wire messages (ValueDisplay -> FormattedValue).
 #[wasm_bindgen(js_name = "formatValueDisplay")]
 pub fn format_value_display(display: &[u8], value: JsValue) -> Result<Vec<u8>, JsError> {
+    format_value_display_impl(display, value, None)
+}
+
+/// Separate capability so an older initialized module cannot silently ignore
+/// an explicit clock argument intended for a newer formatter.
+#[wasm_bindgen(js_name = "formatValueDisplayAt")]
+pub fn format_value_display_at(
+    display: &[u8],
+    value: JsValue,
+    now_ms: f64,
+) -> Result<Vec<u8>, JsError> {
+    format_value_display_impl(display, value, Some(now_ms))
+}
+
+fn format_value_display_impl(
+    display: &[u8],
+    value: JsValue,
+    now_ms: Option<f64>,
+) -> Result<Vec<u8>, JsError> {
     let display = ValueDisplay::decode(display).map_err(|e| JsError::new(&e.to_string()))?;
     let value: Value =
         serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))?;
-    Ok(crate::format_display_value_with_metadata(&value, &display).encode_to_vec())
+    Ok(crate::format_display_value_with_context(&value, &display, now_ms).encode_to_vec())
 }
 
 /// Stateful JavaScript handle backed by the same payload policy used by native
