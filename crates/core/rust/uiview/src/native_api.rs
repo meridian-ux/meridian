@@ -4,6 +4,7 @@
 use crate::proto::{ComputedStat, StatPanel, Tone, Trend, ValueDisplay};
 use prost::Message;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
 const OK: i32 = 0;
@@ -231,6 +232,114 @@ pub unsafe extern "C" fn meridian_core_compute_stat(
     }
 }
 
+fn protobuf_value(value: Value, depth: usize) -> Result<prost_types::Value, i32> {
+    use prost_types::value::Kind;
+    if depth > 64 {
+        return Err(LIMIT_EXCEEDED);
+    }
+    Ok(prost_types::Value {
+        kind: Some(match value {
+            Value::Null => Kind::NullValue(0),
+            Value::Bool(value) => Kind::BoolValue(value),
+            Value::String(value) => Kind::StringValue(value),
+            Value::Number(value) => Kind::NumberValue(value.as_f64().ok_or(INVALID_PAYLOAD)?),
+            Value::Array(values) => Kind::ListValue(prost_types::ListValue {
+                values: values
+                    .into_iter()
+                    .map(|value| protobuf_value(value, depth + 1))
+                    .collect::<Result<_, _>>()?,
+            }),
+            Value::Object(values) => Kind::StructValue(prost_types::Struct {
+                fields: values
+                    .into_iter()
+                    .map(|(key, value)| Ok((key, protobuf_value(value, depth + 1)?)))
+                    .collect::<Result<_, i32>>()?,
+            }),
+        }),
+    })
+}
+
+fn context_bag(entries: Vec<crate::proto::ContextValue>) -> Result<HashMap<String, Value>, i32> {
+    let mut result = HashMap::new();
+    for entry in entries {
+        if result.contains_key(&entry.key) {
+            return Err(INVALID_PAYLOAD);
+        }
+        result.insert(entry.key, json(entry.value.unwrap_or_default(), 0)?);
+    }
+    Ok(result)
+}
+
+/// RpcCall + RequestContext -> google.protobuf.Value request object, through
+/// the existing shared RequestBuilder. Pure assembly, not RPC execution.
+///
+/// # Safety
+/// Borrowed input regions and writable aligned output slots must be valid and
+/// nonoverlapping. Free successful output exactly once with buffer_free.
+#[no_mangle]
+pub unsafe extern "C" fn meridian_core_build_request(
+    call: *const u8,
+    call_len: usize,
+    context: *const u8,
+    context_len: usize,
+    output: *mut *mut u8,
+    output_len: *mut usize,
+) -> i32 {
+    unsafe {
+        if !output.is_null() {
+            output.write(std::ptr::null_mut());
+        }
+        if !output_len.is_null() {
+            output_len.write(0);
+        }
+    }
+    if output.is_null() || output_len.is_null() {
+        return INVALID_ARGUMENT;
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<Box<[u8]>, i32> {
+        let call =
+            crate::proto::RpcCall::decode(unsafe { bytes(call, call_len, MAX_DECLARATION_BYTES)? })
+                .map_err(|_| INVALID_PAYLOAD)?;
+        let context = crate::proto::RequestContext::decode(unsafe {
+            bytes(context, context_len, MAX_VALUE_BYTES)?
+        })
+        .map_err(|_| INVALID_PAYLOAD)?;
+        let context = crate::Context {
+            current_resource_path: context.current_resource_path,
+            ui_identity: context
+                .ui_identity
+                .map(|value| json(value, 0))
+                .transpose()?,
+            selected_row: context
+                .selected_row
+                .map(|value| json(value, 0))
+                .transpose()?,
+            form_values: context_bag(context.form_values)?,
+            signals: context_bag(context.signals)?,
+            selections: context_bag(context.selections)?,
+        };
+        let result =
+            protobuf_value(crate::RequestBuilder::build(&call, &context), 0)?.encode_to_vec();
+        if result.len() > MAX_RESULT_BYTES {
+            return Err(LIMIT_EXCEEDED);
+        }
+        Ok(result.into_boxed_slice())
+    }));
+    match result {
+        Ok(Ok(result)) => {
+            let len = result.len();
+            let pointer = Box::into_raw(result) as *mut u8;
+            unsafe {
+                output.write(pointer);
+                output_len.write(len);
+            }
+            OK
+        }
+        Ok(Err(status)) => status,
+        Err(_) => INTERNAL_FAILURE,
+    }
+}
+
 /// Runtime strings use UTF-8 with explicit lengths, including embedded NULs.
 /// No browser regex translation, shell execution, or input-dependent error text.
 ///
@@ -288,6 +397,128 @@ pub unsafe extern "C" fn meridian_core_buffer_free(pointer: *mut u8, len: usize)
 mod tests {
     use super::*;
     use crate::proto::{FormattedValue, ValueType};
+
+    unsafe fn request(call: &[u8], context: &[u8]) -> (i32, Option<Value>) {
+        let mut pointer = std::ptr::null_mut();
+        let mut len = 99;
+        let status = unsafe {
+            meridian_core_build_request(
+                call.as_ptr(),
+                call.len(),
+                context.as_ptr(),
+                context.len(),
+                &mut pointer,
+                &mut len,
+            )
+        };
+        if status != OK {
+            assert!(pointer.is_null());
+            assert_eq!(len, 0);
+            return (status, None);
+        }
+        let value = prost_types::Value::decode(unsafe { std::slice::from_raw_parts(pointer, len) })
+            .unwrap();
+        unsafe {
+            meridian_core_buffer_free(pointer, len);
+        }
+        (status, Some(json(value, 0).unwrap()))
+    }
+
+    #[test]
+    fn request_bridge_executes_shared_bindings_and_presence() {
+        use crate::proto::{
+            field_binding::Source, ContextSource, ContextValue, FieldBinding, RequestContext,
+            RpcCall,
+        };
+        let call = RpcCall {
+            bindings: vec![
+                FieldBinding {
+                    request_field: "resource".into(),
+                    source: Some(Source::Context(ContextSource::CurrentResourcePath as i32)),
+                },
+                FieldBinding {
+                    request_field: "scope".into(),
+                    source: Some(Source::SelectionKey("year".into())),
+                },
+                FieldBinding {
+                    request_field: "signal".into(),
+                    source: Some(Source::Signal("brush".into())),
+                },
+            ],
+            ..Default::default()
+        };
+        assert_eq!(
+            unsafe { request(&call.encode_to_vec(), &[]) },
+            (OK, Some(serde_json::json!({})))
+        );
+        let context = RequestContext {
+            current_resource_path: Some(String::new()),
+            selections: vec![ContextValue {
+                key: "year".into(),
+                value: Some(prost_types::Value {
+                    kind: Some(prost_types::value::Kind::NumberValue(0.0)),
+                }),
+            }],
+            signals: vec![ContextValue {
+                key: "brush".into(),
+                value: Some(prost_types::Value {
+                    kind: Some(prost_types::value::Kind::BoolValue(false)),
+                }),
+            }],
+            ..Default::default()
+        };
+        assert_eq!(
+            unsafe { request(&call.encode_to_vec(), &context.encode_to_vec()) },
+            (
+                OK,
+                Some(serde_json::json!({"resource":"", "scope":0, "signal":false}))
+            )
+        );
+    }
+
+    #[test]
+    fn request_context_rejects_exact_duplicates_not_unicode_equivalent_names() {
+        use crate::proto::ContextValue;
+        let entry = |key: &str| ContextValue {
+            key: key.into(),
+            value: None,
+        };
+        assert_eq!(
+            context_bag(vec![entry("é"), entry("e\u{301}")])
+                .unwrap()
+                .len(),
+            2
+        );
+        assert_eq!(
+            context_bag(vec![entry("same"), entry("same")]).unwrap_err(),
+            INVALID_PAYLOAD
+        );
+        assert_eq!(unsafe { request(&[0xff], &[]) }.0, INVALID_PAYLOAD);
+        assert_eq!(unsafe { request(&[], &[0xff]) }.0, INVALID_PAYLOAD);
+        assert_eq!(
+            unsafe { request(&vec![0; MAX_DECLARATION_BYTES + 1], &[]) }.0,
+            LIMIT_EXCEEDED
+        );
+        assert_eq!(
+            unsafe { request(&[], &vec![0; MAX_VALUE_BYTES + 1]) }.0,
+            LIMIT_EXCEEDED
+        );
+        let mut len = 99;
+        assert_eq!(
+            unsafe {
+                meridian_core_build_request(
+                    std::ptr::null(),
+                    0,
+                    std::ptr::null(),
+                    0,
+                    std::ptr::null_mut(),
+                    &mut len,
+                )
+            },
+            INVALID_ARGUMENT
+        );
+        assert_eq!(len, 0);
+    }
 
     unsafe fn stat(panel: &[u8], response: Option<&[u8]>) -> (i32, Option<ComputedStat>) {
         let mut pointer = std::ptr::null_mut();

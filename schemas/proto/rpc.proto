@@ -13,6 +13,7 @@ syntax = "proto3";
 package meridian.ui.v1;
 
 import "google/api/field_behavior.proto";
+import "google/protobuf/struct.proto";
 
 option java_multiple_files = true;
 option java_package = "meridian.ui.v1";
@@ -28,6 +29,25 @@ message RpcCall {
   string method = 2 [(google.api.field_behavior) = REQUIRED];
   // Bindings populate request fields from runtime context.
   repeated FieldBinding bindings = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Canonical native boundary for the existing shared RequestBuilder context.
+// Absent resource path differs from a present empty path. Value bags use entries
+// rather than language dictionaries so exact UTF-8 names remain distinct even
+// on runtimes whose String equality normalizes Unicode. Duplicate exact names
+// in one bag are invalid; no order-dependent last-writer policy is inferred.
+message RequestContext {
+  optional string current_resource_path = 1;
+  google.protobuf.Value ui_identity = 2;
+  google.protobuf.Value selected_row = 3;
+  repeated ContextValue form_values = 4;
+  repeated ContextValue signals = 5;
+  repeated ContextValue selections = 6;
+}
+
+message ContextValue {
+  string key = 1;
+  google.protobuf.Value value = 2;
 }
 
 // One assignment: "set request field X from source Y".

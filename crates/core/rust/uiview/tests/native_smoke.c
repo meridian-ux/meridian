@@ -19,6 +19,11 @@ int main(void) {
   assert(memcmp(output, stat_expected, length) == 0);
   meridian_core_buffer_free(output, length);
   const uint8_t malformed[] = {0xff};
+  assert(meridian_core_build_request(NULL, 0, NULL, 0, &output, &length) == MERIDIAN_CORE_OK);
+  const uint8_t request_expected[] = {0x2a, 0}; /* Value: empty Struct */
+  assert(length == sizeof(request_expected));
+  assert(memcmp(output, request_expected, length) == 0);
+  meridian_core_buffer_free(output, length);
   assert(meridian_core_format_value(malformed, 1, NULL, 0, 0, 0, &output, &length) == MERIDIAN_CORE_INVALID_PAYLOAD);
   assert(output == NULL && length == 0);
   length = 999;

@@ -1,3 +1,7 @@
 SwiftUI view projection v1 — not OS accessibility
 text view(MeridianPanel.self).vStack().descendants(0indexed:) "Headcount"
-text view(MeridianPanel.self).vStack().descendants(1indexed:) "This panel is not supported by this SwiftUI preview yet."
+text view(MeridianPanel.self).vStack().view(StatPanelContent.self, 1).view(StatContent.self).vStack().descendants(0indexed:) "Active employees"
+text view(MeridianPanel.self).vStack().view(StatPanelContent.self, 1).view(StatContent.self).vStack().descendants(1indexed:) "1,240"
+text view(MeridianPanel.self).vStack().view(StatPanelContent.self, 1).view(StatContent.self).vStack().tupleView(2).descendants(0indexed:) "Increasing: +60"
+text view(MeridianPanel.self).vStack().view(StatPanelContent.self, 1).view(StatContent.self).vStack().tupleView(2).descendants(1indexed:) "Favorable change"
+text view(MeridianPanel.self).vStack().view(StatPanelContent.self, 1).view(StatContent.self).vStack().tupleView(2).tupleView(3).descendants(1indexed:) "History: 4 observations"

@@ -52,8 +52,8 @@ unit suppression, dotted response paths, and the server display-string escape
 hatch. No Swift numeric formatter, delta calculation, or trend inference is
 added. Good/bad maps to SUCCESS/DANGER only when higher_is_better is present;
 otherwise Tone stays NEUTRAL. This pure bridge does not fetch, admit, or execute
-a populate RPC, and does not yet implement the native Stat view or live-data
-lifecycle. Its existence does not promote Stat coverage.
+a populate RPC. The native Stat view and its separate admitted live-data
+lifecycle use this same computation; neither promotes Stat coverage by itself.
 
 The additive ABI symbol takes at most 1 MiB per panel/response, 64 KiB for its
 nested ValueDisplay, and returns at most 4 MiB. Optional-response presence is
@@ -74,6 +74,62 @@ safe integers follow the pinned WASM deserializer's representation, preventing
 JSON/list fallback drift such as 1 versus 1.0. Unwinding panics are contained;
 the library is built with unwind enabled. Invalid foreign pointers, double frees,
 and process-level allocation failures are not recoverable API inputs.
+
+## Native Stat and admitted populate requests
+
+Stat displays the Rust-computed value, direction, delta, and caption. Semantic
+success/danger colors come from the current light/dark palette; absent/invalid
+tokens use native primary foreground, and explicit favorable/unfavorable text
+keeps meaning independent of color. Without higher_is_better, changes are neutral.
+The bounded sparkline uses at most 256 geometric samples, includes the endpoints,
+and normalizes finite extremes before subtraction to avoid overflow. Nonfinite
+history shows an explanation instead of a misleading plot.
+
+To enable a populate RPC, a host supplies both callbacks explicitly:
+
+```swift
+let capability = MeridianRpcCapability(
+    admit: { call, builtRequest in
+        // Validate service/method, tenant/scope, request fields, and current policy.
+        return .deny("") // Replace with the host's real policy.
+    },
+    invoke: { call, builtRequest in
+        // Marshal the admitted protobuf Value through the host's real transport.
+        // No transport is installed by MeridianUI.
+        throw MeridianRpcError.unavailable
+    }
+)
+let host = MeridianHost(rpcContext: context, rpc: capability)
+```
+
+The default host has no RPC capability, and the default capability admission
+denies everything. `MeridianCore.buildRequest` passes canonical RpcCall and
+RequestContext protobufs to the existing Rust RequestBuilder, not a Swift
+reimplementation. Admission sees both the original call and fully assembled
+request immediately before each transport call, including retries. Unknown
+methods, authorization, scope requirements, marshaling, and destination policy
+remain the host's responsibility. Missing service/method, malformed context,
+duplicate exact context keys, and failed core validation never reach admission.
+
+RequestContext's optional resource path distinguishes absent from present empty.
+Form/signal/selection bags use repeated ContextValue entries to preserve exact
+UTF-8 names; canonically equivalent names are distinct, while exact duplicates
+fail. The pure C builder takes a 64 KiB call and 1 MiB context, returns at most
+4 MiB, and applies the existing finite dynamic-number/depth-64 policy. It never
+admits or invokes. Message bytes use the same Rust-owned result/free contract.
+
+The view's keyed `.task` loads on mount and descriptor/context/capability changes;
+Refresh/Retry rechecks policy. Rendering and inspection themselves stay inert.
+An in-flight identical load is deduplicated. Deterministic protobuf bytes and
+per-instance host/capability tokens key responses; old data is hidden immediately
+when those identities change, before lifecycle cleanup. Replacement/cancellation
+invalidates late results even if a transport ignores cancellation. Disappearance
+cancels owned work; cooperative transports receive task cancellation. Hosts
+should support cancellation and replace the capability object when changing
+transport/authorization identity. Do not retain a capability across tenants.
+Errors and denial reasons do not echo transport details or request payloads.
+Invalid/non-object/nonfinite/oversized response data is not retained as a metric.
+Authored data is the explicit loading/failure placeholder, with visible status.
 
 ## Host contract
 
@@ -98,7 +154,8 @@ host-owned work when its presentation lifecycle ends.
 
 Current controls: native Choice picker, preformatted Snippet with host-gated
 copy, masked/revealable CopyValue with host-gated raw copy, Action, Catalog,
-numbered Steps, and ConnectFlow with target selection and per-target actions/configs.
+numbered Steps, ConnectFlow with target selection and per-target actions/configs,
+and Stat with admitted populate loading, safe retry/cancellation, and a sparkline.
 Choice and ConnectFlow use exact UTF-8 IDs: empty/duplicate IDs show an explanation
 instead of a picker. Valid remembered selection survives reordering; removal
 falls back to the declared default or first target. Selection never activates.

@@ -60,6 +60,28 @@ public enum MeridianCore {
         return try Meridian_Ui_V1_ComputedStat(serializedBytes: Data(bytes: output, count: count))
     }
 
+    public static func buildRequest(
+        _ call: Meridian_Ui_V1_RpcCall, context: Meridian_Ui_V1_RequestContext
+    ) throws -> Google_Protobuf_Value {
+        guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
+            throw MeridianCoreError.incompatibleABI
+        }
+        let declaration = try call.serializedData(), input = try context.serializedData()
+        var output: UnsafeMutablePointer<UInt8>?
+        var count = 0
+        let status = declaration.withUnsafeBytes { declarationBytes in
+            input.withUnsafeBytes { inputBytes in
+                meridian_core_build_request(
+                    declarationBytes.bindMemory(to: UInt8.self).baseAddress, declarationBytes.count,
+                    inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count, &output, &count
+                )
+            }
+        }
+        defer { meridian_core_buffer_free(output, count) }
+        guard status == 0, let output else { throw MeridianCoreError.nativeStatus(status) }
+        return try Google_Protobuf_Value(serializedBytes: Data(bytes: output, count: count))
+    }
+
     public static func matchesFormPattern(_ pattern: String, value: String) throws -> Bool {
         guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
             throw MeridianCoreError.incompatibleABI
