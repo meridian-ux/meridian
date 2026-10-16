@@ -35,6 +35,7 @@ vitest_test(
         "tests/form_repeat.test.tsx",
         "tests/populate_budget.test.tsx",
         "tests/submission_budget.test.tsx",
+        "tests/lro_lifecycle.test.tsx",
         "tests/form_submit_bindings.test.tsx",
         "tests/row_bindings.test.tsx",
         "tests/resource_cards.test.tsx",

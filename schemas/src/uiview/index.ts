@@ -25,3 +25,4 @@ export * from "./media.js";
 export * from "./conversation_tone.js";
 export * from "./affordance_presentation.js";
 export * from "./conversation_sequence.js";
+export { formatLroMetadata } from "./core_runtime.js";

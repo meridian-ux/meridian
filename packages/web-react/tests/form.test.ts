@@ -81,14 +81,14 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       ],
     } } });
     if (descriptor.body.case !== "lro") throw new Error("Wrong fixture arm");
-    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
+    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({ done: true, response: {} }));
     const container = document.createElement("div"); const root = createRoot(container);
     try {
       await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: { mutations: ["demo.Inputs/Start"] },
         children: createElement(kit.Lro, { descriptor, panel: descriptor.body.value, invoker: { invoke } }) })));
       await act(async () => { submit(container); });
       expect(invoke).toHaveBeenCalledWith("demo.Inputs", "Start", { request: { name: "001.20" }, copy: "001.20", counter: { count: 0 }, config: { data: { flag: false } } });
-      expect(container.textContent).toContain("Started.");
+      expect(container.textContent).toContain("Done.");
     } finally { await act(async () => root.unmount()); }
   });
   it("admits valid nested forms despite protobuf structural wrapper depth", async () => {

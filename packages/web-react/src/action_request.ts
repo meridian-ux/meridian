@@ -85,6 +85,30 @@ class Budget {
   }
 }
 
+/** Own a transport response before retaining/rendering it. Same bounded inert
+ * JSON rules as requests; host allocation and proxy traps are outside the cap. */
+export function boundedResponse(value: unknown): Row {
+  const result = new Budget().clone(value);
+  if (!result || typeof result !== "object" || Array.isArray(result)) reject();
+  return result as Row;
+}
+
+/** Finalization binds from the completed response and declared form fields but
+ * does not automatically append input fields to the follow-up request. */
+export function buildLroFinalizeRequest(call: RpcCall, fields: FormField[], values: Row,
+  selection: Record<string, string>, record: Row): Row {
+  if (!call.service || !call.method || call.service.length > DECLARATION || call.method.length > DECLARATION) reject();
+  new Budget().clone(fields, 0, new Set(), true);
+  const budget = new Budget(), declared = new Set<string>(), request: Row = {};
+  for (const field of fields) {
+    budget.visit(0);
+    if (!field.fieldId || unsafe(field.fieldId) || declared.has(field.fieldId)) reject();
+    budget.text(field.fieldId); declared.add(field.fieldId);
+  }
+  bindingsInto(call.bindings, selection, record, budget, 0, request, { values, declared });
+  return request;
+}
+
 function put(target: Row, keys: string[], value: unknown): void {
   let cursor = target;
   for (const key of keys.slice(0, -1)) {

@@ -46,14 +46,16 @@ describe("MUI submission boundary", () => {
       await act(async () => startTransition(replace));
       expect(suspended).toBe(true);
       expect(screen.queryByText("Replacement loading")).toBeNull();
-      await act(async () => finish({}));
+      await act(async () => finish(kind === "lro" ? { done: true, response: {} } : {}));
       expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false);
-      expect(screen.queryByRole("status")).toBeNull();
+      if (kind === "lro") expect(screen.getByText("Done.")).toBeTruthy();
+      else expect(screen.queryByRole("status")).toBeNull();
+      expect(screen.queryByRole("alert")).toBeNull();
     });
 
     it(`${kind}: retains oversized input on rejection and permits a smaller retry`, async () => {
       const panel = descriptor(kind, "s".repeat(400_000));
-      const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+      const invoke = vi.fn<RpcInvoker["invoke"]>(async () => kind === "lro" ? { done: true, response: {} } : {});
       render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Inputs/Submit"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
       const input = screen.getByLabelText("Text") as HTMLInputElement;
       fireEvent.change(input, { target: { value: "v".repeat(400_000) } });
@@ -63,7 +65,7 @@ describe("MUI submission boundary", () => {
       expect(input.value).toHaveLength(400_000);
       fireEvent.change(input, { target: { value: "smaller" } });
       fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
-      await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+      await waitFor(() => expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false));
       expect(invoke).toHaveBeenCalledOnce();
       expect(invoke.mock.calls[0][2]).toMatchObject(kind === "form" ? { text: "smaller" } : { request: { text: "smaller" } });
       expect(screen.queryByRole("alert")).toBeNull();
@@ -110,10 +112,11 @@ describe("MUI submission boundary", () => {
         ] } } },
       ],
     } } });
-    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ done: true, response: {} }));
     render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Inputs/Start"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+    await screen.findByText("Done.");
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(invoke).toHaveBeenCalledWith("demo.Inputs", "Start", {
       request: { name: "001.20" }, copy: "001.20", counter: { count: 0 }, config: { data: { flag: false } },
     });

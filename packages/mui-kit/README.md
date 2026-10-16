@@ -122,8 +122,14 @@ Request failures retain entered values for retry. Pending submissions suppress
 duplicates, controls disable while pending, and obsolete transport completions
 cannot reset a replacement form or show its error. Admission denials are visible
 as not permitted; other submission errors use generic feedback. No-input LRO
-starts use the same request/feedback boundary. Successful start only acknowledges
-the start RPC; it does not mean the operation completed.
+starts use the same request/feedback boundary. LROs now share the React operation
+lifecycle: Start → read-tier WaitOperation → optional separately mutation-admitted
+Finalize → static result table, with metadata progress, operation failures,
+retry, duplicate suppression, and obsolete-response isolation. `Done` means the
+whole workflow completed, not just Start. Result populate/actions do not execute.
+The 30-minute/360-poll observation limits do not cancel server work. See the
+web-react README for expanded-Any transport, type, response-budget, and timeout
+semantics. MUI retains generic failure text and distinct admission-denial feedback.
 
 For a single panel (no layout tier), use the kit as a `WebRenderer`:
 
