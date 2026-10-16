@@ -331,11 +331,50 @@ async function main() {
     // ── Layout · tabbed (switch tabs) ──
     await check("layout-tabbed: tabs switch content", async () => {
       await render("layout-tabbed");
+      const strip = page.getByRole("tablist", { name: "Product Details sections" });
+      const overview = strip.getByRole("tab", { name: "Overview", exact: true });
+      const items = strip.getByRole("tab", { name: "Items", exact: true });
       await seen("Overview");
       await seen("Items");
       await seen("Product Type");
-      await page.getByRole("tab", { name: "Items" }).click();
+      await overview.focus(); await overview.press("ArrowRight");
+      if (!(await items.evaluate(element => element === document.activeElement))) throw new Error("ArrowRight lost tab focus");
+      if (await overview.getAttribute("aria-selected") !== "true") throw new Error("ArrowRight activated an unloaded panel");
+      await absent("Widget");
+      await items.press("Enter");
       await seen("Widget");
+      const panel = page.getByRole("tabpanel", { name: "Items", exact: true });
+      if (await items.getAttribute("aria-controls") !== await panel.getAttribute("id")) throw new Error("Tab/panel association missing");
+      await items.press("Tab");
+      if (!(await panel.evaluate(element => element === document.activeElement))) throw new Error("Tab did not enter the selected panel");
+      await items.focus(); await items.press("ArrowRight");
+      if (!(await overview.evaluate(element => element === document.activeElement))) throw new Error("ArrowRight did not wrap");
+      await overview.press(" ");
+      await seen("Product Type"); await absent("Widget");
+      await overview.press("End");
+      if (!(await items.evaluate(element => element === document.activeElement))) throw new Error("End did not reach last tab");
+      await items.press("Home");
+      if (!(await overview.evaluate(element => element === document.activeElement))) throw new Error("Home did not reach first tab");
+    });
+
+    await check("layout-tabbed: long labels wrap at compact width without losing focus or activation", async () => {
+      const viewport = page.viewportSize();
+      try {
+        await page.setViewportSize({ width: 320, height: 720 });
+        await render("layout-tabbed-long-label");
+        const tabs = page.getByRole("tablist").getByRole("tab");
+        for (const tab of await tabs.all()) {
+          const geometry = await tab.evaluate(element => {
+            const box = element.getBoundingClientRect();
+            return { left: box.left, right: box.right, width: box.width, client: element.clientWidth, scroll: element.scrollWidth };
+          });
+          if (geometry.left < 0 || geometry.right > 320 || geometry.width <= 0 || geometry.scroll > geometry.client + 1)
+            throw new Error(`Clipped compact tab: ${JSON.stringify(geometry)}`);
+        }
+        await tabs.first().focus(); await tabs.first().press("ArrowRight"); await tabs.nth(1).press("Enter");
+        if (await tabs.nth(1).getAttribute("aria-selected") !== "true") throw new Error("Compact keyboard activation failed");
+        await seen("Widget");
+      } finally { await page.setViewportSize(viewport); }
     });
 
     // ── Layout · two-column (main + sidebar both present) ──

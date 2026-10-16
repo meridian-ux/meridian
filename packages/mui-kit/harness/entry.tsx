@@ -708,6 +708,20 @@ const fixtures: Fixture[] = [
     }),
   },
   {
+    name: "layout-tabbed-long-label",
+    label: "Layout · compact tab labels",
+    group: "Layouts",
+    invoker: clientInvoker,
+    view: create(ViewDescriptorSchema, {
+      id: "layout-tabbed-long-label", title: "Compact Details",
+      layout: { mode: { case: "tabbed", value: {} } },
+      slots: [
+        { id: "overview", placement: { tabLabel: "ExtremelyLongUnbrokenSectionName".repeat(5) }, panel: configForm(FormMode.READONLY) },
+        { id: "items", placement: { tabLabel: "Items", tabPosition: 1 }, panel: tablePanel("list-products", "products") },
+      ],
+    }),
+  },
+  {
     name: "layout-two-column",
     label: "Layout · two-column",
     group: "Layouts",
