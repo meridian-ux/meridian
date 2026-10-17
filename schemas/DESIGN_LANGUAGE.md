@@ -19,9 +19,9 @@ the distinction between what something means and what the user can do.
 and `VALUE_TONE_*` JSON tokens remain unchanged. Do not change the enum type of
 an existing field in place: matching wire numbers do not preserve generated
 source APIs or JSON enum names. New tone-bearing fields should use `Tone`;
-consumer adoption and precedence during migration remain roadmap #44. This
-definition alone does not prove complete renderer adoption or theme conformance
-(#45).
+consumer adoption and precedence are covered by roadmap #44. The definition
+alone is not the proof: the renderer and descriptor tests below establish the
+stable-renderer adoption and theme conformance in #44/#45.
 
 Conversation `Status.tone` (tag 3) and `Block.ToolBlock.tone` (tag 5) are optional
 `Tone` fields. Absence preserves the legacy state-derived appearance. A present
@@ -43,8 +43,9 @@ This is wire/JSON-additive, not a promise that exhaustive generated Rust struct
 literals compile unchanged: constructors must supply `tone: None` or use an
 appropriate `Default` update. Existing enum types/names and proto module paths
 are unchanged; callers must still follow their generated-language migration rules.
-Conversation adoption does not complete the Affordance/emphasis migration in #44
-or establish external SwiftUI/theme conformance.
+Conversation adoption alone does not complete the Affordance/emphasis migration;
+the separate action checks below cover that presentation contract. SwiftUI
+remains a preview, not a full native theme/parity release gate.
 
 The native `Palette.tone_style` maps all six shared roles to their named theme
 colors. In particular, `info` and `warning` no longer collapse into accent or
@@ -53,10 +54,7 @@ changing their wire type or JSON names. Unspecified and unknown enum tones keep
 the prior value style; explicit neutral uses ordinary foreground. A partial
 theme falls back per role, and dark mode falls back to light when absent.
 Wire-decoded theme and real terminal-cell color tests verify this native path;
-they do not establish the remaining conversation/affordance migration or the
-cross-renderer conformance required by #44/#45.
-
-## Affordance
+they complement, rather than replace, the conversation/action conformance below.
 
 The theme conformance cases in `conformance/tone_cases.ts` enumerate the generated
 Tone descriptor and require the corresponding Palette field (`neutral` uses
@@ -64,8 +62,12 @@ Tone descriptor and require the corresponding Palette field (`neutral` uses
 web-component actions and web-component conversation states; the native action
 TestBackend test independently enumerates the committed descriptor set. Expected
 colors remain independent of production mappers. New roles fail until both the
-palette binding and renderer expectations exist. This is first-party evidence,
-not an external SwiftUI view-dump proof or completion of #45.
+palette binding and renderer expectations exist. Together these cover the six
+stable renderer IDs: web-components, shared web-react, HTML, Shadcn, MUI, and TUI.
+The React seam is exercised through its three concrete kits, not counted as a
+fourth independent browser implementation. This is not SwiftUI view-dump proof.
+
+## Affordance
 
 An `Affordance` is a labeled invitation to act. Its `invoke` oneof is either a
 URI or a command, and its optional icon, description, and style provide context.
@@ -88,8 +90,9 @@ Semantic palette roles remain separate from emphasis. Unsafe URI admission and
 exact command clipboard payloads are unchanged. Descriptor and old-reader tests
 cover additive wire compatibility, not universal generated-source compatibility:
 Rust exhaustive struct literals must include `tone: None, emphasis: None` or
-use a default initializer. This does not prove external SwiftUI adoption or
-complete #44's cross-renderer acceptance criteria.
+use a default initializer. This presentation adoption completes #44 for stable
+renderers; it does not prove preview SwiftUI adoption or the separate unified
+invocation/schema migration in #11/#47/#48.
 
 The proposed [unified Affordance contract](AFFORDANCE_RFC.md) inventories the
 existing shapes, typed-schema dependency cycle, host admission requirements,
@@ -121,8 +124,20 @@ Declaring display changes presentation, never the raw stored/submitted value.
 The schema compatibility tests in `tools/value_display_contract.test.mjs` verify
 stable tags, message presence, unchanged wire/JSON when unset, and old-reader
 unknown-field preservation. They do not prove renderer formatting; the stateful
-corpus and interaction suites own that evidence. The broader shared-core/WASM
-formatter requirement remains roadmap #50, not a consequence of these fields.
+corpus and interaction suites own that evidence. The shared-core/WASM formatter
+in #50 and stable-renderer propagation proof in #51 are integrated separately,
+not inferred from the existence of these fields.
+
+The canonical formatter corpus contains 355 independent expectations, including
+222 no-clock cases. Read-surface tests carry the corpus through HTML/Shadcn/MUI
+and web-components using each surface's supported clock contract; native reads
+use the no-clock subset. Conversation slots exercise all 18 ValueTypes on their
+string-valued wire contract without numeric coercion. Constrained copy/Stat
+cases retain literal copy identity and reveal state, and 1,265 typed-input/read-only
+scenarios per realization preserve raw defaults, submission values, supporting
+titles where available, and masked-value concealment. Native titles remain an
+explicit omission without a hover channel. These are formatter adoption proofs,
+not general layout or full SwiftUI parity.
 
 New value-bearing messages should adopt the declaration before adding ad hoc
 formatting rules. Principal labels may use the compatible `Name <email>` wire
