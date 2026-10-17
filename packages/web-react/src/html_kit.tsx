@@ -27,7 +27,8 @@ import { FormContent } from "./form.js";
 import { LroInputs } from "./lro_inputs.js";
 import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
-import { useHrefResolver } from "./provider.js";
+import { useHrefResolver, useMeridianTheme } from "./provider.js";
+import { referenceThemeStyle, referenceHeadingStyle } from "./reference_theme.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
@@ -64,17 +65,14 @@ function renderDisplayedValue(
 function themeToStyle(theme: Theme | undefined): CSSProperties {
   if (!theme) return {};
   const pal = theme.dark ?? theme.light;
-  if (!pal) return {};
+  const shared = referenceThemeStyle(theme);
+  if (!pal) return shared;
   // Expose the palette as the same --mer-* custom properties the web-components
   // renderer uses, so one skin styles both web renderers identically.
   return {
-    ["--mer-bg" as string]: pal.bg,
-    ["--mer-surface" as string]: pal.surface,
-    ["--mer-fg" as string]: pal.fg,
-    ["--mer-accent" as string]: pal.accent,
-    ["--mer-border" as string]: pal.border,
-    background: "var(--mer-bg)",
-    color: "var(--mer-fg)",
+    ...shared,
+    ...(pal.bg ? { background: "var(--mer-bg)" } : {}),
+    ...(pal.fg ? { color: "var(--mer-fg)" } : {}),
   };
 }
 
@@ -82,17 +80,20 @@ export const htmlKit: ComponentKit = {
   id: "html",
   ActionBar: (props) => <ReferenceActionBar {...props} variant="html" />,
   themeToStyle,
-  Chrome: ({ descriptor, children }) => (
+  Chrome: ({ descriptor, children, style }) => {
+    const headingStyle = referenceHeadingStyle(useMeridianTheme());
+    return (
     <section
       className="mer-panel"
       data-panel={descriptor.panelId}
       data-panel-shape={descriptor.body.case || "unset"}
-      style={themeToStyle(undefined)}
+      style={style}
     >
-      <h2 className="mer-panel-title">{descriptor.title || descriptor.panelId}</h2>
+      <h2 className="mer-panel-title" style={headingStyle}>{descriptor.title || descriptor.panelId}</h2>
       {children}
     </section>
-  ),
+    );
+  },
   Table: ({ panel, invoker }) => <TableContent panel={panel} invoker={invoker} />,
   Gallery: ({ panel, invoker }) => <GalleryContent panel={panel} invoker={invoker} className="mer-gallery" emptyClassName="mer-empty" />,
   Prompt: ({ panel, descriptor }) => <PromptContent panel={panel} panelId={descriptor.panelId} c={HTML_FORM_CLASSES} />,

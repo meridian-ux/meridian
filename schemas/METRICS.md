@@ -53,6 +53,16 @@ variables consumed by shared React composition. Replacing a web theme restores
 host-owned declarations. Semantic table dividers, tab selection, and keyboard
 focus indicators do not use decorative stroke.
 
+The reference HTML/shadcn kits receive canonical Metrics and Typography through
+the actual `MeridianProvider` → panel/view path, including palette-free themes.
+`themeToStyle` is applied to existing composed-view roots and passed as `style`
+to a kit's existing `Chrome` root. Custom Chrome components should forward that
+optional style; no additional DOM wrapper is introduced and theme replacement
+does not remount controls. Reference component CSS may consume the same tokens;
+this does not rewrite arbitrary host-owned Tailwind or CSS spacing rules. MUI's
+mode-correct provider remains authoritative; nested Chrome inherits its roles
+instead of selecting light colors again.
+
 Wire regressions, bounded resolver cases, web lifecycle tests, MUI adapter tests,
 and real-Chrome gallery spacing/stroke/focus/replacement checks cover these
 bindings. Final integration, cross-kit layout verification, and native

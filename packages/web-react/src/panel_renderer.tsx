@@ -14,7 +14,7 @@ export function PanelRenderer({
 }: {
   descriptor: PanelDescriptor;
 }): ReactNode {
-  const { kit, invoker, adhoc } = useMeridian();
+  const { kit, invoker, adhoc, theme } = useMeridian();
   const body = descriptor.body;
 
   let inner: ReactNode;
@@ -191,5 +191,5 @@ export function PanelRenderer({
   // does for known-but-unsupported arms; do not special-case it into silence.
 
   const Chrome = kit.Chrome;
-  return Chrome ? <Chrome descriptor={descriptor}>{inner}</Chrome> : inner;
+  return Chrome ? <Chrome descriptor={descriptor} style={kit.themeToStyle?.(theme)}>{inner}</Chrome> : inner;
 }

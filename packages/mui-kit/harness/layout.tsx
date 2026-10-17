@@ -3,8 +3,9 @@
 import { create, fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ThemeSchema, type Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import { themeProtoToCssVars } from "../src/theme.js";
+import { MeridianMuiProvider } from "../src/provider.js";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
@@ -14,15 +15,19 @@ import { disposeView, renderView } from "../../web/src/uiview/view_renderer.js";
 import type { UiviewWasm } from "../../web/src/uiview/renderer.js";
 
 let reactRoot: Root | undefined;
+let redrawTheme: ((theme: Theme | undefined) => void) | undefined;
 let calls: string[] = [];
 const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 const struct = (bytes: number[]) => toJson(StructSchema, fromBinary(StructSchema, Uint8Array.from(bytes)));
 const controls = {
   metrics(enabled: boolean) {
+    const theme = create(ThemeSchema, {
+      light: { bg: "#ffffff", fg: "#111111" }, dark: { bg: "#101010", fg: "#eeeeee" },
+      metrics: { spacingScalePx: [0, 2, 6, 12, 18, 24, 36], densityScale: 0.75, strokePx: 0 },
+    });
+    if (redrawTheme) { redrawTheme(enabled ? theme : undefined); return; }
     const root = document.getElementById("root")!;
-    const vars = themeProtoToCssVars(create(ThemeSchema, { metrics: {
-      spacingScalePx: [0, 2, 6, 12, 18, 24, 36], densityScale: 0.75, strokePx: 0,
-    } })) as Record<string, string>;
+    const vars = themeProtoToCssVars(theme) as Record<string, string>;
     for (const [key, value] of Object.entries(vars)) {
       // Only the new tokens: leave this harness's existing palette/defaults alone.
       if (!key.startsWith("--mer-space-") && key !== "--mer-stroke") continue;
@@ -33,6 +38,7 @@ const controls = {
   calls: () => [...calls],
   async render(kit: string, viewBytes: number[], contextBytes: number[], responseBytes: number[]) {
     const root = document.getElementById("root")!;
+    redrawTheme = undefined;
     if (reactRoot) { const previous = reactRoot; reactRoot = undefined; flushSync(() => previous.unmount()); }
     disposeView(root);
     root.replaceChildren();
@@ -56,10 +62,11 @@ const controls = {
       // The typed provider accepts string IDs. The corpus also probes closed
       // gates for invalid externally supplied false/null/zero scope scalars.
       const values = (context.selections ?? {}) as Record<string, string>;
-      flushSync(() => mounted.render(createElement(MeridianProvider, {
-        kit: selected, invoker, adhoc: {},
-        children: createElement(ViewRenderer, { view, selection: { values, set() {} } }),
-      })));
+      const children = createElement(ViewRenderer, { view, selection: { values, set() {} } });
+      redrawTheme = theme => flushSync(() => mounted.render(kit === "mui-kit"
+        ? createElement(MeridianMuiProvider, { theme, mode: "dark", invoker, adhoc: {}, children })
+        : createElement(MeridianProvider, { kit: selected, theme, invoker, adhoc: {}, children })));
+      redrawTheme(undefined);
     }
     await frame(); await frame();
     window.scrollTo(0, 0);

@@ -89,8 +89,10 @@ export interface ComponentKit {
    * panel container. Optional — a kit may bind the theme its own way.
    */
   themeToStyle?(theme: Theme | undefined): CSSProperties;
-  /** Optional wrapper around every panel (title bar, surface, padding). */
-  Chrome?: ComponentType<{ descriptor: PanelDescriptor; children: ReactNode }>;
+  /** Optional wrapper around every panel (title bar, surface, padding).
+   * Forward style to its existing root to realize themeToStyle without adding
+   * a remounting wrapper. Composed views apply the same binding at their root. */
+  Chrome?: ComponentType<{ descriptor: PanelDescriptor; children: ReactNode; style?: CSSProperties }>;
   Table: ComponentType<TablePanelProps>;
   Prompt: ComponentType<PromptPanelProps>;
   Lro: ComponentType<LroPanelProps>;

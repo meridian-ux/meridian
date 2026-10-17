@@ -22,6 +22,7 @@ import { createAdmissionGate, type RpcInvoker } from "@savvifi/meridian-schemas/
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
 import type { MeridianActionHandler } from "./provider.js";
+import { referenceHeadingStyle } from "./reference_theme.js";
 import {
   EMPTY_SELECTION,
   buildActionBindingRequest,
@@ -259,6 +260,7 @@ export function ViewRenderer({
    */
   selection?: MeridianSelection;
 }): ReactNode {
+  const { kit, theme } = useMeridian();
   // The view's selection scope. Precedence: host-prop > an enclosing view's scope >
   // this view's own state. The MIDDLE arm is what makes `sub_view` work — a nested
   // ViewRenderer must SHARE the page's bag, not shadow it with a fresh one (selection
@@ -323,7 +325,7 @@ export function ViewRenderer({
 
   const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}
-      style={{ minWidth: 0, maxWidth: "100%", overflowWrap: "anywhere" }}>
+      style={{ ...kit.themeToStyle?.(theme), minWidth: 0, maxWidth: "100%", overflowWrap: "anywhere" }}>
       {/* Lay the header out as a row (title left, header-row slots + actions/kebab
           right) — kit-neutral inline style, matching the two-column/tabbed branches,
           so consumers don't have to style `mer-view-header` themselves (else title
@@ -332,7 +334,7 @@ export function ViewRenderer({
         className="mer-view-header"
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--mer-space-4, 16px)", flexWrap: "wrap", marginBottom: "var(--mer-space-4, 16px)" }}
       >
-        <h2 className="mer-view-title" style={{ margin: 0 }}>
+        <h2 className="mer-view-title" style={{ margin: 0, ...referenceHeadingStyle(theme) }}>
           {view.title}
         </h2>
         {/* Placement.header_row slots ride the header row between the title and the

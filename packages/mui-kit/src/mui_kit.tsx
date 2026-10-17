@@ -1019,9 +1019,11 @@ function LroShape({ panel }: { panel: LroPanel }): ReactNode {
 function Chrome({
   descriptor,
   children,
+  style,
 }: {
   descriptor: PanelDescriptor;
   children: ReactNode;
+  style?: CSSProperties;
 }): ReactNode {
   // MeridianMuiProvider already installs the mode-correct MUI ThemeProvider over
   // the whole subtree. Rebuilding a theme here via themeProtoToMuiTheme(theme)
@@ -1033,6 +1035,7 @@ function Chrome({
       className="mer-panel"
       data-panel={descriptor.panelId}
       data-panel-shape={descriptor.body.case || "unset"}
+      style={style}
     >
       {children}
     </Box>
@@ -1124,9 +1127,9 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
 }
 
 function themeToStyle(theme: Theme | undefined): CSSProperties {
-  const palette = theme?.light;
-  if (!palette) return {};
-  return { background: palette.bg || undefined, color: palette.fg || undefined };
+  // Mode belongs to MeridianMuiProvider. Never select light colors again at a
+  // nested panel/view boundary: inherit its already mode-correct CSS roles.
+  return theme ? { background: "var(--mer-bg)", color: "var(--mer-fg)" } : {};
 }
 
 /** The MUI ComponentKit — plug into MeridianProvider / reactWebRenderer. */

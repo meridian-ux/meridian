@@ -14,6 +14,7 @@ import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink, safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
+import { referenceThemeStyle, referenceHeadingStyle } from "./reference_theme.js";
 import {
   AffordanceControl,
   CatalogContent,
@@ -31,7 +32,7 @@ import { FormContent } from "./form.js";
 import { LroInputs } from "./lro_inputs.js";
 import { PromptContent } from "./prompt.js";
 import { MeridianViewContext } from "./view_renderer.js";
-import { useHrefResolver } from "./provider.js";
+import { useHrefResolver, useMeridianTheme } from "./provider.js";
 import { resolvePath, useRecord } from "./pagination.js";
 import { useDisplayNow } from "./display_now.js";
 import { LlmPromptContent } from "./llm_prompt.js";
@@ -71,18 +72,17 @@ function renderDisplayedValue(
 function themeToStyle(theme: Theme | undefined): CSSProperties {
   if (!theme) return {};
   const pal = theme.dark ?? theme.light;
-  if (!pal) return {};
-  return {
-    ["--background" as string]: pal.bg,
-    ["--card" as string]: pal.surface,
-    ["--foreground" as string]: pal.fg,
-    ["--muted-foreground" as string]: pal.muted,
-    ["--border" as string]: pal.border,
-    ["--primary" as string]: pal.accent,
-    ["--primary-foreground" as string]: pal.onAccent,
-    ["--destructive" as string]: pal.danger,
-    background: "var(--background)",
-    color: "var(--foreground)",
+  const shared = referenceThemeStyle(theme);
+  if (theme.metrics?.radiusPx) (shared as Record<string, unknown>)["--radius"] = `${theme.metrics.radiusPx}px`;
+  if (!pal) return shared;
+  const vars: Record<string, string> = {};
+  for (const [field, token] of [["bg", "background"], ["surface", "card"], ["fg", "foreground"],
+    ["muted", "muted-foreground"], ["border", "border"], ["accent", "primary"],
+    ["onAccent", "primary-foreground"], ["danger", "destructive"]] as const)
+    if (pal[field]) vars[`--${token}`] = pal[field];
+  return { ...shared, ...vars,
+    ...(pal.bg ? { background: "var(--background)" } : {}),
+    ...(pal.fg ? { color: "var(--foreground)" } : {}),
   };
 }
 
@@ -90,20 +90,24 @@ export const shadcnKit: ComponentKit = {
   id: "shadcn",
   ActionBar: (props) => <ReferenceActionBar {...props} variant="shadcn" />,
   themeToStyle,
-  Chrome: ({ descriptor, children }) => (
+  Chrome: ({ descriptor, children, style }) => {
+    const headingStyle = referenceHeadingStyle(useMeridianTheme());
+    return (
     <section
       className="rounded-lg border bg-card text-card-foreground shadow-sm"
       data-panel={descriptor.panelId}
       data-panel-shape={descriptor.body.case || "unset"}
+      style={style}
     >
       <header className="border-b px-4 py-3">
-        <h3 className="text-sm font-semibold leading-none tracking-tight">
+        <h3 className="text-sm font-semibold leading-none tracking-tight" style={headingStyle}>
           {descriptor.title || descriptor.panelId}
         </h3>
       </header>
       <div className="p-4">{children}</div>
     </section>
-  ),
+    );
+  },
   Table: ({ panel, invoker }) => (
     <div className="relative w-full overflow-auto">
       <TableContent panel={panel} invoker={invoker} styled />

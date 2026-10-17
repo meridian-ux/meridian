@@ -116,13 +116,14 @@ async function main() {
           const expected = fixture.name === "repeated" ? ["fixture.Layout.Rows"] : fixture.gateOpen ? ["fixture.Layout.Scoped"] : [];
           assert.deepEqual(calls, expected, "closed gates and static composition must not fetch");
           if (fixture.name === "twoColumn") {
-            await page.evaluate(() => {
+            await page.evaluate(kit => {
               window.layoutConformance.metrics(true);
               const columns = document.querySelector(".mer-two-column, .meridian-uiview-two-column");
               if (!columns) throw new Error("Missing columns for Metrics verification");
               if (getComputedStyle(columns).gap !== "27px") throw new Error("Scale/density did not reach composition gap");
+              if (kit === "mui-kit" && getComputedStyle(document.querySelector(".mer-view")).backgroundColor !== "rgb(16, 16, 16)") throw new Error("Nested MUI theme binding replaced dark mode with light colors");
               window.layoutConformance.metrics(false);
-            });
+            }, kit);
             await geometry(page, fixture);
             await page.setViewportSize({ width: width === 320 ? 1100 : 320, height: 900 });
             await geometry(page, fixture);
