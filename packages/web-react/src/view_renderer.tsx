@@ -309,7 +309,7 @@ export function ViewRenderer({
       // panels (header / sections / related tables) don't butt together — parity
       // with the inline-styled twoColumn / tabbed branches.
       body = (
-        <div className="mer-stack" style={{ display: "grid", gap: 24 }}>
+        <div className="mer-stack" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24 }}>
           {slots.map((s) => (
             <SlotView key={s.id} slot={s} />
           ))}
@@ -322,7 +322,8 @@ export function ViewRenderer({
   const rowActions = view.actions.filter((a) => a.placement === ActionPlacement.ROW);
 
   const rendered = (
-    <div className="mer-view" data-view={view.id} data-kind={view.kind}>
+    <div className="mer-view" data-view={view.id} data-kind={view.kind}
+      style={{ minWidth: 0, maxWidth: "100%", overflowWrap: "anywhere" }}>
       {/* Lay the header out as a row (title left, header-row slots + actions/kebab
           right) — kit-neutral inline style, matching the two-column/tabbed branches,
           so consumers don't have to style `mer-view-header` themselves (else title
@@ -402,7 +403,7 @@ function TabbedSlots({ slots, label }: { slots: Slot[]; label: string }): ReactN
       {regions.length > 0 ? (
         // Same kit-neutral structural gap as the `.mer-stack` branch — regions are
         // a stack that happens to sit above a tab strip.
-        <div className="mer-tab-regions" style={{ display: "grid", gap: 24, marginBottom: 24 }}>
+        <div className="mer-tab-regions" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24, marginBottom: 24 }}>
           {regions.map((s) => (
             <SlotView key={s.id} slot={s} />
           ))}

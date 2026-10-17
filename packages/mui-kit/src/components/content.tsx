@@ -162,7 +162,7 @@ export function CopyValueView({ value }: { value: CopyValue }): ReactNode {
     ? formatByDisplay(value.value, value.display).text : value.value;
   const shown = value.secret && !revealed ? "••••••••" : displayValue;
   return (
-    <Stack direction="row" spacing={1} alignItems="center" data-secret={value.secret || undefined}>
+    <Stack direction="row" alignItems="center" sx={{ flexWrap: "wrap", gap: 1, minWidth: 0 }} data-secret={value.secret || undefined}>
       {value.label && (
         <Typography variant="body2" color="text.secondary">
           {value.label}
@@ -173,7 +173,8 @@ export function CopyValueView({ value }: { value: CopyValue }): ReactNode {
         aria-label={!shown.trim() ? value.label ? `Copy ${value.label}` : "Copy value" : undefined}
         variant="outlined"
         onClick={() => copyText(value.value)} // copy always yields plaintext
-        sx={{ fontFamily: "monospace" }}
+        sx={{ fontFamily: "monospace", maxWidth: "100%", height: "auto",
+          "& .MuiChip-label": { whiteSpace: "normal", overflowWrap: "anywhere", py: 0.5 } }}
       />
       {value.secret && (
         <Button

@@ -192,8 +192,8 @@ function renderField(field: MeridianFormField, nowMs: number | undefined): React
         ) : null}
         <Stack spacing={1}>
           {field.items.map((item, index) => (
-            <Stack key={item.key} direction="row" spacing={1} alignItems="flex-start">
-              <Box sx={{ flex: 1, minWidth: 0 }}>{renderField(item.label ? item : {
+            <Stack key={item.key} direction="row" alignItems="flex-start" sx={{ flexWrap: "wrap", gap: 1 }}>
+              <Box sx={{ flex: "1 1 12rem", minWidth: 0, maxWidth: "100%" }}>{renderField(item.label ? item : {
                 ...item, label: `${field.label} item ${index + 1}`,
               }, nowMs)}</Box>
               {showControls ? (
