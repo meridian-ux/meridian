@@ -122,6 +122,10 @@ available zero, false, and authored empty strings remain unchanged. Direct users
 of this helper must catch rejection and must not dispatch an empty or partial
 fallback request.
 
+Its optional fourth `defaults` argument admits literal-key legacy defaults under
+the same budget before binding assignments, so a bare row-ID request does not
+need a separate unbounded copy path. Explicit bindings override those defaults.
+
 The shared view/table actions and resource-card actions use this path, as do
 `useRecord` and fetched Stat requests. Invalid record/Stat requests expose an
 error without dispatch or consumption of an SSR seed. Resource-card controls

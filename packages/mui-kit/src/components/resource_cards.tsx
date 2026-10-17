@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Alert, Box, Button, Card, CardContent, Chip, Link, Stack, Typography } from "@mui/material";
 import type { ResourceAction, ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { resolvePath, useHrefResolver, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
+import { buildActionBindingRequest, resolvePath, useHrefResolver, useMeridianSelection, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import { useActionFeedback } from "../action_feedback.js";
@@ -19,18 +19,6 @@ function visible(action: ResourceAction, row: Record<string, unknown>): boolean 
   return !!match && String(resolvePath(row, match[1].trim()) ?? "") === match[2].trim();
 }
 
-function requestFor(action: ResourceAction, row: Record<string, unknown>): Record<string, unknown> {
-  const request: Record<string, unknown> = {};
-  for (const binding of action.invoke?.bindings ?? []) {
-    const source = binding.source;
-    const value = source.case === "rowField"
-      ? resolvePath(row, source.value)
-      : source.case === "literal" ? source.value : undefined;
-    if (value !== undefined && value !== null) request[binding.requestField] = value;
-  }
-  return request;
-}
-
 export function MeridianResourceCards({
   panel,
   invoker,
@@ -40,10 +28,12 @@ export function MeridianResourceCards({
 }): ReactNode {
   const { rows, loading, error } = useResourceCardRows(panel, invoker);
   const mutationInvoker = useMutationRpcInvoker();
-  const feedback = useActionFeedback();
+  const selection = useMeridianSelection();
+  const scope = useMemo(() => ({ panel, rows, mutationInvoker, values: selection.values }), [panel, rows, mutationInvoker, selection.values]);
+  const feedback = useActionFeedback(scope);
   const resolveHref = useHrefResolver();
   const now = useDisplayNow();
-  const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
+  const [confirming, setConfirming] = useState<{ scope: typeof scope; action: ResourceAction; row: Record<string, unknown> } | null>(null);
   if (loading) return <Typography color="text.secondary">Loading…</Typography>;
   if (error) return <Alert severity="error">Failed to load resources.</Alert>;
   if (!rows.length) return <Typography color="text.secondary">{panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`}</Typography>;
@@ -52,7 +42,8 @@ export function MeridianResourceCards({
   const actions = template.actions?.actions ?? [];
   const invoke = (action: ResourceAction, row: Record<string, unknown>) => {
     if (action.invoke) {
-      void feedback.run(() => mutationInvoker.invoke(action.invoke!.service, action.invoke!.method, requestFor(action, row)));
+      void feedback.run(() => mutationInvoker.invoke(action.invoke!.service, action.invoke!.method,
+        buildActionBindingRequest(action.invoke, selection.values, row)));
     }
   };
   return (
@@ -89,10 +80,12 @@ export function MeridianResourceCards({
               <Stack direction="row" gap={1} flexWrap="wrap">
                 {actions.filter((action) => visible(action, row)).map((action) => (
                   <Box key={action.id}>
-                    <Button {...feedback.props(action.invoke)} size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ action, row }) : invoke(action, row)}>
+                    <Button {...feedback.props(action.invoke)} size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ scope, action, row }) : invoke(action, row)}>
                       {action.label}
                     </Button>
-                    {confirming?.action === action && confirming.row === row && (
+                    {/* Confirmation belongs to the request/capability scope the
+                        user saw, not a later selection or host replacement. */}
+                    {confirming?.scope === scope && confirming.action === action && confirming.row === row && (
                       <Alert severity={action.confirm?.destructive ? "warning" : "info"} role="alertdialog" sx={{ mt: 1 }}>
                         <Typography variant="subtitle2">{action.confirm?.title}</Typography>
                         <Typography variant="body2" sx={{ mb: 1 }}>{action.confirm?.message}</Typography>

@@ -116,8 +116,8 @@ export function buildBindingRequest(
  * Unavailable form, signal, and host runtime-context sources remain omitted.
  * Throws on invalid paths, non-JSON data, or admission limits; callers must not
  * substitute an empty/partial request. The result owns every referenced value. */
-export function buildActionBindingRequest(call: RpcCall | undefined, selection: Record<string, string>, record?: Row): Row {
-  return boundedActionRequest(call, selection, record);
+export function buildActionBindingRequest(call: RpcCall | undefined, selection: Record<string, string>, record?: Row, defaults?: Row): Row {
+  return boundedActionRequest(call, selection, record, defaults);
 }
 
 /**

@@ -93,6 +93,23 @@ Reads remain open by default; `onDenied` can be supplied on the policy for
 logging or host-side feedback. `admission: "unrestricted"` is an explicit
 opt-out for first-party-only descriptor sources.
 
+Header/overflow, resource-card, and table-row RpcCall actions use the shared
+bounded binding builder with real selection/record context. Nested request paths
+preserve raw values; invalid/oversized/cyclic requests reject as a whole. Unbound
+table actions keep their legacy `{ id }` request, but copy that default under the
+same admission budget instead of borrowing mutable row data.
+
+Action feedback follows the committed descriptor/transport scope. A suspended,
+uncommitted replacement cannot strand the action still on screen; a committed
+replacement ignores obsolete completions. This does not abort or undo host work
+already started. Resource-card confirmation also belongs to the descriptor,
+loaded rows, selection, and mutation capability that displayed it. A committed
+replacement requires a fresh confirmation; returning to old values does not
+revive the old prompt. An unrelated rerender preserves the prompt. Admission
+still runs at activation, and confirmation is not an authorization grant.
+Palette RPC parameter adoption remains a separate cross-renderer
+contract; these changes do not alter the standalone launchpad API.
+
 Form submits and LRO starts use the shared React submission builder under one
 cumulative binding/automatic-field copy budget. Form output uses literal field
 IDs and **explicit bindings take precedence**, matching the integrated core.
