@@ -73,6 +73,9 @@ const controls = {
     sans: "sans-serif", base_size_px: 19, heading_weight: 700, body_weight: 500,
   } }, "light", root()),
   metrics: () => applyTheme({ metrics: { unit_px: 16, radius_px: 20 } }, "light", root()),
+  metricsScale: () => applyTheme({ metrics: {
+    spacing_scale_px: [0, 2, 6, 12, 18, 24, 36], density_scale: 0.75, stroke_px: 0,
+  } }, "light", root()),
   resetTheme: () => applyTheme({}, "light", root()),
   gallery: () => renderPanel({ root: root(), wasm, context,
     descriptor: create(PanelDescriptorSchema, { panelId: "gallery-layout", body: { case: "gallery", value: {

@@ -231,6 +231,7 @@ jobs:
       - name: Typecheck
         run: |
           pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.json --noEmit
+          pnpm --filter @savvifi/meridian-schemas exec tsc -p src/theme/tsconfig.test.json --noEmit
           pnpm --filter @savvifi/meridian-web exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-mui-kit exec tsc -p tsconfig.json --noEmit

@@ -2681,6 +2681,58 @@ fn gallery_populate_flows_into_the_tui_card_grid() {
 }
 
 #[test]
+fn pixel_metrics_degrade_without_changing_terminal_content_or_styles() {
+    use meridian_tui::{Mode, Theme};
+    use theme_proto::meridian::theme::v1::Metrics;
+    for width in [64, 100] {
+        let draw = |theme: Theme| {
+            let decoded = Theme::decode(theme.encode_to_vec().as_slice()).unwrap();
+            let mut view = PanelView::with_palette(Palette::from_theme(&decoded, Mode::Light));
+            let mut terminal = Terminal::new(TestBackend::new(width, 10)).unwrap();
+            terminal
+                .draw(|frame| {
+                    view.render(
+                        frame,
+                        frame.area(),
+                        &gallery_descriptor(),
+                        &Context::default(),
+                        &GalleryData,
+                    )
+                })
+                .unwrap();
+            terminal.backend().buffer().clone()
+        };
+        let baseline = draw(Theme::default());
+        let text = baseline
+            .content()
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<Vec<_>>()
+            .concat();
+        assert!(
+            text.contains("GitHub"),
+            "baseline must render actual content"
+        );
+        for density in [0.5, 2.0] {
+            assert_eq!(
+                draw(Theme {
+                    metrics: Some(Metrics {
+                        radius_px: 64,
+                        unit_px: 64,
+                        spacing_scale_px: vec![0, 32, 64, 1024],
+                        density_scale: Some(density),
+                        stroke_px: Some(0),
+                    }),
+                    ..Default::default()
+                }),
+                baseline,
+                "pixel metrics must preserve every terminal cell/style"
+            );
+        }
+    }
+}
+
+#[test]
 fn declared_record_links_survive_wire_decode_and_render_as_noninteractive_metadata() {
     use meridian_uiview::proto::{
         value_display::Options, PrincipalOptions, TableColumn, TablePanel, ValueDisplay, ValueLink,

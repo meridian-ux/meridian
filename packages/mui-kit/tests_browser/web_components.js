@@ -95,6 +95,21 @@ async function main() {
     await page.evaluate(() => {
       const root = document.getElementById("root"), grid = root.querySelector(".mer-gallery");
       const card = grid.querySelector("article");
+      window.webConformance.metricsScale();
+      if (getComputedStyle(grid).gap !== "13.5px" || getComputedStyle(card).padding !== "9px") throw new Error("Scale and density did not reach real gallery geometry");
+      if (getComputedStyle(card).borderTopWidth !== "0px") throw new Error("Explicit zero stroke was lost");
+      if (getComputedStyle(root).fontSize !== "14px" || getComputedStyle(card).borderRadius !== "8px") throw new Error("Density scaled typography or radius");
+    });
+    await page.getByRole("link", { name: "Open card 1", exact: true }).focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    await page.evaluate(() => {
+      const link = document.activeElement;
+      if (!link.matches(".mer-gallery-card-link:focus-visible") || getComputedStyle(link).outlineWidth !== "2px") throw new Error("Zero decorative stroke removed keyboard focus");
+      const root = document.getElementById("root"), grid = root.querySelector(".mer-gallery");
+      const card = grid.querySelector("article");
+      window.webConformance.resetTheme();
+      if (getComputedStyle(grid).gap !== "32px" || getComputedStyle(card).borderTopWidth !== "1px") throw new Error("Replacement retained scale/density/stroke");
       window.webConformance.metrics();
       if (getComputedStyle(grid).gap !== "64px" || getComputedStyle(card).borderRadius !== "20px") throw new Error("Metrics were not applied");
       window.webConformance.resetTheme();

@@ -17,6 +17,10 @@
       "types": "./src/uiview/index.d.ts",
       "import": "./src/uiview/index.js"
     },
+    "./theme": {
+      "types": "./src/theme/index.d.ts",
+      "import": "./src/theme/index.js"
+    },
     "./uiview": {
       "types": "./src/uiview/index.d.ts",
       "import": "./src/uiview/index.js"
@@ -24,10 +28,12 @@
   },
   "files": [
     "src/uiview/**/*.js",
-    "src/uiview/**/*.d.ts"
+    "src/uiview/**/*.d.ts",
+    "src/theme/index.js",
+    "src/theme/index.d.ts"
   ],
   "scripts": {
-    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/conversation_tone.test.ts src/uiview/affordance_presentation.test.ts src/uiview/conversation_sequence.test.ts"
+    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/conversation_tone.test.ts src/uiview/affordance_presentation.test.ts src/uiview/conversation_sequence.test.ts src/theme/metrics.test.ts"
   },
   "dependencies": {
     "@savvifi/meridian-proto-ts": "workspace:*",

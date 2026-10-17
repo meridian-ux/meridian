@@ -172,9 +172,9 @@ function SlotView({ slot }: { slot: Slot }): ReactNode {
         <div
           className="mer-slot-placeholder"
           style={{
-            border: "1px solid var(--mer-border, #e0e0e0)",
-            borderRadius: 8,
-            padding: "16px 20px",
+            border: "var(--mer-stroke, 1px) solid var(--mer-border, #e0e0e0)",
+            borderRadius: "var(--mer-radius, 8px)",
+            padding: "var(--mer-space-4, 16px) var(--mer-space-5, 20px)",
             fontSize: 13,
             opacity: 0.7,
             color: "var(--mer-fg, inherit)",
@@ -309,7 +309,7 @@ export function ViewRenderer({
       // panels (header / sections / related tables) don't butt together — parity
       // with the inline-styled twoColumn / tabbed branches.
       body = (
-        <div className="mer-stack" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24 }}>
+        <div className="mer-stack" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "var(--mer-space-6, 24px)" }}>
           {slots.map((s) => (
             <SlotView key={s.id} slot={s} />
           ))}
@@ -330,7 +330,7 @@ export function ViewRenderer({
           + actions stack). */}
       <header
         className="mer-view-header"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 16 }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--mer-space-4, 16px)", flexWrap: "wrap", marginBottom: "var(--mer-space-4, 16px)" }}
       >
         <h2 className="mer-view-title" style={{ margin: 0 }}>
           {view.title}
@@ -343,7 +343,7 @@ export function ViewRenderer({
         {headerRowSlots.length > 0 ? (
           <div
             className="mer-view-header-slots"
-            style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginLeft: "auto" }}
+            style={{ display: "flex", alignItems: "center", gap: "var(--mer-space-3, 12px)", flexWrap: "wrap", marginLeft: "auto" }}
           >
             {headerRowSlots.map((s) => (
               <SlotView key={s.id} slot={s} />
@@ -403,7 +403,7 @@ function TabbedSlots({ slots, label }: { slots: Slot[]; label: string }): ReactN
       {regions.length > 0 ? (
         // Same kit-neutral structural gap as the `.mer-stack` branch — regions are
         // a stack that happens to sit above a tab strip.
-        <div className="mer-tab-regions" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24, marginBottom: 24 }}>
+        <div className="mer-tab-regions" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "var(--mer-space-6, 24px)", marginBottom: "var(--mer-space-6, 24px)" }}>
           {regions.map((s) => (
             <SlotView key={s.id} slot={s} />
           ))}
@@ -425,9 +425,9 @@ function TabbedSlots({ slots, label }: { slots: Slot[]; label: string }): ReactN
             style={{
               display: "flex",
               flexWrap: "wrap",
-              gap: 4,
+              gap: "var(--mer-space-1, 4px)",
               borderBottom: "1px solid var(--mer-border, #e0e0e0)",
-              marginBottom: 16,
+              marginBottom: "var(--mer-space-4, 16px)",
             }}
           >
             {tabs.map((s, i) => {
@@ -463,7 +463,7 @@ function TabbedSlots({ slots, label }: { slots: Slot[]; label: string }): ReactN
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
-                    padding: "8px 14px",
+                    padding: "var(--mer-space-2, 8px) var(--mer-space-3-5, 14px)",
                     fontSize: 14,
                     fontFamily: "inherit",
                     color: isActive ? "var(--mer-accent, #1976d2)" : "var(--mer-fg, inherit)",
@@ -505,7 +505,7 @@ function TwoColumnSlots({ slots }: { slots: Slot[] }): ReactNode {
   return (
     <div
       className="mer-two-column"
-      style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}
+      style={{ display: "flex", gap: "var(--mer-space-6, 24px)", alignItems: "flex-start", flexWrap: "wrap" }}
     >
       <div className="mer-col-main" style={{ flex: "2 1 320px", minWidth: 0 }}>
         {main.map((s) => (

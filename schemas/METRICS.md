@@ -6,6 +6,12 @@ existing meanings; their legacy zero values remain unspecified. Three additive
 fields express the missing rhythm contract without moving declarations or
 changing the FILE compatibility policy.
 
+Regenerate language bindings with the canonical toolchain after updating the
+proto. This is additive wire compatibility, not a promise that exhaustive
+generated-struct literals remain source-compatible: Rust callers constructing
+`Metrics` directly should supply the new fields or use `..Default::default()`.
+Do not add parallel JSON schemas or change the FILE baseline for this addition.
+
 | Field | Contract | Absent or invalid |
 |---|---|---|
 | `spacing_scale_px` (3) | Indexed CSS-reference-pixel steps; 2–17 nondecreasing uint32 entries, first entry zero, every entry at most 1024 | Use existing unit-based spacing |
@@ -33,14 +39,30 @@ must remain perceptible even when decorative stroke is explicitly zero.
 
 ## Realization and verification status
 
-The schema and wire-compatibility regressions are the first implementation
-slice for roadmap #52, not its completion. CSS, shared React composition, MUI,
-theme-replacement ownership, and real-browser computed-style proofs still need
-to adopt this contract. Exporting unused variables is not adoption.
+The style-only `@savvifi/meridian-schemas/theme` entrypoint validates the three
+additions without importing a renderer or the WASM core. Its `resolveMetrics`
+accepts a projection of generated `Metrics` fields and a renderer's legacy unit.
+The returned `spacing(factor)` handles interpolation, clamping, and density;
+`strokePx` preserves absence separately from explicit zero.
 
-Terminals have character cells rather than CSS pixels. Their binding must state
-the supported semantic realization or explicit degradation; it must not guess a
-pixel-to-cell conversion or drop content to approximate density. SwiftUI remains
+Web-components map proto-JSON snake-case fields into that resolver and emit
+`--mer-space-*` and `--mer-stroke`. Their base stylesheet consumes the tokens for
+layout, gallery, stream, button, and record spacing and decorative borders. MUI
+uses the same resolver for fractional `theme.spacing`, card borders, and CSS
+variables consumed by shared React composition. Replacing a web theme restores
+host-owned declarations. Semantic table dividers, tab selection, and keyboard
+focus indicators do not use decorative stroke.
+
+Wire regressions, bounded resolver cases, web lifecycle tests, MUI adapter tests,
+and real-Chrome gallery spacing/stroke/focus/replacement checks cover these
+bindings. Final integration, cross-kit layout verification, and native
+degradation documentation/tests remain required for roadmap #52 acceptance.
+
+Terminals have character cells rather than CSS pixels. The TUI explicitly ignores
+pixel Metrics: cell geometry and structural/selection styles remain unchanged.
+A wire-decoded, real-gallery TestBackend regression compares every cell and style
+at compact/spacious density and two terminal widths, including zero stroke. No
+pixel-to-cell conversion or content removal approximates density. SwiftUI remains
 the approved local panel preview: full native Metrics/layout parity is not a v1
 gate, and unverified coverage stays explicit.
 

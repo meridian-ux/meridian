@@ -116,6 +116,14 @@ async function main() {
           const expected = fixture.name === "repeated" ? ["fixture.Layout.Rows"] : fixture.gateOpen ? ["fixture.Layout.Scoped"] : [];
           assert.deepEqual(calls, expected, "closed gates and static composition must not fetch");
           if (fixture.name === "twoColumn") {
+            await page.evaluate(() => {
+              window.layoutConformance.metrics(true);
+              const columns = document.querySelector(".mer-two-column, .meridian-uiview-two-column");
+              if (!columns) throw new Error("Missing columns for Metrics verification");
+              if (getComputedStyle(columns).gap !== "27px") throw new Error("Scale/density did not reach composition gap");
+              window.layoutConformance.metrics(false);
+            });
+            await geometry(page, fixture);
             await page.setViewportSize({ width: width === 320 ? 1100 : 320, height: 900 });
             await geometry(page, fixture);
             assert.deepEqual(await page.evaluate(() => window.layoutConformance.calls()), expected);

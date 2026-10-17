@@ -1,8 +1,10 @@
 // Browser test seam: descriptors, context, and fake responses arrive only as
 // canonical protobuf bytes. No second view schema or live transport exists here.
-import { fromBinary, toJson } from "@bufbuild/protobuf";
+import { create, fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { themeProtoToCssVars } from "../src/theme.js";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
@@ -16,6 +18,18 @@ let calls: string[] = [];
 const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 const struct = (bytes: number[]) => toJson(StructSchema, fromBinary(StructSchema, Uint8Array.from(bytes)));
 const controls = {
+  metrics(enabled: boolean) {
+    const root = document.getElementById("root")!;
+    const vars = themeProtoToCssVars(create(ThemeSchema, { metrics: {
+      spacingScalePx: [0, 2, 6, 12, 18, 24, 36], densityScale: 0.75, strokePx: 0,
+    } })) as Record<string, string>;
+    for (const [key, value] of Object.entries(vars)) {
+      // Only the new tokens: leave this harness's existing palette/defaults alone.
+      if (!key.startsWith("--mer-space-") && key !== "--mer-stroke") continue;
+      if (enabled) root.style.setProperty(key, value);
+      else root.style.removeProperty(key);
+    }
+  },
   calls: () => [...calls],
   async render(kit: string, viewBytes: number[], contextBytes: number[], responseBytes: number[]) {
     const root = document.getElementById("root")!;

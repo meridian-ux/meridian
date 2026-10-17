@@ -9,6 +9,8 @@
 // interface because the web surface decodes via the wasm bundle and does not
 // generate TS proto types. If the proto changes, change these in lockstep.
 
+import { resolveMetrics } from "@savvifi/meridian-schemas/theme";
+
 export interface Palette {
   bg?: string;
   surface?: string;
@@ -36,6 +38,9 @@ export interface Typography {
 export interface Metrics {
   radius_px?: number;
   unit_px?: number;
+  spacing_scale_px?: number[];
+  density_scale?: number;
+  stroke_px?: number;
 }
 
 export interface Theme {
@@ -90,6 +95,15 @@ export function themeToCssVars(theme: Theme, mode: Mode = "dark"): Record<string
   if (m) {
     if (m.radius_px) vars["--mer-radius"] = `${m.radius_px}px`;
     if (m.unit_px) vars["--mer-unit"] = `${m.unit_px}px`;
+    const resolved = resolveMetrics({ unitPx: m.unit_px, spacingScalePx: m.spacing_scale_px,
+      densityScale: m.density_scale, strokePx: m.stroke_px }, 4);
+    // Emit only for an opt-in Metrics addition; legacy host-unit overrides keep
+    // their CSS fallback behavior when no scale or density was supplied.
+    if (resolved.hasSpacing) {
+      for (const factor of [1, 1.5, 2, 3, 3.5, 4, 5, 6])
+        vars[`--mer-space-${String(factor).replace(".", "-")}`] = `${resolved.spacing(factor)}px`;
+    }
+    if (resolved.strokePx !== undefined) vars["--mer-stroke"] = `${resolved.strokePx}px`;
   }
   return vars;
 }

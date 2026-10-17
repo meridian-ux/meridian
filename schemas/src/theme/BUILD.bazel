@@ -1,0 +1,20 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@rules_vite//vite:defs.bzl", "vitest_test")
+
+package(default_visibility = ["//visibility:public"])
+
+ts_project(
+    name = "theme",
+    srcs = ["index.ts"],
+    declaration = True,
+    out_dir = ".",
+    transpiler = "tsc",
+    tsconfig = "tsconfig.json",
+    deps = ["//schemas:node_modules/@savvifi/meridian-proto-ts"],
+)
+
+vitest_test(
+    name = "metrics_test",
+    srcs = ["metrics.test.ts"],
+    deps = [":theme", "//schemas:node_modules/vitest"],
+)

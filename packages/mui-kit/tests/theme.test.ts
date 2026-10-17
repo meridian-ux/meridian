@@ -36,6 +36,29 @@ it("binds all declared semantic palette roles to MUI and shared CSS without repl
   expect(themeProtoToCssVars(bare)).not.toHaveProperty("--mer-warning");
 });
 
+describe("additive Metrics", () => {
+  it("uses fractional scale interpolation and density in actual MUI spacing", () => {
+    const skin = create(ThemeSchema, { metrics: {
+      spacingScalePx: [0, 2, 6, 12], densityScale: 0.75, strokePx: 0,
+    } });
+    const mui = themeProtoToMuiTheme(skin);
+    expect(mui.spacing(1.5)).toBe("3px");
+    expect(mui.spacing(-1, 6)).toBe("-1.5px 9px");
+    expect(mui.spacing("auto")).toBe("auto");
+    expect(mui.components?.MuiCard?.styleOverrides?.root).toMatchObject({ border: "0px solid #e0e0e0" });
+    expect(themeProtoToCssVars(skin)).toMatchObject({ "--mer-space-1-5": "3px", "--mer-stroke": "0px" });
+    expect(mui.typography.fontSize).toBe(14);
+    expect(mui.shape.borderRadius).toBe(4);
+  });
+  it("keeps renderer-specific legacy spacing and invalid-token fallbacks", () => {
+    expect(themeProtoToMuiTheme(undefined).spacing(1.5)).toBe("12px");
+    const skin = create(ThemeSchema, { metrics: { spacingScalePx: [0, 4, 2], densityScale: 0, strokePx: 9 } });
+    expect(themeProtoToMuiTheme(skin).spacing(1.5)).toBe("12px");
+    expect(themeProtoToCssVars(skin)).not.toHaveProperty("--mer-stroke");
+    expect(themeProtoToCssVars(skin)).not.toHaveProperty("--mer-space-6");
+  });
+});
+
 // A two-face brand: a serif display over a geometric sans.
 const twoFaceSkin = create(ThemeSchema, {
   id: "test-two-face",
