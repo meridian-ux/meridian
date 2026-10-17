@@ -121,4 +121,19 @@ message FontSource {
 message Metrics {
   uint32 radius_px = 1;       // default corner radius
   uint32 unit_px = 2;         // base spacing unit (e.g. 4)
+  // Optional indexed spacing scale in CSS-reference pixels. A valid scale has
+  // 2–17 nondecreasing entries, starts at zero, and contains no value > 1024.
+  // An empty/invalid scale keeps the renderer's legacy unit-based spacing.
+  // Integer factors select entries; fractional factors interpolate linearly;
+  // factors beyond the last entry clamp there. Negative factors negate the
+  // corresponding positive spacing where the receiving property permits it.
+  repeated uint32 spacing_scale_px = 3;
+  // Opt-in spacing multiplier: 1 is regular, <1 compact, >1 spacious. Valid
+  // range [0.5, 2], finite; absent/invalid means 1. Apply after scale/unit
+  // resolution. Never scale text, icons, radii, strokes, or focus indicators.
+  optional double density_scale = 4;
+  // Decorative border width in CSS-reference pixels, valid range [0, 8].
+  // Absence/invalid retains each component's legacy stroke; explicit zero is
+  // borderless. This must not suppress focus, selection, or required dividers.
+  optional uint32 stroke_px = 5;
 }
