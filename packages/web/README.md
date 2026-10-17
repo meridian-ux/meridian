@@ -62,7 +62,11 @@ It ships:
 
   Descriptor-originated RPCs can be constrained with `MountOptions.admission`:
   populate and stream calls are read-tier, while row/resource actions, view
-  actions, and LRO starts are mutation-tier. Reads are allowed by default for
+  actions, and LRO starts/finalization are mutation-tier. LRO operation polling
+  remains read-tier. A start grant does not grant the optional finalize call:
+  hosts must explicitly admit both methods in `mutations`, even if a finalize
+  method is also listed in `reads`. This closes the older finalize read-tier
+  behavior; hosts using that path must migrate their allowlist. Reads are allowed by default for
   compatibility; mutations are denied unless the host lists the exact
   `service/method` (or passes the explicit `"unrestricted"` opt-out).
 - **`//theme:web`** — the web theme binding (`meridian.css` + `theme.ts`,

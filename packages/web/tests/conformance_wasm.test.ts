@@ -750,6 +750,68 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     } finally { disposePanel(root); }
   });
 
+  it.each([false, true])("requires mutation admission for LRO finalization even when reads allow it: %s", async admitFinalize => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "fixture.Lro", method: "Start" },
+      finalize: { service: "fixture.Lro", method: "Finalize", bindings: [
+        { requestField: "result", source: { case: "rowField", value: "token" } },
+      ] },
+    } } });
+    const root = document.createElement("main"), onDenied = vi.fn();
+    const invoke = vi.fn(async (_service: string, method: string) => method === "Start"
+      ? { name: "operations/test", done: true, response: { "@type": "type.googleapis.com/fixture.Result", token: "001.20" } }
+      : {});
+    try {
+      await renderPanel({ root, descriptor, wasm, context: CTX, invoker: { invoke }, admission: {
+        reads: ["fixture.Lro/Finalize"],
+        mutations: admitFinalize ? ["fixture.Lro/Start", "fixture.Lro/Finalize"] : ["fixture.Lro/Start"], onDenied,
+      } });
+      root.querySelector<HTMLButtonElement>("button")!.click();
+      await vi.waitFor(() => expect(root.textContent).toContain(admitFinalize ? "Done." : "Finalize failed:"));
+      expect(invoke).toHaveBeenCalledTimes(admitFinalize ? 2 : 1);
+      if (admitFinalize) {
+        expect(invoke).toHaveBeenLastCalledWith("fixture.Lro", "Finalize", { result: "001.20" });
+        expect(onDenied).not.toHaveBeenCalled();
+      } else {
+        expect(root.textContent).toContain("fixture.Lro/Finalize");
+        expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({ tier: "mutation", service: "fixture.Lro", method: "Finalize" }));
+        expect(root.querySelector<HTMLButtonElement>("button")!.disabled).toBe(false);
+      }
+    } finally { disposePanel(root); }
+  });
+
+  it.each([false, true])("keeps operation polling read-tier and stops denied polls before finalization: %s", async admitPoll => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "fixture.Lro", method: "Start" },
+      finalize: { service: "fixture.Lro", method: "Finalize" },
+    } } });
+    const root = document.createElement("main"), onDenied = vi.fn();
+    const invoke = vi.fn(async (_service: string, method: string) => method === "Start"
+      ? { name: "operations/scoped", done: false }
+      : { name: "operations/scoped", done: true, response: {} });
+    try {
+      await renderPanel({ root, descriptor, wasm, context: CTX, invoker: { invoke }, admission: {
+        reads: admitPoll ? ["google.longrunning.Operations/WaitOperation"] : [],
+        mutations: ["fixture.Lro/Start", "fixture.Lro/Finalize"], onDenied,
+      } });
+      root.querySelector<HTMLButtonElement>("button")!.click();
+      await vi.waitFor(() => expect(root.textContent).toContain(admitPoll ? "Done." : "Poll failed:"));
+      expect(invoke).toHaveBeenCalledTimes(admitPoll ? 3 : 1);
+      if (admitPoll) {
+        expect(invoke).toHaveBeenNthCalledWith(2, "google.longrunning.Operations", "WaitOperation", {
+          name: "operations/scoped", timeout: { seconds: 5 },
+        });
+        expect(invoke).toHaveBeenLastCalledWith("fixture.Lro", "Finalize", {});
+        expect(onDenied).not.toHaveBeenCalled();
+      } else {
+        expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({ tier: "read", service: "google.longrunning.Operations", method: "WaitOperation" }));
+        expect(root.querySelector<HTMLButtonElement>("button")!.disabled).toBe(false);
+      }
+    } finally { disposePanel(root); }
+  });
+
   it("rejects an excessive finalize request without a second RPC", async () => {
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     const root = document.createElement("main"), invoke = vi.fn(async () => ({ done: true, response: {} }));
