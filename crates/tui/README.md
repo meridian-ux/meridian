@@ -85,9 +85,12 @@ types, including false, zero, empty strings, and nested collections. The core
 inline validator uses UTF-16 string lengths and the shared Rust Unicode regex
 contract on native and WASM: a search match is sufficient unless the author
 anchors the pattern, and lookaround/backreferences are unsupported. Invalid
-patterns fail closed. Legacy standalone prompt validation still has older
-whole-value anchoring and Unicode-scalar length rules; consolidation remains a
-validation-parity gap, not an exception to the v1 contract.
+patterns fail closed. The standalone prompt uses the same length and pattern
+semantics for text, masked input, and their nested/repeated descendants. Migration:
+the standalone helper no longer adds implicit whole-value anchors or counts
+Unicode scalar values. Producers requiring whole-value constraints (including
+imported CloudFormation constraints) must author an explicitly anchored pattern,
+such as `^(?:cat|dog)$`; astral characters count as two UTF-16 code units.
 Read-only forms ignore editing keys. Replacing a descriptor discards cached form
 edits and open JSON editors; resizing preserves them. Hosts own authorization,
 RPC execution, and operation polling; rendering or editing never starts an RPC.

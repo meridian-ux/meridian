@@ -942,23 +942,19 @@ fn length_and_pattern(
     pattern: &str,
     pattern_error_msg: &str,
 ) -> Option<String> {
-    if min_length > 0 && (value.chars().count() as i32) < min_length {
+    // Match the protobuf form contract and native/WASM core, including astral
+    // characters. Do not narrow a potentially large length to i32.
+    let length = value.encode_utf16().count();
+    if min_length > 0 && length < min_length as usize {
         return Some(format!("must be at least {min_length} characters"));
     }
-    if max_length > 0 && (value.chars().count() as i32) > max_length {
+    if max_length > 0 && length > max_length as usize {
         return Some(format!("must be at most {max_length} characters"));
     }
     if !pattern.is_empty() {
-        // Anchor the pattern unless the author already did — CFN
-        // semantics are "the whole value must match," matching
-        // `Regex::is_match` is "contains a match," so we wrap.
-        let anchored = match (pattern.starts_with('^'), pattern.ends_with('$')) {
-            (true, true) => pattern.to_string(),
-            (true, false) => format!("{pattern}$"),
-            (false, true) => format!("^{pattern}"),
-            (false, false) => format!("^{pattern}$"),
-        };
-        match regex::Regex::new(&anchored) {
+        // Rust Unicode search semantics, just like the core. Producers that
+        // require a whole-value constraint must supply their own anchors.
+        match regex::Regex::new(pattern) {
             Ok(re) => {
                 if !re.is_match(value) {
                     return Some(if pattern_error_msg.is_empty() {
@@ -1249,6 +1245,170 @@ mod shared_state_tests {
             label: "Text".into(),
             kind: Some(Kind::Text(TextInput::default())),
             ..Default::default()
+        }
+    }
+
+    #[test]
+    fn standalone_text_constraints_agree_with_core_on_unicode_and_search_matching() {
+        let cases = [
+            ("🦀", 2, 2, "", true),
+            ("🦀", 0, 1, "", false),
+            ("concatenate", 0, 0, "cat", true),
+            ("concatenate", 0, 0, "^cat$", false),
+            ("cat", 0, 0, "^cat$", true),
+            ("catfish", 0, 0, "^cat", true),
+            ("bobcat", 0, 0, "cat$", true),
+            ("٣", 0, 0, r"\d", true),
+            ("٣", 0, 0, "[0-9]", false),
+            ("cat", 0, 0, "(?=cat)", false),
+            ("aa", 0, 0, r"(a)\1", false),
+            ("cat", 0, 0, "[", false),
+        ];
+        for (value, min_length, max_length, pattern, accepted) in cases {
+            for masked in [false, true] {
+                let kind = if masked {
+                    Kind::Masked(MaskedInput {
+                        min_length,
+                        max_length,
+                        pattern: pattern.into(),
+                        ..Default::default()
+                    })
+                } else {
+                    Kind::Text(TextInput {
+                        min_length,
+                        max_length,
+                        pattern: pattern.into(),
+                        ..Default::default()
+                    })
+                };
+                let field = FormField {
+                    kind: Some(kind),
+                    ..text()
+                };
+                let core = meridian_uiview::validate_form_values(
+                    std::slice::from_ref(&field),
+                    &serde_json::json!({"text": value}),
+                );
+                assert_eq!(core.is_ok(), accepted, "core: {value:?} / {pattern:?}");
+                let mut state = PromptState::new(&panel(vec![field.clone()])).unwrap();
+                for character in value.chars() {
+                    state.handle_key(key(KeyCode::Char(character)));
+                }
+                let response = state.handle_key(key(KeyCode::Enter));
+                assert_eq!(
+                    response.is_some(),
+                    accepted,
+                    "prompt: {value:?} / {pattern:?}, masked={masked}"
+                );
+                if let Some(PromptResponse::Submitted(values)) = response {
+                    assert_eq!(values["text"].as_string(), value);
+                }
+                assert_eq!(
+                    parse_repeated_item(&field, &serde_json::json!(value)).is_ok(),
+                    accepted
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn standalone_pattern_errors_preserve_authored_feedback_and_edits() {
+        let field = FormField {
+            kind: Some(Kind::Text(TextInput {
+                pattern: "^cat$".into(),
+                pattern_error_msg: "Enter cat exactly".into(),
+                default_value: "catfish".into(),
+                ..Default::default()
+            })),
+            ..text()
+        };
+        let mut state = PromptState::new(&panel(vec![field])).unwrap();
+        assert!(state.handle_key(key(KeyCode::Enter)).is_none());
+        assert_eq!(state.states[0].text, "catfish");
+        assert_eq!(state.states[0].error.as_deref(), Some("Enter cat exactly"));
+        let mut terminal = Terminal::new(TestBackend::new(70, 20)).unwrap();
+        terminal
+            .draw(|frame| state.draw(frame, frame.area(), &Palette::default()))
+            .unwrap();
+        let rendered: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect();
+        assert!(rendered.contains("Enter cat exactly"));
+        for _ in 0..4 {
+            state.handle_key(key(KeyCode::Backspace));
+        }
+        assert!(matches!(
+            state.handle_key(key(KeyCode::Enter)),
+            Some(PromptResponse::Submitted(_))
+        ));
+        assert!(length_and_pattern("cat", 0, 0, "[", "custom mismatch")
+            .unwrap()
+            .starts_with("invalid pattern:"));
+    }
+
+    #[test]
+    fn standalone_compound_prompt_validates_text_and_masked_descendants() {
+        use meridian_uiview::proto::NestedForm;
+
+        for masked in [false, true] {
+            let kind = if masked {
+                Kind::Masked(MaskedInput {
+                    min_length: 2,
+                    max_length: 2,
+                    pattern: "🦀".into(),
+                    ..Default::default()
+                })
+            } else {
+                Kind::Text(TextInput {
+                    min_length: 2,
+                    max_length: 2,
+                    pattern: "🦀".into(),
+                    ..Default::default()
+                })
+            };
+            let leaf = FormField {
+                kind: Some(kind),
+                ..text()
+            };
+            let field = FormField {
+                field_id: "items".into(),
+                kind: Some(Kind::Repeated(Box::new(RepeatedField {
+                    element: Some(Element::Object(NestedForm { fields: vec![leaf] })),
+                    ..Default::default()
+                }))),
+                ..Default::default()
+            };
+            let mut state = PromptState::new(&panel(vec![field.clone()])).unwrap();
+            for (raw, accepted) in [(r#"[{"text":"x"}]"#, false), (r#"[{"text":"🦀"}]"#, true)] {
+                state.clear_text();
+                for character in raw.chars() {
+                    state.handle_key(key(KeyCode::Char(character)));
+                }
+                let value: serde_json::Value = serde_json::from_str(raw).unwrap();
+                assert_eq!(
+                    meridian_uiview::validate_form_values(
+                        std::slice::from_ref(&field),
+                        &serde_json::json!({"items": value})
+                    )
+                    .is_ok(),
+                    accepted
+                );
+                let response = state.handle_key(key(KeyCode::Enter));
+                assert_eq!(
+                    response.is_some(),
+                    accepted,
+                    "compound masked={masked}: {raw}"
+                );
+                if let Some(PromptResponse::Submitted(values)) = response {
+                    assert_eq!(values["items"].as_string(), raw);
+                } else {
+                    assert!(state.states[0].error.is_some());
+                }
+            }
         }
     }
 
