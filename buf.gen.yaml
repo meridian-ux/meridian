@@ -1,4 +1,6 @@
 # Generate @savvifi/meridian-proto-ts from the protos, without Bazel.
+# Run through `pnpm codegen`: its shared descriptor-derived facade step follows
+# this generator. Raw `buf generate` alone does not preserve relocated exports.
 #
 # `target=js+dts` emits runnable JavaScript and declarations directly, skipping
 # the TS→tsc step the Bazel graph runs (ts_proto_library -> proto_ts). Fewer

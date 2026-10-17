@@ -59,12 +59,17 @@ def _proto_es_impl(ctx):
     )
 
     outs = []
+    raw_outs = []
     gen_paths = []
 
     def _emit(import_path):
         ts_rel = import_path[:-len(_PROTO_SUFFIX)] + "_pb.ts"
         outs.append(ctx.actions.declare_file("{root}/{ts}".format(
             root = ctx.attr.out_root,
+            ts = ts_rel,
+        )))
+        raw_outs.append(ctx.actions.declare_file("_raw_{name}/{ts}".format(
+            name = ctx.label.name,
             ts = ts_rel,
         )))
         gen_paths.append(import_path)
@@ -84,7 +89,12 @@ def _proto_es_impl(ctx):
     args = ctx.actions.args()
     args.add("--descriptor_set_in=" + ":".join([f.path for f in descriptor_sets]))
     args.add("--plugin=protoc-gen-es=" + ctx.executable.plugin.path)
-    args.add("--es_out=" + es_out)
+    raw_root = "{bin}/{pkg}/_raw_{name}".format(
+        bin = ctx.bin_dir.path,
+        pkg = ctx.label.package,
+        name = ctx.label.name,
+    )
+    args.add("--es_out=" + raw_root)
     args.add("--es_opt=target=ts")
     args.add("--es_opt=import_extension=js")
     args.add_all(gen_paths)
@@ -93,7 +103,7 @@ def _proto_es_impl(ctx):
         executable = ctx.executable._protoc,
         arguments = [args],
         inputs = depset(descriptor_sets),
-        outputs = outs,
+        outputs = raw_outs,
         tools = [ctx.executable.plugin],
         # protoc-gen-es is an aspect_rules_js js_binary invoked as a protoc
         # plugin subprocess; its launcher requires BAZEL_BINDIR in the env. Since
@@ -101,6 +111,27 @@ def _proto_es_impl(ctx):
         env = {"BAZEL_BINDIR": "."},
         mnemonic = "ProtoEs",
         progress_message = "Generating protobuf-es TypeScript for %{label}",
+    )
+    facade_args = ctx.actions.args()
+    facade_args.add("--baseline", ctx.file._baseline.path)
+    facade_args.add("--input", raw_root)
+    facade_args.add("--output", es_out)
+    facade_args.add("--mode", "ts")
+    facade_args.add("--protoc", ctx.executable._protoc.path)
+    facade_args.add("--plugin", ctx.executable.plugin.path)
+    for descriptor in descriptor_sets:
+        facade_args.add("--current-image", descriptor.path)
+    for source in gen_paths:
+        facade_args.add("--source", source)
+    ctx.actions.run(
+        executable = ctx.executable._facades,
+        arguments = [facade_args],
+        inputs = depset(raw_outs + descriptor_sets + [ctx.file._baseline]),
+        outputs = outs,
+        tools = [ctx.executable._protoc, ctx.executable.plugin],
+        env = {"BAZEL_BINDIR": "."},
+        mnemonic = "ProtoEsFacades",
+        progress_message = "Preserving descriptor-derived protobuf-es exports for %{label}",
     )
     return [DefaultInfo(files = depset(outs))]
 
@@ -135,6 +166,15 @@ proto_es = rule(
             # Prebuilt protoc (//bazel:protoc_prebuilt.bzl) rather than
             # @protobuf//:protoc, so codegen never compiles protoc from source.
             default = "@meridian_protoc//:protoc",
+            executable = True,
+            cfg = "exec",
+        ),
+        "_baseline": attr.label(
+            default = "//schemas:compat/pre-v1.binpb",
+            allow_single_file = True,
+        ),
+        "_facades": attr.label(
+            default = "//schemas:proto_facades",
             executable = True,
             cfg = "exec",
         ),

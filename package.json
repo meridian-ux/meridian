@@ -6,7 +6,7 @@
   "description": "Workspace root for the Meridian monorepo. Publishable packages live under packages/; this manifest carries only the shared toolchain.",
   "packageManager": "pnpm@10.25.0",
   "scripts": {
-    "codegen": "buf generate",
+    "codegen": "node schemas/tools/codegen.mjs",
     "core:prepare": "bazel build --announce_rc=false //schemas:core_runtime && node schemas/tools/prepare_core_runtime.mjs",
     "conformance:snapshots": "node schemas/tools/conformance_snapshots.mjs",
     "conformance:snapshots:update": "node schemas/tools/conformance_snapshots.mjs --update",
