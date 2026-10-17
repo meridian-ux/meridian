@@ -48,11 +48,17 @@ release lines, and incompatible field changes under the candidate FILE baseline.
 There is no `--approve`, automatic fallback, broad ignore, WIRE downgrade, or
 workflow selector change. The existing `buf.yaml` remains FILE-based and intact.
 
+Inputs to release-line checks must be full-module descriptor images, not a
+per-crate subset that omits conformance or other retained declarations.
 To reproduce the prepared snapshot, run the migration probe with `--keep`, then
-run `tools/prepare_compatibility_candidate.mjs` under `schemas/` with explicit
-`--baseline schemas/compat/pre-v1.binpb`, `--candidate <probe-work>/candidate.binpb`,
-and `--output <review-output>.binpb` paths from the repository root. Compare its
-digest and ownership report before proposing any frozen-reference update.
+run this command from the repository root, substituting its actual scratch path:
+
+```sh
+node schemas/tools/prepare_compatibility_candidate.mjs --baseline schemas/compat/pre-v1.binpb --candidate <probe-work>/candidate.binpb --output <review-output>.binpb
+```
+
+Compare the digest and ownership report before proposing any frozen-reference
+update. Preparation never overwrites a frozen reference implicitly.
 
 Before any activation, an explicit cutover review must approve final 0.x/v1
 source revisions, immutable descriptor digests, the complete ownership report,
