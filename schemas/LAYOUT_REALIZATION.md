@@ -31,7 +31,13 @@ does not prove composed-view support.
 
 The browser column applies to web-components and the shared React composition
 tier used with HTML, shadcn, and MUI kits. Native cells define the target contract;
-they are not claims about complete SwiftUI composition or an existing TUI view host.
+they are not claims about complete SwiftUI composition. The implementation audit
+below distinguishes the TUI's composed host from extracted-panel proof.
+
+Release scope: SwiftUI remains a preview. Its column is a future realization
+target, not a v1 release gate. Existing preview tests still apply, and its
+unverified coverage must not be promoted without evidence. The stable TUI and
+browser tiers retain their composed-layout acceptance requirements.
 
 | Layout | Browser, wide | Browser, narrow | TUI, including 80 columns | SwiftUI / compact touch surface | Conversation or static text |
 |---|---|---|---|---|---|
@@ -67,7 +73,7 @@ for panels whose activation may load data.
 |---|---|---|
 | Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts); [tab interaction tests](../packages/web-react/tests/view_tabs.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs provide manual keyboard activation, roving focus, unique tab/panel associations, and wrapping labels. Complete cross-kit narrow-view geometry/focus and two-column reflow proof remain separate requirements. |
 | Web-components composition | [`renderView`, `disposeView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts); [actual-WASM composition tests](../packages/web/tests/conformance_wasm.test.ts); [Chrome tests](../packages/mui-kit/tests_browser/web_components.js) | Header partition, explicit/persistent tab regions, manual activation, unique associations, and active-only mounting are implemented. Static/repeated nested views preserve host seams; repeated rows bind no-populate record/form/table content and raw submissions. Closed selection gates retain placeholders/labels without reads; the host rerenders with updated selection context. Recursive disposal invalidates obsolete work. Cycles/depth/expansion are bounded. Actual Chrome verifies long-label/manual keyboard behavior at 320px and 1100px columns reflowing main-then-sidebar at 320px. Complete shared composed-layout corpus coverage and native/cross-modality proofs remain separate requirements. |
-| TUI panels and transcript | [`PanelView`](../crates/tui/rust/tui/src/widget.rs); [conversation view arm](../crates/tui/rust/tui/src/conversation.rs) | Panels render individually. The transcript's `Block.view` shows the view title and slot count with an explicit “not drawn” message; it does not realize any layout mode. The native stateful suite extracts panels from view fixtures and therefore is not composed-layout proof. A real view host and 80-column buffer/navigation tests remain required. |
+| TUI composed host and transcript | [`ViewHost`](../crates/tui/rust/tui/src/view.rs); [whole-view tests](../crates/tui/rust/tui/tests/view_composition.rs); [conversation view arm](../crates/tui/rust/tui/src/conversation.rs) | The composed host renders real PanelView widgets in scrollable labeled sections. All four modes, header partition, stable ties, main-then-sidebar ordering at 80/140 columns, manual tab navigation, persistent regions, nested/repeated ambient records, selection gates, and host-owned submissions have whole-view buffer/interaction tests. Hidden tabs release streams immediately. Opaque-token callbacks route independently of focus. The offline executable accepts `--view`. The older stateful suite still extracts panels and must not be counted as this proof. Shared cross-renderer composed-layout corpus coverage remains incomplete. The transcript's `Block.view` still reports “not drawn”; it does not automatically use this host. |
 | SwiftUI | [local panel preview](../packages/swiftui/Sources/MeridianUI/MeridianPanel.swift); [renderer catalog](conformance/renderer_catalog.json) | The public monorepo now contains the preview and initial panel view-dump evidence. This panel entrypoint does not implement general ViewDescriptor composition; all four layout realizations remain unverified. “Tabbed on iOS” in the required table is a target contract, not a report of current behavior. |
 | Conversation React / framework-free HTML | [`BlockView` host callback](../packages/chat/src/render_react.tsx); [HTML renderer](../packages/chat/src/render_html.ts) | React delegates `Block.view` to an optional host callback; without one it returns no view content. HTML does not compose a view. Neither proves the text expansion in the table. A host using a panel/view renderer inherits that renderer's behavior and must supply its own integration proof. |
 | Launchpad | [command palette schema](proto/command_palette.proto) | Commands route to a panel or view; the palette does not own view arrangement. Verify the destination host, not a second layout implementation in the palette. |
@@ -90,8 +96,9 @@ and unlabeled regions, header-row slots, nested views, and selection gates.
 3. Render a complete native view at 80 columns and a wider viewport; inspect
    buffers and exercise scrolling/section selection. Extracted panel tests do
    not satisfy this step.
-4. Verify the local SwiftUI renderer's real compact/wide composed-view behavior, including
-   tab selection. Do not infer it from the browser or an advertised preview.
+4. Before promoting the SwiftUI preview to full parity, verify its real compact/wide
+   composed-view behavior, including tab selection. This future promotion is not a
+   v1 release gate. Do not infer it from the browser or an advertised preview.
 5. Verify composed conversation hosts and static expansion separately, including
    missing host support. An explicit unsupported placeholder is useful gap
    reporting, not full realization.

@@ -69,8 +69,50 @@ one. Reusing the same `Arc` preserves edits and caches. Replacing it (even with
 an equal object) or clearing it resets local state, closes live streams, and
 invalidates outstanding LRO tokens. Retain the `Arc` across redraws.
 
-This is a panel embedding API, not a composed `ViewDescriptor` host. Native
-section/tab navigation and repeated-view layout remain separate work.
+This is also the record handoff used by the composed `ViewHost` below.
+
+## Composed native views
+
+`ViewHost::new(descriptor)` owns a canonical `ViewDescriptor`. Render it into the
+host's frame with `render`, passing the same `Context` and host-owned `RpcInvoker`
+used for panels. The standalone offline viewer accepts `meridian-tui view.binpb
+--view`; it refuses reads and mutations visibly rather than returning empty success.
+
+All four modes preserve stable position order and header-row sections. At both
+80 columns and wider widths, main sections precede a labeled sidebar. Unset or
+unknown modes stack. Tabbed views keep unlabeled regions before the selector;
+only the selected labeled tab's body mounts. F6/Shift+F6 move between sections,
+tab labels, and actions. Left/Right/Home/End browse tab labels; Enter/Space
+activates them manually. Ctrl+PageUp/PageDown always scroll the complete composition,
+including long labels. Plain paging keys stay with a focused prompt; otherwise
+they also scroll the view. Other keys reach the focused panel's native interaction.
+Each panel has a 16-row virtual section; scrolling the view does not reset edits.
+
+Nested views take precedence over panels. Repeated child views fetch through the
+host's read-admitted invoker, validate the array and object rows, and share each
+immutable ambient record with real child widgets. Closed selection gates preserve
+labels and placeholders without fetching. As in the browser hosts, missing,
+null, false, zero, and empty-string selections keep a scope gate closed; raw
+row/form bindings still retain those values. Repeated-read failures are visible
+and retry only on Enter. Hidden or
+gated descendants are dropped, releasing streams and invalidating operation tokens.
+Call `invalidate` when transport or context changes affect panel reads, including
+selection values bound into those reads. Gate and repeated-populate request
+changes are also reconciled during rendering.
+
+`handle_key` returns `ViewResponse` for actions, forms, LRO starts, and prompt
+responses. It never executes a mutation. Hosts authorize each emitted request,
+execute it, and report errors with `show_error` or the focused widget's LRO APIs.
+Token-routed `update_lro_progress`, `complete_lro`, `fail_lro`, and `cancel_lro`
+continue working after focus moves. `focused_panel_mut` exposes the actual widget;
+`poll_streams` uses the host's
+admitted stream transport. Redraw after changing context before processing input.
+
+Composition rejects descriptors over 4 MiB, depth 64, 1,000 expanded view/slot/action
+nodes, or 16 KiB per composition label. Repeated expansion is checked before
+constructing child records. These native limits do not change the wire schema.
+Whole-view TestBackend tests cover 80/140-column ordering, keyboard reachability,
+manual tabs, gates, nested/repeated raw bindings, host-owned submissions, and errors.
 
 ## Native gallery and media
 

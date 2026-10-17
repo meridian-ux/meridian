@@ -211,9 +211,11 @@ The SwiftUI initial view-dump normalizer is now integrated in
 [#40](../../issues/40): 24 committed canonical panel projections, independent
 presence/format gates, native runtime comparison, and shared Bazel recording.
 Unsupported arms snapshot their current explanation, not completed rendering.
-This is not field-complete parity: unsupported SwiftUI content, stateful native
-proofs, general ViewDescriptor layout, renderer-specific overflow/layout, and
-broader interactive surfaces remain in [#9](../../issues/9). See the
+This is not field-complete parity. SwiftUI remains a preview: its unsupported
+content, stateful native proofs, general ViewDescriptor layout, and full semantic
+parity are future work, not v1 release gates. Stable renderers' composed views,
+renderer-specific overflow/layout, and broader interactive surfaces remain in
+[#9](../../issues/9). See the
 [conformance guide](schemas/conformance/README.md) for scope and update commands.
 Bounded slices now cover canonical `resource_cards`, `gallery`, and `table`
 descriptors with shared responses across HTML, Shadcn, MUI, web-components, and
@@ -554,6 +556,10 @@ and does not close the remaining v1 contract/conformance work.
   [packages/swiftui](packages/swiftui/README.md), not an external source dependency.
   Native layout smoke tests do not satisfy full semantic conformance.
   The conformance guide records the verification limits independently of catalog completeness.
+  The release scope explicitly retains this preview: full SwiftUI native parity,
+  composed-view verification, and OS accessibility proof are not v1 release gates.
+  Existing preview tests must continue passing; do not promote unverified coverage
+  cells or advertise full parity without the corresponding evidence.
 - Dates beyond M4. A 1.0 is the *criterion* of M4, not a date.
 - Anything the compiler has not yet found. The monorepo merge surfaced two unimplemented
   RPCs and a formatting field simply by unifying pins; M3's proto changes will surface
