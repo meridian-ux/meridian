@@ -13,6 +13,7 @@ use ratatui::layout::{Constraint, Layout};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, TableState};
 use ratatui::Frame;
+use std::sync::Arc;
 
 use crate::content;
 use crate::inline_prompt::{InlinePrompt, PanelPromptResponse};
@@ -27,17 +28,29 @@ use crate::theme::Palette;
 const STREAM_DEFAULT_MAX_LINES: usize = 2_000;
 const REQUEST_ERROR: &str = "Request construction limit exceeded.";
 
-fn build_request(call: &RpcCall, context: &Context) -> Result<serde_json::Value, RpcError> {
-    RequestBuilder::build_for_boundary(call, context)
-        .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
+fn build_request(
+    call: &RpcCall,
+    context: &Context,
+    record: Option<&serde_json::Value>,
+) -> Result<serde_json::Value, RpcError> {
+    RequestBuilder::build_for_boundary_with(
+        call,
+        context,
+        RequestOverrides {
+            selected_row: record,
+            ..Default::default()
+        },
+    )
+    .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
 }
 
 fn invoke_request<I: RpcInvoker>(
     call: &RpcCall,
     context: &Context,
     invoker: &I,
+    record: Option<&serde_json::Value>,
 ) -> Result<serde_json::Value, RpcError> {
-    let request = build_request(call, context)?;
+    let request = build_request(call, context, record)?;
     let response = invoker.invoke(&call.service, &call.method, request)?;
     RequestBudget::for_boundary(&response)
         .map_err(|_| RpcError::Other("Response construction limit exceeded.".into()))?;
@@ -55,6 +68,7 @@ fn invoke_request<I: RpcInvoker>(
 /// build a `Palette::from_theme(...)` and pass it via `with_palette`; the
 /// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
+    ambient_record: Option<Arc<serde_json::Value>>,
     inline_prompt: Option<InlinePrompt>,
     cached: Option<CachedTable>,
     cached_chart: Option<CachedChart>,
@@ -105,7 +119,7 @@ struct CachedGallery {
 }
 
 struct CachedRecord {
-    record: Option<serde_json::Value>,
+    record: Option<Arc<serde_json::Value>>,
     error: Option<String>,
 }
 
@@ -206,6 +220,7 @@ pub struct LroSubmission {
 impl PanelView {
     pub fn new() -> Self {
         Self {
+            ambient_record: None,
             inline_prompt: None,
             cached: None,
             cached_chart: None,
@@ -237,6 +252,7 @@ impl PanelView {
     /// `Palette::from_theme(&theme, mode)`). Use this to skin the renderer.
     pub fn with_palette(palette: Palette) -> Self {
         Self {
+            ambient_record: None,
             inline_prompt: None,
             cached: None,
             cached_chart: None,
@@ -311,7 +327,7 @@ impl PanelView {
         let request = match panel
             .subscribe
             .as_ref()
-            .map(|call| build_request(call, context))
+            .map(|call| build_request(call, context, self.ambient_record.as_deref()))
             .transpose()
         {
             Ok(request) => {
@@ -415,6 +431,43 @@ impl PanelView {
     /// Swap the active palette (e.g. on a runtime theme/mode change).
     pub fn set_palette(&mut self, palette: Palette) {
         self.palette = palette;
+    }
+
+    /// Pin a bounded immutable ambient row for a repeated view's child panel.
+    /// Reusing the same Arc preserves edits/caches; replacing/clearing it resets
+    /// local state and releases live streams. Invalid rows leave prior state
+    /// untouched and return an error for the host to surface.
+    pub fn set_record(&mut self, record: Option<Arc<serde_json::Value>>) -> Result<(), RpcError> {
+        let same = match (&self.ambient_record, &record) {
+            (None, None) => true,
+            (Some(old), Some(new)) => Arc::ptr_eq(old, new),
+            _ => false,
+        };
+        if same {
+            return Ok(());
+        }
+        if let Some(value) = record.as_deref() {
+            if !value.is_object() {
+                return Err(RpcError::Other("Ambient record must be an object.".into()));
+            }
+            RequestBudget::for_boundary(value).map_err(|_| {
+                RpcError::Other("Ambient record construction limit exceeded.".into())
+            })?;
+        }
+        self.invalidate();
+        self.inline_prompt = None;
+        self.stream_session = None;
+        self.stream_request_key = None;
+        self.stream_lines.clear();
+        self.stream_error = None;
+        self.stream_scroll = 0;
+        self.stream_follow = true;
+        self.stream_auto_follow = true;
+        self.table_state = TableState::default();
+        self.content_selected = 0;
+        self.reveal_secret = false;
+        self.ambient_record = record;
+        Ok(())
     }
 
     /// Forces the next render to refetch the table data.
@@ -540,6 +593,7 @@ impl PanelView {
                             start,
                             context,
                             RequestOverrides {
+                                selected_row: self.ambient_record.as_deref(),
                                 form_values: Some(&serde_json::Value::Null),
                                 ..Default::default()
                             },
@@ -666,7 +720,7 @@ impl PanelView {
                         frame,
                         content_area,
                         panel,
-                        cached.record.as_ref(),
+                        cached.record.as_deref(),
                         &self.palette,
                     );
                 }
@@ -681,7 +735,7 @@ impl PanelView {
                         frame,
                         content_area,
                         panel,
-                        cached.record.as_ref(),
+                        cached.record.as_deref(),
                         &self.palette,
                     );
                 }
@@ -758,13 +812,12 @@ impl PanelView {
             }
             Some(Body::Stat(panel)) => {
                 if self.cached_stat.is_none() {
-                    let fetched = panel
-                        .populate
-                        .as_ref()
-                        .map(|call| invoke_request(call, context, invoker));
+                    let fetched = panel.populate.as_ref().map(|call| {
+                        invoke_request(call, context, invoker, self.ambient_record.as_deref())
+                    });
                     self.cached_stat = Some(match fetched {
                         Some(Ok(record)) if record.is_object() => CachedRecord {
-                            record: Some(record),
+                            record: Some(Arc::new(record)),
                             error: None,
                         },
                         Some(Ok(_)) => CachedRecord {
@@ -790,7 +843,7 @@ impl PanelView {
                         content_area,
                         panel,
                         &self.palette,
-                        cached.record.as_ref(),
+                        cached.record.as_deref(),
                     );
                 } else {
                     content::render_stat(frame, content_area, panel, &self.palette);
@@ -873,6 +926,19 @@ impl PanelView {
             return;
         }
         let Some(populate) = table.populate.as_ref() else {
+            if let Some(record) = self.ambient_record.as_deref() {
+                self.cached = Some(match render_table_bounded(record, table) {
+                    Ok(rows) => CachedTable {
+                        rows,
+                        item_noun: table.item_noun.clone(),
+                    },
+                    Err(error) => CachedTable {
+                        rows: vec![],
+                        item_noun: format!("error: {error}"),
+                    },
+                });
+                return;
+            }
             // A table may be a descriptor-only empty state. Initialize the
             // cache so the normal table renderer can draw its columns and
             // placeholder instead of unwrapping a cache that never existed.
@@ -882,10 +948,12 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker).and_then(|response| {
-            render_table_bounded(&response, table)
-                .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
-        }) {
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()).and_then(
+            |response| {
+                render_table_bounded(&response, table)
+                    .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+            },
+        ) {
             Ok(rows) => {
                 self.cached = Some(CachedTable {
                     rows,
@@ -926,28 +994,29 @@ impl PanelView {
             });
             return;
         };
-        let cached = match invoke_request(populate, context, invoker) {
-            Ok(response) => {
-                let x = chart
-                    .x
-                    .as_ref()
-                    .map(|encoding| encoding.field_name.as_str())
-                    .unwrap_or("category");
-                let y = chart
-                    .y
-                    .as_ref()
-                    .map(|encoding| encoding.field_name.as_str())
-                    .unwrap_or("value");
-                CachedChart {
-                    rows: Some(content::chart_rows(&response, &chart.rows_field, x, y)),
-                    error: None,
+        let cached =
+            match invoke_request(populate, context, invoker, self.ambient_record.as_deref()) {
+                Ok(response) => {
+                    let x = chart
+                        .x
+                        .as_ref()
+                        .map(|encoding| encoding.field_name.as_str())
+                        .unwrap_or("category");
+                    let y = chart
+                        .y
+                        .as_ref()
+                        .map(|encoding| encoding.field_name.as_str())
+                        .unwrap_or("value");
+                    CachedChart {
+                        rows: Some(content::chart_rows(&response, &chart.rows_field, x, y)),
+                        error: None,
+                    }
                 }
-            }
-            Err(error) => CachedChart {
-                rows: None,
-                error: Some(format!("Failed to load chart: {error}")),
-            },
-        };
+                Err(error) => CachedChart {
+                    rows: None,
+                    error: Some(format!("Failed to load chart: {error}")),
+                },
+            };
         self.cached_chart = Some(cached);
     }
 
@@ -967,7 +1036,7 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker) {
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()) {
             Ok(response) => {
                 let rows = meridian_uiview::ProtoPaths::rows(&response, &panel.rows_field)
                     .into_iter()
@@ -1000,10 +1069,12 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker).and_then(|response| {
-            render_gallery_bounded(&response, panel)
-                .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
-        }) {
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()).and_then(
+            |response| {
+                render_gallery_bounded(&response, panel)
+                    .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+            },
+        ) {
             Ok(cards) => {
                 self.cached_gallery = Some(CachedGallery { cards, error: None });
             }
@@ -1027,15 +1098,15 @@ impl PanelView {
         }
         let Some(populate) = populate else {
             self.cached_record = Some(CachedRecord {
-                record: None,
+                record: self.ambient_record.clone(),
                 error: None,
             });
             return;
         };
-        match invoke_request(populate, context, invoker) {
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()) {
             Ok(record) => {
                 self.cached_record = Some(CachedRecord {
-                    record: Some(record),
+                    record: Some(Arc::new(record)),
                     error: None,
                 });
             }
@@ -1075,9 +1146,12 @@ impl PanelView {
                 return;
             }
         };
+        if let Some(record) = self.ambient_record.as_deref() {
+            merge_form_values(&mut values, record);
+        }
         if panel.mode == FormMode::Edit as i32 {
             if let Some(prefill) = panel.prefill.as_ref() {
-                match invoke_request(prefill, context, invoker) {
+                match invoke_request(prefill, context, invoker, self.ambient_record.as_deref()) {
                     Ok(prefill_values) if prefill_values.is_object() => {
                         merge_form_values(&mut values, &prefill_values);
                     }
@@ -1149,6 +1223,7 @@ impl PanelView {
                     &panel.fields,
                     &cached.values,
                     SubmissionKind::Form,
+                    self.ambient_record.as_deref(),
                 ) {
                     Ok(request) => request,
                     Err(_) => {
@@ -1249,6 +1324,7 @@ impl PanelView {
                     &panel.inputs,
                     &cached.values,
                     SubmissionKind::Lro,
+                    self.ambient_record.as_deref(),
                 ) {
                     Ok(request) => request,
                     Err(_) => {
@@ -1579,8 +1655,9 @@ fn form_request(
     fields: &[FormField],
     values: &serde_json::Value,
     kind: SubmissionKind,
+    record: Option<&serde_json::Value>,
 ) -> Result<serde_json::Value, RpcError> {
-    RequestBuilder::build_submission(call, context, fields, values, kind)
+    RequestBuilder::build_submission_with_row(call, context, fields, values, kind, record)
         .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
 }
 

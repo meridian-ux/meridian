@@ -3502,3 +3502,300 @@ fn an_empty_descriptor_draws_rather_than_panicking() {
     let out = draw(&PanelDescriptor::default(), 32, 4);
     assert!(!out.trim().is_empty() || out.len() == 32 * 4);
 }
+#[cfg(test)]
+mod ambient_records {
+    use meridian_tui::crossterm::event::KeyCode;
+    use meridian_tui::{PanelView, RpcError, RpcInvoker};
+    use meridian_uiview::{
+        proto::{
+            field_binding::Source, form_field::Kind, panel_descriptor::Body, BooleanToggle,
+            DetailHeaderPanel, FieldBinding, FormField, FormPanel, IntegerSpinner, PanelDescriptor,
+            RecordCardPanel, RpcCall, TableColumn, TablePanel, TextInput,
+        },
+        Context,
+    };
+    use prost::Message;
+    use ratatui::{backend::TestBackend, Terminal};
+    use serde_json::{json, Value};
+    use std::{cell::RefCell, sync::Arc};
+
+    #[derive(Default)]
+    struct Host {
+        calls: RefCell<Vec<(String, String, Value)>>,
+    }
+    impl RpcInvoker for Host {
+        fn invoke(&self, service: &str, method: &str, request: Value) -> Result<Value, RpcError> {
+            self.calls
+                .borrow_mut()
+                .push((service.into(), method.into(), request));
+            Ok(json!({"title": "Fetched record"}))
+        }
+    }
+    fn row(title: &str) -> Arc<Value> {
+        Arc::new(
+            json!({"id": "first", "title": title, "count": 0, "enabled": false, "members": [{"name": "Child record"}]}),
+        )
+    }
+    fn fields() -> Vec<FormField> {
+        vec![
+            FormField {
+                field_id: "title".into(),
+                label: "Title".into(),
+                kind: Some(Kind::Text(TextInput {
+                    default_value: "default".into(),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "count".into(),
+                label: "Count".into(),
+                kind: Some(Kind::Integer(IntegerSpinner {
+                    default_value: 7,
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            FormField {
+                field_id: "enabled".into(),
+                label: "Enabled".into(),
+                kind: Some(Kind::Boolean(BooleanToggle {
+                    default_value: true,
+                })),
+                ..Default::default()
+            },
+        ]
+    }
+    fn call() -> RpcCall {
+        RpcCall {
+            service: "fixture.Records".into(),
+            method: "Save".into(),
+            bindings: vec![FieldBinding {
+                request_field: "recordId".into(),
+                source: Some(Source::RowField("id".into())),
+            }],
+        }
+    }
+    fn form() -> PanelDescriptor {
+        PanelDescriptor {
+            body: Some(Body::Form(FormPanel {
+                fields: fields(),
+                mode: 2,
+                submit: Some(call()),
+                ..Default::default()
+            })),
+            ..Default::default()
+        }
+    }
+    fn draw(view: &mut PanelView, descriptor: &PanelDescriptor, host: &Host) -> String {
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        terminal
+            .draw(|frame| view.render(frame, frame.area(), descriptor, &Context::default(), host))
+            .unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
+
+    #[test]
+    fn wire_decoded_no_populate_panels_use_the_ambient_record_without_rpc() {
+        let descriptors = [
+            PanelDescriptor {
+                body: Some(Body::DetailHeader(DetailHeaderPanel {
+                    title_source_path: "title".into(),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            PanelDescriptor {
+                body: Some(Body::RecordCard(RecordCardPanel {
+                    fields: fields(),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+            form(),
+            PanelDescriptor {
+                body: Some(Body::Table(TablePanel {
+                    rows_field: "members".into(),
+                    columns: vec![TableColumn {
+                        header: "Member".into(),
+                        field_path: "name".into(),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+        ];
+        let host = Host::default();
+        for descriptor in descriptors {
+            let descriptor =
+                PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
+            let table = matches!(&descriptor.body, Some(Body::Table(_)));
+            let mut view = PanelView::new();
+            view.set_record(Some(row("001.20"))).unwrap();
+            let text = draw(&mut view, &descriptor, &host);
+            assert!(
+                text.contains(if table { "Child record" } else { "001.20" }),
+                "{text}"
+            );
+        }
+        assert!(host.calls.borrow().is_empty());
+    }
+
+    #[test]
+    fn form_submissions_borrow_the_record_and_preserve_raw_values_and_edits() {
+        let descriptor = form();
+        let Some(Body::Form(panel)) = &descriptor.body else {
+            panic!()
+        };
+        let host = Host::default();
+        let record = row("001.20");
+        let mut view = PanelView::new();
+        view.set_record(Some(record.clone())).unwrap();
+        draw(&mut view, &descriptor, &host);
+        view.handle_form_key(panel, &Context::default(), KeyCode::Char('x'));
+        view.set_record(Some(record.clone())).unwrap();
+        draw(&mut view, &descriptor, &host);
+        let submitted = view
+            .handle_form_key(panel, &Context::default(), KeyCode::Enter)
+            .unwrap();
+        assert_eq!(
+            submitted.request,
+            json!({"recordId": "first", "title": "001.20x", "count": 0, "enabled": false})
+        );
+        assert_eq!(record["title"], "001.20");
+        view.set_record(Some(row("Second"))).unwrap();
+        assert!(draw(&mut view, &descriptor, &host).contains("Second"));
+        assert_eq!(
+            view.handle_form_key(panel, &Context::default(), KeyCode::Enter)
+                .unwrap()
+                .request["title"],
+            "Second"
+        );
+        view.set_record(None).unwrap();
+        assert!(draw(&mut view, &descriptor, &host).contains("default"));
+        assert!(host.calls.borrow().is_empty());
+    }
+
+    #[test]
+    fn explicit_populate_wins_and_uses_the_bounded_ambient_row_binding() {
+        let mut populate = call();
+        populate.method = "Get".into();
+        let descriptor = PanelDescriptor {
+            body: Some(Body::DetailHeader(DetailHeaderPanel {
+                title_source_path: "title".into(),
+                populate: Some(populate),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let host = Host::default();
+        let mut view = PanelView::new();
+        view.set_record(Some(row("Ambient placeholder"))).unwrap();
+        assert!(draw(&mut view, &descriptor, &host).contains("Fetched record"));
+        assert_eq!(
+            &*host.calls.borrow(),
+            &[(
+                "fixture.Records".into(),
+                "Get".into(),
+                json!({"recordId": "first"})
+            )]
+        );
+    }
+
+    #[test]
+    fn invalid_ambient_records_are_rejected_before_replacing_the_previous_row() {
+        let host = Host::default();
+        let mut view = PanelView::new();
+        let descriptor = form();
+        view.set_record(Some(row("Original"))).unwrap();
+        for value in [
+            json!([1]),
+            json!("not an object"),
+            json!({"huge": "x".repeat(5 * 1024 * 1024)}),
+        ] {
+            assert!(view.set_record(Some(Arc::new(value))).is_err());
+            assert!(draw(&mut view, &descriptor, &host).contains("Original"));
+        }
+        assert!(host.calls.borrow().is_empty());
+    }
+
+    #[test]
+    fn replacing_ambient_records_closes_the_old_stream_and_invalidates_lro_tokens() {
+        use meridian_tui::{StreamError, StreamInvoker, StreamSession};
+        use meridian_uiview::proto::{LroPanel, StreamFrame, StreamPanel};
+        use std::sync::{
+            atomic::{AtomicUsize, Ordering},
+            mpsc,
+        };
+        struct Streams {
+            closed: Arc<AtomicUsize>,
+            requests: RefCell<Vec<Value>>,
+            senders: RefCell<Vec<mpsc::Sender<StreamFrame>>>,
+        }
+        impl StreamInvoker for Streams {
+            fn subscribe(
+                &self,
+                _call: &RpcCall,
+                request: Value,
+            ) -> Result<StreamSession, StreamError> {
+                self.requests.borrow_mut().push(request);
+                let (tx, rx) = mpsc::channel();
+                self.senders.borrow_mut().push(tx);
+                let closed = self.closed.clone();
+                Ok(StreamSession::new(rx, move || {
+                    closed.fetch_add(1, Ordering::SeqCst);
+                }))
+            }
+        }
+        let host = Host::default();
+        let streams = Streams {
+            closed: Arc::new(AtomicUsize::new(0)),
+            requests: RefCell::new(vec![]),
+            senders: RefCell::new(vec![]),
+        };
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Stream(StreamPanel {
+                subscribe: Some(call()),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let mut view = PanelView::new();
+        view.set_record(Some(row("First"))).unwrap();
+        view.poll_stream(&descriptor, &Context::default(), &streams);
+        assert_eq!(streams.requests.borrow()[0], json!({"recordId": "first"}));
+        assert_eq!(streams.closed.load(Ordering::SeqCst), 0);
+        view.set_record(Some(Arc::new(json!({"id": "second", "title": "Second"}))))
+            .unwrap();
+        assert_eq!(streams.closed.load(Ordering::SeqCst), 1);
+        view.poll_stream(&descriptor, &Context::default(), &streams);
+        assert_eq!(streams.requests.borrow()[1], json!({"recordId": "second"}));
+        assert_eq!(streams.closed.load(Ordering::SeqCst), 1);
+        let descriptor = PanelDescriptor {
+            body: Some(Body::Lro(LroPanel {
+                start: Some(call()),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        draw(&mut view, &descriptor, &host);
+        let Some(Body::Lro(panel)) = &descriptor.body else {
+            panic!()
+        };
+        let submission = view
+            .handle_lro_key(panel, &Context::default(), KeyCode::Enter)
+            .unwrap();
+        assert_eq!(submission.request, json!({"recordId": "second"}));
+        view.set_record(None).unwrap();
+        assert_eq!(streams.closed.load(Ordering::SeqCst), 2);
+        assert!(!view.complete_lro(&submission.run_id, &Default::default()));
+        assert!(host.calls.borrow().is_empty());
+    }
+}
