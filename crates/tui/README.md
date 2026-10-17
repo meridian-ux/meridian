@@ -82,9 +82,12 @@ platform-neutral core before returning a host-owned submit/start request.
 Invalid types, lengths, patterns, numeric bounds, enum tokens, collection bounds,
 and missing kinds block submission with a visible error. Values retain their raw
 types, including false, zero, empty strings, and nested collections. The core
-validator uses UTF-16 string lengths and unanchored pattern matching like the
-browser validator; unsupported Rust-regex syntax fails closed. Full regex-dialect
-parity and consolidation with legacy prompt validation remain separate work.
+inline validator uses UTF-16 string lengths and the shared Rust Unicode regex
+contract on native and WASM: a search match is sufficient unless the author
+anchors the pattern, and lookaround/backreferences are unsupported. Invalid
+patterns fail closed. Legacy standalone prompt validation still has older
+whole-value anchoring and Unicode-scalar length rules; consolidation remains a
+validation-parity gap, not an exception to the v1 contract.
 Read-only forms ignore editing keys. Replacing a descriptor discards cached form
 edits and open JSON editors; resizing preserves them. Hosts own authorization,
 RPC execution, and operation polling; rendering or editing never starts an RPC.
@@ -107,6 +110,17 @@ host-confirmed/local cancellation. These methods do not send any RPC, including
 CancelOperation. Enter retries a terminal attempt with a fresh token; Esc returns
 to its inputs. Resize preserves progress; replacing the panel or changing its
 bound request context, or explicitly invalidating the view, drops that attempt.
+
+Route every emitted start through the host's authorization policy before its
+backend. On denial, call `fail_lro(&submission.run_id, &denial_message)`; do not
+report an empty success or a completed operation. The denied state renders the
+message and permits an explicit Enter retry with retained raw input. A later
+host-authorized retry gets a fresh token, so an old denial cannot overwrite it.
+Populate/prefill reads also go through the supplied `RpcInvoker`; a refusal is
+visible and cached across repaint rather than appearing as successful empty data.
+The TestBackend integration suite exercises these paths with an allowlisting host
+and a separate backend spy. It does not install a renderer-owned policy or bypass
+the host's admission authority.
 
 Updates return false without changing state for stale/terminal/cross-view tokens,
 changed operation names, or malformed/oversized structured payloads. Metadata and
