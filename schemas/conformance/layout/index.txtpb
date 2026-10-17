@@ -193,10 +193,10 @@ fields {
             value {
               list_value {
                 values {
-                  string_value: "Later position, first tab"
+                  string_value: "Later position, first tab — long-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-label"
                 }
                 values {
-                  string_value: "Earlier position, second tab"
+                  string_value: "Earlier position, second tab — long-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-label"
                 }
               }
             }

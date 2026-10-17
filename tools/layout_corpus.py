@@ -36,8 +36,8 @@ def cases():
             slots[2]["placement"] = {"column": 999}
             order = ["header", "tie-a", "tie-b", "last", "first"]
         if mode == "tabbed":
-            slots[0]["placement"] = {"tabLabel": "Later position, first tab", "tabPosition": 0}
-            slots[1]["placement"] = {"tabLabel": "Earlier position, second tab", "tabPosition": 1}
+            slots[0]["placement"] = {"tabLabel": "Later position, first tab — " + "long-label" * 12, "tabPosition": 0}
+            slots[1]["placement"] = {"tabLabel": "Earlier position, second tab — " + "long-label" * 12, "tabPosition": 1}
             order = ["header", "tie-a", "tie-b", "last"]
             tabs = [slots[0]["placement"]["tabLabel"], slots[1]["placement"]["tabLabel"]]
         view = {"id": mode, "title": f"Shared layout {mode}", "slots": slots}

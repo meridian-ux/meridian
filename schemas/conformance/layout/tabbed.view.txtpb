@@ -9,7 +9,7 @@ slots {
   position: 20
   title: "Section last"
   placement {
-    tab_label: "Later position, first tab"
+    tab_label: "Later position, first tab — long-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-label"
   }
   panel {
     panel_id: "last"
@@ -25,7 +25,7 @@ slots {
   position: -1
   title: "Section first"
   placement {
-    tab_label: "Earlier position, second tab"
+    tab_label: "Earlier position, second tab — long-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-labellong-label"
     tab_position: 1
   }
   panel {

@@ -146,8 +146,14 @@ and missing/null/empty/false/zero/open selection gates are included.
 HTML, shadcn, MUI, web-components through actual WASM, and the real native ViewHost
 consume the same bytes. Tests assert slot/content ordering, manual tab activation,
 visible placeholders, read counts, and repeated raw names. Native tests run at
-80/140 columns. This is semantic/navigation proof, not browser geometry or
-conversation integration. Static headers/cards must retain authored titles and
+80/140 columns. The hermetic `//packages/mui-kit:layout_browser_test` also consumes
+these same bytes through all four browser realizations at 320/1100px: 112 mounts
+check section geometry/reachability, labeled sidebar reflow, wrapped long tab
+labels, real keyboard activation and associations, focus/selection after resizing,
+and read counts. CI explicitly executes both this browser target and the native
+`view_composition_test`, so deleting or tagging one manual fails instead of
+silently dropping it from `//...`. This is not exhaustive overflow/interaction
+coverage or conversation integration. Static headers/cards retain authored titles and
 labels even without a populate RPC; missing values remain unavailable and no RPC
 is invented. Scope gates stay closed for falsey selections; raw bindings still
 retain false, zero, and empty strings.

@@ -696,8 +696,23 @@ fn shared_layout_corpus_matches_browser_order_gates_and_repeated_records() {
             } else {
                 assert!(host.calls.borrow().is_empty());
             }
+            let unwrapped: String = output.chars().filter(|c| !c.is_whitespace()).collect();
             for label in case["tabs"].as_array().unwrap() {
-                assert!(output.contains(label.as_str().unwrap()));
+                let authored = label.as_str().unwrap();
+                // Preserve authored word spacing in the label prefix; unwrap
+                // only for proof that the long token survives physical lines.
+                if let Some((prefix, _)) = authored.split_once(" — ") {
+                    assert!(output.contains(prefix));
+                } else if authored.chars().count() <= width as usize {
+                    assert!(output.contains(authored));
+                }
+                let label: String = label
+                    .as_str()
+                    .unwrap()
+                    .chars()
+                    .filter(|c| !c.is_whitespace())
+                    .collect();
+                assert!(unwrapped.contains(&label));
             }
         }
     }
