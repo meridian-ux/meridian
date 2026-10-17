@@ -398,7 +398,7 @@ jobs:
             -max_total_time=60 -timeout=5 -rss_limit_mb=2048 -max_len=65536 \
             -seed=1 -verbosity=0 -print_final_stats=1 \
             -artifact_prefix="$FUZZ_WORK/artifacts/"
-          git diff --exit-code -- Cargo.lock fuzz/Cargo.lock schemas/conformance/binpb
+          git diff --exit-code -- Cargo.lock fuzz/Cargo.lock schemas/conformance/binpb schemas/conformance/layout schemas/conformance/fixtures
       - name: Preserve crash reproducers
         if: always()
         uses: actions/upload-artifact@v4

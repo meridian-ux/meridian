@@ -15,6 +15,17 @@ export function seedCorpus(destination) {
   const legacy = readdirSync(join(source, "binpb")).filter(name => name.endsWith(".binpb"));
   if (!legacy.length) throw new Error("No E6 PanelDescriptor seeds");
   for (const name of legacy) copyFileSync(join(source, "binpb", name), join(output, name));
+  const layouts = readdirSync(join(source, "layout")).filter(name => name.endsWith(".view.binpb"));
+  const panels = readdirSync(join(source, "fixtures"), { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => join("fixtures", entry.name, "typical.view.binpb"));
+  if (!layouts.length || !panels.length) throw new Error("No canonical ViewDescriptor seeds");
+  const views = [...layouts.map(name => join("layout", name)), ...panels];
+  for (const name of views) {
+    const bytes = readFileSync(join(source, name));
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    writeFileSync(join(output, `view-${digest}.binpb`), bytes);
+  }
   const corpus = JSON.parse(readFileSync(join(source, "core.json"), "utf8"));
   let typed = 0;
   for (const [operation, field] of [["requests", "rpc"], ["tables", "table"],
@@ -31,11 +42,11 @@ export function seedCorpus(destination) {
       typed++;
     }
   }
-  return { legacy: legacy.length, typed };
+  return { legacy: legacy.length, typed, views: views.length };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (!process.argv[2]) throw new Error("usage: node fuzz/seed_corpus.mjs SCRATCH_CORPUS");
   const counts = seedCorpus(process.argv[2]);
-  console.log(`Seeded ${counts.legacy} E6 panels and ${counts.typed} typed wire cases`);
+  console.log(`Seeded ${counts.legacy} E6 panels, ${counts.typed} typed wire cases, and ${counts.views} authored views`);
 }

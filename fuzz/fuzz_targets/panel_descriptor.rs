@@ -5,7 +5,7 @@ use meridian_uiview::{
     prost::Message,
     proto::{
         panel_descriptor::Body, ComputedStat, FormattedValue, GalleryPanel, PanelDescriptor,
-        RpcCall, TablePanel, ValueDisplay,
+        RpcCall, TablePanel, ValueDisplay, ViewDescriptor,
     },
     render_gallery_bounded as render_gallery, render_table_bounded as render_table, Context,
     RequestBuilder, SubmissionKind,
@@ -157,8 +157,18 @@ fuzz_target!(|bytes: &[u8]| {
             _ => {}
         }
     }
-    // These are the same five binary message types accepted by the seven
-    // WASM decoder exports. Typed corpus seeds reach their real consumers.
+    // Decode whole authored views too: this consumer recursively walks nested
+    // slots and forms, unlike the individual panel/request decoder entrypoints.
+    if let Ok(view) = ViewDescriptor::decode(bytes) {
+        if let Ok(text) = meridian_uiview::static_view_text(&view) {
+            assert!(text.len() <= 1024 * 1024);
+            assert!(text.chars().filter(|character| *character == '\n').count() <= 4096);
+            assert!(!text
+                .chars()
+                .any(|character| character.is_control() && !matches!(character, '\n' | '\t')));
+        }
+    }
+    // Typed corpus seeds reach the same consumers as the binary WASM exports.
     if let Ok(table) = TablePanel::decode(bytes) {
         let _ = render_table(&response, &table);
     }

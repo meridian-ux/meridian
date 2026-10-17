@@ -12,6 +12,19 @@ test("scratch seeds preserve canonical protobuf bytes and source corpus", () => 
     const counts = seedCorpus(scratch);
     assert.ok(counts.legacy > 0);
     assert.ok(counts.typed > 0);
+    const views = [
+      ...readdirSync(join(source, "layout")).filter(name => name.endsWith(".view.binpb"))
+        .map(name => join("layout", name)),
+      ...readdirSync(join(source, "fixtures"), { withFileTypes: true })
+        .filter(entry => entry.isDirectory()).map(entry => join("fixtures", entry.name, "typical.view.binpb")),
+    ];
+    assert.equal(counts.views, views.length);
+    assert.ok(counts.views > 0);
+    for (const name of views) {
+      const expected = readFileSync(join(source, name));
+      assert.ok(readdirSync(scratch).some(seed => seed.startsWith("view-")
+        && readFileSync(join(scratch, seed)).equals(expected)), name);
+    }
     const corpus = JSON.parse(original);
     const expected = Buffer.from(corpus.requests[0].rpc, "base64");
     assert.ok(readdirSync(scratch).some(name => readFileSync(join(scratch, name)).equals(expected)));
