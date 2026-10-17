@@ -511,7 +511,7 @@ function TwoColumnSlots({ slots }: { slots: Slot[] }): ReactNode {
           <SlotView key={s.id} slot={s} />
         ))}
       </div>
-      <aside className="mer-col-sidebar" style={{ flex: "1 1 240px", minWidth: 0 }}>
+      <aside className="mer-col-sidebar" aria-label="Sidebar" style={{ flex: "1 1 240px", minWidth: 0 }}>
         {sidebar.map((s) => (
           <SlotView key={s.id} slot={s} />
         ))}

@@ -449,6 +449,9 @@ jobs:
       - name: Required panel render proofs
         run: node schemas/tools/panel_evidence.mjs --verify
 
+      - name: Required composed-layout proofs
+        run: bazel test --announce_rc=false //packages/mui-kit:layout_browser_test //crates/tui/rust/tui:view_composition_test --test_output=errors
+
       - name: Detached web-components npm consumer
         run: |
           bazel build --announce_rc=false //packages/web:pkg //schemas:schemas_pkg //schemas/proto:proto_ts_pkg

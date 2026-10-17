@@ -139,6 +139,56 @@ _AX_ARGS = [
     "$(rootpath //packages/web/theme:css)",
 ]
 
+esbuild(
+    name = "layout_bundle",
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/layout.tsx", "//packages/web/tests:src_lib"],
+    entry_point = "harness/layout.tsx",
+    bundle = True,
+    format = "iife",
+    output = "layout.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        "//packages/web:node_modules/@xterm/addon-fit",
+        "//packages/web:node_modules/@xterm/xterm",
+    ],
+)
+
+js_test(
+    name = "layout_browser_test",
+    entry_point = "tests_browser/layout.cjs",
+    args = [
+        "$(rootpath @chrome//:chrome)",
+        "$(rootpath :layout.bundle.js)",
+        "$(rootpath //packages/web/tests:meridian_uiview.js)",
+        "$(rootpath //packages/web/tests:meridian_uiview_bg.wasm)",
+        "$(rootpath //packages/web/theme:css)",
+    ],
+    data = [
+        ":layout.bundle.js",
+        ":node_modules/playwright",
+        ":node_modules/@bufbuild/protobuf",
+        "//packages/web/tests:meridian_uiview.js",
+        "//packages/web/tests:meridian_uiview_bg.wasm",
+        "//packages/web/theme:css",
+        "//schemas:layout_conformance_data",
+        "@chrome//:chrome",
+    ],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = ["PATH", "HOME"],
+    size = "large",
+)
+
 _AX_DATA = [
     ":accessibility.bundle.js",
     ":node_modules/playwright",

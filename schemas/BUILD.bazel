@@ -122,6 +122,11 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+js_library(
+    name = "layout_conformance_data",
+    srcs = glob(["conformance/layout/*.binpb"]),
+)
+
 # The npm_link_package calls that used to live here moved to //:BUILD.bazel.
 # They create `node_modules/<pkg>` in the package that DECLARES them, and this
 # directory was the workspace root before the merge — so leaving them here linked
