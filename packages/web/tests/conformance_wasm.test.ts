@@ -402,6 +402,7 @@ function assertWireDoesNotTrap(bytes: Uint8Array, label: string): void {
     renderGalleryPanel(gallery: Uint8Array, response: object): unknown;
   };
   expect(typeof wasm.formatValueDisplayAt).toBe("function");
+  expect(typeof wasm.staticViewText).toBe("function");
   const response = { rows: [{ value: "2026-03-29", name: "Ada", count: 1, active: false }] };
   const calls = [
     () => wasm.renderTable(bytes, response),
@@ -412,6 +413,7 @@ function assertWireDoesNotTrap(bytes: Uint8Array, label: string): void {
     () => boundary.renderGalleryPanel(bytes, response),
     () => wasm.formatValueDisplay(bytes, "2026-03-29"),
     () => wasm.formatValueDisplayAt!(bytes, "2026-03-29", 1_774_742_400_000),
+    () => wasm.staticViewText(bytes),
   ];
   for (const [index, call] of calls.entries()) {
     try {
@@ -1206,6 +1208,10 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       for (const [index, bytes] of wireMutations(seed).entries()) {
         assertWireDoesNotTrap(bytes, `${fixture.name}, mutation ${index}`);
       }
+      const viewSeed = toBinary(ViewDescriptorSchema, fixture.view);
+      for (const [index, bytes] of wireMutations(viewSeed).entries()) {
+        assertWireDoesNotTrap(bytes, `${fixture.name} view, mutation ${index}`);
+      }
     },
   );
 
@@ -1221,6 +1227,42 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       }
     }
   });
+
+  it.each(LAYOUT_CASES)("$name view wire mutations never trap across decoder entrypoints", fixture => {
+    const seed = toBinary(ViewDescriptorSchema, fixture.view);
+    for (const [index, bytes] of wireMutations(seed).entries()) {
+      assertWireDoesNotTrap(bytes, `view ${fixture.name}, mutation ${index}`);
+    }
+    expect(toBinary(ViewDescriptorSchema, fixture.view)).toEqual(seed);
+  });
+
+  it.each(["wire", "depth", "nodes", "lines", "output", "bytes"])(
+    "rejects excessive or malformed passive view %s across actual WASM", kind => {
+      let bytes: Uint8Array;
+      if (kind === "wire") bytes = new Uint8Array([0x0a, 0x80]);
+      else if (kind === "bytes") bytes = new Uint8Array(4 * 1024 * 1024 + 1);
+      else {
+        let view = create(ViewDescriptorSchema);
+        if (kind === "depth") {
+          for (let index = 0; index < 70; index++) {
+            view = create(ViewDescriptorSchema, { slots: [{ subView: view }] });
+          }
+        } else if (kind === "nodes") {
+          view = create(ViewDescriptorSchema, { slots: Array.from({ length: 1001 }, () => ({})) });
+        } else view.title = kind === "lines" ? "\n".repeat(4097) : "x".repeat(1024 * 1024 + 1);
+        bytes = toBinary(ViewDescriptorSchema, view);
+      }
+      let failure: unknown;
+      try { wasm.staticViewText(bytes); } catch (error) { failure = error; }
+      expect(failure).toBeInstanceOf(Error);
+      expect(failure).not.toBeInstanceOf(WebAssembly.RuntimeError);
+      expect(failure).not.toBeInstanceOf(RangeError);
+      expect((failure as Error).message).toMatch(/view (declaration|construction) rejected/);
+      // Rejection must leave the instance usable, not hide a poisoned trap.
+      expect(wasm.staticViewText(toBinary(ViewDescriptorSchema,
+        create(ViewDescriptorSchema, { title: "After rejection" })))).toContain("After rejection");
+    },
+  );
 
   it("rejects malformed and future descriptors without trapping across the real wasm boundary", () => {
     // A tag with a truncated varint is invalid wire data for every descriptor
