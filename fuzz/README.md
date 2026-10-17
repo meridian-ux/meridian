@@ -1,10 +1,13 @@
 # uiview-core descriptor fuzzing
 
 Use nightly-2026-04-29 and cargo-fuzz 0.13.2 (the CI pins). The target decodes
-PanelDescriptor, TablePanel, GalleryPanel, RpcCall, and ValueDisplay. It exercises
+PanelDescriptor, ViewDescriptor, TablePanel, GalleryPanel, RpcCall, and ValueDisplay. It exercises
 core table/gallery rendering with a populated response, request binding, and
 formatting of text, numeric, and null values with an explicit clock. This is not
-a full native widget or all-input security audit.
+a full native widget or all-input security audit. Whole-view decoding also runs
+the bounded passive projection and checks its byte/line ceilings and escaped
+terminal-control output. Canonical layout views and typical views for every
+panel arm seed this recursive consumer, not only standalone panel messages.
 
 The same harness now calls the bounded native C ABI with borrowed protobuf
 buffers as both declarations and google.protobuf.Value inputs. It checks
@@ -32,7 +35,7 @@ RUSTUP_TOOLCHAIN=nightly-2026-04-29 CARGO_NET_OFFLINE=true "$FUZZ_WORK/tools/bin
   -max_total_time=60 -timeout=5 -rss_limit_mb=2048 -max_len=65536 \
   -seed=1 -verbosity=0 -print_final_stats=1 \
   -artifact_prefix="$FUZZ_WORK/artifacts/"
-git diff --exit-code -- Cargo.lock fuzz/Cargo.lock schemas/conformance/binpb
+git diff --exit-code -- Cargo.lock fuzz/Cargo.lock schemas/conformance/binpb schemas/conformance/layout schemas/conformance/fixtures
 ```
 
 LibFuzzer adds interesting mutations to the scratch corpus, not the committed
@@ -44,8 +47,11 @@ run, not a proof that every possible descriptor is safe.
 
 The actual WebAssembly artifact has deterministic mutations in
 `packages/web/tests/conformance_wasm.test.ts`: every typical E6 panel arm plus
-typed RPC/table/gallery/display seeds cross all eight binary decoder exports,
-including combined form/LRO submission assembly.
+typed RPC/table/gallery/display seeds and canonical layout views cross all nine
+binary decoder exports, including combined form/LRO submission assembly and
+passive whole-view projection. Dedicated passive-view cases reject malformed,
+deep, wide, excessive-line, excessive-output, and oversized-wire declarations
+and confirm that the same WASM instance remains usable after rejection.
 Truncation, invalid wire tags, overlong varints, future fields, and byte flips
 may return valid results or ordinary errors, but must not trap or overflow the
 JavaScript stack. These tests run under the real Bazel-built bridge, not mocks.
