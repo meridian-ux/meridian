@@ -1,0 +1,13 @@
+fields {
+  key: "selections"
+  value {
+    struct_value {
+      fields {
+        key: "scope"
+        value {
+          null_value: NULL_VALUE
+        }
+      }
+    }
+  }
+}

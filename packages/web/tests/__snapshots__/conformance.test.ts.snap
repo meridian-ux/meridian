@@ -84,7 +84,13 @@ button type="button"
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical detail header fixture > web-components/detail_header 1`] = `
 ""Sponsor"
-"(no populate RPC)""
+h2
+  "Sponsor"
+dl
+  dt
+    "Type"
+  dd
+    "—""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical empty fixture > web-components/unset 1`] = `
@@ -191,7 +197,11 @@ form
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical record card fixture > web-components/record_card 1`] = `
 ""Sponsor record"
-"(no populate RPC)""
+dl
+  dt
+    "Name"
+  dd
+    "—""
 `;
 
 exports[`renderPanel (web-components, binary boundary) > renders the canonical resource cards fixture > web-components/resource_cards 1`] = `

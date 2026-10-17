@@ -1,0 +1,23 @@
+
+unsetShared layout unset:;
+last"Section last2#
+last
+Panel lastš
+Content last:Q
+firstheaderÿÿÿÿÿÿÿÿÿ"Section first2&
+firstPanel firstš
+Content first:w
+tie-a"Section tie-a2&
+tie-aPanel tie-aš
+Content tie-a:5
+inspectInspect section
+fixture.LayoutInspect:@
+tie-b"Section tie-b2&
+tie-bPanel tie-bš
+Content tie-b:Y
+headerc"Section header*
+Not a body tab 2)
+headerPanel headerš
+Content headerB1
+exportExport layout
+fixture.LayoutExport

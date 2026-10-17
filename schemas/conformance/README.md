@@ -134,6 +134,36 @@ acceptance criteria. Computed browser accessibility trees have a separate gate
 below; the semantic DOM normalizer is not relabeled as that evidence. SwiftUI
 preview behavior remains explicitly unverified.
 
+## Shared composed-view corpus
+
+`layout/` contains fourteen canonical `ViewDescriptor` cases, protobuf `Struct`
+context/response twins, and a protobuf expectation index. The in-memory authoring
+objects are validated against the committed descriptor set; no alternate layout
+schema is maintained. All four modes, stable ties, headers, advisory roles,
+unknown columns, unset/future modes, nested/repeated views, authored action labels,
+and missing/null/empty/false/zero/open selection gates are included.
+
+HTML, shadcn, MUI, web-components through actual WASM, and the real native ViewHost
+consume the same bytes. Tests assert slot/content ordering, manual tab activation,
+visible placeholders, read counts, and repeated raw names. Native tests run at
+80/140 columns. This is semantic/navigation proof, not browser geometry or
+conversation integration. Static headers/cards must retain authored titles and
+labels even without a populate RPC; missing values remain unavailable and no RPC
+is invented. Scope gates stay closed for falsey selections; raw bindings still
+retain false, zero, and empty strings.
+
+```sh
+python3 tools/layout_corpus.py --write  # deliberate update; review binary/text twins
+python3 tools/layout_corpus.py          # CI freshness check
+python3 -m unittest tools/test_layout_corpus.py
+```
+
+The future-mode case carries unknown Layout tag5 in its binary and readable
+unknown-field projection. Only the binary is round-trip authoritative for that
+future arm: the current text parser cannot parse a field it does not declare.
+All other binary/text twins are checked for canonical equivalence. The updater
+rejects unexpected files without deleting them.
+
 ## Computed browser accessibility trees
 
 `ax/<kit>/<arm>/<case>.txt` records Chrome's actual accessibility tree for all

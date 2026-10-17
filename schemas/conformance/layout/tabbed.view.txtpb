@@ -1,0 +1,94 @@
+id: "tabbed"
+title: "Shared layout tabbed"
+layout {
+  tabbed {
+  }
+}
+slots {
+  id: "last"
+  position: 20
+  title: "Section last"
+  placement {
+    tab_label: "Later position, first tab"
+  }
+  panel {
+    panel_id: "last"
+    title: "Panel last"
+    detail_header {
+      title: "Content last"
+    }
+  }
+}
+slots {
+  id: "first"
+  role: "header"
+  position: -1
+  title: "Section first"
+  placement {
+    tab_label: "Earlier position, second tab"
+    tab_position: 1
+  }
+  panel {
+    panel_id: "first"
+    title: "Panel first"
+    detail_header {
+      title: "Content first"
+    }
+  }
+}
+slots {
+  id: "tie-a"
+  position: 5
+  title: "Section tie-a"
+  panel {
+    panel_id: "tie-a"
+    title: "Panel tie-a"
+    detail_header {
+      title: "Content tie-a"
+    }
+  }
+  actions {
+    id: "inspect"
+    label: "Inspect section"
+    call {
+      service: "fixture.Layout"
+      method: "Inspect"
+    }
+  }
+}
+slots {
+  id: "tie-b"
+  position: 5
+  title: "Section tie-b"
+  panel {
+    panel_id: "tie-b"
+    title: "Panel tie-b"
+    detail_header {
+      title: "Content tie-b"
+    }
+  }
+}
+slots {
+  id: "header"
+  position: 99
+  title: "Section header"
+  placement {
+    tab_label: "Not a body tab"
+    header_row: true
+  }
+  panel {
+    panel_id: "header"
+    title: "Panel header"
+    detail_header {
+      title: "Content header"
+    }
+  }
+}
+actions {
+  id: "export"
+  label: "Export layout"
+  call {
+    service: "fixture.Layout"
+    method: "Export"
+  }
+}

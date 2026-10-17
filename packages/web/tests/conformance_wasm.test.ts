@@ -41,6 +41,7 @@ import type { UiviewWasm } from "../src/uiview/renderer.js";
 import type { RpcInvoker, StreamInvoker } from "@savvifi/meridian-schemas/uiview";
 import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
+import { LAYOUT_CASES } from "../../../schemas/conformance/layout_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES, OPTION_INPUT_CASES } from "../../../schemas/conformance/value_option_cases.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
@@ -73,6 +74,39 @@ let disposePanel: typeof import("../src/uiview/renderer.js").disposePanel;
 let terminals: typeof import("../src/terminal_panel.js");
 const originalCanvasContext = HTMLCanvasElement.prototype.getContext;
 afterAll(() => { HTMLCanvasElement.prototype.getContext = originalCanvasContext; });
+
+describe("canonical whole-view layout corpus across actual WASM", () => {
+  it.each(LAYOUT_CASES)("$name", async fixture => {
+    const root = document.createElement("div"); document.body.append(root);
+    const invoke = vi.fn(async (service: string, method: string) => fixture.responses[`${service}.${method}`] ?? {});
+    const { disposeView } = await import("../src/uiview/view_renderer.js");
+    try {
+      await renderView({ root, view: fixture.view, wasm, invoker: { invoke }, context: {
+        currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {}, selections: fixture.context.selections,
+      } });
+      expect(root.textContent).toContain(fixture.view.title);
+      for (const text of fixture.content) expect(root.textContent).toContain(text);
+      expect([...root.querySelectorAll('[data-slot]')].map(e => e.getAttribute("data-slot"))).toEqual(fixture.order);
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      expect(tabs.map(tab => tab.textContent)).toEqual(fixture.tabs);
+      if (tabs.length) {
+        tabs[0].focus(); tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+        expect(document.activeElement).toBe(tabs[1]); expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+        tabs[1].click();
+        await vi.waitFor(() => expect(root.textContent).toContain("Content first"));
+        expect(root.textContent).not.toContain("Content last");
+      }
+      if (fixture.name.startsWith("gate-")) {
+        expect(invoke).toHaveBeenCalledTimes(fixture.gateOpen ? 1 : 0);
+        expect(root.textContent).toContain(fixture.gateOpen ? "Fetched scoped" : "Choose a scope first");
+      } else if (fixture.name === "repeated") {
+        expect(invoke).toHaveBeenCalledTimes(1);
+        expect(root.textContent).toContain("001.20"); expect(root.textContent).toContain("Second row");
+      } else expect(invoke).not.toHaveBeenCalled();
+      if (fixture.name === "nested") expect(root.textContent).not.toContain("Content nested");
+    } finally { disposeView(root); root.remove(); }
+  });
+});
 
 beforeAll(async () => {
   // xterm probes canvas during module initialization; jsdom has no canvas.

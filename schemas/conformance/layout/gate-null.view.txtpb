@@ -1,0 +1,19 @@
+id: "gate-null"
+title: "Shared gate null"
+slots {
+  id: "gated"
+  title: "Section gated"
+  panel {
+    panel_id: "gated"
+    title: "Panel gated"
+    detail_header {
+      title_source_path: "title"
+      populate {
+        service: "fixture.Layout"
+        method: "Scoped"
+      }
+    }
+  }
+  depends_on_selection_key: "scope"
+  depends_on_placeholder: "Choose a scope first"
+}
