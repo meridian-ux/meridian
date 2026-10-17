@@ -99,6 +99,17 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
     return { container, render, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
 
+  it("does not shallowly erase a bound nested scope when adding pagination", async () => {
+    const descriptor = fixture();
+    table(descriptor).populate!.bindings.push(create(FieldBindingSchema, { requestField: "page.tenant", source: { case: "literal", value: "scoped" } }));
+    table(descriptor).pagination = create(PaginationSchema, { mode: PaginationMode.OFFSET, pageSize: 20,
+      limitRequestField: "page.limit", offsetRequestField: "page.offset" });
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
+    const view = await mount(descriptor, invoke);
+    try { expect(invoke).toHaveBeenCalledWith("demo.Builds", "List", { page: { tenant: "scoped", limit: 20, offset: 0 } }); }
+    finally { await view.close(); }
+  });
+
   it.each(["__proto__.meridianTableTest", "constructor.prototype.meridianTableTest"])("rejects the whole %s request before dispatch", async path => {
     const descriptor = fixture();
     table(descriptor).actions[0].rpc!.bindings.push(create(FieldBindingSchema, {

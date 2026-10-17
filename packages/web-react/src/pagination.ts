@@ -22,7 +22,8 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { actionRequestJson, boundedActionRequest, hasDynamicBindings } from "./action_request.js";
+import { actionRequestJson, boundedActionRequest, boundedPopulateRequest, boundedSelectionKey, hasDynamicBindings, hasSelectionSource } from "./action_request.js";
+export { bindingRequestJson, boundedJson as boundedDescriptorJson } from "./action_request.js";
 
 export { PaginationMode } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
@@ -98,7 +99,8 @@ export function useMeridianSelection(): MeridianSelection {
  *   - `literal`      — an authored (or projection-constant-folded) scalar.
  *   - `selectionKey` — the CURRENT value of a view selection key: the only binding
  *     source that reads live client state.
- * Other sources are skipped because populate has no row, form, or signal.
+ * Nested bindings use the same budget. Other sources are skipped because
+ * populate has no row, form, or signal. Authored empty literals are preserved.
  *
  * A selection key that is unset contributes NOTHING: the field is OMITTED, never
  * sent as undefined/null/"". An unset scope must not silently widen the query. Pure.
@@ -107,20 +109,7 @@ export function buildBindingRequest(
   call: RpcCall | undefined,
   selection: Record<string, string>,
 ): Row {
-  const request: Row = {};
-  for (const binding of call?.bindings ?? []) {
-    let value: unknown;
-    if (binding.source.case === "literal") {
-      value = binding.source.value;
-    } else if (binding.source.case === "selectionKey") {
-      value = selection[binding.source.value];
-    } else {
-      continue;
-    }
-    if (value === undefined || value === null || value === "") continue;
-    setNested(request, binding.requestField, value);
-  }
-  return request;
+  return boundedPopulateRequest(call, selection);
 }
 
 /** Resolve actions from selection and an optional selected or repeated-view row.
@@ -140,23 +129,20 @@ export function buildActionBindingRequest(call: RpcCall | undefined, selection: 
  * trap that made RepeatedSubView loop. A derived string means a panel with NO
  * selection bindings gets "" forever and never refetches, so every descriptor
  * shipped before selection is bit-for-bit unaffected. Pure.
+ * The encoding is opaque (not a public serialization format), includes nested
+ * sources, and returns an invalid sentinel if dependency admission fails.
  */
 export function selectionDeps(
   call: RpcCall | undefined,
   selection: Record<string, string>,
 ): string {
-  let key = "";
-  for (const binding of call?.bindings ?? []) {
-    if (binding.source.case !== "selectionKey") continue;
-    key += `${binding.source.value}=${selection[binding.source.value] ?? ""};`;
-  }
-  return key;
+  return boundedSelectionKey(call, selection);
 }
 
 /** True when a call reads live selection state — so it can never consume an SSR
  *  seed (the server cannot know a client-picked scope). */
 export function hasSelectionBindings(call: RpcCall | undefined): boolean {
-  return (call?.bindings ?? []).some((b) => b.source.case === "selectionKey");
+  return hasSelectionSource(call);
 }
 
 /** Follow a dotted path (e.g. "page.offset") into a value. */
@@ -166,25 +152,6 @@ function getNested(source: unknown, path: string): unknown {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key];
     return undefined;
   }, source);
-}
-
-/** Set a dotted path (e.g. "page.offset") on a request object, creating parents. */
-function setNested(target: Row, path: string, value: unknown): void {
-  if (!path) return;
-  const keys = path.split(".");
-  let cursor: Row = target;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    // A preceding row-field binding may have borrowed this object from fetched
-    // data. Copy each parent we write through so overlapping request paths never
-    // mutate the raw row (or an earlier invocation's request).
-    const child = cursor[key];
-    cursor[key] = child && typeof child === "object"
-      ? Array.isArray(child) ? [...child] : { ...child }
-      : {};
-    cursor = cursor[key] as Row;
-  }
-  cursor[keys[keys.length - 1]] = value;
 }
 
 /** Effective mode (UNSPECIFIED ⇒ CLIENT) + page size (0 ⇒ default) for a panel. */
@@ -208,30 +175,7 @@ export function buildPageRequest(
   pagination: Pagination | undefined,
   opts: { page?: number; cursor?: string; pageSize?: number },
 ): Row {
-  const request: Row = {};
-  if (!pagination) return request;
-  const pageSize =
-    opts.pageSize && opts.pageSize > 0
-      ? opts.pageSize
-      : pagination.pageSize > 0
-        ? pagination.pageSize
-        : DEFAULT_PAGE_SIZE;
-  if (pagination.mode === PaginationMode.OFFSET) {
-    const page = opts.page ?? 0;
-    if (pagination.offsetRequestField)
-      setNested(request, pagination.offsetRequestField, page * pageSize);
-    if (pagination.limitRequestField)
-      setNested(request, pagination.limitRequestField, pageSize);
-  } else if (pagination.mode === PaginationMode.CURSOR) {
-    if (pagination.cursorRequestField && opts.cursor)
-      setNested(request, pagination.cursorRequestField, opts.cursor);
-    // Send the requested page size so the server pages at that size (else it uses
-    // its own default — and a page-size selector would be inert). The projection
-    // points `limitRequestField` at the op's page-size input (one host's list: "pageSize").
-    if (pagination.limitRequestField)
-      setNested(request, pagination.limitRequestField, pageSize);
-  }
-  return request;
+  return boundedPopulateRequest(undefined, {}, pagination, opts);
 }
 
 /** Read a page (rows + total + next cursor) out of a `populate` response. Pure. */
@@ -301,10 +245,13 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   // that binds live selection is NOT seedable — the server pre-fetches before any
   // client scope exists, so its seed would be garbage under a key the client trusts.
   const initialData = useContext(MeridianInitialDataContext);
-  const seed =
-    panel.populate && initialData && !hasSelectionBindings(panel.populate)
-      ? initialData[`${panel.populate.service}.${panel.populate.method}`]
-      : undefined;
+  let seed: MeridianPageSeed | undefined;
+  if (panel.populate && initialData && !hasSelectionBindings(panel.populate)) {
+    try {
+      boundedPopulateRequest(panel.populate, {}, pagination, { page: 0, pageSize: resolvedPageSize });
+      seed = initialData[`${panel.populate.service}.${panel.populate.method}`];
+    } catch { /* Invalid authored requests cannot consume an apparently valid seed. */ }
+  }
 
   // The view selection bag. `selectionKey` is a derived string over just the keys
   // this populate binds — a panel with none gets "" and never refetches on a pick.
@@ -361,14 +308,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
     setLoading(true);
     setError(false);
     const cursor = mode === PaginationMode.CURSOR ? cursorStack[page] ?? "" : undefined;
-    const request = {
-      ...buildBindingRequest(panel.populate, selection.values),
-      ...(mode === PaginationMode.CLIENT
-        ? {}
-        : buildPageRequest(pagination, { page, cursor, pageSize })),
-    };
-    invoker
-      .invoke(panel.populate.service, panel.populate.method, request)
+    const populate = panel.populate;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      return invoker.invoke(populate.service, populate.method,
+        boundedPopulateRequest(populate, selection.values, pagination, { page, cursor, pageSize }));
+    })
       .then((response) => {
         if (cancelled) return;
         const read = readPage(pagination, response, panel.rowsField);
@@ -381,6 +326,8 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
         // a UI mishap (the user reads it as "there are none").
         if (!cancelled) {
           setRows([]);
+          setTotal(undefined);
+          setNextCursor(undefined);
           setError(true);
         }
       })
@@ -420,12 +367,12 @@ export function usePagedRows(panel: TablePanel, invoker: RpcInvoker): PagedTable
   };
   const goPrev = () => setPageState((current) => (current > 0 ? current - 1 : current));
   const setPage = (target: number) => {
-    if (mode === PaginationMode.OFFSET) setPageState(Math.max(0, target));
+    if (mode === PaginationMode.OFFSET && Number.isSafeInteger(target)) setPageState(Math.max(0, target));
   };
   // Change the page size: reset to page 0 + clear the cursor stack so the next
   // fetch pages at the new size (CURSOR/OFFSET refetch; CLIENT just re-slices).
   const setPageSize = (size: number) => {
-    if (!Number.isFinite(size) || size <= 0 || size === pageSize) return;
+    if (!Number.isSafeInteger(size) || size <= 0 || size === pageSize) return;
     setPageSizeState(size);
     setPageState(0);
     setCursorStack([""]);

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { create } from "@bufbuild/protobuf";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ChartMark, ChartPanelSchema, EncodingType } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
+import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
@@ -94,7 +95,7 @@ const descriptor = create(PanelDescriptorSchema, {
 });
 
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s populated chart", (_name, kit) => {
-  async function mount(invoke: RpcInvoker["invoke"]) {
+  async function mount(invoke: RpcInvoker["invoke"], target = descriptor) {
     const container = document.createElement("div");
     const root = createRoot(container);
     await act(async () => root.render(createElement(
@@ -103,11 +104,26 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s populated
       createElement(
         MeridianSelectionContext.Provider,
         { value: { values: { scope: "production" }, set: () => {} } },
-        createElement(PanelRenderer, { descriptor }),
+        createElement(PanelRenderer, { descriptor: target }),
       ),
     )));
     return { container, close: () => act(async () => root.unmount()) };
   }
+
+  it.each(["unsafe", "large", "cycle"])("rejects %s populate requests without invoking the host", async mode => {
+    const target = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, descriptor));
+    if (target.body.case !== "chart") throw new Error("Wrong fixture arm");
+    const field = create(FieldBindingSchema, { requestField: mode === "unsafe" ? "__proto__.scope" : "extra",
+      source: mode === "cycle" ? { case: "nested", value: {} } : { case: "literal", value: "x".repeat(mode === "large" ? 800_000 : 1) } });
+    if (field.source.case === "nested") field.source.value.fields.push(field);
+    target.body.value.chart!.populate!.bindings.push(field);
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+    const view = await mount(invoke, target);
+    try {
+      expect(invoke).not.toHaveBeenCalled();
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Unable to load chart data.");
+    } finally { await view.close(); }
+  });
 
   it("loads nested rows with selection bindings and preserves field order", async () => {
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ data: { points: [

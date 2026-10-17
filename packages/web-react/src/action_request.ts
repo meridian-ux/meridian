@@ -1,6 +1,7 @@
 // In-process admission for React's JSON host seam. Authored bindings remain
 // RpcCall/FieldBinding protos; this budget and its owned tree never serialize.
 import type { FieldBinding, RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { PaginationMode, type Pagination } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 
 type Row = Record<string, unknown>;
 const WORK = 4 * 1024 * 1024;
@@ -24,8 +25,8 @@ class Budget {
     if (!Number.isSafeInteger(work) || work < 0 || work > this.remaining) reject();
     this.remaining -= work;
   }
-  visit(depth: number): void {
-    if (depth > DEPTH || --this.nodes < 0) reject();
+  visit(depth: number, limit = DEPTH): void {
+    if (depth > limit || --this.nodes < 0) reject();
     this.reserve(64);
   }
   text(value: string): void {
@@ -41,8 +42,11 @@ class Budget {
     this.reserve(64 * keys.length);
     return keys;
   }
-  clone(value: unknown, depth = 0, ancestors = new Set<object>()): unknown {
-    this.visit(depth);
+  clone(value: unknown, depth = 0, ancestors = new Set<object>(), descriptor = false): unknown {
+    // Proto oneof/message wrappers add structural levels that are not logical
+    // form/request nesting. Descriptor identity has a separate bounded ceiling;
+    // it must not reject a valid form below its existing 64-level semantic gate.
+    this.visit(depth, descriptor ? 512 : DEPTH);
     if (value === null || typeof value === "boolean") return value;
     if (typeof value === "string") { this.text(value); return value; }
     if (typeof value === "number") {
@@ -60,7 +64,7 @@ class Budget {
         // accessors are not JSON values supplied by a decoded RPC response.
         this.reserve(value.length * 64);
         const result: unknown[] = [];
-        for (let i = 0; i < value.length; i++) result.push(this.clone(own(value, String(i)), depth + 1, ancestors));
+        for (let i = 0; i < value.length; i++) result.push(this.clone(own(value, String(i)), depth + 1, ancestors, descriptor));
         return result;
       }
       const result: Row = {};
@@ -68,7 +72,12 @@ class Budget {
       // outside this work budget. No getters or toJSON callbacks are executed.
       for (const key of Object.keys(value)) {
         this.text(key);
-        Object.defineProperty(result, key, { value: this.clone(own(value, key), depth + 1, ancestors), enumerable: true, writable: true, configurable: true });
+        const child = own(value, key);
+        // Generated protobuf messages permit explicitly unset optional fields.
+        // Descriptor identity omits those just as JSON.stringify does; request
+        // data still rejects undefined rather than silently losing raw values.
+        if (descriptor && child === undefined) continue;
+        Object.defineProperty(result, key, { value: this.clone(child, depth + 1, ancestors, descriptor), enumerable: true, writable: true, configurable: true });
       }
       return result;
     } finally { ancestors.delete(value); }
@@ -120,6 +129,7 @@ function bindingsInto(bindings: FieldBinding[], selection: Record<string, string
         if (binding.source.value.length > DECLARATION) reject();
         budget.text(binding.source.value);
         value = own(selection, binding.source.value);
+        if (value !== undefined && typeof value !== "string") reject();
         if (value === "") continue;
         break;
       default: continue; // No invented form, signal, or host context.
@@ -143,7 +153,7 @@ export function boundedActionRequest(call: RpcCall | undefined, selection: Recor
 
 /** Bounded, getter-free descriptor identity; never stringify an unchecked graph. */
 export function boundedJson(value: unknown): string {
-  return JSON.stringify(new Budget().clone(value));
+  return JSON.stringify(new Budget().clone(value, 0, new Set(), true));
 }
 
 export function actionRequestJson(call: RpcCall | undefined, selection: Record<string, string>, record?: Row, defaults?: Row): string | undefined {
@@ -165,4 +175,68 @@ export function hasDynamicBindings(bindings: FieldBinding[]): boolean {
     return false;
   }
   try { return scan(bindings, 0); } catch { return true; }
+}
+
+export function boundedSelectionKey(call: RpcCall | undefined, selection: Record<string, string>): string {
+  const budget = new Budget();
+  const pairs: [string, string][] = [];
+  function scan(fields: FieldBinding[], depth: number): void {
+    for (const field of fields) {
+      budget.visit(depth);
+      if (field.source.case === "nested") scan(field.source.value.fields, depth + 1);
+      if (field.source.case !== "selectionKey") continue;
+      const name = field.source.value;
+      if (name.length > DECLARATION) reject();
+      budget.text(name);
+      const value = own(selection, name) ?? "";
+      if (typeof value !== "string") reject();
+      budget.text(value as string);
+      pairs.push([name, value as string]);
+    }
+  }
+  try {
+    scan(call?.bindings ?? [], 0);
+    return pairs.length ? JSON.stringify(pairs) : "";
+  } catch { return "!invalid-selection-dependencies"; }
+}
+
+export function hasSelectionSource(call: RpcCall | undefined): boolean {
+  const key = boundedSelectionKey(call, {});
+  return key !== ""; // Invalid declarations are not eligible for an SSR seed.
+}
+
+export type PageOptions = { page?: number; cursor?: string; pageSize?: number };
+
+/** Bindings and paging share one budget and owned tree. Assigning page.limit
+ * must not drop a sibling bound page.tenant through a shallow object spread. */
+export function boundedPopulateRequest(call: RpcCall | undefined, selection: Record<string, string>, pagination?: Pagination, opts: PageOptions = {}): Row {
+  const budget = new Budget();
+  if (call && (!call.service || !call.method || call.service.length > DECLARATION || call.method.length > DECLARATION)) reject();
+  const request: Row = {};
+  bindingsInto(call?.bindings ?? [], selection, undefined, budget, 0, request);
+  if (!pagination || ![PaginationMode.OFFSET, PaginationMode.CURSOR].includes(pagination.mode)) return request;
+  const size = opts.pageSize ?? (pagination.pageSize > 0 ? pagination.pageSize : 20);
+  if (!Number.isSafeInteger(size) || size <= 0) reject();
+  function assign(path: string, value: unknown): void {
+    if (!path) return;
+    const keys = budget.path(path);
+    put(request, keys, budget.clone(value, keys.length));
+  }
+  if (pagination.mode === PaginationMode.OFFSET) {
+    const page = opts.page ?? 0;
+    if (!Number.isSafeInteger(page) || page < 0 || !Number.isSafeInteger(page * size)) reject();
+    assign(pagination.offsetRequestField, page * size);
+  } else {
+    // An invalid authored cursor path is invalid even on the first page, when
+    // there is no token to assign yet. Never defer rejection until later pages.
+    if (pagination.cursorRequestField) budget.path(pagination.cursorRequestField);
+    if (opts.cursor) assign(pagination.cursorRequestField, opts.cursor);
+  }
+  assign(pagination.limitRequestField, size);
+  return request;
+}
+
+export function bindingRequestJson(call: RpcCall | undefined, selection: Record<string, string>): string | undefined {
+  try { return JSON.stringify(boundedPopulateRequest(call, selection)); }
+  catch { return undefined; }
 }

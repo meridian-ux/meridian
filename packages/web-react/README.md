@@ -128,10 +128,30 @@ error without dispatch or consumption of an SSR seed. Resource-card controls
 report generic, accessible failures, preserve confirmation and retry, and ignore
 obsolete completions. Admission authorization still applies independently.
 
+`buildBindingRequest` now shares this admission policy for populate literals,
+nested bindings, and live selection (no row/form/signal context is invented).
+Authored empty literals are preserved; unset selections remain omitted.
+`usePagedRows` admits bindings and pagination cumulatively into the same owned
+tree, preserving sibling scope fields such as `page.tenant` when adding
+`page.offset`/`page.limit`. Invalid paths and unsafe offset arithmetic reject
+before transport; even first-page cursor declarations are validated.
+
+Selection effect keys include nested sources, use an unambiguous encoding, and
+are bounded opaque identities, not a serialized data contract. Invalid or live
+selection declarations cannot consume unscoped table SSR seeds. Charts and
+resource cards catch construction failures inside their cancellable fetch
+effects. HTML, Shadcn, and MUI form prefill rejects invalid requests visibly.
+
+`bindingRequestJson` returns `undefined` on rejection; that means **do not
+dispatch**, never "substitute `{}`." `boundedDescriptorJson` builds a bounded
+descriptor identity without getters/toJSON and omits explicitly unset protobuf
+properties. It admits up to 512 structural levels to accommodate message/oneof
+wrappers; existing 64-level semantic form and request limits remain unchanged.
+
 These are work/copy limits, not a hard JavaScript heap or execution-time sandbox:
 host allocations, proxy traps, and key enumeration are outside the budget.
-Populate-only `buildBindingRequest`, pagination, form submission assembly,
-response rendering, and arbitrary host callbacks are not covered by this helper.
+Collected form/LRO values still need admission together with submit bindings;
+response rendering and arbitrary host callbacks are separate boundaries.
 
 ## Build & test
 

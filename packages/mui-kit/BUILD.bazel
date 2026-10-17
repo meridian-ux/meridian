@@ -33,6 +33,7 @@ vitest_test(
         "tests/llm_prompt.test.tsx",
         "tests/content.test.tsx",
         "tests/form_repeat.test.tsx",
+        "tests/populate_budget.test.tsx",
         "tests/gallery.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/value_options.test.ts",

@@ -28,11 +28,11 @@ import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/v
 import { useDisplayNow } from "./use_display_now.js";
 import {
   buildBindingRequest,
+  bindingRequestJson,
   buildActionBindingRequest,
   MeridianRowActionsContext,
   MeridianViewContext,
   PaginationMode,
-  selectionDeps,
   useActionHandler,
   usePromptResponse,
   useRpcInvoker,
@@ -825,17 +825,14 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   const createLike = edit && startsBlank(initValues(panel.fields));
   const selection = useMeridianSelection();
   const [prefillValues, setPrefillValues] = useState<FormObject | undefined>();
-  const prefillSelection = selectionDeps(panel.prefill, selection.values);
-  const prefillRequest = useMemo(
-    () => buildBindingRequest(panel.prefill, selection.values),
-    [panel.prefill, prefillSelection],
-  );
+  const prefillJson = bindingRequestJson(panel.prefill, selection.values);
+  const prefillRequest = useMemo(() => prefillJson === undefined ? undefined : JSON.parse(prefillJson) as Row, [prefillJson]);
   useEffect(() => {
     setPrefillValues(undefined);
-    if (!edit || !panel.prefill?.service || !panel.prefill.method) return;
+    if (!edit || !prefillRequest || !panel.prefill?.service || !panel.prefill.method) return;
     let active = true;
     void Promise.resolve()
-      .then(() => invoke(invoker, panel.prefill, prefillRequest))
+      .then(() => active ? invoke(invoker, panel.prefill, prefillRequest) : undefined)
       .then((response) => {
         if (active && response && typeof response === "object" && !Array.isArray(response)) {
           setPrefillValues(response as FormObject);
@@ -847,7 +844,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
     return () => {
       active = false;
     };
-  }, [edit, invoker, panel.prefill, prefillRequest, prefillSelection]);
+  }, [edit, invoker, panel.prefill, prefillRequest]);
   // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
   // request is not only what the user typed: an op scoped to the record it hangs
   // off (post a comment on THIS task → `resourceId`) gets that field from a
@@ -858,6 +855,7 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   //
   // Field values WIN over bindings on a key collision — the binding supplies the
   // context the form cannot, never overrides what the user actually entered.
+  if (edit && !prefillRequest) return <Alert severity="error">Form request rejected.</Alert>;
   return (
     <FieldForm
       fields={panel.fields}
