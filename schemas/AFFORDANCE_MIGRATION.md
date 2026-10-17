@@ -19,6 +19,8 @@ node schemas/tools/affordance_consumer_probe.mjs --config=/path/to/private/tscon
 node schemas/tools/affordance_migration_probe.mjs --keep
 # With the retained directory, pinned protoc 33.4, JDK 21 and protobuf-java
 # 4.33.4, run tools/affordance_java_probe.py --help for compiled Java checks.
+# With that same retained directory, compare the actual Rust workspace worlds:
+python3 -u tools/affordance_rust_probe.py --scratch /path/from/probe/work
 ```
 
 The probe builds temporary copies of the **current real schemas**, not just
@@ -152,6 +154,25 @@ documented MERIDIAN_UIVIEW_DESCRIPTOR_SET override with separate Cargo build
 artifacts; neither replaces the committed production descriptor.
 These historical counts are not fresh native verification of the current
 policy/envelope candidate. Rerun and adopt the current candidate before cutover.
+
+The reproducible `tools/affordance_rust_probe.py` now runs the real locked Cargo
+workspace tests against both the baseline and pure relocation, each in a fresh
+isolated target directory. It then checks the expanded candidate's core library
+and requires the known E0004 exhaustive-dispatch error in `static_view.rs`.
+Arbitrary compiler errors, dependency/network failures, killed or incomplete
+builds, and unexpected candidate success fail the probe instead of being counted
+as adoption evidence. The classifier has separate unit tests. A read-only CI job
+repeats this proposal-only experiment; it does not patch the native dispatcher,
+regenerate committed descriptors, change FILE policy, or prove expanded native
+adoption. Canonical proto, Cargo, descriptor, and Buf policy inputs are hashed
+before and after the experiment. An expected rejection is a diagnosed release
+blocker, not a successful migration or a v1 acceptance waiver.
+
+The refreshed local run passes **305 workspace tests** against each of the old
+and pure-relocation descriptors, with the same one preexisting ignored doctest.
+The expanded candidate fails at the core library's exhaustive invoke match for
+the five newly typed variants. That core compilation stops before expanded TUI
+workspace tests can run; no expanded native execution or adoption is claimed.
 
 ## Consumer inventory and required facades
 
