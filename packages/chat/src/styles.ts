@@ -35,6 +35,9 @@ export const ASSISTANT_PANEL_CSS = `
   m-assistant-panel .asst-row { display: flex; }
   m-assistant-panel .asst-row.user { justify-content: flex-end; }
   m-assistant-panel .asst-row > * { max-width: 82%; }
+  /* Composed screens need an actual containing width, not a shrink-to-fit
+     message bubble. Keep ordinary message sizing and user alignment unchanged. */
+  m-assistant-panel .asst-row.asst-view > * { width: 100%; max-width: 100%; min-width: 0; }
 
   /* markdown bubbles */
   m-assistant-panel .md { padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; }

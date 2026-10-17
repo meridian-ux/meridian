@@ -219,8 +219,16 @@ These are read-only projections, not live composed hosts: selection context and
 record snapshots are unavailable, repeated views show one labeled template, and
 actions never execute. React's rich-view callback remains authoritative when supplied.
 
-This evidence does not promote the conversation View coverage exceptions or
-replace rich-host integration proof. See the chat README for admission/output
+The separate hermetic `//packages/mui-kit:conversation_browser_test` proves the
+actual React Conversation-to-ViewRenderer callback handoff through local canonical
+HTTP/SSE fixtures. It covers all fourteen shared layouts across three kits at
+320/1100px, plus same-ID replacement, replay suppression, mutation denial/grants,
+and late-read isolation. The test exposed shrink-to-fit transcript sizing; view
+rows now receive available width without changing primitive message bubbles.
+It does not establish arbitrary host admission or every snapshot/overflow state.
+
+This evidence does not promote the conversation View coverage exceptions.
+See the chat README for admission/output
 limits and masking behavior. The private consumer below retains its own pinned
 renderer and composed-canvas integration contract.
 
