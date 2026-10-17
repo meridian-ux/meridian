@@ -193,7 +193,7 @@ fn tabs_are_manual_keep_persistent_regions_and_never_read_inactive_or_gated_bodi
     let output = sections(&mut view, &context, &host, 80);
     assert!(output.contains("Choose a scope first"));
     assert_eq!(host.calls.borrow().len(), 1);
-    context.selections.insert("scope".into(), json!(false));
+    context.selections.insert("scope".into(), json!("scope-A"));
     let output = sections(&mut view, &context, &host, 80);
     assert!(output.contains("Fetched Earlier"));
     assert_eq!(host.calls.borrow().len(), 2);
@@ -323,11 +323,71 @@ fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
     let host = Host::default();
     let mut context = Context::default();
     let mut view = wire(descriptor);
-    context.selections.insert("scope".into(), json!(0));
+    context.selections.insert("scope".into(), json!("scope-A"));
     draw(&mut view, &context, &host, 80);
     context.selections.clear();
     assert!(key(&mut view, &context, KeyCode::Enter).is_none());
     assert!(host.calls.borrow().is_empty());
+}
+
+#[test]
+fn falsey_scope_gates_block_reads_and_stale_actions_at_native_widths() {
+    for width in [80, 140] {
+        for value in [
+            None,
+            Some(Value::Null),
+            Some(json!(false)),
+            Some(json!(0)),
+            Some(json!(-0.0)),
+            Some(json!("")),
+        ] {
+            let mut descriptor = view(None);
+            descriptor.slots.truncate(1);
+            let slot = &mut descriptor.slots[0];
+            slot.depends_on_selection_key = "scope".into();
+            slot.depends_on_placeholder = "Choose a scope first".into();
+            slot.panel.as_mut().unwrap().body =
+                Some(panel_descriptor::Body::DetailHeader(DetailHeaderPanel {
+                    populate: Some(call("Scoped")),
+                    title_source_path: "title".into(),
+                    ..Default::default()
+                }));
+            slot.actions.push(Action {
+                id: "danger".into(),
+                label: "Delete".into(),
+                call: Some(call("Delete")),
+                ..Default::default()
+            });
+            let mut context = Context::default();
+            if let Some(value) = value.clone() {
+                context.selections.insert("scope".into(), value);
+            }
+            let host = Host::default();
+            let mut native = wire(descriptor);
+            let output = draw(&mut native, &context, &host, width);
+            assert!(
+                output.contains("Choose a scope first"),
+                "{width}: {value:?}"
+            );
+            assert!(
+                host.calls.borrow().is_empty(),
+                "closed gate fetched: {value:?}"
+            );
+
+            context.selections.insert("scope".into(), json!("scope-A"));
+            draw(&mut native, &context, &host, width);
+            assert_eq!(host.calls.borrow().len(), 1);
+            context.selections.remove("scope");
+            if let Some(value) = value {
+                context.selections.insert("scope".into(), value);
+            }
+            assert!(
+                key(&mut native, &context, KeyCode::Enter).is_none(),
+                "stale action escaped a closed gate"
+            );
+            assert_eq!(host.calls.borrow().len(), 1);
+        }
+    }
 }
 
 #[test]
