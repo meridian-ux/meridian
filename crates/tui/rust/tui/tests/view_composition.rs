@@ -777,3 +777,80 @@ fn shared_layout_corpus_matches_browser_order_gates_and_repeated_records() {
         }
     }
 }
+
+#[test]
+fn canonical_streamed_views_expand_in_the_actual_native_transcript() {
+    use meridian_tui::{block_lines, render_conversation, Palette};
+    use meridian_uiview::{static_view_text, ConversationModel};
+    use std::path::PathBuf;
+    let mut roots = vec![PathBuf::from("schemas/conformance/layout")];
+    if let Some(manifest) = option_env!("CARGO_MANIFEST_DIR") {
+        roots.push(PathBuf::from(manifest).join("../../../../schemas/conformance/layout"));
+    }
+    let root = roots
+        .iter()
+        .find(|p| p.join("index.binpb").is_file())
+        .unwrap();
+    let index = corpus_struct(&std::fs::read(root.join("index.binpb")).unwrap());
+    for case in index["cases"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let view = ViewDescriptor::decode(
+            std::fs::read(root.join(format!("{name}.view.binpb")))
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        let expected = static_view_text(&view).unwrap();
+        let event = ConversationEvent {
+            seq: 1,
+            event: Some(conversation_event::Event::Block(Block {
+                block_id: name.into(),
+                role: "assistant".into(),
+                kind: Some(block::Kind::View(view)),
+            })),
+        };
+        let event = ConversationEvent::decode(event.encode_to_vec().as_slice()).unwrap();
+        let Some(conversation_event::Event::Block(block)) = &event.event else {
+            panic!()
+        };
+        let lines = block_lines(block, &Palette::default());
+        assert_eq!(
+            lines
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join("\n"),
+            expected
+                .lines()
+                .map(|s| format!("  {}", s.replace('\t', "    ")))
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+        let mut model = ConversationModel::new();
+        model.ingest(&event);
+        let mut terminal = Terminal::new(TestBackend::new(80, 180)).unwrap();
+        terminal
+            .draw(|f| render_conversation(f, f.area(), &model, &Palette::default(), "Empty"))
+            .unwrap();
+        let buffer = terminal.backend().buffer();
+        let output = (0..180)
+            .map(|y| (0..80).map(|x| buffer[(x, y)].symbol()).collect::<String>())
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut cursor = 0;
+        for id in case["staticOrder"].as_array().unwrap() {
+            let label = format!("Section: Section {}", id.as_str().unwrap());
+            cursor += output[cursor..]
+                .find(&label)
+                .unwrap_or_else(|| panic!("{name}: missing native transcript {label}"))
+                + label.len();
+        }
+        for text in case["staticContent"].as_array().unwrap() {
+            assert!(
+                output.contains(text.as_str().unwrap()),
+                "{name}: missing {text}"
+            );
+        }
+        assert!(!output.contains("not drawn"));
+    }
+}

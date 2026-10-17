@@ -68,6 +68,7 @@ mod render;
 mod render_limits;
 mod request;
 mod stat;
+mod static_view;
 mod stream;
 
 #[cfg(target_arch = "wasm32")]
@@ -99,6 +100,7 @@ pub use stat::{
     compute_stat, compute_stat_with_response, format_stat_number, trend_arrow, StatComputed,
     StatSemantics, StatTrend,
 };
+pub use static_view::{static_view_text, StaticViewError};
 pub use stream::{
     stream_frame_data, stream_frame_from_json, StreamError, StreamInvoker, StreamSession,
 };

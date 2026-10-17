@@ -63,6 +63,7 @@ const WASM = "./meridian_uiview_bg.wasm";
 // This suite exercises more of the actual core than a renderer host needs.
 // Declare those additional capabilities once instead of casting each callsite.
 type ConformanceWasm = UiviewWasm & ValueFormatterWasm & {
+  staticViewText(bytes: Uint8Array): string;
   matchesFormPattern(pattern: string, input: string): boolean;
   renderGalleryPanel(bytes: Uint8Array, response: object): unknown;
 };
@@ -76,6 +77,18 @@ const originalCanvasContext = HTMLCanvasElement.prototype.getContext;
 afterAll(() => { HTMLCanvasElement.prototype.getContext = originalCanvasContext; });
 
 describe("canonical whole-view layout corpus across actual WASM", () => {
+  it.each(LAYOUT_CASES)("passive text projection: $name", fixture => {
+    const text = wasm.staticViewText(toBinary(ViewDescriptorSchema, fixture.view));
+    expect(text).toContain(fixture.view.title);
+    let cursor = 0;
+    for (const id of fixture.staticOrder) {
+      const label = `Section: Section ${id}`;
+      const next = text.indexOf(label, cursor);
+      expect(next).toBeGreaterThanOrEqual(cursor);
+      cursor = next + label.length;
+    }
+    for (const content of fixture.staticContent) expect(text).toContain(content);
+  });
   it.each(LAYOUT_CASES)("$name", async fixture => {
     const root = document.createElement("div"); document.body.append(root);
     const invoke = vi.fn(async (service: string, method: string) => fixture.responses[`${service}.${method}`] ?? {});

@@ -7,6 +7,7 @@ import * as bindings from "./generated/meridian_uiview.js";
 // Explicit public signatures keep private wasm-bindgen classes (and optional
 // resource-management symbols) out of the shipped ES2022 declaration graph.
 export const formatLroMetadata: (metadata: unknown) => string = bindings.formatLroMetadata;
+export const staticViewText: (bytes: Uint8Array) => string = bindings.staticViewText;
 
 export const coreValidation: Readonly<{
   matchesFormPattern(pattern: string, value: string): boolean;

@@ -25,8 +25,12 @@ Chat exports `ConversationProps`, `ViewRenderer`, and the structural wire types
 from both applicable entrypoints (`ConversationProps`/`ViewRenderer` are React
 root only). `ViewBlock` stays an opaque JSON record: `renderView(view, block)`
 returns a React node, and the host decodes the descriptor using its own generated
-schema copy. Without the callback a view block draws nothing. The vanilla chat
-renderer does not acquire a panel kit or equivalent view-render callback.
+schema copy. Without the callback, React and vanilla HTML render a passive text
+projection through the shared native/WASM core. This adds no panel kit or live
+host: actions are text, gates stay closed without context, and repeated views
+show their template once rather than fabricated rows. Malformed or oversized
+descriptors produce a fixed unavailable message. The callback still takes
+precedence and owns its own integration and authority boundaries.
 
 Launchpad exports `LaunchpadProps` and `FilteredGroup`. Descriptors, commands,
 resolver results, and `onRun` arguments use canonical protobuf-es messages, not

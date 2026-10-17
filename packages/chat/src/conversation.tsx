@@ -32,9 +32,9 @@ export interface ConversationProps {
   /**
    * Draw a `view` block — composed UI an agent emitted as a ViewDescriptor.
    *
-   * Optional, and omitting it is safe: a view block then renders as nothing,
-   * exactly as any unrecognized block kind already does. A host that wants these
-   * wires a meridian panel renderer up here (see the README) — this package will
+   * Optional: without it, authored sections expand as bounded passive text.
+   * Remote data, selection gates, and interactive controls require a host.
+   * A host wanting rich interaction wires a renderer here — this package will
    * not pull one in, because a chat transcript should not drag a component
    * library into a host that only wants text.
    */

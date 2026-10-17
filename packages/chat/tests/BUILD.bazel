@@ -52,6 +52,8 @@ vitest_test(
     name = "render",
     srcs = [
         "render.test.tsx",
+        "view_static.test.tsx",
+        "modality_conformance.test.tsx",
         "api_contract.test.tsx",
         "value_corpus.test.tsx",
         "tone.test.tsx",
@@ -61,6 +63,7 @@ vitest_test(
     ],
     deps = [
         "//schemas:conversation_value_data",
+        "//schemas:conformance_fixtures",
         "//packages/chat:node_modules/jsdom",
         "//packages/chat:node_modules/react",
         "//packages/chat:node_modules/react-dom",

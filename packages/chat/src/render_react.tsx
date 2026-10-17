@@ -8,6 +8,7 @@ import { mdInline } from "./dom.js";
 import type { Block, ViewBlock } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
 import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
+import { viewText } from "./view_text.js";
 
 /**
  * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
@@ -116,9 +117,9 @@ export function BlockView({
     );
   }
   if (block.divider) return <hr className="div" />;
-  // No host renderer ⇒ nothing, which is this component's existing contract for
-  // a block kind it cannot draw. A view block is then inert rather than broken,
-  // so a host that has not opted in is unaffected by an agent emitting one.
-  if (block.view) return renderView ? renderView(block.view, block) : null;
+  // An opted-in host retains the interactive seam. Otherwise expand authored
+  // composition as passive text, never transport or a dangerously injected DOM.
+  if (block.view) return renderView ? renderView(block.view, block) :
+    <pre className="view-static" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{viewText(block.view)}</pre>;
   return null;
 }

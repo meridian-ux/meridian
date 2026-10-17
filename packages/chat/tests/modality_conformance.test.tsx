@@ -43,7 +43,13 @@ describe("conversation modality coverage", () => {
 
       const html = renderBlockInner(block);
       if (htmlStatus.status === "renders") expect(html, arm).toContain(marker);
-      else if (htmlStatus.status === "not-applicable") expect(html, arm).toBe("");
+      else if (htmlStatus.status === "not-applicable" && arm === "view") {
+        expect(html).toContain('class="view-static"');
+        expect(html).toContain("View: Nested view [nested-view]");
+        expect(html).toContain("No sections.");
+        expect(html).not.toMatch(/<(button|form|a|iframe)\b/);
+        expect(htmlStatus.reason).toContain("passive text projection");
+      }
       else throw new Error(`unexpected chat-html status for ${arm}: ${htmlStatus.status}`);
 
       const react = renderToStaticMarkup(createElement(BlockView, {

@@ -9,7 +9,7 @@ import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.j
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "layout");
 const struct = (name: string) => toJson(StructSchema, fromBinary(StructSchema, readFileSync(join(root, name))));
-const index = struct("index.binpb") as unknown as { cases: Array<{ name: string; order: string[]; tabs: string[]; content: string[]; gateOpen?: boolean }> };
+const index = struct("index.binpb") as unknown as { cases: Array<{ name: string; order: string[]; tabs: string[]; content: string[]; staticOrder: string[]; staticContent: string[]; gateOpen?: boolean }> };
 export const LAYOUT_CASES = index.cases.map(fixture => ({
   ...fixture,
   view: fromBinary(ViewDescriptorSchema, readFileSync(join(root, `${fixture.name}.view.binpb`))),
