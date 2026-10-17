@@ -18,7 +18,7 @@ The roadmap exists to make three things true:
 |---|---|---|
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
-| **M3 · One language** | 2027‑02‑28 | [#10](../../issues/10) Tone · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
+| **M3 · One language** | 2027‑02‑28 | ~~[#10](../../issues/10) Tone~~ · [#11](../../issues/11) Affordance · [#12](../../issues/12) ValueDisplay · [#13](../../issues/13) theme + glossary |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · ~~internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts~~ |
 
 M1 is ordered first because everything after it is cheaper once it lands: the seam
@@ -254,7 +254,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 
 | concept | today it is spelled | distilled to |
 |---|---|---|
-| **Tone** — how serious, how it looks | shared `Tone` (6 roles) is defined; deprecated `ValueTone`, operational states, `AffordanceStyle`, and `Palette` consumers still retain their existing APIs | additive consumer adoption and precedence; `Palette` keyed by `Tone`; per-renderer theme proof — [#10](../../issues/10) |
+| **Tone** — how serious, how it looks | shared `Tone` (6 roles), presence-aware conversation/action adoption, and descriptor-driven stable-renderer theme proofs; compatible legacy APIs remain | integrated additive presentation contract — [#10](../../issues/10); preview SwiftUI remains explicitly outside full native parity |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` has radius/unit fields but no full spacing/density/stroke contract; four layout modes need a per-modality realization table; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | complete Metrics and Typography adoption; layout degradation ladders; cross-modality form validation and glossary audit — [#13](../../issues/13) |
@@ -266,7 +266,13 @@ the proto remains the source of truth.
 The shared `Tone` definition and legacy deprecation ([#43](../../issues/43)) are
 integrated without changing existing field types, wire numbers, or
 `VALUE_TONE_*` JSON names. Consumer migration ([#44](../../issues/44)) and theme
-conformance ([#45](../../issues/45)) remain open. The additive ValueDisplay schema
+conformance ([#45](../../issues/45)) are integrated for the six stable renderer
+IDs: web-components, web-react, MUI, HTML, Shadcn, and TUI. Descriptor-driven
+Chrome and terminal-cell tests verify all roles, presence/unknown fallback, and
+independent action emphasis; conversation tests retain operational state and
+non-color labels. Full SwiftUI theme/parity is preview scope, not a v1 gate.
+This completes Tone presentation, not the separate unified Affordance invocation
+and schema cutover. The additive ValueDisplay schema
 slots ([#49](../../issues/49)) are also integrated, with real-descriptor tests
 for stable tags, unset wire/JSON behavior, and old-reader field preservation.
 Neither schema milestone alone completes formatter consolidation. The browser
