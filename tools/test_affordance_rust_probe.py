@@ -11,7 +11,7 @@ from affordance_rust_probe import protected_inputs, require_adoption_failure
 def diagnostic(code="E0004", path="crates/core/rust/uiview/src/static_view.rs"):
     return json.dumps({"reason": "compiler-message", "message": {
         "level": "error", "code": {"code": code},
-        "message": "non-exhaustive patterns: new invoke variants not covered",
+        "message": "non-exhaustive patterns: `&Some(Invoke::Rpc(_))`, `&Some(Invoke::Navigate(_))`, `&Some(Invoke::OpenPanel(_))` and 2 more not covered",
         "spans": [{"is_primary": True, "file_name": path}],
     }})
 
@@ -45,6 +45,12 @@ class RustProposalFailureTests(unittest.TestCase):
     def test_rejects_nonprimary_spans(self):
         event = json.loads(diagnostic())
         event["message"]["spans"][0]["is_primary"] = False
+        with self.assertRaisesRegex(RuntimeError, "Unexpected candidate failure"):
+            require_adoption_failure(101, failed_build(json.dumps(event)), "")
+
+    def test_rejects_an_unrelated_nonexhaustive_match_in_the_same_file(self):
+        event = json.loads(diagnostic())
+        event["message"]["message"] = "non-exhaustive patterns: OtherEnum::Future not covered"
         with self.assertRaisesRegex(RuntimeError, "Unexpected candidate failure"):
             require_adoption_failure(101, failed_build(json.dumps(event)), "")
 

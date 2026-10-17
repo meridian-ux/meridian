@@ -39,6 +39,8 @@ def require_adoption_failure(returncode, stdout, stderr):
     if returncode != 101 or not finished or not errors or any(
         (message.get("code") or {}).get("code") != "E0004"
         or "non-exhaustive patterns" not in message.get("message", "")
+        or not all(variant in message.get("message", "") for variant in
+                   ["Invoke::Rpc", "Invoke::Navigate", "Invoke::OpenPanel"])
         or not any(
             span.get("is_primary")
             and span.get("file_name", "").replace("\\", "/").endswith(
