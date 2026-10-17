@@ -35,9 +35,9 @@ use ratatui::Terminal;
 
 use meridian_tui::{
     Mode, Palette, PanelView, RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession,
-    Theme,
+    Theme, ViewHost, ViewResponse,
 };
-use meridian_uiview::proto::PanelDescriptor;
+use meridian_uiview::proto::{PanelDescriptor, ViewDescriptor};
 use meridian_uiview::Context;
 
 /// The renderer draws; the host wires. With no backend to dial, every call is
@@ -81,18 +81,21 @@ struct Args {
     descriptor: PathBuf,
     theme: Option<PathBuf>,
     mode: Mode,
+    view: bool,
 }
 
 fn parse_args() -> Result<Args, String> {
     let mut descriptor = None;
     let mut theme = None;
     let mut mode = Mode::Dark;
+    let mut view = false;
     let mut it = std::env::args().skip(1);
     while let Some(a) = it.next() {
         match a.as_str() {
             "-h" | "--help" => return Err(String::new()),
             "--dark" => mode = Mode::Dark,
             "--light" => mode = Mode::Light,
+            "--view" => view = true,
             "--theme" => {
                 theme = Some(PathBuf::from(
                     it.next()
@@ -112,6 +115,7 @@ fn parse_args() -> Result<Args, String> {
         descriptor: descriptor.ok_or("no descriptor given")?,
         theme,
         mode,
+        view,
     })
 }
 
@@ -119,10 +123,14 @@ const USAGE: &str = "\
 meridian-tui — render a meridian.ui.v1.PanelDescriptor in a terminal
 
 USAGE:
-    meridian-tui <descriptor.binpb> [--theme <theme.binpb>] [--light|--dark]
+    meridian-tui <descriptor.binpb> [--view] [--theme <theme.binpb>] [--light|--dark]
 
 The descriptor is a wire-format PanelDescriptor: the same bytes the conformance
 fixtures emit and the web renderer's panel bundles are built from.
+Use --view for a canonical ViewDescriptor, including nested/repeated sections.
+View keys: F6/Shift+F6 select sections/actions; Ctrl+PageUp/PageDown scroll;
+Left/Right/Home/End browse tab labels; Enter activates. Panel keys edit locally.
+This offline viewer never executes mutations.
 
 KEYS:
     up/down, j/k    move the selection
@@ -155,12 +163,27 @@ fn main() -> ExitCode {
 fn run(args: Args) -> Result<(), String> {
     let bytes = std::fs::read(&args.descriptor)
         .map_err(|e| format!("reading {}: {e}", args.descriptor.display()))?;
-    let descriptor = PanelDescriptor::decode(bytes.as_slice()).map_err(|e| {
-        format!(
-            "{} is not a wire-format meridian.ui.v1.PanelDescriptor: {e}",
-            args.descriptor.display()
+    let descriptor = if args.view {
+        None
+    } else {
+        Some(PanelDescriptor::decode(bytes.as_slice()).map_err(|e| {
+            format!(
+                "{} is not a wire-format meridian.ui.v1.PanelDescriptor: {e}",
+                args.descriptor.display()
+            )
+        })?)
+    };
+    let mut composed = if args.view {
+        Some(
+            ViewHost::new(
+                ViewDescriptor::decode(bytes.as_slice())
+                    .map_err(|e| format!("invalid ViewDescriptor: {e}"))?,
+            )
+            .map_err(|e| e.to_string())?,
         )
-    })?;
+    } else {
+        None
+    };
 
     let palette = match &args.theme {
         Some(p) => {
@@ -186,7 +209,16 @@ fn run(args: Args) -> Result<(), String> {
     let mut terminal =
         Terminal::new(CrosstermBackend::new(out)).map_err(|e| format!("creating terminal: {e}"))?;
 
-    let result = event_loop(&mut terminal, &descriptor, palette);
+    let result = if let Some(view) = composed.as_mut() {
+        view.set_palette(palette);
+        view_event_loop(&mut terminal, view)
+    } else {
+        event_loop(
+            &mut terminal,
+            descriptor.as_ref().expect("panel descriptor"),
+            palette,
+        )
+    };
 
     // Restore unconditionally. A panic or an early error must not leave the
     // user's terminal in raw mode on the alternate screen.
@@ -195,6 +227,43 @@ fn run(args: Args) -> Result<(), String> {
     let _ = terminal.show_cursor();
 
     result
+}
+
+fn view_event_loop(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    view: &mut ViewHost,
+) -> Result<(), String> {
+    let context = Context::default();
+    loop {
+        terminal
+            .draw(|frame| view.render(frame, frame.area(), &context, &OfflineInvoker))
+            .map_err(|e| format!("drawing: {e}"))?;
+        view.poll_streams(&context, &OfflineInvoker);
+        if !event::poll(Duration::from_millis(100)).map_err(|e| e.to_string())? {
+            continue;
+        }
+        if let Event::Key(key) = event::read().map_err(|e| e.to_string())? {
+            if key.kind != KeyEventKind::Press {
+                continue;
+            }
+            if key.code == KeyCode::Esc {
+                return Ok(());
+            }
+            match view.handle_key(key, &context) {
+                Ok(Some(ViewResponse::Lro(submission))) => {
+                    view.fail_lro(
+                        &submission.run_id,
+                        "Offline viewer: start denied; no mutation transport.",
+                    );
+                }
+                Ok(Some(ViewResponse::Action { .. } | ViewResponse::Form(_))) => {
+                    view.show_error("Offline viewer: mutation denied; no transport.")
+                }
+                Ok(_) => {}
+                Err(error) => view.show_error(error.to_string()),
+            }
+        }
+    }
 }
 
 fn event_loop(

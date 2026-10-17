@@ -763,14 +763,20 @@ Run `node schemas/tools/panel_evidence.mjs --required-targets` to inspect the
 selection or `--verify` to execute it read-only. Registration and snapshot
 presence are necessary, not sufficient: the owning tests must pass on the same
 revision. This registry covers panels, not external conversation consumers;
-SwiftUI remains unverified until its own evidence and verifier are integrated.
+SwiftUI remains a preview; its initial native view-dump evidence does not promote
+its unverified cells to full semantic parity.
 
 The local SwiftPM foundation is documented in
 [packages/swiftui](../../packages/swiftui/README.md). Its wire and native layout
 smoke tests are not registered semantic render proofs and do not promote cells.
 
-Epic #9 still owns SwiftUI view-tree evidence, renderer-specific visual
-overflow/layout proof, and broader interactive snapshots. The shared panel corpus
+The v1 release scope retains the documented SwiftUI preview. Full SwiftUI native
+parity, composed-view verification, and OS accessibility proof are future work,
+not v1 release gates. Existing preview tests must pass, and coverage claims must
+retain their explicit verification limits.
+
+Epic #9 still owns stable renderers' visual overflow/layout proof and broader
+interactive snapshots. The shared panel corpus
 now has 427 canonical cases across all current arms, including typed input/default
 values, with 854 native buffers and 1,708 computed browser accessibility trees;
 those snapshots do not establish general native ViewDescriptor layout or every
@@ -778,3 +784,11 @@ interaction contract. The common snapshot command now
 supports intentional re-recording and optional verification of the Bazel targets
 that own semantic goldens. MUI's semantic suite runs through the package test
 job; its Bazel browser harness is a separate set of tests.
+
+The TUI now also has a real `ViewHost`, independently tested by
+`//crates/tui/rust/tui:view_composition_test`. Its whole-view buffers and keyboard
+tests cover all four layouts at 80/140 columns, nested/repeated raw records,
+gates, host-owned mutations, stream disposal, and operation-token routing. It
+also consumes an existing shared browser wire fixture without extracting its
+panels. This is not yet a shared cross-renderer composed-layout corpus or an
+implementation of the transcript's separate `Block.view` integration.
