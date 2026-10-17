@@ -81,6 +81,26 @@ jobs:
             --protoc "$RUNNER_TEMP/meridian-protoc/bin/protoc" \
             --java "$JAVA_HOME/bin/java" --javac "$JAVA_HOME/bin/javac" --runtime-jar "$runtime_jar"
 
+  affordance-rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Rust proposal failure-classifier tests
+        run: python3 -m unittest tools/test_affordance_rust_probe.py
+      - name: Proposal-only Rust relocation and expanded-candidate checks
+        run: |
+          set -euo pipefail
+          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/rust-affordance-probe.json"
+          probe_dir="$(jq -r .work "$RUNNER_TEMP/rust-affordance-probe.json")"
+          python3 -u tools/affordance_rust_probe.py --scratch "$probe_dir"
+
   core-runtime:
     runs-on: ubuntu-latest
     steps:
