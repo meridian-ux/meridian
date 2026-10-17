@@ -28,6 +28,8 @@ import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/v
 import { useDisplayNow } from "./use_display_now.js";
 import {
   buildSubmissionRequest,
+  useLroLifecycle,
+  LroResult,
   bindingRequestJson,
   buildActionBindingRequest,
   MeridianRowActionsContext,
@@ -995,33 +997,21 @@ function PromptShape({ panel, descriptor }: ShapeProps<PromptPanel>): ReactNode 
 }
 
 function LroShape({ panel }: { panel: LroPanel }): ReactNode {
-  const mutationInvoker = useMutationRpcInvoker();
+  const operation = useLroLifecycle(panel);
   const invoker = useRpcInvoker();
-  const selection = useMeridianSelection();
-  const record = useContext(MeridianRecordContext);
-  const scope = useMemo(() => ({ panel, mutationInvoker, selection: selection.values, record }), [panel, mutationInvoker, selection.values, record]);
-  const submission = useSubmissionState(scope);
-  const start = (values: Row) => {
-    if (!panel.start) throw new Error("Missing start call.");
-    return invoke(mutationInvoker, panel.start, buildSubmissionRequest(panel.start, panel.inputs, values, selection.values, "lro", record));
-  };
-  if (panel.inputs.length > 0) {
-    return (
-      <FieldForm
+  return <>
+      {panel.inputs.length > 0 ? <FieldForm
         fields={panel.inputs}
         disabled={false}
         enumInvoker={invoker}
         submitLabel={panel.runButtonLabel || "Run"}
-        onSubmit={(values) => start(values as Row)}
-      />
-    );
-  }
-  return (
-    <><Button variant="contained" disabled={submission.pending} onClick={() => { void submission.run(() => start({})); }}>
-      {panel.runButtonLabel || "Run"}
-    </Button>{submission.pending && <Typography role="status">Starting…</Typography>}
-    {submission.error && <Alert severity="error">{submission.error}</Alert>}</>
-  );
+        submitDisabled={operation.pending}
+        onSubmit={operation.run}
+      /> : <Button variant="contained" disabled={operation.pending} onClick={() => { void operation.run({}); }}>{panel.runButtonLabel || "Run"}</Button>}
+    {operation.message && <Typography role="status">{operation.message}</Typography>}
+    {operation.error && <Alert severity="error">{operation.denied ? "Submission is not permitted." : "Submission failed. Try again."}</Alert>}
+    <LroResult panel={panel} source={operation.source} />
+  </>;
 }
 
 // ── Chrome / Fallback / ActionBar ────────────────────────────────────────────

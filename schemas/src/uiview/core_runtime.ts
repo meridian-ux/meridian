@@ -3,11 +3,26 @@
 // SSR. No host configuration, clock, route resolver, fetch, or filesystem.
 import * as bindings from "./generated/meridian_uiview.js";
 
-export const coreValidation = Object.freeze({
+/** Bounded native/WASM metadata formatter shared by operation realizations. */
+// Explicit public signatures keep private wasm-bindgen classes (and optional
+// resource-management symbols) out of the shipped ES2022 declaration graph.
+export const formatLroMetadata: (metadata: unknown) => string = bindings.formatLroMetadata;
+
+export const coreValidation: Readonly<{
+  matchesFormPattern(pattern: string, value: string): boolean;
+}> = Object.freeze({
   matchesFormPattern: bindings.matchesFormPattern,
 });
 
-export const coreFormatting = Object.freeze({
+export const coreFormatting: Readonly<{
+  formatValueDisplay(display: Uint8Array, value: unknown): Uint8Array;
+  formatValueDisplayAt(display: Uint8Array, value: unknown, nowMs: number): Uint8Array;
+  formatInferredValue(value: unknown): string;
+  formatTimestamp(text: string): string | undefined;
+  formatRelativeTime(text: string, nowMs: number): string | undefined;
+  formatStatNumber(value: number, format: number): string;
+  formatLegacyNumber(value: number, format: number): string;
+}> = Object.freeze({
   formatValueDisplay: bindings.formatValueDisplay,
   formatValueDisplayAt: bindings.formatValueDisplayAt,
   formatInferredValue: bindings.formatInferredValue,

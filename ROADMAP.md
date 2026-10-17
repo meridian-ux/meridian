@@ -192,8 +192,12 @@ lifecycle regressions guard stale responses, cache invalidation, and visible
 errors. Input cases assert live raw values and exact collected requests/protobuf
 responses before snapshot comparison; LLM-prompt previews stay local. LRO cases
 prove typed start-input collection, not full polling/results across every kit.
-Reference kits now have functional start forms; their full lifecycle, alongside
-MUI's, remains outstanding.
+Reference kits and MUI now share the operation lifecycle beyond start forms:
+read-tier WaitOperation polling, native/WASM metadata presentation, optional
+separately mutation-admitted finalization, and completed static result tables.
+Focused live tests cover pending duplicates, failures/retry, admission denial,
+raw finalize bindings, late completions, and observation timeout. The initial
+stateful corpus alone does not prove those interactions or every host transport.
 Fixture provision ([#39](../../issues/39)) and the passing-snapshot gate
 ([#41](../../issues/41)) are now integrated and acceptance-audited. The generator
 requires a complete, disjoint family for every value-bearing panel arm and every

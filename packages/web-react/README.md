@@ -182,6 +182,28 @@ MUI contains synchronous/rejected failures, reports admission denial distinctly,
 blocks pending duplicates, and ignores obsolete completions. A successful LRO
 start is not operation completion or a production deployment authorization.
 
+HTML/Shadcn and MUI now share `useLroLifecycle`: after Start returns an operation,
+the renderer polls `google.longrunning.Operations/WaitOperation` with its stable
+operation name and a five-second server wait. Native/WASM formatting presents
+metadata. Completed operation errors are failures, not results. An optional
+Finalize RPC binds the completed expanded-Any response as the row and the
+original declared raw form values; it does not automatically append inputs.
+Start and Finalize are separately mutation-admitted; polling is read-admitted.
+The existing transport adapter returns expanded proto3 JSON Anys, not binary Any
+payloads. A present `@type` must agree with the descriptor's declared type.
+
+`LroResult` renders completed data with the active kit's table and declared
+formatters. The result's `populate`, row actions, and server pagination are not
+executed: this is the completed response, not a second automatic fetch.
+Pending attempts suppress duplicate starts. Descriptor, referenced-selection,
+ambient-record, or transport replacement/unmount invalidates old observation;
+abandoned concurrent renders do not invalidate a committed operation. Failures
+retain input for an explicit retry. Observation times out after 30 minutes,
+including a hanging host Promise, or 360 polls, whichever comes first. It does
+not cancel/rollback a server operation or abort host transport work. Retained
+operation/finalize responses use the existing 4 MiB copy-work, 64-depth, and
+65,536-node inert JSON limits; these are not a hard host heap sandbox.
+
 ## Build & test
 
 HTML and Shadcn media players degrade on playback errors to a safe poster, then

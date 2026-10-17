@@ -70,10 +70,11 @@ function inputValues(fields: FormField[], values: Record<string, unknown>, prefi
   return result;
 }
 
-export function FormContent({ panel, c, className, submitLabel, submittingLabel = "Saving…", successLabel = "Saved.", submissionKind = "form" }: {
+export function FormContent({ panel, c, className, submitLabel, submittingLabel = "Saving…", successLabel = "Saved.", submissionKind = "form", onSubmitValues }: {
   panel: FormPanel; c: FormFieldClasses; className: string;
   submitLabel?: string; submittingLabel?: string; successLabel?: string;
   submissionKind?: "form" | "lro";
+  onSubmitValues?: (values: Record<string, unknown>) => Promise<void>;
 }) {
   const { invoker, mutationInvoker, admission } = useMeridian();
   const selection = useMeridianSelection();
@@ -84,10 +85,10 @@ export function FormContent({ panel, c, className, submitLabel, submittingLabel 
   // A changed descriptor/selection starts a fresh instance, isolating late responses.
   const key = JSON.stringify([descriptor, requestJson, submissionKind]);
   if (!request || descriptor === undefined) return <p role="alert">{formDefaultsError(panel.fields) || "Form request or descriptor rejected."}</p>;
-  return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, invoker, mutationInvoker, admission, request, selection }} />;
+  return <FormSession key={key} {...{ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, onSubmitValues, invoker, mutationInvoker, admission, request, selection }} />;
 }
 
-function FormSession({ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, invoker, mutationInvoker, admission, request, selection }:
+function FormSession({ panel, c, className, submitLabel, submittingLabel, successLabel, submissionKind, onSubmitValues, invoker, mutationInvoker, admission, request, selection }:
   Parameters<typeof FormContent>[0] & Pick<ReturnType<typeof useMeridian>, "invoker" | "mutationInvoker" | "admission"> & {
     request: Record<string, unknown>; selection: ReturnType<typeof useMeridianSelection>;
   }) {
@@ -124,7 +125,8 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
     try {
       const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current, counts.current);
       busy.current = true; setStatus(submittingLabel ?? "Saving…");
-      await mutationInvoker.invoke(call.service, call.method, buildSubmissionRequest(call, panel.fields, values, selection.values, submissionKind ?? "form", record));
+      if (onSubmitValues) await onSubmitValues(values);
+      else await mutationInvoker.invoke(call.service, call.method, buildSubmissionRequest(call, panel.fields, values, selection.values, submissionKind ?? "form", record));
       if (alive.current) setStatus(successLabel ?? "Saved.");
     } catch (reason) {
       if (alive.current) { setStatus(""); setError(reason instanceof Error ? reason.message : String(reason)); }
