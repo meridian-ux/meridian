@@ -17,13 +17,35 @@ The roadmap exists to make three things true:
 | milestone | due | epics |
 |---|---|---|
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
-| **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · [#9](../../issues/9) conformance corpus · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
-| **M3 · One language** | 2027‑02‑28 | ~~[#10](../../issues/10) Tone~~ · [#11](../../issues/11) Affordance · ~~[#12](../../issues/12) ValueDisplay~~ · [#13](../../issues/13) theme + glossary |
+| **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · ~~[#9](../../issues/9) conformance corpus~~ · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
+| **M3 · One language** | 2027‑02‑28 | ~~[#10](../../issues/10) Tone~~ · [#11](../../issues/11) Affordance · ~~[#12](../../issues/12) ValueDisplay~~ · ~~[#13](../../issues/13) theme + glossary~~ |
 | **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · ~~internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts~~ |
 
 M1 is ordered first because everything after it is cheaper once it lands: the seam
 unblocks eight cells at once, the manifest becomes something CI can enforce rather
 than a document, and the test floor means parity work lands with proof.
+
+### Integrated acceptance checkpoint — October 17, 2026
+
+The conformance corpus (#9) and theme/design-language contract (#13, including
+#52–#55) passed integrated-source acceptance. The latter includes the complete
+[Metrics contract](schemas/METRICS.md), Typography fields 3–5, all nine form
+field kinds, four layout realization rules, and descriptor-derived mappings for
+all 27 enums and 11 explicit oneofs. [PR #188](https://github.com/meridian-ux/meridian/pull/188)
+landed after all eleven checks passed; fetched main's complete tree matched the
+tested head. Representative native/browser, composed-view, conversation, and
+stateful proofs retain the scope and limits described below. This is not a
+claim about every arbitrary host integration, skin, or possible descriptor.
+
+The remaining roadmap issues are Affordance unification/adoption (#11, #47,
+#48), its remaining untrusted-invocation acceptance (#17), and final distribution
+readiness (#16, #63). Both-repository Project auto-add is still required; the
+private-repository rule needs an approved organization automation setup. Rust
+archives and the web-components npm artifact have preparation checks, not a v1
+publication. Production Affordance/FILE-baseline cutover, final versioning, and
+release approval are separate outstanding steps. SwiftUI remains the approved
+preview; full native parity is not a v1 gate and its unverified coverage remains
+explicit. Issues remain authoritative as work advances beyond this checkpoint.
 
 ## Track A — Renderer parity
 
@@ -263,7 +285,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 | **Tone** — how serious, how it looks | shared `Tone` (6 roles), presence-aware conversation/action adoption, and descriptor-driven stable-renderer theme proofs; compatible legacy APIs remain | integrated additive presentation contract — [#10](../../issues/10); preview SwiftUI remains explicitly outside full native parity |
 | **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
-| **Rhythm & layout** | `Metrics` defines radius/unit plus bounded spacing/density/stroke, with shared web bindings and explicit terminal degradation ([contract](schemas/METRICS.md)); four layout modes have per-modality realization rules; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | verify complete Metrics and Typography adoption; layout degradation ladders; cross-modality form validation and glossary audit — [#13](../../issues/13) |
+| **Rhythm & layout** | `Metrics` defines radius/unit plus bounded spacing/density/stroke, with shared web bindings and explicit terminal degradation ([contract](schemas/METRICS.md)); four layout modes have per-modality realization rules; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | integrated stable-renderer Metrics/Typography bindings, layout degradation rules, nine-kind form validation, and complete glossary — [#13](../../issues/13); SwiftUI retains preview scope |
 
 The glossary is [`schemas/DESIGN_LANGUAGE.md`](schemas/DESIGN_LANGUAGE.md): every
 current concept is mapped to its meaning, modality ladder, and theme roles while
