@@ -157,8 +157,9 @@ The [layout realization contract](LAYOUT_REALIZATION.md) defines `list`,
 `stacked`, `tabbed`, and `two_column` for wide/narrow browsers, terminals
 (including 80 columns), compact touch surfaces, and static conversation output.
 It separates required behavior from the current implementation audit: a panel
-fixture does not prove a composed layout, and external SwiftUI behavior remains
-unverified until its source and runtime evidence are available.
+fixture does not prove a composed layout. SwiftUI's local panel preview has
+initial native view-dump evidence, but general ViewDescriptor composition remains
+unverified and is not a v1 release gate under the documented preview scope.
 
 ## Degradation ladders
 
@@ -200,9 +201,10 @@ The authored mappings below name every enum and explicit oneof in
 `schemas/proto`, including transport choices that are not widgets. A profile
 states the semantic degradation contract once; its assigned concepts retain
 their specific meaning, raw values, and proto-defined defaults. These are
-requirements, not claims of implemented parity. In particular, SwiftUI remains
-unverified without its external source and runtime evidence; conversation hosts
-and native composed views retain the gaps in the layout audit.
+requirements, not claims of implemented parity. In particular, SwiftUI's local
+preview does not establish full native parity; its unverified coverage remains
+explicit. The layout audit distinguishes the native composed host, passive
+conversation projection, fixture-owned rich adapter, and their remaining limits.
 
 Tone and emphasis remain independent. A numeric enum value is not a palette
 index. Operational state is not a new Tone field, and a styling hint does not

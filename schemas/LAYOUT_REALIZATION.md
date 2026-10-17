@@ -74,11 +74,11 @@ for panels whose activation may load data.
 
 | Surface | Source evidence | Verified support and remaining gap |
 |---|---|---|
-| Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts); [tab interaction tests](../packages/web-react/tests/view_tabs.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs provide manual keyboard activation, roving focus, unique tab/panel associations, and wrapping labels. The shared binary corpus now has real Chrome geometry, keyboard, association, and resize-retention proof across all three kits at 320/1100px; broader stateful overflow and conversation integration remain separate. |
-| Web-components composition | [`renderView`, `disposeView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts); [actual-WASM composition tests](../packages/web/tests/conformance_wasm.test.ts); [Chrome tests](../packages/mui-kit/tests_browser/web_components.js) | Header partition, explicit/persistent tab regions, manual activation, unique associations, and active-only mounting are implemented. Static/repeated nested views preserve host seams; repeated rows bind no-populate record/form/table content and raw submissions. Closed selection gates retain placeholders/labels without reads; the host rerenders with updated selection context. Recursive disposal invalidates obsolete work. Cycles/depth/expansion are bounded. Actual Chrome verifies long-label/manual keyboard behavior at 320px and 1100px columns reflowing main-then-sidebar at 320px. The shared binary corpus now has real Chrome section/tab/sidebar geometry and keyboard/reflow proof alongside the native host; broader stateful overflow and conversation integration remain separate. |
+| Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts); [tab interaction tests](../packages/web-react/tests/view_tabs.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs provide manual keyboard activation, roving focus, unique tab/panel associations, and wrapping labels. The shared binary corpus has real Chrome geometry, keyboard, association, and resize-retention proof across all three kits at 320/1100px. Separate stateful-panel and actual Conversation host tests verify representative overflow and rich integration, as described below; they do not prove every interaction or host skin. |
+| Web-components composition | [`renderView`, `disposeView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts); [actual-WASM composition tests](../packages/web/tests/conformance_wasm.test.ts); [Chrome tests](../packages/mui-kit/tests_browser/web_components.js) | Header partition, explicit/persistent tab regions, manual activation, unique associations, and active-only mounting are implemented. Static/repeated nested views preserve host seams; repeated rows bind no-populate record/form/table content and raw submissions. Closed selection gates retain placeholders/labels without reads; the host rerenders with updated selection context. Recursive disposal invalidates obsolete work. Cycles/depth/expansion are bounded. Actual Chrome verifies long-label/manual keyboard behavior at 320px and 1100px columns reflowing main-then-sidebar at 320px. The shared binary corpus has real Chrome section/tab/sidebar geometry and keyboard/reflow proof alongside the native host; separate stateful-panel geometry verifies representative empty/typical/overflow states. Framework-free conversation uses the passive projection below, not the React rich-host adapter. |
 | TUI composed host and transcript | [`ViewHost`](../crates/tui/rust/tui/src/view.rs); [whole-view tests](../crates/tui/rust/tui/tests/view_composition.rs); [conversation view arm](../crates/tui/rust/tui/src/conversation.rs) | The composed host renders real PanelView widgets in scrollable labeled sections. All four modes, header partition, stable ties, main-then-sidebar ordering at 80/140 columns, manual tab navigation, persistent regions, nested/repeated ambient records, selection gates, and host-owned submissions have whole-view buffer/interaction tests. Hidden tabs release streams immediately. Opaque-token callbacks route independently of focus. The offline executable accepts `--view`. The older stateful suite still extracts panels and must not be counted as this proof. The shared binary corpus covers fourteen authored composition/gate cases at 80/140 columns alongside the browser consumers; broader stateful overflow and rich conversation integration remain separate. The transcript now expands `Block.view` through the shared bounded static-text kernel, with wire-decoded ConversationEvent/TestBackend proof over the fourteen fixtures; it does not automatically mount the interactive ViewHost. |
 | SwiftUI | [local panel preview](../packages/swiftui/Sources/MeridianUI/MeridianPanel.swift); [renderer catalog](conformance/renderer_catalog.json) | The public monorepo now contains the preview and initial panel view-dump evidence. This panel entrypoint does not implement general ViewDescriptor composition; all four layout realizations remain unverified. “Tabbed on iOS” in the required table is a target contract, not a report of current behavior. |
-| Conversation React / framework-free HTML | [`BlockView` host callback](../packages/chat/src/render_react.tsx); [HTML renderer](../packages/chat/src/render_html.ts); [static projection tests](../packages/chat/tests/view_static.test.tsx) | Both default paths use the bounded shared native/WASM text projection, preserving authored sections, all labeled tabs, sidebar order, and nested templates. All fourteen shared layout fixtures and 427 panel fixtures exercise both paths; canonical SSE upserts exercise the mounted React conversation. This passive fallback performs no data reads or actions and has no host context. React's optional rich host callback still takes precedence and requires separate integration proof. |
+| Conversation React / framework-free HTML | [`BlockView` host callback](../packages/chat/src/render_react.tsx); [HTML renderer](../packages/chat/src/render_html.ts); [static projection tests](../packages/chat/tests/view_static.test.tsx); [rich-host browser proof](../packages/mui-kit/tests_browser/conversation.cjs) | Both default paths use the bounded shared native/WASM text projection, preserving authored sections, all labeled tabs, sidebar order, and nested templates. All fourteen shared layout fixtures and 427 panel fixtures exercise both paths; canonical SSE upserts exercise the mounted React conversation. This passive fallback performs no data reads or actions and has no host context. React's optional rich host callback still takes precedence. Its separate local HTTP/SSE browser proof covers all three kits; that fixture-owned adapter does not establish arbitrary external hosts or an interactive framework-free callback. |
 | Launchpad | [command palette schema](proto/command_palette.proto) | Commands route to a panel or view; the palette does not own view arrangement. Verify the destination host, not a second layout implementation in the palette. |
 
 The table does not add a waiver or change `coverage.json`. The existing panel
@@ -86,7 +86,11 @@ matrix and conversation coverage continue to describe their own scopes. In
 particular, neither a panel snapshot nor an opaque host callback may be counted
 as an implemented layout.
 
-## Acceptance evidence still needed
+## Acceptance evidence and remaining limits
+
+This audit describes the implementation and test owners in this checkout.
+Integration status and release-candidate checks must be verified separately;
+listing a passing local proof is not a roadmap issue closure or a merge waiver.
 
 The shared binary layout corpus now lives in `conformance/layout`, authored by
 `tools/layout_corpus.py` against the canonical descriptor set. Fourteen cases
@@ -115,7 +119,18 @@ verified using the same fourteen descriptors through HTML/React and canonical
 wire-decoded native ConversationEvents drawn by TestBackend. It does not prove
 arbitrary callback integrations, snapshot binding, or live host behavior.
 
-Use the same binary `ViewDescriptor` fixtures across renderer hosts, including
+The separate
+[`stateful_geometry_test`](../packages/mui-kit/tests_browser/stateful_geometry.cjs)
+verifies all 23 panel arms in empty, typical, and overflow states across four
+browser realizations at 320/1100px: 552 mounts. Four complete renderer shards
+retain every state and width with unchanged per-case deadlines. Existing
+computed accessibility verification compares 1,708 trees without recording new
+goldens. These are representative initial-state proofs using the repository's
+base stylesheet and MUI styles, not every interaction, live PTY, arbitrary host
+skin, or composed submission. Bounded local scrolling remains valid.
+
+Retain the following verification requirements on the release candidate. Use
+the same binary `ViewDescriptor` fixtures across renderer hosts, including
 all four modes, shuffled positions/ties, main/sidebar placement, labeled tabs
 and unlabeled regions, header-row slots, nested views, and selection gates.
 
@@ -133,6 +148,8 @@ and unlabeled regions, header-row slots, nested views, and selection gates.
    missing host support. An explicit unsupported placeholder is useful gap
    reporting, not full realization.
 
-This document completes the specification artifact only after review. Renderer
-changes and the evidence above remain part of the broader #13/v1 acceptance;
-publishing the table must not close those implementation gaps.
+This specification and its evidence remain subject to review. Renderer changes
+must be integrated and required checks must pass before broader #13/v1
+acceptance; publishing the table does not close an implementation gap or promote
+unverified coverage. The limitations above remain explicit even when these
+representative proofs pass.

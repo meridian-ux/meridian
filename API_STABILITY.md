@@ -139,5 +139,11 @@ intentional review and corresponding contract/test updates, not silent removal
 to make CI pass.
 
 Versions remain pre-1.0 until the complete roadmap and release checks pass.
-This review does not resolve Rust/web distribution choices, external SwiftUI
-verification, broader Affordance migration, or package publication authority.
+The selected distribution contracts are crates.io for the Rust packages and npm
+for web-components; [DISTRIBUTION.md](DISTRIBUTION.md) defines preparation and
+detached-consumer checks, not publication authorization. SwiftUI retains its
+documented preview scope: existing preview tests remain required, but full native
+parity is not a v1 gate and unverified coverage must stay explicit. Production
+Affordance migration and any FILE-baseline transition still require separate
+review and approval. Neither this contract nor passing checks authorizes package
+publication or production deployment.
