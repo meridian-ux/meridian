@@ -102,7 +102,12 @@ same admission budget instead of borrowing mutable row data.
 Action feedback follows the committed descriptor/transport scope. A suspended,
 uncommitted replacement cannot strand the action still on screen; a committed
 replacement ignores obsolete completions. This does not abort or undo host work
-already started. Palette RPC parameter adoption remains a separate cross-renderer
+already started. Resource-card confirmation also belongs to the descriptor,
+loaded rows, selection, and mutation capability that displayed it. A committed
+replacement requires a fresh confirmation; returning to old values does not
+revive the old prompt. An unrelated rerender preserves the prompt. Admission
+still runs at activation, and confirmation is not an authorization grant.
+Palette RPC parameter adoption remains a separate cross-renderer
 contract; these changes do not alter the standalone launchpad API.
 
 Form submits and LRO starts use the shared React submission builder under one

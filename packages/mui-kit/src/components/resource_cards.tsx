@@ -33,7 +33,7 @@ export function MeridianResourceCards({
   const feedback = useActionFeedback(scope);
   const resolveHref = useHrefResolver();
   const now = useDisplayNow();
-  const [confirming, setConfirming] = useState<{ action: ResourceAction; row: Record<string, unknown> } | null>(null);
+  const [confirming, setConfirming] = useState<{ scope: typeof scope; action: ResourceAction; row: Record<string, unknown> } | null>(null);
   if (loading) return <Typography color="text.secondary">Loading…</Typography>;
   if (error) return <Alert severity="error">Failed to load resources.</Alert>;
   if (!rows.length) return <Typography color="text.secondary">{panel.emptyMessage || `No ${panel.itemNoun || "resources"}.`}</Typography>;
@@ -80,10 +80,12 @@ export function MeridianResourceCards({
               <Stack direction="row" gap={1} flexWrap="wrap">
                 {actions.filter((action) => visible(action, row)).map((action) => (
                   <Box key={action.id}>
-                    <Button {...feedback.props(action.invoke)} size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ action, row }) : invoke(action, row)}>
+                    <Button {...feedback.props(action.invoke)} size="small" color={style(action)} variant={action.style === 2 ? "contained" : "outlined"} onClick={() => action.confirm ? setConfirming({ scope, action, row }) : invoke(action, row)}>
                       {action.label}
                     </Button>
-                    {confirming?.action === action && confirming.row === row && (
+                    {/* Confirmation belongs to the request/capability scope the
+                        user saw, not a later selection or host replacement. */}
+                    {confirming?.scope === scope && confirming.action === action && confirming.row === row && (
                       <Alert severity={action.confirm?.destructive ? "warning" : "info"} role="alertdialog" sx={{ mt: 1 }}>
                         <Typography variant="subtitle2">{action.confirm?.title}</Typography>
                         <Typography variant="body2" sx={{ mb: 1 }}>{action.confirm?.message}</Typography>

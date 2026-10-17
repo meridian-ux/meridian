@@ -12,10 +12,60 @@ import { MeridianSelectionContext, PanelRenderer } from "@savvifi/meridian-web-r
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
 import { MeridianMuiProvider } from "../src/provider.js";
+import { MeridianResourceCards } from "../src/components/resource_cards.js";
 
 afterEach(cleanup);
 
 describe("ResourceCardPanel (MUI)", () => {
+  it.each(["selection", "backend", "policy"])("requires fresh confirmation after committed %s replacement", async replacement => {
+    const row = { id: "raw/7" };
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+      populate: { service: "demo.Items", method: "List" }, rowsField: "items", template: { titleField: "id", actions: { actions: [{
+        id: "delete", label: "Delete item", confirm: { title: "Delete this item?", confirmLabel: "Confirm delete", destructive: true },
+        invoke: { service: "demo.Items", method: "Delete", bindings: [
+          { requestField: "id", source: { case: "rowField", value: "id" } },
+          { requestField: "tenant", source: { case: "selectionKey", value: "tenant" } },
+        ] },
+      }] } },
+    } } });
+    if (descriptor.body.case !== "resourceCards") throw new Error("invalid test fixture");
+    const panel = descriptor.body.value;
+    const mutations: Array<{ backend: string; request: object }> = [];
+    const backends = ["before", "after"].map(backend => ({ invoke: async (_s: string, _m: string, request: object) => {
+      mutations.push({ backend, request }); return {};
+    } }));
+    const read: RpcInvoker = { invoke: async () => ({ items: [row] }) };
+    const policies = [{ mutations: ["demo.Items/Delete"] }, { mutations: ["*"] }];
+    const selections = [{ tenant: "before" }, { tenant: "after" }];
+    const set = () => {};
+    const frame = (changed: boolean, cosmetic = "original") => <MeridianMuiProvider
+      invoker={backends[changed && replacement === "backend" ? 1 : 0]}
+      admission={policies[changed && replacement === "policy" ? 1 : 0]}>
+      <span>{cosmetic}</span>
+      <MeridianSelectionContext.Provider value={{ values: selections[changed && replacement === "selection" ? 1 : 0], set }}>
+        <MeridianResourceCards panel={panel} invoker={read} />
+      </MeridianSelectionContext.Provider>
+    </MeridianMuiProvider>;
+    const mounted = render(frame(false));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete item" }));
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    mounted.rerender(frame(false, "cosmetic rerender"));
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    mounted.rerender(frame(true));
+    // Exercise the unsafe pre-fix path if it remains mounted: old confirmation
+    // must not authorize a request under replacement bindings or capabilities.
+    if (screen.queryByRole("alertdialog")) fireEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
+    await waitFor(() => expect(mutations).toEqual([]));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    mounted.rerender(frame(false));
+    expect(screen.queryByRole("alertdialog"), "returning to old values must not revive confirmation").toBeNull();
+    mounted.rerender(frame(true));
+    fireEvent.click(screen.getByRole("button", { name: "Delete item" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
+    await waitFor(() => expect(mutations).toEqual([{ backend: replacement === "backend" ? "after" : "before",
+      request: { id: row.id, tenant: replacement === "selection" ? "after" : "before" } }]));
+  });
+
   it("resolves nested card bindings from raw rows and live selection without mutating source data", async () => {
     const row = { id: "row", data: { zero: 0, no: false, raw: "001.20" } };
     const descriptor = create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
