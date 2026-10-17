@@ -182,6 +182,32 @@ row actions, and LRO start independently require mutation admission. Recheck
 at activation with the current descriptor, bindings, selection, and policy;
 disabled paint is not a security boundary. Retry must not replay a stale target.
 
+### Legacy no-call actions need semantic resolution, not string conversion
+
+An existing `Action` with no `call` is not necessarily inert. Stable browser
+adapters pass its ID and subject context to the host's `onAction`; first-party
+producers use that seam for navigation to forms and confirmation flows. The ID
+is a host key, not an authored URI, shell command, or canonical view ID. Public
+demo JSON and generated producer output both contain these legacy actions.
+
+The migration inventory must distinguish these from RPC actions and palette
+entries with explicit targets. Do not manufacture `navigate`, `open_view`, or
+`command` merely by copying the old ID, nor replace a confirm-before-mutate flow
+with a direct mutation RPC. A coordinated host/producer change must supply the
+actual typed destination and preserve required confirmation and subject context.
+If a migration uses a host resolver, it must resolve intent without executing
+the legacy callback; the resulting canonical target still passes the normal
+admission/dispatch seam. Missing or unsupported resolution renders a visible
+denial, not a guessed target or a second execution path.
+
+Keep the existing legacy contract during its documented compatibility window;
+do not silently remove it as part of declaration relocation. New canonical
+entries take precedence, including explicitly empty collections. A canonical
+denial must never revive the old callback. Tests must cover header and row
+subject identity, form navigation versus mutation, confirmation cancellation,
+missing resolution, and no legacy execution after canonical denial. Existing
+old-import or wire round-trip tests do not establish these semantics.
+
 Use the canonical proto when an invocation/request/result or audit record is
 serialized. Host callbacks and in-process execution state may remain runtime
 types. Do not log clipboard text, command arguments, or bound secrets by default.

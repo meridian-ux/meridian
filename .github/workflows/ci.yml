@@ -222,8 +222,8 @@ jobs:
       - name: Mirror conformance self-test
         run: node --test "schemas/tools/*.test.mjs"
 
-      - name: Proposal-only Affordance migration and import-facade probe
-        run: node schemas/tools/affordance_migration_probe.mjs
+      - name: Proposal-only Affordance migration, facades, and real TS consumers
+        run: node schemas/tools/affordance_consumer_probe.mjs
 
       - name: Admission gate
         run: pnpm --filter @savvifi/meridian-schemas exec tsc -p src/uiview/tsconfig.test.json --noEmit
