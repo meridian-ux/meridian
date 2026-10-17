@@ -31,7 +31,7 @@ does not prove composed-view support.
 
 The browser column applies to web-components and the shared React composition
 tier used with HTML, shadcn, and MUI kits. Native cells define the target contract;
-they are not claims about unavailable SwiftUI source or an existing TUI view host.
+they are not claims about complete SwiftUI composition or an existing TUI view host.
 
 | Layout | Browser, wide | Browser, narrow | TUI, including 80 columns | SwiftUI / compact touch surface | Conversation or static text |
 |---|---|---|---|---|---|
@@ -66,9 +66,9 @@ for panels whose activation may load data.
 | Surface | Source evidence | Verified support and remaining gap |
 |---|---|---|
 | Shared React composition (HTML, shadcn, MUI) | [`ViewRenderer`, `TabbedSlots`, `TwoColumnSlots`](../packages/web-react/src/view_renderer.tsx); [view tests](../packages/web-react/tests/view.test.ts); [tab interaction tests](../packages/web-react/tests/view_tabs.test.ts) | List/stacked ordering, header-row partition, labeled tabs versus persistent regions, selection clamping, and wrapping main/sidebar are implemented. Two-column flex bases are 320px main / 240px sidebar with a 24px gap; these are current implementation details, not cross-modality units. Tabs provide manual keyboard activation, roving focus, unique tab/panel associations, and wrapping labels. Complete cross-kit narrow-view geometry/focus and two-column reflow proof remain separate requirements. |
-| Web-components composition | [`renderView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts) | List/stacked retain ordered slots. Two-column creates main/aside containers, but the renderer supplies no responsive column styling itself; a class name is not reflow evidence. Tabs support arrow/Home/End selection, but every slot becomes a tab, unlike the region rule above. Header-row, nested-view/repeated composition, and selection-gated slots are not implemented by this slot renderer. These are gaps, not intentional degradation. |
+| Web-components composition | [`renderView`, `disposeView`](../packages/web/src/uiview/view_renderer.ts); [view tests](../packages/web/tests/view_renderer.test.ts); [Chrome tests](../packages/mui-kit/tests_browser/web_components.js) | Header-row slots partition before every layout. Tabs separate persistent regions from explicitly labeled sections and use manual activation, roving focus, unique associations, and lazy active-panel mounting. Switching/replacement/disposal closes panel resources and invalidates obsolete view work. Actual Chrome verifies long-label wrapping/manual keyboard activation at 320px and main/sidebar columns at 1100px reflowing to main-then-sidebar at 320px. Nested/repeated sub-view composition and selection-gated slots remain gaps, not intentional degradation. |
 | TUI panels and transcript | [`PanelView`](../crates/tui/rust/tui/src/widget.rs); [conversation view arm](../crates/tui/rust/tui/src/conversation.rs) | Panels render individually. The transcript's `Block.view` shows the view title and slot count with an explicit “not drawn” message; it does not realize any layout mode. The native stateful suite extracts panels from view fixtures and therefore is not composed-layout proof. A real view host and 80-column buffer/navigation tests remain required. |
-| SwiftUI | [renderer catalog](conformance/renderer_catalog.json) | Advertised external preview in `meridian-ui`; source and view-dump evidence are unavailable here. All four layout realizations remain unverified. “Tabbed on iOS” in the required table is a target contract, not a report of current behavior. |
+| SwiftUI | [local panel preview](../packages/swiftui/Sources/MeridianUI/MeridianPanel.swift); [renderer catalog](conformance/renderer_catalog.json) | The public monorepo now contains the preview and initial panel view-dump evidence. This panel entrypoint does not implement general ViewDescriptor composition; all four layout realizations remain unverified. “Tabbed on iOS” in the required table is a target contract, not a report of current behavior. |
 | Conversation React / framework-free HTML | [`BlockView` host callback](../packages/chat/src/render_react.tsx); [HTML renderer](../packages/chat/src/render_html.ts) | React delegates `Block.view` to an optional host callback; without one it returns no view content. HTML does not compose a view. Neither proves the text expansion in the table. A host using a panel/view renderer inherits that renderer's behavior and must supply its own integration proof. |
 | Launchpad | [command palette schema](proto/command_palette.proto) | Commands route to a panel or view; the palette does not own view arrangement. Verify the destination host, not a second layout implementation in the palette. |
 
@@ -90,7 +90,7 @@ and unlabeled regions, header-row slots, nested views, and selection gates.
 3. Render a complete native view at 80 columns and a wider viewport; inspect
    buffers and exercise scrolling/section selection. Extracted panel tests do
    not satisfy this step.
-4. Obtain the SwiftUI source and capture real compact/wide view behavior, including
+4. Verify the local SwiftUI renderer's real compact/wide composed-view behavior, including
    tab selection. Do not infer it from the browser or an advertised preview.
 5. Verify composed conversation hosts and static expansion separately, including
    missing host support. An explicit unsupported placeholder is useful gap

@@ -81,6 +81,38 @@ initialized core into `webComponentsRenderer`. The design language is exposed
 through `@savvifi/meridian-schemas` and `@savvifi/meridian-proto-ts`, linked from
 the same monorepo during development and pinned together in npm artifacts.
 
+## Composed views
+
+`renderView` partitions `header_row` slots into the view header in every layout.
+Body slots retain stable `position` order. In tabbed layouts, only nonempty
+`tab_label` slots become tabs, ordered by `tab_position` with stable position
+ties; unlabeled slots remain persistent regions above the selector. No labeled
+slots means a plain ordered stack, not an inferred tab strip. This aligns the
+web-components tier with the shared React layout contract.
+
+Tabs use manual activation: Left/Right/Home/End move focus; Enter/Space or click
+activates. Only active tab content mounts/fetches, and switching disposes the
+old panel's live resources. Returning to a tab creates a fresh panel; local
+drafts are not cached across tab switches. Tab/panel associations use generated
+per-view IDs, not producer slot IDs. The shipped theme CSS wraps long tab labels
+and header controls, and reflows wide main/sidebar columns to main-then-sidebar
+at narrow widths. View rendering preserves host root classes, including the
+base theme class.
+
+Call `disposeView(root)` before removing a composed view or handing its root to
+another renderer; `renderView` calls it automatically on replacement. Disposal
+is idempotent and releases every mounted panel's resources. It invalidates
+pending view observation and detached view/slot action handlers, but does not
+abort host transport work already started. Both browser and toolkit exports
+include this helper. Calling `disposePanel` on the outer view root alone is not
+a composed-view teardown.
+
+Migration: older web views turned unlabeled regions into tabs, automatically
+selected/fetched on arrow navigation, and mounted inactive panels. Authors must
+set explicit `tab_label` values for intended tabs. Header rows now stay outside
+the body/tab strip. Nested/repeated sub-view composition and selection-gated
+slots remain unimplemented here; this is not complete ViewDescriptor parity.
+
 ## Build & test
 
 Media playback errors degrade to a safe poster image, then to alt text if the

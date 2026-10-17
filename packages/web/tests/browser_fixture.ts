@@ -3,6 +3,8 @@ import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conver
 import { registerAssistantPanel, ASSISTANT_PANEL_CSS } from "../src/assistant_panel.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { renderPanel, type UiviewWasm } from "../src/uiview/renderer.js";
+import { renderView } from "../src/uiview/view_renderer.js";
+import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { applyTheme } from "../theme/web/theme.js";
 import { toneCases } from "../../../schemas/conformance/tone_cases.js";
 
@@ -15,6 +17,21 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  viewCalls: [] as string[],
+  viewLayout: (mode: "tabbed" | "twoColumn") => {
+    controls.viewCalls.length = 0;
+    const table = (method: string) => ({ body: { case: "table" as const, value: {
+      populate: { service: "fixture.View", method }, rowsField: "items", placeholder: `${method} body`,
+    } } });
+    return renderView({ root: root(), wasm, context,
+      view: create(ViewDescriptorSchema, { id: "layout", title: "View layout", layout: { mode: { case: mode, value: {} } }, slots: [
+        { id: "header", title: "Pinned header", placement: { headerRow: true, tabLabel: "Not a tab" } },
+        { id: "region", title: "Persistent region", position: 1 },
+        { id: "same", title: "Main section", position: 2, placement: { tabLabel: "Alpha " + "long-label".repeat(25) }, panel: table("Alpha") },
+        { id: "same", title: "Sidebar section", position: 3, placement: { column: 2, tabPosition: 1, tabLabel: "Beta " + "long-label".repeat(25) }, panel: table("Beta") },
+      ] }), invoker: { invoke: async (_service, method) => { controls.viewCalls.push(method); return {}; } },
+    });
+  },
   toneCases,
   affordance: (tone?: number, emphasis?: number, denied = false) => {
     applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());

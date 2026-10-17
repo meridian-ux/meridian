@@ -32,6 +32,44 @@ async function main() {
       if (!boxes.every(box => Math.abs(box.left - boxes[0].left) < 1) || boxes[1].top <= boxes[0].top) throw new Error("Narrow gallery does not stack");
       if (document.documentElement.scrollWidth > innerWidth) throw new Error("Narrow gallery overflows horizontally");
     });
+    await page.evaluate(() => window.webConformance.viewLayout("tabbed"));
+    const alpha = page.getByRole("tab", { name: /^Alpha/ }), beta = page.getByRole("tab", { name: /^Beta/ });
+    await alpha.focus(); await page.keyboard.press("ArrowRight");
+    if (!await beta.evaluate(tab => tab === document.activeElement) || await alpha.getAttribute("aria-selected") !== "true") throw new Error("Tabs did not separate focus from activation");
+    if (JSON.stringify(await page.evaluate(() => window.webConformance.viewCalls)) !== '["Alpha"]') throw new Error("Inactive tab fetched before activation");
+    await page.keyboard.press("Enter"); await page.getByText("Beta body", { exact: true }).waitFor();
+    if (await beta.getAttribute("aria-selected") !== "true") throw new Error("Enter failed to activate a tab");
+    await page.keyboard.press("Home"); await page.keyboard.press("Space");
+    await page.getByText("Alpha body", { exact: true }).waitFor();
+    if (JSON.stringify(await page.evaluate(() => window.webConformance.viewCalls)) !== '["Alpha","Beta","Alpha"]') throw new Error("Tab activation lost its read lifecycle");
+    await page.evaluate(() => {
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const ids = tabs.map(tab => tab.id).concat([...document.querySelectorAll('[role="tabpanel"]')].map(panel => panel.id));
+      if (new Set(ids).size !== ids.length) throw new Error("Reused slot IDs collided in tab associations");
+      for (const tab of tabs) {
+        const panel = document.getElementById(tab.getAttribute("aria-controls"));
+        if (!panel || panel.getAttribute("aria-labelledby") !== tab.id) throw new Error("Tab/panel association is invalid");
+        const box = tab.getBoundingClientRect();
+        if (box.width > innerWidth || tab.scrollWidth > tab.clientWidth + 1) throw new Error("Long tab label is clipped");
+      }
+      if (document.documentElement.scrollWidth > innerWidth) throw new Error("Narrow tab view overflows horizontally");
+      if (!document.querySelector("header [data-slot=header]")) throw new Error("Pinned header became a tab");
+      if (document.querySelectorAll('[role="tab"]').length !== 2) throw new Error("Persistent region became a tab");
+    });
+    await page.setViewportSize({ width: 1100, height: 800 });
+    await page.evaluate(() => window.webConformance.viewLayout("twoColumn"));
+    await page.evaluate(() => {
+      const main = document.querySelector(".meridian-uiview-col-main").getBoundingClientRect();
+      const side = document.querySelector(".meridian-uiview-col-sidebar").getBoundingClientRect();
+      if (side.left <= main.left || Math.abs(side.top - main.top) > 1) throw new Error("Wide main/sidebar layout does not form columns");
+    });
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.evaluate(() => {
+      const main = document.querySelector(".meridian-uiview-col-main").getBoundingClientRect();
+      const side = document.querySelector(".meridian-uiview-col-sidebar").getBoundingClientRect();
+      if (side.top < main.bottom || Math.abs(side.left - main.left) > 1) throw new Error("Narrow sidebar did not stack after main");
+      if (document.documentElement.scrollWidth > innerWidth) throw new Error("Narrow columns overflow horizontally");
+    });
     await page.evaluate(() => window.webConformance.steps());
     await page.getByText("Keep the frame summary", { exact: true }).waitFor({ state: "visible" });
     for (const text of ["Keep the narration", "First", "Second", "Start here", "Finish here"]) await page.getByText(text, { exact: false }).first().waitFor({ state: "visible" });

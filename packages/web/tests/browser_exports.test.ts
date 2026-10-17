@@ -20,6 +20,7 @@ const REQUIRED = [
   "supportsBody",
   "SUPPORTED_BODIES",
   "disposePanel",
+  "disposeView",
   "decodeBundle",
   "encodeGalleryPanel",
   "registerChatPanel",

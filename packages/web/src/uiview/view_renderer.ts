@@ -18,7 +18,7 @@ import {
   type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
 
-import { plainValue, renderPanel } from "./renderer.js";
+import { disposePanel, plainValue, renderPanel } from "./renderer.js";
 import { actionFeedback } from "./action_feedback.js";
 import type { RenderPanelOptions } from "./renderer.js";
 
@@ -43,6 +43,28 @@ export type RenderViewOptions = Omit<
   view: ViewDescriptor;
 };
 
+// Runtime ownership only: a disposed/hidden slot cannot finish mounting a live
+// resource or invoke a detached action. No transport state is serialized here.
+interface SlotSession { active: boolean; panels: Set<HTMLElement> }
+interface ViewSession { active: boolean; slots: Set<SlotSession> }
+const VIEWS = new WeakMap<HTMLElement, ViewSession>();
+let nextViewId = 0;
+function disposeSlot(session: SlotSession): void {
+  session.active = false;
+  for (const panel of session.panels) disposePanel(panel);
+  session.panels.clear();
+}
+/** Release all panel resources and pending view observation before removing a
+ * composed view. Idempotent; renderView calls this before replacing its root. */
+export function disposeView(root: HTMLElement): void {
+  const session = VIEWS.get(root);
+  if (!session) return;
+  VIEWS.delete(root);
+  session.active = false;
+  for (const slot of session.slots) disposeSlot(slot);
+  session.slots.clear();
+}
+
 function gatedInvoker(
   invoker: RpcInvoker,
   gate: AdmissionGate,
@@ -61,8 +83,11 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   const gate = createAdmissionGate(opts.admission);
   const mutationInvoker = gatedInvoker(opts.invoker, gate, "mutation");
   const { root, view } = opts;
+  disposeView(root);
+  const session: ViewSession = { active: true, slots: new Set() };
+  VIEWS.set(root, session);
   root.innerHTML = "";
-  root.className = "meridian-uiview-view";
+  root.classList.add("meridian-uiview-view");
 
   const header = document.createElement("header");
   header.className = "meridian-uiview-view-header";
@@ -70,12 +95,17 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   title.className = "meridian-uiview-view-title";
   title.textContent = view.title;
   header.appendChild(title);
-  header.appendChild(buildActions(view.actions, mutationInvoker, gate, opts));
+  header.appendChild(buildActions(view.actions, mutationInvoker, gate, opts, () => session.active));
   root.appendChild(header);
 
-  const slots = [...view.slots].sort(
+  const sorted = [...view.slots].sort(
     (a, b) => (a.position || 0) - (b.position || 0),
   );
+  for (const slot of sorted.filter(slot => slot.placement?.headerRow)) {
+    await renderSlot(header, slot, opts, mutationInvoker, session);
+    if (!session.active) return;
+  }
+  const slots = sorted.filter(slot => !slot.placement?.headerRow);
   const mode = view.layout?.mode;
 
   const container = document.createElement("div");
@@ -83,75 +113,112 @@ export async function renderView(opts: RenderViewOptions): Promise<void> {
   root.appendChild(container);
 
   if (mode?.case === "twoColumn") {
+    container.classList.add("meridian-uiview-two-column");
     const main = document.createElement("div");
     main.className = "meridian-uiview-col-main";
     const side = document.createElement("aside");
     side.className = "meridian-uiview-col-sidebar";
+    side.setAttribute("aria-label", "Sidebar");
     container.appendChild(main);
     container.appendChild(side);
     for (const slot of slots) {
       // Column.COLUMN_SIDEBAR = 2; everything else is main.
-      await renderSlot(slot.placement?.column === 2 ? side : main, slot, opts, mutationInvoker);
+      await renderSlot(slot.placement?.column === 2 ? side : main, slot, opts, mutationInvoker, session);
+      if (!session.active) return;
     }
     return;
   }
 
   if (mode?.case === "tabbed") {
-    const ordered = [...slots].sort(
+    // Only labeled slots are tabs. Other regions remain visible above the
+    // selector, in baseline position order, exactly like shared React views.
+    for (const slot of slots.filter(slot => !slot.placement?.tabLabel)) {
+      await renderSlot(container, slot, opts, mutationInvoker, session);
+      if (!session.active) return;
+    }
+    const ordered = slots.filter(slot => slot.placement?.tabLabel).sort(
       (a, b) => (a.placement?.tabPosition || 0) - (b.placement?.tabPosition || 0),
     );
+    if (!ordered.length) return;
+    const id = `meridian-view-${++nextViewId}`;
     const tabSections: HTMLElement[] = [];
     const tabs = document.createElement("div");
     tabs.className = "meridian-uiview-tablist";
     tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", `${view.title || view.id || "View"} sections`);
     container.appendChild(tabs);
 
+    let selected = -1;
+    let activeSlot: SlotSession | undefined;
+    const focus = (index: number) => {
+      for (const [i, button] of [...tabs.children].entries()) (button as HTMLElement).tabIndex = i === index ? 0 : -1;
+      (tabs.children[index] as HTMLElement)?.focus();
+    };
+    const activate = async (index: number, moveFocus: boolean) => {
+      if (!session.active) return;
+      if (moveFocus) focus(index);
+      if (selected === index) return;
+      if (activeSlot) { disposeSlot(activeSlot); session.slots.delete(activeSlot); }
+      if (selected >= 0) tabSections[selected].replaceChildren();
+      selected = index;
+      tabSections.forEach((panel, i) => {
+        panel.hidden = i !== index;
+        tabs.children[i].setAttribute("aria-selected", i === index ? "true" : "false");
+      });
+      activeSlot = { active: true, panels: new Set() };
+      await renderSlot(tabSections[index], ordered[index], opts, mutationInvoker, session, activeSlot);
+    };
+
     for (const [index, slot] of ordered.entries()) {
-      const section = await renderSlot(container, slot, opts, mutationInvoker);
+      const section = document.createElement("div");
+      container.appendChild(section);
       section.classList.add("meridian-uiview-tabpanel");
       section.setAttribute("role", "tabpanel");
-      section.id = `meridian-uiview-tabpanel-${slot.id}`;
+      section.id = `${id}-panel-${index}`;
+      section.setAttribute("aria-labelledby", `${id}-tab-${index}`);
+      section.tabIndex = 0;
+      section.hidden = index !== 0;
       tabSections.push(section);
 
       const button = document.createElement("button");
       button.type = "button";
       button.className = "meridian-uiview-tab";
-      button.textContent = slot.placement?.tabLabel || slot.title || slot.id;
+      button.textContent = slot.placement!.tabLabel;
       button.setAttribute("role", "tab");
+      button.id = `${id}-tab-${index}`;
       button.setAttribute("aria-controls", section.id);
       button.setAttribute("aria-selected", index === 0 ? "true" : "false");
       button.tabIndex = index === 0 ? 0 : -1;
-      const activate = (nextIndex: number) => {
-        tabSections.forEach((panel, panelIndex) => {
-          const active = panelIndex === nextIndex;
-          panel.hidden = !active;
-          const tab = tabs.children[panelIndex] as HTMLElement | undefined;
-          tab?.setAttribute("aria-selected", active ? "true" : "false");
-          if (tab) tab.tabIndex = active ? 0 : -1;
-        });
-        (tabs.children[nextIndex] as HTMLButtonElement | undefined)?.focus();
-      };
-      button.onclick = () => activate(index);
+      button.onfocus = () => { if (session.active) for (const tab of tabs.children) (tab as HTMLElement).tabIndex = tab === button ? 0 : -1; };
+      button.onclick = () => { void activate(index, true); };
       button.onkeydown = (event) => {
-        if (!tabSections.length) return;
+        if (!session.active || event.altKey || event.ctrlKey || event.metaKey) return;
         let next = index;
-        if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % tabSections.length;
-        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + tabSections.length) % tabSections.length;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault(); void activate(index, true); return;
+        }
+        if (event.key === "ArrowRight") next = (index + 1) % tabSections.length;
+        else if (event.key === "ArrowLeft") next = (index - 1 + tabSections.length) % tabSections.length;
         else if (event.key === "Home") next = 0;
         else if (event.key === "End") next = tabSections.length - 1;
         else return;
         event.preventDefault();
-        activate(next);
+        focus(next);
       };
       tabs.appendChild(button);
     }
-    tabSections.forEach((section, index) => { section.hidden = index !== 0; });
+    tabs.addEventListener("focusout", event => {
+      if (!tabs.contains(event.relatedTarget as Node | null))
+        for (const [index, tab] of [...tabs.children].entries()) (tab as HTMLElement).tabIndex = index === selected ? 0 : -1;
+    });
+    await activate(0, false);
     return;
   }
 
   // list + stacked: slots rendered in position order.
   for (const slot of slots) {
-    await renderSlot(container, slot, opts, mutationInvoker);
+    await renderSlot(container, slot, opts, mutationInvoker, session);
+    if (!session.active) return;
   }
 }
 
@@ -160,8 +227,13 @@ async function renderSlot(
   slot: Slot,
   opts: RenderViewOptions,
   mutationInvoker: RpcInvoker,
+  session: ViewSession,
+  mount: SlotSession = { active: true, panels: new Set() },
 ): Promise<HTMLElement> {
   const section = document.createElement("section");
+  const alive = () => session.active && mount.active;
+  if (!alive()) return section;
+  session.slots.add(mount);
   section.className = "meridian-uiview-slot";
   section.dataset.slot = slot.id;
   if (slot.role) section.dataset.role = slot.role;
@@ -179,20 +251,30 @@ async function renderSlot(
   if (panel) {
     const panelRoot = document.createElement("div");
     section.appendChild(panelRoot);
+    mount.panels.add(panelRoot);
     // Forward EVERY host seam (`view` is not a panel field, so it is dropped);
     // see the RenderViewOptions note on why this is a spread and not a list.
     const { view: _view, ...panelOpts } = opts;
-    await renderPanel({ ...panelOpts, root: panelRoot, descriptor: panel });
+    try {
+      await renderPanel({ ...panelOpts, root: panelRoot, descriptor: panel });
+    } catch (reason) {
+      if (alive()) {
+        const error = document.createElement("p"); error.setAttribute("role", "alert");
+        error.textContent = `Could not render section: ${reason instanceof Error ? reason.message : String(reason)}`;
+        panelRoot.append(error);
+      }
+    }
+    if (!alive()) { disposePanel(panelRoot); return section; }
   }
 
   if (slot.actions && slot.actions.length > 0) {
-    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission), opts));
+    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission), opts, alive));
   }
   return section;
 }
 
 // Resolve declared bindings at activation so retries use the current host context.
-function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate, opts: RenderViewOptions): HTMLElement {
+function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate, opts: RenderViewOptions, alive: () => boolean): HTMLElement {
   const bar = document.createElement("div");
   bar.className = "meridian-uiview-actions";
   for (const a of actions || []) {
@@ -201,6 +283,7 @@ function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGat
     btn.textContent = a.label;
     const feedback = actionFeedback(btn, !!a.call && gate.admits("mutation", a.call.service, a.call.method));
     btn.onclick = () => {
+      if (!alive()) return;
       if (a.call) {
         void feedback.run(async () => {
           const call = a.call!;
