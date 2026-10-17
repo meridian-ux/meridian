@@ -13,6 +13,9 @@ export interface RenderContext {
   formValues: Record<string, unknown>;
   /** Host-captured live grammar signals; resolved by the bounded Rust builder. */
   signals?: Record<string, unknown>;
+  /** Optional selection values consumed by the core's selection_key bindings.
+   * Corresponds to RequestContext.selections; values stay raw JSON. */
+  selections?: Record<string, unknown>;
 }
 
 /** Host-supplied transport. Mirrors the Rust RpcInvoker trait. */
