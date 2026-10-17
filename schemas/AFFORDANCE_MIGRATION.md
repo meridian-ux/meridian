@@ -10,6 +10,11 @@ declarations, changing the compatibility baseline, or relaxing the FILE gate.
 ```sh
 pnpm install --frozen-lockfile
 node schemas/tools/affordance_migration_probe.mjs
+# Includes the complete probe above, then baseline/candidate compilation of six
+# real public TS projects. Preserves their checking options; never emits files.
+node schemas/tools/affordance_consumer_probe.mjs
+# Optional local/private context only; keep private diagnostics out of public CI.
+node schemas/tools/affordance_consumer_probe.mjs --config=/path/to/private/tsconfig.json
 # Optional: retain generated sources/descriptors for native consumer experiments.
 node schemas/tools/affordance_migration_probe.mjs --keep
 # With the retained directory, pinned protoc 33.4, JDK 21 and protobuf-java
@@ -131,31 +136,66 @@ The reproducible probe verifies:
   candidate**. The unchanged baseline passes against itself. No rule, finding,
   or production compatibility test is suppressed.
 
-Local native audit against the expanded candidate: all **84 Rust core tests
-pass** through the documented descriptor override. Current TUI compilation
+Historical invoke-only native audit, before the policy/envelope additions:
+all **84 Rust core tests pass** through the documented descriptor override. TUI compilation in that audit
 correctly fails at content.rs:1009 (new invoke arms need handling) and :1291
 (ActionPanel.action becomes boxed through the new recursive target graph).
 Stable Rust module names alone are not source compatibility. Do not add a
 wildcard that pretends unsupported actions execute, or remove the exhaustive
 check. These consumers need deliberate typed dispatch/normalization changes.
 
-The separate **pure-relocation descriptor passes all 238 Rust workspace tests**
+That audit's separate **pure-relocation descriptor passed 238 Rust workspace tests**
 (one preexisting ignored doc test remains ignored). Thus the observed boxing/
 exhaustiveness failures belong to adding recursive invocation targets, not
 merely changing the compilation-unit ownership. Both experiments use the
 documented MERIDIAN_UIVIEW_DESCRIPTOR_SET override with separate Cargo build
 artifacts; neither replaces the committed production descriptor.
+These historical counts are not fresh native verification of the current
+policy/envelope candidate. Rerun and adopt the current candidate before cutover.
 
 ## Consumer inventory and required facades
 
-Audit baseline: public main 257490e663e1f938c2e75a9fa6f15474518ee5d3 and the
-private integration revision 8859ef4dcfd6eca1f52e6819842274c58f937e3b.
-A local search found 106 public TS/TSX
-files importing affected old modules and four private TS/proto source files
-using affected module/proto imports. These counts are a bounded source audit,
-not an inventory of unknown third-party clients. Private source remains private.
-Rerun this audit before cutover; generated/vendor directories and external
-package consumers need separate checks.
+Refreshed audit: public main 2f5e3964e9695ebb2314c44bfeaa478f167f17f9,
+public candidate 1b1e0873ebe26f204680ac20c2b3092d4cf2c8ea, and private main
+8859ef4dcfd6eca1f52e6819842274c58f937e3b (confirmed against GitHub).
+The direct-module query below finds 114 public main TS/TSX files and 122 candidate
+files: chat 3, launchpad 7, MUI 38, shared React 41, web-components 24, schemas 9.
+These include tests/harnesses, not only runtime producers. The private direct
+TS/proto-import set remains four files; private source is not copied here.
+
+```sh
+git grep -l -E '/(affordance|catalog|command_palette|connect_flow|lro|panel|steps|table|view)_pb[.]' <revision> -- '*.ts' '*.tsx' ':(exclude)**/generated/**' ':(exclude)**/Generated/**' ':(exclude)**/gen/**'
+```
+
+This reproducible bounded query supersedes the older 106-file estimate. It does
+not discover every reflective/dynamic/JSON producer, generated/vendor consumer,
+or third-party client. Full producer migration and external inventory remain
+required before cutover; import counts cannot establish them.
+
+The real-consumer probe compiles six public projects with their existing strict
+options, overriding only noEmit and the canonical proto package subpath alias:
+
+| Project | Compiler root files | Baseline / candidate |
+|---|---|---|
+| schemas seam | 17 | pass / pass |
+| web-components source | 25 | pass / pass |
+| shared React source | 28 | pass / pass |
+| MUI production source | 29 | pass / pass |
+| chat source | 13 | pass / pass |
+| launchpad source | 3 | pass / pass |
+
+Each run asserts that isolated generated declarations were actually loaded;
+compiler/configuration errors fail rather than skip a project. Original
+dependency-only skipLibCheck settings are retained, not added as a workaround.
+The local private playground project also passes baseline/candidate compilation
+(11 compiler roots) without source copying or dependency changes. Public CI
+requires the six public projects and retains the entire migration self-test;
+it does not access private source or claim a private CI gate.
+
+These checks use the JS+dts facade mode. The separate synthetic old-import probe
+still tests both generator modes. Actual Bazel facade wiring, detached migrated
+packages, native adoption, runtime precedence/admission, and first-party producer
+cutover remain outstanding. Source compilation does not execute new targets.
 
 | Surface | Required cutover proof |
 |---|---|
