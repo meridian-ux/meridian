@@ -43,6 +43,7 @@ vitest_test(
         "tests/gallery.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/layout_corpus.test.ts",
+        "tests/theme_renderer.test.tsx",
         "tests/value_options.test.ts",
         "tests/__snapshots__/conformance.test.tsx.snap",
         "tests/__snapshots__/stateful_conformance.test.ts.snap",

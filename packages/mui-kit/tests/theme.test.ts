@@ -37,6 +37,13 @@ it("binds all declared semantic palette roles to MUI and shared CSS without repl
 });
 
 describe("additive Metrics", () => {
+  it("maps explicit canonical body pixels rather than the MUI coefficient, retaining unset defaults", () => {
+    const skin = create(ThemeSchema, { typography: { baseSizePx: 19 } });
+    expect(themeProtoToMuiTheme(skin).typography.body1.fontSize).toBe("1.1875rem");
+    expect(themeProtoToMuiTheme(skin).typography.body2.fontSize).toBe("1.0390625rem");
+    expect(themeProtoToMuiTheme(undefined).typography.body1.fontSize).toBe("1rem");
+    expect(themeProtoToThemeConfig(undefined).typography.explicitBodySize).toBeUndefined();
+  });
   it("uses fractional scale interpolation and density in actual MUI spacing", () => {
     const skin = create(ThemeSchema, { metrics: {
       spacingScalePx: [0, 2, 6, 12], densityScale: 0.75, strokePx: 0,

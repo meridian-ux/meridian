@@ -3,23 +3,42 @@
 import { create, fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { PanelHandle } from "@savvifi/meridian-schemas/uiview";
 import { ThemeSchema, type Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import { themeProtoToCssVars } from "../src/theme.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
+import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { disposeView, renderView } from "../../web/src/uiview/view_renderer.js";
 import type { UiviewWasm } from "../../web/src/uiview/renderer.js";
 
 let reactRoot: Root | undefined;
+let mountedPanel: PanelHandle | undefined;
 let redrawTheme: ((theme: Theme | undefined) => void) | undefined;
 let calls: string[] = [];
 const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 const struct = (bytes: number[]) => toJson(StructSchema, fromBinary(StructSchema, Uint8Array.from(bytes)));
 const controls = {
+  async mountThemedMuiPanel() {
+    const root = document.getElementById("root")!;
+    mountedPanel = await reactWebRenderer(muiKit).mount({
+      container: root,
+      descriptor: create(PanelDescriptorSchema, { panelId: "public-mui-theme", body: {
+        case: "stat", value: { label: "Themed metric", value: 10, previous: 8 },
+      } }),
+      theme: create(ThemeSchema, { light: { bg: "#102030", surface: "#203040" },
+        metrics: { radiusPx: 12, spacingScalePx: [0, 2, 6, 12], densityScale: 0.75, strokePx: 0 },
+        typography: { baseSizePx: 19 },
+      }),
+      invoker: { invoke: async () => { throw new Error("Static theme fixture must not fetch"); } },
+    });
+    await frame(); await frame();
+  },
+  unmountThemedMuiPanel() { mountedPanel?.unmount(); mountedPanel = undefined; },
   metrics(enabled: boolean) {
     const theme = create(ThemeSchema, {
       light: { bg: "#ffffff", fg: "#111111" }, dark: { bg: "#101010", fg: "#eeeeee" },

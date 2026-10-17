@@ -11,6 +11,7 @@
 
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useActionFeedback } from "./action_feedback.js";
+import { MuiMountThemeBoundary } from "./theme_provider.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -1135,6 +1136,7 @@ function themeToStyle(theme: Theme | undefined): CSSProperties {
 /** The MUI ComponentKit — plug into MeridianProvider / reactWebRenderer. */
 export const muiKit: ComponentKit = {
   id: "mui",
+  ThemeProvider: MuiMountThemeBoundary,
   themeToStyle,
   Chrome,
   Table: ({ panel, invoker }: ShapeProps<TablePanel>) => (

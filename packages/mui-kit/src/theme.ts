@@ -32,6 +32,8 @@ export interface ThemeConfig {
     /** Code font stack. */
     mono: string;
     baseSizePx: number;
+    /** Canonical nonzero body size, not MUI's legacy coefficient-only default. */
+    explicitBodySize?: boolean;
     headingWeight: number;
     bodyWeight: number;
     /** Heading letter-spacing in em, e.g. "-0.015". */
@@ -158,6 +160,7 @@ export function themeProtoToThemeConfig(
       display: pick((type as ForwardTypography | undefined)?.display, sans),
       mono: pick(type?.mono, FALLBACK.mono),
       baseSizePx: pickNum(type?.baseSizePx, FALLBACK.baseSizePx),
+      ...(type?.baseSizePx ? { explicitBodySize: true } : {}),
       headingWeight: pickNum(type?.headingWeight, FALLBACK.headingWeight),
       bodyWeight: pickNum(type?.bodyWeight, FALLBACK.bodyWeight),
       headingTracking: pick(type?.headingTracking, FALLBACK.headingTracking),
@@ -190,6 +193,13 @@ export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
     typography: {
       fontFamily: config.typography.sans,
       fontSize: config.typography.baseSizePx,
+      // MUI's fontSize coefficient is based on 14px, while body1 starts at
+      // 16px. A declared canonical body size must mean the actual body size.
+      // Preserve the old MUI scale when the proto leaves this token unset;
+      // explicit sizes scale all variants from body1, retaining rem semantics.
+      ...(config.typography.explicitBodySize ? {
+        pxToRem: (size: number) => `${size * config.typography.baseSizePx / 256}rem`,
+      } : {}),
       fontWeightRegular: config.typography.bodyWeight,
       fontWeightMedium: config.typography.headingWeight,
       // Headings take the skin's DISPLAY face, which is `sans` unless the brand

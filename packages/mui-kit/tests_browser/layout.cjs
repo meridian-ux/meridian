@@ -100,6 +100,25 @@ async function main() {
       finally { URL.revokeObjectURL(url); }
     }, { glue: fs.readFileSync(path.resolve(process.argv[4]), "utf8"), bytes: [...fs.readFileSync(path.resolve(process.argv[5]))] });
     await page.addScriptTag({ content: fs.readFileSync(path.resolve(process.argv[3]), "utf8") });
+    await page.evaluate(() => {
+      const style = document.createElement("style"); style.id = "host-theme-guard";
+      style.textContent = "body { margin: 23px; }"; document.head.append(style);
+      document.getElementById("root").style.setProperty("--mer-space-1", "17px");
+    });
+    await page.evaluate(() => window.layoutConformance.mountThemedMuiPanel());
+    await page.getByText("Themed metric", { exact: true }).waitFor();
+    await page.evaluate(() => {
+      const card = document.querySelector(".MuiCard-root"), scope = document.querySelector(".MuiScopedCssBaseline-root");
+      if (!scope || getComputedStyle(scope).fontSize !== "19px") throw new Error(`Public MUI mount did not bind Typography: ${scope ? getComputedStyle(scope).fontSize : "missing scoped boundary"}`);
+      if (getComputedStyle(card).borderRadius !== "12px" || getComputedStyle(card).borderTopWidth !== "0px") throw new Error("Public MUI mount did not bind radius/zero stroke");
+      if (getComputedStyle(card).backgroundColor !== "rgb(32, 48, 64)") throw new Error("Public MUI mount lost canonical palette");
+      if (getComputedStyle(document.querySelector(".mer-stat-delta")).marginLeft !== "1.5px") throw new Error("Public MUI mount did not bind scale/density to real component spacing");
+      if (getComputedStyle(document.body).margin !== "23px") throw new Error("Mounted panel reset host body styles");
+      window.layoutConformance.unmountThemedMuiPanel();
+      const root = document.getElementById("root");
+      if (root.children.length || root.style.getPropertyValue("--mer-space-1") !== "17px") throw new Error("Public MUI unmount lost host ownership");
+      root.style.removeProperty("--mer-space-1"); document.getElementById("host-theme-guard").remove();
+    });
     for (const kit of kits) {
       for (const fixture of cases) for (const width of [1100, 320]) {
         try {

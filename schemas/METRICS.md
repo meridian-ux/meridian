@@ -63,6 +63,21 @@ this does not rewrite arbitrary host-owned Tailwind or CSS spacing rules. MUI's
 mode-correct provider remains authoritative; nested Chrome inherits its roles
 instead of selecting light colors again.
 
+The public `reactWebRenderer(muiKit)` single-panel adapter installs the same MUI
+theme projection through the kit's optional `ThemeProvider` boundary. It defaults
+to light mode and uses a subtree-scoped baseline rather than resetting the host
+page. Direct `MeridianMuiProvider` integrations retain their explicit mode and
+do not acquire a second light-mode boundary. Descriptor updates preserve the
+boundary and live control state; unmount leaves host declarations untouched.
+
+Typography audit: an explicit `base_size_px` means actual body size, not MUI's
+14px coefficient applied to its 16px body1 baseline. The MUI adapter now scales
+variants from body1 (retaining rem-based host accessibility scaling), so an
+explicit 19px body is 19px at the default 16px browser root, not 21.7143px.
+Unset Typography retains the legacy MUI defaults. Existing skins with explicit
+body size receive this intentional v1 correction; it is not absent-field visual
+compatibility with the prior erroneous coefficient mapping.
+
 Wire regressions, bounded resolver cases, web lifecycle tests, MUI adapter tests,
 and real-Chrome gallery spacing/stroke/focus/replacement checks cover these
 bindings. Final integration, cross-kit layout verification, and native
