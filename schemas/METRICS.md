@@ -80,8 +80,9 @@ compatibility with the prior erroneous coefficient mapping.
 
 Wire regressions, bounded resolver cases, web lifecycle tests, MUI adapter tests,
 and real-Chrome gallery spacing/stroke/focus/replacement checks cover these
-bindings. Final integration, cross-kit layout verification, and native
-degradation documentation/tests remain required for roadmap #52 acceptance.
+bindings. Cross-kit layout verification and native degradation tests complement
+the individual binding tests; a style mapper alone does not prove a public
+renderer entrypoint realizes the supplied theme.
 
 Terminals have character cells rather than CSS pixels. The TUI explicitly ignores
 pixel Metrics: cell geometry and structural/selection styles remain unchanged.
@@ -91,9 +92,23 @@ pixel-to-cell conversion or content removal approximates density. SwiftUI remain
 the approved local panel preview: full native Metrics/layout parity is not a v1
 gate, and unverified coverage stays explicit.
 
-Before acceptance, verify old absent-field wire/JSON identity, unknown-field
-round trips through old binary readers, explicit-zero stroke presence, bounded
+## Integrated acceptance and release-candidate checks
+
+Roadmap #52 and its parent #13 completed acceptance on October 17, 2026, after
+[PR #188](https://github.com/meridian-ux/meridian/pull/188) integrated at
+`4380693aecd78acdcea8e291068ede926a6f27f0`. Fetched main's entire tree matched
+the tested head. All eleven checks passed, including the
+[CI workflow](https://github.com/meridian-ux/meridian/actions/runs/39026160129)
+and [catalogs](https://github.com/meridian-ux/meridian/actions/runs/39026160113).
+CI executed all 41 Bazel test targets successfully and verified the detached
+npm artifacts. Subsequent proof-owner/layout selections were cached successes,
+not additional test executions. Actual public MUI mounts and reference-kit
+providers were tested, not substituted by harness-injected CSS variables.
+
+Retain release-candidate verification of old absent-field wire/JSON identity,
+unknown-field round trips through old binary readers, explicit-zero stroke presence, bounded
 scale/density handling, fractional spacing, partial/empty theme replacement,
 host override restoration, and actual computed spacing/stroke/focus behavior.
-Keep existing conformance goldens read-only. #52 and #13 remain open until the
-required binding work, integration, and verification are complete.
+Keep existing conformance goldens read-only. This acceptance does not complete
+the separate unified Affordance/admission migration, authorize a release, or
+promote the SwiftUI preview to full native parity.
