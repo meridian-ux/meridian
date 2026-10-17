@@ -7,8 +7,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-import { createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
-import { DescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { createFileRegistry, fromBinary, fromJson, isFieldSet, toBinary, toJson } from "@bufbuild/protobuf";
+import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const BUF = join(ROOT, "node_modules/.bin/buf");
@@ -20,6 +20,33 @@ export const PROPOSED_COMPONENT = Object.freeze([
   "proto/connect_flow.proto", "proto/lro.proto", "proto/panel.proto", "proto/steps.proto",
   "proto/table.proto", "proto/view.proto",
 ]);
+
+// Proposal allocations only. These runtime records generate canonical .proto
+// declarations in scratch copies; production descriptors are never rewritten.
+export const POLICY_ADDITIONS = Object.freeze({
+  Affordance: [
+    ["placement", 15, "optional ActionPlacement placement = 15;", ".meridian.ui.v1.ActionPlacement", true],
+    ["enabled_when", 16, "RowFilter enabled_when = 16;", ".meridian.ui.v1.RowFilter", false],
+    ["refresh_on_success", 17, "optional bool refresh_on_success = 17;", "", true],
+  ],
+  Command: [["affordance", 12, "Affordance affordance = 12;", ".meridian.ui.v1.Affordance", false]],
+  ViewDescriptor: [["affordances", 10, "AffordanceCollection affordances = 10;", ".meridian.ui.v1.AffordanceCollection", false]],
+  Slot: [["affordances", 13, "AffordanceCollection affordances = 13;", ".meridian.ui.v1.AffordanceCollection", false]],
+  TablePanel: [["affordances", 8, "AffordanceCollection affordances = 8;", ".meridian.ui.v1.AffordanceCollection", false]],
+  FormPanel: [["submit_affordance", 6, "Affordance submit_affordance = 6;", ".meridian.ui.v1.Affordance", false]],
+});
+
+export function assertAvailableFields(message, fields) {
+  const names = new Set([...message.field.map(field => field.name), ...message.reservedName]);
+  const numbers = new Set(message.field.map(field => field.number));
+  for (const [name, number] of fields) {
+    assert(!names.has(name), `candidate name is occupied: ${message.name}.${name}`);
+    assert(Number.isInteger(number) && number > 0 && number < 2 ** 29 && !(number >= 19000 && number <= 19999), "invalid candidate tag");
+    assert(!numbers.has(number) && !message.reservedRange.some(range => number >= range.start && number < range.end),
+      `candidate tag is occupied: ${message.name}.${number}`);
+    names.add(name); numbers.add(number);
+  }
+}
 
 export function componentContaining(graph, start) {
   // The SCC of start is the intersection of forward and reverse reachability.
@@ -125,6 +152,10 @@ export async function probe() {
     string open_view = 13;
     string copy = 14;$2`);
       }
+      for (const [message, fields] of Object.entries(POLICY_ADDITIONS)) {
+        const pattern = new RegExp(`(^message ${message} \\{[\\s\\S]*?)(^\\})`, "m");
+        if (pattern.test(source)) source = source.replace(pattern, `$1${fields.map(field => `  ${field[2]}\n`).join("")}$2`);
+      }
       return source;
     });
     const header = 'syntax = "proto3";\npackage meridian.ui.v1;\n'
@@ -139,27 +170,54 @@ export async function probe() {
     const relocatedImage = join(work, "relocated.binpb");
     const relocated = build(candidate, relocatedImage);
     const oldDeclarations = declarations(before);
+    for (const [message, fields] of Object.entries(POLICY_ADDITIONS)) {
+      const additions = message === "Affordance" ? [["rpc", 10], ["navigate", 11], ["open_panel", 12], ["open_view", 13], ["copy", 14], ...fields] : fields;
+      assertAvailableFields(oldDeclarations.get(`meridian.ui.v1.${message}`), additions);
+    }
     assert.deepEqual(declarations(relocated), oldDeclarations, "pure relocation changed declaration contents");
     const relocationRejection = run(BUF, ["breaking", relocatedImage, "--against", oldImage, "--config", join(ROOT, "buf.yaml")],
       { expectedFailure: true });
     assert.match(relocationRejection.stdout + relocationRejection.stderr, /previously present|deleted/i);
-    writeFileSync(join(candidate, UNIT), unitHeader + bodies.join("\n"));
+    writeFileSync(join(candidate, UNIT), unitHeader + bodies.join("\n")
+      + "\n// Presence distinguishes an absent collection from an explicit empty override.\nmessage AffordanceCollection { repeated Affordance items = 1; }\n");
     const after = build(candidate, nextImage);
     const newDeclarations = declarations(after);
     for (const [name, original] of oldDeclarations) {
       const next = newDeclarations.get(name);
       assert(next, `declaration disappeared: ${name}`);
-      // Affordance gains five proposed fields in its existing oneof. Everything
-      // else, including nested types/options/reserved ranges, is byte-identical.
-      if (name === "meridian.ui.v1.Affordance") {
+      const additions = POLICY_ADDITIONS[original.name];
+      if (additions) {
         const copy = structuredClone(next);
-        copy.field = copy.field.filter(field => field.number < 10);
+        const oldNumbers = new Set(original.field.map(field => field.number));
+        copy.field = copy.field.filter(field => oldNumbers.has(field.number));
+        copy.oneofDecl = copy.oneofDecl.slice(0, original.oneofDecl.length);
         assert.deepEqual(toBinary(DescriptorProtoSchema, copy), toBinary(DescriptorProtoSchema, original));
-        assert.deepEqual(next.field.filter(field => field.number >= 10).map(field => [field.name, field.number, field.oneofIndex]),
-          [["rpc", 10, 0], ["navigate", 11, 0], ["open_panel", 12, 0], ["open_view", 13, 0], ["copy", 14, 0]]);
+        const policy = next.field.filter(field => additions.some(([, number]) => number === field.number));
+        assert.deepEqual(policy.map(field => [field.name, field.number, field.typeName, field.proto3Optional]),
+          additions.map(([name, number, , typeName, optional]) => [name, number, typeName, optional]));
+        for (const field of policy) {
+          assert.equal(field.label, 1, "canonical siblings/policy fields must be singular");
+          assert.equal(field.type, field.typeName === ".meridian.ui.v1.ActionPlacement" ? 14 : field.typeName ? 11 : 8);
+          if (field.proto3Optional) assert.equal(next.oneofDecl[field.oneofIndex].name, `_${field.name}`);
+          else assert.equal(isFieldSet(field, FieldDescriptorProtoSchema.fields.find(field => field.name === "oneof_index")), false);
+        }
+        assert.equal(next.oneofDecl.length, original.oneofDecl.length + policy.filter(field => field.proto3Optional).length);
+        const invoke = next.field.filter(field => !oldNumbers.has(field.number) && !policy.includes(field));
+        assert.deepEqual(invoke.map(field => [field.name, field.number, field.oneofIndex]), name.endsWith(".Affordance")
+          ? [["rpc", 10, 0], ["navigate", 11, 0], ["open_panel", 12, 0], ["open_view", 13, 0], ["copy", 14, 0]] : []);
+        if (invoke.length) {
+          assert.deepEqual(invoke.map(field => [field.type, field.typeName, field.label]), [
+            [11, ".meridian.ui.v1.RpcCall", 1], [11, ".meridian.ui.v1.Navigate", 1],
+            [11, ".meridian.ui.v1.PanelDescriptor", 1], [9, "", 1], [9, "", 1],
+          ]);
+          assert(invoke.every(field => isFieldSet(field, FieldDescriptorProtoSchema.fields.find(field => field.name === "oneof_index"))));
+        }
       } else assert.deepEqual(next, original, name);
     }
-    assert.equal(newDeclarations.size, oldDeclarations.size);
+    assert.equal(newDeclarations.size, oldDeclarations.size + 1);
+    const collection = newDeclarations.get("meridian.ui.v1.AffordanceCollection");
+    assert.deepEqual(collection.field.map(field => [field.name, field.number, field.typeName, field.label]),
+      [["items", 1, ".meridian.ui.v1.Affordance", 3]]);
     const rejection = run(BUF, ["breaking", nextImage, "--against", oldImage, "--config", join(ROOT, "buf.yaml")],
       { expectedFailure: true });
     assert.match(rejection.stdout + rejection.stderr, /previously present|deleted/i);
@@ -194,6 +252,50 @@ export async function probe() {
       assert.deepEqual(oldReaderWire, wire);
       const recovered = fromBinary(affordanceSchemas[1], oldReaderWire);
       assert.deepEqual(toJson(affordanceSchemas[1], recovered), { label: "Test", ...invocation });
+    }
+
+    // Optional scalar presence is part of the proposal, not inferred from truthiness.
+    // Re-encoding through an old reader may reorder unknown wire fields; compare
+    // the recovered typed message and its canonical encoding, not that field order.
+    let policyCases = 0;
+    for (const placement of [undefined, 0, 1, 999]) for (const refresh of [undefined, false, true]) {
+      const policy = { enabledWhen: { fieldPath: "flags.enabled", equals: "false" }, tone: 0, emphasis: 0,
+        ...(placement === undefined ? {} : { placement }), ...(refresh === undefined ? {} : { refreshOnSuccess: refresh }) };
+      for (const invocation of invocations) {
+        const value = fromJson(affordanceSchemas[1], { label: "Policy", ...policy, ...invocation });
+        const wire = toBinary(affordanceSchemas[1], value);
+        const recovered = fromBinary(affordanceSchemas[1], toBinary(affordanceSchemas[0], fromBinary(affordanceSchemas[0], wire)));
+        assert.deepEqual(toJson(affordanceSchemas[1], recovered, { enumAsInteger: true }), { label: "Policy", ...policy, ...invocation });
+        assert.deepEqual(toBinary(affordanceSchemas[1], recovered), wire);
+        policyCases++;
+      }
+    }
+    const legacyCall = { service: "Demo", method: "Run", bindings: [{ requestField: "id", rowField: "raw.id" }] };
+    const envelopes = [
+      ["ViewDescriptor", "affordances", { id: "view", actions: [{ id: "legacy", label: "Legacy", call: legacyCall }] }, true],
+      ["Slot", "affordances", { id: "slot", actions: [{ id: "legacy", label: "Legacy", call: legacyCall }] }, true],
+      ["TablePanel", "affordances", { actions: [{ label: "Legacy", rpc: legacyCall, enabledWhen: { fieldPath: "state", equals: "OPEN" }, refreshOnSuccess: true }] }, true],
+      ["FormPanel", "submitAffordance", { submit: legacyCall, itemNoun: "record" }, false],
+      ["Command", "affordance", { id: "cmd", title: "Search title", subtitle: "Search detail", keywords: ["one", "two"],
+        icon: "search", shortcut: "$mod+k", deepLink: "/search?cmd=raw", rpc: legacyCall }, false],
+    ];
+    let envelopeCases = 0;
+    for (const [name, key, legacy, repeated] of envelopes) {
+      const schemas = registries.map(registry => registry.getMessage(`meridian.ui.v1.${name}`));
+      const canonical = { label: "Canonical", copy: "", placement: 0, refreshOnSuccess: false };
+      for (const entry of [undefined, {}, repeated ? { items: [] } : { ...canonical }, ...(repeated ? [{ items: [canonical] }] : [])]) {
+        const json = { ...legacy, ...(entry === undefined ? {} : { [key]: entry }) };
+        const value = fromJson(schemas[1], json), wire = toBinary(schemas[1], value);
+        const recovered = fromBinary(schemas[1], toBinary(schemas[0], fromBinary(schemas[0], wire)));
+        assert.deepEqual(toJson(schemas[1], recovered, { enumAsInteger: true }), toJson(schemas[1], value, { enumAsInteger: true }));
+        assert.equal(recovered[key] !== undefined, entry !== undefined, `${name}: canonical presence lost`);
+        // Legacy search/binding/predicate/refresh data remains independently intact.
+        assert.deepEqual(toJson(schemas[0], fromBinary(schemas[0], wire)), toJson(schemas[0], fromJson(schemas[0], legacy)));
+        // Old JSON readers discard unknown candidate fields; they are not facades.
+        assert.deepEqual(toJson(schemas[0], fromJson(schemas[0], toJson(schemas[1], value), { ignoreUnknownFields: true })),
+          toJson(schemas[0], fromJson(schemas[0], legacy)));
+        envelopeCases++;
+      }
     }
 
     let namedExports = 0;
@@ -244,19 +346,28 @@ export async function probe() {
       // generated .ts facades are not skipped.
       writeFileSync(join(generated, "consumer.ts"), `import { type Affordance, AffordanceSchema } from "./proto/affordance_pb.js";
 import { type PanelDescriptor, PanelDescriptorSchema } from "./proto/panel_pb.js";
+import { type AffordanceCollection } from "./proto/interaction_pb.js";
 declare const action: Affordance;
 declare const panel: PanelDescriptor;
 const label: string = action.label;
 const id: string = panel.panelId;
+const placement: number | undefined = action.placement;
+const refresh: boolean | undefined = action.refreshOnSuccess;
+declare const collection: AffordanceCollection;
+const first: Affordance | undefined = collection.items[0];
 // @ts-expect-error Reject any-eroded facade types.
 const invalid: number = action.label;
-void [label, id, AffordanceSchema, PanelDescriptorSchema, invalid];
+// @ts-expect-error New optional policy fields must not erode to any either.
+const invalidRefresh: string = action.refreshOnSuccess;
+// @ts-expect-error The new collection retains canonical Affordance element typing.
+const invalidItem: number = collection.items[0];
+void [label, id, placement, refresh, first, AffordanceSchema, PanelDescriptorSchema, invalid, invalidRefresh, invalidItem];
 ${importChecks.join("\n")}
 `);
       run(process.execPath, [TSC, "-p", join(generated, "tsconfig.json")]);
     }
-    return { component, declarations: oldDeclarations.size, fixtures: fixtureNames.length,
-      invocations: invocations.length, namedExports, work };
+    return { component, declarations: oldDeclarations.size, candidateDeclarations: newDeclarations.size, fixtures: fixtureNames.length,
+      invocations: invocations.length, policyCases, envelopeCases, namedExports, work };
   } catch (error) {
     rmSync(work, { recursive: true, force: true });
     throw error;

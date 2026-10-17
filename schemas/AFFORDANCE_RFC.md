@@ -84,6 +84,13 @@ generation modes, and records the separate approval required for cutover.
 Its nine-file boundary supersedes the preliminary seven-file sketch below;
 production declaration ownership and the FILE policy remain unchanged.
 
+The isolated candidate now also allocates policy and canonical envelope fields
+against current descriptors. Its proposed message-valued AffordanceCollection
+distinguishes absence from an explicit empty override. This is not an approved
+production addition or an adapter: old decoders still expose legacy actions and
+cannot enforce new precedence. Coordinated upgraded-host/version gating and the
+single dispatcher remain acceptance work, including safe dual-write policy.
+
 The union cannot be implemented by adding imports to `affordance.proto` alone.
 Today `command_palette.proto` imports `panel.proto`, which imports
 `affordance.proto` and several messages that themselves contain Affordances.

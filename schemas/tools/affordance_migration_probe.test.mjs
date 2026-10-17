@@ -1,6 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { componentContaining } from "./affordance_migration_probe.mjs";
+import { componentContaining, assertAvailableFields } from "./affordance_migration_probe.mjs";
+import { create } from "@bufbuild/protobuf";
+import { DescriptorProtoSchema } from "@bufbuild/protobuf/wkt";
+
+test("candidate allocations reject occupied/reserved names and tags, including duplicate proposals", () => {
+  const message = create(DescriptorProtoSchema, { name: "Candidate", field: [{ name: "old", number: 1 }],
+    reservedName: ["retired"], reservedRange: [{ start: 5, end: 8 }] });
+  assertAvailableFields(message, [["new", 8]]);
+  for (const fields of [[["old", 8]], [["new", 1]], [["retired", 8]], [["new", 6]], [["new", 19000]],
+    [["new", 0]], [["new", 2 ** 29]], [["new", 8], ["new", 9]], [["new", 8], ["other", 8]]]) {
+    assert.throws(() => assertAvailableFields(message, fields));
+  }
+});
 
 test("the migration SCC includes indirect returning dependencies, not downstream leaves", () => {
   const graph = new Map([
