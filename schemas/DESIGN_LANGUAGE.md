@@ -124,8 +124,20 @@ Declaring display changes presentation, never the raw stored/submitted value.
 The schema compatibility tests in `tools/value_display_contract.test.mjs` verify
 stable tags, message presence, unchanged wire/JSON when unset, and old-reader
 unknown-field preservation. They do not prove renderer formatting; the stateful
-corpus and interaction suites own that evidence. The broader shared-core/WASM
-formatter requirement remains roadmap #50, not a consequence of these fields.
+corpus and interaction suites own that evidence. The shared-core/WASM formatter
+in #50 and stable-renderer propagation proof in #51 are integrated separately,
+not inferred from the existence of these fields.
+
+The canonical formatter corpus contains 355 independent expectations, including
+222 no-clock cases. Read-surface tests carry the corpus through HTML/Shadcn/MUI
+and web-components using each surface's supported clock contract; native reads
+use the no-clock subset. Conversation slots exercise all 18 ValueTypes on their
+string-valued wire contract without numeric coercion. Constrained copy/Stat
+cases retain literal copy identity and reveal state, and 1,265 typed-input/read-only
+scenarios per realization preserve raw defaults, submission values, supporting
+titles where available, and masked-value concealment. Native titles remain an
+explicit omission without a hover channel. These are formatter adoption proofs,
+not general layout or full SwiftUI parity.
 
 New value-bearing messages should adopt the declaration before adding ad hoc
 formatting rules. Principal labels may use the compatible `Name <email>` wire
