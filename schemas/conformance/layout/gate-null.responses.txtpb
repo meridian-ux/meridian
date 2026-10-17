@@ -1,0 +1,13 @@
+fields {
+  key: "fixture.Layout.Scoped"
+  value {
+    struct_value {
+      fields {
+        key: "title"
+        value {
+          string_value: "Fetched scoped"
+        }
+      }
+    }
+  }
+}

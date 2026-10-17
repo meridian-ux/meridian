@@ -12,12 +12,16 @@ struct Host {
     calls: RefCell<Vec<(String, Value)>>,
     fail: RefCell<bool>,
     rows: RefCell<Option<Value>>,
+    responses: RefCell<Option<Value>>,
 }
 impl RpcInvoker for Host {
     fn invoke(&self, _: &str, method: &str, request: Value) -> Result<Value, RpcError> {
         self.calls.borrow_mut().push((method.into(), request));
         if *self.fail.borrow() {
             return Err(RpcError::Other("Read denied".into()));
+        }
+        if let Some(responses) = self.responses.borrow().as_ref() {
+            return Ok(responses[format!("fixture.Layout.{method}")].clone());
         }
         Ok(match method {
             "Rows" => {
@@ -193,7 +197,7 @@ fn tabs_are_manual_keep_persistent_regions_and_never_read_inactive_or_gated_bodi
     let output = sections(&mut view, &context, &host, 80);
     assert!(output.contains("Choose a scope first"));
     assert_eq!(host.calls.borrow().len(), 1);
-    context.selections.insert("scope".into(), json!(false));
+    context.selections.insert("scope".into(), json!("scope-A"));
     let output = sections(&mut view, &context, &host, 80);
     assert!(output.contains("Fetched Earlier"));
     assert_eq!(host.calls.borrow().len(), 2);
@@ -323,7 +327,7 @@ fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
     let host = Host::default();
     let mut context = Context::default();
     let mut view = wire(descriptor);
-    context.selections.insert("scope".into(), json!(0));
+    context.selections.insert("scope".into(), json!("scope-A"));
     draw(&mut view, &context, &host, 80);
     context.selections.clear();
     assert!(key(&mut view, &context, KeyCode::Enter).is_none());
@@ -601,4 +605,100 @@ fn prompt_preview_keeps_native_paging_while_control_paging_scrolls_the_view() {
     .unwrap();
     assert!(draw(&mut view, &context, &host, 80).contains("Content after-preview"));
     assert!(host.calls.borrow().is_empty());
+}
+
+fn corpus_struct(bytes: &[u8]) -> Value {
+    fn value(raw: prost_types::Value) -> Value {
+        use prost_types::value::Kind;
+        match raw.kind {
+            Some(Kind::BoolValue(v)) => json!(v),
+            Some(Kind::NumberValue(v)) => json!(v),
+            Some(Kind::StringValue(v)) => json!(v),
+            Some(Kind::StructValue(v)) => object(v),
+            Some(Kind::ListValue(v)) => Value::Array(v.values.into_iter().map(value).collect()),
+            _ => Value::Null,
+        }
+    }
+    fn object(v: prost_types::Struct) -> Value {
+        Value::Object(v.fields.into_iter().map(|(k, v)| (k, value(v))).collect())
+    }
+    object(prost_types::Struct::decode(bytes).unwrap())
+}
+
+#[test]
+fn shared_layout_corpus_matches_browser_order_gates_and_repeated_records() {
+    use std::path::PathBuf;
+    let mut roots = vec![PathBuf::from("schemas/conformance/layout")];
+    if let Some(manifest) = option_env!("CARGO_MANIFEST_DIR") {
+        roots.push(PathBuf::from(manifest).join("../../../../schemas/conformance/layout"));
+    }
+    let root = roots
+        .iter()
+        .find(|p| p.join("index.binpb").is_file())
+        .unwrap();
+    let index = corpus_struct(&std::fs::read(root.join("index.binpb")).unwrap());
+    for case in index["cases"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        for width in [80, 140] {
+            let context =
+                corpus_struct(&std::fs::read(root.join(format!("{name}.context.binpb"))).unwrap());
+            let mut context_value = Context::default();
+            if let Some(values) = context["selections"].as_object() {
+                context_value
+                    .selections
+                    .extend(values.iter().map(|(k, v)| (k.clone(), v.clone())));
+            }
+            let host = Host::default();
+            *host.responses.borrow_mut() = Some(corpus_struct(
+                &std::fs::read(root.join(format!("{name}.responses.binpb"))).unwrap(),
+            ));
+            let descriptor = ViewDescriptor::decode(
+                std::fs::read(root.join(format!("{name}.view.binpb")))
+                    .unwrap()
+                    .as_slice(),
+            )
+            .unwrap();
+            let output = sections(
+                &mut ViewHost::new(descriptor).unwrap(),
+                &context_value,
+                &host,
+                width,
+            );
+            let mut cursor = 0;
+            for text in case["content"].as_array().unwrap() {
+                assert!(
+                    output.contains(text.as_str().unwrap()),
+                    "{name}/{width}: missing {text}"
+                );
+            }
+            for id in case["order"].as_array().unwrap() {
+                let label = format!("Section: Section {}", id.as_str().unwrap());
+                let offset = output[cursor..]
+                    .find(&label)
+                    .unwrap_or_else(|| panic!("{name}/{width}: missing ordered {label}"));
+                cursor += offset + label.len();
+            }
+            if name.starts_with("gate-") {
+                let open = case["gateOpen"].as_bool().unwrap();
+                assert_eq!(
+                    host.calls.borrow().len(),
+                    usize::from(open),
+                    "{name}/{width}"
+                );
+                assert!(output.contains(if open {
+                    "Fetched scoped"
+                } else {
+                    "Choose a scope first"
+                }));
+            } else if name == "repeated" {
+                assert!(output.contains("001.20") && output.contains("Second row"));
+                assert_eq!(host.calls.borrow().len(), 1);
+            } else {
+                assert!(host.calls.borrow().is_empty());
+            }
+            for label in case["tabs"].as_array().unwrap() {
+                assert!(output.contains(label.as_str().unwrap()));
+            }
+        }
+    }
 }

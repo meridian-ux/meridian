@@ -611,7 +611,7 @@ fn gates_open(mut view: &ViewDescriptor, source: &[usize], context: &Context) ->
             && context
                 .selections
                 .get(&slot.depends_on_selection_key)
-                .is_none_or(Value::is_null)
+                .is_none_or(|value| !selection_is_set(value))
         {
             return false;
         }
@@ -620,6 +620,18 @@ fn gates_open(mut view: &ViewDescriptor, source: &[usize], context: &Context) ->
         }
     }
     true
+}
+
+// Match the established browser scope-gate contract, not Rust/JSON presence.
+// Raw bindings still retain false/zero/empty values outside a closed gate.
+fn selection_is_set(value: &Value) -> bool {
+    match value {
+        Value::Null => false,
+        Value::Bool(value) => *value,
+        Value::Number(value) => value.as_f64() != Some(0.0),
+        Value::String(value) => !value.is_empty(),
+        Value::Array(_) | Value::Object(_) => true,
+    }
 }
 
 fn view_at<'a>(mut view: &'a ViewDescriptor, source: &[usize]) -> Option<&'a ViewDescriptor> {
@@ -815,7 +827,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
                 .context
                 .selections
                 .get(&slot.depends_on_selection_key)
-                .is_none_or(Value::is_null)
+                .is_none_or(|value| !selection_is_set(value))
         {
             self.text(if slot.depends_on_placeholder.is_empty() {
                 "Select a value to view this section.".into()

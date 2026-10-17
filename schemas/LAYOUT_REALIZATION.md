@@ -26,6 +26,9 @@ does not prove composed-view support.
 - Layout does not grant RPC authority. Preserve host admission, selection gates,
   and raw request bindings. A closed selection gate retains its authored
   placeholder; changing tabs is not consent to invoke a mutation.
+- Scope gates follow the established browser contract: missing, null, false,
+  zero, and empty-string selections keep the gate closed. This is distinct from
+  raw row/form bindings, which preserve those values without coercion.
 
 ## Required realization table
 
@@ -84,6 +87,15 @@ particular, neither a panel snapshot nor an opaque host callback may be counted
 as an implemented layout.
 
 ## Acceptance evidence still needed
+
+The shared binary layout corpus now lives in `conformance/layout`, authored by
+`tools/layout_corpus.py` against the canonical descriptor set. Fourteen cases
+exercise all four modes, stable ties/advisory roles, headers, unknown columns,
+unset/future layout arms, nested/repeated views, action labels, and six gate
+states. HTML, shadcn, MUI, real-WASM web-components, and the native ViewHost consume
+the same bytes and expected slot/content order. The native host executes them
+at 80/140 columns. This shared semantic/navigation evidence does not replace
+real-browser narrow/wide geometry or conversation-host integration proof.
 
 Use the same binary `ViewDescriptor` fixtures across renderer hosts, including
 all four modes, shuffled positions/ties, main/sidebar placement, labeled tabs

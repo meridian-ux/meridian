@@ -90,6 +90,7 @@ vitest_test(
         "tests/steps.test.ts",
         "tests/stream.test.ts",
         "tests/stateful_conformance.test.ts",
+        "tests/layout_corpus.test.ts",
         "tests/value_options.test.ts",
         "tests/stat_fetch.test.ts",
         "tests/record_fetch.test.ts",

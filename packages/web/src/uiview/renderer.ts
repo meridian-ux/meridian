@@ -1872,10 +1872,9 @@ async function renderRecordPanel(
 ): Promise<void> {
   const { root, invoker, wasm } = opts;
   const populate = panel.populate;
-  if (!populate && opts.record === undefined) {
-    metaEl.textContent = "(no populate RPC)";
-    return;
-  }
+  // Static headers still carry authored titles, and cards carry field labels.
+  // No transport/ambient row means unavailable values, not absent composition.
+  // Resolve against an empty record rather than hiding the authored content.
   const idField = panel.idField || "id";
   const subject = opts.context.currentResourcePath;
   let record: object = opts.record ?? {};

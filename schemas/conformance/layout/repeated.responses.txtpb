@@ -1,0 +1,46 @@
+fields {
+  key: "fixture.Layout.Rows"
+  value {
+    struct_value {
+      fields {
+        key: "rows"
+        value {
+          list_value {
+            values {
+              struct_value {
+                fields {
+                  key: "count"
+                  value {
+                    number_value: 0.0
+                  }
+                }
+                fields {
+                  key: "enabled"
+                  value {
+                    bool_value: false
+                  }
+                }
+                fields {
+                  key: "name"
+                  value {
+                    string_value: "001.20"
+                  }
+                }
+              }
+            }
+            values {
+              struct_value {
+                fields {
+                  key: "name"
+                  value {
+                    string_value: "Second row"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

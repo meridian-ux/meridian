@@ -127,6 +127,7 @@ rust_test(
         "//crates/core/rust/uiview",
         "//crates/core/rust:serde_json",
         "@meridian_crates//:prost",
+        "@meridian_crates//:prost-types",
         "@meridian_crates//:ratatui",
     ],
 )

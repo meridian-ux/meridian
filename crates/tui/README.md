@@ -91,8 +91,10 @@ Each panel has a 16-row virtual section; scrolling the view does not reset edits
 Nested views take precedence over panels. Repeated child views fetch through the
 host's read-admitted invoker, validate the array and object rows, and share each
 immutable ambient record with real child widgets. Closed selection gates preserve
-labels and placeholders without fetching; false, zero, and empty strings are set
-selections. Repeated-read failures are visible and retry only on Enter. Hidden or
+labels and placeholders without fetching. As in the browser hosts, missing,
+null, false, zero, and empty-string selections keep a scope gate closed; raw
+row/form bindings still retain those values. Repeated-read failures are visible
+and retry only on Enter. Hidden or
 gated descendants are dropped, releasing streams and invalidating operation tokens.
 Call `invalidate` when transport or context changes affect panel reads, including
 selection values bound into those reads. Gate and repeated-populate request

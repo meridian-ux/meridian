@@ -92,11 +92,12 @@ js_library(
         "conformance/populated.ts",
         "conformance/prompt.ts",
         "conformance/state_cases.ts",
+        "conformance/layout_cases.ts",
         "conformance/value_types.json",
         "conformance/constrained_value_types.json",
         "conformance/input_values.binpb",
         "conformance/coverage.json",
-    ] + glob(["conformance/binpb/*.binpb", "conformance/fixtures/**/*.binpb", "conformance/fixtures/**/*.txtpb"]),
+    ] + glob(["conformance/binpb/*.binpb", "conformance/fixtures/**/*.binpb", "conformance/fixtures/**/*.txtpb", "conformance/layout/*.binpb"]),
     deps = [
         "//schemas:node_modules/@bufbuild/protobuf",
         "//schemas:node_modules/@savvifi/meridian-proto-ts",
@@ -116,6 +117,7 @@ filegroup(
     srcs = ["conformance/core.json", "conformance/value_types.json", "conformance/constrained_value_types.json", "conformance/input_values.binpb", "conformance/coverage.json"] + glob([
         "conformance/fixtures/**/*.binpb",
         "conformance/native/**/*.txt",
+        "conformance/layout/*.binpb",
     ], allow_empty = True),  # The test rejects missing goldens; permits first recording.
     visibility = ["//visibility:public"],
 )

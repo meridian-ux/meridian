@@ -1,0 +1,28 @@
+id: "nested"
+title: "Shared nested root"
+slots {
+  id: "nested"
+  title: "Section nested"
+  panel {
+    panel_id: "nested"
+    title: "Panel nested"
+    detail_header {
+      title: "Content nested"
+    }
+  }
+  sub_view {
+    id: "child"
+    title: "Shared nested child"
+    slots {
+      id: "inner"
+      title: "Section inner"
+      panel {
+        panel_id: "inner"
+        title: "Panel inner"
+        detail_header {
+          title: "Content inner"
+        }
+      }
+    }
+  }
+}

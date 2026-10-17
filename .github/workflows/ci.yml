@@ -202,6 +202,8 @@ jobs:
         run: |
           python3 tools/stateful_corpus.py
           python3 -m unittest tools/test_stateful_corpus.py
+          python3 tools/layout_corpus.py
+          python3 -m unittest tools/test_layout_corpus.py
 
       - name: Native and WASM core corpus is current
         run: node schemas/tools/write_core_corpus.mjs

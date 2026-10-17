@@ -1,0 +1,756 @@
+fields {
+  key: "cases"
+  value {
+    list_value {
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content first"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "list"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "first"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content first"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "stacked"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "first"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "tabbed"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+                values {
+                  string_value: "Later position, first tab"
+                }
+                values {
+                  string_value: "Earlier position, second tab"
+                }
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Content first"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "twoColumn"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+                values {
+                  string_value: "first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content first"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "unset"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "first"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Content header"
+                }
+                values {
+                  string_value: "Content first"
+                }
+                values {
+                  string_value: "Content tie-a"
+                }
+                values {
+                  string_value: "Content tie-b"
+                }
+                values {
+                  string_value: "Content last"
+                }
+                values {
+                  string_value: "Export layout"
+                }
+                values {
+                  string_value: "Inspect section"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "unknown"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "header"
+                }
+                values {
+                  string_value: "first"
+                }
+                values {
+                  string_value: "tie-a"
+                }
+                values {
+                  string_value: "tie-b"
+                }
+                values {
+                  string_value: "last"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Choose a scope first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-missing"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Choose a scope first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-null"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Choose a scope first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-empty"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Choose a scope first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-false"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Choose a scope first"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: false
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-zero"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Fetched scoped"
+                }
+              }
+            }
+          }
+          fields {
+            key: "gateOpen"
+            value {
+              bool_value: true
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "gate-open"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "gated"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "Shared nested child"
+                }
+                values {
+                  string_value: "Content inner"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "nested"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "nested"
+                }
+                values {
+                  string_value: "inner"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+      values {
+        struct_value {
+          fields {
+            key: "content"
+            value {
+              list_value {
+                values {
+                  string_value: "001.20"
+                }
+                values {
+                  string_value: "Second row"
+                }
+              }
+            }
+          }
+          fields {
+            key: "name"
+            value {
+              string_value: "repeated"
+            }
+          }
+          fields {
+            key: "order"
+            value {
+              list_value {
+                values {
+                  string_value: "nested"
+                }
+                values {
+                  string_value: "inner"
+                }
+                values {
+                  string_value: "inner"
+                }
+              }
+            }
+          }
+          fields {
+            key: "tabs"
+            value {
+              list_value {
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
