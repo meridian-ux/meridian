@@ -34,6 +34,8 @@ vitest_test(
         "tests/content.test.tsx",
         "tests/form_repeat.test.tsx",
         "tests/populate_budget.test.tsx",
+        "tests/submission_budget.test.tsx",
+        "tests/form_submit_bindings.test.tsx",
         "tests/gallery.test.tsx",
         "tests/stateful_conformance.test.ts",
         "tests/value_options.test.ts",

@@ -10,5 +10,5 @@ import type { FormFieldClasses } from "./form_fields.js";
 export function LroInputs({ panel, c, className }: { panel: LroPanel; c: FormFieldClasses; className: string }) {
   const form = create(FormPanelSchema, { mode: 2, fields: panel.inputs, submit: panel.start });
   return <FormContent panel={form} c={c} className={className} submitLabel={panel.runButtonLabel || "Run"}
-    submittingLabel="Starting…" successLabel="Started." />;
+    submittingLabel="Starting…" successLabel="Started." submissionKind="lro" />;
 }

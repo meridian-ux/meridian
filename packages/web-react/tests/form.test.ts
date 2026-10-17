@@ -31,6 +31,66 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  it("shares the submit budget across bindings and typed values, retaining input for a smaller retry", async () => {
+    const p = panel();
+    p.submit!.bindings[0].source = { case: "literal", value: "s".repeat(400_000) };
+    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
+    const view = await mount(p, invoke);
+    try {
+      const input = view.container.querySelector<HTMLInputElement>('input[name="legacy.name"]')!;
+      input.value = "v".repeat(400_000);
+      await act(async () => { submit(view.container); });
+      expect(invoke).not.toHaveBeenCalled();
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Request construction rejected");
+      expect(input.value).toHaveLength(400_000);
+      input.value = "smaller";
+      await act(async () => { submit(view.container); });
+      expect(invoke).toHaveBeenCalledOnce();
+      expect(invoke.mock.calls[0][2]).toMatchObject({ name: "smaller", count: 2, enabled: true });
+      expect(view.container.querySelector('[role="alert"]')).toBeNull();
+    } finally { await view.close(); }
+  });
+
+  it("uses explicit binding precedence and declared formField sources without changing the entered value", async () => {
+    const p = panel();
+    p.submit!.bindings.push(...[
+      { requestField: "name", source: { case: "literal" as const, value: "bound" } },
+      { requestField: "copy", source: { case: "formField" as const, value: "name" } },
+      { requestField: "hidden", source: { case: "formField" as const, value: "secret" } },
+    ].map(binding => create(FieldBindingSchema, binding)));
+    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
+    const view = await mount(p, invoke);
+    try {
+      await act(async () => { submit(view.container); });
+      expect(invoke.mock.calls[0][2]).toEqual({ scope: "scope-1", name: "bound", copy: "Ada", count: 2, enabled: true });
+      expect(view.container.querySelector<HTMLInputElement>('input[name="legacy.name"]')!.value).toBe("Ada");
+    } finally { await view.close(); }
+  });
+
+  it("maps nested LRO paths after bindings and preserves raw false, zero, and strings", async () => {
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "demo.Inputs", method: "Start", bindings: [
+        { requestField: "request.name", source: { case: "literal", value: "bound" } },
+        { requestField: "copy", source: { case: "formField", value: "name" } },
+      ] }, inputs: [
+        { fieldId: "name", requestField: "request.name", kind: { case: "text", value: { defaultValue: "001.20" } } },
+        { fieldId: "count", requestField: "counter.count", kind: { case: "integer", value: { defaultValue: 0 } } },
+        { fieldId: "outer", requestField: "config", kind: { case: "nested", value: { fields: [
+          { fieldId: "flag", requestField: "data.flag", kind: { case: "boolean", value: { defaultValue: false } } },
+        ] } } },
+      ],
+    } } });
+    if (descriptor.body.case !== "lro") throw new Error("Wrong fixture arm");
+    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
+    const container = document.createElement("div"); const root = createRoot(container);
+    try {
+      await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: { mutations: ["demo.Inputs/Start"] },
+        children: createElement(kit.Lro, { descriptor, panel: descriptor.body.value, invoker: { invoke } }) })));
+      await act(async () => { submit(container); });
+      expect(invoke).toHaveBeenCalledWith("demo.Inputs", "Start", { request: { name: "001.20" }, copy: "001.20", counter: { count: 0 }, config: { data: { flag: false } } });
+      expect(container.textContent).toContain("Started.");
+    } finally { await act(async () => root.unmount()); }
+  });
   it("admits valid nested forms despite protobuf structural wrapper depth", async () => {
     const p = panel();
     let field = create(FormFieldSchema, { fieldId: "leaf", kind: { case: "text", value: { defaultValue: "Deep value" } } });

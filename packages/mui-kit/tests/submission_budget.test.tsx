@@ -1,0 +1,88 @@
+import { create } from "@bufbuild/protobuf";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelRenderer } from "@savvifi/meridian-web-react";
+import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { MeridianMuiProvider } from "../src/provider.js";
+
+afterEach(cleanup);
+
+function descriptor(kind: "form" | "lro", scope: string) {
+  const call = { service: "demo.Inputs", method: "Submit", bindings: [{ requestField: "scope", source: { case: "literal" as const, value: scope } }] };
+  const fields = [{ fieldId: "text", requestField: "request.text", label: "Text", kind: { case: "text" as const, value: { defaultValue: "first" } } }];
+  return create(PanelDescriptorSchema, { body: kind === "form" ? { case: "form", value: { mode: 2, submit: call, fields } }
+    : { case: "lro", value: { start: call, inputs: fields } } });
+}
+
+describe("MUI submission boundary", () => {
+  for (const kind of ["form", "lro"] as const) {
+    it(`${kind}: retains oversized input on rejection and permits a smaller retry`, async () => {
+      const panel = descriptor(kind, "s".repeat(400_000));
+      const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+      render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Inputs/Submit"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
+      const input = screen.getByLabelText("Text") as HTMLInputElement;
+      fireEvent.change(input, { target: { value: "v".repeat(400_000) } });
+      fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
+      expect((await screen.findByRole("alert")).textContent).toBe("Submission failed. Try again.");
+      expect(invoke).not.toHaveBeenCalled();
+      expect(input.value).toHaveLength(400_000);
+      fireEvent.change(input, { target: { value: "smaller" } });
+      fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
+      await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+      expect(invoke).toHaveBeenCalledOnce();
+      expect(invoke.mock.calls[0][2]).toMatchObject(kind === "form" ? { text: "smaller" } : { request: { text: "smaller" } });
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
+    it(`${kind}: suppresses duplicate pending submits and isolates obsolete failures`, async () => {
+      const panel = descriptor(kind, "scope");
+      let rejectOld!: (reason: Error) => void;
+      const invoke = vi.fn<RpcInvoker["invoke"]>(() => new Promise((_, reject) => { rejectOld = reject; }));
+      const tree = (transport: RpcInvoker) => <MeridianMuiProvider invoker={transport} admission={{ mutations: ["demo.Inputs/Submit"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>;
+      const view = render(tree({ invoke }));
+      const button = screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement;
+      fireEvent.click(button); fireEvent.click(button);
+      expect(invoke).toHaveBeenCalledOnce();
+      expect(button.disabled).toBe(true);
+      view.rerender(tree({ invoke: async () => ({}) }));
+      await act(async () => rejectOld(new Error("obsolete private failure")));
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false);
+    });
+  }
+
+  it("reports a denied no-input LRO as denied without reaching transport", async () => {
+    const panel = create(PanelDescriptorSchema, { body: { case: "lro", value: { start: { service: "demo.Inputs", method: "Start" } } } });
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+    const onDenied = vi.fn();
+    render(<MeridianMuiProvider invoker={{ invoke }} admission={{ onDenied }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("Submission is not permitted.");
+    expect(invoke).not.toHaveBeenCalled();
+    expect(onDenied).toHaveBeenCalledOnce();
+  });
+
+  it("maps nested LRO paths and applies automatic inputs after explicit bindings", async () => {
+    const panel = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "demo.Inputs", method: "Start", bindings: [
+        { requestField: "request.name", source: { case: "literal", value: "bound" } },
+        { requestField: "copy", source: { case: "formField", value: "name" } },
+      ] }, inputs: [
+        { fieldId: "name", requestField: "request.name", label: "Name", kind: { case: "text", value: { defaultValue: "001.20" } } },
+        { fieldId: "count", requestField: "counter.count", label: "Count", kind: { case: "integer", value: { defaultValue: 0 } } },
+        { fieldId: "outer", requestField: "config", label: "Outer", kind: { case: "nested", value: { fields: [
+          { fieldId: "flag", requestField: "data.flag", label: "Flag", kind: { case: "boolean", value: { defaultValue: false } } },
+        ] } } },
+      ],
+    } } });
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
+    render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Inputs/Start"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+    expect(invoke).toHaveBeenCalledWith("demo.Inputs", "Start", {
+      request: { name: "001.20" }, copy: "001.20", counter: { count: 0 }, config: { data: { flag: false } },
+    });
+  });
+});

@@ -9,13 +9,13 @@
 // from a graph-backed host's a host's internal MUI component library patterns) — no a host's internal MUI component library dependency — so the MUI table +
 // form patterns are reusable by any meridian host, not just a studio console.
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useActionFeedback } from "./action_feedback.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -27,10 +27,11 @@ import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
 import {
-  buildBindingRequest,
+  buildSubmissionRequest,
   bindingRequestJson,
   buildActionBindingRequest,
   MeridianRowActionsContext,
+  MeridianRecordContext,
   MeridianViewContext,
   PaginationMode,
   useActionHandler,
@@ -727,6 +728,37 @@ function buildFields(
   return fields.map((field) => buildField(field, values, setAt, disabled, [...prefix, field.fieldId]));
 }
 
+/** Per-mounted-call lifecycle, not serialized form state. Synchronous request
+ * rejection and rejected promises share one retryable failure boundary. */
+function useSubmissionState(scope: object) {
+  const current = useRef<object | undefined>(scope);
+  current.current = scope;
+  const busy = useRef<object | undefined>(undefined);
+  const [pending, setPending] = useState<object>();
+  const [failed, setFailed] = useState<{ scope: object; message: string }>();
+  useEffect(() => {
+    current.current = scope;
+    return () => { current.current = undefined; };
+  }, [scope]);
+  async function run(operation: () => unknown | Promise<unknown>, success?: () => void): Promise<void> {
+    if (busy.current === scope) return;
+    busy.current = scope;
+    setPending(scope);
+    setFailed(undefined);
+    try {
+      await operation();
+      if (current.current === scope) success?.();
+    } catch (error) {
+      if (current.current === scope) setFailed({ scope, message: error instanceof AdmissionDeniedError
+        ? "Submission is not permitted." : "Submission failed. Try again." });
+    } finally {
+      if (busy.current === scope) busy.current = undefined;
+      if (current.current === scope) setPending(undefined);
+    }
+  }
+  return { run, pending: pending === scope, error: failed?.scope === scope ? failed.message : undefined };
+}
+
 function FieldForm({
   fields,
   disabled,
@@ -759,6 +791,8 @@ function FieldForm({
   const [optionError, setOptionError] = useState<string>();
   const seed = useMemo(() => mergeFormValues(fields, initialValues), [fields, initialValues]);
   const [values, setValues] = useState<FormObject>(seed);
+  const scope = useMemo(() => ({ fields, initialValues, onSubmit }), [fields, initialValues, onSubmit]);
+  const submission = useSubmissionState(scope);
   useEffect(() => {
     if (initialValues) setValues(seed);
   }, [initialValues, seed]);
@@ -768,30 +802,24 @@ function FieldForm({
   // destroys what the user wrote, and the write is the thing we cannot redo for
   // them. A rejected submit keeps the text so it can be retried.
   const handleSubmit = () => {
-    if (options.pending || options.error) return;
+    if (disabled || submitDisabled || !onSubmit || options.pending || options.error || submission.pending) return;
     const error = (enumInvoker ? validateFormOptions(options.fields, values) : undefined) || validateFormValues(options.fields, values);
     setOptionError(error);
     if (error) return;
-    const result = onSubmit?.(values);
-    if (!resetOnSubmit) {
-      void Promise.resolve(result).catch(() => {});
-      return;
-    }
-    void Promise.resolve(result).then(
-      () => setValues(seed),
-      () => {},
-    );
+    void submission.run(() => onSubmit(values), resetOnSubmit ? () => setValues(seed) : undefined);
   };
   return (
     <>
     {options.pending && <Typography role="status">Loading options…</Typography>}
     {(options.error || optionError) && <Alert severity="error">{options.error || optionError}</Alert>}
+    {submission.error && <Alert severity="error">{submission.error}</Alert>}
+    {submission.pending && <Typography role="status">Submitting…</Typography>}
     {options.error && <Button onClick={options.retry}>Retry options</Button>}
     <MeridianForm
-      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled).map(field =>
+      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled || submission.pending).map(field =>
         field.type === "text" && multilineRows?.has(field.key) ? { ...field, multilineRows: multilineRows.get(field.key) } : field)}
       description={description || undefined}
-      submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error), onSubmit: handleSubmit }}
+      submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error) || submission.pending, onSubmit: handleSubmit }}
     />
     </>
   );
@@ -813,6 +841,7 @@ function BoundedDefaults({ fields, children }: { fields: readonly FormField[]; c
 
 function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
   const mutationInvoker = useMutationRpcInvoker();
+  const record = useContext(MeridianRecordContext);
   const edit = panel.mode === FormMode.EDIT;
   // Does this form CREATE something, or edit something that already exists? The
   // descriptor doesn't say, so read it off the fields: a form that opens blank is
@@ -853,8 +882,8 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   // bound op could never be satisfied: the scope field simply never arrived, and
   // the only workarounds were a fake editable input or a bespoke panel.
   //
-  // Field values WIN over bindings on a key collision — the binding supplies the
-  // context the form cannot, never overrides what the user actually entered.
+  // Match the shared core: explicit bindings win over automatic field-ID values.
+  // An authored scope must not be replaced by an editable field on collision.
   if (edit && !prefillRequest) return <Alert severity="error">Form request rejected.</Alert>;
   return (
     <FieldForm
@@ -867,10 +896,11 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
       onSubmit={
         edit
           ? (values) =>
-              invoke(mutationInvoker, panel.submit, {
-                ...buildBindingRequest(panel.submit, selection.values),
-                ...(values as Row),
-              })
+              {
+                if (!panel.submit) throw new Error("Missing submit call.");
+                return invoke(mutationInvoker, panel.submit,
+                  buildSubmissionRequest(panel.submit, panel.fields, values as Row, selection.values, "form", record));
+              }
           : undefined
       }
       resetOnSubmit={createLike}
@@ -965,20 +995,31 @@ function PromptShape({ panel, descriptor }: ShapeProps<PromptPanel>): ReactNode 
 
 function LroShape({ panel }: { panel: LroPanel }): ReactNode {
   const mutationInvoker = useMutationRpcInvoker();
+  const invoker = useRpcInvoker();
+  const selection = useMeridianSelection();
+  const record = useContext(MeridianRecordContext);
+  const scope = useMemo(() => ({ panel, mutationInvoker, selection: selection.values, record }), [panel, mutationInvoker, selection.values, record]);
+  const submission = useSubmissionState(scope);
+  const start = (values: Row) => {
+    if (!panel.start) throw new Error("Missing start call.");
+    return invoke(mutationInvoker, panel.start, buildSubmissionRequest(panel.start, panel.inputs, values, selection.values, "lro", record));
+  };
   if (panel.inputs.length > 0) {
     return (
       <FieldForm
         fields={panel.inputs}
         disabled={false}
+        enumInvoker={invoker}
         submitLabel={panel.runButtonLabel || "Run"}
-        onSubmit={(values) => invoke(mutationInvoker, panel.start, values as Row)}
+        onSubmit={(values) => start(values as Row)}
       />
     );
   }
   return (
-    <Button variant="contained" onClick={() => void invoke(mutationInvoker, panel.start)?.catch(() => {})}>
+    <><Button variant="contained" disabled={submission.pending} onClick={() => { void submission.run(() => start({})); }}>
       {panel.runButtonLabel || "Run"}
-    </Button>
+    </Button>{submission.pending && <Typography role="status">Starting…</Typography>}
+    {submission.error && <Alert severity="error">{submission.error}</Alert>}</>
   );
 }
 

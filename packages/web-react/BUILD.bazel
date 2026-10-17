@@ -97,6 +97,7 @@ vitest_test(
         "tests/gallery.test.ts",
         "tests/resource_cards.test.ts",
         "tests/action_request.test.ts",
+        "tests/submission_request.test.ts",
         "tests/selection.test.ts",
         "tests/table_actions.test.ts",
         "tests/fixtures.ts",
@@ -113,6 +114,7 @@ vitest_test(
         "//packages/web-react:node_modules/vitest",
         "//schemas:conformance_fixtures",
         "//schemas:value_option_data",
+        "//schemas/src/uiview:core_runtime_library",
         ":node_modules/jsdom",
     ],
 )
