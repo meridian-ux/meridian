@@ -10,11 +10,7 @@
 //     <ViewRenderer view={viewDescriptor} />
 //   </MeridianMuiProvider>
 
-import { useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
-
-import { CssBaseline, GlobalStyles } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
 
 import { MeridianProvider } from "@savvifi/meridian-web-react";
 import type {
@@ -30,21 +26,7 @@ import type { AdmissionPolicy, RpcInvoker } from "@savvifi/meridian-schemas/uivi
 
 import { MeridianAssetContext, type MeridianAssetResolver } from "./asset_context.js";
 import { muiKit } from "./mui_kit.js";
-import {
-  missingThemeFonts,
-  themeProtoToCssVars,
-  themeProtoToFontFaceCss,
-  themeProtoToMuiTheme,
-} from "./theme.js";
-
-// Dev-only guards read NODE_ENV without pulling @types/node into this browser
-// library (tsconfig keeps `types: []`): a minimal ambient + defensive access.
-// Bundlers inline `process.env.NODE_ENV`; a bare browser without the define
-// simply skips the check rather than throwing a ReferenceError.
-declare const process: { env?: { NODE_ENV?: string } } | undefined;
-function isProduction(): boolean {
-  return typeof process !== "undefined" && process?.env?.NODE_ENV === "production";
-}
+import { MuiThemeBoundary } from "./theme_provider.js";
 
 export interface MeridianMuiProviderProps {
   onPromptResponse?: MeridianContextValue["onPromptResponse"];
@@ -94,45 +76,8 @@ export function MeridianMuiProvider({
   resolveAssetSrc,
   children,
 }: MeridianMuiProviderProps): ReactNode {
-  const muiTheme = useMemo(() => themeProtoToMuiTheme(theme, mode), [theme, mode]);
-  const cssVars = useMemo(() => themeProtoToCssVars(theme, mode), [theme, mode]);
-  const fontFaceCss = useMemo(() => themeProtoToFontFaceCss(theme), [theme]);
-
-  // A skin naming a face the browser cannot resolve renders in a fallback with
-  // no error — the brand silently does not apply, and nobody finds out. Say so
-  // once, in development, rather than letting it pass unnoticed. Never throws
-  // and never runs in production.
-  useEffect(() => {
-    if (isProduction()) return;
-    const report = (): void => {
-      const missing = missingThemeFonts(theme);
-      if (missing.length === 0) return;
-      console.warn(
-        `[meridian-mui-kit] The active skin asks for ${missing
-          .map((f) => `"${f}"`)
-          .join(", ")}, which the browser cannot resolve — text is rendering in a ` +
-          `fallback face and the brand is not being applied. Either declare the ` +
-          `source on the skin (meridian.theme.v1.Typography.fonts) or load the ` +
-          `face in the host page.`,
-      );
-    };
-    // Wait for in-flight webfonts before judging, so a face that simply hadn't
-    // finished loading is not reported as missing.
-    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
-    if (fonts?.ready) void fonts.ready.then(report).catch(() => report());
-    else report();
-  }, [theme]);
-
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      {/* The skin's own @font-face rules, so a face it names is actually
-          available rather than assumed to be loaded by the host. Empty for
-          skins that declare no sources. */}
-      {fontFaceCss ? <GlobalStyles styles={fontFaceCss} /> : null}
-      {/* Expose the skin as --mer-* vars so ViewRenderer's kit-neutral layout
-          chrome (tab strip, etc.) picks up the active theme. */}
-      <div style={cssVars}>
+    <MuiThemeBoundary theme={theme} mode={mode}>
         <MeridianProvider
           theme={theme}
           invoker={invoker}
@@ -148,7 +93,6 @@ export function MeridianMuiProvider({
         >
           <MeridianAssetContext.Provider value={resolveAssetSrc}>{children}</MeridianAssetContext.Provider>
         </MeridianProvider>
-      </div>
-    </ThemeProvider>
+    </MuiThemeBoundary>
   );
 }

@@ -92,6 +92,7 @@ rust_test(
     deps = [
         ":tui",
         "//crates/core/rust/uiview",
+        "//crates/core/rust/uiview:theme_proto",
         "//crates/core/rust:serde_json",
         "@meridian_crates//:crossterm",
         "@meridian_crates//:prost",

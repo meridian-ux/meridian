@@ -17,6 +17,10 @@
       "types": "./src/uiview/index.d.ts",
       "import": "./src/uiview/index.js"
     },
+    "./theme": {
+      "types": "./src/theme/index.d.ts",
+      "import": "./src/theme/index.js"
+    },
     "./uiview": {
       "types": "./src/uiview/index.d.ts",
       "import": "./src/uiview/index.js"
@@ -24,7 +28,9 @@
   },
   "files": [
     "src/uiview/**/*.js",
-    "src/uiview/**/*.d.ts"
+    "src/uiview/**/*.d.ts",
+    "src/theme/index.js",
+    "src/theme/index.d.ts"
   ],
   "dependencies": {
     "@savvifi/meridian-proto-ts": "0.25.1",

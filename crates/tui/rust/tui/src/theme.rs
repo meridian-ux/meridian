@@ -21,6 +21,9 @@ pub mod proto {
 // Re-export the wire types the TUI binding consumes. `Typography` and
 // `Metrics` (fonts, radii, spacing) carry no terminal mapping, so they aren't
 // re-exported here — reach them via `theme::proto::*` if needed.
+// Metrics scale/density/stroke are deliberately degraded: terminal geometry
+// stays in character cells, with no guessed CSS-pixel conversion. In particular,
+// zero decorative stroke never removes terminal structure or selection cues.
 pub use proto::{Palette as ProtoPalette, Theme};
 
 /// Which sub-palette of a Theme to render with. A Theme always carries

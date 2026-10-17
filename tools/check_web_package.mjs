@@ -48,15 +48,26 @@ import { webComponentsRenderer, renderPanel, decodeBundle, type UiviewWasm } fro
 import { registerChatPanel } from '@savvifi/meridian-web/toolkit';
 import { applyTheme } from '@savvifi/meridian-web/theme';
 import { formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
+import { resolveMetrics } from '@savvifi/meridian-schemas/theme';
 export { webComponentsRenderer, renderPanel, decodeBundle, registerChatPanel, applyTheme };
 export type { UiviewWasm };
 const metadata: string = formatLroMetadata({state: 'DONE'});
 const viewText: string = staticViewText(new Uint8Array());
+const spacing: number = resolveMetrics({spacingScalePx: [0, 2, 6], densityScale: 0.75, strokePx: 0}, 4).spacing(1.5);
 // @ts-expect-error Core inputs must remain typed, not erode to any.
 staticViewText('not wire bytes');
-export { metadata, viewText };
+export { metadata, viewText, spacing };
 `);
 run(process.execPath, [join(staging, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], staging);
+// Style-only consumers must not pull the synchronous WASM core or a renderer.
+writeFileSync(join(staging, "theme-only.mjs"), `export { resolveMetrics } from '@savvifi/meridian-schemas/theme';`);
+run(process.execPath, [join(staging, "node_modules/esbuild/bin/esbuild"), "theme-only.mjs", "--bundle", "--platform=browser", "--format=esm", "--outfile=theme-only-bundle.mjs", "--metafile=theme-only-meta.json"], staging);
+const themeInputs = Object.keys(JSON.parse(readFileSync(join(staging, "theme-only-meta.json"), "utf8")).inputs);
+assert(themeInputs.length > 0 && themeInputs.every(input => input === "theme-only.mjs" || input.endsWith("/meridian-schemas/src/theme/index.js")),
+  `style-only entrypoint must not import runtime dependencies: ${themeInputs}`);
+const { resolveMetrics } = await import(join(staging, "theme-only-bundle.mjs"));
+assert.equal(resolveMetrics({ spacingScalePx: [0, 2, 6], densityScale: 0.75, strokePx: 0 }, 4).spacing(1.5), 3);
+assert.equal(resolveMetrics({ strokePx: 0 }, 4).strokePx, 0);
 // Browser consumers resolve xterm's `module` entry, unlike Node's CJS loader.
 // Bundle from installed tarballs with the same pinned esbuild version as pnpm.
 writeFileSync(join(staging, "browser-entry.mjs"), `

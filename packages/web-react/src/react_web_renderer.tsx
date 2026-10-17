@@ -26,8 +26,9 @@ export function reactWebRenderer(
     id: `react:${kit.id}`,
     mount(opts: MountOptions<Theme, ReactAdhocFactory>): PanelHandle {
       const root = createRoot(opts.container);
-      const draw = (descriptor: PanelDescriptor) =>
-        root.render(
+      const ThemeProvider = kit.ThemeProvider;
+      const draw = (descriptor: PanelDescriptor) => {
+        const content = (
           <MeridianProvider
             theme={opts.theme}
             invoker={opts.invoker}
@@ -43,8 +44,10 @@ export function reactWebRenderer(
             }
           >
             <PanelRenderer descriptor={descriptor} />
-          </MeridianProvider>,
+          </MeridianProvider>
         );
+        root.render(ThemeProvider ? <ThemeProvider theme={opts.theme}>{content}</ThemeProvider> : content);
+      };
       draw(opts.descriptor);
       return {
         update: (descriptor: PanelDescriptor) => draw(descriptor),

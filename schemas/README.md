@@ -26,6 +26,10 @@ It ships three things:
   implementation as native surfaces, without a runtime asset fetch or a second
   JavaScript formatter. Host routing and renderer decoration remain separate.
 
+Static theme spacing is also available through the style-only
+`@savvifi/meridian-schemas/theme` entrypoint. It imports no WASM or renderer;
+see [METRICS.md](METRICS.md) for bounds, defaults, and modality limits.
+
 The shared native core lives under `crates/core` and depends only on the proto
 contract layer, not the JavaScript seam. The seam packages its WASM output; this
 does not create a renderer dependency cycle. Native/external renderer status is

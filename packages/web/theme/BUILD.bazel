@@ -10,6 +10,7 @@ ts_project(
     declaration = True,
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
+    deps = ["//packages/web:node_modules/@savvifi/meridian-schemas"],
 )
 
 js_library(
@@ -21,6 +22,7 @@ js_library(
 js_library(
     name = "binding",
     srcs = ["web/theme.ts"],
+    deps = ["//packages/web:node_modules/@savvifi/meridian-schemas"],
 )
 
 # Meridian's style layer (web binding). Pure static assets a host stages next

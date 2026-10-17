@@ -83,14 +83,20 @@ export interface ActionBarProps {
 export interface ComponentKit {
   /** Stable id, e.g. "mui" / "shadcn" / "html". Used in the renderer id. */
   readonly id: string;
+  /** Optional style-only boundary for the WebRenderer mount adapter. Kits such
+   * as MUI need a framework theme provider as well as root CSS declarations.
+   * Direct host integrations install their own boundary, exactly once. */
+  ThemeProvider?: ComponentType<{ theme?: Theme; children: ReactNode }>;
   /**
    * Bind a meridian.theme.v1.Theme to this kit's style primitive (MUI theme,
    * CSS custom properties, Tailwind config, …). Returned style is applied to the
    * panel container. Optional — a kit may bind the theme its own way.
    */
   themeToStyle?(theme: Theme | undefined): CSSProperties;
-  /** Optional wrapper around every panel (title bar, surface, padding). */
-  Chrome?: ComponentType<{ descriptor: PanelDescriptor; children: ReactNode }>;
+  /** Optional wrapper around every panel (title bar, surface, padding).
+   * Forward style to its existing root to realize themeToStyle without adding
+   * a remounting wrapper. Composed views apply the same binding at their root. */
+  Chrome?: ComponentType<{ descriptor: PanelDescriptor; children: ReactNode; style?: CSSProperties }>;
   Table: ComponentType<TablePanelProps>;
   Prompt: ComponentType<PromptPanelProps>;
   Lro: ComponentType<LroPanelProps>;

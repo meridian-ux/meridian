@@ -145,6 +145,7 @@ npm_package(
         "schemas.package.json",
         "//schemas/src/uiview:core_runtime",
         "//schemas/src/uiview:seam",
+        "//schemas/src/theme:theme",
     ],
     package = "@savvifi/meridian-schemas",
     replace_prefixes = {"schemas.package.json": "package.json"},

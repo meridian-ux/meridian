@@ -8,7 +8,8 @@ import type { CSSProperties } from "react";
 
 import { createTheme, type Theme as MuiTheme } from "@mui/material/styles";
 
-import type { Palette, Theme, Typography } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { Metrics, Palette, Theme, Typography } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { resolveMetrics } from "@savvifi/meridian-schemas/theme";
 import { safeFontSrc } from "@savvifi/meridian-schemas/uiview";
 
 export interface ThemeConfig {
@@ -31,12 +32,15 @@ export interface ThemeConfig {
     /** Code font stack. */
     mono: string;
     baseSizePx: number;
+    /** Canonical nonzero body size, not MUI's legacy coefficient-only default. */
+    explicitBodySize?: boolean;
     headingWeight: number;
     bodyWeight: number;
     /** Heading letter-spacing in em, e.g. "-0.015". */
     headingTracking: string;
   };
-  metrics: { radiusPx: number; unitPx: number };
+  metrics: { radiusPx: number; unitPx: number } & Partial<Pick<Metrics,
+    "spacingScalePx" | "densityScale" | "strokePx">>;
 }
 
 // Neutral defaults for any token a Theme leaves unset (proto3 scalars default to
@@ -156,6 +160,7 @@ export function themeProtoToThemeConfig(
       display: pick((type as ForwardTypography | undefined)?.display, sans),
       mono: pick(type?.mono, FALLBACK.mono),
       baseSizePx: pickNum(type?.baseSizePx, FALLBACK.baseSizePx),
+      ...(type?.baseSizePx ? { explicitBodySize: true } : {}),
       headingWeight: pickNum(type?.headingWeight, FALLBACK.headingWeight),
       bodyWeight: pickNum(type?.bodyWeight, FALLBACK.bodyWeight),
       headingTracking: pick(type?.headingTracking, FALLBACK.headingTracking),
@@ -163,12 +168,16 @@ export function themeProtoToThemeConfig(
     metrics: {
       radiusPx: pickNum(theme?.metrics?.radiusPx, FALLBACK.radiusPx),
       unitPx: pickNum(theme?.metrics?.unitPx, FALLBACK.unitPx),
+      ...(theme?.metrics?.spacingScalePx?.length ? { spacingScalePx: [...theme.metrics.spacingScalePx] } : {}),
+      ...(theme?.metrics?.densityScale !== undefined ? { densityScale: theme.metrics.densityScale } : {}),
+      ...(theme?.metrics?.strokePx !== undefined ? { strokePx: theme.metrics.strokePx } : {}),
     },
   };
 }
 
 /** Build a MUI theme from a ThemeConfig (the lifted `createStudioTheme`). */
 export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
+  const metrics = resolveMetrics(config.metrics, FALLBACK.unitPx);
   return createTheme({
     palette: {
       mode: config.mode,
@@ -184,6 +193,13 @@ export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
     typography: {
       fontFamily: config.typography.sans,
       fontSize: config.typography.baseSizePx,
+      // MUI's fontSize coefficient is based on 14px, while body1 starts at
+      // 16px. A declared canonical body size must mean the actual body size.
+      // Preserve the old MUI scale when the proto leaves this token unset;
+      // explicit sizes scale all variants from body1, retaining rem semantics.
+      ...(config.typography.explicitBodySize ? {
+        pxToRem: (size: number) => `${size * config.typography.baseSizePx / 256}rem`,
+      } : {}),
       fontWeightRegular: config.typography.bodyWeight,
       fontWeightMedium: config.typography.headingWeight,
       // Headings take the skin's DISPLAY face, which is `sans` unless the brand
@@ -203,12 +219,13 @@ export function createMuiThemeFromConfig(config: ThemeConfig): MuiTheme {
       ),
     },
     shape: { borderRadius: config.metrics.radiusPx },
-    spacing: config.metrics.unitPx,
+    spacing: metrics.hasSpacing ? (factor: number | string) =>
+      typeof factor === "string" ? factor : metrics.spacing(factor) : config.metrics.unitPx,
     components: {
       MuiButton: { styleOverrides: { root: { textTransform: "none" } } },
       MuiCard: {
         styleOverrides: {
-          root: { border: `1px solid ${config.border.card}`, boxShadow: "none" },
+          root: { border: `${metrics.strokePx ?? 1}px solid ${config.border.card}`, boxShadow: "none" },
         },
       },
     },
@@ -362,5 +379,11 @@ export function themeProtoToCssVars(
   for (const role of ["info", "success", "warning", "danger"] as const) {
     if (palette[role]) vars[`--mer-${role}`] = palette[role];
   }
+  const metrics = resolveMetrics(config.metrics, FALLBACK.unitPx);
+  if (metrics.hasSpacing) {
+    for (const factor of [1, 1.5, 2, 3, 3.5, 4, 5, 6])
+      vars[`--mer-space-${String(factor).replace(".", "-")}`] = `${metrics.spacing(factor)}px`;
+  }
+  if (metrics.strokePx !== undefined) vars["--mer-stroke"] = `${metrics.strokePx}px`;
   return vars as CSSProperties;
 }

@@ -47,27 +47,27 @@
   display: flex;
   flex-wrap: wrap;
   align-items: start;
-  gap: calc(var(--mer-unit, 4px) * 4);
-  margin-bottom: calc(var(--mer-unit, 4px) * 6);
+  gap: var(--mer-space-4, calc(var(--mer-unit, 4px) * 4));
+  margin-bottom: var(--mer-space-6, calc(var(--mer-unit, 4px) * 6));
 }
 .meridian-uiview-view-title { margin: 0; }
 .meridian-uiview-view-body,
 .meridian-uiview-col-main,
 .meridian-uiview-col-sidebar {
   display: grid;
-  gap: calc(var(--mer-unit, 4px) * 6);
+  gap: var(--mer-space-6, calc(var(--mer-unit, 4px) * 6));
 }
 .meridian-uiview-two-column { display: flex; flex-wrap: wrap; align-items: start; }
 .meridian-uiview-col-main { flex: 1 1 320px; }
 .meridian-uiview-col-sidebar { flex: 0 1 240px; }
-.meridian-uiview-tablist { display: flex; flex-wrap: wrap; gap: var(--mer-unit, 4px); }
+.meridian-uiview-tablist { display: flex; flex-wrap: wrap; gap: var(--mer-space-1, var(--mer-unit, 4px)); }
 .meridian-uiview-tab {
   appearance: none;
   background: transparent;
   color: var(--mer-fg, inherit);
   border: 0;
   border-bottom: 2px solid transparent;
-  padding: calc(var(--mer-unit, 4px) * 2) calc(var(--mer-unit, 4px) * 3);
+  padding: var(--mer-space-2, calc(var(--mer-unit, 4px) * 2)) var(--mer-space-3, calc(var(--mer-unit, 4px) * 3));
   font: inherit;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -85,19 +85,19 @@
   font-weight: var(--mer-heading-weight, 600);
   letter-spacing: var(--mer-heading-tracking, -0.01em);
   color: var(--_fg);
-  margin: 0 0 calc(var(--_unit) * 1) 0;
+  margin: 0 0 var(--mer-space-1, var(--_unit)) 0;
 }
 
 .meridian-uiview-meta {
   color: var(--_muted);
   font-size: 0.875em;
-  margin: 0 0 calc(var(--_unit) * 3) 0;
+  margin: 0 0 var(--mer-space-3, calc(var(--_unit) * 3)) 0;
 }
 
 .meridian-uiview-placeholder {
   color: var(--_muted);
-  padding: calc(var(--_unit) * 4);
-  border: 1px dashed var(--_border);
+  padding: var(--mer-space-4, calc(var(--_unit) * 4));
+  border: var(--mer-stroke, 1px) dashed var(--_border);
   border-radius: var(--_radius);
   text-align: center;
 }
@@ -105,7 +105,7 @@
 .meridian-uiview-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--_border);
+  border: var(--mer-stroke, 1px) solid var(--_border);
   border-radius: var(--_radius);
   overflow: hidden;
 }
@@ -113,7 +113,7 @@
 .meridian-uiview-table th,
 .meridian-uiview-table td {
   text-align: left;
-  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  padding: var(--mer-space-2, calc(var(--_unit) * 2)) var(--mer-space-3, calc(var(--_unit) * 3));
   border-bottom: 1px solid var(--_border);
 }
 
@@ -150,7 +150,7 @@
   padding: 1px 5px;
 }
 .meridian-uiview-body pre {
-  padding: calc(var(--_unit) * 3);
+  padding: var(--mer-space-3, calc(var(--_unit) * 3));
   overflow: auto;
 }
 
@@ -158,8 +158,8 @@
 .meridian-uiview-body button {
   font: inherit;
   cursor: pointer;
-  padding: calc(var(--_unit) * 1.5) calc(var(--_unit) * 3);
-  border: 1px solid var(--_border);
+  padding: var(--mer-space-1-5, calc(var(--_unit) * 1.5)) var(--mer-space-3, calc(var(--_unit) * 3));
+  border: var(--mer-stroke, 1px) solid var(--_border);
   border-radius: var(--_radius);
   background: var(--_surface);
   color: var(--_fg);
@@ -177,14 +177,14 @@
 .meridian-uiview-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--mer-unit, 4px);
-  margin: 0 0 calc(var(--mer-unit, 4px) * 2) 0;
+  gap: var(--mer-space-1, var(--mer-unit, 4px));
+  margin: 0 0 var(--mer-space-2, calc(var(--mer-unit, 4px) * 2)) 0;
 }
 .meridian-uiview-actions button {
   font: inherit;
   cursor: pointer;
-  padding: calc(var(--mer-unit, 4px) * 1.5) calc(var(--mer-unit, 4px) * 3);
-  border: 1px solid var(--mer-border, #2c2f37);
+  padding: var(--mer-space-1-5, calc(var(--mer-unit, 4px) * 1.5)) var(--mer-space-3, calc(var(--mer-unit, 4px) * 3));
+  border: var(--mer-stroke, 1px) solid var(--mer-border, #2c2f37);
   border-radius: var(--mer-radius, 8px);
   background: var(--mer-surface, #1c1e24);
   color: var(--mer-fg, #ece7da);
@@ -220,9 +220,9 @@
   line-height: 1.45;
   background: var(--_code-bg);
   color: var(--_code-fg);
-  border: 1px solid var(--_border);
+  border: var(--mer-stroke, 1px) solid var(--_border);
   border-radius: var(--_radius);
-  padding: calc(var(--_unit) * 2) calc(var(--_unit) * 3);
+  padding: var(--mer-space-2, calc(var(--_unit) * 2)) var(--mer-space-3, calc(var(--_unit) * 3));
   max-height: var(--mer-stream-height, 22rem);
   overflow: auto;
   overscroll-behavior: contain;
@@ -244,7 +244,7 @@
   font-family: var(--_sans);
   font-weight: var(--mer-heading-weight, 600);
   letter-spacing: var(--mer-heading-tracking, -0.01em);
-  margin: 0 0 calc(var(--_unit) * 1) 0;
+  margin: 0 0 var(--mer-space-1, var(--_unit)) 0;
 }
 /* The status chip carries `data-status` so a skin can color a "failed" build
  * differently from a "succeeded" one WITHOUT the renderer hardcoding either
@@ -253,20 +253,20 @@
   display: inline-block;
   padding: 1px 8px;
   border-radius: 999px;
-  border: 1px solid var(--_border);
+  border: var(--mer-stroke, 1px) solid var(--_border);
   background: var(--_surface);
   color: var(--_muted);
   font-size: 0.8125em;
 }
 .meridian-uiview-record-subtitle {
   color: var(--_muted);
-  margin: calc(var(--_unit) * 2) 0 0 0;
+  margin: var(--mer-space-2, calc(var(--_unit) * 2)) 0 0 0;
 }
 .meridian-uiview-record-rows {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: calc(var(--_unit) * 1) calc(var(--_unit) * 4);
-  margin: calc(var(--_unit) * 3) 0 0 0;
+  gap: var(--mer-space-1, var(--_unit)) var(--mer-space-4, calc(var(--_unit) * 4));
+  margin: var(--mer-space-3, calc(var(--_unit) * 3)) 0 0 0;
 }
 .meridian-uiview-record-rows dt {
   color: var(--_muted);
@@ -286,18 +286,18 @@
 .mer-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-  gap: calc(var(--_unit) * 4);
+  gap: var(--mer-space-4, calc(var(--_unit) * 4));
 }
 .mer-gallery-card {
   min-width: 0;
   overflow-wrap: anywhere;
-  padding: calc(var(--_unit) * 3);
-  border: 1px solid var(--_border);
+  padding: var(--mer-space-3, calc(var(--_unit) * 3));
+  border: var(--mer-stroke, 1px) solid var(--_border);
   border-radius: var(--_radius);
   background: var(--_surface);
 }
 .mer-gallery-card-title {
-  margin: 0 0 calc(var(--_unit) * 2);
+  margin: 0 0 var(--mer-space-2, calc(var(--_unit) * 2));
 }
 .mer-gallery-card-link:focus-visible {
   outline: 2px solid var(--_accent);
@@ -311,7 +311,7 @@
 }
 .mer-steps > ol {
   display: grid;
-  gap: calc(var(--_unit) * 4);
+  gap: var(--mer-space-4, calc(var(--_unit) * 4));
   padding-inline-start: 2em;
   list-style: decimal;
 }

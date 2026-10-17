@@ -25,6 +25,32 @@ describe("web theme Typography fields 3–5", () => {
   });
 });
 
+describe("web Metrics additions", () => {
+  it("binds interpolated spacing, density, and intentional zero stroke", () => {
+    expect(themeToCssVars({ metrics: {
+      spacing_scale_px: [0, 2, 6, 12], density_scale: 0.75, stroke_px: 0,
+    } })).toMatchObject({ "--mer-space-1": "1.5px", "--mer-space-1-5": "3px",
+      "--mer-space-3": "9px", "--mer-space-6": "9px", "--mer-stroke": "0px" });
+  });
+  it("preserves legacy output without additions and ignores invalid stroke", () => {
+    expect(themeToCssVars({ metrics: { unit_px: 7, radius_px: 12 } })).toEqual({
+      "--mer-unit": "7px", "--mer-radius": "12px",
+    });
+    expect(themeToCssVars({ metrics: { stroke_px: 9 } })).not.toHaveProperty("--mer-stroke");
+    expect(themeToCssVars({ metrics: { spacing_scale_px: [0, 3, 2], density_scale: 0 } })).toEqual({});
+  });
+  it("restores owned Metrics variables when a theme is replaced", () => {
+    const element = document.createElement("main");
+    element.style.setProperty("--mer-space-1", "17px");
+    applyTheme({ metrics: { spacing_scale_px: [0, 2], stroke_px: 0 } }, "light", element);
+    expect(element.style.getPropertyValue("--mer-space-1")).toBe("2px");
+    applyTheme({}, "light", element);
+    expect(element.style.getPropertyValue("--mer-space-1")).toBe("17px");
+    expect(element.style.getPropertyValue("--mer-space-6")).toBe("");
+    expect(element.style.getPropertyValue("--mer-stroke")).toBe("");
+  });
+});
+
 describe("theme application lifecycle", () => {
   it("removes tokens omitted by a replacement theme rather than leaking the old skin", () => {
     const element = document.createElement("main");

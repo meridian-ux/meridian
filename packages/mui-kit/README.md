@@ -141,6 +141,12 @@ const renderer = reactWebRenderer(muiKit);
 const handle = renderer.mount({ container, descriptor, theme, invoker, adhoc });
 ```
 
+The single-panel adapter installs the kit's real theme boundary, defaults to
+light mode, and scopes its baseline to the mounted subtree. The regular
+`MeridianMuiProvider` owns the explicit light/dark mode for composed applications;
+it uses the same theme projection, without a second adapter boundary. Custom
+kits can supply an optional `ComponentKit.ThemeProvider` for their mount adapter.
+
 ## Exports
 
 - `muiKit` — the `ComponentKit` (Table · Form · Prompt · Lro · Fallback · ActionBar · Chrome · themeToStyle).
