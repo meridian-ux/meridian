@@ -65,23 +65,60 @@ The isolated expanded candidate tests these additional invoke tags:
 
 Existing uri=5, command=6, style=7, optional tone=8 and emphasis=9 are untouched.
 These allocations are **proposal candidates**, not production reservations.
-Placement, predicate, optional refresh, and canonical collection/submit siblings
-still require descriptor-driven tag allocation and full adoption tests in #47.
-Do not claim the candidate implements those adapters or host admission.
+The isolated candidate additionally proposes:
+
+| Message | Proposed field | Tag | Payload/presence |
+|---|---|---|---|
+| Affordance | placement | 15 | optional existing ActionPlacement |
+| Affordance | enabled_when | 16 | existing RowFilter |
+| Affordance | refresh_on_success | 17 | optional bool |
+| Command | affordance | 12 | singular Affordance |
+| ViewDescriptor | affordances | 10 | singular AffordanceCollection |
+| Slot | affordances | 13 | singular AffordanceCollection |
+| TablePanel | affordances | 8 | singular AffordanceCollection |
+| FormPanel | submit_affordance | 6 | singular Affordance |
+
+`AffordanceCollection` is a new candidate message in interaction.proto, with
+`repeated Affordance items = 1`. A message-valued collection distinguishes absent
+(legacy adaptation) from explicitly empty (no legacy revival). Direct repeated
+siblings cannot express that distinction. This is a proposal for review, not an
+approved producer/host contract. Existing Action/RowAction/Command fields remain
+untouched; source deprecation, removal, and actual adapter adoption are outstanding.
+
+The probe rejects occupied/reserved names and tags against current descriptors,
+checks exact added types/labels/oneofs and optional presence, and verifies all
+old declaration contents after removing only the specified candidate additions.
+The SCC remains nine files. No production reservation or field is introduced.
+Do not claim the candidate implements normalization, precedence enforcement,
+dispatch, host admission, or renderer adoption.
 
 ## Evidence and limits
 
 The reproducible probe verifies:
 
-- All 213 existing message/enum declarations, including nested declarations,
-  retain their contents under pure relocation. The expanded candidate changes
-  only Affordance's five proposed fields; old field descriptors/options remain
-  byte-identical.
+- All 216 current message/enum declarations, including nested declarations,
+  retain their contents under pure relocation. The expanded candidate adds the
+  specified invoke/policy/envelope fields and one collection message (217 total);
+  old fields, options, enums, and oneofs remain byte-identical. The count is
+  measured from current descriptors, not treated as a forever-fixed baseline.
 - All 24 panel fixtures retain identical canonical wire and proto-JSON output.
   All seven invoke arms, including raw command text, typed recursive inline
   panels, RPC bindings, and empty copy text, round-trip through the candidate.
   Old binary readers preserve unknown new arms; **old JSON readers are not an
   unknown-field preservation channel**.
+- 84 invocation/policy combinations preserve absent/explicit-unspecified/unknown
+  placement, absent/false/true refresh, explicit neutral tone/emphasis, predicates,
+  raw RPC bindings, and empty copy text through an old binary reader and back.
+  Unknown wire fields may reorder; recovered typed messages and canonical
+  re-encoding match. Raw field order is not an additional compatibility promise.
+- 18 view/slot/table/form/command envelope cases preserve absent versus explicit
+  empty canonical messages and populated collections, alongside legacy bindings,
+  predicates, refresh, and all palette search metadata. Both old binary and old
+  JSON decoders still expose the legacy fields. **An old host cannot honor a new
+  empty override or canonical precedence merely because bytes are preserved.**
+  Conflicting dual-written targets, canonical tombstones, and new policy require
+  upgraded-host/version gating or separately proven equivalent legacy targets.
+  No execution-equivalence or denial guarantee for old hosts is claimed here.
 - Both pinned protobuf-es 2.12.1 generation modes, JS+declarations and TypeScript,
   fail old imports without explicit facades (TS2305). Generated facade
   re-exports restore all 90 named exports per mode (180 checks across two modes),
@@ -149,8 +186,8 @@ external Java/JavaFX applications. Descriptor-holder methods returning old
 file descriptors, positional message lists, dependency lists, and descriptor
 object identity cannot silently be treated as equivalent to a new canonical file.
 The SwiftUI foundation merged separately in PR #152. A copied isolated package
-with the same pinned SwiftProtobuf 1.39.0 generator/runtime passes all 13 public
-macOS tests against pure relocation, including native view layout and host
+with the same pinned SwiftProtobuf 1.39.0 generator/runtime passes the current public
+macOS test suite against pure relocation, including native view layout and host
 policy checks. The expanded candidate correctly fails compilation at the
 host's exhaustive invoke switch; handling new targets is required adoption
 work, not an implicit capability grant. The Swift CI job repeats this
