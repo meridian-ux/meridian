@@ -68,6 +68,15 @@ def cases():
     result.append({"name": "repeated", "view": {"id": "repeated", "title": "Shared repeated root", "slots": [repeated]},
                    "context": {}, "responses": {"fixture.Layout.Rows": {"rows": [{"name": "001.20", "enabled": False, "count": 0}, {"name": "Second row"}]}},
                    "order": ["nested", "inner", "inner"], "tabs": [], "content": ["001.20", "Second row"]})
+    for case in result:
+        name = case["name"]
+        case["staticOrder"] = case["order"] + (["first"] if name == "tabbed" else [])
+        case["staticContent"] = case["content"] + (["Content first"] if name == "tabbed" else [])
+        if name.startswith("gate-"):
+            case["staticContent"] = ["Choose a scope first", "host context unavailable"]
+        elif name == "repeated":
+            case["staticOrder"] = ["nested", "inner"]
+            case["staticContent"] = ["Repeated template only", "fixture.Layout/Rows", "Shared nested child", "Panel inner"]
     return result
 
 

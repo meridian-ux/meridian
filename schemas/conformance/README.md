@@ -208,6 +208,22 @@ CI gate. The original semantic DOM goldens are retained, not relabeled as comput
 accessibility evidence. The first real-tree audit exposed unnamed empty copy
 controls and repeated scalar inputs; their labels were fixed in the renderers.
 
+## Passive conversation view projection
+
+The public HTML/React transcript defaults and native transcript share the bounded
+Rust/WASM `staticViewText` kernel. Fourteen canonical layout cases verify authored
+section order and content in both browser renderers and wire-decoded native
+ConversationEvents drawn through TestBackend. Another 427 panel fixtures exercise
+both browser projections; an actual mounted React SSE upsert replaces the old view.
+These are read-only projections, not live composed hosts: selection context and
+record snapshots are unavailable, repeated views show one labeled template, and
+actions never execute. React's rich-view callback remains authoritative when supplied.
+
+This evidence does not promote the conversation View coverage exceptions or
+replace rich-host integration proof. See the chat README for admission/output
+limits and masking behavior. The private consumer below retains its own pinned
+renderer and composed-canvas integration contract.
+
 ## External conversation consumer
 
 The catalog tracks the private `meridian-internal` playground as a development

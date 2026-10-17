@@ -25,6 +25,27 @@ principal email titles are retained on web surfaces. Field links remain text:
 this transcript surface has no host route resolver. Table cells retain their
 existing behavior.
 
+## Embedded views
+
+Without a React `renderView` callback, both transcript tiers show an escaped,
+read-only text projection of `Block.view`, using the same Rust/WASM kernel as
+the native transcript. Headers, sections, nested views, all labeled tabs, and
+authored panel content remain readable. A supplied callback still takes precedence.
+
+This fallback has no transport, clock, selection context, or route resolver.
+Actions and destinations are inert text; remote data is explicitly unavailable.
+Selection gates stay closed, repeated views show one labeled template, masked
+defaults are hidden, and LLM prompt templates are not expanded. This is not a
+substitute for a composed interactive host or its integration tests.
+
+Projection is bounded to 1 MiB, 4,096 newline characters, 1,000 visited nodes,
+and depth 64. The WASM input limit is 4 MiB. Before protobuf JSON decoding, the
+chat adapter admits bounded own data (65,536 nodes, depth 256, and a conservative
+4 MiB text-work budget), rejecting cycles and accessors without calling them.
+This is not a sandbox for arbitrary JavaScript Proxy traps. Control characters
+other than newline/tab are escaped. Rejected input produces a fixed unavailable
+message without echoing the input.
+
 ## Transport
 
 - `sse-url` (default `/api/noc-agent/view`) — SSE of `ConversationEvent` frames,

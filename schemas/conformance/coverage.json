@@ -108,11 +108,11 @@
           "renderers": {
             "chat-html": {
               "status": "not-applicable",
-              "reason": "The framework-free HTML tier has no host panel-renderer seam; it intentionally leaves composed ViewDescriptor blocks inert."
+              "reason": "The framework-free HTML tier has no interactive host panel-renderer seam. Its shared bounded passive text projection preserves authored composition but executes no actions or data reads; it is not interactive ViewDescriptor parity."
             },
             "chat-react": {
               "status": "separate-entrypoint",
-              "reason": "BlockView delegates the nested ViewDescriptor to the host-supplied renderView callback rather than importing a panel renderer."
+              "reason": "BlockView delegates interactive ViewDescriptor rendering to the host-supplied renderView callback. Without a callback it uses the shared bounded passive text projection, not a live panel renderer."
             },
             "playground": {
               "status": "separate-entrypoint",

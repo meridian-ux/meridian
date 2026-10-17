@@ -6,6 +6,7 @@ import { escHtml as esc, mdInline } from "./dom.js";
 import type { Block } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
 import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
+import { viewText } from "./view_text.js";
 
 export function renderBlockInner(b: Block): string {
   if (b.markdown) return `<div class="md">${mdInline(b.markdown.text || "")}</div>`;
@@ -63,5 +64,6 @@ export function renderBlockInner(b: Block): string {
     return `<table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   }
   if (b.divider) return '<hr class="div">';
+  if (b.view) return `<pre class="view-static" style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(viewText(b.view))}</pre>`;
   return "";
 }

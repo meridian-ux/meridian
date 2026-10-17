@@ -40,13 +40,21 @@ writeFileSync(join(staging, "package.json"), JSON.stringify({ private: true, typ
 // protobuf-es 2.12.1 declarations use generic typed arrays (TypeScript 5.7+).
 // The workspace's 5.6 compiler skips library checking; the consumer must not.
 run("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...archives, "jsdom@25.0.1", "typescript@5.7.3", "esbuild@0.21.5"], staging);
+const coreDeclarations = readFileSync(join(staging, "node_modules/@savvifi/meridian-schemas/src/uiview/core_runtime.d.ts"), "utf8");
+assert(!coreDeclarations.includes("generated/meridian_uiview"), "public core signatures must not expose private wasm-bindgen declaration types");
 
 writeFileSync(join(staging, "consumer.ts"), `
 import { webComponentsRenderer, renderPanel, decodeBundle, type UiviewWasm } from '@savvifi/meridian-web';
 import { registerChatPanel } from '@savvifi/meridian-web/toolkit';
 import { applyTheme } from '@savvifi/meridian-web/theme';
+import { formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
 export { webComponentsRenderer, renderPanel, decodeBundle, registerChatPanel, applyTheme };
 export type { UiviewWasm };
+const metadata: string = formatLroMetadata({state: 'DONE'});
+const viewText: string = staticViewText(new Uint8Array());
+// @ts-expect-error Core inputs must remain typed, not erode to any.
+staticViewText('not wire bytes');
+export { metadata, viewText };
 `);
 run(process.execPath, [join(staging, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], staging);
 // Browser consumers resolve xterm's `module` entry, unlike Node's CJS loader.
@@ -58,7 +66,7 @@ export * as theme from '@savvifi/meridian-web/theme';
 export { create } from '@bufbuild/protobuf';
 export { PanelDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/panel_pb.js';
 export { FormFieldSchema } from '@savvifi/meridian-proto-ts/proto/form_pb.js';
-export { validateFormValues } from '@savvifi/meridian-schemas/uiview';
+export { validateFormValues, formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
 `);
 run(process.execPath, [join(staging, "node_modules/esbuild/bin/esbuild"), "browser-entry.mjs", "--bundle", "--platform=browser", "--format=esm", "--target=es2022", "--outfile=browser-bundle.mjs"], staging);
 writeFileSync(join(staging, "consumer.mjs"), `
@@ -67,7 +75,9 @@ import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><body></body>');
 for (const key of ['window', 'document', 'HTMLElement', 'customElements', 'HTMLCanvasElement', 'MutationObserver', 'CustomEvent']) globalThis[key] = dom.window[key];
 dom.window.HTMLCanvasElement.prototype.getContext = () => null;
-const {web, toolkit, theme, create, PanelDescriptorSchema, FormFieldSchema, validateFormValues} = await import('./browser-bundle.mjs');
+const {web, toolkit, theme, create, PanelDescriptorSchema, FormFieldSchema, validateFormValues, formatLroMetadata, staticViewText} = await import('./browser-bundle.mjs');
+assert.equal(typeof formatLroMetadata({state: 'DONE'}), 'string');
+assert.match(staticViewText(new Uint8Array()), /No sections/);
 assert.equal(web.webComponentsRenderer({}).id, 'web-components');
 assert.deepEqual(web.decodeBundle(new Uint8Array()).panels, []);
 const field = pattern => create(FormFieldSchema, {fieldId: 'value', kind: {case: 'text', value: {pattern}}});

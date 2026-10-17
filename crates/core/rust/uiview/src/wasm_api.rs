@@ -23,6 +23,16 @@ use serde_json::Value;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(js_name = "staticViewText")]
+pub fn static_view_text(bytes: &[u8]) -> Result<String, JsError> {
+    if bytes.len() > 4 * 1024 * 1024 {
+        return Err(JsError::new("view declaration rejected"));
+    }
+    let view = crate::proto::ViewDescriptor::decode(bytes)
+        .map_err(|_| JsError::new("view declaration rejected"))?;
+    crate::static_view_text(&view).map_err(|_| JsError::new("static view construction rejected"))
+}
+
 /// Pattern and input are runtime strings, never a JavaScript regex or callback.
 /// Invalid/unsupported patterns fail closed without exposing submitted values.
 #[wasm_bindgen(js_name = "matchesFormPattern")]

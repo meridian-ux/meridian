@@ -201,11 +201,11 @@ describe("view blocks", () => {
     expect(seen).toEqual([[descriptor, "b1"]]);
   });
 
-  // The point of the seam: a host that has NOT opted in is unaffected by an agent
-  // emitting a view. It renders as nothing, exactly like any unknown block kind —
-  // so shipping this arm cannot break an existing consumer.
-  it("renders nothing when the host supplies no renderer", () => {
-    expect(renderToStaticMarkup(createElement(BlockView, { block: viewBlock }))).toBe("");
+  it("expands passive composition when the host supplies no renderer", () => {
+    const html = renderToStaticMarkup(createElement(BlockView, { block: viewBlock }));
+    expect(html).toContain("View: Demo [demo]");
+    expect(html).toContain("No sections.");
+    expect(html).not.toContain("<button");
   });
 
   it("does not call the host renderer for non-view blocks", () => {
