@@ -311,6 +311,12 @@ export async function probe() {
         'import { type Affordance, AffordanceSchema } from "./proto/affordance_pb.js";\n');
       const missingExports = run(process.execPath, [TSC, "-p", join(generated, "tsconfig.json")], { expectedFailure: true });
       assert.match(missingExports.stdout + missingExports.stderr, /TS2305.*Affordance/);
+      // Exercise the same CLI/compiler-backed transform used by development
+      // generation, not a probe-local copy of the facade algorithm.
+      run(process.execPath, [join(ROOT, "schemas/tools/proto_facades.mjs"),
+        "--baseline", oldImage, "--current-image", nextImage, "--input", generated,
+        "--output", generated, "--mode", mode, "--buf", BUF, "--plugin", PLUGIN,
+        ...[...component, UNIT].flatMap(name => ["--source", name])]);
       const suffix = mode === "ts" ? ".ts" : ".d.ts";
       const importChecks = [];
       for (const name of component) {
@@ -318,18 +324,11 @@ export async function probe() {
         const exports = exportNames(readFileSync(join(baseline, module + suffix), "utf8"));
         assert(exports.length > 0, module);
         namedExports += exports.length;
-        const types = exports.filter(entry => entry.kind === "type").map(entry => entry.name);
         const values = exports.filter(entry => entry.kind !== "type").map(entry => entry.name);
         const index = importChecks.length;
         importChecks.push(`import { ${exports.map(entry => `${entry.kind === "type" ? "type " : ""}${entry.name} as Check${index}_${entry.name}`).join(", ")} } from "./${module}.js";`);
-        const target = "./interaction_pb.js";
-        const facade = (values.length ? `\nexport { ${values.join(", ")} } from "${target}";\n` : "")
-          + (types.length ? `export type { ${types.join(", ")} } from "${target}";\n` : "");
-        const path = join(generated, module + suffix);
-        writeFileSync(path, readFileSync(path, "utf8") + facade);
         if (mode === "js+dts") {
           const js = join(generated, module + ".js");
-          writeFileSync(js, readFileSync(js, "utf8") + (values.length ? `\nexport { ${values.join(", ")} } from "${target}";\n` : ""));
           const [previous, relocated] = await Promise.all([
             import(pathToFileURL(join(baseline, module + ".js")).href),
             import(pathToFileURL(js).href),

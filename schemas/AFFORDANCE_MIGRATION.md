@@ -1,9 +1,20 @@
 # Proposal: versioned Affordance declaration migration
 
-Status: tested proposal, **not approved for production cutover**.
+Status: migration implementation PRs authorized; **not approved for production cutover**.
 Companion to [AFFORDANCE_RFC.md](AFFORDANCE_RFC.md), roadmap #47/#48.
-The user authorized preparation of this proposal, not moving production
-declarations, changing the compatibility baseline, or relaxing the FILE gate.
+The user has now authorized coordinated implementation PRs, explicit versioned
+FILE-transition preparation, and public/private consumer upgrades. Final production
+cutover remains separately approval-gated. No main-branch declaration move,
+baseline activation, release publication, or FILE relaxation is authorized here.
+
+The first implementation foundation shares `tools/proto_facades.mjs` between
+`pnpm codegen` and the Bazel protobuf-es action. Its frozen pre-v1 descriptor is
+documented in [compat/README.md](compat/README.md). The real nine-file probe now
+uses this compiler-backed transform in both generator modes, rather than a
+probe-local export rewrite. The current canonical schema still has no relocated
+declarations, so ordinary development/Bazel generation is a byte-identical
+zero-facade path. Actual relocated Bazel/package/native adoption and release-line
+FILE-baseline transition checks remain separate implementation work.
 
 ## Reproduce the experiment
 
