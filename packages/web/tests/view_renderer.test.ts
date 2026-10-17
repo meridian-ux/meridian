@@ -21,6 +21,82 @@ const wasm = {
   formatLroMetadata: () => "",
 };
 
+describe("renderView nested composition", () => {
+  it("releases the shared view-node budget when a nested tab unmounts", async () => {
+    const root = document.createElement("div");
+    await renderView({ root, wasm, context, invoker: { invoke: async () => ({}) }, view: create(ViewDescriptorSchema, {
+      layout: { mode: { case: "tabbed", value: {} } }, slots: [
+        { id: "large", placement: { tabLabel: "Nested" }, subView: { slots: Array.from({ length: 498 }, (_, i) => ({ id: `deep-${i}`, title: `Region ${i}` })) } },
+        { id: "other", placement: { tabLabel: "Other" } },
+      ],
+    }) });
+    try {
+      const tabs = root.querySelectorAll<HTMLButtonElement>(':scope > .meridian-uiview-view-body > [role="tablist"] > button');
+      expect(root.querySelector('[data-slot="deep-497"]')).not.toBeNull();
+      tabs[1].click(); tabs[0].click();
+      await vi.waitFor(() => expect(root.querySelector('[data-slot="deep-497"]')).not.toBeNull());
+      expect(root.querySelector('[role="alert"]')).toBeNull();
+    } finally { disposeView(root); }
+  });
+
+  it.each(["cycle", "depth", "wide"])("rejects a %s composition before fetching", async kind => {
+    let view = create(ViewDescriptorSchema, { slots: [{ id: "leaf", panel: { body: { case: "table", value: { populate: { service: "demo", method: "List" } } } } }] });
+    if (kind === "cycle") view.slots[0].subView = view;
+    if (kind === "depth") for (let i = 0; i < 65; i++) view = create(ViewDescriptorSchema, { slots: [{ id: "nested", subView: view }] });
+    if (kind === "wide") view.slots = Array.from({ length: 1001 }, (_, i) => create(SlotSchema, { id: String(i) }));
+    const root = document.createElement("div"), invoke = vi.fn(async () => ({}));
+    await renderView({ root, wasm, context, invoker: { invoke }, view });
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain("composition limit");
+    expect(invoke).not.toHaveBeenCalled(); disposeView(root);
+  });
+
+  it("recursively disposes nested subscriptions when a gate closes", async () => {
+    const root = document.createElement("div"), close = vi.fn(), subscribe = vi.fn(() => ({ close }));
+    const view = create(ViewDescriptorSchema, { layout: { mode: { case: "tabbed", value: {} } }, slots: [{
+      id: "gated", placement: { tabLabel: "Live section" }, dependsOnSelectionKey: "scope", subView: {
+        slots: [{ id: "stream", panel: { body: { case: "stream", value: { subscribe: { service: "demo.Logs", method: "Watch" } } } } }],
+      },
+    }] });
+    const opts = { root, view, wasm: { ...wasm, WasmPayloadBudget: class { admit() { return 0; } } }, invoker: { invoke: async () => ({}) }, streamInvoker: { subscribe } };
+    await renderView({ ...opts, context: { ...context, selections: { scope: "open" } } });
+    expect(subscribe).toHaveBeenCalledOnce();
+    await renderView({ ...opts, context: { ...context, selections: {} } });
+    expect(close).toHaveBeenCalledOnce();
+    expect(root.querySelector('[role="tab"]')?.textContent).toBe("Live section");
+    expect(root.textContent).toContain("Make a selection");
+    disposeView(root); expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("renders a static nested view in preference to its legacy panel", async () => {
+    const root = document.createElement("div"), invoke = vi.fn(async () => ({}));
+    await renderView({ root, wasm, context, invoker: { invoke }, view: create(ViewDescriptorSchema, {
+      title: "Outer", slots: [{ id: "nested", panel: { title: "Legacy panel" }, subView: {
+        title: "Nested heading", slots: [{ id: "inner", title: "Nested region" }],
+      } }],
+    }) });
+    try {
+      expect(root.textContent).toContain("Nested heading");
+      expect(root.textContent).toContain("Nested region");
+      expect(root.textContent).not.toContain("Legacy panel");
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { disposeView(root); }
+  });
+
+  it.each([undefined, null, "", false, 0])("keeps a falsey selection gate closed (%s) without fetching", async value => {
+    const root = document.createElement("div"), invoke = vi.fn(async () => ({}));
+    await renderView({ root, wasm, context: { ...context, selections: value === undefined ? {} : { scope: value } }, invoker: { invoke }, view: create(ViewDescriptorSchema, {
+      slots: [{ id: "scoped", title: "Scoped", dependsOnSelectionKey: "scope", dependsOnPlaceholder: "Choose a scope first", panel: {
+        body: { case: "table", value: { populate: { service: "demo.Scoped", method: "List" } } },
+      } }],
+    }) });
+    try {
+      expect(invoke).not.toHaveBeenCalled();
+      expect(root.textContent).toContain("Choose a scope first");
+      expect(root.querySelector('[data-awaiting-selection="scope"]')).not.toBeNull();
+    } finally { disposeView(root); }
+  });
+});
+
 describe("renderView tab keyboard navigation", () => {
   it.each(["list", "stacked", "tabbed", "twoColumn"] as const)("partitions header rows under %s without inventing unlabeled tabs", async mode => {
     const root = document.createElement("div");

@@ -10,6 +10,7 @@ const enumTones: Readonly<Partial<Record<number, string>>> = { 1: "neutral", 2: 
 
 // Runtime DOM state only; requests and descriptors retain their protobuf contracts.
 export function buildInteractiveForm(panel: FormPanel, host: {
+  initialValues?: Record<string, unknown>;
   allowed(call: RpcCall): boolean;
   invoke(call: RpcCall, values: Record<string, unknown>, mutation: boolean): Promise<unknown>;
 }) {
@@ -38,7 +39,7 @@ export function buildInteractiveForm(panel: FormPanel, host: {
       error.textContent = reason instanceof Error ? reason.message : String(reason);
     }
   };
-  draw(); element.append(fields);
+  draw(host.initialValues); element.append(fields);
   if (edit && call) element.append(save);
   element.append(status, error);
   if (edit && call && !allowed) status.textContent = "Saving is not permitted.";

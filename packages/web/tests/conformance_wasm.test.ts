@@ -99,6 +99,103 @@ const CTX = {
   formValues: {},
 };
 
+describe("composed views through actual WASM", () => {
+  const composite = () => create(ViewDescriptorSchema, { title: "Composite", slots: [{ id: "records",
+    subViewPopulate: { service: "fixture.Composite", method: "List", bindings: [
+      { requestField: "scope", source: { case: "selectionKey", value: "scope" } },
+    ] }, subViewRowsField: "records", subView: { title: "Repeated item", slots: [
+      { id: "header", panel: { body: { case: "detailHeader", value: { titleSourcePath: "title" } } } },
+      { id: "card", panel: { body: { case: "recordCard", value: { fields: [
+        { fieldId: "title", label: "Card title", kind: { case: "text", value: {} } },
+      ] } } } },
+      { id: "form", panel: { body: { case: "form", value: { mode: 2, submit: { service: "fixture.Composite", method: "Save", bindings: [
+        { requestField: "recordId", source: { case: "rowField", value: "id" } },
+      ] }, fields: [
+        { fieldId: "title", label: "Title", kind: { case: "text", value: {} } },
+        { fieldId: "enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: true } } },
+        { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 7 } } },
+      ] } } } },
+      { id: "table", panel: { body: { case: "table", value: { rowsField: "members", columns: [{ header: "Member", fieldPath: "name" }] } } } },
+    ] },
+  }] });
+
+  it("decodes repeated views and binds owned ambient records without extra reads", async () => {
+    const { disposeView } = await import("../src/uiview/view_renderer.js");
+    const root = document.createElement("main");
+    const records = [
+      { id: "first", title: "001.20", enabled: false, count: 0, members: [{ name: "Child A" }] },
+      { id: "second", title: "002.00", enabled: true, count: 5, members: [{ name: "Child B" }] },
+    ];
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async (_service, method) => method === "List" ? { records } : {});
+    const view = fromBinary(ViewDescriptorSchema, toBinary(ViewDescriptorSchema, composite()));
+    try {
+      await renderView({ root, view, wasm, context: { ...CTX, selections: { scope: "tenant-raw" } }, invoker: { invoke }, admission: { mutations: ["fixture.Composite/Save"] } });
+      expect(invoke).toHaveBeenCalledTimes(1);
+      expect(invoke).toHaveBeenCalledWith("fixture.Composite", "List", { scope: "tenant-raw" });
+      const items = [...root.querySelectorAll<HTMLElement>('[data-subview-item]')];
+      expect(items).toHaveLength(2);
+      for (const [index, item] of items.entries()) {
+        expect(item.querySelector(".meridian-uiview-record-title")?.textContent).toBe(records[index].title);
+        expect(item.querySelector('[data-slot="card"]')?.textContent).toContain(records[index].title);
+        expect(item.querySelector<HTMLFormElement>("form")!.querySelector<HTMLInputElement>('input[type="text"]')!.value).toBe(records[index].title);
+        expect(item.querySelector<HTMLInputElement>('input[type="checkbox"]')!.checked).toBe(records[index].enabled);
+        expect(item.querySelector<HTMLInputElement>('input[type="number"]')!.value).toBe(String(records[index].count));
+        expect(item.querySelector("table tbody")?.textContent).toContain(index === 0 ? "Child A" : "Child B");
+      }
+      items[0].querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+      expect(invoke).toHaveBeenLastCalledWith("fixture.Composite", "Save", { recordId: "first", title: "001.20", enabled: false, count: 0 });
+      expect(records[0]).toEqual({ id: "first", title: "001.20", enabled: false, count: 0, members: [{ name: "Child A" }] });
+    } finally { disposeView(root); }
+  });
+
+  it.each(["denied", "bad-rows", "expansion"])("shows %s repeated-view failures without child reads", async failure => {
+    const { disposeView } = await import("../src/uiview/view_renderer.js");
+    const root = document.createElement("main"), onDenied = vi.fn();
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ records: failure === "bad-rows" ? [null] : Array.from({ length: 250 }, (_, i) => ({ id: String(i) })) }));
+    try {
+      await renderView({ root, view: composite(), wasm, context: CTX, invoker: { invoke }, admission: { reads: failure === "denied" ? [] : ["fixture.Composite/List"], onDenied } });
+      expect(root.querySelector('[role="alert"]')?.textContent).toContain(failure === "denied" ? "reads allowlist" : failure === "bad-rows" ? "must be objects" : "composition limit");
+      expect(invoke).toHaveBeenCalledTimes(failure === "denied" ? 0 : 1);
+      expect(root.querySelector('[data-subview-item]')).toBeNull();
+      if (failure === "denied") expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({ tier: "read", method: "List" }));
+    } finally { disposeView(root); }
+  });
+
+  it("retries a failed repeated read without stale or duplicated items", async () => {
+    const { disposeView } = await import("../src/uiview/view_renderer.js");
+    const root = document.createElement("main");
+    const invoke = vi.fn<RpcInvoker["invoke"]>().mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValue({ records: [{ title: "Recovered record", enabled: false, count: 0, members: [] }] });
+    try {
+      await renderView({ root, view: composite(), wasm, context: CTX, invoker: { invoke } });
+      expect(root.querySelector('[role="alert"]')?.textContent).toContain("offline");
+      [...root.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "Retry section")!.click();
+      await vi.waitFor(() => expect(root.querySelector('[data-subview-item]')?.textContent).toContain("Recovered record"));
+      expect(invoke).toHaveBeenCalledTimes(2);
+      expect(root.querySelectorAll('[data-subview-item]')).toHaveLength(1);
+      expect(root.querySelector('[role="alert"]')?.textContent ?? "").toBe("");
+    } finally { disposeView(root); }
+  });
+
+  it("ignores an obsolete repeated response after selection-bound replacement", async () => {
+    const { disposeView } = await import("../src/uiview/view_renderer.js");
+    const root = document.createElement("main"); let finish!: (value: object) => void;
+    const invoke = vi.fn<RpcInvoker["invoke"]>(async (_service, _method, request) => (request as { scope?: string }).scope === "old"
+      ? new Promise<object>(resolve => { finish = resolve; }) : { records: [{ title: "Current record", enabled: true, count: 0, members: [] }] });
+    const view = composite(); view.slots[0].dependsOnSelectionKey = "scope";
+    const old = renderView({ root, view, wasm, context: { ...CTX, selections: { scope: "old" } }, invoker: { invoke } });
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalledOnce());
+    try {
+      await renderView({ root, view, wasm, context: { ...CTX, selections: { scope: "new" } }, invoker: { invoke } });
+      finish({ records: [{ title: "Obsolete record" }] }); await old;
+      expect(root.textContent).toContain("Current record");
+      expect(root.textContent).not.toContain("Obsolete record");
+      expect(invoke).toHaveBeenCalledTimes(2);
+    } finally { disposeView(root); }
+  });
+});
+
 describe("web-components default budget through real WASM", () => {
   it.each(FORM_DEFAULT_BUDGET_CASES)("$name", async fixture => {
     const container = document.createElement("main"); document.body.append(container);

@@ -110,8 +110,31 @@ a composed-view teardown.
 Migration: older web views turned unlabeled regions into tabs, automatically
 selected/fetched on arrow navigation, and mounted inactive panels. Authors must
 set explicit `tab_label` values for intended tabs. Header rows now stay outside
-the body/tab strip. Nested/repeated sub-view composition and selection-gated
-slots remain unimplemented here; this is not complete ViewDescriptor parity.
+the body/tab strip.
+
+Nested `sub_view` takes precedence over a slot's legacy panel and recursively
+uses the same layout/host seams. A `sub_view_populate` call is read-admitted and
+built by the bounded core; its declared row array repeats the nested template.
+Owned rows supply `record` to no-populate tables, detail headers, record cards,
+and forms, and the raw selected-row context for nested actions/submissions.
+Explicit populate/prefill calls retain their transport behavior. Failed repeated
+reads have visible retry feedback; empty lists are explicit. Parent disposal,
+replacement, or hiding a tab recursively disposes descendants, and obsolete
+responses cannot mount them afterward.
+
+`depends_on_selection_key` reads an own data property of `context.selections`.
+Missing/null/empty/falsey values retain the authored placeholder, without mounting
+the panel or nested view or firing its read. A gated tab retains its selector
+label. The host owns the selection bag: call `renderView` with the new context
+when it changes; mutating a bag in place does not notify this imperative renderer.
+Replacement intentionally resets local panel/draft state.
+
+Composition preflight rejects cycles, nesting beyond 64, or more than 1,000
+declared view/slot nodes. The active composed tree shares a 1,000-node budget,
+released on descendant disposal; repeated expansion is checked against the
+remaining budget before rows mount. These bound composition, not arbitrary host
+allocation, every panel's DOM, or a hard execution-time sandbox. They do not
+establish native composition, all per-renderer layout evidence, or full v1 parity.
 
 ## Build & test
 
