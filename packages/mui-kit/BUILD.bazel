@@ -255,6 +255,19 @@ js_test(
     size = "large",
 )
 
+js_test(
+    name = "stateful_geometry_test",
+    # One complete renderer per shard: every shard still executes all three
+    # canonical states for every arm at both widths. No per-case deadline changes.
+    shard_count = 4,
+    args = _AX_ARGS,
+    data = _AX_DATA + ["//schemas:conformance_fixtures"],
+    entry_point = "tests_browser/stateful_geometry.cjs",
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = ["PATH", "HOME"],
+    size = "large",
+)
+
 js_binary(
     name = "record_computed_accessibility",
     args = _AX_ARGS,

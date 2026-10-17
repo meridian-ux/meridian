@@ -450,7 +450,7 @@ jobs:
         run: node schemas/tools/panel_evidence.mjs --verify
 
       - name: Required composed-layout proofs
-        run: bazel test --announce_rc=false //packages/mui-kit:layout_browser_test //packages/mui-kit:conversation_browser_test //crates/tui/rust/tui:view_composition_test --test_output=errors
+        run: bazel test --announce_rc=false //packages/mui-kit:layout_browser_test //packages/mui-kit:conversation_browser_test //packages/mui-kit:stateful_geometry_test //crates/tui/rust/tui:view_composition_test --test_output=errors
 
       - name: Detached web-components npm consumer
         run: |

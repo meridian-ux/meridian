@@ -37,8 +37,9 @@ text, leading-zero strings, and masked defaults. Consumers assert live raw
 control values and exact collected requests/protobuf responses before comparing
 snapshots; declared read-only formatting and secret concealment are separate
 assertions. LLM-prompt previews remain local. LRO fixtures verify start inputs,
-not complete polling/results in every kit; reference kits and MUI still need
-that broader lifecycle work. Default expansion is bounded before DOM allocation
+not complete polling/results in every kit. The shared reference-kit/MUI lifecycle
+has separate focused interaction tests; initial snapshots alone do not prove it.
+Default expansion is bounded before DOM allocation
 in the DOM LRO path and before native Form/LRO collection.
 The presence gate requires every arm/state and formatter case; removing just an
 overflow snapshot now fails even when that arm's initial snapshot still exists.
@@ -207,6 +208,25 @@ unexpected files are never deleted. The target runs under the existing `//...`
 CI gate. The original semantic DOM goldens are retained, not relabeled as computed
 accessibility evidence. The first real-tree audit exposed unnamed empty copy
 controls and repeated scalar inputs; their labels were fixed in the renderers.
+
+## Stateful browser geometry
+
+`//packages/mui-kit:stateful_geometry_test` exercises every canonical
+empty/typical/overflow state for all 23 panel arms in HTML, shadcn, MUI, and
+actual-WASM web-components at 320/1100px: 552 mounts. Bazel shards by renderer;
+each shard still executes every arm/state/width. Assertions reject page-level
+horizontal overflow, unreachable visible elements, clipped labels/buttons, and
+unfocusable enabled controls. Bounded local scrolling for code/tables is valid.
+The xterm input helper is intentionally offscreen: its visible terminal surface,
+accessible input label, and actual focus path are checked separately.
+
+The test uses the repository's neutral base stylesheet and MUI runtime styles;
+arbitrary host skins are not covered. It does not record snapshots or establish
+all interactive states, playback, live PTY behavior, or every composed layout.
+The existing semantic, computed-AX, layout, and rich-conversation proofs remain
+independently required. Structural fixes make React stacks shrinkable, wrap
+MUI CopyValue chips, and let repeated-field controls reflow without changing raw
+values or action authority.
 
 ## Passive conversation view projection
 
@@ -849,6 +869,9 @@ The TUI now also has a real `ViewHost`, independently tested by
 `//crates/tui/rust/tui:view_composition_test`. Its whole-view buffers and keyboard
 tests cover all four layouts at 80/140 columns, nested/repeated raw records,
 gates, host-owned mutations, stream disposal, and operation-token routing. It
-also consumes an existing shared browser wire fixture without extracting its
-panels. This is not yet a shared cross-renderer composed-layout corpus or an
-implementation of the transcript's separate `Block.view` integration.
+also consumes all fourteen shared binary layout cases without extracting their
+panels, alongside the browser consumers' independent 320/1100px geometry proof.
+This composed-host evidence is separate from the passive transcript projection
+and the fixture-owned React rich-conversation HTTP/SSE adapter documented above.
+Neither static text nor one host adapter proves arbitrary external integrations
+or every snapshot/submission/overflow state.
