@@ -118,10 +118,10 @@ export class MAssistantPanel extends HTMLElement {
     let el = this.blocks.get(id);
     if (!el) {
       el = document.createElement("div");
-      el.className = "asst-row " + (b.role === "user" ? "user" : "assistant");
       log.insertBefore(el, this.statusEl);
       this.blocks.set(id, el);
     }
+    el.className = "asst-row " + (b.role === "user" ? "user" : "assistant") + (b.view ? " asst-view" : "");
     el.innerHTML = renderBlockInner(b);
     this.scrollDown();
   }

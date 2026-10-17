@@ -40,6 +40,29 @@ function panel() {
   document.body.append(element);
   return element;
 }
+for (const tier of ["React", "vanilla"]) {
+  it(`${tier} updates full-width view classification on same-ID block kind changes`, async () => {
+    const host = document.createElement("main"); document.body.append(host);
+    const root = tier === "React" ? createRoot(host) : undefined;
+    try {
+      if (root) await act(async () => root.render(createElement(Conversation)));
+      else host.append(document.createElement("m-assistant-panel"));
+      const send = async (view: boolean, seq: bigint) => {
+        const event = create(ConversationEventSchema, { seq, event: { case: "block", value: view ? {
+          blockId: "same", role: "assistant", kind: { case: "view", value: { id: "screen", title: "Screen" } },
+        } : { blockId: "same", role: "user", kind: { case: "markdown", value: { text: "Message" } } } } });
+        await act(async () => sources[0]!.onmessage!(new MessageEvent("message", { data: JSON.stringify(toJson(ConversationEventSchema, event)) })));
+      };
+      await send(false, 1n); expect(host.querySelector(".asst-row")?.className).toBe("asst-row user");
+      await send(true, 2n); expect(host.querySelector(".asst-row")?.className).toBe("asst-row assistant asst-view");
+      expect(host.textContent).toContain("Screen");
+      await send(false, 3n); expect(host.querySelector(".asst-row")?.className).toBe("asst-row user");
+      expect(host.querySelectorAll(".asst-row")).toHaveLength(1);
+      expect(host.querySelector(".view-static")).toBeNull();
+      expect(fetch).not.toHaveBeenCalled();
+    } finally { if (root) await act(async () => root.unmount()); }
+  });
+}
 it("reconnecting the same component retains rows, drafts and replay identities", () => {
   const element = panel();
   emit(sources[0]!, 1n, "First");

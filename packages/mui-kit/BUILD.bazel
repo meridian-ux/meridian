@@ -164,6 +164,52 @@ esbuild(
     ],
 )
 
+esbuild(
+    name = "conversation_bundle",
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/conversation.tsx"],
+    entry_point = "harness/conversation.tsx",
+    bundle = True,
+    format = "iife",
+    output = "conversation.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        "//packages/chat:chat_lib",
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@emotion/react",
+        ":node_modules/@emotion/styled",
+        ":node_modules/@mui/material",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+js_test(
+    name = "conversation_browser_test",
+    entry_point = "tests_browser/conversation.cjs",
+    args = [
+        "$(rootpath @chrome//:chrome)",
+        "$(rootpath :conversation.bundle.js)",
+        "$(rootpath //packages/web/theme:css)",
+    ],
+    data = [
+        "tests_browser/layout.cjs",
+        ":conversation.bundle.js",
+        ":node_modules/playwright",
+        ":node_modules/@bufbuild/protobuf",
+        "//packages/web/theme:css",
+        "//schemas:layout_conformance_data",
+        "@chrome//:chrome",
+    ],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = ["PATH", "HOME"],
+    size = "large",
+)
+
 js_test(
     name = "layout_browser_test",
     entry_point = "tests_browser/layout.cjs",

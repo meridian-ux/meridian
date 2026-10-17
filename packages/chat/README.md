@@ -46,6 +46,21 @@ This is not a sandbox for arbitrary JavaScript Proxy traps. Control characters
 other than newline/tab are escaped. Rejected input produces a fixed unavailable
 message without echoing the input.
 
+For an interactive React host, decode the callback's proto3-JSON with the host's
+canonical `ViewDescriptorSchema`, then render `ViewRenderer` under a
+`MeridianProvider`. The host owns descriptor admission, selection/record context,
+transport, mutation allowlists, and component identity on view replacement.
+Composed-view rows receive full available transcript width rather than the
+ordinary 82% message-bubble cap; ordinary messages keep their existing sizing.
+
+The [rich-host conformance adapter](../mui-kit/harness/conversation.tsx) and
+[real-browser test](../mui-kit/tests_browser/conversation.cjs) exercise this seam
+using local canonical HTTP/SSE fixtures, all three React kits, the fourteen shared
+layouts, same-ID replacements, replay suppression, denied/admitted actions, and
+late-read isolation. This example's fake fixture invoker is not a production
+backend or authorization implementation. Run
+`bazel test --announce_rc=false //packages/mui-kit:conversation_browser_test`.
+
 ## Transport
 
 - `sse-url` (default `/api/noc-agent/view`) — SSE of `ConversationEvent` frames,

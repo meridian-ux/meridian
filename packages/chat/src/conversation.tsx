@@ -139,7 +139,7 @@ export function Conversation({
           </div>
         ) : (
           blocks.map((b, i) => (
-            <div className={"asst-row " + (b.role === "user" ? "user" : "assistant")} key={b.blockId || i}>
+            <div className={"asst-row " + (b.role === "user" ? "user" : "assistant") + (b.view ? " asst-view" : "")} key={b.blockId || i}>
               <BlockView block={b} renderView={renderView} />
             </div>
           ))

@@ -32,6 +32,10 @@ show their template once rather than fabricated rows. Malformed or oversized
 descriptors produce a fixed unavailable message. The callback still takes
 precedence and owns its own integration and authority boundaries.
 
+View transcript rows use available width rather than the ordinary message-bubble
+cap. Same-ID upserts recalculate view classification and role alignment in both
+tiers; switching back to a primitive block restores ordinary message sizing.
+
 Launchpad exports `LaunchpadProps` and `FilteredGroup`. Descriptors, commands,
 resolver results, and `onRun` arguments use canonical protobuf-es messages, not
 chat's JSON adapter. Hosts must resolve compatible `meridian-proto-ts` and

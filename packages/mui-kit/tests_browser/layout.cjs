@@ -127,4 +127,5 @@ async function main() {
     console.log(`${kits.length * cases.length * 2} real-browser compositions verified; no live transport.`);
   } finally { await browser.close(); }
 }
-main().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = { geometry };
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

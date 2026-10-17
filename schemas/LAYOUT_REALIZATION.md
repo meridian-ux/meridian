@@ -102,11 +102,18 @@ reading order and reachability, labeled sidebar reflow, long wrapped tab labels,
 manual keyboard activation/associations, selection/focus across resize, and
 read counts without a live transport. CI explicitly runs browser and native
 layout proof targets, including if wildcard discovery changes.
-These cases do not establish every overflow/interaction state or the separate
-rich conversation-host integration. Passive transcript expansion is separately
+These cases do not establish every overflow/interaction state. The separate
+[`conversation_browser_test`](../packages/mui-kit/tests_browser/conversation.cjs)
+now mounts the actual React Conversation and host callback through a local
+canonical HTTP/SSE stream: fourteen layouts, three kits, and 320/1100px produce
+84 rich-host mounts. It verifies reading order, reachable sections, sidebar
+geometry, manual tab activation and resize retention, same-ID replacements,
+replay suppression, mutation denial/admission, and late-read isolation. This
+host-owned adapter does not establish arbitrary external host integrations or
+every live snapshot/submission/overflow state. Passive transcript expansion is separately
 verified using the same fourteen descriptors through HTML/React and canonical
 wire-decoded native ConversationEvents drawn by TestBackend. It does not prove
-interactive callback integration, snapshot binding, or live host behavior.
+arbitrary callback integrations, snapshot binding, or live host behavior.
 
 Use the same binary `ViewDescriptor` fixtures across renderer hosts, including
 all four modes, shuffled positions/ties, main/sidebar placement, labeled tabs
