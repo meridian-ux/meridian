@@ -21,6 +21,7 @@
     "admission.test.ts",
     "action_normalization.ts",
     "action_normalization.test.ts",
+    "invocation.test.ts",
     "affordance_predicate.test.ts",
     "navigation.ts",
     "navigation.test.ts",

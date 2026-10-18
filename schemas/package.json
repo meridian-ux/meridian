@@ -33,7 +33,7 @@
     "src/theme/index.d.ts"
   ],
   "scripts": {
-    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/conversation_tone.test.ts src/uiview/affordance_presentation.test.ts src/uiview/affordance_predicate.test.ts src/uiview/action_normalization.test.ts src/uiview/conversation_sequence.test.ts src/theme/metrics.test.ts"
+    "test": "vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/conversation_tone.test.ts src/uiview/affordance_presentation.test.ts src/uiview/affordance_predicate.test.ts src/uiview/action_normalization.test.ts src/uiview/invocation.test.ts src/uiview/conversation_sequence.test.ts src/theme/metrics.test.ts"
   },
   "dependencies": {
     "@savvifi/meridian-proto-ts": "workspace:*",
