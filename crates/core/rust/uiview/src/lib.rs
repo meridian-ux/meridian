@@ -57,6 +57,7 @@ pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/meridian.ui.v1.rs"));
 }
 
+mod affordance;
 mod conversation;
 mod form_values;
 mod launchpad;
@@ -77,6 +78,7 @@ mod wasm_input;
 #[cfg(test)]
 mod conformance;
 
+pub use affordance::row_filter_matches;
 pub use conversation::{is_active_status, ConversationModel};
 pub use form_values::validate_form_values;
 pub use launchpad::{command_haystack, filter_launchpad, flatten, match_score, FilteredGroup};

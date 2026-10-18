@@ -33,6 +33,18 @@ pub fn static_view_text(bytes: &[u8]) -> Result<String, JsError> {
     crate::static_view_text(&view).map_err(|_| JsError::new("static view construction rejected"))
 }
 
+/// Pure selected-row predicate, not host admission or an execution capability.
+#[wasm_bindgen(js_name = "matchesRowFilter")]
+pub fn matches_row_filter(bytes: &[u8], row: JsValue) -> Result<bool, JsError> {
+    if bytes.len() > 64 * 1024 {
+        return Err(JsError::new("predicate declaration rejected"));
+    }
+    let filter = crate::proto::RowFilter::decode(bytes)
+        .map_err(|_| JsError::new("predicate declaration rejected"))?;
+    crate::row_filter_matches(&filter, &value_input(row)?)
+        .map_err(|_| JsError::new("predicate input rejected"))
+}
+
 /// Pattern and input are runtime strings, never a JavaScript regex or callback.
 /// Invalid/unsupported patterns fail closed without exposing submitted values.
 #[wasm_bindgen(js_name = "matchesFormPattern")]

@@ -13,7 +13,10 @@ The same harness now calls the bounded native C ABI with borrowed protobuf
 buffers as both declarations and google.protobuf.Value inputs. It checks
 success-result decoding, exact output-pointer/length ownership/freeing, cleared
 error outputs, and absence of internal panic statuses. It also exercises native
-UTF-8/Rust-regex matching and its fail-closed statuses. The sanitizer sees the
+UTF-8/Rust-regex matching and bounded RowFilter comparison with arbitrary
+declarations/value bytes and a valid canonical predicate. Failed predicates
+must reset the runtime output byte and never report an internal panic status.
+The sanitizer sees the
 actual Rust ABI implementation, not a mock or alternate allocator. Pointer
 forgery and double-free are outside the caller contract; the harness supplies
 valid live input/output regions. Deterministic Rust/C/Swift tests separately

@@ -23,8 +23,13 @@ the 45 ownership moves. The explicit `--canonical` harness now compiles the real
 source image and compares it with the frozen full-module old reader. It retains
 all fixture, typed invocation, policy/envelope presence, both generator modes,
 and FILE-rejection assertions. The canonical Rust phase requires full workspace
-success, not an expected compiler error. Swift host adoption still blocks the
-expanded native Swift build. Renderer dispatch, producer upgrades, and
+success, not an expected compiler error. The coordinated Swift preview candidate
+now explicitly dispatches all seven arms through installed host capabilities,
+separates read/mutation RPC admission, and uses shared bounded Rust predicates.
+Its canonical phase requires successful package tests, not the historical
+exhaustive-switch failure. This does not promote SwiftUI coverage or prove
+canonical collection normalization/refresh and every cross-surface lifecycle.
+Other renderer dispatch, producer upgrades, and
 final production cutover remain outstanding. Keep this candidate unmerged until
 those requirements and separate cutover approval are satisfied.
 

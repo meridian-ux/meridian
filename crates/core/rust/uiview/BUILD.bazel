@@ -33,6 +33,7 @@ rust_prost_library(
 rust_library(
     name = "uiview",
     srcs = [
+        "src/affordance.rs",
         "src/conformance.rs",
         "src/conversation.rs",
         "src/form_values.rs",
@@ -91,6 +92,7 @@ rust_test(
 rust_shared_library(
     name = "uiview_wasm_lib",
     srcs = [
+        "src/affordance.rs",
         "src/conversation.rs",
         "src/form_values.rs",
         "src/launchpad.rs",

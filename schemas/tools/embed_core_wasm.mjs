@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 export function embedCore(glue, bytes, declarations) {
   if (!/function initSync\(/.test(glue) || !/function formatValueDisplay\(/.test(glue)
     || !/function formatValueDisplayAt\(/.test(glue)
-    || !/function matchesFormPattern\(/.test(glue)) throw new Error("Incomplete core formatter/validation bindings");
+    || !/function matchesFormPattern\(/.test(glue)
+    || !/function matchesRowFilter\(/.test(glue)) throw new Error("Incomplete core formatter/validation bindings");
   if (!WebAssembly.validate(bytes)) throw new Error("Invalid core WebAssembly bytes");
   // No URL, fs, fetch, top-level await, or host configuration on the runtime
   // initialization path. Browser and SSR receive the identical compiled core.

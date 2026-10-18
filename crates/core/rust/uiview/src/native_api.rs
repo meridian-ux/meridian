@@ -348,6 +348,48 @@ pub unsafe extern "C" fn meridian_core_build_request(
     }
 }
 
+/// Evaluate a RowFilter against an already supplied google.protobuf.Value row.
+/// This is pure computation, not admission. A false result must not be retried
+/// through a legacy target or interpreted as a capability grant.
+///
+/// # Safety
+/// Nonempty inputs must designate valid immutable byte regions. matched must
+/// be writable and must not alias either input.
+#[no_mangle]
+pub unsafe extern "C" fn meridian_core_matches_row_filter(
+    filter: *const u8,
+    filter_len: usize,
+    row: *const u8,
+    row_len: usize,
+    matched: *mut u8,
+) -> i32 {
+    if matched.is_null() {
+        return INVALID_ARGUMENT;
+    }
+    unsafe {
+        matched.write(0);
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<bool, i32> {
+        let filter = crate::proto::RowFilter::decode(unsafe {
+            bytes(filter, filter_len, MAX_DECLARATION_BYTES)?
+        })
+        .map_err(|_| INVALID_PAYLOAD)?;
+        let row = prost_types::Value::decode(unsafe { bytes(row, row_len, MAX_VALUE_BYTES)? })
+            .map_err(|_| INVALID_PAYLOAD)?;
+        crate::row_filter_matches(&filter, &json(row, 0)?).map_err(|_| LIMIT_EXCEEDED)
+    }));
+    match result {
+        Ok(Ok(value)) => {
+            unsafe {
+                matched.write(u8::from(value));
+            }
+            OK
+        }
+        Ok(Err(status)) => status,
+        Err(_) => INTERNAL_FAILURE,
+    }
+}
+
 /// Runtime strings use UTF-8 with explicit lengths, including embedded NULs.
 /// No browser regex translation, shell execution, or input-dependent error text.
 ///
@@ -404,6 +446,80 @@ pub unsafe extern "C" fn meridian_core_buffer_free(pointer: *mut u8, len: usize)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn row_predicate_bridge_is_bounded_and_resets_failed_results() {
+        let filter = crate::proto::RowFilter {
+            field_path: "state".into(),
+            equals: "OPEN".into(),
+        }
+        .encode_to_vec();
+        let row = protobuf_value(serde_json::json!({"state": "OPEN"}), 0)
+            .unwrap()
+            .encode_to_vec();
+        let mut matched = 99;
+        unsafe {
+            assert_eq!(
+                meridian_core_matches_row_filter(
+                    filter.as_ptr(),
+                    filter.len(),
+                    row.as_ptr(),
+                    row.len(),
+                    &mut matched
+                ),
+                OK
+            );
+            assert_eq!(matched, 1);
+            assert_eq!(
+                meridian_core_matches_row_filter(
+                    [0xff].as_ptr(),
+                    1,
+                    row.as_ptr(),
+                    row.len(),
+                    &mut matched
+                ),
+                INVALID_PAYLOAD
+            );
+            assert_eq!(matched, 0);
+            matched = 99;
+            assert_eq!(
+                meridian_core_matches_row_filter(
+                    filter.as_ptr(),
+                    filter.len(),
+                    std::ptr::null(),
+                    MAX_VALUE_BYTES + 1,
+                    &mut matched
+                ),
+                LIMIT_EXCEEDED
+            );
+            assert_eq!(matched, 0);
+            assert_eq!(
+                meridian_core_matches_row_filter(
+                    filter.as_ptr(),
+                    filter.len(),
+                    row.as_ptr(),
+                    row.len(),
+                    std::ptr::null_mut()
+                ),
+                INVALID_ARGUMENT
+            );
+            let nan = prost_types::Value {
+                kind: Some(prost_types::value::Kind::NumberValue(f64::NAN)),
+            }
+            .encode_to_vec();
+            assert_eq!(
+                meridian_core_matches_row_filter(
+                    filter.as_ptr(),
+                    filter.len(),
+                    nan.as_ptr(),
+                    nan.len(),
+                    &mut matched
+                ),
+                INVALID_PAYLOAD
+            );
+            assert_eq!(matched, 0);
+        }
+    }
 
     fn well_known_value<T: Message + Default>(value: prost_types::Value) -> T {
         T::decode(value.encode_to_vec().as_slice()).unwrap()

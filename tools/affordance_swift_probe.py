@@ -24,12 +24,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scratch", type=Path, required=True, help="Retained Node proposal probe directory")
     parser.add_argument("--generator", required=True, help="Pinned SwiftProtobuf 1.39.0 generator from tools/swiftui.py")
+    parser.add_argument("--canonical", action="store_true",
+                        help="Require actual candidate package success instead of historical adoption failure")
     args = parser.parse_args()
     if run([args.generator, "--version"]) != "protoc-gen-swift 1.39.0":
         raise RuntimeError("Use the same pinned generator/runtime as the public Swift package")
     with tempfile.TemporaryDirectory(prefix="meridian-affordance-swift-") as temporary:
         work = Path(temporary)
-        for name in ["relocated", "candidate"]:
+        for name in (["candidate"] if args.canonical else ["relocated", "candidate"]):
             package = work / name
             package.mkdir()
             for manifest in ["Package.swift", "Package.resolved"]:
@@ -54,10 +56,11 @@ def main():
                 "opt": ["Visibility=Public", "FileNaming=PathToUnderscores"],
             }]}
             run([str(ROOT / "node_modules/.bin/buf"), "generate", str(image),
-                 "--exclude-path", "google/protobuf", "--template", json.dumps(template)])
+                 "--path", "proto", "--path", "google/api/field_behavior.proto",
+                 "--template", json.dumps(template)])
             command = ["swift", "test", "--parallel", "--package-path", str(package)]
-            run(command, failure=name == "candidate")
-            print(f"{name}: " + ("public Swift package tests pass" if name == "relocated"
+            run(command, failure=name == "candidate" and not args.canonical)
+            print(f"{name}: " + ("public Swift package tests pass" if args.canonical or name == "relocated"
                                     else "expanded invoke enum requires explicit host adoption, as expected"))
 
 
