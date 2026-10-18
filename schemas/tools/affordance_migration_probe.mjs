@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { clearField, clone, createFileRegistry, fromBinary, fromJson, isFieldSet, toBinary, toJson } from "@bufbuild/protobuf";
-import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FieldOptionsSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FieldOptionsSchema, MessageOptionsSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { checkLine, loadImage, REFERENCES } from "./compatibility_line.mjs";
 import { mergeDescriptorSets } from "./merge_descriptor_sets.mjs";
 
@@ -51,10 +51,18 @@ export const LEGACY_DEPRECATIONS = Object.freeze({
   FormPanel: ["submit"], TablePanel: ["actions"],
   ViewDescriptor: ["actions"], Slot: ["actions"],
 });
+export const LEGACY_MESSAGE_DEPRECATIONS = Object.freeze(["Action", "RowAction", "OpenPanel"]);
 
 function withoutApprovedDeprecations(fullName, previous, current) {
-  if (fullName !== `meridian.ui.v1.${previous.name}` || previous.$typeName !== "google.protobuf.DescriptorProto" || !Object.hasOwn(LEGACY_DEPRECATIONS, previous.name)) return current;
+  if (fullName !== `meridian.ui.v1.${previous.name}` || previous.$typeName !== "google.protobuf.DescriptorProto"
+    || !(Object.hasOwn(LEGACY_DEPRECATIONS, previous.name) || LEGACY_MESSAGE_DEPRECATIONS.includes(previous.name))) return current;
   const copy = clone(DescriptorProtoSchema, current);
+  if (LEGACY_MESSAGE_DEPRECATIONS.includes(previous.name) && copy.options?.deprecated === true && previous.options?.deprecated !== true) {
+    const deprecated = MessageOptionsSchema.fields.find(option => option.name === "deprecated");
+    if (!previous.options || !isFieldSet(previous.options, deprecated)) clearField(copy.options, deprecated);
+    else copy.options.deprecated = previous.options.deprecated;
+    if (previous.options === undefined && toBinary(MessageOptionsSchema, copy.options).length === 0) delete copy.options;
+  }
   for (const name of LEGACY_DEPRECATIONS[previous.name] ?? []) {
     const old = previous.field.find(field => field.name === name);
     const field = copy.field.find(field => field.name === name);
@@ -64,7 +72,7 @@ function withoutApprovedDeprecations(fullName, previous, current) {
     const deprecated = FieldOptionsSchema.fields.find(option => option.name === "deprecated");
     if (!old.options || !isFieldSet(old.options, deprecated)) clearField(field.options, deprecated);
     else field.options.deprecated = old.options.deprecated;
-    if (old.options === undefined && toBinary(FieldOptionsSchema, field.options).length === 0) field.options = undefined;
+    if (old.options === undefined && toBinary(FieldOptionsSchema, field.options).length === 0) delete field.options;
   }
   return copy;
 }

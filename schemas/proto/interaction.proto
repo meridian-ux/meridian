@@ -194,6 +194,7 @@ message Command {
 
 // Open a panel as a focused step of the palette.
 message OpenPanel {
+  option deprecated = true;
   // The panel to render (e.g. a FormPanel in EDIT mode with prefilled fields).
   PanelDescriptor panel = 1 [(google.api.field_behavior) = REQUIRED];
 }
@@ -625,6 +626,7 @@ message ColumnLink {
 
 // One action button exposed on the row's actions bar.
 message RowAction {
+  option deprecated = true;
   // Button label.
   string label = 1 [(google.api.field_behavior) = REQUIRED];
   // RPC fired when the button is clicked.
@@ -793,6 +795,7 @@ enum Column {
 // row/header actions (edit / clone / delete / export / ...). The renderer draws
 // the affordance; the host's RpcInvoker performs the call.
 message Action {
+  option deprecated = true;
   // Stable identifier (e.g. "edit", "delete").
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   // Display label.

@@ -20,6 +20,14 @@ descriptor deprecation alone migrates a producer or grants invocation authority.
 | `ViewDescriptor.actions` | 8 | `ViewDescriptor.affordances.items` |
 | `Slot.actions` | 7 | `Slot.affordances.items` |
 
+The obsolete `Action`, `RowAction`, and `OpenPanel` message types also carry
+`option deprecated = true`. Their declarations and all fields remain available;
+canonical `Affordance`, `ActionPanel`, `Command`, `FormPanel`, and
+`PanelDescriptor` types are not deprecated. `Action`/`RowAction` migrate to the
+corresponding canonical affordance, while the old `OpenPanel` wrapper migrates
+to the actual inline `PanelDescriptor` payload. These are three additional
+message-option bits, not additional targets or removal authority.
+
 The canonical invocation is a typed oneof: URI, command, RPC, navigation,
 inline panel, view ID, or copy. Use actual protobuf messages, preserving raw
 targets, RPC bindings, empty strings, subject context, placement, predicates,
@@ -71,10 +79,12 @@ annotation promises unchanged descriptor-file identity or authorization.
 
 ## Evidence and removal prerequisites
 
-The canonical descriptor guard allows only these nine deprecation bits to be
+The canonical descriptor guard allows only these nine field deprecation bits and
+the three obsolete message deprecation bits to be
 added to retained old declarations. It still compares every other field,
 option/unknown extension, tag, type, oneof, and declaration exactly; tests reject
-an unrelated deprecated label and a second changed option on an allowed field.
+an unrelated deprecated label/canonical panel and second changed options on an
+allowed field or obsolete message.
 The actual committed Cargo descriptor must contain every marker. Frozen 0.x
 and v1-candidate references and production `buf.yaml` are unchanged: maintained
 FILE still rejects relocation, and the explicit candidate comparison is only

@@ -10,7 +10,7 @@ baseline activation, release publication, or FILE relaxation is authorized here.
 ## Canonical implementation candidate (unmerged)
 
 The candidate now explicitly marks nine retained invocation/presentation fields
-deprecated; the [field-by-field migration guide](migration/DEPRECATION.md) lists
+and the three obsolete message types deprecated; the [migration guide](migration/DEPRECATION.md) lists
 exact tags, replacements, warning implications, and mandatory 1.0 removal
 prerequisites. This narrowly tested metadata addition is not removal or production
 activation. All other old declaration options stay exact. Older proposal-only
@@ -126,7 +126,7 @@ list inferred from this document.
 All original .proto paths remain public-import facades. Package/full names,
 existing tags, types, oneof membership, enum numbers, presence, reserved ranges,
 and declaration options remain unchanged under pure relocation. The later
-deprecation candidate changes only the nine documented field option bits; all
+deprecation candidate changes only the nine field and three message option bits; all
 other declaration options remain exact. File ownership and file-level
 descriptor identity **do change**. No facade can promise that a declaration's
 descriptor still identifies its original file while also moving that declaration.
@@ -161,8 +161,8 @@ The isolated candidate additionally proposes:
 (legacy adaptation) from explicitly empty (no legacy revival). Direct repeated
 siblings cannot express that distinction. This is a proposal for review, not an
 approved producer/host contract. Existing Action/RowAction/Command fields remain
-present with their original names, tags, and types; the nine documented field
-options add explicit deprecation. Final removal, semantic-header mappings, and
+present with their original names, tags, and types; the documented field and
+obsolete message options add explicit deprecation. Final removal, semantic-header mappings, and
 integrated release-line adoption remain outstanding.
 
 The probe rejects occupied/reserved names and tags against current descriptors,
