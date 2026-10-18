@@ -65,7 +65,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="Cursor"
     paragraph name=""
       StaticText name="One click installs it."
-    link name="Add to Cursor" focusable=true
+    button name="Add to Cursor" focusable=true invalid="false"
       StaticText name="Add to Cursor"
     figure name=""
       Figcaption name=""

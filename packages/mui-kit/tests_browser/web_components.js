@@ -13,6 +13,26 @@ async function main() {
     const css = fs.readFileSync(path.resolve(process.argv[4]), "utf8");
     await page.setContent('<!doctype html><meta charset="utf-8"><style>' + css + '</style><main id="root" class="meridian-uiview-body" style="margin:16px;--mer-unit:8px"></main>');
     await page.addScriptTag({ content: fs.readFileSync(path.resolve(process.argv[3]), "utf8") });
+    await page.evaluate(() => window.webConformance.invocation("allow"));
+    const invocationButton = page.getByRole("button", { name: "Admitted copy" });
+    await invocationButton.focus(); await page.keyboard.press("Enter");
+    await page.getByRole("status").filter({ hasText: "Action completed." }).waitFor();
+    if (await page.locator("#root").getAttribute("data-calls") !== "1" || await page.locator("a[href]").count()) throw Error("Invocation fell back or duplicated");
+    await page.evaluate(() => window.webConformance.invocation("deny"));
+    await invocationButton.focus(); await page.keyboard.press("Space");
+    await page.getByRole("alert").filter({ hasText: "Action denied" }).waitFor();
+    if (await page.locator("#root").getAttribute("data-calls") !== "0") throw Error("Denied capability ran");
+    await page.evaluate(() => window.webConformance.invocation("pending"));
+    await invocationButton.focus(); await page.keyboard.press("Enter");
+    const cancel = page.getByRole("button", { name: "Cancel action" }); await cancel.waitFor();
+    await page.keyboard.press("Tab"); if (!(await cancel.evaluate(node => node === document.activeElement))) throw Error("Cancel unreachable by Tab");
+    await page.keyboard.press("Enter");
+    if (await page.locator("#root").getAttribute("data-aborted") !== "true") throw Error("Cancel did not abort capability");
+    await invocationButton.focus(); await page.keyboard.press("Enter");
+    if (await page.locator("#root").getAttribute("data-calls") !== "1") throw Error("Cancellation released pending duplicate guard");
+    await cancel.focus(); await page.evaluate(() => window.webConformance.invocationSettle());
+    await cancel.waitFor({ state: "hidden" });
+    if (!(await invocationButton.evaluate(node => node === document.activeElement))) throw Error("Cancel settlement failed focus return");
     await page.evaluate(() => window.webConformance.gallery());
     await page.locator("img").first().waitFor();
     await page.waitForFunction(() => [...document.querySelectorAll("img")].every(image => image.complete && image.naturalWidth > 0));
@@ -74,7 +94,7 @@ async function main() {
     await page.getByText("Keep the frame summary", { exact: true }).waitFor({ state: "visible" });
     for (const text of ["Keep the narration", "First", "Second", "Start here", "Finish here"]) await page.getByText(text, { exact: false }).first().waitFor({ state: "visible" });
     if (await page.locator("ol > li").count() !== 2 || await page.locator("img").count() !== 0) throw new Error("Failed step lost its ordered structure");
-    if (await page.getByRole("link", { name: "Continue", exact: true }).getAttribute("href") !== "/next") throw new Error("Step lost its action");
+    if (await page.getByRole("button", { name: "Continue", exact: true }).count() !== 1 || await page.locator('a[href="/next"]').count()) throw new Error("Step bypassed admitted button action");
     await page.evaluate(() => {
       window.webConformance.typography();
       const root = document.getElementById("root");
@@ -156,7 +176,8 @@ async function main() {
       for (const emphasis of [undefined, 0, 1, 2, 999]) for (const { tone, palette } of cases) {
         await window.webConformance.affordance(tone, emphasis);
         const control = document.querySelector(".mer-affordance"), computed = getComputedStyle(control);
-        if (control.getAttribute("href") !== "/next") throw new Error("Presentation changed destination");
+        control.click();
+        if (control.hasAttribute("href") || document.getElementById("root").dataset.destination !== "/next") throw new Error("Presentation changed admitted destination");
         if (!colors[palette]) throw new Error(`Missing independent color expectation for Palette.${palette}`);
         if (tone !== undefined && computed.color !== colors[palette]) throw new Error(`Affordance Tone ${tone} was dropped`);
         if (tone === undefined && control.hasAttribute("data-mer-tone")) throw new Error("Missing Tone gained a semantic role");

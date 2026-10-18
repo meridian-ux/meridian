@@ -28,7 +28,8 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, affordancePresentation } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { buildInvocationControl } from "./invocation_control.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -168,6 +169,8 @@ export interface RenderPanelOptions {
   invoker: RpcInvoker;
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
+  /** Explicit capabilities/policy for authored invocation targets. */
+  invocation?: InvocationHost;
   /**
    * Host transport for SERVER-STREAMING methods — what a StreamPanel subscribes
    * through. Optional: streaming is a surface capability, not a given, and a
@@ -277,6 +280,8 @@ function withAdmission(opts: RenderPanelOptions): PreparedRenderPanelOptions {
 // ---------------------------------------------------------------------------
 
 const DISPOSERS = new WeakMap<HTMLElement, Array<() => void>>();
+const ACTION_LIFETIMES = new WeakMap<RenderPanelOptions, () => boolean>();
+const ACTION_INVOKERS = new WeakMap<RenderPanelOptions, RpcInvoker>();
 
 function onDispose(root: HTMLElement, dispose: () => void): void {
   const list = DISPOSERS.get(root);
@@ -357,6 +362,10 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   const renderOpts = withAdmission(opts);
   const { root, descriptor } = renderOpts;
   disposePanel(root);
+  let active = true;
+  onDispose(root, () => { active = false; });
+  ACTION_LIFETIMES.set(renderOpts, () => active);
+  ACTION_INVOKERS.set(renderOpts, opts.invoker);
   root.innerHTML = "";
   // Kit-neutral conformance normalizer: hosts and snapshot tests can identify
   // the descriptor without depending on a shape's concrete DOM realization.
@@ -599,39 +608,8 @@ function appendGlyph(opts: RenderPanelOptions, parent: HTMLElement, key: string)
 }
 
 function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement {
-  const item = el("span", "mer-affordance-item");
-  const { primary, tone, style } = affordancePresentation(aff);
-  const cls = `mer-affordance${primary ? " mer-affordance-primary" : ""}`;
-  let control: HTMLElement;
-  if (aff.invoke.case === "uri") {
-    const href = safeNavigationHref(aff.invoke.value);
-    if (href) {
-      const a = el("a", cls);
-      (a as HTMLAnchorElement).href = href;
-      control = a;
-    } else {
-      const button = el("button", cls);
-      (button as HTMLButtonElement).type = "button";
-      (button as HTMLButtonElement).disabled = true;
-      button.setAttribute("aria-disabled", "true");
-      control = button;
-    }
-  } else {
-    control = el("button", `${cls} mer-copy`);
-    (control as HTMLButtonElement).type = "button";
-    copyOnClick(control, aff.invoke.case === "command" ? aff.invoke.value : "");
-  }
-  if (aff.icon) control.dataset.icon = aff.icon;
-  if (tone !== undefined) control.dataset.merTone = tone;
-  if (aff.emphasis !== undefined) control.dataset.merEmphasis = primary ? "primary" : "secondary";
-  Object.assign(control.style, style);
-  if (aff.description) control.title = aff.description;
-  appendGlyph(opts, control, aff.icon);
-  control.appendChild(el("span", undefined, aff.label));
-  item.appendChild(control);
-  // Description rendered inline (not just a tooltip) so it is never dropped.
-  if (aff.description) item.appendChild(el("span", "mer-affordance-desc", aff.description));
-  return item;
+  return buildInvocationControl({ ...opts, invoker: ACTION_INVOKERS.get(opts) ?? opts.invoker, action: normalizeAffordance(aff),
+    alive: ACTION_LIFETIMES.get(opts) ?? (() => false), onDispose: dispose => onDispose(opts.root, dispose) });
 }
 
 function buildSnippet(snippet: Snippet): HTMLElement {

@@ -271,6 +271,7 @@ vitest_test(
     srcs = [
         "fixtures.ts",
         "view_renderer.test.ts",
+        "invocation_control.test.ts",
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",

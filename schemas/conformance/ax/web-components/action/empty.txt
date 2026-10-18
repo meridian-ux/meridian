@@ -6,5 +6,5 @@ RootWebArea name="Meridian AX conformance" focusable=true
     heading name="action · empty" level=3
       StaticText name="action · empty"
     StaticText name="action · empty"
-    link name="Add to Cursor" focusable=true
+    button name="Add to Cursor" focusable=true invalid="false"
       StaticText name="Add to Cursor"

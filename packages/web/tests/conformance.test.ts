@@ -11,9 +11,10 @@ import { fromBinary } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { renderPanel } from "../src/uiview/renderer.js";
+import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
+afterEach(() => { for (const root of Array.from(document.body.children)) disposePanel(root as HTMLElement); document.body.replaceChildren(); });
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import { adhocFixture, tableFixture } from "./fixtures.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
@@ -122,6 +123,7 @@ describe("renderPanel (web-components, binary boundary)", () => {
   for (const fixture of FIXTURES) {
     it(`renders the canonical ${fixture.name} fixture`, async () => {
       const root = document.createElement("div");
+      document.body.append(root); // Accessible ID references require a mounted document.
       await renderPanel({
         wasm: { ...mockWasm, renderTable: (bytes) => {
           fromBinary(PanelDescriptorSchema, bytes);
