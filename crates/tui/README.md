@@ -124,9 +124,9 @@ ceiling and retain the 16 KiB label and 4 MiB descriptor caps.
 Compatibility boundary: legacy `ViewResponse::Action` handoff and
 `PanelAppState::invoke` still exist during the 0.x migration window; neither is
 an admission grant. Prefer the explicit host API for both canonical and legacy
-header/slot controls; denial there never falls back to that handoff. Widget row,
-resource adoption and final deprecation/cutover remain separate
-work. The standalone executable stays offline and never gains mutation transport.
+header/slot controls; denial there never falls back to that handoff. Content
+action adoption and final deprecation/cutover remain separate work. The standalone
+executable stays offline and never gains mutation transport.
 
 ### Admitted native palette
 
@@ -210,6 +210,50 @@ still enforces its stricter declaration and copy limits. Failure preserves edits
 with sanitized feedback. A successful save or completed-effect refresh failure
 cannot replay merely through repeated Enter or focus movement; an actual value
 edit, source reload, or explicit invalidation starts a new submission revision.
+
+### Admitted table and resource actions
+
+After `PanelView::render`, use `handle_action_key_with_invocation(panel, context,
+key_event, host)` for tables and resource cards. Composed views route these
+controls through the same host automatically. Up/Down selects a raw record;
+Left/Right selects an action; Enter/Space activates it. Resource cards also accept
+their displayed 1–9 shortcuts. Tables do not have numeric action shortcuts.
+The selected resource card starts the visible card window. Action captions stay
+visible separately from fixed outcome feedback; danger uses the existing palette
+role, not a new token.
+
+Table `affordances` presence replaces the entire legacy action collection,
+including an empty collection. Legacy `RowAction.enabled_when` and resource
+visibility predicates are checked against the actual selected record. No selected
+record means no effect, even for a literal copy; ambient selection is never a
+fallback. RPC request assembly retains typed zero/false/Unicode values without
+invented ID bindings. All seven canonical targets use the shared admission host.
+Legacy row/resource RPCs preserve default refresh; a semantically resolved
+canonical affordance can explicitly suppress it with `refresh_on_success=false`.
+
+A resource action with no `invoke` requires the pure typed `resolve_resource`
+callback. Its ID is never a route, synthetic action, or RPC fallback. A present
+`ConfirmSpec` always requires `confirm_resource`, even after semantic resolution.
+The callback receives the original literal spec, resolved target, and current
+record; do not interpolate untrusted spec text. Optional generic confirmation
+does not substitute for required resource consent. Neither consent grants
+permission: policy is checked again before execution.
+
+Source/context changes and navigation withdraw activation until the current
+control is drawn. Zero geometry and virtualized or partially visible controls
+withdraw execution ownership without discarding cached data or form edits.
+Repeated-parent read scopes are revalidated. Inert legacy request projections
+remain available for 0.x compatibility, but are not admission grants. Host work
+retains the shared cancellation/single-flight contract through settlement.
+Completed-effect refresh failures cannot replay merely by navigating away/back;
+bounded per-source history fails closed instead of evicting completed entries.
+
+Resource rendering preflights all raw rows and repeated title/subtitle/status,
+metadata, and action labels before cloning or formatting, including hidden
+actions. It uses the existing cumulative 4 MiB work and depth budgets; this is
+not an exact heap-memory bound. Malformed resource records fail the whole input.
+Declarations retain the existing aggregate control/label/descriptor caps. No
+schema, compatibility baseline, budget, or transport authority changes here.
 
 ### Composition and input lifecycle
 

@@ -201,7 +201,9 @@ pub fn render_resource_cards(
     };
 
     let selected = selected % rows.len();
-    for (index, row) in rows.iter().enumerate() {
+    // Keep the active card visible. Earlier rows remain reachable with Up;
+    // rendering from the selected row avoids activating an offscreen record.
+    for (index, row) in rows.iter().enumerate().skip(selected) {
         let active = index == selected;
         let title_style = if active {
             palette.focused()
@@ -265,16 +267,17 @@ pub fn render_resource_cards(
             })
             .unwrap_or_default();
         if !actions.is_empty() {
-            let labels = actions
-                .iter()
-                .enumerate()
-                .map(|(action_index, action)| format!("[{}] {}", action_index + 1, action.label))
-                .collect::<Vec<_>>()
-                .join("  ");
-            lines.push(Line::from(vec![
-                Span::raw("    "),
-                Span::styled(labels, palette.title()),
-            ]));
+            let mut spans = vec![Span::raw("    ")];
+            for (action_index, action) in actions.iter().enumerate() {
+                if action_index > 0 {
+                    spans.push(Span::raw("  "));
+                }
+                spans.push(Span::styled(
+                    format!("[{}] {}", action_index + 1, action.label),
+                    resource_action_style(action, palette),
+                ));
+            }
+            lines.push(Line::from(spans));
         }
         if index + 1 < rows.len() {
             lines.push(Line::from(""));
@@ -365,6 +368,18 @@ fn escape_link_text(text: &str) -> String {
             vec![ch]
         }
     }).collect()
+}
+
+/// Legacy danger uses the same semantic role as canonical Tone::Danger.
+pub(crate) fn resource_action_style(
+    action: &ResourceAction,
+    palette: &Palette,
+) -> ratatui::style::Style {
+    if action.style == meridian_uiview::proto::ActionStyle::Danger as i32 {
+        palette.tone_style(Tone::Danger)
+    } else {
+        palette.title()
+    }
 }
 
 /// The shared visibility predicate used by the web kits: a deliberately small
@@ -1010,7 +1025,7 @@ pub fn glyph(key: &str) -> &'static str {
     }
 }
 
-fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
+pub(crate) fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
     let (marker, target) = match a.invoke.as_ref() {
         Some(Invoke::Uri(u)) => ("↵", u.clone()),
         Some(Invoke::Command(c)) => ("$", c.clone()),

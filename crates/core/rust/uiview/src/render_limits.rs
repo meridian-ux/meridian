@@ -1,7 +1,7 @@
 //! Preflight borrowed render inputs before cloning rows or formatting repeated
 //! cells. Trusted render APIs remain compatible; untrusted consumers use these.
 use crate::{
-    proto::{GalleryPanel, TablePanel},
+    proto::{GalleryPanel, ResourceCardPanel, TablePanel},
     ProtoPaths, RenderedCard, RenderedRow, RequestBudget,
 };
 use prost::Message;
@@ -100,11 +100,102 @@ pub fn render_gallery_bounded(
     Ok(crate::render_gallery(response, gallery))
 }
 
+/// Charge every repeated resource label/cell before cloning or formatting rows.
+/// Hidden lifecycle actions also count: filtering must not bypass the work cap.
+pub fn render_resource_cards_bounded(
+    response: &Value,
+    panel: &ResourceCardPanel,
+) -> Result<Vec<Value>, RenderLimitExceeded> {
+    if panel.encoded_len() > 1024 * 1024 {
+        return Err(RenderLimitExceeded);
+    }
+    let template = panel.template.as_ref().ok_or(RenderLimitExceeded)?;
+    let mut budget = budget()?;
+    let actions = template
+        .actions
+        .as_ref()
+        .map(|set| set.actions.as_slice())
+        .unwrap_or_default();
+    for field in &template.meta {
+        budget
+            .reserve(1024 + field.label.len())
+            .map_err(|_| RenderLimitExceeded)?;
+    }
+    for action in actions {
+        budget
+            .reserve(1024 + action.label.len())
+            .map_err(|_| RenderLimitExceeded)?;
+    }
+    let rows = ProtoPaths::get(response, &panel.rows_field)
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    for row in rows {
+        if !row.is_object() {
+            return Err(RenderLimitExceeded);
+        }
+        budget.admit_copy(row).map_err(|_| RenderLimitExceeded)?;
+        for path in [
+            &template.title_field,
+            &template.subtitle_field,
+            &template.status_field,
+        ] {
+            if !path.is_empty() {
+                cell(&mut budget, ProtoPaths::get(row, path), path)?;
+            }
+        }
+        for field in &template.meta {
+            budget
+                .reserve(field.label.len())
+                .map_err(|_| RenderLimitExceeded)?;
+            cell(
+                &mut budget,
+                ProtoPaths::get(row, &field.field_path),
+                &field.field_path,
+            )?;
+        }
+        for action in actions {
+            budget
+                .reserve(1024 + action.label.len())
+                .map_err(|_| RenderLimitExceeded)?;
+        }
+    }
+    Ok(rows.to_vec())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::proto::{CardSpec, TableColumn};
     use serde_json::json;
+
+    #[test]
+    fn resources_preflight_label_amplification_and_preserve_typed_records() {
+        use crate::proto::{ActionSet, ResourceAction, ResourceCardTemplate};
+        let panel = ResourceCardPanel {
+            rows_field: "rows".into(),
+            template: Some(ResourceCardTemplate {
+                title_field: "name".into(),
+                actions: Some(ActionSet {
+                    actions: vec![ResourceAction {
+                        label: "x".repeat(8_000),
+                        ..Default::default()
+                    }],
+                }),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let large =
+            json!({"rows":(0..600).map(|id|json!({"id":id,"name":"row"})).collect::<Vec<_>>()});
+        assert!(render_resource_cards_bounded(&large, &panel).is_err());
+        let small = json!({"rows":[{"id":0,"name":"raw/e\u{301}","enabled":false}]});
+        assert_eq!(
+            render_resource_cards_bounded(&small, &panel).unwrap(),
+            small["rows"].as_array().unwrap().clone()
+        );
+        assert!(render_resource_cards_bounded(&json!({"rows":[null]}), &panel).is_err());
+    }
 
     #[test]
     fn table_projection_rejects_repeated_cells_before_building_output() {
