@@ -73,6 +73,63 @@ This is also the record handoff used by the composed `ViewHost` below.
 
 ## Composed native views
 
+### Explicit native invocation host
+
+Canonical header and slot `affordances` now take precedence as a whole, including
+empty collections. Enter/Space passes the selected declaration through
+`ViewHost::handle_key_with_invocation` and a `NativeInvocationHost`. Calling the
+ordinary `handle_key` without that host visibly denies canonical actions.
+Rendering, focus movement and descriptor metadata never execute capabilities.
+
+The host supplies separate optional RPC, URI, command, navigation, panel, view
+and copy callbacks. RPC always requires the pure `mutations` policy, even for
+Get/List; a stricter optional `admit` may also deny it. Non-RPC targets require
+both their explicit capability and `admit`. There is no implicit opener, shell,
+clipboard, panel/view mount, or fallback transport. Unsafe active/document-local
+URI schemes and controls are refused; the host must validate its own destination
+semantics. Commands are not copies, and an empty literal copy remains valid.
+
+Callbacks borrow immutable protobuf intent and runtime context. Construct scope
+with `NativeInvocationContext::new(context).with_record(record)` and use its
+effective `selected_row()` accessor for policy and effects; the raw ambient
+selection is not exposed. Repeated records override ambient selection, preserving
+raw zero, false and Unicode. RPC assembly
+uses the existing bounded Rust request builder, with no invented ID binding.
+Legacy no-call action IDs require a pure `resolve_semantic`, not an executing
+`onAction` callback or an inferred route. Permission/resolver callbacks must be
+pure; policy is rechecked after optional consent and request construction.
+Confirmation is not authorization. Failures have fixed messages without raw
+transport errors or bound values. A failed refresh is a completed effect, not a
+reason to repeat it; explicit false suppresses refresh.
+
+This API is synchronous, matching the existing native `RpcInvoker`. A capability
+must return only after its effect settles. The renderer adds no async runtime or
+background transport and does not replace LRO start/poll/finalize with an
+acknowledged action. Hosts may own workers and use the cloned
+`invocation_dispatcher()` cancellation handle; view invalidation/drop cancels
+observation. The single-flight guard stays held through noncooperative settlement,
+including reentrant callbacks. Cancellation cannot roll back an already-sent effect.
+
+A bounded exact context key (not a hash) rejects obsolete key activation until
+redraw. Ordinary and row-override context domains retain at most one key each;
+derived immutable records never copy an irrelevant ambient row. Captured parent
+read requests are revalidated before activation, and target/record identity
+changes cancel retained workers even when replacement rows have equal values.
+Each context capture shares a 4 MiB cumulative native copy budget, a separate
+4 MiB serialized-key cap, and the existing 64-level value-depth bound. These keys
+remain private in-process state, never an interchange/audit DTO. Protobuf control
+counts include canonical collections in the existing 1,000-node composition
+ceiling and retain the 16 KiB label and 4 MiB descriptor caps.
+
+Compatibility boundary: legacy `ViewResponse::Action` handoff and
+`PanelAppState::invoke` still exist during the 0.x migration window; neither is
+an admission grant. Prefer the explicit host API for both canonical and legacy
+header/slot controls; denial there never falls back to that handoff. Widget row,
+resource, form and palette adoption and final deprecation/cutover remain separate
+work. The standalone executable stays offline and never gains mutation transport.
+
+### Composition and input lifecycle
+
 `ViewHost::new(descriptor)` owns a canonical `ViewDescriptor`. Render it into the
 host's frame with `render`, passing the same `Context` and host-owned `RpcInvoker`
 used for panels. The standalone offline viewer accepts `meridian-tui view.binpb
