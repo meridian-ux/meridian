@@ -84,6 +84,7 @@ vitest_test(
         "conformance_normalizer.test.ts",
         "form.test.ts",
         "form_admission.test.ts",
+        "table_admission.test.ts",
         "llm_prompt.test.ts",
         "prompt.test.ts",
         "media.test.ts",

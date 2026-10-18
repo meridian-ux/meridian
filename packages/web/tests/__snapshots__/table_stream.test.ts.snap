@@ -3,11 +3,9 @@
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/completed-refreshed 1`] = `
 ""Builds"
 "1 builds"
-button aria-disabled="false" type="button" aria-describedby="Completed." disabled
+button aria-disabled="true" type="button" disabled
   "Targets"
-span role="status"
-  "Completed."
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" disabled
   "Artifacts"
 table
   thead
@@ -27,11 +25,11 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/failed 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" title="<b>Targets unavailable</b>" type="button" aria-describedby="<b>Targets unavailable</b>"
+button type="button" aria-describedby="Action failed. Try again with the current context."
   "Targets"
 span role="alert"
-  "<b>Targets unavailable</b>"
-button aria-disabled="false" type="button" aria-describedby=""
+  "Action failed. Try again with the current context."
+button type="button"
   "Artifacts"
 table
   thead
@@ -56,9 +54,13 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/pending 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" aria-describedby="Action is running."
   "Targets"
-button aria-disabled="false" type="button" aria-describedby=""
+span role="status"
+  "Action is running."
+button type="button"
+  "Cancel action"
+button aria-disabled="true" type="button" disabled
   "Artifacts"
 table
   thead
@@ -83,10 +85,13 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/retry-pending 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" aria-describedby="Action is running."
   "Targets"
-span role="alert"
-button aria-disabled="false" type="button" aria-describedby=""
+span role="status"
+  "Action is running."
+button type="button"
+  "Cancel action"
+button aria-disabled="true" type="button" disabled
   "Artifacts"
 table
   thead
@@ -111,9 +116,9 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/selected-enabled 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" type="button" aria-describedby=""
+button type="button"
   "Targets"
-button aria-disabled="false" type="button" aria-describedby=""
+button type="button"
   "Artifacts"
 table
   thead
@@ -138,9 +143,9 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/selected-filtered 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" type="button" aria-describedby=""
+button type="button"
   "Targets"
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" disabled
   "Artifacts"
 table
   thead
@@ -165,9 +170,9 @@ table
 exports[`TablePanel row selection + actions > preserves semantic selection and feedback through failure, retry, and refresh > web-components/table-row-actions/unselected 1`] = `
 ""Builds"
 "2 builds"
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" disabled
   "Targets"
-button aria-disabled="false" type="button" aria-describedby="" disabled
+button aria-disabled="true" type="button" disabled
   "Artifacts"
 table
   thead

@@ -52,6 +52,12 @@ export interface InvocationControlOptions {
   invoker: RpcInvoker;
   context: RenderContext;
   record?: object;
+  /** Panel-local live row; null means no selection. Never a host grant. */
+  readRecord?: () => object | null;
+  recordKey?: () => unknown;
+  blocked?: () => boolean;
+  /** Renderer-owned refresh must check currentness before applying async data. */
+  refresh?: (signal: AbortSignal, current: () => boolean) => Promise<void>;
   subject?: InvocationSnapshot["subject"];
   invocation?: InvocationHost;
   admission?: AdmissionPolicy;
@@ -87,7 +93,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
   const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel action"; cancel.hidden = true;
   const id = `mer-invocation-${++nextId}`; feedback.id = `${id}-feedback`; description.id = `${id}-description`;
   let disposed = false, cache: { signature: unknown[]; snapshot: InvocationSnapshot } | undefined;
-  let collecting = false;
+  let collecting = false, activating = false;
   const ownContextField = (context: object, key: string) => {
     const field = Object.getOwnPropertyDescriptor(context, key);
     if (field && !("value" in field)) throw Error("Invalid invocation context.");
@@ -98,6 +104,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
     try {
       const { action, invocation: host, admission, invoker } = options;
       const context = host?.context ?? options.context;
+      const record = options.readRecord ? options.readRecord() : options.record;
       const actionJson = inertJson(action.affordance, true), semanticJson = inertJson(action.semanticAction ?? null, true);
       let values: Record<string, unknown> | undefined;
       if (collecting && options.readFormValues) {
@@ -106,17 +113,19 @@ export function createInvocationControl(options: InvocationControlOptions) {
       const contextJson = options.readFormValues ? inertJson({
         currentResourcePath: ownContextField(context, "currentResourcePath") ?? null,
         uiIdentity: ownContextField(context, "uiIdentity") ?? null,
-        selectedRow: options.record ?? ownContextField(context, "selectedRow") ?? null,
+        selectedRow: record ?? ownContextField(context, "selectedRow") ?? null,
         formValues: values ?? {}, signals: ownContextField(context, "signals"), selections: ownContextField(context, "selections"),
-      }) : options.record === undefined ? inertJson(context)
-        : inertJson({ ...JSON.parse(inertJson(context)), selectedRow: options.record });
+      }) : record === undefined ? inertJson(context)
+        : inertJson({ currentResourcePath: ownContextField(context, "currentResourcePath") ?? null,
+          uiIdentity: ownContextField(context, "uiIdentity") ?? null, selectedRow: record,
+          formValues: ownContextField(context, "formValues"), signals: ownContextField(context, "signals"), selections: ownContextField(context, "selections") });
       const submissionJson = inertJson(options.submission ?? null, true);
       const policyJson = inertJson(admission === "unrestricted" ? admission : { reads: admission?.reads, mutations: admission?.mutations, inferFromAipVerbs: admission?.inferFromAipVerbs });
       const subjectJson = inertJson(options.subject ?? null);
       const caps = host?.capabilities, admit = host?.admit;
-      const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues,
+      const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues, options.recordKey?.(),
         invoker, invoker.invoke, caps?.uri, caps?.command, caps?.navigate, caps?.openPanel, caps?.openView, caps?.copy, caps?.rpc, caps?.rpc?.invoke,
-        admit, host?.resolveSemantic, host?.refresh, admission === "unrestricted" ? undefined : admission?.onDenied];
+        admit, host?.resolveSemantic, host?.refresh, options.refresh, admission === "unrestricted" ? undefined : admission?.onDenied];
       if (cache && signature.every((value, index) => Object.is(value, cache!.signature[index]))) return cache.snapshot;
       // Clone protos only after inert bounds/accessor/cycle admission.
       const snapshot: InvocationSnapshot = {
@@ -124,7 +133,8 @@ export function createInvocationControl(options: InvocationControlOptions) {
         context: JSON.parse(contextJson), subject: JSON.parse(subjectJson) ?? undefined,
         admission: admission === "unrestricted" ? admission : { ...JSON.parse(policyJson), onDenied: admission?.onDenied },
         capabilities: { ...caps, rpc: caps?.rpc ?? { invoke: (service, method, request) => invoker.invoke(service, method, request) } },
-        resolveSemantic: host?.resolveSemantic, refresh: host?.refresh,
+        resolveSemantic: host?.resolveSemantic,
+        refresh: options.refresh ? signal => options.refresh!(signal, () => !signal.aborted && read() === snapshot) : host?.refresh,
         submission: options.submission ? { kind: options.submission.kind, fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
         admit: (intent, context) => {
           if (intent.case === "uri" && !safeNavigationHref(intent.value) || intent.case === "navigate" && !safeNavigationHref(intent.value.route)) return false;
@@ -152,21 +162,44 @@ export function createInvocationControl(options: InvocationControlOptions) {
     button.setAttribute("aria-describedby", [description.textContent && description.id, message && feedback.id].filter(Boolean).join(" "));
   };
   let denied = !initial;
-  try { denied ||= !!aff?.enabledWhen && !matchesRowFilter(aff.enabledWhen, initial!.context.selectedRow); } catch { denied = true; }
+  try { denied ||= !options.readRecord && !!aff?.enabledWhen && !matchesRowFilter(aff.enabledWhen, initial!.context.selectedRow); } catch { denied = true; }
   const unsafe = aff?.invoke.case === "uri" && !safeNavigationHref(aff.invoke.value) || aff?.invoke.case === "navigate" && !safeNavigationHref(aff.invoke.value.route);
   const policyDenied = aff?.invoke.case === "rpc" && !createAdmissionGate(options.admission).admits("mutation", aff.invoke.value.service, aff.invoke.value.method);
   if (denied || unsafe) { button.disabled = true; button.setAttribute("aria-disabled", "true"); setMessage("Action unavailable: the descriptor, context, conditions, or destination is invalid.", true); }
   else if (policyDenied) { button.setAttribute("aria-disabled", "true"); setMessage("Unavailable: this action is not permitted."); }
   else if (description.textContent) button.setAttribute("aria-describedby", description.id);
+  let paintedScope = initial;
+  const sync = () => {
+    const pending = activating || dispatcher.pending;
+    const scope = read();
+    if (scope !== paintedScope) {
+      // Selection changes invalidate consent, but do not release the dispatcher's
+      // duplicate guard while a noncooperative transport is still settling.
+      if (pending) dispatcher.cancel();
+      feedback.textContent = ""; feedback.removeAttribute("role"); paintedScope = scope;
+    }
+    let rowDenied = false;
+    try { rowDenied = !!options.readRecord && (!scope?.context.selectedRow || !!scope.action.affordance.enabledWhen && !matchesRowFilter(scope.action.affordance.enabledWhen, scope.context.selectedRow)); }
+    catch { rowDenied = true; }
+    button.disabled = denied || !!unsafe || rowDenied || !!options.blocked?.() && !pending;
+    if (pending || policyDenied || button.disabled) button.setAttribute("aria-disabled", "true");
+    else button.removeAttribute("aria-disabled");
+    if (!pending && !feedback.textContent) {
+      if (policyDenied) setMessage("Unavailable: this action is not permitted.");
+      else button.setAttribute("aria-describedby", description.textContent ? description.id : "");
+    }
+  };
   cancel.onclick = () => { dispatcher.cancel(); setMessage("Cancellation requested; waiting for the action to stop."); };
   const activate = async (): Promise<InvocationOutcome | undefined> => {
-    if (dispatcher.pending || button.disabled) return;
+    if (disposed || !options.alive() || activating || dispatcher.pending || button.disabled || options.blocked?.()) return;
     collecting = true;
     const scope = read();
     if (!scope) { setMessage("Action unavailable: the descriptor or context is invalid.", true); return; }
     button.setAttribute("aria-busy", "true"); button.setAttribute("aria-disabled", "true"); cancel.hidden = false; setMessage("Action is running.");
+    activating = true;
     options.onPending?.(true);
     const outcome = await dispatcher.activate();
+    activating = false;
       if (disposed || !options.alive()) return;
       const current = read() === scope;
       if (current && document.activeElement === cancel && button.isConnected) button.focus();
@@ -174,11 +207,13 @@ export function createInvocationControl(options: InvocationControlOptions) {
       if (current) setMessage(outcomeText(outcome), outcome.status === "failed" || outcome.status === "denied");
       else { feedback.textContent = ""; feedback.removeAttribute("role"); }
       options.onPending?.(false);
+      if (options.readRecord || options.blocked) sync();
       return current ? outcome : undefined;
   };
   button.onclick = () => { void activate(); };
   item.append(button); if (description.textContent) item.append(description); item.append(feedback, cancel);
-  return { element: item, button, activate, dispose };
+  if (options.readRecord || options.blocked) sync();
+  return { element: item, button, activate, dispose, sync };
 }
 export function buildInvocationControl(options: InvocationControlOptions): HTMLElement { return createInvocationControl(options).element; }
 let nextId = 0;
