@@ -35,7 +35,8 @@ def main():
     version = run([args.javac, "-version"])
     if not version.startswith("javac 21."):
         raise RuntimeError("This probe is recorded with JDK 21")
-    sources = sorted("proto/" + path.name for path in (ROOT / "schemas/proto").glob("*.proto"))
+    sources = sorted("proto/" + path.name for path in (ROOT / "schemas/proto").glob("*.proto")
+                     if path.name != "interaction.proto")
     sources.append("google/api/field_behavior.proto")
     with tempfile.TemporaryDirectory(prefix="meridian-affordance-java-") as temporary:
         work = Path(temporary)

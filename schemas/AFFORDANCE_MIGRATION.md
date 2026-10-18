@@ -19,9 +19,12 @@ not establish canonical activation-policy adoption by every renderer.
 
 The production FILE policy remains unchanged. The actual full-module candidate
 passes the explicit frozen `v1-candidate` comparison while maintained 0.x rejects
-the 45 ownership moves. The historical proposal harness still assumes unmoved
-source files and expected native compile failures; transition it to canonical
-acceptance checks before integration. Renderer dispatch, producer upgrades, and
+the 45 ownership moves. The explicit `--canonical` harness now compiles the real
+source image and compares it with the frozen full-module old reader. It retains
+all fixture, typed invocation, policy/envelope presence, both generator modes,
+and FILE-rejection assertions. The canonical Rust phase requires full workspace
+success, not an expected compiler error. Swift host adoption still blocks the
+expanded native Swift build. Renderer dispatch, producer upgrades, and
 final production cutover remain outstanding. Keep this candidate unmerged until
 those requirements and separate cutover approval are satisfied.
 
@@ -37,24 +40,27 @@ paths; this foundation does not activate its release line.
 
 ```sh
 pnpm install --frozen-lockfile
-node schemas/tools/affordance_migration_probe.mjs
+node schemas/tools/affordance_migration_probe.mjs --canonical
 # Includes the complete probe above, then baseline/candidate compilation of six
 # real public TS projects. Preserves their checking options; never emits files.
 node schemas/tools/affordance_consumer_probe.mjs
 # Optional local/private context only; keep private diagnostics out of public CI.
 node schemas/tools/affordance_consumer_probe.mjs --config=/path/to/private/tsconfig.json
 # Optional: retain generated sources/descriptors for native consumer experiments.
-node schemas/tools/affordance_migration_probe.mjs --keep
+node schemas/tools/affordance_migration_probe.mjs --canonical --keep
 # With the retained directory, pinned protoc 33.4, JDK 21 and protobuf-java
 # 4.33.4, run tools/affordance_java_probe.py --help for compiled Java checks.
-# With that same retained directory, compare the actual Rust workspace worlds:
-python3 -u tools/affordance_rust_probe.py --scratch /path/from/probe/work
+# With that directory, require complete tests of the actual Rust candidate:
+python3 -u tools/affordance_rust_probe.py --canonical --scratch /path/from/probe/work
 ```
 
-The probe builds temporary copies of the **current real schemas**, not just
-two synthetic messages. It does not alter canonical protos, checked-in Rust
+The canonical phase builds the **current real full-module schemas**, not just
+two synthetic messages, and compares them with the frozen pre-v1 reference.
+The original hypothetical-relocation experiment remains available on the
+maintained source layout without `--canonical`; it is historical, not the
+implementation candidate's acceptance command. Neither phase alters canonical protos, checked-in Rust
 descriptors, production codegen, or published packages. Its scratch directory
-is removed unless explicitly retained. CI runs it as a proposal self-test.
+is removed unless explicitly retained. CI selects the canonical phase explicitly.
 Expected compatibility rejection is tested as rejection, not relabeled as a
 successful production migration.
 
@@ -127,7 +133,17 @@ The SCC remains nine files. No production reservation or field is introduced.
 Do not claim the candidate implements normalization, precedence enforcement,
 dispatch, host admission, or renderer adoption.
 
-## Evidence and limits
+## Historical proposal evidence and limits
+
+Current canonical-phase measurement: **228 frozen declarations / 229 candidate
+declarations**, including conformance DTOs in the full module, 24 panel fixtures,
+seven invocation arms, 84 policy cases, 18 envelope cases, and 180 generated
+export checks. All six public source projects compile against frozen and actual
+candidate facades. The isolated canonical Rust workspace passes 308 tests with
+one preexisting ignored doctest. These checks do not establish host-dispatch
+adoption or approve production cutover. The narrower proposal measurements and
+expected native failures below are retained as historical evidence, not current
+canonical acceptance results.
 
 The reproducible probe verifies:
 

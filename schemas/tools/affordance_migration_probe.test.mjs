@@ -1,8 +1,37 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { componentContaining, assertAvailableFields } from "./affordance_migration_probe.mjs";
-import { create } from "@bufbuild/protobuf";
+import { componentContaining, assertAvailableFields, assertCandidateDeclarations } from "./affordance_migration_probe.mjs";
+import { clone, create } from "@bufbuild/protobuf";
 import { DescriptorProtoSchema } from "@bufbuild/protobuf/wkt";
+import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { loadImage, REFERENCES } from "./compatibility_line.mjs";
+
+test("canonical phase checks every frozen declaration and exact candidate field allocation", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  assert.doesNotThrow(() => assertCandidateDeclarations(previous, candidate));
+  for (const corrupt of [
+    message => { message.field.find(field => field.name === "label").number = 99; },
+    message => { message.field.find(field => field.name === "rpc").typeName = ".meridian.ui.v1.Navigate"; },
+    message => { message.field.find(field => field.name === "placement").proto3Optional = false; },
+    message => { message.field.find(field => field.name === "refresh_on_success").number = 98; },
+    message => { message.field = message.field.filter(field => field.name !== "copy"); },
+    message => { message.field.find(field => field.name === "open_view").oneofIndex = 1; },
+  ]) {
+    const changed = clone(FileDescriptorSetSchema, candidate);
+    corrupt(changed.file.find(file => file.name === "proto/interaction.proto").messageType.find(message => message.name === "Affordance"));
+    assert.throws(() => assertCandidateDeclarations(previous, changed));
+  }
+});
+
+test("canonical phase cannot omit a frozen conformance declaration", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  const conformance = candidate.file.find(file => file.name.startsWith("conformance/") && file.messageType.length);
+  assert(conformance, "frozen full-module input must include conformance declarations");
+  conformance.messageType.pop();
+  assert.throws(() => assertCandidateDeclarations(previous, candidate), /disappeared/);
+});
 
 test("candidate allocations reject occupied/reserved names and tags, including duplicate proposals", () => {
   const message = create(DescriptorProtoSchema, { name: "Candidate", field: [{ name: "old", number: 1 }],
