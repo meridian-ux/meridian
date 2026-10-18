@@ -7,14 +7,31 @@ FILE-transition preparation, and public/private consumer upgrades. Final product
 cutover remains separately approval-gated. No main-branch declaration move,
 baseline activation, release publication, or FILE relaxation is authorized here.
 
+## Canonical implementation candidate (unmerged)
+
+The candidate relocates the nine compilation units into `proto/interaction.proto`,
+retains public-import facades and generated TypeScript module exports, and adds
+the typed invocation/presence fields below. Cargo's committed image is regenerated
+from actual Bazel dependency outputs, validated for conflicts/missing dependencies,
+and ordered dependency-first. Native passive projections handle all seven invoke
+arms without executing them or displaying clipboard payloads. These checks do
+not establish canonical activation-policy adoption by every renderer.
+
+The production FILE policy remains unchanged. The actual full-module candidate
+passes the explicit frozen `v1-candidate` comparison while maintained 0.x rejects
+the 45 ownership moves. The historical proposal harness still assumes unmoved
+source files and expected native compile failures; transition it to canonical
+acceptance checks before integration. Renderer dispatch, producer upgrades, and
+final production cutover remain outstanding. Keep this candidate unmerged until
+those requirements and separate cutover approval are satisfied.
+
 The first implementation foundation shares `tools/proto_facades.mjs` between
 `pnpm codegen` and the Bazel protobuf-es action. Its frozen pre-v1 descriptor is
 documented in [compat/README.md](compat/README.md). The real nine-file probe now
 uses this compiler-backed transform in both generator modes, rather than a
-probe-local export rewrite. The current canonical schema still has no relocated
-declarations, so ordinary development/Bazel generation is a byte-identical
-zero-facade path. Actual relocated Bazel/package/native adoption and release-line
-FILE-baseline transition checks remain separate implementation work.
+probe-local export rewrite. On maintained main, generation remains a byte-identical
+zero-facade path. The unmerged candidate exercises relocated Bazel/package/native
+paths; this foundation does not activate its release line.
 
 ## Reproduce the experiment
 

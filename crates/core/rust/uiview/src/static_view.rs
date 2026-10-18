@@ -195,6 +195,20 @@ impl Text {
             Some(proto::affordance::Invoke::Command(command)) => {
                 self.line(format_args!("Command: {command}"))
             }
+            Some(proto::affordance::Invoke::Rpc(call)) => self.rpc("Destination", Some(call)),
+            Some(proto::affordance::Invoke::Navigate(navigate)) => self.line(format_args!(
+                "Route: {} [host required; not executed]",
+                navigate.route
+            )),
+            Some(proto::affordance::Invoke::OpenPanel(_)) => {
+                self.copy("Panel destination [host required; not opened]")
+            }
+            Some(proto::affordance::Invoke::OpenView(view)) => {
+                self.line(format_args!("View: {view} [host required; not opened]"))
+            }
+            Some(proto::affordance::Invoke::Copy(_)) => {
+                self.copy("Copy destination [value hidden; not copied]")
+            }
             None => self.copy("Destination requires a host."),
         }
     }
@@ -593,6 +607,62 @@ mod tests {
     use super::*;
     use crate::proto::*;
 
+    #[test]
+    fn typed_destinations_are_passive_and_do_not_disclose_copy_values() {
+        use affordance::Invoke;
+        let cases = [
+            (Invoke::Uri("/uri".into()), "URI: /uri"),
+            (Invoke::Command("command".into()), "Command: command"),
+            (
+                Invoke::Rpc(RpcCall {
+                    service: "fixture.Service".into(),
+                    method: "Delete".into(),
+                    ..Default::default()
+                }),
+                "fixture.Service/Delete [host required; not executed]",
+            ),
+            (
+                Invoke::Navigate(Navigate {
+                    route: "/route".into(),
+                }),
+                "Route: /route",
+            ),
+            (
+                Invoke::OpenPanel(Box::new(PanelDescriptor {
+                    title: "nested-content-must-not-mount".into(),
+                    ..Default::default()
+                })),
+                "Panel destination [host required; not opened]",
+            ),
+            (Invoke::OpenView("view-id".into()), "View: view-id"),
+            (
+                Invoke::Copy("clipboard-secret".into()),
+                "Copy destination [value hidden; not copied]",
+            ),
+        ];
+        for (invoke, expected) in cases {
+            let mut text = Text {
+                value: String::new(),
+                remaining: 4096,
+                nodes: 10,
+                lines: 20,
+            };
+            text.affordance(
+                &Affordance {
+                    label: "Activate".into(),
+                    invoke: Some(invoke),
+                    ..Default::default()
+                },
+                0,
+            )
+            .unwrap();
+            assert!(text.value.contains("Activate [not executed]"));
+            assert!(text.value.contains(expected), "{}", text.value);
+            assert!(!text.value.contains("clipboard-secret"));
+            assert!(!text.value.contains("nested-content-must-not-mount"));
+        }
+    }
+
     fn slot(id: &str, position: i32) -> Slot {
         Slot {
             id: id.into(),
@@ -715,7 +785,7 @@ mod tests {
             slots: vec![
                 Slot {
                     panel: Some(PanelDescriptor {
-                        body: Some(Body::Form(FormPanel {
+                        body: Some(Body::Form(Box::new(FormPanel {
                             fields,
                             submit: Some(RpcCall {
                                 service: "fixture".into(),
@@ -723,7 +793,7 @@ mod tests {
                                 ..Default::default()
                             }),
                             ..Default::default()
-                        })),
+                        }))),
                         ..Default::default()
                     }),
                     ..Default::default()

@@ -239,12 +239,15 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
             id: "editor".into(),
             panel: Some(PanelDescriptor {
                 title: "Native row editor".into(),
-                body: Some(panel_descriptor::Body::Form(FormPanel {
-                    fields,
-                    mode: FormMode::Edit as i32,
-                    submit: Some(save.clone()),
-                    ..Default::default()
-                })),
+                body: Some(panel_descriptor::Body::Form(
+                    FormPanel {
+                        fields,
+                        mode: FormMode::Edit as i32,
+                        submit: Some(save.clone()),
+                        ..Default::default()
+                    }
+                    .into(),
+                )),
                 ..Default::default()
             }),
             actions: vec![Action {

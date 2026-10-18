@@ -25,7 +25,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const realManifest = () =>
   JSON.parse(readFileSync(join(ROOT, "conformance/coverage.json"), "utf8"));
 const realArms = () =>
-  parseBodyArms(readFileSync(join(ROOT, "proto/panel.proto"), "utf8"));
+  parseBodyArms(readFileSync(join(ROOT, "proto/interaction.proto"), "utf8"));
 const realCatalog = () =>
   JSON.parse(readFileSync(join(ROOT, "conformance/renderer_catalog.json"), "utf8"));
 
@@ -110,7 +110,7 @@ test("a declared new workspace renderer missing from the catalog fails", (t) => 
 });
 
 test("the Launchpad manifest covers every Command.action arm", () => {
-  const proto = readFileSync(join(ROOT, "proto/command_palette.proto"), "utf8");
+  const proto = readFileSync(join(ROOT, "proto/interaction.proto"), "utf8");
   const arms = parseScopedOneofArms(proto, "Command.action");
   assert.deepEqual(arms.map((arm) => arm.name), ["rpc", "open_panel", "open_view_id", "navigate"]);
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);

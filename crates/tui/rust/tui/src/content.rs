@@ -1009,6 +1009,11 @@ fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
     let (marker, target) = match a.invoke.as_ref() {
         Some(Invoke::Uri(u)) => ("↵", u.clone()),
         Some(Invoke::Command(c)) => ("$", c.clone()),
+        Some(Invoke::Rpc(call)) => ("↵", format!("{}/{}", call.service, call.method)),
+        Some(Invoke::Navigate(navigate)) => ("↗", navigate.route.clone()),
+        Some(Invoke::OpenPanel(_)) => ("↗", "Panel destination".into()),
+        Some(Invoke::OpenView(view)) => ("↗", view.clone()),
+        Some(Invoke::Copy(_)) => ("⧉", "Copy destination [value hidden]".into()),
         None => ("•", String::new()),
     };
     let primary = a
@@ -1288,7 +1293,7 @@ pub fn selected_affordance(
         Body::Catalog(p) if !p.items.is_empty() => {
             p.items[selected % p.items.len()].action.as_ref()
         }
-        Body::Action(p) => p.action.as_ref(),
+        Body::Action(p) => p.action.as_deref(),
         Body::ConnectFlow(p) if !p.targets.is_empty() => {
             p.targets[selected % p.targets.len()].actions.first()
         }
@@ -1875,6 +1880,74 @@ mod tests {
     use super::*;
 
     #[test]
+    fn typed_affordance_destinations_render_without_exposing_copy_payloads() {
+        use meridian_uiview::proto::{Navigate, PanelDescriptor, RpcCall};
+        use prost::Message;
+        use ratatui::{backend::TestBackend, Terminal};
+        let cases = [
+            (Invoke::Uri("/uri".into()), "/uri"),
+            (Invoke::Command("command".into()), "command"),
+            (
+                Invoke::Rpc(RpcCall {
+                    service: "fixture.Service".into(),
+                    method: "Delete".into(),
+                    ..Default::default()
+                }),
+                "fixture.Service/Delete",
+            ),
+            (
+                Invoke::Navigate(Navigate {
+                    route: "/route".into(),
+                }),
+                "/route",
+            ),
+            (
+                Invoke::OpenPanel(Box::new(PanelDescriptor {
+                    title: "nested-content-must-not-mount".into(),
+                    ..Default::default()
+                })),
+                "Panel destination",
+            ),
+            (Invoke::OpenView("view-id".into()), "view-id"),
+            (
+                Invoke::Copy("clipboard-secret".into()),
+                "Copy destination [value hidden]",
+            ),
+        ];
+        for (invoke, expected) in cases {
+            let authored = Affordance {
+                label: "Activate".into(),
+                invoke: Some(invoke),
+                ..Default::default()
+            };
+            let decoded = Affordance::decode(authored.encode_to_vec().as_slice()).unwrap();
+            let mut terminal = Terminal::new(TestBackend::new(80, 2)).unwrap();
+            terminal
+                .draw(|frame| {
+                    frame.render_widget(
+                        ratatui::widgets::Paragraph::new(affordance_line(
+                            &decoded,
+                            &Palette::default(),
+                        )),
+                        frame.area(),
+                    )
+                })
+                .unwrap();
+            let text: String = terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|cell| cell.symbol())
+                .collect();
+            assert!(text.contains("Activate"));
+            assert!(text.contains(expected), "{text}");
+            assert!(!text.contains("clipboard-secret"));
+            assert!(!text.contains("nested-content-must-not-mount"));
+        }
+    }
+
+    #[test]
     fn embedded_line_breaks_preserve_words_blank_lines_styles_and_following_spans() {
         use ratatui::{
             layout::Alignment,
@@ -2157,6 +2230,7 @@ mod tests {
             invoke: Some(Invoke::Uri("https://x".into())),
             tone: None,
             emphasis: None,
+            ..Default::default()
         };
         let body = Body::Catalog(CatalogPanel {
             items: vec![CatalogItem {

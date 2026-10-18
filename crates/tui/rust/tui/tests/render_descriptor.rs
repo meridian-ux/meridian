@@ -155,19 +155,22 @@ mod host_admission {
                 item_noun: "records".into(),
                 ..Default::default()
             }),
-            Body::Form(FormPanel {
-                mode: FormMode::Edit as i32,
-                prefill: Some(call("Read")),
-                fields: vec![FormField {
-                    field_id: "name".into(),
-                    kind: Some(Kind::Text(TextInput {
-                        default_value: "retained".into(),
+            Body::Form(
+                FormPanel {
+                    mode: FormMode::Edit as i32,
+                    prefill: Some(call("Read")),
+                    fields: vec![FormField {
+                        field_id: "name".into(),
+                        kind: Some(Kind::Text(TextInput {
+                            default_value: "retained".into(),
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
+                    }],
                     ..Default::default()
-                }],
-                ..Default::default()
-            }),
+                }
+                .into(),
+            ),
         ] {
             let descriptor = PanelDescriptor {
                 body: Some(body),
@@ -361,7 +364,7 @@ mod bounded_requests {
             ..Default::default()
         };
         let descriptor = PanelDescriptor {
-            body: Some(Body::Form(form.clone())),
+            body: Some(Body::Form(form.clone().into())),
             ..Default::default()
         };
         let mut view = PanelView::new();
@@ -585,7 +588,7 @@ mod bounded_requests {
             ..Default::default()
         };
         let descriptor = PanelDescriptor {
-            body: Some(Body::Form(form.clone())),
+            body: Some(Body::Form(form.clone().into())),
             ..Default::default()
         };
         let mut view = PanelView::new();
@@ -654,16 +657,19 @@ mod inline_form_validation {
     }
     fn descriptor(fields: Vec<FormField>) -> PanelDescriptor {
         let authored = PanelDescriptor {
-            body: Some(Body::Form(FormPanel {
-                fields,
-                mode: FormMode::Edit as i32,
-                submit: Some(RpcCall {
-                    service: "fixture.Forms".into(),
-                    method: "Save".into(),
+            body: Some(Body::Form(
+                FormPanel {
+                    fields,
+                    mode: FormMode::Edit as i32,
+                    submit: Some(RpcCall {
+                        service: "fixture.Forms".into(),
+                        method: "Save".into(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
-                }),
-                ..Default::default()
-            })),
+                }
+                .into(),
+            )),
             ..Default::default()
         };
         PanelDescriptor::decode(authored.encode_to_vec().as_slice()).unwrap()
@@ -1861,76 +1867,80 @@ fn form_descriptor() -> PanelDescriptor {
     PanelDescriptor {
         panel_id: "deployment-form".into(),
         title: "Deployment".into(),
-        body: Some(Body::Form(FormPanel {
-            fields: vec![
-                FormField {
-                    field_id: "name".into(),
-                    label: "Name".into(),
-                    request_field: "name".into(),
-                    kind: Some(Kind::Text(TextInput {
-                        default_value: "service".into(),
+        body: Some(Body::Form(
+            FormPanel {
+                fields: vec![
+                    FormField {
+                        field_id: "name".into(),
+                        label: "Name".into(),
+                        request_field: "name".into(),
+                        kind: Some(Kind::Text(TextInput {
+                            default_value: "service".into(),
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
-                    ..Default::default()
-                },
-                FormField {
-                    field_id: "replicas".into(),
-                    label: "Replicas".into(),
-                    request_field: "replicas".into(),
-                    kind: Some(Kind::Integer(IntegerSpinner {
-                        default_value: 1,
-                        min: 1,
-                        max: 10,
+                    },
+                    FormField {
+                        field_id: "replicas".into(),
+                        label: "Replicas".into(),
+                        request_field: "replicas".into(),
+                        kind: Some(Kind::Integer(IntegerSpinner {
+                            default_value: 1,
+                            min: 1,
+                            max: 10,
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
-                    ..Default::default()
-                },
-                FormField {
-                    field_id: "enabled".into(),
-                    label: "Enabled".into(),
-                    request_field: "enabled".into(),
-                    kind: Some(Kind::Boolean(BooleanToggle {
-                        default_value: true,
+                    },
+                    FormField {
+                        field_id: "enabled".into(),
+                        label: "Enabled".into(),
+                        request_field: "enabled".into(),
+                        kind: Some(Kind::Boolean(BooleanToggle {
+                            default_value: true,
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
-                    ..Default::default()
-                },
-                FormField {
-                    field_id: "region".into(),
-                    label: "Region".into(),
-                    request_field: "region".into(),
-                    kind: Some(Kind::EnumSelection(EnumSelection {
-                        default_value: "east".into(),
-                        options: vec![
-                            EnumOption {
-                                value: "east".into(),
-                                label: "East".into(),
-                                ..Default::default()
-                            },
-                            EnumOption {
-                                value: "west".into(),
-                                label: "West".into(),
-                                ..Default::default()
-                            },
-                        ],
+                    },
+                    FormField {
+                        field_id: "region".into(),
+                        label: "Region".into(),
+                        request_field: "region".into(),
+                        kind: Some(Kind::EnumSelection(EnumSelection {
+                            default_value: "east".into(),
+                            options: vec![
+                                EnumOption {
+                                    value: "east".into(),
+                                    label: "East".into(),
+                                    ..Default::default()
+                                },
+                                EnumOption {
+                                    value: "west".into(),
+                                    label: "West".into(),
+                                    ..Default::default()
+                                },
+                            ],
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
+                    },
+                ],
+                mode: FormMode::Edit as i32,
+                submit: Some(RpcCall {
+                    service: "demo.Deploy".into(),
+                    method: "Apply".into(),
                     ..Default::default()
-                },
-            ],
-            mode: FormMode::Edit as i32,
-            submit: Some(RpcCall {
-                service: "demo.Deploy".into(),
-                method: "Apply".into(),
+                }),
+                item_noun: "deployment".into(),
+                prefill: Some(RpcCall {
+                    service: "demo.Deploy".into(),
+                    method: "Prefill".into(),
+                    ..Default::default()
+                }),
                 ..Default::default()
-            }),
-            item_noun: "deployment".into(),
-            prefill: Some(RpcCall {
-                service: "demo.Deploy".into(),
-                method: "Prefill".into(),
-                ..Default::default()
-            }),
-        })),
+            }
+            .into(),
+        )),
         ..Default::default()
     }
 }
@@ -2901,58 +2911,61 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
     for mode in [FormMode::Readonly, FormMode::Edit] {
         let descriptor = PanelDescriptor {
             panel_id: "form-display-evidence".into(),
-            body: Some(Body::Form(FormPanel {
-                mode: mode as i32,
-                item_noun: "record".into(),
-                fields: vec![
-                    text_field("Due", "2026-03-29", Some(date.clone())),
-                    text_field("Legacy", "2026-03-29", None),
-                    text_field("Unspecified", "2026-03-29", Some(ValueDisplay::default())),
-                    text_field("Invalid", "not-a-date", Some(date.clone())),
-                    text_field(
-                        "Unknown",
-                        "0012.50",
-                        Some(ValueDisplay {
-                            r#type: 9999,
+            body: Some(Body::Form(
+                FormPanel {
+                    mode: mode as i32,
+                    item_noun: "record".into(),
+                    fields: vec![
+                        text_field("Due", "2026-03-29", Some(date.clone())),
+                        text_field("Legacy", "2026-03-29", None),
+                        text_field("Unspecified", "2026-03-29", Some(ValueDisplay::default())),
+                        text_field("Invalid", "not-a-date", Some(date.clone())),
+                        text_field(
+                            "Unknown",
+                            "0012.50",
+                            Some(ValueDisplay {
+                                r#type: 9999,
+                                ..Default::default()
+                            }),
+                        ),
+                        FormField {
+                            field_id: "State".into(),
+                            label: "State".into(),
+                            request_field: "State".into(),
+                            kind: Some(Kind::EnumSelection(EnumSelection {
+                                default_value: "approved".into(),
+                                allowed_values: vec!["ignored".into()],
+                                options: vec![
+                                    EnumOption {
+                                        value: "approved".into(),
+                                        label: "Approved".into(),
+                                        tone: ValueTone::Success as i32,
+                                    },
+                                    EnumOption {
+                                        value: "needs_review".into(),
+                                        label: "Needs review".into(),
+                                        tone: ValueTone::Danger as i32,
+                                    },
+                                    EnumOption {
+                                        value: "other".into(),
+                                        tone: 9999,
+                                        ..Default::default()
+                                    },
+                                ],
+                                ..Default::default()
+                            })),
                             ..Default::default()
-                        }),
-                    ),
-                    FormField {
-                        field_id: "State".into(),
-                        label: "State".into(),
-                        request_field: "State".into(),
-                        kind: Some(Kind::EnumSelection(EnumSelection {
-                            default_value: "approved".into(),
-                            allowed_values: vec!["ignored".into()],
-                            options: vec![
-                                EnumOption {
-                                    value: "approved".into(),
-                                    label: "Approved".into(),
-                                    tone: ValueTone::Success as i32,
-                                },
-                                EnumOption {
-                                    value: "needs_review".into(),
-                                    label: "Needs review".into(),
-                                    tone: ValueTone::Danger as i32,
-                                },
-                                EnumOption {
-                                    value: "other".into(),
-                                    tone: 9999,
-                                    ..Default::default()
-                                },
-                            ],
-                            ..Default::default()
-                        })),
+                        },
+                    ],
+                    submit: Some(RpcCall {
+                        service: "demo.Records".into(),
+                        method: "Save".into(),
                         ..Default::default()
-                    },
-                ],
-                submit: Some(RpcCall {
-                    service: "demo.Records".into(),
-                    method: "Save".into(),
+                    }),
                     ..Default::default()
-                }),
-                ..Default::default()
-            })),
+                }
+                .into(),
+            )),
             ..Default::default()
         };
         let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
@@ -3063,27 +3076,30 @@ fn native_enum_labels_use_every_semantic_theme_color_after_wire_decode() {
         (ValueTone::Accent, "Accent", 6),
     ];
     let descriptor = PanelDescriptor {
-        body: Some(Body::Form(FormPanel {
-            mode: FormMode::Readonly as i32,
-            fields: cases
-                .iter()
-                .map(|(tone, name, _)| FormField {
-                    field_id: name.to_string(),
-                    label: name.to_string(),
-                    kind: Some(Kind::EnumSelection(EnumSelection {
-                        default_value: "raw".into(),
-                        options: vec![EnumOption {
-                            value: "raw".into(),
-                            label: format!("{name} value"),
-                            tone: *tone as i32,
-                        }],
+        body: Some(Body::Form(
+            FormPanel {
+                mode: FormMode::Readonly as i32,
+                fields: cases
+                    .iter()
+                    .map(|(tone, name, _)| FormField {
+                        field_id: name.to_string(),
+                        label: name.to_string(),
+                        kind: Some(Kind::EnumSelection(EnumSelection {
+                            default_value: "raw".into(),
+                            options: vec![EnumOption {
+                                value: "raw".into(),
+                                label: format!("{name} value"),
+                                tone: *tone as i32,
+                            }],
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    })),
-                    ..Default::default()
-                })
-                .collect(),
-            ..Default::default()
-        })),
+                    })
+                    .collect(),
+                ..Default::default()
+            }
+            .into(),
+        )),
         ..Default::default()
     };
     let descriptor = PanelDescriptor::decode(descriptor.encode_to_vec().as_slice()).unwrap();
@@ -3630,12 +3646,15 @@ mod ambient_records {
     }
     fn form() -> PanelDescriptor {
         PanelDescriptor {
-            body: Some(Body::Form(FormPanel {
-                fields: fields(),
-                mode: 2,
-                submit: Some(call()),
-                ..Default::default()
-            })),
+            body: Some(Body::Form(
+                FormPanel {
+                    fields: fields(),
+                    mode: 2,
+                    submit: Some(call()),
+                    ..Default::default()
+                }
+                .into(),
+            )),
             ..Default::default()
         }
     }
