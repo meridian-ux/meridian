@@ -4,6 +4,7 @@ import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb
 import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { RowActionSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { normalizeAffordance, normalizeCommand, normalizeLegacyAction, normalizeLegacyRowAction } from "./action_normalization.js";
 import { createInvocationDispatcher, type InvocationSnapshot, type InvocationCapabilities } from "./invocation.js";
 import type { RpcInvoker } from "./transport.js";
@@ -36,6 +37,77 @@ function deferred<T>() {
   const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
+
+it.each(["form", "lro"] as const)("submits %s through the actual Rust automatic mapping builder", async kind => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get", bindings: [
+    { requestField: "copied", formField: "name" }, { requestField: "forbidden", formField: "unmodeled" },
+    { requestField: "row", rowField: "id" }, { requestField: "scope", selectionKey: "tenant" },
+  ] } });
+  const fields = [
+    create(FormFieldSchema, { fieldId: "name", requestField: "payload.name", kind: { case: "text", value: {} } }),
+    create(FormFieldSchema, { fieldId: "flag", requestField: "payload.flag", kind: { case: "boolean", value: {} } }),
+  ];
+  host.replace({ ...host.snapshot, submission: { fields, kind },
+    context: { ...context(), selectedRow: { id: 0 }, formValues: { name: "raw/e\u0301", flag: false, unmodeled: "secret" } } });
+  expect(await host.dispatcher.activate()).toEqual({ status: "succeeded", refresh: "not-requested" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {
+    copied: "raw/e\u0301", row: 0, scope: "raw-tenant",
+    ...(kind === "form" ? { name: "raw/e\u0301", flag: false } : { payload: { name: "raw/e\u0301", flag: false } }),
+  }, expect.any(AbortSignal));
+});
+
+it("form bindings win collisions while automatic field IDs remain literal, including dots", async () => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get", bindings: [{ requestField: "name", literal: "bound" }] } });
+  const fields = ["name", "raw.name"].map(fieldId => create(FormFieldSchema, { fieldId, requestField: "must.not.remap" }));
+  host.replace({ ...host.snapshot, submission: { fields, kind: "form" },
+    context: { ...context(), formValues: { name: "editable", "raw.name": "001.20" } } });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", { name: "bound", "raw.name": "001.20" }, expect.any(AbortSignal));
+});
+
+it("submission mode cannot grant mutation permission or touch declarations before denial", async () => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
+  const get = vi.fn(() => { throw new Error("must not read declarations"); });
+  const field = create(FormFieldSchema);
+  Object.defineProperty(field, "fieldId", { get });
+  host.replace({ ...host.snapshot, admission: { reads: ["raw.Service/Get"] }, submission: { fields: [field], kind: "form" } });
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "mutation-policy" });
+  expect(get).not.toHaveBeenCalled(); expectNoEffects(host.effects);
+});
+
+it("submission uses the selected canonical call, never a legacy row default", async () => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
+  host.replace({ ...host.snapshot, submission: { fields: [], kind: "form" }, legacyRowIdFallback: true,
+    action: normalizeLegacyRowAction(create(RowActionSchema, { rpc: { service: "raw.Service", method: "Get" } })),
+    context: { ...context(), selectedRow: { id: 0 } } });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
+});
+
+it.each(["prototype", "large", "invalid-kind"])("submission %s input fails without transport or a plain-builder fallback", async mode => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
+  const fields = [create(FormFieldSchema, { fieldId: mode === "prototype" ? "__proto__" : "name" })];
+  host.replace({ ...host.snapshot, submission: { fields, kind: mode === "invalid-kind" ? "unsupported" as "form" : "form" },
+    context: { ...context(), formValues: mode === "large" ? { name: "x".repeat(5 * 1024 * 1024) } : { name: "raw" } } });
+  expect(await host.dispatcher.activate()).toEqual({ status: "failed" });
+  expectNoEffects(host.effects);
+});
+
+it("submission metadata cannot turn a denied or empty canonical target into an RPC", async () => {
+  const host = setup({});
+  host.replace({ ...host.snapshot, submission: { fields: [], kind: "form" } });
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-target" });
+  expectNoEffects(host.effects);
+});
+
+it("non-RPC form targets retain explicit admission and receive current validated form context", async () => {
+  const host = setup({ copy: "literal" });
+  const values = { name: "raw/e\u0301", flag: false };
+  host.replace({ ...host.snapshot, submission: { fields: [], kind: "form" }, context: { ...context(), formValues: values } });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.copy, "literal", host.snapshot.context, expect.any(AbortSignal));
+  expect(host.effects.rpc.invoke).not.toHaveBeenCalled();
+});
 
 function expectNoEffects(effects: ReturnType<typeof setup>["effects"]) {
   const { rpc: transport, ...rest } = effects;

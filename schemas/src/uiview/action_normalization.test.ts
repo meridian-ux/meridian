@@ -134,8 +134,10 @@ it("canonical empty command/form messages prohibit legacy target and label reviv
   expect(normalizeCommand(command).action.affordance.label).toBe("");
   const form = create(FormPanelSchema, { submit: call });
   expect(normalizeFormSubmit(form, "Save record").affordance).toMatchObject({ label: "Save record", invoke: { case: "rpc", value: call } });
+  expect(normalizeFormSubmit(form, "Save record").legacyOrigin).toBe("form");
   form.submitAffordance = create(AffordanceSchema);
   expect(normalizeFormSubmit(form, "Must not revive").affordance).toBe(form.submitAffordance);
+  expect(normalizeFormSubmit(form, "Must not revive").legacyOrigin).toBeUndefined();
   expect(normalizeFormSubmit(form, "Must not revive").affordance.invoke.case).toBeUndefined();
   expect(normalizeFormSubmit(create(FormPanelSchema), "Submit").affordance.invoke.case).toBeUndefined();
 });
