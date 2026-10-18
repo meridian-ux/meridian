@@ -49,6 +49,11 @@ import { registerChatPanel } from '@savvifi/meridian-web/toolkit';
 import { applyTheme } from '@savvifi/meridian-web/theme';
 import { formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
 import { resolveMetrics } from '@savvifi/meridian-schemas/theme';
+import { create } from '@bufbuild/protobuf';
+import { AffordanceSchema } from '@savvifi/meridian-proto-ts/proto/affordance_pb.js';
+import { ActionSchema, ViewDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/view_pb.js';
+import { AffordanceCollectionSchema } from '@savvifi/meridian-proto-ts/proto/interaction_pb.js';
+import { normalizeViewActions, type InvocationHost } from '@savvifi/meridian-schemas/uiview';
 export { webComponentsRenderer, renderPanel, decodeBundle, registerChatPanel, applyTheme };
 export type { UiviewWasm };
 const metadata: string = formatLroMetadata({state: 'DONE'});
@@ -57,6 +62,18 @@ const spacing: number = resolveMetrics({spacingScalePx: [0, 2, 6], densityScale:
 // @ts-expect-error Core inputs must remain typed, not erode to any.
 staticViewText('not wire bytes');
 export { metadata, viewText, spacing };
+// Old-path compatibility facades and canonical envelopes must coexist in the
+// actual distributed declarations, not just the workspace codegen probe.
+const legacy = create(ActionSchema, {id: 'legacy', label: 'Legacy'});
+const canonical = create(AffordanceSchema, {label: 'Copy', invoke: {case: 'copy', value: ''}});
+const view = create(ViewDescriptorSchema, {actions: [legacy], affordances: create(AffordanceCollectionSchema, {items: [canonical]})});
+const actions = normalizeViewActions(view);
+const host: InvocationHost = {admit: () => true, resolveSemantic: () => ({affordance: canonical, confirm: async () => false})};
+// @ts-expect-error Retained compatibility fields must not erode to any.
+const invalidLegacyLabel: number = legacy.label;
+// @ts-expect-error Canonical targets must retain their typed payload.
+const invalidCanonicalCopy: number = canonical.invoke.case === 'copy' ? canonical.invoke.value : '';
+export { actions, host, invalidLegacyLabel, invalidCanonicalCopy };
 `);
 run(process.execPath, [join(staging, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], staging);
 // Style-only consumers must not pull the synchronous WASM core or a renderer.
@@ -77,6 +94,9 @@ export * as theme from '@savvifi/meridian-web/theme';
 export { create } from '@bufbuild/protobuf';
 export { PanelDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/panel_pb.js';
 export { FormFieldSchema } from '@savvifi/meridian-proto-ts/proto/form_pb.js';
+export { AffordanceSchema } from '@savvifi/meridian-proto-ts/proto/affordance_pb.js';
+export { ViewDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/view_pb.js';
+export { AffordanceCollectionSchema } from '@savvifi/meridian-proto-ts/proto/interaction_pb.js';
 export { validateFormValues, formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
 `);
 run(process.execPath, [join(staging, "node_modules/esbuild/bin/esbuild"), "browser-entry.mjs", "--bundle", "--platform=browser", "--format=esm", "--target=es2022", "--outfile=browser-bundle.mjs"], staging);
@@ -86,7 +106,7 @@ import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><body></body>');
 for (const key of ['window', 'document', 'HTMLElement', 'customElements', 'HTMLCanvasElement', 'MutationObserver', 'CustomEvent']) globalThis[key] = dom.window[key];
 dom.window.HTMLCanvasElement.prototype.getContext = () => null;
-const {web, toolkit, theme, create, PanelDescriptorSchema, FormFieldSchema, validateFormValues, formatLroMetadata, staticViewText} = await import('./browser-bundle.mjs');
+const {web, toolkit, theme, create, PanelDescriptorSchema, FormFieldSchema, AffordanceSchema, ViewDescriptorSchema, AffordanceCollectionSchema, validateFormValues, formatLroMetadata, staticViewText} = await import('./browser-bundle.mjs');
 assert.equal(typeof formatLroMetadata({state: 'DONE'}), 'string');
 assert.match(staticViewText(new Uint8Array()), /No sections/);
 assert.equal(web.webComponentsRenderer({}).id, 'web-components');
@@ -101,6 +121,63 @@ toolkit.registerChatPanel();
 assert(customElements.get('m-chat-panel'));
 theme.applyTheme({light: {accent: '#123456'}}, 'light', root);
 assert.equal(root.style.getPropertyValue('--mer-accent'), '#123456');
+// Exercise the distributed renderer and embedded Rust request builder. These
+// are installed package exports, not aliases into workspace source.
+async function feedback(root, text) {
+  const deadline = Date.now() + 1000;
+  while (!root.textContent.includes(text) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 10));
+  assert(root.textContent.includes(text), 'missing sanitized invocation feedback: ' + text);
+}
+const context = {currentResourcePath: 'raw/e\\u0301', uiIdentity: null, selectedRow: {id: 0, active: false}, formValues: {}, selections: {}};
+const rpc = create(AffordanceSchema, {label: 'Invoke', invoke: {case: 'rpc', value: {service: 'raw.Service', method: 'Get', bindings: [
+  {requestField: 'id', source: {case: 'rowField', value: 'id'}},
+  {requestField: 'active', source: {case: 'rowField', value: 'active'}},
+]}}});
+for (const permitted of [false, true]) for (const consent of [false, true]) {
+  const calls = [];
+  const invocation = {context, admit: () => {calls.push('admission'); return true;},
+    resolveSemantic: (action, current, subject) => {
+      assert.equal(action.id, 'semantic-not-a-destination'); assert.deepEqual(current, context);
+      assert.deepEqual(subject, {entityType: 'raw-kind', entityId: 'raw/e\\u0301'});
+      return {affordance: rpc, confirm: async () => {calls.push('consent'); return consent;}};
+    }};
+  const invoker = {invoke: async (service, method, request) => {
+    assert.equal(service, 'raw.Service'); assert.equal(method, 'Get'); assert.deepEqual(request, {id: 0, active: false}); calls.push('effect'); return {};
+  }};
+  const mount = document.createElement('div'); document.body.append(mount);
+  await web.renderView({root: mount, view: create(ViewDescriptorSchema, {subjectKind: 'raw-kind', subjectId: 'raw/e\\u0301', actions: [{id: 'semantic-not-a-destination', label: 'Confirm'}]}),
+    wasm: {}, context, invoker, invocation, admission: {mutations: permitted ? ['raw.Service/Get'] : []}});
+  assert.deepEqual(calls, [], 'rendering must perform no admission/confirmation/effect');
+  const button = mount.querySelector('button.mer-affordance'); assert(button); button.click();
+  await feedback(mount, !permitted ? 'Action denied:' : consent ? 'Action completed.' : 'Action canceled.');
+  assert.deepEqual(calls, !permitted ? [] : consent ? ['admission', 'consent', 'effect'] : ['admission', 'consent']);
+  web.disposeView(mount); mount.remove();
+}
+for (const permitted of [false, true]) {
+  let effects = 0, resolutions = 0;
+  const mount = document.createElement('div'); document.body.append(mount);
+  await web.renderView({root: mount, view: create(ViewDescriptorSchema, {
+    actions: [{id: 'conflicting-old', label: 'Must not revive', call: {service: 'old.Service', method: 'Delete'}}],
+    affordances: create(AffordanceCollectionSchema, {items: [rpc]}),
+  }), wasm: {}, context, admission: {mutations: permitted ? ['raw.Service/Get'] : []},
+  invocation: {context, admit: () => true, resolveSemantic: () => {resolutions++; throw Error('canonical must not resolve legacy');}},
+  invoker: {invoke: async (service, method, request) => {
+    assert.equal(service, 'raw.Service'); assert.equal(method, 'Get'); assert.deepEqual(request, {id: 0, active: false}); effects++; return {};
+  }}});
+  assert.equal(mount.querySelectorAll('button.mer-affordance').length, 1);
+  assert(!mount.textContent.includes('Must not revive')); assert.equal(effects, 0); assert.equal(resolutions, 0);
+  mount.querySelector('button.mer-affordance').click();
+  await feedback(mount, permitted ? 'Action completed.' : 'Action denied:');
+  assert.equal(effects, permitted ? 1 : 0); assert.equal(resolutions, 0);
+  web.disposeView(mount); mount.remove();
+}
+// Present-empty canonical envelopes suppress legacy actions in the packaged UI.
+const empty = document.createElement('div'); document.body.append(empty);
+await web.renderView({root: empty, view: create(ViewDescriptorSchema, {actions: [{id: 'old', label: 'Must not revive'}], affordances: create(AffordanceCollectionSchema)}),
+  wasm: {}, context, invoker: {invoke: async () => {throw Error('unexpected legacy invocation');}}});
+assert.equal(empty.querySelector('button.mer-affordance'), null); assert(!empty.textContent.includes('Must not revive'));
+web.disposeView(empty); empty.remove();
+console.log('Installed web artifact invocation: four policy/consent cases, two canonical precedence/admission cases, and empty override passed.');
 dom.window.close();
 `);
 try {

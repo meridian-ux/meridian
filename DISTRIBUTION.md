@@ -74,8 +74,12 @@ node tools/check_web_package.mjs
 
 The check packs all three local artifacts, verifies exported files, installs
 them without lifecycle scripts into a fresh temporary directory, typechecks
-the public imports, bundles the installed browser entrypoints with pinned
-esbuild, and executes a browser-DOM smoke test. It does not resolve
+the public imports (including typed old-path facades and canonical envelopes),
+bundles the installed browser entrypoints with pinned esbuild, and executes a
+browser-DOM smoke test. Installed controls also prove denied semantic actions
+ask no consent, admitted actions honor accepted/declined consent, raw zero/false
+RPC bindings reach the packaged Rust builder unchanged, and an explicit empty
+canonical envelope never revives legacy buttons. It does not resolve
 first-party dependencies from workspace symlinks or publish to npm. CI also
 retains all existing renderer, compatibility, and conformance gates.
 
