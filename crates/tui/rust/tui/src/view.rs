@@ -92,6 +92,7 @@ pub struct ViewHost {
     repeats: BTreeMap<Path, Repeat>,
     tabs: BTreeMap<Path, usize>,
     targets: Vec<Target>,
+    visible_targets: BTreeSet<usize>,
     focus: usize,
     scroll: usize,
     reveal_focus: bool,
@@ -116,6 +117,7 @@ impl ViewHost {
             repeats: BTreeMap::new(),
             tabs: BTreeMap::new(),
             targets: vec![],
+            visible_targets: BTreeSet::new(),
             focus: 0,
             scroll: 0,
             reveal_focus: true,
@@ -150,6 +152,7 @@ impl ViewHost {
         self.panels.clear();
         self.repeats.clear();
         self.targets.clear();
+        self.visible_targets.clear();
         self.reveal_focus = true;
     }
 
@@ -210,6 +213,7 @@ impl ViewHost {
         invoker: &I,
     ) {
         if area.width == 0 || area.height == 0 {
+            self.withdraw_controls();
             return;
         }
         let mut planner = Planner {
@@ -319,11 +323,16 @@ impl ViewHost {
                 self.error = Some(error.to_string());
             }
             if invocation_target(&self.descriptor, target) {
-                widget.set_form_scope(if target.record.is_some() {
-                    self.record_context.clone()
-                } else {
-                    self.action_context.clone()
-                });
+                widget.set_form_scope(
+                    if target.record.is_some() {
+                        self.record_context.clone()
+                    } else {
+                        self.action_context.clone()
+                    },
+                    slot_at(&self.descriptor, &target.source)
+                        .and_then(|slot| slot.panel.as_ref())
+                        .is_some_and(|panel| matches!(panel.body, Some(Body::Form(_)))),
+                );
             }
         }
         self.viewport = area.height.saturating_sub(1).max(1) as usize;
@@ -359,9 +368,15 @@ impl ViewHost {
         self.scroll = self.scroll.min(total.saturating_sub(self.viewport));
         y = 0;
         target_index = 0;
+        self.visible_targets.clear();
+        let mut visible_panels = BTreeSet::new();
         for (entry, height) in entries.iter().zip(heights) {
             let focused = entry.target.is_some() && target_index == self.focus;
+            let fully_visible = y >= self.scroll && y + height <= self.scroll + self.viewport;
             if entry.target.is_some() {
+                if fully_visible {
+                    self.visible_targets.insert(target_index);
+                }
                 target_index += 1;
             }
             if y + height > self.scroll && y < self.scroll + self.viewport {
@@ -378,6 +393,10 @@ impl ViewHost {
                                     PanelView::with_palette(self.palette)
                                         .with_invocation_dispatcher(self.invocations.clone())
                                 });
+                            widget.set_invocation_viewport(fully_visible);
+                            if fully_visible {
+                                visible_panels.insert(target.path.clone());
+                            }
                             if let Err(error) = widget.set_record(target.record.clone()) {
                                 section
                                     .render_widget(Paragraph::new(error.to_string()), section_area);
@@ -428,6 +447,11 @@ impl ViewHost {
             }
             y += height;
         }
+        for (path, widget) in &mut self.panels {
+            if !visible_panels.contains(path) {
+                widget.set_invocation_viewport(false);
+            }
+        }
         let status = self.error.as_deref().unwrap_or(
             "F6/Shift+F6 section · Ctrl+PgUp/PgDn scroll · Enter activate · panel keys edit",
         );
@@ -460,6 +484,14 @@ impl ViewHost {
         self.invocations.clone()
     }
 
+    fn withdraw_controls(&mut self) {
+        self.invocations.cancel();
+        self.visible_targets.clear();
+        for widget in self.panels.values_mut() {
+            widget.withdraw_invocation_controls();
+        }
+    }
+
     fn handle_key_inner(
         &mut self,
         key: KeyEvent,
@@ -488,10 +520,12 @@ impl ViewHost {
                 return Ok(None);
             }
             KeyCode::PageDown if !prompt_paging => {
+                self.withdraw_controls();
                 self.scroll = self.scroll.saturating_add(self.viewport);
                 return Ok(None);
             }
             KeyCode::PageUp if !prompt_paging => {
+                self.withdraw_controls();
                 self.scroll = self.scroll.saturating_sub(self.viewport);
                 return Ok(None);
             }
@@ -502,6 +536,30 @@ impl ViewHost {
         };
         if !gates_open(&self.descriptor, &target.source, context) {
             self.invalidate();
+            return Ok(None);
+        }
+        let live_control = host.is_some()
+            || matches!(
+                target.kind,
+                TargetKind::Action {
+                    canonical: true,
+                    ..
+                }
+            )
+            || (matches!(target.kind, TargetKind::Panel)
+                && slot_at(&self.descriptor, &target.source)
+                    .and_then(|slot| slot.panel.as_ref())
+                    .is_some_and(|panel| match &panel.body {
+                        Some(Body::Form(form)) => form.submit_affordance.is_some(),
+                        Some(Body::Table(_) | Body::ResourceCards(_)) => true,
+                        _ => false,
+                    }));
+        // Legacy responses are inert compatibility projections, not grants.
+        // Actual host execution requires a control from the current viewport.
+        if live_control && !self.visible_targets.contains(&self.focus) {
+            self.invocations.cancel();
+            self.error = Some("Bring the panel or control fully into view before retrying.".into());
+            self.reveal_focus = true;
             return Ok(None);
         }
         match target.kind {
@@ -527,6 +585,7 @@ impl ViewHost {
                     self.panels.retain(|path, _| !hidden(path));
                     self.repeats.retain(|path, _| !hidden(path));
                     self.targets.retain(|t| !hidden(&t.path));
+                    self.visible_targets.clear();
                     self.focus = self.focus.min(self.targets.len().saturating_sub(1));
                     self.reveal_focus = true;
                 } else if matches!(
@@ -631,19 +690,30 @@ impl ViewHost {
                 let panel = slot_at(&self.descriptor, &target.source)
                     .and_then(|s| s.panel.as_ref())
                     .expect("mounted panel");
-                if matches!(panel.body, Some(Body::Form(_)))
-                    && key.code == KeyCode::Enter
+                if ((matches!(panel.body, Some(Body::Form(_))) && key.code == KeyCode::Enter)
+                    || (matches!(panel.body, Some(Body::Table(_) | Body::ResourceCards(_)))
+                        && matches!(key.code, KeyCode::Enter | KeyCode::Char(' ' | '1'..='9'))))
                     && !self.repeat_scopes_current(&target.path, context)
                 {
                     self.invalidate();
                     self.error =
-                        Some("Form parent context changed; redraw before retrying.".into());
+                        Some("Panel parent context changed; redraw before retrying.".into());
                     return Ok(None);
                 }
                 let Some(widget) = self.panels.get_mut(&target.path) else {
                     return Ok(None);
                 };
                 match &panel.body {
+                    Some(Body::Table(_) | Body::ResourceCards(_)) => {
+                        let denied = NativeInvocationHost::default();
+                        widget.handle_action_key_with_invocation(
+                            panel,
+                            context,
+                            key,
+                            host.unwrap_or(&denied),
+                        );
+                        return Ok(None);
+                    }
                     Some(Body::Form(form)) => {
                         if host.is_some() || form.submit_affordance.is_some() {
                             let denied = NativeInvocationHost::default();
@@ -733,7 +803,12 @@ fn invocation_target(view: &ViewDescriptor, target: &Target) -> bool {
         || (matches!(target.kind, TargetKind::Panel)
             && slot_at(view, &target.source)
                 .and_then(|slot| slot.panel.as_ref())
-                .is_some_and(|panel| matches!(panel.body, Some(Body::Form(_)))))
+                .is_some_and(|panel| {
+                    matches!(
+                        panel.body,
+                        Some(Body::Form(_) | Body::Table(_) | Body::ResourceCards(_))
+                    )
+                }))
 }
 
 fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcError> {

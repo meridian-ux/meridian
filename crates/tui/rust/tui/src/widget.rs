@@ -25,6 +25,7 @@ use crate::{
     NativeAction, NativeInvocationContext, NativeInvocationDispatcher, NativeInvocationHost,
     NativeInvocationOutcome,
 };
+mod actions;
 
 // Keep an unspecified StreamPanel bounded just like the browser renderer. The
 // schema deliberately leaves the exact default to each surface, but it also
@@ -72,6 +73,9 @@ fn invoke_request<I: RpcInvoker>(
 /// build a `Palette::from_theme(...)` and pass it via `with_palette`; the
 /// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
+    row_actions: actions::State,
+    invocation_visible: bool,
+    invocation_viewport: Option<bool>,
     invocations: NativeInvocationDispatcher,
     form_scope: Option<Arc<Vec<u8>>>,
     shared_form_scope: Option<Option<Arc<Vec<u8>>>>,
@@ -232,6 +236,9 @@ pub struct LroSubmission {
 impl PanelView {
     pub fn new() -> Self {
         Self {
+            row_actions: actions::State::default(),
+            invocation_visible: false,
+            invocation_viewport: None,
             invocations: NativeInvocationDispatcher::default(),
             form_scope: None,
             shared_form_scope: None,
@@ -268,6 +275,9 @@ impl PanelView {
     /// `Palette::from_theme(&theme, mode)`). Use this to skin the renderer.
     pub fn with_palette(palette: Palette) -> Self {
         Self {
+            row_actions: actions::State::default(),
+            invocation_visible: false,
+            invocation_viewport: None,
             invocations: NativeInvocationDispatcher::default(),
             form_scope: None,
             shared_form_scope: None,
@@ -492,6 +502,8 @@ impl PanelView {
 
     /// Forces the next render to refetch the table data.
     pub fn invalidate(&mut self) {
+        self.invocation_visible = false;
+        self.row_actions.invalidate();
         self.invocations.cancel();
         self.form_scope = None;
         self.form_completed = None;
@@ -517,22 +529,40 @@ impl PanelView {
         self.invocations.clone()
     }
 
-    pub(crate) fn set_form_scope(&mut self, scope: Option<Arc<Vec<u8>>>) {
+    pub(crate) fn withdraw_invocation_controls(&mut self) {
+        if self.invocation_visible {
+            self.invocations.cancel();
+        }
+        self.invocation_visible = false;
+        self.row_actions.withdraw();
+    }
+
+    pub(crate) fn set_invocation_viewport(&mut self, visible: bool) {
+        self.invocation_viewport = Some(visible);
+        if !visible {
+            self.withdraw_invocation_controls();
+        }
+    }
+
+    pub(crate) fn set_form_scope(&mut self, scope: Option<Arc<Vec<u8>>>, is_form: bool) {
         if self
             .shared_form_scope
             .as_ref()
             .is_some_and(|old| old != &scope)
-            || self
-                .form_scope
-                .as_ref()
-                .is_some_and(|old| Some(old) != scope.as_ref())
+            || (is_form
+                && self
+                    .form_scope
+                    .as_ref()
+                    .is_some_and(|old| Some(old) != scope.as_ref()))
         {
             self.invocations.cancel();
             self.cached_form = None;
             self.form_scope = None;
             self.form_completed = None;
         }
-        self.form_scope = scope.clone();
+        if is_form {
+            self.form_scope = scope.clone();
+        }
         self.shared_form_scope = Some(scope);
     }
 
@@ -578,6 +608,8 @@ impl PanelView {
     }
 
     pub fn select_next(&mut self) {
+        self.invocations.cancel();
+        self.row_actions.selection_changed();
         if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
@@ -597,6 +629,8 @@ impl PanelView {
     }
 
     pub fn select_prev(&mut self) {
+        self.invocations.cancel();
+        self.row_actions.selection_changed();
         if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
@@ -649,7 +683,21 @@ impl PanelView {
         context: &Context,
         invoker: &I,
     ) {
+        if area.width == 0 || area.height == 0 {
+            self.withdraw_invocation_controls();
+            return;
+        }
+        self.invocation_visible = self.invocation_viewport.unwrap_or(true);
         self.prepare_prompt(descriptor);
+        if !actions::begin(self, descriptor, context) {
+            self.render_placeholder(
+                frame,
+                area,
+                area,
+                "Action denied: panel declaration or context limit exceeded.",
+            );
+            return;
+        }
         if !matches!(descriptor.body, Some(Body::Form(_))) && self.form_scope.is_some() {
             self.invocations.cancel();
             self.cached_form = None;
@@ -844,6 +892,11 @@ impl PanelView {
                 self.populate_resource_cards_if_needed(panel, context, invoker);
                 let cached = self.cached_resource_cards.as_ref().unwrap();
                 self.content_len = cached.rows.len();
+                self.content_selected = if cached.rows.is_empty() {
+                    0
+                } else {
+                    self.content_selected % cached.rows.len()
+                };
                 content::render_resource_cards(
                     frame,
                     content_area,
@@ -1014,6 +1067,7 @@ impl PanelView {
                 "Unsupported or unset panel shape",
             ),
         }
+        actions::finish(self, frame, area, descriptor);
     }
 
     fn populate_if_needed<I: RpcInvoker>(
@@ -1136,12 +1190,13 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()) {
-            Ok(response) => {
-                let rows = meridian_uiview::ProtoPaths::rows(&response, &panel.rows_field)
-                    .into_iter()
-                    .cloned()
-                    .collect();
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()).and_then(
+            |response| {
+                meridian_uiview::render_resource_cards_bounded(&response, panel)
+                    .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+            },
+        ) {
+            Ok(rows) => {
                 self.cached_resource_cards = Some(CachedResourceCards { rows, error: None });
             }
             Err(error) => {
@@ -1407,7 +1462,7 @@ impl PanelView {
         if key.kind != KeyEventKind::Press {
             return None;
         }
-        if !self.form_scope_current(context) {
+        if !self.invocation_visible || !self.form_scope_current(context) {
             self.invocations.cancel();
             if let Some(cached) = &mut self.cached_form {
                 cached.validation_error =

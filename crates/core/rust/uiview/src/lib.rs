@@ -93,7 +93,8 @@ pub use render::{
     try_format_relative_timestamp, try_format_timestamp, RenderedCard, RenderedRow,
 };
 pub use render_limits::{
-    admit_formatted_value, render_gallery_bounded, render_table_bounded, RenderLimitExceeded,
+    admit_formatted_value, render_gallery_bounded, render_resource_cards_bounded,
+    render_table_bounded, RenderLimitExceeded,
 };
 pub use request::{
     Context, RequestBudget, RequestBuilder, RequestLimitExceeded, RequestOverrides, SubmissionKind,

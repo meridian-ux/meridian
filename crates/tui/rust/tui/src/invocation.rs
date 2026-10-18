@@ -3,8 +3,8 @@
 use crate::RpcError;
 use meridian_uiview::{
     proto::{
-        affordance::Invoke, command, Action, Affordance, Command, FormField, FormMode, FormPanel,
-        Navigate, PanelDescriptor, RpcCall,
+        affordance::Invoke, command, Action, Affordance, Command, ConfirmSpec, FormField, FormMode,
+        FormPanel, Navigate, PanelDescriptor, ResourceAction, RowAction, RpcCall,
     },
     Context, RequestBuilder, RequestOverrides, SubmissionKind,
 };
@@ -107,6 +107,8 @@ pub enum NativeAction<'a> {
     Command(&'a Command),
     /// Current collected values, not ambient host fields or a prebuilt request.
     Form(&'a FormPanel, &'a Value),
+    Row(&'a RowAction),
+    Resource(&'a ResourceAction),
 }
 
 /// Borrowed canonical intent, not a wire DTO or permission token.
@@ -225,6 +227,15 @@ pub type NativeMutationPolicy<'a> =
     dyn for<'c> Fn(&RpcCall, NativeInvocationContext<'c>) -> bool + 'a;
 pub type NativeResolver<'a> =
     dyn for<'c> Fn(&Action, NativeInvocationContext<'c>) -> Option<Affordance> + 'a;
+pub type NativeResourceResolver<'a> =
+    dyn for<'c> Fn(&ResourceAction, NativeInvocationContext<'c>) -> Option<Affordance> + 'a;
+pub type NativeResourceConfirmation<'a> = dyn for<'c> Fn(
+        &ConfirmSpec,
+        NativeTarget<'c>,
+        NativeInvocationContext<'c>,
+        &NativeCancellation,
+    ) -> Result<bool, RpcError>
+    + 'a;
 pub type NativeConfirmation<'a> = dyn for<'c> Fn(
         NativeTarget<'c>,
         NativeInvocationContext<'c>,
@@ -242,6 +253,10 @@ pub struct NativeInvocationHost<'a> {
     pub mutations: Option<&'a NativeMutationPolicy<'a>>,
     pub admit: Option<&'a NativePolicy<'a>>,
     pub resolve_semantic: Option<&'a NativeResolver<'a>>,
+    pub resolve_resource: Option<&'a NativeResourceResolver<'a>>,
+    /// Required when a ResourceAction declares a ConfirmSpec. Generic consent
+    /// cannot silently discard the resource's literal confirmation contract.
+    pub confirm_resource: Option<&'a NativeResourceConfirmation<'a>>,
     pub confirm: Option<&'a NativeConfirmation<'a>>,
     pub refresh: Option<&'a NativeRefresh<'a>>,
     pub rpc: Option<&'a NativeRpcEffect<'a>>,
@@ -350,6 +365,37 @@ impl NativeInvocationDispatcher {
         signal: &NativeCancellation,
     ) -> NativeInvocationOutcome {
         use NativeInvocationOutcome as O;
+        let legacy_refresh = matches!(action, NativeAction::Row(_) | NativeAction::Resource(_));
+        let resource = if let NativeAction::Resource(source) = action {
+            Some(source)
+        } else {
+            None
+        };
+        if let Some(source) = resource {
+            let Some(row) = context.selected_row() else {
+                return O::Denied;
+            };
+            if !row.is_object() {
+                return O::Denied;
+            }
+            if !crate::content::resource_action_visible(source, row)
+                || (source.confirm.is_some() && host.confirm_resource.is_none())
+            {
+                return O::Denied;
+            }
+        }
+        if let NativeAction::Row(source) = action {
+            let Some(row) = context.selected_row() else {
+                return O::Denied;
+            };
+            if source
+                .enabled_when
+                .as_ref()
+                .is_some_and(|filter| meridian_uiview::row_filter_matches(filter, row) != Ok(true))
+            {
+                return O::Denied;
+            }
+        }
         let action = match action {
             NativeAction::Command(command) => command
                 .affordance
@@ -364,6 +410,18 @@ impl NativeInvocationDispatcher {
             _ => action,
         };
         let resolved = match action {
+            NativeAction::Resource(source) if source.invoke.is_none() => {
+                if source.id.is_empty() {
+                    return O::Denied;
+                }
+                let Some(resolve) = host.resolve_resource else {
+                    return O::Denied;
+                };
+                let Some(value) = resolve(source, context) else {
+                    return O::Denied;
+                };
+                Some(value)
+            }
             NativeAction::Legacy(action) if action.call.is_none() => {
                 if action.id.is_empty() {
                     return O::Denied;
@@ -386,6 +444,8 @@ impl NativeInvocationDispatcher {
             .map(NativeAction::Canonical)
             .unwrap_or(action);
         let (target, refresh) = match action {
+            NativeAction::Row(source) => (source.rpc.as_ref().map(NativeTarget::Rpc), true),
+            NativeAction::Resource(source) => (source.invoke.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),
             NativeAction::Form(panel, _) => (panel.submit.as_ref().map(NativeTarget::Rpc), false),
             NativeAction::Command(command) => (
@@ -418,7 +478,7 @@ impl NativeInvocationDispatcher {
                     Invoke::OpenView(v) => NativeTarget::OpenView(v),
                     Invoke::Copy(v) => NativeTarget::Copy(v),
                 });
-                (target, action.refresh_on_success == Some(true))
+                (target, action.refresh_on_success.unwrap_or(legacy_refresh))
             }
         };
         let Some(target) = target else {
@@ -457,6 +517,20 @@ impl NativeInvocationDispatcher {
         }
         if let Some(confirm) = host.confirm {
             match confirm(target, context, signal) {
+                Ok(true) => {}
+                Ok(false) => return O::Cancelled,
+                Err(_) => return O::Failed,
+            }
+        }
+        if signal.is_cancelled() {
+            return O::Cancelled;
+        }
+        if let Some(spec) = resource.and_then(|source| source.confirm.as_ref()) {
+            match host
+                .confirm_resource
+                .expect("required confirmation capability")(
+                spec, target, context, signal
+            ) {
                 Ok(true) => {}
                 Ok(false) => return O::Cancelled,
                 Err(_) => return O::Failed,
