@@ -30,6 +30,9 @@ vitest_test(
     srcs = [
         "tests/conformance.test.tsx",
         "tests/affordance_invocation.test.ts",
+        "tests/shell_palette_admission.test.tsx",
+        "tests/shell_frame.test.tsx",
+        "tests/shell_launchpad.test.ts",
         "tests/prompt.test.tsx",
         "tests/llm_prompt.test.tsx",
         "tests/content.test.tsx",

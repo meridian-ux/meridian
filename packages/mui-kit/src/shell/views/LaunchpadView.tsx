@@ -1,234 +1,147 @@
 "use client";
-// The launchpad: a ⌘K overlay over a `Launchpad` descriptor.
-//
-// The first renderer of `command_palette.proto`, which was written for exactly this and had
-// none. Every action arm maps onto a seam `@savvifi/meridian-web-react` already exports, so
-// this file dispatches and renders — it invents no transport:
-//
-//   rpc         → useMutationRpcInvoker
-//   navigate    → the shell's routing seam
-//   openViewId  → the shell's routing seam, via the host's hrefFor
-//   openPanel   → PanelRenderer, so a create/edit FormPanel renders through MeridianForm
-//
-// a graph-backed host's palette is the reason `deep_link` exists in the proto ("a studio console's palette
-// encodes state as `?cmd=<entityType>/<mode>`"); a host that round-trips palette state
-// through the URL sets it and this navigates there instead of running `action` inline.
 
-import {
-  Box,
-  Dialog,
-  DialogContent,
-  Divider,
-  InputAdornment,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Dialog, DialogContent, Divider, InputAdornment, List,
+  ListItemButton, ListItemIcon, ListItemText, TextField, Typography } from "@mui/material";
 import * as React from "react";
-
-import type { Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, useIcon, useMutationRpcInvoker } from "@savvifi/meridian-web-react";
-
+import { create } from "@bufbuild/protobuf";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import type { Command, Launchpad } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import { normalizeCommand, NormalizedAction, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { ActionGroup, useActionGroup, useActionInvocation, useIcon } from "@savvifi/meridian-web-react";
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
 import { SearchGlyph } from "./glyphs.js";
-import { useActionFeedback } from "../../action_feedback.js";
 
 function CommandIcon({ iconKey }: { iconKey: string }) {
   const glyph = useIcon(iconKey || undefined);
-  if (!glyph) return null;
-  return <ListItemIcon sx={{ minWidth: 36 }}>{glyph}</ListItemIcon>;
+  return glyph ? <ListItemIcon sx={{ minWidth: 36 }}>{glyph}</ListItemIcon> : null;
+}
+
+// Search metadata stays on Command. This shell chooses URL-driven legacy
+// commands; canonical presence wins whole, even when its intent is empty.
+function paletteAction(command: Command) {
+  const normalized = normalizeCommand(command).action;
+  return command.affordance === undefined && command.deepLink
+    ? new NormalizedAction(create(AffordanceSchema, { id: command.id, label: command.title,
+      invoke: { case: "uri", value: command.deepLink } }), undefined, "command") : normalized;
+}
+
+function exceedsBudget(launchpad: Launchpad | undefined) {
+  if (!launchpad) return false;
+  if (launchpad.groups.length > 1000) return true;
+  let count = launchpad.defaultCommandIds.length;
+  for (const group of launchpad.groups) {
+    count += group.commands.length;
+    if (count > 1000) return true;
+  }
+  return count > 1000;
+}
+
+function PaletteCommand({ command, visible, open, position, selected, highlight, close }: {
+  command: Command; visible: boolean; open: boolean; position: number; selected: boolean;
+  highlight: () => void; close: () => void;
+}) {
+  const action = paletteAction(command);
+  const intent = action.affordance.invoke;
+  const unsafe = intent.case === "uri" ? !safeNavigationHref(intent.value)
+    : intent.case === "navigate" ? !safeNavigationHref(intent.value.route) : false;
+  const invocation = useActionInvocation(action, { enabled: open && visible });
+  const group = useActionGroup();
+  const owner = React.useId();
+  const message = unsafe ? "Action denied: this destination is unsafe or missing."
+    : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
+  const otherPending = group?.owner !== undefined && group.owner !== owner;
+  const run = (trigger: HTMLElement) => {
+    if (unsafe) return;
+    if (group && !group.acquire(owner)) return;
+    void invocation.activate(trigger).then(result => {
+      if (result?.status === "succeeded") close();
+    }).finally(() => group?.release(owner));
+  };
+  return <li hidden={!visible} style={{ listStyle: "none" }}>
+    <ListItemButton component="button" type="button" sx={{ width: "100%", textAlign: "left" }} data-launchpad-position={visible ? position : undefined}
+      selected={selected} onMouseEnter={highlight}
+      disabled={unsafe || otherPending || invocation.unavailable || invocation.predicateDenied}
+      aria-disabled={unsafe || invocation.pending || invocation.policyDenied || undefined}
+      aria-busy={invocation.pending || undefined}
+      aria-describedby={message ? invocation.feedbackId : undefined}
+      onClick={event => run(event.currentTarget)}>
+      <CommandIcon iconKey={command.icon} />
+      <ListItemText primary={command.title || "Command"} secondary={command.subtitle || undefined}
+        primaryTypographyProps={{ variant: "body2" }} />
+      {command.shortcut && <Typography variant="caption" color="text.secondary">{command.shortcut}</Typography>}
+    </ListItemButton>
+    {message && <Typography component="span" id={invocation.feedbackId} role="status" variant="caption">{message}</Typography>}
+    {invocation.pending && <Button type="button" size="small" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</Button>}
+  </li>;
+}
+
+function PaletteProgress() {
+  const group = useActionGroup();
+  return group?.owner === undefined ? null : <Typography role="status" variant="caption">
+    A command is still running. Wait for it to stop before running another.
+  </Typography>;
 }
 
 export function LaunchpadView() {
-  const feedback = useActionFeedback();
-  const { shell, seams, launchpad, capabilities } = useShell();
-  const mutationInvoker = useMutationRpcInvoker();
+  const { shell, launchpad, capabilities } = useShell();
   const [query, setQuery] = React.useState("");
   const [index, setIndex] = React.useState(0);
-  // A command whose action opened a panel — rendered as a focused step of the palette.
-  const [step, setStep] = React.useState<Command | null>(null);
-
-  const groups = React.useMemo(() => matchCommands(shell.launchpad, query), [shell.launchpad, query]);
-  const flat = React.useMemo(() => flatten(groups), [groups]);
-
-  // The highlight returns to the top whenever the result set changes; leaving it where it
-  // was points at a different command than the one the user was looking at.
-  React.useEffect(() => setIndex(0), [query]);
-
-  const close = React.useCallback(() => {
-    launchpad.close();
-    setQuery("");
-    setIndex(0);
-    setStep(null);
-  }, [launchpad]);
-
-  // ⛔ THROUGH THE HOST'S ROUTER. This used to call `window.location.assign` for every arm,
-  // which meant the launchpad — the fastest way to move around the app — was the only
-  // navigation in the shell that re-booted the document, discarding client state and any
-  // in-flight request. The shell is handed a router precisely so it does not have to do that;
-  // ignoring it for the ⌘K path while honouring it for every rail link was incoherent.
-  //
-  // `window.location.assign` survives as the fallback for a host that supplied no `navigate`,
-  // and as the ONLY path for a deep link, which may point off-origin.
-  const go = React.useCallback(
-    (route: string) => {
-      const href = safeNavigationHref(route);
-      if (!href) return false;
-      const navigate = seams.routing.navigate;
-      if (navigate) navigate(href);
-      else window.location.assign(href);
-      return true;
-    },
-    [seams],
-  );
-
-  const run = React.useCallback(
-    (command: Command) => {
-      // A deep link wins over the action: a host that encodes palette state in the URL wants
-      // the navigation, so that a refresh or a shared link reopens the same step.
-      if (command.deepLink) {
-        const href = safeNavigationHref(command.deepLink);
-        if (href) {
-          window.location.assign(href);
-          close();
-        }
-        return;
-      }
-      const action = command.action;
-      switch (action.case) {
-        case "navigate":
-          if (go(action.value.route)) close();
-          return;
-        case "openViewId": {
-          const href = seams.hrefFor?.({ id: action.value, label: command.title });
-          if (href) go(href);
-          close();
-          return;
-        }
-        case "openPanel":
-          // Stays open: the panel is a STEP of the palette, not a replacement for it.
-          setStep(command);
-          return;
-        case "rpc": {
-          void feedback.run(() => mutationInvoker.invoke(action.value.service, action.value.method, {}), close);
-          return;
-        }
-        default:
-          close();
-      }
-    },
-    [close, go, mutationInvoker, seams, feedback],
-  );
-
-  const onKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setIndex((current) => moveIndex(current, 1, flat.length));
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setIndex((current) => moveIndex(current, -1, flat.length));
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      const command = flat[index];
-      if (command) run(command);
-    }
-  };
-
+  const list = React.useRef<HTMLUListElement>(null);
+  const search = React.useRef<HTMLInputElement>(null);
+  const titleId = React.useId();
+  React.useLayoutEffect(() => {
+    // keepMounted preserves dispatchers, so autoFocus alone runs while closed.
+    // Each explicit open must return typing to the search field, not a row.
+    if (launchpad.isOpen) search.current?.focus();
+  }, [launchpad.isOpen]);
+  const oversized = exceedsBudget(shell.launchpad);
+  const groups = oversized ? [] : matchCommands(shell.launchpad, query);
+  const flat = flatten(groups);
+  const allGroups = oversized ? [] : matchCommands(shell.launchpad, "");
+  const close = () => { launchpad.close(); setQuery(""); setIndex(0); };
   if (!capabilities.launchpad) return null;
 
-  const panel = step?.action.case === "openPanel" ? step.action.value.panel : undefined;
-
-  return (
-    <Dialog open={launchpad.isOpen} onClose={close} fullWidth maxWidth="sm">
-      {feedback.feedback}
-      {panel ? (
-        <DialogContent>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {step?.title}
-          </Typography>
-          <PanelRenderer descriptor={panel} />
-        </DialogContent>
-      ) : (
-        <>
-          <Box sx={{ p: 2, pb: 1 }}>
-            <TextField
-              autoFocus
-              fullWidth
-              size="small"
-              placeholder={shell.launchpad?.placeholder || "Search or jump to…"}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={onKeyDown}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchGlyph fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-          <Divider />
-          <DialogContent sx={{ p: 0, maxHeight: 380 }}>
-            {flat.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: "center" }}>
-                Nothing matches “{query}”.
-              </Typography>
-            ) : (
-              <List sx={{ py: 0 }}>
-                {groups.map((group) => (
-                  <React.Fragment key={group.id}>
-                    {group.title ? (
-                      <Typography
-                        variant="overline"
-                        sx={{ display: "block", px: 2, pt: 1.5, color: "text.secondary" }}
-                      >
-                        {group.title}
-                      </Typography>
-                    ) : null}
-                    {group.commands.map((command) => {
-                      const position = flat.indexOf(command);
-                      const deepLinkDisabled = Boolean(command.deepLink && !safeNavigationHref(command.deepLink));
-                      const routeDisabled = !command.deepLink
-                        && command.action.case === "navigate"
-                        && !safeNavigationHref(command.action.value.route);
-                      const navigationDisabled = deepLinkDisabled || routeDisabled;
-                      return (
-                        <ListItemButton
-                          key={command.id}
-                          {...feedback.props(!command.deepLink && command.action.case === "rpc" ? command.action.value : undefined)}
-                          {...(navigationDisabled ? { "aria-disabled": true } : {})}
-                          disabled={navigationDisabled}
-                          selected={position === index}
-                          onMouseEnter={() => setIndex(position)}
-                          onClick={() => run(command)}
-                        >
-                          <CommandIcon iconKey={command.icon} />
-                          <ListItemText
-                            primary={command.title}
-                            secondary={command.subtitle || undefined}
-                            primaryTypographyProps={{ variant: "body2" }}
-                          />
-                          {command.shortcut ? (
-                            <Typography variant="caption" color="text.secondary">
-                              {command.shortcut}
-                            </Typography>
-                          ) : null}
-                        </ListItemButton>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
-              </List>
-            )}
-          </DialogContent>
-        </>
-      )}
-    </Dialog>
-  );
+  // Keep logical commands mounted across filtering and close/reopen. Disabled
+  // readers cannot activate but retain noncooperative pending guards to settlement.
+  const entries = allGroups.flatMap((group, groupIndex) => group.commands.map((command, commandIndex) => {
+    const matchedIndex = groups.findIndex(candidate => candidate.id === group.id);
+    const offset = groups.slice(0, matchedIndex).reduce((sum, candidate) => sum + candidate.commands.length, 0);
+    const within = matchedIndex < 0 ? -1 : groups[matchedIndex]!.commands.indexOf(command);
+    const position = within < 0 ? -1 : offset + within;
+    return { command, group, key: `${groupIndex}:${commandIndex}`, position };
+  }));
+  entries.sort((a, b) => (a.position < 0 ? Infinity : a.position) - (b.position < 0 ? Infinity : b.position));
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault(); setIndex(current => moveIndex(current, event.key === "ArrowDown" ? 1 : -1, flat.length));
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      list.current?.querySelector<HTMLButtonElement>(`button[data-launchpad-position="${index}"]`)?.click();
+    }
+  };
+  return <ActionGroup><Dialog keepMounted aria-labelledby={titleId} open={launchpad.isOpen} onClose={close} fullWidth maxWidth="sm">
+    <Typography component="h2" id={titleId} sx={{ position: "absolute", width: 1, height: 1, p: 0, m: -1,
+      overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>Command palette</Typography>
+    <Box sx={{ p: 2, pb: 1 }}>
+      <TextField inputRef={search} fullWidth size="small" placeholder={shell.launchpad?.placeholder || "Search or jump to…"}
+        inputProps={{ "aria-label": "Search commands" }} value={query}
+        onChange={event => { setQuery(event.target.value); setIndex(0); }} onKeyDown={onKeyDown}
+        InputProps={{ startAdornment: <InputAdornment position="start"><SearchGlyph fontSize="small" /></InputAdornment> }} />
+    </Box>
+    <Divider />
+    <DialogContent sx={{ p: 0, maxHeight: 380 }}>
+      <PaletteProgress />
+      {oversized ? <Typography role="alert">Commands unavailable: the palette exceeds supported limits.</Typography>
+        : flat.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: "center" }}>Nothing matches “{query}”.</Typography>}
+      <List ref={list} sx={{ py: 0 }}>
+        {entries.map((entry, i) => <React.Fragment key={entry.key}>
+          {entry.position >= 0 && entry.group.title && (i === 0 || entries[i - 1]?.group !== entry.group) &&
+            <Typography component="li" variant="overline" sx={{ display: "block", px: 2, pt: 1.5, color: "text.secondary" }}>{entry.group.title}</Typography>}
+          <PaletteCommand command={entry.command} visible={entry.position >= 0} open={launchpad.isOpen}
+            position={entry.position} selected={entry.position === index} highlight={() => setIndex(entry.position)} close={close} />
+        </React.Fragment>)}
+      </List>
+    </DialogContent>
+  </Dialog></ActionGroup>;
 }

@@ -3,7 +3,8 @@ import { expect, it, vi } from "vitest";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { RowActionSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { normalizeAffordance, normalizeLegacyAction, normalizeLegacyRowAction } from "./action_normalization.js";
+import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import { normalizeAffordance, normalizeCommand, normalizeLegacyAction, normalizeLegacyRowAction } from "./action_normalization.js";
 import { createInvocationDispatcher, type InvocationSnapshot, type InvocationCapabilities } from "./invocation.js";
 import type { RpcInvoker } from "./transport.js";
 
@@ -114,6 +115,15 @@ it("a compatibility hint cannot add id to canonical intent or replace authored b
   })) });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
   expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", { authored: "raw" }, expect.any(AbortSignal));
+});
+
+it("legacy palette origin never opts into a renderer's row id compatibility default", async () => {
+  const host = setup();
+  host.replace({ ...host.snapshot, action: normalizeCommand(create(CommandSchema, {
+    action: { case: "rpc", value: { service: "raw.Service", method: "Get" } },
+  })).action, context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
 });
 
 it("legacy id fallback rejects accessors without evaluating them", async () => {

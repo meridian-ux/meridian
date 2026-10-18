@@ -151,7 +151,8 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         case "rpc": {
           const call = intent.value;
           let bindings = call;
-          if (snapshot.legacyRowIdFallback && snapshot.action.legacyOrigin && !snapshot.action.semanticAction && call.bindings.length === 0) {
+          if (snapshot.legacyRowIdFallback && (snapshot.action.legacyOrigin === "row" || snapshot.action.legacyOrigin === "action")
+            && !snapshot.action.semanticAction && call.bindings.length === 0) {
             const id = Object.getOwnPropertyDescriptor(snapshot.context.selectedRow ?? {}, "id");
             if (id && !("value" in id)) throw new Error("Invalid row context.");
             if (id?.value != null) {

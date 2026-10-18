@@ -45,13 +45,10 @@ export interface ShellRouting {
   Link: ShellLinkComponent;
   usePathname: () => string;
   /**
-   * Navigate imperatively — what the launchpad runs when a command is chosen.
-   *
-   * ⛔ Optional only for compatibility, and a host that has a router should always pass it.
-   * Without it the launchpad falls back to `window.location.assign`, which is a FULL DOCUMENT
-   * LOAD: the app re-boots, client state is lost, and ⌘K — the fastest thing in the app —
-   * becomes the slowest. A shell handed a `Link` already knows the host has a router; the
-   * fallback exists for the host that genuinely has none, not as the normal path.
+   * Imperative routing available to host adapters. A routing seam is not an
+   * invocation grant: palette commands require explicit provider capabilities
+   * and target policy. A host may delegate its navigate capability to this
+   * method. The palette never falls back to document navigation.
    */
   navigate?: (route: string) => void;
 }
