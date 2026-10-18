@@ -322,13 +322,51 @@ it("no-call legacy IDs require a pure resolver and retain exact row/header subje
   }
 });
 
-it.each([false, true])("confirmation %s is consent only; it never grants mutation permission", async consent => {
+it.each<JsonObject>([rpc, { uri: "/safe" }, { command: "raw" }, { navigate: { route: "/safe" } },
+  { openPanel: { panelId: "inline" } }, { openView: "view" }, { copy: "literal" }])(
+  "admitted semantic %j preserves consent order and cancellation", async target => {
+    for (const consent of [false, true]) {
+      const host = setup(target), order: string[] = [];
+      const semantic = vi.fn(async () => { order.push("semantic"); return consent; });
+      const adapter = vi.fn(async () => { order.push("adapter"); return true; });
+      host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "semantic" })),
+        admit: () => { order.push("admission"); return true; }, confirm: adapter,
+        resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, target), confirm: semantic }) });
+      expect((await host.dispatcher.activate()).status).toBe(consent ? "succeeded" : "cancelled");
+      expect(order).toEqual(consent ? ["admission", "semantic", "adapter"] : ["admission", "semantic"]);
+      expect(semantic).toHaveBeenCalledTimes(1); expect(adapter).toHaveBeenCalledTimes(consent ? 1 : 0);
+      if (!consent) expectNoEffects(host.effects);
+      else {
+        const kind = fromJson(AffordanceSchema, target).invoke.case!;
+        const effect = kind === "rpc" ? host.effects.rpc.invoke : host.effects[kind];
+        expect(effect).toHaveBeenCalledTimes(1);
+      }
+    }
+  });
+
+it.each([false, true])("denied semantic actions do not ask for confirmation %s or disguise denial as cancellation", async consent => {
   const host = setup(rpc);
   const confirm = vi.fn(async () => consent);
   host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "confirm-delete" })),
     resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, rpc), confirm }), admission: undefined });
-  expect(await host.dispatcher.activate()).toEqual(consent ? { status: "denied", reason: "mutation-policy" } : { status: "cancelled" });
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "mutation-policy" });
+  expect(confirm).not.toHaveBeenCalled();
   expectNoEffects(host.effects);
+});
+
+it.each(["mutation", "target", "capability", "missing", "disabled"])("semantic %s denial precedes both confirmation hooks", async reason => {
+  const host = setup(rpc), semantic = vi.fn(async () => true), adapter = vi.fn(async () => true);
+  const resolved = fromJson(AffordanceSchema, reason === "missing" ? {} : {
+    ...rpc, ...(reason === "disabled" ? { enabledWhen: { fieldPath: "state", equals: "CLOSED" } } : {}),
+  });
+  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "semantic" })),
+    resolveSemantic: () => ({ affordance: resolved, confirm: semantic }), confirm: adapter,
+    admission: reason === "mutation" ? undefined : host.snapshot.admission,
+    admit: () => reason !== "target", capabilities: reason === "capability" ? {} : host.effects });
+  const expected = { mutation: "mutation-policy", target: "target-policy", capability: "missing-capability", missing: "missing-target", disabled: "disabled" };
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: expected[reason as keyof typeof expected] });
+  expect(semantic).not.toHaveBeenCalled(); expect(adapter).not.toHaveBeenCalled();
+  expectNoEffects(host.effects); expect(host.snapshot.refresh).not.toHaveBeenCalled();
 });
 
 it("missing/unresolved semantic actions visibly deny instead of treating the ID as a URI", async () => {

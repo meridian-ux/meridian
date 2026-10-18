@@ -17,8 +17,11 @@ updates and unmounts, not just call the engine with static fixtures.
 
 Rendering, inspection, filtering, and focus do not call `activate`. On activation,
 the dispatcher reads the current scope, performs optional pure legacy semantic
-resolution/confirmation, evaluates `enabled_when` with the shared Rust predicate,
-and admits the selected target. It checks scope identity after callbacks and
+resolution, evaluates `enabled_when` with the shared Rust predicate,
+and admits the selected target. Only then does it request semantic confirmation,
+followed by adapter confirmation, when provided. Denied actions never ask for
+consent and cannot turn a policy denial into cancellation. It checks scope
+identity after callbacks and
 asynchronous work. A changed scope stops execution; retry starts again with the
 new scope rather than executing the changed target under old confirmation.
 
