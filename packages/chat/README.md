@@ -34,6 +34,12 @@ authored panel content remain readable. A supplied callback still takes preceden
 
 This fallback has no transport, clock, selection context, or route resolver.
 Actions and destinations are inert text; remote data is explicitly unavailable.
+Canonical header, slot and table collections take precedence as a whole,
+including explicitly empty collections. Canonical form submission metadata also
+suppresses legacy submission even when no target is supplied. All seven typed
+destinations are described without execution; copy payloads stay hidden and
+open-panel destinations never expand their target content. This uses the same
+bounded Rust projection in both browser transcript tiers and native transcripts.
 Selection gates stay closed, repeated views show one labeled template, masked
 defaults are hidden, and LLM prompt templates are not expanded. This is not a
 substitute for a composed interactive host or its integration tests.
@@ -50,6 +56,10 @@ For an interactive React host, decode the callback's proto3-JSON with the host's
 canonical `ViewDescriptorSchema`, then render `ViewRenderer` under a
 `MeridianProvider`. The host owns descriptor admission, selection/record context,
 transport, mutation allowlists, and component identity on view replacement.
+Supply explicit `MeridianProvider.invocation` capabilities and target policy for
+non-RPC targets; there is no implicit router, command runner, clipboard or
+panel/view mount. User-triggered RPC targets require mutation admission, including
+Get/List. A streamed descriptor, visible button or focus event grants nothing.
 Composed-view rows receive full available transcript width rather than the
 ordinary 82% message-bubble cap; ordinary messages keep their existing sizing.
 
@@ -60,6 +70,15 @@ layouts, same-ID replacements, replay suppression, denied/admitted actions, and
 late-read isolation. This example's fake fixture invoker is not a production
 backend or authorization implementation. Run
 `bazel test --announce_rc=false //packages/mui-kit:conversation_browser_test`.
+
+The same real HTTP/SSE test also exercises 75 unified invocation mounts across
+the three kits: all seven targets admitted/denied, missing host capabilities,
+canonical empty/missing intents, safe destination denial, actual Rust RPC
+bindings with false/zero/raw Unicode, failed retry, same-ID streamed replacement,
+noncooperative duplicate suppression/cancellation, focus return and stale refresh
+suppression. It verifies no legacy transport, clipboard or implicit panel fallback
+and no posted conversation turn. This is evidence for this explicitly wired rich
+host, not permission for arbitrary chat hosts or full native interactive adoption.
 
 ## Transport
 

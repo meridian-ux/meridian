@@ -77,10 +77,25 @@ impl Text {
         }
         Ok(())
     }
+    fn action_source(
+        &mut self,
+        legacy: &[proto::Action],
+        canonical: Option<&proto::AffordanceCollection>,
+        depth: usize,
+    ) -> Result<(), StaticViewError> {
+        if let Some(canonical) = canonical {
+            for action in &canonical.items {
+                self.affordance(action, depth)?;
+            }
+            Ok(())
+        } else {
+            self.actions(legacy, depth)
+        }
+    }
     fn view(&mut self, view: &ViewDescriptor, depth: usize) -> Result<(), StaticViewError> {
         self.node(depth)?;
         self.line(format_args!("View: {} [{}]", view.title, view.id))?;
-        self.actions(&view.actions, depth)?;
+        self.action_source(&view.actions, view.affordances.as_ref(), depth)?;
         if view.slots.len() > self.nodes {
             return Err(StaticViewError);
         }
@@ -168,7 +183,7 @@ impl Text {
             ))?;
             return Ok(());
         }
-        self.actions(&slot.actions, depth)?;
+        self.action_source(&slot.actions, slot.affordances.as_ref(), depth)?;
         if let Some(view) = &slot.sub_view {
             if slot.sub_view_populate.is_some() {
                 self.copy("Repeated template only; records require an interactive/data host.")?;
@@ -335,10 +350,16 @@ impl Text {
             self.node(depth)?;
             self.line(format_args!("Column: {}", column.header))?;
         }
-        for action in &table.actions {
-            self.node(depth)?;
-            self.line(format_args!("Row action: {}", action.label))?;
-            self.rpc("Destination", action.rpc.as_ref())?;
+        if let Some(canonical) = &table.affordances {
+            for action in &canonical.items {
+                self.affordance(action, depth)?;
+            }
+        } else {
+            for action in &table.actions {
+                self.node(depth)?;
+                self.line(format_args!("Row action: {}", action.label))?;
+                self.rpc("Destination", action.rpc.as_ref())?;
+            }
         }
         self.copy("[rows unavailable without host data]")
     }
@@ -371,7 +392,11 @@ impl Text {
             Some(Body::Form(p)) => {
                 self.rpc("Prefill", p.prefill.as_ref())?;
                 self.fields(&p.fields, true, depth + 1)?;
-                self.rpc("Submit", p.submit.as_ref())?;
+                if let Some(canonical) = &p.submit_affordance {
+                    self.affordance(canonical, depth)?;
+                } else {
+                    self.rpc("Submit", p.submit.as_ref())?;
+                }
             }
             Some(Body::Prompt(p)) => {
                 self.copy(&p.description)?;
@@ -608,6 +633,116 @@ mod tests {
     use crate::proto::*;
 
     #[test]
+    fn canonical_collections_win_whole_in_passive_composition() {
+        for populated in [false, true] {
+            let source = || {
+                Some(AffordanceCollection {
+                    items: if populated {
+                        vec![Affordance {
+                            label: "Canonical inert action".into(),
+                            invoke: Some(affordance::Invoke::Copy("hidden-copy-payload".into())),
+                            ..Default::default()
+                        }]
+                    } else {
+                        vec![]
+                    },
+                })
+            };
+            let view = ViewDescriptor {
+                title: "Canonical projection".into(),
+                actions: vec![Action {
+                    label: "Legacy header trap".into(),
+                    ..Default::default()
+                }],
+                affordances: source(),
+                slots: vec![Slot {
+                    title: "Slot".into(),
+                    actions: vec![Action {
+                        label: "Legacy slot trap".into(),
+                        ..Default::default()
+                    }],
+                    affordances: source(),
+                    panel: Some(PanelDescriptor {
+                        body: Some(Body::Table(TablePanel {
+                            actions: vec![RowAction {
+                                label: "Legacy row trap".into(),
+                                ..Default::default()
+                            }],
+                            affordances: source(),
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+            let text = static_view_text(&view).unwrap();
+            assert!(!text.contains("Legacy"), "{text}");
+            assert_eq!(
+                text.matches("Canonical inert action").count(),
+                if populated { 3 } else { 0 }
+            );
+            assert!(!text.contains("hidden-copy-payload"));
+            assert!(text.contains("[rows unavailable without host data]"));
+        }
+    }
+
+    #[test]
+    fn canonical_submit_never_revives_legacy_rpc_even_without_intent() {
+        for target in [
+            None,
+            Some(affordance::Invoke::Rpc(RpcCall {
+                service: "Canonical".into(),
+                method: "Get".into(),
+                ..Default::default()
+            })),
+        ] {
+            let view = ViewDescriptor {
+                slots: vec![Slot {
+                    panel: Some(PanelDescriptor {
+                        body: Some(Body::Form(Box::new(FormPanel {
+                            submit: Some(RpcCall {
+                                service: "Legacy".into(),
+                                method: "Trap".into(),
+                                ..Default::default()
+                            }),
+                            submit_affordance: Some(Box::new(Affordance {
+                                label: "Canonical submit".into(),
+                                invoke: target,
+                                ..Default::default()
+                            })),
+                            ..Default::default()
+                        }))),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+            let text = static_view_text(&view).unwrap();
+            assert!(text.contains("Canonical submit [not executed]"), "{text}");
+            assert!(!text.contains("Legacy/Trap"));
+        }
+    }
+
+    #[test]
+    fn canonical_action_collections_retain_static_work_limits() {
+        let mut view = ViewDescriptor {
+            affordances: Some(AffordanceCollection {
+                items: vec![Affordance::default(); 1001],
+            }),
+            ..Default::default()
+        };
+        assert!(static_view_text(&view).is_err());
+        view.affordances.as_mut().unwrap().items = vec![Affordance {
+            label: "x".repeat(1024 * 1024),
+            ..Default::default()
+        }];
+        assert!(static_view_text(&view).is_err());
+    }
+
+    #[test]
     fn typed_destinations_are_passive_and_do_not_disclose_copy_values() {
         use affordance::Invoke;
         let cases = [
@@ -641,6 +776,21 @@ mod tests {
             ),
         ];
         for (invoke, expected) in cases {
+            let view = ViewDescriptor {
+                affordances: Some(AffordanceCollection {
+                    items: vec![Affordance {
+                        label: "Activate".into(),
+                        invoke: Some(invoke.clone()),
+                        ..Default::default()
+                    }],
+                }),
+                ..Default::default()
+            };
+            let projected = static_view_text(&view).unwrap();
+            assert!(projected.contains("Activate [not executed]"));
+            assert!(projected.contains(expected), "{projected}");
+            assert!(!projected.contains("clipboard-secret"));
+            assert!(!projected.contains("nested-content-must-not-mount"));
             let mut text = Text {
                 value: String::new(),
                 remaining: 4096,
