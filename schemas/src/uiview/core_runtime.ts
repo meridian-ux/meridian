@@ -2,6 +2,12 @@
 // Generated code initializes synchronously from embedded bytes in browsers and
 // SSR. No host configuration, clock, route resolver, fetch, or filesystem.
 import * as bindings from "./generated/meridian_uiview.js";
+import type { RenderContext } from "./transport.js";
+
+/** Use the bounded Rust builder, not a second JavaScript binding interpreter. */
+export const coreRequests: Readonly<{
+  buildRequest(call: Uint8Array, context: RenderContext): object;
+}> = Object.freeze({ buildRequest: bindings.buildRequest });
 
 /** Bounded native/WASM metadata formatter shared by operation realizations. */
 // Explicit public signatures keep private wasm-bindgen classes (and optional

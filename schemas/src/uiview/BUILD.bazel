@@ -5,6 +5,12 @@ load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 package(default_visibility = ["//visibility:public"])
 
 vitest_test(
+    name = "invocation_test",
+    srcs = ["invocation.test.ts"],
+    deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+)
+
+vitest_test(
     name = "action_normalization_test",
     srcs = ["action_normalization.test.ts"],
     deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
@@ -82,6 +88,7 @@ ts_project(
         "conversation_tone.ts",
         "conversation_sequence.ts",
         "index.ts",
+        "invocation.ts",
         "navigation.ts",
         "masked_multiline.ts",
         "media.ts",

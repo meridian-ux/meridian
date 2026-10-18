@@ -9,10 +9,11 @@ import { embedCore } from "./embed_core_wasm.mjs";
 
 test("packaging refuses an invalid wasm module or incomplete formatter bridge", () => {
   assert.throws(() => embedCore("", new Uint8Array(), ""), /Incomplete core/);
-  const glue = "function initSync() {} function formatValueDisplay() {} function formatValueDisplayAt() {} function matchesFormPattern() {} function matchesRowFilter() {}";
+  const glue = "function initSync() {} function formatValueDisplay() {} function formatValueDisplayAt() {} function matchesFormPattern() {} function matchesRowFilter() {} function buildRequest() {}";
   assert.throws(() => embedCore(glue, new Uint8Array(), ""), /Invalid core WebAssembly/);
   assert.throws(() => embedCore(glue.replace("function matchesFormPattern() {}", ""), new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]), ""), /Incomplete core/);
   assert.throws(() => embedCore(glue.replace("function matchesRowFilter() {}", ""), new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]), ""), /Incomplete core/);
+  assert.throws(() => embedCore(glue.replace("function buildRequest() {}", ""), new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]), ""), /Incomplete core/);
 });
 
 test("the packaged module imports detached and formats synchronously without fetch, Intl, or a process clock", () => {
