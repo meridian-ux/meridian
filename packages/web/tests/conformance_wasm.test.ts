@@ -860,26 +860,28 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it.each(["form", "lro"] as const)("rejects combined %s copy amplification without dispatch, then permits a corrected retry", async arm => {
     const fields = [{ fieldId: "extra", kind: { case: "text" as const, value: {} } }];
-    const call = { service: "fixture.Submit", method: "Run", bindings: Array.from({ length: 5 }, () => ({
+    const call = { service: "fixture.Submit", method: "Run", bindings: Array.from({ length: arm === "form" ? 10 : 5 }, () => ({
       requestField: "same", source: { case: "context" as const, value: 2 },
     })) };
     const descriptor = create(PanelDescriptorSchema, {
       body: arm === "form" ? { case: "form", value: { fields, mode: 2, submit: call } }
         : { case: "lro", value: { inputs: fields, start: call } },
     });
-    const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(700_000) } };
+    // Keep the Form case inside the adapter's existing snapshot ceiling so
+    // rejection still proves actual Rust shared copy work, not preflight.
+    const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(arm === "form" ? 400_000 : 700_000) } };
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ done: true }));
     const root = document.createElement("main");
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     try {
       await renderPanel({ root, descriptor, wasm, context: ctx, invoker: { invoke }, admission: "unrestricted" });
       const input = root.querySelector<HTMLInputElement>("input")!;
-      input.value = "y".repeat(900_000);
+      input.value = "y".repeat(arm === "form" ? 200_000 : 900_000);
       const submit = () => arm === "form"
         ? root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
         : root.querySelector<HTMLButtonElement>("button")!.click();
       submit();
-      await vi.waitFor(() => expect(root.textContent).toContain("Submission request construction rejected."));
+      await vi.waitFor(() => expect(root.textContent).toContain(arm === "form" ? "Action failed." : "Submission request construction rejected."));
       expect(invoke).not.toHaveBeenCalled();
       input.value = "ok"; submit();
       await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
@@ -887,18 +889,33 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     } finally { disposePanel(root); }
   });
 
-  it.each(["missing", "rejects"])("fails closed when submission assembly %s", async failure => {
+  it.each(["missing", "rejects"])("LRO fails closed when its host submission assembly %s", async failure => {
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "fixture.Form", method: "Save" }, inputs: [],
+    } } });
+    try {
+      await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : () => { throw new Error("private payload"); } }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
+      root.querySelector<HTMLButtonElement>("button")!.click();
+      await vi.waitFor(() => expect(root.textContent).toContain("Submission request construction rejected."));
+      expect(invoke).not.toHaveBeenCalled();
+      expect(root.textContent).not.toContain("private payload");
+    } finally { disposePanel(root); }
+  });
+
+  it.each(["missing", "rejects"])("ordinary form uses the shared Rust builder, not host assembly %s", async failure => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    const oldBuilder = vi.fn(() => { throw Error("private legacy builder"); });
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
       mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
     } } });
     try {
-      await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : () => { throw new Error("private payload"); } }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
+      await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : oldBuilder }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
       root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
-      expect(invoke).not.toHaveBeenCalled();
-      expect(root.textContent).not.toContain("private payload");
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalledWith("fixture.Form", "Save", {}));
+      expect(invoke).toHaveBeenCalledTimes(1); expect(oldBuilder).not.toHaveBeenCalled(); expect(root.textContent).not.toContain("private legacy");
     } finally { disposePanel(root); }
   });
 
@@ -1095,7 +1112,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     try {
       await renderPanel({ root, descriptor, wasm, context: { ...CTX, uiIdentity: cyclic }, invoker: { invoke }, admission: "unrestricted" });
       root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
+      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/Action unavailable/));
       expect(invoke).not.toHaveBeenCalled();
     } finally { disposePanel(root); }
   });

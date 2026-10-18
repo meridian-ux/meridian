@@ -13,5 +13,4 @@ RootWebArea name="Meridian AX conformance" focusable=true
         button name="Add section" focusable=true invalid="false"
           StaticText name="Add section"
     status name="" atomic=true live="polite"
-      StaticText name="Saving is not permitted."
     alert name="" atomic=true live="assertive"

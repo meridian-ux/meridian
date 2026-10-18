@@ -143,7 +143,7 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-Remaining web-components forms/row/resource actions and chat/TUI adoption
+Remaining web-components row/resource actions and chat/TUI adoption
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -227,3 +227,21 @@ slot controls count toward the existing composition ceiling. The DOM context
 adapter is runtime-only, not a new serialized DTO or request interpreter. Form,
 row/resource action and other modality adoption still need their own evidence;
 this slice does not complete renderer-wide acceptance or authorize cutover.
+
+## Web-components ordinary form adoption
+
+Ordinary FormPanel now uses event-only validated DOM collection and the shared
+Rust submission builder with canonical whole-presence precedence. It does not
+import the ambient host form bag or call legacy host assembly. Prefill is owned,
+bounded and projected through declared fields before repeated DOM expansion;
+late responses cannot seed replacement forms, and failures keep defaults with
+an explicit sanitized warning. Remote enum sources resolve through read-tier
+admission, share a bounded option-expansion budget and remain closed on failure
+with retry; forged static options cannot pass resolved declaration validation.
+
+Input/policy/context currentness, pending fields, reachable cancel/focus return,
+sanitized errors, retained edits and distinct refresh failure use the common
+dispatcher. Read-only forms cannot prefill or submit through forced events.
+Missing intent invents no Save action. LRO retains its complete existing
+start/poll/finalize workflow and host-core capability checks; its request builder
+must not be replaced with a single acknowledged action.

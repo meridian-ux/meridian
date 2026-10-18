@@ -41,10 +41,12 @@ objects, preserving raw data keys rather than invoking prototype setters.
 Rejection is an error, not a truncated/partial result; failed table refreshes
 clear old rows and disable their actions. This does not bound all JavaScript
 DOM projections or establish full renderer robustness.
-Form saves and LRO starts require the initialized core's `buildSubmissionRequest`
-capability: it assembles explicit bindings and automatic fields together under
-one budget. An older core without that capability rejects submissions visibly;
-there is no unbounded JavaScript fallback. Form values use literal field IDs
+Ordinary FormPanel saves use the SDK's shared Rust `buildSubmissionRequest`
+through canonical invocation admission, not the host's legacy request builder.
+LRO starts retain the initialized host core's required submission capability;
+an older host core without it rejects those starts visibly. Both assemble
+explicit bindings and automatic fields under one budget with no JavaScript
+fallback. Form values use literal field IDs
 (explicit bindings win), while LRO inputs use declared request paths (inputs
 win). Nested LRO paths compose at every level; repeated values and maps stay raw.
 
@@ -105,8 +107,35 @@ the mount to repaint changed host/descriptor inputs.
 
 These controls accept bounded own-data JSON context, reject getters/cycles and
 oversized snapshots before host work, and include header/slot actions in the
-existing composition ceiling. This does not complete form, row/resource action,
+existing composition ceiling. This does not complete row/resource action,
 or other renderer/modality adoption; those legacy workflows remain separate.
+
+### Ordinary form submission
+
+FormPanel selects a present canonical submit affordance whole, including empty
+intent or label; otherwise it normalizes the legacy submit call. All seven
+targets use validated current declared values and explicit invocation admission.
+The ambient host form bag is never imported, and DOM inputs are collected only
+on activation/currentness checks, never during construction or focus. Read-only
+forms neither prefill nor submit; no authored submit intent means no invented
+save action. Prompt and complete LRO operation workflows remain separate.
+
+Declared prefill settles before saving becomes available. Prefill is bounded and
+projected through own declared fields, including repeated object children;
+malformed/failed prefill keeps defaults with a generic persistent warning. Late
+responses after replacement/disposal cannot seed the new form. Dynamic enum
+option sources are authoritative read-tier calls: fields remain disabled until
+they resolve; failure has sanitized retry feedback and never enables static or
+forged options. Remote choices share one 1,000-option expansion ceiling, and
+prefill (including omitted nested defaults) is bounded before repeated DOM
+expansion, and current values are bounded before submission.
+
+Pending fields are disabled while Save and Cancel retain appropriate keyboard
+reachability. Cancellation guards duplicate submits through actual settlement;
+replacement, current-input changes and disposal suppress obsolete completion
+and refresh. Failures and refresh failures preserve typed input, without raw
+host diagnostics or automatic effect replay. Successful saves preserve edited
+values, including loaded records.
 
 `renderView` partitions `header_row` slots into the view header in every layout.
 Body slots retain stable `position` order. In tabbed layouts, only nonempty

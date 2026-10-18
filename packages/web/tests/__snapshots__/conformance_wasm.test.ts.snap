@@ -1830,7 +1830,6 @@ form
       button type="button"
         "Add section"
   p role="status"
-    "Saving is not permitted."
   p role="alert""
 `;
 
@@ -2985,7 +2984,6 @@ form
       button type="button"
         "Add section"
   p role="status"
-    "Saving is not permitted."
   p role="alert""
 `;
 
@@ -3477,7 +3475,6 @@ form
       button type="button"
         "Add section"
   p role="status"
-    "Saving is not permitted."
   p role="alert""
 `;
 

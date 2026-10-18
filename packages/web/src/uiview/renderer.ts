@@ -28,8 +28,8 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
-import { buildInvocationControl } from "./invocation_control.js";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { buildInvocationControl, createInvocationControl, ownInvocationData } from "./invocation_control.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
@@ -407,14 +407,22 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     meta.textContent = "";
     const form = buildInteractiveForm(body.value, {
       initialValues: renderOpts.record,
-      allowed: (call) => createAdmissionGate(renderOpts.admission).admits("mutation", call.service, call.method),
-      invoke: (call, values, mutation) => {
-        const request = mutation ? buildSubmission(renderOpts, values) : plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
-          ...renderOpts.context, formValues: values,
-        })) as object;
-        return (mutation ? renderOpts.mutationInvoker : renderOpts.invoker).invoke(call.service, call.method,
-          request);
+      prefill: (call) => {
+        const request = plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), renderOpts.context)) as object;
+        return renderOpts.invoker.invoke(call.service, call.method, request);
       },
+      resolveFields: body.value.fields.some(hasOptionsSource) ? fields => {
+        const budget = { remaining: 1000 }; // One runtime option-expansion ceiling across all fields.
+        return Promise.all(fields.map(field => resolveOptions(field, {
+        invoke: async (service, method, request) => ownInvocationData(await renderOpts.invoker.invoke(service, method, request)) as object,
+      }, budget)));
+      } : undefined,
+      createSubmit: (fields, readFormValues, onPending, onInvalid) => createInvocationControl({ ...renderOpts,
+        invoker: ACTION_INVOKERS.get(renderOpts) ?? renderOpts.invoker,
+        action: normalizeFormSubmit(body.value, `Save ${body.value.itemNoun}`.trim()),
+        submission: { fields, kind: "form" }, readFormValues, onPending, onInvalid,
+        alive: ACTION_LIFETIMES.get(renderOpts) ?? (() => false), onDispose: dispose => onDispose(root, dispose),
+      }),
     });
     root.appendChild(form.element);
     onDispose(root, form.dispose);

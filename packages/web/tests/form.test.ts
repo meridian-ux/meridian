@@ -180,7 +180,7 @@ it("preserves enum labels, tones, fallback options, and raw submissions", async 
   for (const labeled of [true, false]) {
     const root = document.createElement("div");
     const panel = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "demo.Form", method: "Save" }, fields: [
+      mode: 2, submit: { service: "demo.Form", method: "Save", bindings: [{ requestField: "resource", source: { case: "literal", value: "record" } }] }, fields: [
         { fieldId: "region", kind: { case: "enumSelection", value: {
           defaultValue: "west", allowedValues: ["west", "east", "other"],
           options: labeled ? [{ value: "west", label: "Western region", tone: ValueTone.SUCCESS }, { value: "east", tone: ValueTone.DANGER }, { value: "other", tone: 99 as ValueTone }] : [],
@@ -217,17 +217,19 @@ it("prefills typed nested/repeated/map values and submits through the mutation b
   submit(); submit(); await flush();
   expect(invoke.mock.calls.filter(call => call[1] === "Save")).toHaveLength(1);
   expect(invoke).toHaveBeenLastCalledWith("demo.Form", "Save", { resource: "record", title: "<b>hello</b>", count: 2, enabled: true, settings: { region: "west" }, tags: { team: "core" }, items: ["one"] });
-  expect(root.querySelector('[role="alert"]')?.textContent).toBe("Save failed");
-  reject = false; submit(); await flush(); expect(root.textContent).toContain("Saved.");
+  expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
+  expect(root.textContent).not.toContain("Save failed");
+  reject = false; submit(); await flush(); expect(root.textContent).toContain("Action completed.");
   disposePanel(root); submit(); await flush(); expect(invoke.mock.calls.filter(call => call[1] === "Save")).toHaveLength(2);
 });
 it("blocks denied submits and keeps defaults after failed prefill", async () => {
   const root = document.createElement("div"); const invoke = vi.fn(async () => { throw new Error("offline"); });
   await renderPanel({ root, wasm, descriptor: descriptor(), context, invoker: { invoke } }); await flush();
   expect(root.querySelector<HTMLInputElement>('[name="title"]')?.value).toBe("default");
-  expect(root.querySelector<HTMLButtonElement>('[type="submit"]')?.disabled).toBe(true);
+  expect(root.querySelector<HTMLButtonElement>('[type="submit"]')?.getAttribute("aria-disabled")).toBe("true");
   root.querySelector("form")!.dispatchEvent(new Event("submit", { cancelable: true })); await flush(); expect(invoke).toHaveBeenCalledTimes(1);
-  expect(root.textContent).toContain("offline");
+  expect(root.textContent).not.toContain("offline");
+  expect(root.textContent).toContain("Initial values unavailable; showing descriptor defaults.");
 });
 it("validates typed input before transport and formats read-only values", async () => {
   const root = document.createElement("div"); const panel = descriptor();

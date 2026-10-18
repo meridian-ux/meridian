@@ -1,6 +1,7 @@
 import { clone } from "@bufbuild/protobuf";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { affordancePresentation, createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, safeNavigationHref,
   type AdmissionPolicy, type InvocationHost, type InvocationOutcome, type InvocationSnapshot, type RenderContext, type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
@@ -42,6 +43,10 @@ function inertJson(value: unknown, descriptor = false): string {
   return JSON.stringify(copy(value, 0));
 }
 
+/** Own the existing JSON host seam before retaining prefill/input. */
+export function ownInvocationData(value: unknown): unknown { return JSON.parse(inertJson(value)); }
+export function assertInvocationDescriptorData(value: unknown): void { inertJson(value, true); }
+
 export interface InvocationControlOptions {
   action: NormalizedAction;
   invoker: RpcInvoker;
@@ -53,6 +58,11 @@ export interface InvocationControlOptions {
   alive: () => boolean;
   onDispose: (dispose: () => void) => void;
   renderIcon?: (key: string) => HTMLElement | undefined;
+  submission?: InvocationSnapshot["submission"];
+  /** Validated event-only DOM collector; never called during construction/paint. */
+  readFormValues?: () => Record<string, unknown>;
+  onInvalid?: (reason: unknown) => void;
+  onPending?: (pending: boolean) => void;
 }
 
 function outcomeText(outcome: InvocationOutcome): string {
@@ -69,7 +79,7 @@ function outcomeText(outcome: InvocationOutcome): string {
 }
 
 /** A native button for all seven targets: no href, copy, or legacy fallback. */
-export function buildInvocationControl(options: InvocationControlOptions): HTMLElement {
+export function createInvocationControl(options: InvocationControlOptions) {
   const item = document.createElement("span"); item.className = "mer-affordance-item";
   const button = document.createElement("button"); button.type = "button";
   const description = document.createElement("span"); description.className = "mer-affordance-desc";
@@ -77,18 +87,34 @@ export function buildInvocationControl(options: InvocationControlOptions): HTMLE
   const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel action"; cancel.hidden = true;
   const id = `mer-invocation-${++nextId}`; feedback.id = `${id}-feedback`; description.id = `${id}-description`;
   let disposed = false, cache: { signature: unknown[]; snapshot: InvocationSnapshot } | undefined;
+  let collecting = false;
+  const ownContextField = (context: object, key: string) => {
+    const field = Object.getOwnPropertyDescriptor(context, key);
+    if (field && !("value" in field)) throw Error("Invalid invocation context.");
+    return field?.value;
+  };
   const read = (): InvocationSnapshot | undefined => {
     if (disposed || !options.alive()) return undefined;
     try {
       const { action, invocation: host, admission, invoker } = options;
       const context = host?.context ?? options.context;
       const actionJson = inertJson(action.affordance, true), semanticJson = inertJson(action.semanticAction ?? null, true);
-      const contextJson = options.record === undefined ? inertJson(context)
+      let values: Record<string, unknown> | undefined;
+      if (collecting && options.readFormValues) {
+        try { values = options.readFormValues(); } catch (reason) { options.onInvalid?.(reason); throw reason; }
+      }
+      const contextJson = options.readFormValues ? inertJson({
+        currentResourcePath: ownContextField(context, "currentResourcePath") ?? null,
+        uiIdentity: ownContextField(context, "uiIdentity") ?? null,
+        selectedRow: options.record ?? ownContextField(context, "selectedRow") ?? null,
+        formValues: values ?? {}, signals: ownContextField(context, "signals"), selections: ownContextField(context, "selections"),
+      }) : options.record === undefined ? inertJson(context)
         : inertJson({ ...JSON.parse(inertJson(context)), selectedRow: options.record });
+      const submissionJson = inertJson(options.submission ?? null, true);
       const policyJson = inertJson(admission === "unrestricted" ? admission : { reads: admission?.reads, mutations: admission?.mutations, inferFromAipVerbs: admission?.inferFromAipVerbs });
       const subjectJson = inertJson(options.subject ?? null);
       const caps = host?.capabilities, admit = host?.admit;
-      const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, action.legacyOrigin,
+      const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues,
         invoker, invoker.invoke, caps?.uri, caps?.command, caps?.navigate, caps?.openPanel, caps?.openView, caps?.copy, caps?.rpc, caps?.rpc?.invoke,
         admit, host?.resolveSemantic, host?.refresh, admission === "unrestricted" ? undefined : admission?.onDenied];
       if (cache && signature.every((value, index) => Object.is(value, cache!.signature[index]))) return cache.snapshot;
@@ -99,6 +125,7 @@ export function buildInvocationControl(options: InvocationControlOptions): HTMLE
         admission: admission === "unrestricted" ? admission : { ...JSON.parse(policyJson), onDenied: admission?.onDenied },
         capabilities: { ...caps, rpc: caps?.rpc ?? { invoke: (service, method, request) => invoker.invoke(service, method, request) } },
         resolveSemantic: host?.resolveSemantic, refresh: host?.refresh,
+        submission: options.submission ? { kind: options.submission.kind, fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
         admit: (intent, context) => {
           if (intent.case === "uri" && !safeNavigationHref(intent.value) || intent.case === "navigate" && !safeNavigationHref(intent.value.route)) return false;
           return admit ? admit(intent, context) : intent.case === "rpc";
@@ -108,7 +135,8 @@ export function buildInvocationControl(options: InvocationControlOptions): HTMLE
     } catch { cache = undefined; return undefined; }
   };
   const dispatcher = createInvocationDispatcher(read);
-  options.onDispose(() => { disposed = true; cache = undefined; dispatcher.dispose(); });
+  const dispose = () => { disposed = true; cache = undefined; dispatcher.dispose(); };
+  options.onDispose(dispose);
   const initial = read(), aff = initial?.action.affordance;
   const presentation = aff ? affordancePresentation(aff) : undefined;
   button.className = `mer-affordance${presentation?.primary ? " mer-affordance-primary" : ""}`;
@@ -131,21 +159,26 @@ export function buildInvocationControl(options: InvocationControlOptions): HTMLE
   else if (policyDenied) { button.setAttribute("aria-disabled", "true"); setMessage("Unavailable: this action is not permitted."); }
   else if (description.textContent) button.setAttribute("aria-describedby", description.id);
   cancel.onclick = () => { dispatcher.cancel(); setMessage("Cancellation requested; waiting for the action to stop."); };
-  button.onclick = () => {
+  const activate = async (): Promise<InvocationOutcome | undefined> => {
     if (dispatcher.pending || button.disabled) return;
+    collecting = true;
     const scope = read();
     if (!scope) { setMessage("Action unavailable: the descriptor or context is invalid.", true); return; }
     button.setAttribute("aria-busy", "true"); button.setAttribute("aria-disabled", "true"); cancel.hidden = false; setMessage("Action is running.");
-    void dispatcher.activate().then(outcome => {
+    options.onPending?.(true);
+    const outcome = await dispatcher.activate();
       if (disposed || !options.alive()) return;
       const current = read() === scope;
       if (current && document.activeElement === cancel && button.isConnected) button.focus();
       button.removeAttribute("aria-busy"); if (!policyDenied) button.removeAttribute("aria-disabled"); cancel.hidden = true;
       if (current) setMessage(outcomeText(outcome), outcome.status === "failed" || outcome.status === "denied");
       else { feedback.textContent = ""; feedback.removeAttribute("role"); }
-    });
+      options.onPending?.(false);
+      return current ? outcome : undefined;
   };
+  button.onclick = () => { void activate(); };
   item.append(button); if (description.textContent) item.append(description); item.append(feedback, cancel);
-  return item;
+  return { element: item, button, activate, dispose };
 }
+export function buildInvocationControl(options: InvocationControlOptions): HTMLElement { return createInvocationControl(options).element; }
 let nextId = 0;
