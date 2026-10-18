@@ -65,11 +65,11 @@ it.each([undefined, 0, 1, 2, 999])("reference kits honor emphasis presence %s wi
       else expect(html).toContain(`data-mer-tone="${["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral"}"`);
       if (emphasis !== undefined) expect(html).toContain(`font-weight:var(--mer-${primary ? "heading-weight, 600" : "body-weight, 400"})`);
       expect(html).toContain("Explain");
-      if (uri.startsWith("javascript:")) {
-        expect(html).not.toContain("href=");
-        expect(html).toContain('aria-disabled="true"');
-        expect(html).toContain("disabled");
-      } else expect(html).toContain('href="/next"');
+      // URI intent is not a browser link grant. Activation tests exercise the
+      // host policy; static markup cannot bypass it via click/menu/new tab.
+      expect(html).not.toContain("href=");
+      expect(html).not.toContain("data-copy=");
+      expect(html).toContain('<button type="button"');
     }
   }
 });
@@ -157,7 +157,7 @@ describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
   });
 
   it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(
-    "unsafe Affordance URI degrades to a disabled control: %s",
+    "unadmitted Affordance URI cannot emit an executable browser link: %s",
     (uri) => {
       const unsafe = create(PanelDescriptorSchema, {
         body: { case: "action", value: {
@@ -168,8 +168,8 @@ describe.each(kits)("content field-completeness (%s)", (_name, kit) => {
       const html = render(kit, unsafe);
       expect(html).not.toContain("<a ");
       expect(html).toContain("<button");
-      expect(html).toContain('aria-disabled="true"');
-      expect(html).toContain("disabled");
+      expect(html).not.toContain("href=");
+      expect(html).not.toContain("data-copy=");
       expect(html).toContain("Open destination");
       expect(html).toContain("Untrusted target");
       expect(html).toContain('data-icon="open"');

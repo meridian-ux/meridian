@@ -23,6 +23,7 @@ import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
 import type { AdmissionPolicy } from "./admission.js";
 import type { PromptResponseHandler } from "./prompt_response.js";
+import type { InvocationHost } from "./invocation.js";
 import type {
   RenderContext,
   RpcInvoker,
@@ -75,6 +76,8 @@ export interface MountOptions<TTheme = Theme, TFactory = AdhocDomFactory> {
    * Pass `"unrestricted"` to opt out explicitly. See ./admission.ts.
    */
   admission?: AdmissionPolicy;
+  /** Explicit host capability/policy wiring for authored Affordance targets. */
+  invocation?: InvocationHost;
   /** Standalone input/confirmation response; no handler means no submission. */
   onPromptResponse?: PromptResponseHandler;
   /**

@@ -32,13 +32,13 @@ import {
   computeStat,
   affordancePresentation,
   formatByDisplay,
-  safeNavigationHref,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
 
 import { useGrammarResolver, useIcon } from "./provider.js";
 import { useStatData } from "./stat_data.js";
+import { useAffordanceInvocation } from "./affordance_invocation.js";
 
 /** Which reference kit's class vocabulary to paint with. */
 export type KitStyle = "html" | "shadcn";
@@ -236,6 +236,7 @@ function Glyph({ c, name }: { c: ContentClasses; name: string }): ReactNode {
 
 // ── Affordance (realizes icon + description; used standalone AND nested) ──────
 export function AffordanceControl({ c, affordance }: { c: ContentClasses; affordance: Affordance }): ReactNode {
+  const invocation = useAffordanceInvocation(affordance);
   const { primary, tone, style } = affordancePresentation(affordance);
   const cls = `${c.affordance}${primary ? ` ${c.affordancePrimary}` : ""}`;
   const inner = (
@@ -244,33 +245,30 @@ export function AffordanceControl({ c, affordance }: { c: ContentClasses; afford
       <span>{affordance.label}</span>
     </>
   );
-  const href = affordance.invoke.case === "uri" ? safeNavigationHref(affordance.invoke.value) : undefined;
-  const unavailableUri = affordance.invoke.case === "uri" && !href;
   const control =
-    href ? (
-      <a className={cls} href={href} data-mer-tone={tone} data-mer-emphasis={affordance.emphasis === undefined ? undefined : primary ? "primary" : "secondary"} style={style} data-icon={affordance.icon || undefined} title={affordance.description || undefined}>
-        {inner}
-      </a>
-    ) : (
       <button
         type="button"
-        className={`${cls} mer-copy`}
+        className={cls}
         data-mer-tone={tone}
         data-mer-emphasis={affordance.emphasis === undefined ? undefined : primary ? "primary" : "secondary"}
         style={style}
-        data-copy={affordance.invoke.case === "command" ? affordance.invoke.value : ""}
-        disabled={unavailableUri}
-        aria-disabled={unavailableUri || undefined}
+        disabled={invocation.unavailable}
+        aria-disabled={invocation.pending || invocation.unavailable || undefined}
+        aria-busy={invocation.pending || undefined}
+        aria-label={affordance.label.trim() ? undefined : "Action"}
+        aria-describedby={invocation.feedback ? invocation.feedbackId : undefined}
+        onClick={event => { void invocation.activate(event.currentTarget); }}
         data-icon={affordance.icon || undefined}
         title={affordance.description || undefined}
       >
         {inner}
-      </button>
-    );
+      </button>;
   return (
     <span className={c.affordanceItem}>
       {control}
       {affordance.description && <span className={c.affordanceDesc}>{affordance.description}</span>}
+      {invocation.feedback && <span id={invocation.feedbackId} role="status" aria-live="polite">{invocation.feedback}</span>}
+      {invocation.pending && <button type="button" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</button>}
     </span>
   );
 }

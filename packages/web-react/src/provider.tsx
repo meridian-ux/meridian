@@ -14,6 +14,7 @@ import {
   type AdmissionGate,
   type AdmissionPolicy,
   type RpcInvoker,
+  type InvocationHost,
 } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
@@ -80,6 +81,8 @@ export interface MeridianContextValue {
   invoker: RpcInvoker;
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
+  /** Typed Affordance capabilities/policy. No implicit navigation or copy. */
+  invocation?: InvocationHost;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
   /** Optional host handler for no-call actions (nav/custom). Absent ⇒ no-op. */
@@ -95,6 +98,8 @@ export interface MeridianContextValue {
 
 interface MeridianContextState extends MeridianContextValue {
   mutationInvoker: RpcInvoker;
+  /** Original host transport; the shared dispatcher performs mutation admission. */
+  actionInvoker: RpcInvoker;
 }
 
 const MeridianContext = createContext<MeridianContextState | null>(null);
@@ -175,12 +180,13 @@ export function MeridianProvider({
     [value.invoker, gate],
   );
   const contextValue = useMemo<MeridianContextState>(
-    () => ({ ...value, invoker: readInvoker, mutationInvoker }),
+    () => ({ ...value, invoker: readInvoker, mutationInvoker, actionInvoker: value.invoker }),
     [
       value.theme,
       value.streamSnapshots,
       value.invoker,
       value.admission,
+      value.invocation,
       value.kit,
       value.adhoc,
       value.onAction,

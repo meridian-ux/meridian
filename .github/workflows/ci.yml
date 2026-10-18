@@ -255,6 +255,7 @@ jobs:
           pnpm --filter @savvifi/meridian-web exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.theme-test.json --noEmit
+          pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.invocation-test.json --noEmit
           pnpm --filter @savvifi/meridian-mui-kit exec tsc -p tsconfig.json --noEmit
 
       # Six package suites report coverage independently. The schemas seam was

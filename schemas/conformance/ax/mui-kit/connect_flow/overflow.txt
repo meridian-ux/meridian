@@ -64,7 +64,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="Cursor"
     paragraph name=""
       StaticText name="One click installs it."
-    link name="ADD TO CURSOR" focusable=true
+    button name="ADD TO CURSOR" focusable=true invalid="false"
       StaticText name="ADD TO CURSOR"
     StaticText name="~/.cursor/mcp.json"
     StaticText name=" (json)"

@@ -51,7 +51,8 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} step media`, () => {
       expect(container.querySelectorAll("ol > li")).toHaveLength(2);
       for (const text of ["Start here", "All done", "Admin", "Choose an employer", "Confirm the result"])
         expect(container.textContent).toContain(text);
-      const action = container.querySelector<HTMLAnchorElement>('a[href="/sponsors"]');
+      const action = container.querySelector<HTMLButtonElement>("button");
+      expect(container.querySelector("a")).toBeNull();
       expect(action?.textContent).toContain("Open Sponsors");
       expect(action?.title).toBe("Continue in the sponsor list");
       expect(action?.dataset.icon).toBe("open");

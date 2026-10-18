@@ -39,6 +39,21 @@ js_library(
     srcs = [":web_react"],
 )
 
+js_library(
+    name = "affordance_contract",
+    testonly = True,
+    srcs = ["tests/affordance_contract.ts"],
+    deps = [
+        ":web_react_lib",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        ":node_modules/vitest",
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+    ],
+)
+
 # The publishable @savvifi/meridian-web-react npm package: package.json at the
 # root + the compiled src/*.{js,d.ts}. Published to npmjs (see the OIDC workflow
 # in .github/workflows/publish.yml).
@@ -78,6 +93,8 @@ vitest_test(
     env = {"CI": "true"},
     srcs = [
         "tests/conformance.test.ts",
+        "tests/affordance_invocation.test.ts",
+        "tests/affordance_contract.ts",
         "tests/chart.test.ts",
         "tests/interactive_conformance.test.ts",
         "tests/form.test.ts",

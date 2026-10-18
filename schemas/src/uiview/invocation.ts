@@ -48,6 +48,16 @@ export interface InvocationSnapshot {
   readonly refresh?: (signal: AbortSignal) => Promise<void>;
 }
 
+/** Optional host wiring shared by browser mounts and React providers. Runtime
+ * callbacks are not serialized grants. RPC transport/admission stay separate. */
+export interface InvocationHost {
+  readonly capabilities?: Omit<InvocationCapabilities, "rpc">;
+  readonly admit?: InvocationSnapshot["admit"];
+  readonly resolveSemantic?: InvocationSnapshot["resolveSemantic"];
+  readonly refresh?: InvocationSnapshot["refresh"];
+  readonly context?: RenderContext;
+}
+
 export type InvocationDenial = "missing-target" | "unsupported-target" | "missing-resolver"
   | "unresolved-action" | "disabled" | "missing-capability" | "mutation-policy" | "target-policy";
 
