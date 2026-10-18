@@ -118,6 +118,7 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
       };
       current();
       let affordance = snapshot.action.affordance;
+      let semanticResolution: SemanticResolution | undefined;
       if (snapshot.action.semanticAction !== undefined) {
         if (!snapshot.action.semanticAction.id) throw new Denied("missing-target");
         if (!snapshot.resolveSemantic) throw new Denied("missing-resolver");
@@ -125,11 +126,7 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         current();
         if (!resolution) throw new Denied("unresolved-action");
         affordance = resolution.affordance;
-        if (resolution.confirm) {
-          const confirmed = await resolution.confirm(snapshot.context, signal);
-          current();
-          if (confirmed !== true) return { status: "cancelled" };
-        }
+        semanticResolution = resolution;
       }
       const intent = affordance.invoke;
       if (intent.case === undefined) throw new Denied("missing-target");
@@ -162,6 +159,13 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         throw new Denied("target-policy");
       }
       current();
+      // Consent cannot grant admission or disguise a denial as cancellation.
+      // Both host confirmation seams run only for an already admitted target.
+      if (semanticResolution?.confirm) {
+        const confirmed = await semanticResolution.confirm(snapshot.context, signal);
+        current();
+        if (confirmed !== true) return { status: "cancelled" };
+      }
       if (snapshot.confirm) {
         const confirmed = await snapshot.confirm(snapshot.context, signal);
         current();

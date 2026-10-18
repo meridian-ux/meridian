@@ -117,6 +117,29 @@ it("rechecks current raw row/subject after semantic confirmation and disposes he
   await new Promise(resolve => setTimeout(resolve, 0)); expect(host.caps.copy).not.toHaveBeenCalled();
 });
 
+it.each([false, true])("denied semantic header never asks consent %s and visibly reports denial", async consent => {
+  const host = setup(), confirm = vi.fn(async () => consent);
+  const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, {
+    rpc: { service: "raw.Service", method: "Get" },
+  }), confirm }));
+  await renderView({ ...host.opts, admission: { mutations: [] },
+    invocation: { ...host.opts.invocation, resolveSemantic },
+    view: create(ViewDescriptorSchema, { actions: [{ id: "semantic", label: "Confirm" }] }) });
+  host.button().click();
+  await vi.waitFor(() => expect(host.root.textContent).toContain("Action denied:"));
+  expect(confirm).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled();
+});
+
+it.each([false, true])("admitted semantic header honors confirmation %s", async consent => {
+  const host = setup(), confirm = vi.fn(async () => consent);
+  await renderView({ ...host.opts, invocation: { ...host.opts.invocation,
+    resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, { rpc: { service: "raw.Service", method: "Get" } }), confirm }) },
+    view: create(ViewDescriptorSchema, { actions: [{ id: "semantic", label: "Confirm" }] }) });
+  host.button().click();
+  await vi.waitFor(() => expect(host.root.textContent).toContain(consent ? "Action completed." : "Action canceled."));
+  expect(confirm).toHaveBeenCalledTimes(1); expect(host.invoke).toHaveBeenCalledTimes(consent ? 1 : 0);
+});
+
 it.each(["bytes", "cycle", "getter"])("rejects invalid %s context without effects or getter execution", async kind => {
   const host = setup(); const getter = vi.fn(() => "secret");
   if (kind === "bytes") host.context.formValues.raw = "x".repeat(800_000);

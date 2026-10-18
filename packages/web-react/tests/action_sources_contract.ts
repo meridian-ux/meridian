@@ -130,9 +130,23 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
       }), confirm }) };
       try {
         await host.mount(); await host.click("Confirm");
-        expect(confirm).toHaveBeenCalledTimes(1);
+        expect(confirm).not.toHaveBeenCalled();
         expect(host.invoke).not.toHaveBeenCalled();
-        expect(host.container.textContent).toContain(consent ? "mutation policy" : "Action canceled.");
+        expect(host.container.textContent).toContain("mutation policy");
+        expect(host.onAction).not.toHaveBeenCalled();
+      } finally { await host.close(); }
+    });
+
+    it.each([false, true])("admitted semantic RPC honors confirmation %s", async consent => {
+      const host = setup(), confirm = vi.fn(async () => consent);
+      host.view.actions.push(create(ActionSchema, { id: "confirm", label: "Confirm" }));
+      host.invocation = { ...host.invocation, resolveSemantic: () => ({ affordance: create(AffordanceSchema, {
+        invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } },
+      }), confirm }) };
+      try {
+        await host.mount(); await host.click("Confirm");
+        expect(confirm).toHaveBeenCalledTimes(1); expect(host.invoke).toHaveBeenCalledTimes(consent ? 1 : 0);
+        expect(host.container.textContent).toContain(consent ? "Action completed." : "Action canceled.");
         expect(host.onAction).not.toHaveBeenCalled();
       } finally { await host.close(); }
     });
