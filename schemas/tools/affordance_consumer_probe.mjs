@@ -35,7 +35,11 @@ export async function probeConsumers(configs = PUBLIC_PROJECTS.map(path => join(
     const consumers = [];
     for (const config of configs) {
       const item = { project: relative(ROOT, config).startsWith("..") ? "<external-project>" : relative(ROOT, config) };
-      for (const mode of ["before-js+dts", "after-js+dts"]) {
+      // Adopted SDK source names new fields/types. Test that real source against
+      // the actual candidate, and test frozen old source against both worlds in
+      // probeCanonical. Compiling new source with missing old APIs is not an
+      // old-consumer compatibility test.
+      for (const mode of ["after-js+dts"]) {
         const compiled = compileProject(config, join(result.work, mode));
         const details = ts.formatDiagnosticsWithColorAndContext(compiled.diagnostics, {
           getCurrentDirectory: () => ROOT, getCanonicalFileName: path => path, getNewLine: () => "\n",
@@ -45,7 +49,7 @@ export async function probeConsumers(configs = PUBLIC_PROJECTS.map(path => join(
         item[mode] = { files: compiled.files, generatedFiles: compiled.generatedFiles };
       }
       consumers.push(item);
-      console.log(`${item.project}: baseline and candidate source compilation passed`);
+      console.log(`${item.project}: actual-candidate source compilation passed`);
     }
     return { ...result, work: undefined, typescript: ts.version, consumers, fileGate: "expected rejection; unchanged" };
   } finally { rmSync(result.work, { recursive: true, force: true }); }

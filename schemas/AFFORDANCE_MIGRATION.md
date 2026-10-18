@@ -43,6 +43,28 @@ paths; this foundation does not activate its release line.
 
 ## Reproduce the experiment
 
+The adopted SDK now names canonical fields that do not exist in old bindings.
+The consumer probe therefore compiles current first-party source against the
+actual candidate, and separately compiles the immutable pre-canonical
+`migration/LegacyAffordanceConsumer.ts` unchanged against both frozen and actual
+bindings in both generator modes. A digest guard rejects silent fixture edits
+or replacement with a smaller smoke test. Its legacy Action/RowAction/Command,
+view/slot/table/form, URI/command and optional presentation fields remain typed;
+negative assignments reject any-erased facades. The 180 export checks, binary
+and JSON fixtures, exact declaration guards and nonzero maintained FILE reports
+remain required. This is a bounded frozen old-source sample, not proof that every
+external client has migrated or that new SDK source compiles against missing APIs.
+
+The shared normalization candidate selects present canonical messages as whole
+units, including explicit-empty collections/intents. It never invents a URI,
+view ID or command from a no-call Action ID; the original Action remains an
+in-process semantic-resolution candidate for activation, not execution during
+rendering. Legacy RowActions preserve predicates, placement and the browser
+renderers' observed always-refresh behavior, even when the old non-presence bool
+is false. Canonical refresh false stays false. Palette metadata stays on the
+original Command envelope. These pure projections are not yet renderer wiring,
+semantic resolution/confirmation, permission checks, or refresh execution.
+
 ```sh
 pnpm install --frozen-lockfile
 node schemas/tools/affordance_migration_probe.mjs --canonical

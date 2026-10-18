@@ -19,6 +19,9 @@
   "include": [
     "admission.ts",
     "admission.test.ts",
+    "action_normalization.ts",
+    "action_normalization.test.ts",
+    "affordance_predicate.test.ts",
     "navigation.ts",
     "navigation.test.ts",
     "prompt_response.ts",

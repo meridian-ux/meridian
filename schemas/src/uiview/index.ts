@@ -25,5 +25,6 @@ export * from "./media.js";
 export * from "./conversation_tone.js";
 export * from "./affordance_presentation.js";
 export * from "./affordance_predicate.js";
+export * from "./action_normalization.js";
 export * from "./conversation_sequence.js";
 export { formatLroMetadata, staticViewText } from "./core_runtime.js";

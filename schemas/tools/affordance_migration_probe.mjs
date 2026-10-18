@@ -7,6 +7,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { clone, createFileRegistry, fromBinary, fromJson, isFieldSet, toBinary, toJson } from "@bufbuild/protobuf";
 import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { checkLine, loadImage, REFERENCES } from "./compatibility_line.mjs";
@@ -17,6 +18,11 @@ const BUF = join(ROOT, "node_modules/.bin/buf");
 const PLUGIN = join(ROOT, "node_modules/.bin/protoc-gen-es");
 const TSC = join(ROOT, "node_modules/typescript/bin/tsc");
 const UNIT = "proto/interaction.proto";
+export function verifyLegacyConsumerSource(source) {
+  assert.equal(createHash("sha256").update(source).digest("hex"),
+    "dcf330625611979f8679b180fd87b352ab0df22adf924847f49cd4d9df652e82",
+    "frozen legacy TypeScript source changed; explicit compatibility review required");
+}
 export const PROPOSED_COMPONENT = Object.freeze([
   "proto/affordance.proto", "proto/catalog.proto", "proto/command_palette.proto",
   "proto/connect_flow.proto", "proto/lro.proto", "proto/panel.proto", "proto/steps.proto",
@@ -229,12 +235,22 @@ async function verifyGeneratedCandidate({ work, before, after, component, oldIma
     }
   }
 
-  let namedExports = 0;
+  let namedExports = 0, legacySourceCompilations = 0;
   for (const mode of ["js+dts", "ts"]) {
     const baseline = join(work, `before-${mode}`), generated = join(work, `after-${mode}`);
     generate(oldImage, baseline, mode);
     generate(nextImage, generated, mode);
     const productionOptions = JSON.parse(readFileSync(join(ROOT, "schemas/proto/tsconfig.es.json"), "utf8")).compilerOptions;
+    const legacySource = readFileSync(join(ROOT, "schemas/migration/LegacyAffordanceConsumer.ts"), "utf8");
+    verifyLegacyConsumerSource(legacySource);
+    for (const directory of [baseline, generated]) {
+      writeFileSync(join(directory, "legacy_consumer.ts"), legacySource);
+      writeFileSync(join(directory, "tsconfig.legacy.json"), JSON.stringify({
+        compilerOptions: { ...productionOptions, noEmit: true }, files: ["legacy_consumer.ts"],
+      }));
+    }
+    run(process.execPath, [TSC, "-p", join(baseline, "tsconfig.legacy.json")]);
+    legacySourceCompilations++;
     writeFileSync(join(generated, "tsconfig.json"), JSON.stringify({
       compilerOptions: { ...productionOptions, noEmit: true }, include: ["**/*.ts"], exclude: ["node_modules"],
     }));
@@ -295,9 +311,11 @@ void [label, id, placement, refresh, first, AffordanceSchema, PanelDescriptorSch
 ${importChecks.join("\n")}
 `);
     run(process.execPath, [TSC, "-p", join(generated, "tsconfig.json")]);
+    run(process.execPath, [TSC, "-p", join(generated, "tsconfig.legacy.json")]);
+    legacySourceCompilations++;
   }
   return { component, declarations: oldDeclarations.size, candidateDeclarations: newDeclarations.size, fixtures: fixtureNames.length,
-    invocations: invocations.length, policyCases, envelopeCases, namedExports, work };
+    invocations: invocations.length, policyCases, envelopeCases, namedExports, legacySourceCompilations, work };
 }
 
 export async function probe() {
