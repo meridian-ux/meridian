@@ -143,8 +143,7 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-MUI controlled form submission/reset behavior,
-implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
+Implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -153,3 +152,29 @@ presence must win whole, including empty/false, when those sources migrate.
 Private/public producer upgrades, external migration/removal prerequisites, and
 the production cutover still require their own acceptance evidence. This focused
 control adoption alone does not complete the renderer roadmap issue.
+
+## MUI controlled form adoption
+
+MUI FormPanel now uses the same normalized seven-target dispatcher and Rust
+submission builder. Current values and resolved options publish only on commit;
+validation precedes admission and typed effects. Canonical empty/denied intent
+never falls back to the legacy save call. Metadata, linked sanitized feedback,
+reachable pending/cancel controls, and appropriate focus return are retained.
+Mutation policy denial is explained without executing host callbacks in paint.
+
+Declared prefill settles before editable controls mount. Prefill is owned under
+the existing JSON budget and projected through declared own fields, including
+repeated object children; inherited-looking and undeclared properties never
+become collected inputs. Projection caps value nodes at 1,000 and nesting at 64
+before retaining prefill, as well as before submission. Failed/invalid prefill
+remains nonfatal with descriptor defaults and an explicit generic warning,
+never raw transport details. Changed descriptor/selection/transport scopes
+cannot seed controls with obsolete replies.
+
+Only blank, non-prefilled create-like forms reset after actual successful
+settlement. Loaded-record edits retain their values; failed effects and refresh
+failures never clear input. Pending duplicates remain guarded until even a
+noncooperative capability settles, and context replacement/unmount suppresses
+late reset/status/refresh. Prompt and LRO callback/operation workflows remain
+separate and unchanged. The MUI form control slot is runtime React content,
+not a new serialized descriptor or permission bit.

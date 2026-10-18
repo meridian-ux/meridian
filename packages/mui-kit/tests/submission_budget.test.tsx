@@ -49,25 +49,34 @@ describe("MUI submission boundary", () => {
       await act(async () => finish(kind === "lro" ? { done: true, response: {} } : {}));
       expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false);
       if (kind === "lro") expect(screen.getByText("Done.")).toBeTruthy();
-      else expect(screen.queryByRole("status")).toBeNull();
+      else expect(screen.getByRole("status").textContent).toBe("Action completed.");
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
-    it(`${kind}: retains oversized input on rejection and permits a smaller retry`, async () => {
+    it(kind === "form" ? "form: retains input while oversized declarations remain rejected on smaller retry"
+      : "lro: retains oversized input on rejection and permits a smaller retry", async () => {
       const panel = descriptor(kind, "s".repeat(400_000));
       const invoke = vi.fn<RpcInvoker["invoke"]>(async () => kind === "lro" ? { done: true, response: {} } : {});
       render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Inputs/Submit"] }}><PanelRenderer descriptor={panel} /></MeridianMuiProvider>);
       const input = screen.getByLabelText("Text") as HTMLInputElement;
       fireEvent.change(input, { target: { value: "v".repeat(400_000) } });
       fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
-      expect((await screen.findByRole("alert")).textContent).toBe("Submission failed. Try again.");
+      expect((await screen.findByRole("alert")).textContent).toBe(kind === "form" ? "Action failed. Try again with the current context." : "Submission failed. Try again.");
       expect(invoke).not.toHaveBeenCalled();
       expect(input.value).toHaveLength(400_000);
       fireEvent.change(input, { target: { value: "smaller" } });
       fireEvent.click(screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }));
-      await waitFor(() => expect((screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement).disabled).toBe(false));
+      if (kind === "form") {
+        // A smaller value cannot make a 400 KB literal RpcCall fit the
+        // unchanged native 64 KiB declaration boundary. Runtime-data work
+        // accounting and successful smaller retry are tested independently.
+        expect((await screen.findByRole("alert")).textContent).toContain("Action failed");
+        expect(invoke).not.toHaveBeenCalled(); expect(input.value).toBe("smaller");
+        return;
+      }
+      await waitFor(() => expect((screen.getByRole("button", { name: /Run/ }) as HTMLButtonElement).disabled).toBe(false));
       expect(invoke).toHaveBeenCalledOnce();
-      expect(invoke.mock.calls[0][2]).toMatchObject(kind === "form" ? { text: "smaller" } : { request: { text: "smaller" } });
+      expect(invoke.mock.calls[0][2]).toMatchObject({ request: { text: "smaller" } });
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
@@ -80,7 +89,8 @@ describe("MUI submission boundary", () => {
       const button = screen.getByRole("button", { name: kind === "form" ? /Save/ : /Run/ }) as HTMLButtonElement;
       fireEvent.click(button); fireEvent.click(button);
       expect(invoke).toHaveBeenCalledOnce();
-      expect(button.disabled).toBe(true);
+      if (kind === "form") { expect(button.getAttribute("aria-disabled")).toBe("true"); expect(button.disabled).toBe(false); }
+      else expect(button.disabled).toBe(true);
       view.rerender(tree({ invoke: async () => ({}) }));
       await act(async () => rejectOld(new Error("obsolete private failure")));
       expect(screen.queryByRole("alert")).toBeNull();
