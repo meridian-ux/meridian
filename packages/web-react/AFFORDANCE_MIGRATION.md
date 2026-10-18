@@ -245,3 +245,16 @@ dispatcher. Read-only forms cannot prefill or submit through forced events.
 Missing intent invents no Save action. LRO retains its complete existing
 start/poll/finalize workflow and host-core capability checks; its request builder
 must not be replaced with a single acknowledged action.
+
+## Web-components table adoption
+
+Canonical table collections and normalized legacy rows now use the same bounded
+adapter and actual Rust request builder. The panel-local selection overrides
+ambient row context, with native Enter/Space selection and enabledWhen filtering.
+Canonical empty collections suppress legacy controls; explicit false suppresses
+refresh, while legacy row behavior still refreshes and does not synthesize IDs.
+Panel-wide pending guards cover reentrant host callbacks and noncooperative
+cancellation. The origin and cancellation stay reachable, and changed rows or
+replacement scopes cannot own late feedback/refresh. Failed refresh retains the
+selected table and is distinct from a failed effect. Resource-card confirmation,
+other modalities and complete renderer-wide acceptance remain separate work.

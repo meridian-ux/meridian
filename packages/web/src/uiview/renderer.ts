@@ -28,7 +28,7 @@ import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.j
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, normalizeTableActions, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
 import { buildInvocationControl, createInvocationControl, ownInvocationData } from "./invocation_control.js";
 import {
   ActionStyle,
@@ -1533,7 +1533,10 @@ async function renderTablePanel(
   let selectedIndex = -1;
   let rows: RenderedRow[] = [];
 
-  const actionsBar = table.actions.length
+  const actions = normalizeTableActions(table);
+  const alive = ACTION_LIFETIMES.get(opts) ?? (() => false);
+  let pending = false;
+  const actionsBar = actions.length
     ? document.createElement("div")
     : null;
   if (actionsBar) {
@@ -1549,21 +1552,9 @@ async function renderTablePanel(
       ? plainRow(rows[selectedIndex].raw)
       : null;
 
-  // A RowAction is enabled only when a row is selected AND `enabled_when`
-  // matches it. The predicate compares against the RENDERED form of the field
-  // (RowFilter's own wording), which is what `readPath` over the raw row gives.
-  const actionEnabled = (action: TablePanel["actions"][number]): boolean => {
-    const row = selectedRow();
-    if (!row) return false;
-    const filter = action.enabledWhen;
-    if (!filter) return true;
-    const actual = wasm.readPath(row, filter.fieldPath);
-    return actual != null && String(actual) === filter.equals;
-  };
-
-  const buttons: Array<{ el: HTMLButtonElement; action: TablePanel["actions"][number] }> = [];
+  const controls: ReturnType<typeof createInvocationControl>[] = [];
   const syncButtons = () => {
-    for (const { el, action } of buttons) el.disabled = !actionEnabled(action);
+    for (const control of controls) control.sync();
   };
 
   const draw = () => {
@@ -1587,13 +1578,14 @@ async function renderTablePanel(
     });
   };
 
-  const refresh = async (): Promise<void> => {
+  const refresh = async (afterEffect = false, signal?: AbortSignal, current?: () => boolean): Promise<void> => {
     let response: object;
     try {
       if (populate) {
         const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
         response = await invoker.invoke(populate.service, populate.method, request as object);
       } else response = opts.record!;
+      if (!alive() || signal?.aborted || current && !current()) return;
       rows = wasm.renderTable(descriptorBytes, response);
       // A re-fetch can shrink the list out from under the selection.
       if (selectedIndex >= rows.length) selectedIndex = -1;
@@ -1601,6 +1593,13 @@ async function renderTablePanel(
       draw();
       syncButtons();
     } catch (err) {
+      if (!alive() || signal?.aborted || current && !current()) return;
+      if (afterEffect) {
+        // A failed refresh must not erase the selected record or masquerade as
+        // a failed mutation that the user should repeat.
+        metaEl.textContent = "Refresh unavailable.";
+        throw err;
+      }
       rows = [];
       selectedIndex = -1;
       host.replaceChildren();
@@ -1610,41 +1609,16 @@ async function renderTablePanel(
     }
   };
 
-  for (const action of table.actions) {
+  for (const action of actions) {
     if (!actionsBar) break;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = action.label;
-    btn.disabled = true;
-    const feedback = actionFeedback(btn, !!action.rpc && createAdmissionGate(opts.admission).admits("mutation", action.rpc.service, action.rpc.method));
-    btn.addEventListener("click", async () => {
-      const row = selectedRow();
-      if (!row || !action.rpc) return;
-      const rpc = action.rpc;
-      btn.disabled = true;
-      await feedback.run(async () => {
-        const request = plainValue(
-          wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
-            ...opts.context,
-            selectedRow: row,
-          }),
-        );
-        await (opts.mutationInvoker ?? invoker).invoke(
-          rpc.service,
-          rpc.method,
-          request as object,
-        );
-        // `RowAction.refresh_on_success` documents a default of TRUE, which a
-        // non-presence proto3 bool cannot express (absent == false). We follow
-        // the documented contract and always re-fetch; a descriptor that must
-        // NOT refresh needs the field made `optional` upstream first.
-        await refresh();
-      });
-      syncButtons();
+    const control = createInvocationControl({ ...opts, action,
+      invoker: ACTION_INVOKERS.get(opts) ?? invoker, readRecord: selectedRow, recordKey: () => selectedIndex,
+      alive, onDispose: dispose => onDispose(root, dispose), blocked: () => pending,
+      onPending: value => { pending = value; syncButtons(); },
+      refresh: (signal, current) => refresh(true, signal, current),
     });
-    buttons.push({ el: btn, action });
-    actionsBar.appendChild(btn);
-    actionsBar.appendChild(feedback.message);
+    controls.push(control);
+    actionsBar.appendChild(control.element);
   }
 
   await refresh();
@@ -1685,7 +1659,7 @@ function buildTable(
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
-    const selectable = onSelect !== null && table.actions.length > 0;
+    const selectable = onSelect !== null && (table.affordances === undefined ? table.actions.length > 0 : table.affordances.items.length > 0);
     rows.forEach((row, i) => {
       const tr = document.createElement("tr");
       tr.dataset.row = String(i);

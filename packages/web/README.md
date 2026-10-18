@@ -190,6 +190,23 @@ remaining budget before rows mount. These bound composition, not arbitrary host
 allocation, every panel's DOM, or a hard execution-time sandbox. They do not
 establish native composition, all per-renderer layout evidence, or full v1 parity.
 
+## Table row actions
+
+Table row actions use the shared invocation dispatcher and Rust request builder.
+An explicitly present canonical `affordances` collection wins whole, including
+an empty collection; absent canonical data retains legacy `actions`. A current
+row selection and matching `enabled_when` are required. Selection overrides any
+ambient host row, preserves raw false/zero values, and is revalidated after host
+admission. Canonical false suppresses refresh; legacy row RPCs keep their existing
+always-refresh behavior and empty unbound request (no invented ID binding).
+
+One panel-wide pending guard blocks other row actions through noncooperative
+settlement. The originating action and Cancel remain keyboard reachable. A row
+change invalidates pending consent; replacement/disposal suppresses late effects,
+feedback and refresh updates. Refresh failure retains the selected table and is
+reported separately from effect failure, without replaying the effect. Resource
+card confirmations remain on their separate path pending migration.
+
 ## Build & test
 
 Media playback errors degrade to a safe poster image, then to alt text if the

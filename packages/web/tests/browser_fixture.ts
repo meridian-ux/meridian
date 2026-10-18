@@ -17,6 +17,24 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  tableSettle: () => {},
+  tableInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.tableCalls = "0"; container.dataset.tableAborted = "false";
+    controls.tableSettle = () => {};
+    const rows = [{ raw: { id: 0, name: "first" }, cells: ["First row"] }, { raw: { id: 2, name: "second" }, cells: ["Second row"] }];
+    return renderPanel({ root: container, wasm: { ...wasm, renderTable: () => rows }, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "table", value: {
+        populate: { service: "fixture.Rows", method: "List" }, columns: [{ header: "Name", fieldPath: "name" }],
+        actions: [{ label: "Legacy trap", rpc: { service: "legacy.Rows", method: "Delete" } }],
+        affordances: { items: [{ label: "Use row", invoke: { case: "copy", value: "canonical" } }, { label: "Other row action", invoke: { case: "copy", value: "other" } }] },
+      } } }), invoker: { invoke: async (service) => { if (service !== "fixture.Rows") throw Error("Legacy fallback"); return {}; } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
+        container.dataset.tableCalls = String(Number(container.dataset.tableCalls) + 1); container.dataset.tableRow = String((current.selectedRow as { id: number }).id);
+        signal.addEventListener("abort", () => { container.dataset.tableAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.tableSettle = resolve; });
+      } } },
+    });
+  },
   formSettle: () => {},
   formInvocation: (mode: "allow" | "deny" | "pending") => {
     const container = root(); container.dataset.formCalls = "0"; container.dataset.formAborted = "false";
