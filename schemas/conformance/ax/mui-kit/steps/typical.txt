@@ -16,7 +16,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
         paragraph name=""
           StaticText name="The list of every employer your organization administers."
         image name="The sponsors list"
-        link name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true
+        button name="OPEN SPONSORS" description="Continue in the sponsor list" focusable=true invalid="false"
           StaticText name="OPEN SPONSORS"
         StaticText name="Continue in the sponsor list"
       listitem name="" level=1
