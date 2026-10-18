@@ -109,6 +109,8 @@ pub enum NativeAction<'a> {
     Form(&'a FormPanel, &'a Value),
     Row(&'a RowAction),
     Resource(&'a ResourceAction),
+    /// Literal authored Snippet/CopyValue content; never formatted display text.
+    Copy(&'a str),
 }
 
 /// Borrowed canonical intent, not a wire DTO or permission token.
@@ -444,6 +446,7 @@ impl NativeInvocationDispatcher {
             .map(NativeAction::Canonical)
             .unwrap_or(action);
         let (target, refresh) = match action {
+            NativeAction::Copy(value) => (Some(NativeTarget::Copy(value)), false),
             NativeAction::Row(source) => (source.rpc.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Resource(source) => (source.invoke.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),

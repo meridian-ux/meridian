@@ -26,5 +26,5 @@ connect_flow · empty
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→ action · Enter
 end viewport

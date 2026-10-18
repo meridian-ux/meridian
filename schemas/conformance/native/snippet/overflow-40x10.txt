@@ -8,5 +8,5 @@ snippet · overflow
 │"https://mcp.example/mcp" } } }{      │
 │"mcpServers": { "demo": { "url":      │
 │"https://mcp.example/mcp" } } }{      │
-└──────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

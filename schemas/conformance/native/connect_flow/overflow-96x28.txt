@@ -26,5 +26,5 @@ Endpoint: mcp.example.com/mcp   [c] copy
 │  Codex           ││                                                                          │
 │  Cursor          ││                                                                          │
 │  Codex           ││                                                                          │
-└──────────────────┘└──────────────────────────────────────────────────────────────────────────┘
+[1/3]  ↵ Add to Cursor  cursor://install · ←/→ action · Enter
 end viewport

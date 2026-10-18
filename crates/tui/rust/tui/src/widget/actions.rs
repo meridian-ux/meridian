@@ -1,4 +1,4 @@
-//! In-process row-control state. Protobuf owns declarations; cached rows stay
+//! In-process action-control state. Protobuf owns declarations; cached rows stay
 //! borrowed at activation, never reconstructed from formatted terminal text.
 use super::*;
 use serde_json::Value;
@@ -31,6 +31,7 @@ impl State {
         *self = Self::default();
     }
     pub(super) fn selection_changed(&mut self) {
+        self.withdraw();
         self.selected = 0;
         self.feedback = None;
     }
@@ -41,7 +42,25 @@ const STALE: &str =
 const LIMIT: &str = "Action denied: panel declaration or context limit exceeded.";
 
 pub(super) fn supports(panel: &PanelDescriptor) -> bool {
+    row_control(panel) || content_control(panel)
+}
+
+fn row_control(panel: &PanelDescriptor) -> bool {
     matches!(panel.body, Some(Body::Table(_) | Body::ResourceCards(_)))
+}
+
+pub(super) fn content_control(panel: &PanelDescriptor) -> bool {
+    matches!(
+        panel.body,
+        Some(
+            Body::Action(_)
+                | Body::Catalog(_)
+                | Body::ConnectFlow(_)
+                | Body::Steps(_)
+                | Body::Snippet(_)
+                | Body::CopyValue(_)
+        )
+    )
 }
 
 fn declaration(panel: &PanelDescriptor) -> Option<Vec<u8>> {
@@ -80,6 +99,77 @@ fn declaration(panel: &PanelDescriptor) -> Option<Vec<u8>> {
                 .flat_map(|a| [a.label.as_str(), a.id.as_str()])
                 .collect()
         }
+        Some(Body::Action(p)) => p
+            .action
+            .iter()
+            .flat_map(|a| [a.label.as_str(), a.id.as_str()])
+            .collect(),
+        Some(Body::Catalog(p)) => {
+            if p.items
+                .len()
+                .saturating_add(p.items.iter().filter(|i| i.action.is_some()).count())
+                > 1_000
+            {
+                return None;
+            }
+            p.items
+                .iter()
+                .flat_map(|item| {
+                    std::iter::once(item.name.as_str()).chain(
+                        item.action
+                            .iter()
+                            .flat_map(|a| [a.label.as_str(), a.id.as_str()]),
+                    )
+                })
+                .collect()
+        }
+        Some(Body::Steps(p)) => {
+            if p.steps
+                .len()
+                .saturating_add(p.steps.iter().filter(|s| s.action.is_some()).count())
+                > 1_000
+            {
+                return None;
+            }
+            p.steps
+                .iter()
+                .flat_map(|step| {
+                    std::iter::once(step.label.as_str()).chain(
+                        step.action
+                            .iter()
+                            .flat_map(|a| [a.label.as_str(), a.id.as_str()]),
+                    )
+                })
+                .collect()
+        }
+        Some(Body::ConnectFlow(p)) => {
+            let count = p
+                .targets
+                .iter()
+                .try_fold(usize::from(p.endpoint.is_some()), |n, t| {
+                    n.checked_add(1)?
+                        .checked_add(t.actions.len())?
+                        .checked_add(t.configs.len())
+                });
+            if count.is_none_or(|n| n > 1_000) {
+                return None;
+            }
+            p.targets
+                .iter()
+                .flat_map(|t| {
+                    std::iter::once(t.label.as_str())
+                        .chain(
+                            t.actions
+                                .iter()
+                                .flat_map(|a| [a.label.as_str(), a.id.as_str()]),
+                        )
+                        .chain(t.configs.iter().map(|s| s.label.as_str()))
+                })
+                .chain(p.endpoint.iter().map(|v| v.label.as_str()))
+                .collect()
+        }
+        Some(Body::Snippet(p)) => p.snippet.iter().map(|s| s.label.as_str()).collect(),
+        Some(Body::CopyValue(p)) => p.value.iter().map(|v| v.label.as_str()).collect(),
         _ => return None,
     };
     if labels.iter().any(|label| label.len() > 16 * 1024) || panel.encoded_len() > 4 * 1024 * 1024 {
@@ -101,11 +191,23 @@ fn row_index(state: &PanelView, panel: &PanelDescriptor) -> Option<usize> {
             .as_ref()
             .filter(|cache| cache.error.is_none() && state.content_selected < cache.rows.len())
             .map(|_| state.content_selected),
+        Some(Body::Catalog(p)) => {
+            (!p.items.is_empty()).then(|| state.content_selected % p.items.len())
+        }
+        Some(Body::Steps(p)) => {
+            (!p.steps.is_empty()).then(|| state.content_selected % p.steps.len())
+        }
+        Some(Body::ConnectFlow(p)) => Some(state.content_selected % p.targets.len().max(1)),
+        Some(Body::Action(_) | Body::Snippet(_) | Body::CopyValue(_)) => Some(0),
         _ => None,
     }
 }
 
-fn actions<'a>(panel: &'a PanelDescriptor, row: Option<&Value>) -> Vec<NativeAction<'a>> {
+fn actions<'a>(
+    panel: &'a PanelDescriptor,
+    row: Option<&Value>,
+    selected: usize,
+) -> Vec<NativeAction<'a>> {
     match &panel.body {
         Some(Body::Table(table)) => match &table.affordances {
             Some(set) => set.items.iter().map(NativeAction::Canonical).collect(),
@@ -119,6 +221,47 @@ fn actions<'a>(panel: &'a PanelDescriptor, row: Option<&Value>) -> Vec<NativeAct
             .flat_map(|set| &set.actions)
             .filter(|action| row.is_some_and(|row| content::resource_action_visible(action, row)))
             .map(NativeAction::Resource)
+            .collect(),
+        Some(Body::Action(p)) => p
+            .action
+            .iter()
+            .map(|a| NativeAction::Canonical(a))
+            .collect(),
+        Some(Body::Catalog(p)) => p
+            .items
+            .get(selected)
+            .and_then(|i| i.action.as_ref())
+            .map(NativeAction::Canonical)
+            .into_iter()
+            .collect(),
+        Some(Body::Steps(p)) => p
+            .steps
+            .get(selected)
+            .and_then(|s| s.action.as_ref())
+            .map(NativeAction::Canonical)
+            .into_iter()
+            .collect(),
+        Some(Body::Snippet(p)) => p
+            .snippet
+            .iter()
+            .map(|s| NativeAction::Copy(&s.content))
+            .collect(),
+        Some(Body::CopyValue(p)) => p
+            .value
+            .iter()
+            .map(|v| NativeAction::Copy(&v.value))
+            .collect(),
+        Some(Body::ConnectFlow(p)) => p
+            .targets
+            .get(selected)
+            .into_iter()
+            .flat_map(|t| {
+                t.actions
+                    .iter()
+                    .map(NativeAction::Canonical)
+                    .chain(t.configs.iter().map(|s| NativeAction::Copy(&s.content)))
+            })
+            .chain(p.endpoint.iter().map(|v| NativeAction::Copy(&v.value)))
             .collect(),
         _ => vec![],
     }
@@ -160,6 +303,11 @@ pub(super) fn begin(state: &mut PanelView, panel: &PanelDescriptor, context: &Co
         state.table_state = TableState::default();
         state.content_selected = 0;
     }
+    if state.row_actions.frame.is_none() {
+        if let Some(Body::ConnectFlow(panel)) = &panel.body {
+            state.content_selected = content::connect_selected_index(panel, 0);
+        }
+    }
     let old = state.row_actions.frame.take();
     state.row_actions.frame = Some(Frame {
         descriptor,
@@ -182,7 +330,7 @@ pub(super) fn finish(
         return;
     }
     let row = row_index(state, panel);
-    let available = actions(panel, state.selected_row());
+    let available = actions(panel, state.selected_row(), row.unwrap_or(0));
     state.row_actions.selected = state
         .row_actions
         .selected
@@ -205,7 +353,7 @@ pub(super) fn finish(
             .as_ref()
             .and_then(|t| t.actions.as_ref())
             .is_some_and(|set| !set.actions.is_empty()),
-        _ => false,
+        _ => content_control(panel) && !available.is_empty(),
     };
     if !authored && state.row_actions.feedback.is_none() {
         return;
@@ -218,6 +366,9 @@ pub(super) fn finish(
                 action.label.clone(),
                 content::resource_action_style(action, &state.palette),
             ),
+            NativeAction::Copy(_) => {
+                Line::styled("Copy literal [value hidden]", state.palette.title())
+            }
             _ => unreachable!("only panel actions"),
         };
         line.spans.insert(
@@ -242,7 +393,7 @@ pub(super) fn finish(
             line.spans
                 .push(Span::styled(" [disabled]", state.palette.meta()));
         }
-        if row.is_none() {
+        if row.is_none() && row_control(panel) {
             line.spans
                 .push(Span::styled(" [select a row]", state.palette.meta()));
         }
@@ -261,18 +412,25 @@ pub(super) fn finish(
     if line.spans.is_empty() {
         line = Line::from("Action");
     }
-    frame.render_widget(
-        Paragraph::new(line),
-        ratatui::layout::Rect {
-            y: area.y + area.height - 1,
-            height: 1,
-            ..area
-        },
-    );
+    let footer = ratatui::layout::Rect {
+        y: area.y + area.height - 1,
+        height: 1,
+        ..area
+    };
+    frame.render_widget(ratatui::widgets::Clear, footer);
+    frame.render_widget(Paragraph::new(line), footer);
     // Never replace the mounted action's label with feedback: a newly selected
     // target must be visible before its next activation can be considered current.
     if area.height > 2 {
         if let Some(message) = state.row_actions.feedback {
+            frame.render_widget(
+                ratatui::widgets::Clear,
+                ratatui::layout::Rect {
+                    y: area.y + 1,
+                    height: 1,
+                    ..area
+                },
+            );
             frame.render_widget(
                 Paragraph::new(message).style(state.palette.meta()),
                 ratatui::layout::Rect {
@@ -286,8 +444,15 @@ pub(super) fn finish(
 }
 
 impl PanelView {
-    /// Event-only current-row effects. Up/Down selects rows, Left/Right selects
-    /// actions, Enter/Space activates. Resource cards also expose their displayed
+    /// Whether this descriptor exposes controls handled by the explicit native
+    /// action event path. This inspects shape only and grants no capability.
+    pub fn has_action_controls(panel: &PanelDescriptor) -> bool {
+        supports(panel)
+    }
+
+    /// Event-only effects from current row/content controls. Up/Down selects
+    /// subjects, Left/Right selects actions, Enter/Space activates; `c` activates
+    /// only selected content copies. Resource cards also expose their displayed
     /// 1–9 action shortcuts. No default transport or invented ID binding.
     pub fn handle_action_key_with_invocation(
         &mut self,
@@ -325,7 +490,7 @@ impl PanelView {
             self.row_actions.feedback = Some(STALE);
             return None;
         }
-        let available = actions(panel, self.selected_row());
+        let available = actions(panel, self.selected_row(), current_row.unwrap_or(0));
         if matches!(key.code, KeyCode::Left | KeyCode::Right) {
             if !available.is_empty() {
                 self.row_actions.selected = if key.code == KeyCode::Left {
@@ -350,6 +515,7 @@ impl PanelView {
         }
         let selected = match key.code {
             KeyCode::Enter | KeyCode::Char(' ') => self.row_actions.selected,
+            KeyCode::Char('c') if content_control(panel) => self.row_actions.selected,
             KeyCode::Char(c @ '1'..='9') if matches!(panel.body, Some(Body::ResourceCards(_))) => {
                 (c as u8 - b'1') as usize
             }
@@ -359,6 +525,18 @@ impl PanelView {
             self.row_actions.feedback = Some(NativeInvocationOutcome::Denied.message());
             return Some(NativeInvocationOutcome::Denied);
         };
+        if key.code == KeyCode::Char('c')
+            && !matches!(
+                action,
+                NativeAction::Copy(_)
+                    | NativeAction::Canonical(meridian_uiview::proto::Affordance {
+                        invoke: Some(meridian_uiview::proto::affordance::Invoke::Copy(_)),
+                        ..
+                    })
+            )
+        {
+            return None;
+        }
         let Some(row) = current_row else {
             self.row_actions.feedback = Some(NativeInvocationOutcome::Denied.message());
             return Some(NativeInvocationOutcome::Denied);
@@ -377,7 +555,11 @@ impl PanelView {
         }
         let outcome = self.invocations.invoke(
             action,
-            NativeInvocationContext::new(context).with_record(self.selected_row()),
+            NativeInvocationContext::new(context).with_record(if row_control(panel) {
+                self.selected_row()
+            } else {
+                self.ambient_record.as_deref()
+            }),
             host,
         );
         self.row_actions.selected = selected;

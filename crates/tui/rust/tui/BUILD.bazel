@@ -5,6 +5,17 @@ package(default_visibility = ["//visibility:public"])
 exports_files(["Cargo.toml"])
 
 rust_test(
+    name = "native_content_test",
+    srcs = ["tests/native_content.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+    ],
+)
+
+rust_test(
     name = "native_rows_test",
     srcs = ["tests/native_rows.rs"],
     edition = "2021",

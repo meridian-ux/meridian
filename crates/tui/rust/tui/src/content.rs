@@ -71,8 +71,8 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
                 palette.meta(),
             )));
         }
-        // StepsPanel is full-parity content. This read-only rendering cannot
-        // activate a nested affordance, but it must retain its authored intent.
+        // Rendering stays read-only. The widget's explicit invocation host
+        // handles nested step affordances after a current key activation.
         if let Some(action) = step.action.as_ref() {
             lines.push(affordance_line(action, palette));
         }
@@ -1332,6 +1332,26 @@ pub fn render_connect_flow(
     selected: usize,
     revealed: bool,
 ) {
+    render_connect_flow_at_index(
+        frame,
+        area,
+        panel,
+        palette,
+        connect_selected_index(panel, selected),
+        revealed,
+    );
+}
+
+/// Widget-owned cursors already applied the default once. Zero is now an actual
+/// selected index, not another request to apply the default target.
+pub(crate) fn render_connect_flow_at_index(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ConnectFlowPanel,
+    palette: &Palette,
+    selected: usize,
+    revealed: bool,
+) {
     // Empty targets → prompt + endpoint + placeholder (consistent with Catalog).
     if panel.targets.is_empty() {
         let mut lines: Vec<Line> = Vec::new();
@@ -1374,7 +1394,7 @@ pub fn render_connect_flow(
 
     // Bottom: target list | selected target detail.
     let cols = Layout::horizontal([Constraint::Length(20), Constraint::Min(1)]).split(chunks[1]);
-    let sel = connect_selected_index(panel, selected);
+    let sel = selected % panel.targets.len();
 
     // Target list (the Choice).
     let mut list: Vec<Line> = Vec::new();

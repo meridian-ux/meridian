@@ -34,8 +34,8 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 
 use meridian_tui::{
-    Mode, Palette, PanelView, RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession,
-    Theme, ViewHost, ViewResponse,
+    Mode, NativeInvocationHost, Palette, PanelView, RpcError, RpcInvoker, StreamError,
+    StreamInvoker, StreamSession, Theme, ViewHost, ViewResponse,
 };
 use meridian_uiview::proto::{PanelDescriptor, ViewDescriptor};
 use meridian_uiview::Context;
@@ -249,7 +249,7 @@ fn view_event_loop(
             if key.code == KeyCode::Esc {
                 return Ok(());
             }
-            match view.handle_key(key, &context) {
+            match view.handle_key_with_invocation(key, &context, &NativeInvocationHost::default()) {
                 Ok(Some(ViewResponse::Lro(submission))) => {
                     view.fail_lro(
                         &submission.run_id,
@@ -305,6 +305,41 @@ fn event_loop(
             }
             Event::Key(k) if k.kind == KeyEventKind::Press => match k.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                _ if matches!(
+                    descriptor.body,
+                    Some(meridian_uiview::proto::panel_descriptor::Body::Form(_))
+                ) =>
+                {
+                    let Some(meridian_uiview::proto::panel_descriptor::Body::Form(form)) =
+                        &descriptor.body
+                    else {
+                        unreachable!()
+                    };
+                    view.handle_form_key_with_invocation(
+                        form,
+                        &context,
+                        k,
+                        &NativeInvocationHost::default(),
+                    );
+                }
+                _ if PanelView::has_action_controls(descriptor) => {
+                    let mut key = k;
+                    key.code = match key.code {
+                        KeyCode::Char('j') => KeyCode::Down,
+                        KeyCode::Char('k') => KeyCode::Up,
+                        _ => key.code,
+                    };
+                    if key.code == KeyCode::Char('r') {
+                        view.toggle_reveal();
+                    } else {
+                        view.handle_action_key_with_invocation(
+                            descriptor,
+                            &context,
+                            key,
+                            &NativeInvocationHost::default(),
+                        );
+                    }
+                }
                 KeyCode::Down | KeyCode::Char('j') => {
                     if matches!(
                         descriptor.body,

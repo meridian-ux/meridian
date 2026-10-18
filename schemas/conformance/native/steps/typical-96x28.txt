@@ -26,5 +26,5 @@ The sponsor is now visible to your whole team.
 
 
 
-
+[1/1]  ↵ ↗ Open Sponsors  /sponsors  — Continue in the sponsor list · ←/→ action · Enter
 end viewport

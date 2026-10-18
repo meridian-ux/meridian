@@ -8,5 +8,5 @@ Typed value: https://example.com/a?b=1
 │                  ││                  │
 │                  ││                  │
 │                  ││                  │
-└──────────────────┘└──────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

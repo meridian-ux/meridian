@@ -26,5 +26,5 @@ Typed value: not-a-date   [c] copy
 │                  ││                                                                          │
 │                  ││                                                                          │
 │                  ││                                                                          │
-└──────────────────┘└──────────────────────────────────────────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→ action · Enter
 end viewport

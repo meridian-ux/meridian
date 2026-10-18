@@ -2210,6 +2210,7 @@ fn canonical_populated_native_text_goldens() {
                 "3. Confirm a colleague sees it [Manager]",
                 "Everyone in your organization shares one sponsor list.",
                 "The sponsor is now visible to your whole team.",
+                "[1/1] ↵ ↗ Open Sponsors /sponsors — Continue in the sponsor list · ←/→ action · Enter",
             ]
         } else if name == "table" {
             // URLs remain noninteractive scalar text in the native table.

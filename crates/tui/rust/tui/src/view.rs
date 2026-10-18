@@ -551,7 +551,7 @@ impl ViewHost {
                     .and_then(|slot| slot.panel.as_ref())
                     .is_some_and(|panel| match &panel.body {
                         Some(Body::Form(form)) => form.submit_affordance.is_some(),
-                        Some(Body::Table(_) | Body::ResourceCards(_)) => true,
+                        _ if PanelView::has_action_controls(panel) => true,
                         _ => false,
                     }));
         // Legacy responses are inert compatibility projections, not grants.
@@ -691,8 +691,11 @@ impl ViewHost {
                     .and_then(|s| s.panel.as_ref())
                     .expect("mounted panel");
                 if ((matches!(panel.body, Some(Body::Form(_))) && key.code == KeyCode::Enter)
-                    || (matches!(panel.body, Some(Body::Table(_) | Body::ResourceCards(_)))
-                        && matches!(key.code, KeyCode::Enter | KeyCode::Char(' ' | '1'..='9'))))
+                    || (PanelView::has_action_controls(panel)
+                        && matches!(
+                            key.code,
+                            KeyCode::Enter | KeyCode::Char(' ' | 'c' | '1'..='9')
+                        )))
                     && !self.repeat_scopes_current(&target.path, context)
                 {
                     self.invalidate();
@@ -704,7 +707,7 @@ impl ViewHost {
                     return Ok(None);
                 };
                 match &panel.body {
-                    Some(Body::Table(_) | Body::ResourceCards(_)) => {
+                    Some(_) if PanelView::has_action_controls(panel) => {
                         let denied = NativeInvocationHost::default();
                         widget.handle_action_key_with_invocation(
                             panel,
@@ -804,10 +807,8 @@ fn invocation_target(view: &ViewDescriptor, target: &Target) -> bool {
             && slot_at(view, &target.source)
                 .and_then(|slot| slot.panel.as_ref())
                 .is_some_and(|panel| {
-                    matches!(
-                        panel.body,
-                        Some(Body::Form(_) | Body::Table(_) | Body::ResourceCards(_))
-                    )
+                    matches!(panel.body, Some(Body::Form(_)))
+                        || PanelView::has_action_controls(panel)
                 }))
 }
 

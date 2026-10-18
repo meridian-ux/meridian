@@ -8,5 +8,5 @@ Typed value: Ada <bad email>   [c] copy
 │                  ││                  │
 │                  ││                  │
 │                  ││                  │
-└──────────────────┘└──────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

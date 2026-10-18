@@ -124,8 +124,8 @@ ceiling and retain the 16 KiB label and 4 MiB descriptor caps.
 Compatibility boundary: legacy `ViewResponse::Action` handoff and
 `PanelAppState::invoke` still exist during the 0.x migration window; neither is
 an admission grant. Prefer the explicit host API for both canonical and legacy
-header/slot controls; denial there never falls back to that handoff. Content
-action adoption and final deprecation/cutover remain separate work. The standalone
+header/slot controls; denial there never falls back to that handoff. Final
+producer migration/deprecation/cutover remains separate work. The standalone
 executable stays offline and never gains mutation transport.
 
 ### Admitted native palette
@@ -254,6 +254,41 @@ actions. It uses the existing cumulative 4 MiB work and depth budgets; this is
 not an exact heap-memory bound. Malformed resource records fail the whole input.
 Declarations retain the existing aggregate control/label/descriptor caps. No
 schema, compatibility baseline, budget, or transport authority changes here.
+
+### Admitted content actions and literal copy
+
+The same `handle_action_key_with_invocation` path now handles Action, Catalog,
+ConnectFlow, Steps, Snippet, and CopyValue panels. `has_action_controls` only
+reports supported shape; it grants nothing. All seven canonical targets use the
+same explicit host, current context, predicates, consent/recheck, sanitized
+outcomes, and cancellation/single-flight contract as row controls. No selected
+affordance projection is an authorization grant. Present-but-missing intent
+denies; there is no route, RPC, command-to-copy, or transport fallback.
+
+Up/Down selects an item, target, or step. Left/Right selects every action within
+the current target, followed by its config snippets and then the shared endpoint.
+Enter/Space activates the selected control; `c` activates it only when it is a
+literal-copy control. Snippet and CopyValue preserve original bytes, including
+empty strings, whitespace, Unicode, and masked plaintext; formatted visible
+values are never the copy source. Copy requires both the explicit callback and
+admission, even for a hidden secret. Reveal is local presentation, not permission.
+Rendering never emits OSC52 or touches the clipboard.
+
+ConnectFlow applies its declared default target once per source generation;
+subsequent navigation can reach every actual target, including index zero.
+Selection changes, including wraparound to the same effective target, withdraw
+activation until redraw. Mounted action captions remain visible separately from
+outcome status, including for long content. Repeated-parent request scopes and
+immutable local records remain authoritative; offscreen/partial/zero-size controls
+cannot execute. Aggregate item/step/target/action/config declarations share the
+existing 1,000-control ceiling and label/descriptor bounds; no limit increases.
+
+The offline executable routes standalone content/forms and composed controls
+through the default-denied host so attempts report denial rather than silently
+ignoring activation. It installs no capability, mutation policy, clipboard,
+shell, opener, or transport. Local prompts and LRO workflows retain their
+separate protocols. Old raw response/selected-affordance/PanelAppState seams
+remain 0.x compatibility data pending coordinated producer cutover.
 
 ### Composition and input lifecycle
 
