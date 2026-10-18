@@ -31,6 +31,7 @@ vitest_test(
         "tests/conformance.test.tsx",
         "tests/affordance_invocation.test.ts",
         "tests/form_admission.test.tsx",
+        "tests/row_navigation.test.tsx",
         "tests/shell_palette_admission.test.tsx",
         "tests/shell_frame.test.tsx",
         "tests/shell_launchpad.test.ts",

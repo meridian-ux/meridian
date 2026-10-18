@@ -42,8 +42,8 @@ export interface MeridianMuiProviderProps {
   /** Host adhoc-panel handlers, keyed by AdhocPanel.handler_id. */
   adhoc?: Record<string, ReactAdhocFactory>;
   /**
-   * Compatibility handler for implicit row-click navigation not yet migrated.
-   * Authored no-call actions use invocation.resolveSemantic instead; do not
+   * Legacy host callback retained for source compatibility, not an action grant.
+   * Authored no-call actions and implicit rows use invocation.resolveSemantic; do not
    * execute an old callback during pure resolution or after canonical denial.
    */
   onAction?: MeridianActionHandler;

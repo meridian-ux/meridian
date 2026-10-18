@@ -99,6 +99,42 @@ async function main() {
       }
     };
 
+    await check("row navigation: real keyboard, denial, cancel, focus return, and table-wide duplicate guard", async () => {
+      const first = page.getByRole("button", { name: "Open Records 0", exact: true });
+      const other = page.getByRole("button", { name: "Open Records raw", exact: true });
+      const calls = () => page.locator("#root").getAttribute("data-row-calls");
+      const expectCalls = async expected => {
+        await page.waitForFunction(n => document.getElementById("root").dataset.rowCalls === String(n), expected);
+      };
+      await page.evaluate(() => window.meridianRowNavigation("allow"));
+      await first.focus(); await page.keyboard.press("Enter"); await expectCalls(1);
+      await page.getByText("Action completed.", { exact: true }).waitFor();
+      await page.keyboard.press("Space"); await expectCalls(2);
+      await page.getByText("Action completed.", { exact: true }).waitFor();
+      await page.getByText("Second", { exact: true }).click(); await expectCalls(3);
+      await page.evaluate(() => window.meridianRowNavigation("deny"));
+      await first.focus(); await page.keyboard.press("Enter");
+      await page.getByRole("alert").filter({ hasText: "target policy" }).waitFor();
+      if (await calls() !== "0") throw new Error("Denied navigation executed");
+      await page.evaluate(() => window.meridianRowNavigation("pending"));
+      await first.focus(); await page.keyboard.press("Enter"); await expectCalls(1);
+      await page.getByRole("button", { name: "Cancel action", exact: true }).waitFor();
+      if (!(await other.isDisabled()) || await first.getAttribute("disabled") !== null
+        || await first.getAttribute("aria-disabled") !== "true") throw new Error("Pending controls lost reachability or table exclusion");
+      await page.keyboard.press("Tab");
+      if (!(await page.getByRole("button", { name: "Cancel action", exact: true }).evaluate(node => node === document.activeElement))) throw new Error("Cancel was not reachable by Tab");
+      await page.keyboard.press("Enter");
+      if (await page.locator("#root").getAttribute("data-row-aborted") !== "true") throw new Error("Cancel did not abort");
+      await page.getByText("Second", { exact: true }).click();
+      if (await calls() !== "1" || !(await other.isDisabled())) throw new Error("Noncooperative cancellation released the duplicate guard");
+      // Return focus to the cancel control before settlement, as a keyboard user would.
+      await page.getByRole("button", { name: "Cancel action", exact: true }).focus();
+      await page.evaluate(() => window.meridianRowNavigationSettle());
+      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Open Records 0");
+      await page.getByRole("button", { name: "Cancel action", exact: true }).waitFor({ state: "detached" });
+      if (await other.isDisabled() || await page.locator("#root").getAttribute("data-row-legacy") !== "0") throw new Error("Settlement failed or invoked legacy callback");
+    });
+
     await check("media: real decoding failures fall through poster to readable alt and chapter contents", async () => {
       await page.route("https://media.meridian.invalid/**", async route => {
         try { await route.fulfill({ status: 200, contentType: route.request().url().endsWith("poster.png") ? "image/png" : "video/webm", body: "intentionally undecodable fixture" }); }
