@@ -1,10 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { componentContaining, assertAvailableFields, assertCandidateDeclarations } from "./affordance_migration_probe.mjs";
+import { componentContaining, assertAvailableFields, assertCandidateDeclarations, verifyLegacyConsumerSource } from "./affordance_migration_probe.mjs";
+import { readFileSync } from "node:fs";
 import { clone, create } from "@bufbuild/protobuf";
 import { DescriptorProtoSchema } from "@bufbuild/protobuf/wkt";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { loadImage, REFERENCES } from "./compatibility_line.mjs";
+
+test("frozen legacy source cannot silently become a smaller/new-source compatibility test", () => {
+  const source = readFileSync(new URL("../migration/LegacyAffordanceConsumer.ts", import.meta.url), "utf8");
+  assert.doesNotThrow(() => verifyLegacyConsumerSource(source));
+  assert.throws(() => verifyLegacyConsumerSource(""), /frozen legacy TypeScript source changed/);
+  assert.throws(() => verifyLegacyConsumerSource(source.replace("const invalid: number", "const invalid: string")), /frozen legacy/);
+});
 
 test("canonical phase checks every frozen declaration and exact candidate field allocation", () => {
   const previous = loadImage(REFERENCES["maintained-0x"]);
