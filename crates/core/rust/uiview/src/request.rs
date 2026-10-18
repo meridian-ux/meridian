@@ -510,7 +510,13 @@ impl RequestBuilder {
             }),
             Some(Source::Literal(s)) => Resolved::Text(s),
             Some(Source::Nested(nested)) => {
-                Resolved::Owned(Self::build_nested(nested, ctx, budget, overrides, depth)?)
+                let nested = Self::build_nested(nested, ctx, budget, overrides, depth)?;
+                // No child resolved: omit this synthesized envelope. An empty
+                // object supplied as raw row/form data is still preserved.
+                if nested.as_object().is_some_and(Map::is_empty) {
+                    return Ok(());
+                }
+                Resolved::Owned(nested)
             }
             // A live grammar/panel signal (a Vega selection). Resolves from
             // ctx.signals like form_field resolves from form_values; absent on
@@ -522,9 +528,12 @@ impl RequestBuilder {
             // Resolves from ctx.selections; UNSET → Null → omitted below, which
             // rpc.proto requires: an unset scope must not be sent as empty and
             // silently widen the query.
-            Some(Source::SelectionKey(key)) => {
-                Resolved::Borrowed(ctx.selections.get(key).unwrap_or(&Value::Null))
-            }
+            Some(Source::SelectionKey(key)) => Resolved::Borrowed(
+                ctx.selections
+                    .get(key)
+                    .filter(|value| value.as_str() != Some(""))
+                    .unwrap_or(&Value::Null),
+            ),
             None => return Ok(()),
         };
         if value.is_null() {
@@ -948,6 +957,55 @@ mod tests {
         let built = RequestBuilder::build(&call, &empty);
         assert_eq!(built, json!({ "tenant": "acme" }));
         assert!(built.get("plan_year").is_none());
+        for value in [json!(""), Value::Null] {
+            ctx.selections.insert("plan_year".into(), value);
+            assert_eq!(RequestBuilder::build(&call, &ctx), json!({"tenant":"acme"}));
+            assert_eq!(
+                RequestBuilder::build_for_boundary(&call, &ctx).unwrap(),
+                json!({"tenant":"acme"})
+            );
+        }
+        for value in [json!(0), json!(false), json!("  "), json!("raw/e\u{301}")] {
+            ctx.selections.insert("plan_year".into(), value.clone());
+            assert_eq!(
+                RequestBuilder::build_for_boundary(&call, &ctx).unwrap(),
+                json!({"plan_year":value,"tenant":"acme"})
+            );
+        }
+    }
+
+    #[test]
+    fn unavailable_nested_bindings_omit_only_synthesized_empty_envelopes() {
+        let call = RpcCall {
+            service: "raw.Service".into(),
+            method: "Get".into(),
+            bindings: vec![
+                fb(
+                    "scope",
+                    Source::Nested(NestedBinding {
+                        fields: vec![fb(
+                            "inner",
+                            Source::Nested(NestedBinding {
+                                fields: vec![fb("unset", Source::SelectionKey("unset".into()))],
+                            }),
+                        )],
+                    }),
+                ),
+                fb("raw", Source::RowField("raw".into())),
+                fb("literal", Source::Literal("".into())),
+            ],
+        };
+        let mut ctx = Context {
+            selected_row: Some(json!({"raw":{}})),
+            ..Context::default()
+        };
+        ctx.selections.insert("unset".into(), json!(""));
+        let expected = json!({"raw":{},"literal":""});
+        assert_eq!(RequestBuilder::build(&call, &ctx), expected);
+        assert_eq!(
+            RequestBuilder::build_for_boundary(&call, &ctx).unwrap(),
+            expected
+        );
     }
 
     fn fb(request_field: &str, source: Source) -> FieldBinding {

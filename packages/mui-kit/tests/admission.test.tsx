@@ -78,7 +78,7 @@ describe("MUI admission boundary", () => {
       </MeridianMuiProvider>);
       if (overflow) fireEvent.click(screen.getByRole("button", { name: "more actions" }));
       fireEvent.click(screen.getByRole(overflow ? "menuitem" : "button", { name: "Run" }));
-      expect((await screen.findByRole("alert")).textContent).toContain("Request construction rejected");
+      expect((await screen.findByRole("alert")).textContent).toContain("invalid or exceeds supported limits");
       expect(requests).toEqual([]);
     });
   }
@@ -122,7 +122,7 @@ describe("MUI admission boundary", () => {
     expect(screen.queryByText("Replacement loading")).toBeNull();
     await act(async () => finish({}));
     expect((screen.getByRole("button", { name: "Delete" }) as HTMLButtonElement).disabled).toBe(false);
-    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("Action completed.");
   });
 
   it("blocks a header mutation before the invoker", async () => {
@@ -142,8 +142,8 @@ describe("MUI admission boundary", () => {
 
     const button = screen.getByRole("button", { name: "Delete" });
     expect(button.getAttribute("aria-disabled")).toBe("true");
-    expect(button.title).toContain("not permitted");
-    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
+    expect(screen.getByRole("status").textContent).toBe("This action is unavailable.");
+    expect(button.getAttribute("aria-describedby")).toBe(screen.getByRole("status").id);
     await act(async () => fireEvent.click(button));
 
     expect(calls).toEqual([]);
@@ -167,7 +167,8 @@ describe("MUI admission boundary", () => {
     fireEvent.click(screen.getByRole("button", { name: "more actions" }));
     const action = screen.getByRole("menuitem", { name: /Delete/ });
     expect(action.getAttribute("aria-disabled")).toBe("true");
-    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
+    expect(screen.getByRole("status").textContent).toBe("This action is unavailable.");
+    expect(action.getAttribute("aria-describedby")).toBe(screen.getByRole("status").id);
     await act(async () => fireEvent.click(action));
 
     expect(calls).toEqual([]);
@@ -186,14 +187,15 @@ describe("MUI admission boundary", () => {
     const button = screen.getByRole("button", { name: "Delete" });
     fireEvent.click(button);
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toContain("<b>Unavailable</b>");
+    expect(alert.textContent).toBe("Action failed. Try again with the current context.");
+    expect(alert.textContent).not.toContain("Unavailable");
     expect(alert.querySelector("b")).toBeNull();
     fireEvent.click(button);
     fireEvent.click(button);
     expect(calls).toEqual(Array(2).fill(["demo.Orders", "DeleteOrder", {}]));
-    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(button.getAttribute("aria-disabled")).toBe("true");
     finish!();
-    await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
+    await waitFor(() => expect(button.hasAttribute("aria-busy")).toBe(false));
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });

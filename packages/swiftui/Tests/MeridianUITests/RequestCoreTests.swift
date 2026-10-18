@@ -4,7 +4,7 @@ import XCTest
 final class RequestCoreTests: XCTestCase {
     func testEverySharedRequestGoldenExecutesTheActualRustBuilder() throws {
         let cases = try CoreTests.corpus().requests
-        XCTAssertEqual(cases.count, 6)
+        XCTAssertEqual(cases.count, 8)
         for test in cases {
             let call = try Meridian_Ui_V1_RpcCall(serializedBytes: test.rpc)
             let fields = test.context.structValue.fields

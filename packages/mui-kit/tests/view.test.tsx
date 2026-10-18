@@ -10,7 +10,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import {
@@ -19,6 +19,7 @@ import {
   PanelDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import {
   PaginationMode,
   PaginationSchema,
@@ -31,7 +32,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { ViewRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { InvocationHost, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 
@@ -361,28 +362,45 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("muiKit host action/nav seam (no-call actions → onAction)", () => {
-  it("fires onAction with (actionId, subjectKind) for a no-call HEADER action", async () => {
+function semanticHost(lookups: Array<[string, string | undefined, string | number | undefined]>, routes: string[]): InvocationHost {
+  return { admit: intent => intent.case === "navigate", capabilities: { navigate: async target => { routes.push(target.route); } },
+    resolveSemantic: (action, _context, subject) => {
+      lookups.push([action.id, subject?.entityType, subject?.entityId]);
+      return { affordance: create(AffordanceSchema, { invoke: { case: "navigate", value: {
+        route: action.id === "create" ? "/organizations/new" : `/organizations/${encodeURIComponent(String(subject?.entityId))}`,
+      } } }) };
+    },
+  };
+}
+
+describe("muiKit host semantic action resolution", () => {
+  it("resolves a no-call HEADER action before admitted navigation without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    const lookups: typeof calls = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+        invocation={semanticHost(lookups, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
     );
     const createBtn = await screen.findByRole("button", { name: "New Organization" });
     fireEvent.click(createBtn);
-    expect(calls).toContainEqual(["create", "organizations", undefined]);
+    await waitFor(() => expect(routes).toEqual(["/organizations/new"]));
+    expect(lookups).toEqual([["create", "organizations", undefined]]);
+    expect(calls).toEqual([]);
   });
 
-  it("fires onAction with the bound row id for a per-row no-call action", async () => {
+  it("resolves a per-row semantic action with the current row ID without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    const lookups: typeof calls = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+        invocation={semanticHost(lookups, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
@@ -393,6 +411,8 @@ describe("muiKit host action/nav seam (no-call actions → onAction)", () => {
     fireEvent.click(kebabs[0]);
     const viewDetails = await screen.findByRole("menuitem", { name: "View Details" });
     fireEvent.click(viewDetails);
-    expect(calls).toContainEqual(["view_details", "organizations", "org-1"]);
+    await waitFor(() => expect(routes).toEqual(["/organizations/org-1"]));
+    expect(lookups).toEqual([["view_details", "organizations", "org-1"]]);
+    expect(calls).toEqual([]);
   });
 });

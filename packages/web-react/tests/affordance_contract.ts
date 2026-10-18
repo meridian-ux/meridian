@@ -207,8 +207,29 @@ export function affordanceContract(kit: ComponentKit, runtime: {
         host.invocation = { ...host.invocation, context: { ...host.invocation.context!, selectedRow: { id: "current-row" } } };
         await host.update(); await host.click();
         expect(host.invoke).toHaveBeenCalledTimes(1);
-        expect(host.invoke).toHaveBeenCalledWith("raw.Service", "Get", { id: "current-row", tenant: "raw-tenant" }, expect.any(AbortSignal));
+        expect(host.invoke).toHaveBeenCalledWith("raw.Service", "Get", { id: "current-row", tenant: "raw-tenant" });
       } finally { await host.close(); }
+    });
+
+    it("explicit abort-aware RPC capability still requires mutation admission and receives cancellation", async () => {
+      const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
+      const effect = deferred();
+      const invoke = vi.fn<NonNullable<InvocationCapabilities["rpc"]>["invoke"]>(async () => { await effect.promise; return {}; });
+      host.invocation = { ...host.invocation, capabilities: { rpc: { invoke } } };
+      host.admission = { mutations: [] };
+      try {
+        await host.mount(); await host.click();
+        expect(invoke).not.toHaveBeenCalled();
+        host.admission = { mutations: ["raw.Service/Get"] };
+        await host.update(); await host.click();
+        expect(invoke).toHaveBeenCalledTimes(1);
+        const signal = invoke.mock.calls[0][3];
+        await host.click("Cancel action");
+        expect(signal.aborted).toBe(true);
+        await act(async () => effect.resolve());
+        expect(host.invoke).not.toHaveBeenCalled();
+        expect(host.container.querySelector('[role="status"]')!.textContent).toBe("Action canceled.");
+      } finally { effect.resolve(); await host.close(); }
     });
 
     it("missing policy or capability visibly denies with no legacy callback or clipboard fallback", async () => {

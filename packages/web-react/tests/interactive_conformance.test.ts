@@ -4,6 +4,7 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ActionPlacement, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
@@ -33,6 +34,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
   it("realizes primary, header, and overflow placements while keeping row actions out of the header", async () => {
     const invoke = vi.fn(async () => ({}));
     const onAction = vi.fn();
+    const navigate = vi.fn(async () => {});
     const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", actions: [
       { id: "run", label: "Run now", placement: ActionPlacement.PRIMARY,
         call: { service: "demo.Reports", method: "Run" } },
@@ -45,10 +47,15 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     ] });
     await mounted(createElement(MeridianProvider, {
       kit, adhoc: {}, invoker: { invoke }, onAction, admission: "unrestricted",
+      invocation: { capabilities: { navigate }, admit: intent => intent.case === "navigate" || intent.case === "rpc",
+        resolveSemantic: action => action.id === "edit" ? { affordance: create(AffordanceSchema, {
+          invoke: { case: "navigate", value: { route: "/reports/edit" } },
+        }) } : undefined },
     }, createElement(ViewRenderer, { view })), async container => {
       expect(kit.ActionBar).toBeDefined();
       expect(container.querySelector("[data-action-bar]")?.getAttribute("data-action-bar")).toBe(kit.id);
-      const labels = [...container.querySelectorAll("button")].map((button) => button.textContent?.trim());
+      const labels = [...container.querySelectorAll("button")].filter(button => !button.closest("[hidden]"))
+        .map((button) => button.textContent?.trim());
       expect(labels).toEqual(["Run now", "Edit report", "⋮"]);
       expect(container.textContent).not.toContain("Delete row");
 
@@ -57,7 +64,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       await act(async () => button("Run now").click());
       await act(async () => button("Edit report").click());
       expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
-      expect(onAction).toHaveBeenCalledWith("edit", "report");
+      expect(onAction).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ route: "/reports/edit" }), expect.any(Object), expect.any(AbortSignal));
 
       const overflow = container.querySelector<HTMLButtonElement>('[aria-label="More actions"]')!;
       await act(async () => overflow.click());
@@ -67,7 +75,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(exportAction.textContent).toBe("Export CSV");
       await act(async () => exportAction.click());
       expect(invoke).toHaveBeenLastCalledWith("demo.Reports", "Export", { format: "csv" });
-      expect(container.querySelector('[role="menu"]')).toBeNull();
+      expect(container.querySelector('[role="menu"]:not([hidden])')).toBeNull();
     });
   });
 
@@ -171,7 +179,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       await act(async () => container.querySelector("button")!.click());
       if (unsafe) {
         expect(invoke).not.toHaveBeenCalled();
-        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       } else expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
       expect(Object.hasOwn(Object.prototype, "meridianTest")).toBe(false);
     });
@@ -194,7 +202,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(onDenied).not.toHaveBeenCalled();
       expect(normalizeDom(container)).toMatchSnapshot("denied before activation");
       await act(async () => container.querySelector("button")!.click());
-      expect(container.querySelector('[role="alert"]')?.textContent).toBe("This action is unavailable.");
+      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
       expect(normalizeDom(container)).toMatchSnapshot("denied after activation");
       expect(invoke).not.toHaveBeenCalled();
       expect(onDenied).toHaveBeenCalledTimes(1);
@@ -216,11 +224,11 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       admission: "unrestricted" }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
       await act(async () => { button.click(); button.click(); });
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute("aria-disabled")).toBe("true");
       expect(invoke).toHaveBeenCalledTimes(1);
       expect(normalizeDom(container)).toMatchSnapshot("action pending");
       await act(async () => reject(new Error("private backend details")));
-      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       expect(container.textContent).not.toContain("private backend details");
       expect(button.disabled).toBe(false);
       expect(normalizeDom(container)).toMatchSnapshot("action failed");

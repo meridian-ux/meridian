@@ -42,9 +42,9 @@ export interface MeridianMuiProviderProps {
   /** Host adhoc-panel handlers, keyed by AdhocPanel.handler_id. */
   adhoc?: Record<string, ReactAdhocFactory>;
   /**
-   * Host handler for no-call actions (view_details / edit / create … — the
-   * host-resolved keys that host projects without an RpcCall). Absent ⇒ those
-   * buttons render but no-op; RpcCall actions always route through the invoker.
+   * Compatibility handler for implicit row-click navigation not yet migrated.
+   * Authored no-call actions use invocation.resolveSemantic instead; do not
+   * execute an old callback during pure resolution or after canonical denial.
    */
   onAction?: MeridianActionHandler;
   /** Host glyph resolver for the content shapes' `icon` keys (renderer draws,

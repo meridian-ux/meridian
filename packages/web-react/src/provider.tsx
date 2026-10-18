@@ -23,12 +23,11 @@ import type { ComponentKit } from "./component_kit.js";
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
 /**
- * Host handler for actions that carry no RpcCall. a graph-backed host's `actions`/`action-set-key`
- * (view_details / edit / create …) project as host-resolved *keys* — the renderer
- * draws the affordance, but the meaning (usually a route) is the host's. When such
- * an action fires, the renderer calls this with the action's id + the view's
- * subject (entity type) + the bound row id (ROW actions). Actions that DO carry an
- * RpcCall still go through the invoker; this covers only the no-call remainder.
+ * Compatibility handler for interactions not yet migrated (such as implicit
+ * row-click navigation). Authored no-call Action controls now use the pure
+ * invocation.resolveSemantic seam; this callback is never a canonical fallback.
+ * Keep this surface during the compatibility window. Do not wrap an executing
+ * callback as a pure resolver: that would act before admission/confirmation.
  */
 export type MeridianActionHandler = (
   actionId: string,
@@ -85,7 +84,8 @@ export interface MeridianContextValue {
   invocation?: InvocationHost;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
-  /** Optional host handler for no-call actions (nav/custom). Absent ⇒ no-op. */
+  /** Compatibility hook for not-yet-migrated implicit interactions. Authored
+   * Action controls use invocation.resolveSemantic, never this fallback. */
   onAction?: MeridianActionHandler;
   /** Optional host glyph resolver for `icon` keys. Absent ⇒ no glyph drawn. */
   renderIcon?: MeridianIconResolver;

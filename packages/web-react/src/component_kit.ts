@@ -77,6 +77,8 @@ export type TerminalPanelProps = ShapeProps<TerminalPanel>;
 export interface ActionBarProps {
   actions: Action[];
   invoker: RpcInvoker;
+  /** Normalized presence wins, including an explicitly empty array. */
+  normalizedActions?: readonly import("@savvifi/meridian-schemas/uiview").NormalizedAction[];
 }
 
 /** A set of components + a theme binding that paints meridian panels. */

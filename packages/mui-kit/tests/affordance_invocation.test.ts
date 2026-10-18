@@ -4,10 +4,12 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "@bufbuild/protobuf";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { MeridianProvider, PanelRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
+import { MeridianProvider, PanelRenderer, ViewRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
+import { actionSourcesContract } from "../../web-react/tests/action_sources_contract.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { expect, it, vi } from "vitest";
 affordanceContract(muiKit, { MeridianProvider, PanelRenderer, reactWebRenderer });
+actionSourcesContract(muiKit, { MeridianProvider, PanelRenderer, ViewRenderer, reactWebRenderer });
 
 it("MeridianMuiProvider forwards explicit host capabilities and context", async () => {
   const container = document.createElement("div");

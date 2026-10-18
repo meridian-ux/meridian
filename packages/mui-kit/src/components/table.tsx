@@ -77,6 +77,8 @@ export interface MeridianTableProps<T> {
   pagination?: MeridianTablePager;
   /** Per-row actions rendered in a trailing ⋮ overflow-menu column (edit/delete …). */
   rowActions?: MeridianRowAction<T>[];
+  /** Canonical renderer-owned controls; when supplied, never revive old callbacks. */
+  renderRowActions?: (row: T) => ReactNode;
   /** Clicking a row (open the entity). Adds a pointer cursor + hover affordance. */
   onRowClick?: (row: T) => void;
   /** Host-controlled column sort. Absent ⇒ headers are plain (no sort). */
@@ -137,12 +139,13 @@ export function MeridianTable<T>({
   getRowKey,
   pagination,
   rowActions,
+  renderRowActions,
   onRowClick,
   sort,
   footer,
   size = "medium",
 }: MeridianTableProps<T>): ReactNode {
-  const hasRowActions = Boolean(rowActions && rowActions.length > 0);
+  const hasRowActions = Boolean(renderRowActions || rowActions && rowActions.length > 0);
   // A table with no columns can't render a meaningful grid (e.g. a list whose
   // columns are resolved at runtime). Show a clean note, never a bare pager.
   if (columns.length === 0) {
@@ -226,7 +229,7 @@ export function MeridianTable<T>({
                     sx={{ pr: 1 }}
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <RowActionsMenu row={row} actions={rowActions!} />
+                    {renderRowActions ? renderRowActions(row) : <RowActionsMenu row={row} actions={rowActions!} />}
                   </TableCell>
                 )}
               </TableRow>

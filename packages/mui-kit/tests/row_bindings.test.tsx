@@ -48,7 +48,7 @@ for (const viewAction of [false, true]) {
     </MeridianRowActionsContext.Provider></MeridianMuiProvider>);
     fireEvent.click(await screen.findByRole("button", { name: "Row actions" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Run" }));
-    expect((await screen.findByRole("alert")).textContent).toContain("Request construction rejected");
+    expect((await screen.findByRole("alert")).textContent).toContain("invalid or exceeds supported limits");
     expect(mutations).toBe(0);
   });
 }
@@ -143,11 +143,12 @@ it("retries a failed matching row action and refreshes by default", async () => 
 
   fireEvent.click(await screen.findByRole("button", { name: "Row actions" }));
   fireEvent.click(await screen.findByRole("menuitem", { name: "Resolve" }));
-  expect((await screen.findByRole("alert")).textContent).toContain("upstream unavailable");
+  expect((await screen.findByRole("alert")).textContent).toBe("Action failed. Try again with the current context.");
+  expect(screen.getByRole("alert").textContent).not.toContain("upstream unavailable");
   expect(requests).toEqual([{ active: false }]);
   expect(reads).toBe(1);
 
-  fireEvent.click(screen.getByRole("button", { name: "Row actions" }));
+  // Failed execution keeps its explanation and retry inside the open menu.
   fireEvent.click(await screen.findByRole("menuitem", { name: "Resolve" }));
   await waitFor(() => expect(requests).toEqual([{ active: false }, { active: false }]));
   await waitFor(() => expect(reads).toBe(2));

@@ -1,6 +1,6 @@
-import { toBinary } from "@bufbuild/protobuf";
+import { clone, create, toBinary } from "@bufbuild/protobuf";
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { NormalizedAction } from "./action_normalization.js";
 import { createAdmissionGate, type AdmissionPolicy } from "./admission.js";
@@ -46,12 +46,15 @@ export interface InvocationSnapshot {
   readonly resolveSemantic?: (action: Action, context: RenderContext,
     subject: InvocationSnapshot["subject"]) => SemanticResolution | undefined;
   readonly refresh?: (signal: AbortSignal) => Promise<void>;
+  /** Adapter-owned compatibility behavior, never a descriptor permission bit.
+   * Only legacy row controls whose old renderer supplied an unbound id opt in. */
+  readonly legacyRowIdFallback?: boolean;
 }
 
 /** Optional host wiring shared by browser mounts and React providers. Runtime
  * callbacks are not serialized grants. RPC transport/admission stay separate. */
 export interface InvocationHost {
-  readonly capabilities?: Omit<InvocationCapabilities, "rpc">;
+  readonly capabilities?: InvocationCapabilities;
   readonly admit?: InvocationSnapshot["admit"];
   readonly resolveSemantic?: InvocationSnapshot["resolveSemantic"];
   readonly refresh?: InvocationSnapshot["refresh"];
@@ -147,7 +150,16 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
       switch (intent.case) {
         case "rpc": {
           const call = intent.value;
-          const request = coreRequests.buildRequest(toBinary(RpcCallSchema, call), snapshot.context);
+          let bindings = call;
+          if (snapshot.legacyRowIdFallback && snapshot.action.legacyOrigin && !snapshot.action.semanticAction && call.bindings.length === 0) {
+            const id = Object.getOwnPropertyDescriptor(snapshot.context.selectedRow ?? {}, "id");
+            if (id && !("value" in id)) throw new Error("Invalid row context.");
+            if (id?.value != null) {
+              bindings = clone(RpcCallSchema, call);
+              bindings.bindings.push(create(FieldBindingSchema, { requestField: "id", source: { case: "rowField", value: "id" } }));
+            }
+          }
+          const request = coreRequests.buildRequest(toBinary(RpcCallSchema, bindings), snapshot.context);
           current();
           await capabilities.rpc!.invoke(call.service, call.method, request, signal);
           break;

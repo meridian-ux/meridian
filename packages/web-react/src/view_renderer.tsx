@@ -17,15 +17,15 @@ import type {
   Slot,
   ViewDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { createAdmissionGate, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { normalizeViewActions, type NormalizedAction } from "@savvifi/meridian-schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
-import type { MeridianActionHandler } from "./provider.js";
+import { ActionControl } from "./action_control.js";
+import { ActionGroup } from "./action_group.js";
 import { referenceHeadingStyle } from "./reference_theme.js";
 import {
   EMPTY_SELECTION,
-  buildActionBindingRequest,
   MeridianInitialDataContext,
   MeridianRecordContext,
   MeridianSelectionContext,
@@ -41,82 +41,28 @@ import {
  * carry `id`, so the kit invokes `{ id: row.id }`). Empty ⇒ no per-row column.
  */
 export const MeridianRowActionsContext = createContext<Action[]>([]);
+export const MeridianNormalizedRowActionsContext = createContext<readonly NormalizedAction[] | undefined>(undefined);
 
 /**
  * The subject of the view being rendered (ViewDescriptor.subjectKind, e.g. the
  * entity type). The active kit reads this so a no-call action can tell the host's
- * onAction handler *which* entity the affordance is about. Empty on non-entity views.
+ * pure semantic resolver which entity the affordance is about. Empty on non-entity views.
  */
 export const MeridianViewContext = createContext<{ subjectKind?: string; subjectId?: string }>({});
 
-// Fire an action. Actions carrying an RpcCall go through the invoker; no-call
-// actions (host-resolved keys — nav/custom) fall to the host's onAction handler
-// with the view subject + optional bound row id. RPC requests resolve declared
-// bindings from the current selection and ambient repeated-view record.
-function fireAction(
-  invoker: RpcInvoker,
-  onAction: MeridianActionHandler | undefined,
-  action: Action,
-  subjectKind?: string,
-  entityId?: string | number,
-  request: Record<string, unknown> = {},
-): Promise<void> {
-  if (action.call) {
-    return invoker.invoke(action.call.service, action.call.method, request).then(() => {});
-  }
-  onAction?.(action.id, subjectKind, entityId);
-  return Promise.resolve();
-}
-
-function ActionControl({ action }: { action: Action }): ReactNode {
-  const { mutationInvoker, onAction, admission } = useMeridian();
-  const { subjectKind } = useContext(MeridianViewContext);
-  const selection = useMeridianSelection();
-  const record = useContext(MeridianRecordContext);
-  const gate = useMemo(() => createAdmissionGate(admission), [admission]);
-  const denied = !!action.call && !gate.admits("mutation", action.call.service, action.call.method);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string>();
-  const busy = useRef(false);
-  const descriptionId = useId();
-  async function activate() {
-    if (busy.current) return;
-    busy.current = true;
-    setPending(true);
-    setError(undefined);
-    try {
-      // The gated invoker still reports attempted denials to the host.
-      await fireAction(mutationInvoker, onAction, action, subjectKind, undefined,
-        buildActionBindingRequest(action.call, selection.values, record));
-    } catch {
-      setError(denied ? "This action is unavailable." : "Action failed. Try again.");
-    } finally {
-      busy.current = false;
-      setPending(false);
-    }
-  }
-  return <span className="mer-action">
-    <button type="button" aria-disabled={denied || undefined} disabled={pending}
-      aria-busy={pending || undefined} aria-describedby={denied || error ? descriptionId : undefined}
-      onClick={() => { void activate(); }}>{action.label}</button>
-    {(denied || error) && <span id={descriptionId} role={error ? "alert" : undefined}>
-      {error ?? "This action is unavailable."}
-    </span>}
-  </span>;
-}
-
-function ActionsView({ actions }: { actions: Action[] }): ReactNode {
+function ActionsView({ actions, normalizedActions }: { actions: Action[]; normalizedActions: readonly NormalizedAction[] }): ReactNode {
   const { kit, mutationInvoker } = useMeridian();
-  if (!actions || actions.length === 0) return null;
+  const { subjectKind, subjectId } = useContext(MeridianViewContext);
+  if (normalizedActions.length === 0) return null;
   if (kit.ActionBar) {
-    return <kit.ActionBar actions={actions} invoker={mutationInvoker} />;
+    return <kit.ActionBar actions={actions} normalizedActions={normalizedActions} invoker={mutationInvoker} />;
   }
   return (
-    <div className="mer-actions">
-      {actions.map((a) => (
-        <ActionControl key={a.id} action={a} />
+    <ActionGroup><div className="mer-actions">
+      {normalizedActions.map((a, index) => (
+        <ActionControl key={a.affordance.id || index} action={a} options={{ subject: { entityType: subjectKind, entityId: subjectId || undefined } }} />
       ))}
-    </div>
+    </div></ActionGroup>
   );
 }
 
@@ -191,7 +137,7 @@ function SlotView({ slot }: { slot: Slot }): ReactNode {
       <section className="mer-slot mer-slot-subview" data-slot={slot.id} data-role={slot.role}>
         {slot.title ? <h3 className="mer-slot-title">{slot.title}</h3> : null}
         {slot.subViewPopulate ? <RepeatedSubView slot={slot} /> : <ViewRenderer view={slot.subView} />}
-        <ActionsView actions={slot.actions} />
+        <ActionsView actions={slot.affordances === undefined ? slot.actions : []} normalizedActions={normalizeViewActions(slot)} />
       </section>
     );
   }
@@ -202,7 +148,7 @@ function SlotView({ slot }: { slot: Slot }): ReactNode {
     <section className="mer-slot" data-slot={slot.id} data-role={slot.role}>
       {title ? <h3 className="mer-slot-title">{title}</h3> : null}
       <PanelRenderer descriptor={panel} />
-      <ActionsView actions={slot.actions} />
+      <ActionsView actions={slot.affordances === undefined ? slot.actions : []} normalizedActions={normalizeViewActions(slot)} />
     </section>
   );
 }
@@ -320,8 +266,9 @@ export function ViewRenderer({
   }
 
   // Header shows non-row actions; ROW actions go per-row in the table (below).
-  const headerActions = view.actions.filter((a) => a.placement !== ActionPlacement.ROW);
-  const rowActions = view.actions.filter((a) => a.placement === ActionPlacement.ROW);
+  const selectedActions = normalizeViewActions(view);
+  const headerActions = selectedActions.filter(a => a.affordance.placement !== ActionPlacement.ROW);
+  const rowActions = selectedActions.filter(a => a.affordance.placement === ActionPlacement.ROW);
 
   const rendered = (
     <div className="mer-view" data-view={view.id} data-kind={view.kind}
@@ -352,7 +299,7 @@ export function ViewRenderer({
             ))}
           </div>
         ) : null}
-        <ActionsView actions={headerActions} />
+        <ActionsView actions={view.affordances === undefined ? view.actions.filter(a => a.placement !== ActionPlacement.ROW) : []} normalizedActions={headerActions} />
       </header>
       {body}
     </div>
@@ -364,8 +311,10 @@ export function ViewRenderer({
   const withRowActions = (
     <MeridianSelectionContext.Provider value={scope}>
       <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind, subjectId: view.subjectId }}>
-        <MeridianRowActionsContext.Provider value={rowActions}>
+        <MeridianRowActionsContext.Provider value={view.affordances === undefined ? view.actions.filter(a => a.placement === ActionPlacement.ROW) : []}>
+          <MeridianNormalizedRowActionsContext.Provider value={rowActions}>
           {rendered}
+          </MeridianNormalizedRowActionsContext.Provider>
         </MeridianRowActionsContext.Provider>
       </MeridianViewContext.Provider>
     </MeridianSelectionContext.Provider>
