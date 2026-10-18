@@ -344,6 +344,7 @@ mod bounded_requests {
         }
     }
     #[test]
+    #[allow(deprecated)] // Preserve the original legacy submit binding fixture.
     fn form_field_ids_are_literal_and_lro_only_request_paths_are_ignored() {
         let form = FormPanel {
             mode: FormMode::Edit as i32,
@@ -564,6 +565,7 @@ mod bounded_requests {
         }
     }
     #[test]
+    #[allow(deprecated)] // Legacy submit must retain the same construction bounds.
     fn automatic_form_and_lro_paths_are_bounded_without_returning_a_submission() {
         let field = FormField {
             field_id: "input".into(),
@@ -655,6 +657,7 @@ mod inline_form_validation {
             ..Default::default()
         }
     }
+    #[allow(deprecated)] // Deliberate old submit fixture for schema validation.
     fn descriptor(fields: Vec<FormField>) -> PanelDescriptor {
         let authored = PanelDescriptor {
             body: Some(Body::Form(
@@ -1863,6 +1866,7 @@ fn record_card_descriptor() -> PanelDescriptor {
     }
 }
 
+#[allow(deprecated)] // Shared legacy form fixture; no canonical intent invented.
 fn form_descriptor() -> PanelDescriptor {
     PanelDescriptor {
         panel_id: "deployment-form".into(),
@@ -2890,6 +2894,7 @@ fn detail_panels_populate_and_render_the_record_dispatch_path() {
 }
 
 #[test]
+#[allow(deprecated)] // Retain the old form wire and text golden exactly.
 fn form_display_wire_text_goldens_preserve_editable_values() {
     use meridian_uiview::proto::{EnumOption, EnumSelection, ValueDisplay, ValueTone, ValueType};
     use serde_json::json;
@@ -3645,6 +3650,7 @@ mod ambient_records {
             }],
         }
     }
+    #[allow(deprecated)] // Existing legacy form is the current-context test input.
     fn form() -> PanelDescriptor {
         PanelDescriptor {
             body: Some(Body::Form(

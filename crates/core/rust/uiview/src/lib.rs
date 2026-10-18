@@ -61,6 +61,7 @@ mod affordance;
 mod conversation;
 mod form_values;
 mod launchpad;
+pub mod legacy;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native_api;
 mod paths;

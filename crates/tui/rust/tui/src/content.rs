@@ -1036,11 +1036,10 @@ pub(crate) fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static
         Some(Invoke::Copy(_)) => ("⧉", "Copy destination [value hidden]".into()),
         None => ("•", String::new()),
     };
-    let primary = a
-        .emphasis
-        .map_or(a.style == AffordanceStyle::Primary as i32, |emphasis| {
-            emphasis == Emphasis::Primary as i32
-        });
+    let primary = a.emphasis.map_or(
+        meridian_uiview::legacy::affordance_style(a) == AffordanceStyle::Primary as i32,
+        |emphasis| emphasis == Emphasis::Primary as i32,
+    );
     let mut label_style = if primary {
         palette.title()
     } else {
@@ -2182,6 +2181,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)] // The legacy prominence fallback is part of this proof.
     fn affordance_presentation_keeps_role_prominence_and_target_independent_in_terminal_cells() {
         use prost::Message;
         use ratatui::{backend::TestBackend, style::Modifier, Terminal};
@@ -2258,6 +2258,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)] // Preserve the old catalog action fixture unchanged.
     fn selected_affordance_resolves_catalog_item_action() {
         use meridian_uiview::proto::panel_descriptor::Body;
         use meridian_uiview::proto::{affordance::Invoke, CatalogItem, CatalogPanel};

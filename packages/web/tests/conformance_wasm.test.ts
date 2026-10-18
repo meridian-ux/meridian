@@ -23,7 +23,7 @@
 // interface claims. If the core ever reverts to Maps, this fails here rather
 // than in a browser three repos downstream.
 
-import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
@@ -842,6 +842,32 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     expect(wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
       ...CTX, signals: { zero: 0, disabled: false, empty: null },
     })).toEqual({ selection: { zero: 0, disabled: false } });
+  });
+
+  const nonRpcSubmissions: JsonObject[] = [{}, { copy: "" }, { uri: "/next" }, { command: "raw" },
+    { navigate: { route: "/next" } }, { openView: "next" }, { openPanel: { panelId: "next" } }];
+  it.each(nonRpcSubmissions)(
+    "canonical non-RPC submission never revives the old form RPC %#", intent => {
+      const descriptor = fromJson(PanelDescriptorSchema, { form: {
+        submit: { service: "legacy.Service", method: "Trap" }, submitAffordance: intent,
+      } });
+      expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, {}))
+        .toThrow("submission RPC missing");
+    });
+
+  it("canonical RPC submission owns its bindings and raw values instead of using the old call", () => {
+    const descriptor = fromJson(PanelDescriptorSchema, { form: {
+      fields: [{ fieldId: "zero", integer: {} }, { fieldId: "disabled", boolean: {} }, { fieldId: "raw", text: {} }],
+      submit: { service: "legacy.Service", method: "Trap", bindings: [{ requestField: "target", literal: "legacy" }] },
+      submitAffordance: { rpc: { service: "current.Service", method: "Submit", bindings: [
+        { requestField: "target", literal: "canonical" },
+        { requestField: "zero", formField: "zero" }, { requestField: "disabled", formField: "disabled" },
+        { requestField: "raw", formField: "raw" },
+      ] } },
+    } });
+    expect(wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX,
+      { zero: 0, disabled: false, raw: "raw/e\u0301" }))
+      .toEqual({ target: "canonical", zero: 0, disabled: false, raw: "raw/e\u0301" });
   });
 
   it.each(["form", "lro"] as const)("assembles %s automatic fields and bindings in the real core", arm => {

@@ -109,6 +109,7 @@ fn sections(view: &mut ViewHost, context: &Context, host: &Host, width: u16) -> 
 }
 
 #[test]
+#[allow(deprecated)] // Dual-written legacy controls must never win precedence.
 fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widths() {
     use affordance::Invoke;
     let targets = vec![
@@ -248,6 +249,7 @@ fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widt
 }
 
 #[test]
+#[allow(deprecated)] // Legacy fallback is the behavior under test.
 fn canonical_empty_collections_and_explicit_legacy_host_denial_never_fall_back() {
     let legacy = Action {
         label: "Legacy trap".into(),
@@ -714,6 +716,7 @@ fn tabs_are_manual_keep_persistent_regions_and_never_read_inactive_or_gated_bodi
 }
 
 #[test]
+#[allow(deprecated)] // Retain the original nested legacy form/header fixture.
 fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations() {
     let mut fields = vec![FormField {
         field_id: "name".into(),
@@ -824,6 +827,7 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
 }
 
 #[test]
+#[allow(deprecated)] // A stale legacy header must also remain gated.
 fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
     let mut descriptor = view(None);
     descriptor.slots.truncate(1);
@@ -845,6 +849,7 @@ fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
 }
 
 #[test]
+#[allow(deprecated)] // Exercise falsey gating with the old header envelope.
 fn falsey_scope_gates_block_reads_and_stale_actions_at_native_widths() {
     for width in [80, 140] {
         for value in [
@@ -954,6 +959,7 @@ fn descriptor_depth_node_and_label_limits_reject_before_mounting() {
 }
 
 #[test]
+#[allow(deprecated)] // Old header labels and reachability remain compatible.
 fn empty_views_keep_identity_and_header_actions_and_long_labels_are_reachable() {
     let mut descriptor = ViewDescriptor {
         id: "empty".into(),

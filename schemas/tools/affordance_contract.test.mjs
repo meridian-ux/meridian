@@ -3,12 +3,22 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { clone, createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { LEGACY_DEPRECATIONS } from "./affordance_migration_probe.mjs";
 
 const descriptors = fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
   "../../crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb", import.meta.url,
 )));
 const registry = createFileRegistry(descriptors);
 const schema = registry.getMessage("meridian.ui.v1.Affordance");
+
+test("every retained legacy invocation field is explicitly deprecated without removal", () => {
+  for (const [name, fields] of Object.entries(LEGACY_DEPRECATIONS)) for (const fieldName of fields) {
+    const message = registry.getMessage(`meridian.ui.v1.${name}`);
+    const field = message.fields.find(field => field.name === fieldName);
+    assert(field, `legacy field removed before the approved cutover: ${name}.${fieldName}`);
+    assert.equal(field.proto.options?.deprecated, true, `${name}.${fieldName}`);
+  }
+});
 
 test("candidate Affordance preserves existing types and tags with explicit relocated ownership", () => {
   assert.equal(schema.file.proto.name, "proto/interaction.proto");

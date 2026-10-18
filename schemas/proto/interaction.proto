@@ -52,7 +52,7 @@ message Affordance {
   }
   // Prominence hint. The renderer maps it to its own weighting (web = contained
   // vs outlined button, tui = highlighted vs plain keybinding).
-  AffordanceStyle style = 7 [(google.api.field_behavior) = OPTIONAL];
+  AffordanceStyle style = 7 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
   // Semantic color, independent of prominence and invocation authority. Absent
   // retains legacy styling; present unspecified/unknown selects neutral.
   optional Tone tone = 8 [(google.api.field_behavior) = OPTIONAL];
@@ -178,16 +178,16 @@ message Command {
   oneof action {
     // Fire an RPC directly through the host's RpcInvoker (e.g. delete, export,
     // re-run). Same primitive as ViewDescriptor.Action.call.
-    RpcCall rpc = 8;
+    RpcCall rpc = 8 [deprecated = true];
     // Open a panel in a focused step (a create/edit FormPanel, a confirm
     // PromptPanel, a wizard). The host renders it through its ComponentKit /
     // PanelRenderer, then returns to the palette or dismisses.
-    OpenPanel open_panel = 9;
+    OpenPanel open_panel = 9 [deprecated = true];
     // Navigate to a ViewDescriptor (view.proto) by id — the same target a
     // NavNode leaf uses.
-    string open_view_id = 10;
+    string open_view_id = 10 [deprecated = true];
     // Navigate to a raw route/href the host resolves (its router / hrefResolver).
-    Navigate navigate = 11;
+    Navigate navigate = 11 [deprecated = true];
   }
   Affordance affordance = 12;
 }
@@ -445,7 +445,7 @@ message FormPanel {
   FormMode mode = 2 [(google.api.field_behavior) = OPTIONAL];
   // Save RPC fired on submit. Meaningful in EDIT mode; READONLY
   // panels are populated via the slot/panel fetch and set no submit.
-  RpcCall submit = 3 [(google.api.field_behavior) = OPTIONAL];
+  RpcCall submit = 3 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
   // Singular noun for labels / empty states (e.g. "product").
   string item_noun = 4 [(google.api.field_behavior) = OPTIONAL];
   // Optional RPC that returns the initial field values for an EDIT form.
@@ -542,7 +542,7 @@ message TablePanel {
   repeated TableColumn columns = 5 [(google.api.field_behavior) = REQUIRED];
   // Actions exposed on the selected row (typically rendered as
   // buttons above the table).
-  repeated RowAction actions = 6 [(google.api.field_behavior) = OPTIONAL];
+  repeated RowAction actions = 6 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
   // How the table pages. Absent ⇒ CLIENT (paginate the fetched rows in
   // the renderer) — backward compatible with pre-0.3.0 descriptors.
   Pagination pagination = 7 [(google.api.field_behavior) = OPTIONAL];
@@ -682,7 +682,7 @@ message ViewDescriptor {
   // The slots (panels + placement), in `position` order.
   repeated Slot slots = 7 [(google.api.field_behavior) = REQUIRED];
   // View-level (header) actions.
-  repeated Action actions = 8 [(google.api.field_behavior) = OPTIONAL];
+  repeated Action actions = 8 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
   // For a DETAIL view: the id of the record this view is about. Detail panels
   // (detail_header / record_card) bind it into their `populate` request so the
   // renderer fetches the right record. Empty on LIST / non-entity views.
@@ -738,7 +738,7 @@ message Slot {
   // nested view (`sub_view`); exactly one of `panel` / `sub_view` is set.
   PanelDescriptor panel = 6 [(google.api.field_behavior) = OPTIONAL];
   // Slot-level (row) actions.
-  repeated Action actions = 7 [(google.api.field_behavior) = OPTIONAL];
+  repeated Action actions = 7 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
   // A NESTED view rendered in this slot instead of a panel — meridian's
   // composition primitive: a slot may embed a whole ViewDescriptor (its own
   // layout + slots + panels), which the renderer draws recursively. Each nested

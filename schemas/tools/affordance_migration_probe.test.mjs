@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { componentContaining, assertAvailableFields, assertCandidateDeclarations, verifyLegacyConsumerSource } from "./affordance_migration_probe.mjs";
+import { componentContaining, assertAvailableFields, assertCandidateDeclarations, verifyLegacyConsumerSource, LEGACY_DEPRECATIONS } from "./affordance_migration_probe.mjs";
 import { readFileSync } from "node:fs";
 import { clone, create } from "@bufbuild/protobuf";
-import { DescriptorProtoSchema } from "@bufbuild/protobuf/wkt";
+import { DescriptorProtoSchema, FieldOptionsSchema } from "@bufbuild/protobuf/wkt";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { loadImage, REFERENCES } from "./compatibility_line.mjs";
 
@@ -39,6 +39,27 @@ test("canonical phase cannot omit a frozen conformance declaration", () => {
   assert(conformance, "frozen full-module input must include conformance declarations");
   conformance.messageType.pop();
   assert.throws(() => assertCandidateDeclarations(previous, candidate), /disappeared/);
+});
+
+test("only the nine explicit legacy deprecation bits may change old declaration options", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  const messages = candidate.file.find(file => file.name === "proto/interaction.proto").messageType;
+  assert.equal(Object.values(LEGACY_DEPRECATIONS).flat().length, 9);
+  for (const [name, fields] of Object.entries(LEGACY_DEPRECATIONS)) for (const fieldName of fields) {
+    const field = messages.find(message => message.name === name).field.find(field => field.name === fieldName);
+    field.options ??= create(FieldOptionsSchema);
+    field.options.deprecated = true;
+  }
+  assert.doesNotThrow(() => assertCandidateDeclarations(previous, candidate));
+  const affordance = messages.find(message => message.name === "Affordance");
+  const label = affordance.field.find(field => field.name === "label");
+  label.options ??= create(FieldOptionsSchema); label.options.deprecated = true;
+  assert.throws(() => assertCandidateDeclarations(previous, candidate));
+  delete label.options.deprecated;
+  const style = affordance.field.find(field => field.name === "style");
+  style.options.lazy = true;
+  assert.throws(() => assertCandidateDeclarations(previous, candidate));
 });
 
 test("candidate allocations reject occupied/reserved names and tags, including duplicate proposals", () => {

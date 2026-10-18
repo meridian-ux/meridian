@@ -25,6 +25,7 @@ fn read() -> RpcCall {
         ..Default::default()
     }
 }
+#[allow(deprecated)] // Legacy row fixture; canonical tests override as a unit.
 fn table() -> PanelDescriptor {
     PanelDescriptor {
         title: "Records".into(),
@@ -397,6 +398,7 @@ fn empty_canonical_missing_subject_capability_and_intent_never_use_ambient_fallb
 }
 
 #[test]
+#[allow(deprecated)] // Deliberately verifies the retained old row contract.
 fn legacy_row_predicate_is_current_and_requests_never_invent_an_id_binding() {
     let mut panel = table();
     let table = table_mut(&mut panel);
@@ -984,6 +986,7 @@ fn resource_window_keeps_the_active_card_visible_and_shortcuts_use_filtered_orde
 }
 
 #[test]
+#[allow(deprecated)] // Legacy refresh behavior remains tested during 0.x.
 fn refresh_failure_never_replays_completed_rows_and_transport_retry_is_sanitized() {
     let mut panel = table();
     let table = table_mut(&mut panel);
