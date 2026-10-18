@@ -26,5 +26,5 @@ Typed value: 1:45 PM UTC   [c] copy
 │                  ││                                                                          │
 │                  ││                                                                          │
 │                  ││                                                                          │
-└──────────────────┘└──────────────────────────────────────────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→ action · Enter
 end viewport

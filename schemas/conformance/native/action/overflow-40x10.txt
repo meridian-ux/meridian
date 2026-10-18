@@ -8,5 +8,5 @@ action · overflow
 │it to Cursor.One click adds it to     │
 │Cursor.One click adds it to Cursor.One│
 │click adds it to Cursor.One click adds│
-└──────────────────────────────────────┘
+[1/1]  ↵ Add to Cursor  cursor://anysphe
 end viewport

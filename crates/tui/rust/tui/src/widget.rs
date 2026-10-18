@@ -929,7 +929,7 @@ impl PanelView {
             }
             Some(Body::ConnectFlow(panel)) => {
                 self.content_len = panel.targets.len();
-                content::render_connect_flow(
+                content::render_connect_flow_at_index(
                     frame,
                     content_area,
                     panel,

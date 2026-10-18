@@ -26,5 +26,5 @@ copy_value · typical
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→ action · Enter
 end viewport

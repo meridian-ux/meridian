@@ -8,5 +8,5 @@ can see it.
 The list of every employer your
 organization administers.
 The sponsors list
-↵ ↗ Open Sponsors  /sponsors  — Continue
+[1/1]  ↵ ↗ Open Sponsors  /sponsors  — C
 end viewport
