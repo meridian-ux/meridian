@@ -17,6 +17,21 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  invocationSettle: () => {},
+  invocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.calls = "0"; container.dataset.aborted = "false";
+    controls.invocationSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+        label: "Admitted copy", description: "Typed host capability", invoke: { case: "copy", value: "raw/literal" },
+      } } } }), invoker: { invoke: async () => { throw Error("No RPC in this fixture"); } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_value, _context, signal) => {
+        container.dataset.calls = String(Number(container.dataset.calls) + 1);
+        signal.addEventListener("abort", () => { container.dataset.aborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.invocationSettle = resolve; });
+      } } },
+    });
+  },
   viewCalls: [] as string[],
   viewLayout: (mode: "tabbed" | "twoColumn") => {
     controls.viewCalls.length = 0;
@@ -34,6 +49,7 @@ const controls = {
   },
   toneCases,
   affordance: (tone?: number, emphasis?: number, denied = false) => {
+    root().dataset.destination = "";
     applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());
     return renderPanel({ root: root(), wasm, context,
     descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
@@ -41,6 +57,7 @@ const controls = {
       invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
     } } } }),
     invoker: { invoke: async () => { throw new Error("Presentation cannot invoke an RPC"); } },
+    invocation: { admit: () => true, capabilities: { uri: async uri => { root().dataset.destination = uri; } } },
     });
   },
   conversationTone: (tone?: number, state: 0 | 1 | 2 = 2) => {

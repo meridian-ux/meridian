@@ -83,6 +83,31 @@ the same monorepo during development and pinned together in npm artifacts.
 
 ## Composed views
 
+### Authored invocation controls
+
+`renderPanel`, `renderView`, and `webComponentsRenderer.mount` accept the same
+explicit `invocation` capabilities/policy seam. ActionPanel and nested canonical
+affordances, plus normalized view-header and slot controls, use the shared
+seven-target dispatcher and actual Rust binding builder. A present canonical
+collection wins whole, including empty; legacy no-call semantic actions require
+a pure resolver. No URI anchor, command-to-clipboard, or old callback fallback
+grants permission. Register URI/command/navigation/panel/view/copy capabilities
+and an explicit target policy; RPC still requires mutation admission.
+
+Native buttons retain description/icon/tone/emphasis, linked sanitized feedback,
+pending/cancel behavior and focus return. Current owned context/policy/targets
+are rechecked at activation and around asynchronous confirmation/effects;
+replacement, inactive-tab disposal, and unmount suppress obsolete completion.
+Cancellation is best effort, not rollback, and duplicate activation stays guarded
+until the current host effect settles. Refresh failure is distinct from effect
+failure and never automatically replays a successful action. Rerender/update
+the mount to repaint changed host/descriptor inputs.
+
+These controls accept bounded own-data JSON context, reject getters/cycles and
+oversized snapshots before host work, and include header/slot actions in the
+existing composition ceiling. This does not complete form, row/resource action,
+or other renderer/modality adoption; those legacy workflows remain separate.
+
 `renderView` partitions `header_row` slots into the view header in every layout.
 Body slots retain stable `position` order. In tabbed layouts, only nonempty
 `tab_label` slots become tabs, ordered by `tab_position` with stable position

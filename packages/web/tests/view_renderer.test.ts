@@ -235,10 +235,12 @@ describe("renderView tab keyboard navigation", () => {
 });
 
 describe("renderView admission", () => {
-  it.each(["view", "slot"])("passes %s action bindings and current context through the WASM request seam", async (location) => {
+  it.each(["view", "slot"])("passes %s action bindings and current context through actual Rust, not the host builder", async (location) => {
     const root = document.createElement("div");
     const call = create(RpcCallSchema, { service: "demo.Items", method: "Save", bindings: [
       { requestField: "kind", source: { case: "literal", value: "item" } },
+      { requestField: "enabled", source: { case: "formField", value: "enabled" } },
+      { requestField: "count", source: { case: "formField", value: "count" } },
       { requestField: "record", source: { case: "nested", value: { fields: [
         { requestField: "id", source: { case: "rowField", value: "id" } },
       ] } } },
@@ -257,7 +259,7 @@ describe("renderView admission", () => {
         ? { actions: [action] } : { slots: [{ id: "details", actions: [action] }] }),
     });
     root.querySelector("button")!.click();
-    await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("offline"));
+    await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context."));
     current.selectedRow = { id: "second" };
     root.querySelector("button")!.click();
     await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
@@ -265,7 +267,7 @@ describe("renderView admission", () => {
       { kind: "item", record: { id: "first" }, enabled: false, count: 0 },
       { kind: "item", record: { id: "second" }, enabled: false, count: 0 },
     ]);
-    expect(buildRequest).toHaveBeenCalledTimes(2);
+    expect(buildRequest).not.toHaveBeenCalled();
   });
 
   it("denies bound actions before request building or transport", async () => {
@@ -292,13 +294,14 @@ describe("renderView admission", () => {
     const button = root.querySelector("button")!;
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(root.querySelector('[role="alert"]')?.textContent).toBe("<b>offline</b>");
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
+    expect(button.dataset.error).toBeUndefined();
     expect(root.querySelector("b")).toBeNull();
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(calls).toEqual([["demo.Items", "Save", {}], ["demo.Items", "Save", {}]]);
     expect(root.querySelector('[role="alert"]')).toBeNull();
-    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Action completed.");
   });
   it("gates view-level call actions as mutations", async () => {
     const root = document.createElement("div");
@@ -330,7 +333,8 @@ describe("renderView admission", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(calls).toEqual([]);
-    expect(button.dataset.error).toMatch(/admission\.mutations/);
+    expect(button.dataset.error).toBeUndefined();
+    expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/Action denied/);
   });
 
   it("forwards a view action only when its method is explicitly allowed", async () => {

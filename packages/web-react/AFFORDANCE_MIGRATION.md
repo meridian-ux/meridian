@@ -143,7 +143,7 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-Web-components and chat/TUI adoption
+Remaining web-components forms/row/resource actions and chat/TUI adoption
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -211,3 +211,19 @@ replacement withdraws obsolete agent results; bounded owned agent descriptors
 share the aggregate control ceiling. Native keyboard controls, linked sanitized
 feedback, cancellation, focus return, and the palette-wide guard survive query
 replacement and close/reopen through noncooperative settlement.
+
+## Web-components authored controls
+
+The imperative-DOM renderer now forwards explicit invocation capabilities through
+the public mount and uses the shared dispatcher for ActionPanel/nested canonical
+affordances and normalized view/slot controls. Canonical collection presence
+wins whole; no-call legacy actions require pure semantic resolution. All seven
+targets, Rust RPC bindings, safe destinations, mutation admission, bounded owned
+current snapshots, cancellation, focus return, stale suppression, and distinct
+refresh failure use this path. It has no URI-anchor, clipboard or legacy fallback.
+
+Panel/view/slot disposal withdraws controls and aborts observation. Header and
+slot controls count toward the existing composition ceiling. The DOM context
+adapter is runtime-only, not a new serialized DTO or request interpreter. Form,
+row/resource action and other modality adoption still need their own evidence;
+this slice does not complete renderer-wide acceptance or authorize cutover.

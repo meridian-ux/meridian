@@ -8,18 +8,18 @@
 import { toBinary } from "@bufbuild/protobuf";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type {
-  Action,
   Slot,
   ViewDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import {
   createAdmissionGate,
   type AdmissionGate,
+  normalizeViewActions,
   type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
 
 import { disposePanel, plainValue, renderPanel } from "./renderer.js";
-import { actionFeedback } from "./action_feedback.js";
+import { buildInvocationControl } from "./invocation_control.js";
 import type { RenderPanelOptions } from "./renderer.js";
 
 /**
@@ -45,14 +45,19 @@ export type RenderViewOptions = Omit<
 
 // Runtime ownership only: a disposed/hidden slot cannot finish mounting a live
 // resource or invoke a detached action. No transport state is serialized here.
-interface SlotSession { active: boolean; panels: Set<HTMLElement>; views: Set<HTMLElement> }
-interface ViewSession { active: boolean; slots: Set<SlotSession>; budget: { used: number }; cost: number; depth: number }
+interface SlotSession { active: boolean; panels: Set<HTMLElement>; views: Set<HTMLElement>; controls: Set<() => void> }
+interface ViewSession { active: boolean; slots: Set<SlotSession>; budget: { used: number }; cost: number; depth: number; controls: Set<() => void> }
+function ownViewCost(view: ViewDescriptor): number {
+  let cost = 1 + view.slots.length + (view.affordances?.items.length ?? view.actions.length);
+  for (const slot of view.slots) cost += slot.affordances?.items.length ?? slot.actions.length;
+  return cost;
+}
 const VIEWS = new WeakMap<HTMLElement, ViewSession>();
 const MAX_VIEW_NODES = 1000;
 function viewCost(view: ViewDescriptor, depth = 0, ancestors = new Set<ViewDescriptor>()): number {
   if (depth > 64 || ancestors.has(view) || view.slots.length > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
   ancestors.add(view);
-  let cost = 1 + view.slots.length;
+  let cost = ownViewCost(view);
   try {
     for (const slot of view.slots) {
       if (slot.subView) cost += viewCost(slot.subView, depth + 1, ancestors);
@@ -64,6 +69,7 @@ function viewCost(view: ViewDescriptor, depth = 0, ancestors = new Set<ViewDescr
 let nextViewId = 0;
 function disposeSlot(session: SlotSession): void {
   session.active = false;
+  for (const dispose of session.controls) dispose(); session.controls.clear();
   for (const view of session.views) disposeView(view);
   session.views.clear();
   for (const panel of session.panels) disposePanel(panel);
@@ -76,6 +82,7 @@ export function disposeView(root: HTMLElement): void {
   if (!session) return;
   VIEWS.delete(root);
   session.active = false;
+  for (const dispose of session.controls) dispose(); session.controls.clear();
   session.budget.used -= session.cost;
   for (const slot of session.slots) disposeSlot(slot);
   session.slots.clear();
@@ -106,15 +113,15 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
   disposeView(root);
   try {
     viewCost(view, depth);
-    if (budget.used + view.slots.length + 1 > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
+    if (budget.used + ownViewCost(view) > MAX_VIEW_NODES) throw new Error("View composition limit exceeded.");
   } catch (reason) {
     const error = document.createElement("p"); error.setAttribute("role", "alert");
     error.textContent = reason instanceof Error ? reason.message : String(reason);
     root.replaceChildren(error); return;
   }
-  const cost = view.slots.length + 1;
+  const cost = ownViewCost(view);
   budget.used += cost;
-  const session: ViewSession = { active: true, slots: new Set(), budget, cost, depth };
+  const session: ViewSession = { active: true, slots: new Set(), budget, cost, depth, controls: new Set() };
   VIEWS.set(root, session);
   root.innerHTML = "";
   root.classList.add("meridian-uiview-view");
@@ -125,7 +132,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
   title.className = "meridian-uiview-view-title";
   title.textContent = view.title;
   header.appendChild(title);
-  header.appendChild(buildActions(view.actions, mutationInvoker, gate, opts, () => session.active));
+  header.appendChild(buildActions(view, opts, () => session.active, dispose => session.controls.add(dispose)));
   root.appendChild(header);
 
   const sorted = [...view.slots].sort(
@@ -195,7 +202,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
         panel.hidden = i !== index;
         tabs.children[i].setAttribute("aria-selected", i === index ? "true" : "false");
       });
-      activeSlot = { active: true, panels: new Set(), views: new Set() };
+      activeSlot = { active: true, panels: new Set(), views: new Set(), controls: new Set() };
       await renderSlot(tabSections[index], ordered[index], opts, mutationInvoker, session, activeSlot);
     };
 
@@ -258,7 +265,7 @@ async function renderSlot(
   opts: RenderViewOptions,
   mutationInvoker: RpcInvoker,
   session: ViewSession,
-  mount: SlotSession = { active: true, panels: new Set(), views: new Set() },
+  mount: SlotSession = { active: true, panels: new Set(), views: new Set(), controls: new Set() },
 ): Promise<HTMLElement> {
   const section = document.createElement("section");
   const alive = () => session.active && mount.active;
@@ -372,36 +379,19 @@ async function renderSlot(
     if (!alive()) { disposePanel(panelRoot); return section; }
   }
 
-  if (slot.actions && slot.actions.length > 0) {
-    section.appendChild(buildActions(slot.actions, mutationInvoker, createAdmissionGate(opts.admission), opts, alive));
+  if ((slot.affordances?.items.length ?? slot.actions.length) > 0) {
+    section.appendChild(buildActions(slot, opts, alive, dispose => mount.controls.add(dispose)));
   }
   return section;
 }
 
 // Resolve declared bindings at activation so retries use the current host context.
-function buildActions(actions: Action[], invoker: RpcInvoker, gate: AdmissionGate, opts: RenderViewOptions, alive: () => boolean): HTMLElement {
+function buildActions(source: Pick<ViewDescriptor, "actions" | "affordances">, opts: RenderViewOptions, alive: () => boolean, onDispose: (dispose: () => void) => void): HTMLElement {
   const bar = document.createElement("div");
   bar.className = "meridian-uiview-actions";
-  for (const a of actions || []) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = a.label;
-    const feedback = actionFeedback(btn, !!a.call && gate.admits("mutation", a.call.service, a.call.method));
-    btn.onclick = () => {
-      if (!alive()) return;
-      if (a.call) {
-        void feedback.run(async () => {
-          const call = a.call!;
-          gate.check("mutation", call.service, call.method);
-          const request = call.bindings.length
-            ? plainValue(opts.wasm.buildRequest(toBinary(RpcCallSchema, call), opts.context)) as Record<string, unknown>
-            : {};
-          return invoker.invoke(call.service, call.method, request);
-        });
-      }
-    };
-    bar.appendChild(btn);
-    bar.appendChild(feedback.message);
+  for (const action of normalizeViewActions(source)) {
+    bar.appendChild(buildInvocationControl({ ...opts, action, alive, onDispose,
+      subject: { entityType: opts.view.subjectKind, entityId: opts.view.subjectId || undefined } }));
   }
   return bar;
 }
