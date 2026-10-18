@@ -4,11 +4,42 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest import mock
-from google.protobuf import json_format, text_format
-from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, classes, input_cases, input_index, declared_value_types, validate_value_coverage, main
+from google.protobuf import descriptor_pb2, descriptor_pool, json_format, message_factory, text_format
+from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, classes, input_cases, input_index, declared_value_types, rendered_value_arms, validate_value_coverage, main
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_open_panel_activation_does_not_make_current_action_content_a_value_display(self):
+        panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
+        affordance = panel.file.pool.FindMessageTypeByName("meridian.ui.v1.Affordance")
+        target = affordance.fields_by_name["open_panel"]
+        self.assertEqual(target.containing_oneof.name, "invoke")
+        self.assertEqual(target.message_type.full_name, panel.full_name)
+        self.assertTrue({"action", "catalog", "steps"}.isdisjoint(rendered_value_arms(panel)))
+        self.assertIn("table", rendered_value_arms(panel))
+
+    def test_new_real_affordance_display_field_still_fails_the_coverage_gate(self):
+        # Add an actual display field in memory only. A type-wide Affordance
+        # exclusion would incorrectly hide this future coverage requirement.
+        image = descriptor_pb2.FileDescriptorSet.FromString(
+            (ROOT / "crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb").read_bytes())
+        affordance = next(message for file in image.file for message in file.message_type
+                          if file.package == "meridian.ui.v1" and message.name == "Affordance")
+        affordance.field.add(name="test_only_display", number=500, label=1, type=11,
+                             type_name=".meridian.ui.v1.ValueDisplay")
+        pool = descriptor_pool.DescriptorPool()
+        for file in image.file:
+            pool.Add(file)
+        panel = pool.FindMessageTypeByName("meridian.ui.v1.PanelDescriptor")
+        self.assertTrue({"action", "catalog", "steps"} <= rendered_value_arms(panel))
+        current = classes()
+        updated = {**current, "meridian.ui.v1.PanelDescriptor": message_factory.GetMessageClass(panel)}
+        read = json.loads((ROOT / "schemas/conformance/value_types.json").read_text())
+        constrained = json.loads((ROOT / "schemas/conformance/constrained_value_types.json").read_text())
+        with mock.patch("tools.stateful_corpus.classes", return_value=updated):
+            with self.assertRaisesRegex(ValueError, "complete, non-overlapping typed fixture family"):
+                validate_value_coverage(read, constrained, input_cases())
+
     def test_recording_validates_before_writing_the_index_or_any_fixture(self):
         with mock.patch("sys.argv", ["stateful_corpus.py", "--write"]), \
                 mock.patch("tools.stateful_corpus.artifacts", side_effect=ValueError("incomplete family")), \
@@ -124,17 +155,8 @@ class StatefulCorpusTest(unittest.TestCase):
                     self.assertIs(type(raw), bool)
 
     def test_unrestricted_value_surface_list_matches_the_canonical_schema(self):
-        def carries_display(descriptor, seen):
-            if descriptor.full_name == "meridian.ui.v1.ValueDisplay":
-                return True
-            if descriptor.full_name in seen:
-                return False
-            seen = seen | {descriptor.full_name}
-            return any(field.message_type and carries_display(field.message_type, seen)
-                       for field in descriptor.fields)
         panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
-        declared = {field.name for field in panel.oneofs_by_name["body"].fields
-                    if carries_display(field.message_type, set())}
+        declared = rendered_value_arms(panel)
         # These surfaces have string/numeric-only payloads or form input/default
         # semantics. They require dedicated typed fixtures, not coerced copies of
         # the unrestricted fetched-value cases. Keep their remaining work explicit.

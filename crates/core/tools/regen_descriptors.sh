@@ -1,30 +1,39 @@
 #!/usr/bin/env bash
 # Regenerate rust/uiview/proto/gen/meridian_ui_v1.binpb — the cargo build's input.
 #
-# WHY A COMMITTED SET. Bazel gets its types from
-# `@meridian_schemas//proto:uiview_proto` through rust_prost_library. cargo has no
-# such edge: meridian-schemas is a different repository, so without a checked-in
-# descriptor set `cargo build` cannot work here at all — and, transitively,
-# meridian-tui cannot be built or run either. This is the same trade
-# meridian-proto makes (see its build.rs), for the same reason.
-#
-# THE SET MUST MATCH THE bazel_dep. If MODULE.bazel says meridian_schemas 0.24.0,
-# this must be generated from 0.24.0. If they disagree, cargo and Bazel generate
-# DIFFERENT Rust types from the same crate — which is precisely the class of bug
-# the estate has been fighting (see meridian-k8s, whose vendored copy drifted from
-# 0.5.0 while canonical moved on).
+# Bazel generates from //schemas/proto:uiview_proto; Cargo consumes a committed
+# image so native builds do not require Bazel. Keep these two source graphs in
+# agreement rather than assembling the image from a second hand-maintained list.
 #
 # Usage:
-#   tools/regen_descriptors.sh [path-to-meridian-schemas]
+#   crates/core/tools/regen_descriptors.sh [path-to-standalone-schemas]
 #
-# Needs protoc (any 33.x; the estate pins 33.4 in bazel/protoc_prebuilt.bzl) and
-# googleapis' field_behavior.proto. google/protobuf/struct.proto ships with protoc.
+# Default: Bazel, Node, and installed schema workspace dependencies.
+# Legacy standalone override: protoc and googleapis' field_behavior.proto.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"
 SCHEMAS="${1:-$REPO_ROOT/schemas}"
 OUT="$HERE/rust/uiview/proto/gen/meridian_ui_v1.binpb"
+
+# The monorepo default uses Bazel's actual source graph and dependency versions,
+# including its well-known types. No host protoc version or second file catalog.
+if [ "$#" -eq 0 ]; then
+  cd "$REPO_ROOT"
+  bazel build --announce_rc=false //schemas/proto:uiview_proto
+  DESCRIPTORS="$(bazel cquery --announce_rc=false 'deps(//schemas/proto:uiview_proto)' --output=files)"
+  INPUTS=()
+  while IFS= read -r entry; do
+    case "$entry" in
+      *-descriptor-set.proto.bin) INPUTS+=("$REPO_ROOT/$entry") ;;
+    esac
+  done <<< "$DESCRIPTORS"
+  [ "${#INPUTS[@]}" -gt 0 ] || { echo "Bazel returned no descriptor outputs" >&2; exit 1; }
+  cd "$REPO_ROOT/schemas"
+  node tools/merge_descriptor_sets.mjs --output "$OUT" "${INPUTS[@]}"
+  exit 0
+fi
 
 [ -d "$SCHEMAS/proto" ] || { echo "no proto/ under $SCHEMAS — pass the meridian-schemas checkout as \$1" >&2; exit 1; }
 

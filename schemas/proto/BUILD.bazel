@@ -111,6 +111,7 @@ proto_library(
         "form.proto",
         "gallery.proto",
         "grammar.proto",
+        "interaction.proto",
         "layout_service.proto",
         "llm_prompt.proto",
         "lro.proto",
