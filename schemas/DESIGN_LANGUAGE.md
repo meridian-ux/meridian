@@ -385,32 +385,32 @@ Generated from the current compiled proto sources; numbers are wire identities, 
 
 | Scope | Kind | Declared members |
 |---|---|---|
-| [`meridian.ui.v1.ActionPlacement`](proto/view.proto) | enum | `ACTION_PLACEMENT_UNSPECIFIED=0`, `ACTION_PLACEMENT_PRIMARY=1`, `ACTION_PLACEMENT_ROW=2`, `ACTION_PLACEMENT_HEADER=3`, `ACTION_PLACEMENT_OVERFLOW=4` |
+| [`meridian.ui.v1.ActionPlacement`](proto/interaction.proto) | enum | `ACTION_PLACEMENT_UNSPECIFIED=0`, `ACTION_PLACEMENT_PRIMARY=1`, `ACTION_PLACEMENT_ROW=2`, `ACTION_PLACEMENT_HEADER=3`, `ACTION_PLACEMENT_OVERFLOW=4` |
 | [`meridian.ui.v1.ActionStyle`](proto/resource_card.proto) | enum | `ACTION_STYLE_UNSPECIFIED=0`, `ACTION_STYLE_DEFAULT=1`, `ACTION_STYLE_PRIMARY=2`, `ACTION_STYLE_DANGER=3` |
-| [`meridian.ui.v1.Affordance.invoke`](proto/affordance.proto) | oneof | `uri=5`, `command=6` |
-| [`meridian.ui.v1.AffordanceStyle`](proto/affordance.proto) | enum | `AFFORDANCE_STYLE_UNSPECIFIED=0`, `AFFORDANCE_STYLE_PRIMARY=1`, `AFFORDANCE_STYLE_SECONDARY=2` |
+| [`meridian.ui.v1.Affordance.invoke`](proto/interaction.proto) | oneof | `uri=5`, `command=6`, `rpc=10`, `navigate=11`, `open_panel=12`, `open_view=13`, `copy=14` |
+| [`meridian.ui.v1.AffordanceStyle`](proto/interaction.proto) | enum | `AFFORDANCE_STYLE_UNSPECIFIED=0`, `AFFORDANCE_STYLE_PRIMARY=1`, `AFFORDANCE_STYLE_SECONDARY=2` |
 | [`meridian.ui.v1.Block.kind`](proto/conversation.proto) | oneof | `markdown=3`, `context=4`, `tool=5`, `list=6`, `fields=7`, `code=8`, `divider=9`, `table=10`, `view=11` |
 | [`meridian.ui.v1.Block.ToolBlock.State`](proto/conversation.proto) | enum | `RUNNING=0`, `OK=1`, `ERROR=2` |
-| [`meridian.ui.v1.CatalogStyle`](proto/catalog.proto) | enum | `CATALOG_STYLE_UNSPECIFIED=0`, `CATALOG_STYLE_GRID=1`, `CATALOG_STYLE_LIST=2` |
+| [`meridian.ui.v1.CatalogStyle`](proto/interaction.proto) | enum | `CATALOG_STYLE_UNSPECIFIED=0`, `CATALOG_STYLE_GRID=1`, `CATALOG_STYLE_LIST=2` |
 | [`meridian.ui.v1.ChartMark`](proto/chart.proto) | enum | `CHART_MARK_UNSPECIFIED=0`, `CHART_MARK_LINE=1`, `CHART_MARK_AREA=2`, `CHART_MARK_BAR=3`, `CHART_MARK_POINT=4`, `CHART_MARK_STAT=5` |
 | [`meridian.ui.v1.ChoiceStyle`](proto/choice.proto) | enum | `CHOICE_STYLE_UNSPECIFIED=0`, `CHOICE_STYLE_SEGMENTED=1`, `CHOICE_STYLE_LIST=2`, `CHOICE_STYLE_DROPDOWN=3` |
-| [`meridian.ui.v1.Column`](proto/view.proto) | enum | `COLUMN_UNSPECIFIED=0`, `COLUMN_MAIN=1`, `COLUMN_SIDEBAR=2` |
-| [`meridian.ui.v1.ColumnFormat`](proto/table.proto) | enum | `COLUMN_FORMAT_UNSPECIFIED=0`, `STRING=1`, `FLOAT_2DP=2`, `INTEGER=3`, `ENUM_NAME=4`, `STRING_LIST=5`, `TIMESTAMP=6` |
-| [`meridian.ui.v1.Command.action`](proto/command_palette.proto) | oneof | `rpc=8`, `open_panel=9`, `open_view_id=10`, `navigate=11` |
+| [`meridian.ui.v1.Column`](proto/interaction.proto) | enum | `COLUMN_UNSPECIFIED=0`, `COLUMN_MAIN=1`, `COLUMN_SIDEBAR=2` |
+| [`meridian.ui.v1.ColumnFormat`](proto/interaction.proto) | enum | `COLUMN_FORMAT_UNSPECIFIED=0`, `STRING=1`, `FLOAT_2DP=2`, `INTEGER=3`, `ENUM_NAME=4`, `STRING_LIST=5`, `TIMESTAMP=6` |
+| [`meridian.ui.v1.Command.action`](proto/interaction.proto) | oneof | `rpc=8`, `open_panel=9`, `open_view_id=10`, `navigate=11` |
 | [`meridian.ui.v1.ContextSource`](proto/rpc.proto) | enum | `CONTEXT_SOURCE_UNSPECIFIED=0`, `CURRENT_RESOURCE_PATH=1`, `UI_IDENTITY=2` |
 | [`meridian.ui.v1.ConversationEvent.event`](proto/conversation.proto) | oneof | `block=2`, `status=3`, `done=4`, `error=5` |
-| [`meridian.ui.v1.Emphasis`](proto/affordance.proto) | enum | `EMPHASIS_UNSPECIFIED=0`, `EMPHASIS_PRIMARY=1`, `EMPHASIS_SECONDARY=2` |
+| [`meridian.ui.v1.Emphasis`](proto/interaction.proto) | enum | `EMPHASIS_UNSPECIFIED=0`, `EMPHASIS_PRIMARY=1`, `EMPHASIS_SECONDARY=2` |
 | [`meridian.ui.v1.EncodingType`](proto/chart.proto) | enum | `ENCODING_TYPE_UNSPECIFIED=0`, `ENCODING_TYPE_TEMPORAL=1`, `ENCODING_TYPE_QUANTITATIVE=2`, `ENCODING_TYPE_NOMINAL=3`, `ENCODING_TYPE_ORDINAL=4` |
 | [`meridian.ui.v1.FieldBinding.source`](proto/rpc.proto) | oneof | `context=2`, `row_field=3`, `form_field=4`, `literal=5`, `nested=6`, `signal=7`, `selection_key=8` |
 | [`meridian.ui.v1.FollowMode`](proto/stream.proto) | enum | `FOLLOW_MODE_UNSPECIFIED=0`, `FOLLOW_MODE_FOLLOW=1`, `FOLLOW_MODE_MANUAL=2` |
 | [`meridian.ui.v1.FormField.kind`](proto/form.proto) | oneof | `integer=4`, `text=5`, `enum_selection=6`, `masked=7`, `boolean=9`, `number=10`, `nested=11`, `repeated=12`, `key_value_map=14` |
-| [`meridian.ui.v1.FormMode`](proto/panel.proto) | enum | `FORM_MODE_UNSPECIFIED=0`, `FORM_MODE_READONLY=1`, `FORM_MODE_EDIT=2` |
+| [`meridian.ui.v1.FormMode`](proto/interaction.proto) | enum | `FORM_MODE_UNSPECIFIED=0`, `FORM_MODE_READONLY=1`, `FORM_MODE_EDIT=2` |
 | [`meridian.ui.v1.GrammarLanguage`](proto/grammar.proto) | enum | `GRAMMAR_LANGUAGE_UNSPECIFIED=0`, `GRAMMAR_LANGUAGE_MARKDOWN=1`, `GRAMMAR_LANGUAGE_MERMAID=2`, `GRAMMAR_LANGUAGE_PLANTUML=3`, `GRAMMAR_LANGUAGE_GRAPHVIZ=4`, `GRAMMAR_LANGUAGE_VEGA_LITE=5`, `GRAMMAR_LANGUAGE_VEGA=6` |
-| [`meridian.ui.v1.Layout.mode`](proto/view.proto) | oneof | `list=1`, `stacked=2`, `tabbed=3`, `two_column=4` |
+| [`meridian.ui.v1.Layout.mode`](proto/interaction.proto) | oneof | `list=1`, `stacked=2`, `tabbed=3`, `two_column=4` |
 | [`meridian.ui.v1.MediaKind`](proto/media.proto) | enum | `MEDIA_KIND_UNSPECIFIED=0`, `MEDIA_KIND_VIDEO=1`, `MEDIA_KIND_AUDIO=2`, `MEDIA_KIND_IMAGE=3` |
 | [`meridian.ui.v1.NavNode.target`](proto/nav_tree.proto) | oneof | `panel_id=4`, `view_id=5`, `route=9` |
-| [`meridian.ui.v1.PaginationMode`](proto/table.proto) | enum | `PAGINATION_MODE_UNSPECIFIED=0`, `PAGINATION_MODE_CLIENT=1`, `PAGINATION_MODE_OFFSET=2`, `PAGINATION_MODE_CURSOR=3` |
-| [`meridian.ui.v1.PanelDescriptor.body`](proto/panel.proto) | oneof | `table=3`, `lro=4`, `adhoc=5`, `prompt=6`, `llm_prompt=7`, `gallery=8`, `form=9`, `choice=10`, `snippet=11`, `action=12`, `connect_flow=13`, `copy_value=14`, `catalog=15`, `terminal=16`, `grammar=17`, `stat=18`, `detail_header=19`, `record_card=20`, `steps=21`, `media=22`, `stream=23`, `resource_cards=24`, `chart=25` |
+| [`meridian.ui.v1.PaginationMode`](proto/interaction.proto) | enum | `PAGINATION_MODE_UNSPECIFIED=0`, `PAGINATION_MODE_CLIENT=1`, `PAGINATION_MODE_OFFSET=2`, `PAGINATION_MODE_CURSOR=3` |
+| [`meridian.ui.v1.PanelDescriptor.body`](proto/interaction.proto) | oneof | `table=3`, `lro=4`, `adhoc=5`, `prompt=6`, `llm_prompt=7`, `gallery=8`, `form=9`, `choice=10`, `snippet=11`, `action=12`, `connect_flow=13`, `copy_value=14`, `catalog=15`, `terminal=16`, `grammar=17`, `stat=18`, `detail_header=19`, `record_card=20`, `steps=21`, `media=22`, `stream=23`, `resource_cards=24`, `chart=25` |
 | [`meridian.ui.v1.PrincipalDisplay`](proto/value.proto) | enum | `PRINCIPAL_DISPLAY_UNSPECIFIED=0`, `PRINCIPAL_DISPLAY_NAME=1`, `PRINCIPAL_DISPLAY_EMAIL=2`, `PRINCIPAL_DISPLAY_NAME_WITH_EMAIL_TITLE=3` |
 | [`meridian.ui.v1.RepeatedField.element`](proto/form.proto) | oneof | `scalar=1`, `object=2` |
 | [`meridian.ui.v1.Status.State`](proto/conversation.proto) | enum | `STATE_UNSPECIFIED=0`, `IDLE=1`, `THINKING=2`, `WORKING=3` |
@@ -422,7 +422,7 @@ Generated from the current compiled proto sources; numbers are wire identities, 
 | [`meridian.ui.v1.ValueFormat`](proto/stat.proto) | enum | `VALUE_FORMAT_UNSPECIFIED=0`, `VALUE_FORMAT_NUMBER=1`, `VALUE_FORMAT_PERCENT=2`, `VALUE_FORMAT_CURRENCY=3`, `VALUE_FORMAT_COMPACT=4`, `VALUE_FORMAT_PLAIN=5` |
 | [`meridian.ui.v1.ValueTone`](proto/value.proto) | enum | `VALUE_TONE_UNSPECIFIED=0`, `VALUE_TONE_NEUTRAL=1`, `VALUE_TONE_INFO=2`, `VALUE_TONE_SUCCESS=3`, `VALUE_TONE_WARNING=4`, `VALUE_TONE_DANGER=5`, `VALUE_TONE_ACCENT=6` |
 | [`meridian.ui.v1.ValueType`](proto/value.proto) | enum | `VALUE_TYPE_UNSPECIFIED=0`, `VALUE_TYPE_TEXT=1`, `VALUE_TYPE_MULTILINE_TEXT=2`, `VALUE_TYPE_INTEGER=3`, `VALUE_TYPE_DECIMAL=4`, `VALUE_TYPE_BOOLEAN=5`, `VALUE_TYPE_ENUM=6`, `VALUE_TYPE_LIST=7`, `VALUE_TYPE_DATE=8`, `VALUE_TYPE_DATE_TIME=9`, `VALUE_TYPE_TIME=10`, `VALUE_TYPE_DURATION=11`, `VALUE_TYPE_PRINCIPAL=12`, `VALUE_TYPE_EMAIL=13`, `VALUE_TYPE_URL=14`, `VALUE_TYPE_IDENTIFIER=15`, `VALUE_TYPE_MONEY=16`, `VALUE_TYPE_PERCENT=17`, `VALUE_TYPE_JSON=18` |
-| [`meridian.ui.v1.ViewKind`](proto/view.proto) | enum | `VIEW_KIND_UNSPECIFIED=0`, `VIEW_KIND_LIST=1`, `VIEW_KIND_DETAIL=2` |
+| [`meridian.ui.v1.ViewKind`](proto/interaction.proto) | enum | `VIEW_KIND_UNSPECIFIED=0`, `VIEW_KIND_LIST=1`, `VIEW_KIND_DETAIL=2` |
 
 **27 enums and 11 explicit oneofs; 38 named-concept mappings.**
 <!-- vocabulary:end -->
