@@ -37,6 +37,7 @@ import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js
 import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import {
   PaginationMode,
   PaginationSchema,
@@ -51,7 +52,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, ViewRenderer, MeridianProvider, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer, MeridianProvider, MeridianViewContext, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";
@@ -896,6 +897,8 @@ declare global {
     };
     meridianPresentation: (tone?: number, emphasis?: number, denied?: boolean, kit?: "mui" | "html" | "shadcn") => Promise<void>;
     meridianToneCases: typeof toneCases;
+    meridianRowNavigation: (mode: "allow" | "deny" | "pending") => Promise<void>;
+    meridianRowNavigationSettle: () => void;
   }
 }
 
@@ -904,6 +907,34 @@ window.meridianHarness = {
   render,
 };
 window.meridianToneCases = toneCases;
+
+// Runtime-only browser interaction fixture. No router, legacy callback, or
+// capability permission is inferred from the existence of a clickable row.
+window.meridianRowNavigation = async mode => {
+  const container = document.getElementById("root")!;
+  if (!root) root = createRoot(container);
+  container.dataset.rowCalls = "0";
+  container.dataset.rowLegacy = "0";
+  container.dataset.rowAborted = "false";
+  window.meridianRowNavigationSettle = () => {};
+  const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: {
+    populate: { service: "demo.Rows", method: "List" }, rowsField: "items", columns: [{ header: "Name", fieldPath: "label" }],
+  } } });
+  root.render(createElement(MeridianMuiProvider, {
+    key: `row-navigation-${mode}`, invoker: { invoke: async () => ({ items: [{ id: 0, label: "Zero" }, { id: "raw", label: "Second" }] }) },
+    invocation: {
+      admit: () => mode !== "deny",
+      resolveSemantic: () => ({ affordance: create(AffordanceSchema, { invoke: { case: "navigate", value: { route: "/safe" } } }) }),
+      capabilities: { navigate: async (_target, _context, signal) => {
+        container.dataset.rowCalls = String(Number(container.dataset.rowCalls) + 1);
+        signal.addEventListener("abort", () => { container.dataset.rowAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { window.meridianRowNavigationSettle = resolve; });
+      } },
+    },
+    onAction: () => { container.dataset.rowLegacy = String(Number(container.dataset.rowLegacy) + 1); },
+  }, createElement(MeridianViewContext.Provider, { value: { subjectKind: "Records" } }, createElement(PanelRenderer, { descriptor }))));
+  await new Promise(resolve => setTimeout(resolve, 150));
+};
 
 window.meridianPresentation = async (tone?: number, emphasis?: number, denied = false, kit: "mui" | "html" | "shadcn" = "mui") => {
     const container = document.getElementById("root")!;

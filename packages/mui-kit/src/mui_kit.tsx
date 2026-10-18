@@ -12,6 +12,7 @@
 import { useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { create } from "@bufbuild/protobuf";
 import { MuiActionControl, NormalizedRowActionsMenu } from "./action_control.js";
+import { AdmittedNavigationRow } from "./row_navigation.js";
 import { MuiMountThemeBoundary } from "./theme_provider.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
@@ -40,7 +41,6 @@ import {
   MeridianNormalizedRowActionsContext,
   MeridianViewContext,
   PaginationMode,
-  useActionHandler,
   usePromptResponse,
   useRpcInvoker,
   useHrefResolver,
@@ -211,7 +211,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // and both sides of hydration agree — see use_display_now.ts.
   const nowMs = useDisplayNow();
   const { subjectKind } = useContext(MeridianViewContext);
-  const onAction = useActionHandler();
 
   const columns = useMemo<MeridianColumn<Row>[]>(
     () =>
@@ -305,16 +304,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
     onPageChange = (target) => (target > paged.page ? paged.goNext() : paged.goPrev());
   }
 
-  // Clicking a row opens the entity — the host resolves `(actionId, subject, id)`
-  // to the detail route (graph-backed rows carry `id`). Only when a subject + handler exist.
-  const onRowClick =
-    onAction && subjectKind
-      ? (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (id != null) onAction("open", subjectKind, id as string | number);
-        }
-      : undefined;
-
   // "Showing X of Y" only when Y is a real total (CLIENT counts the fetched set;
   // OFFSET and CURSOR read the op's totalCount). Without a total, show just the
   // current count — never a synthesized "of Y" (which would read as a real total).
@@ -359,7 +348,8 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
           }}
           renderRowActions={perRowActions.length > 0 ? row => <NormalizedRowActionsMenu actions={perRowActions}
             row={row} subjectKind={subjectKind} refresh={refresh} /> : undefined}
-          onRowClick={onRowClick}
+          rowHeader="Navigation"
+          renderRow={subjectKind ? (row, cells, key) => <AdmittedNavigationRow key={key} row={row} subjectKind={subjectKind}>{cells}</AdmittedNavigationRow> : undefined}
           sort={{ columnId: sort.columnId, direction: sort.direction, onToggle: toggleSort }}
           footer={footer}
           size="medium"

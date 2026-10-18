@@ -143,7 +143,7 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-Implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
+Web-components and chat/launchpad/TUI adoption
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -178,3 +178,19 @@ noncooperative capability settles, and context replacement/unmount suppresses
 late reset/status/refresh. Prompt and LRO callback/operation workflows remain
 separate and unchanged. The MUI form control slot is runtime React content,
 not a new serialized descriptor or permission bit.
+
+## Implicit MUI entity navigation
+
+MUI table row clicks now normalize the semantic `open` action with the current
+own scalar identifier and view subject, and use the same shared dispatcher as
+authored controls. Hosts must supply a pure semantic resolver, capability, and
+target policy; the old `onAction` callback is never a fallback. No subject means
+no invented entity navigation. Missing/invalid identifiers render visibly inert.
+
+A named native Open button gives each navigable row keyboard access without
+changing table semantics. Links, menus, and nested controls keep their gestures.
+Rows share the table's pending guard with authored actions, including through
+noncooperative cancellation. Linked sanitized outcomes, reachable cancellation,
+focus return, and committed context/unmount invalidation use the shared hook.
+The optional presenter row slot is runtime React content, not serialized intent
+or a permission grant. Its leading navigation cell matches the supplied header.

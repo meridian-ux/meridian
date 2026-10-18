@@ -79,6 +79,10 @@ export interface MeridianTableProps<T> {
   rowActions?: MeridianRowAction<T>[];
   /** Canonical renderer-owned controls; when supplied, never revive old callbacks. */
   renderRowActions?: (row: T) => ReactNode;
+  /** Runtime row slot, authoritative over old callbacks. Include the leading
+   * navigation cell matching rowHeader, followed by the supplied data cells. */
+  renderRow?: (row: T, cells: ReactNode, key: string | number) => ReactNode;
+  rowHeader?: ReactNode;
   /** Clicking a row (open the entity). Adds a pointer cursor + hover affordance. */
   onRowClick?: (row: T) => void;
   /** Host-controlled column sort. Absent ⇒ headers are plain (no sort). */
@@ -140,6 +144,8 @@ export function MeridianTable<T>({
   pagination,
   rowActions,
   renderRowActions,
+  renderRow,
+  rowHeader,
   onRowClick,
   sort,
   footer,
@@ -188,6 +194,7 @@ export function MeridianTable<T>({
         <Table size={size}>
           <TableHead>
             <TableRow>
+              {renderRow && <TableCell>{rowHeader}</TableCell>}
               {columns.map((column) => {
                 const active = sort?.columnId === column.id;
                 return (
@@ -210,13 +217,9 @@ export function MeridianTable<T>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row, index) => (
-              <TableRow
-                key={getRowKey ? getRowKey(row, index) : index}
-                hover
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                sx={onRowClick ? { cursor: "pointer" } : undefined}
-              >
+            {rows.map((row, index) => {
+              const key = getRowKey ? getRowKey(row, index) : index;
+              const cells = <>
                 {columns.map((column) => (
                   <TableCell key={column.id} align={column.align ?? "left"}>
                     {column.render(row)}
@@ -232,8 +235,11 @@ export function MeridianTable<T>({
                     {renderRowActions ? renderRowActions(row) : <RowActionsMenu row={row} actions={rowActions!} />}
                   </TableCell>
                 )}
-              </TableRow>
-            ))}
+              </>;
+              return renderRow ? renderRow(row, cells, key) : <TableRow key={key} hover
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                sx={onRowClick ? { cursor: "pointer" } : undefined}>{cells}</TableRow>;
+            })}
           </TableBody>
         </Table>
       </TableContainer>

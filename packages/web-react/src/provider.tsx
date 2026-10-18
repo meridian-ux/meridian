@@ -23,8 +23,8 @@ import type { ComponentKit } from "./component_kit.js";
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
 /**
- * Compatibility handler for interactions not yet migrated (such as implicit
- * row-click navigation). Authored no-call Action controls now use the pure
+ * Legacy host handler retained for source compatibility. Authored no-call
+ * Action controls and implicit MUI entity navigation now use the pure
  * invocation.resolveSemantic seam; this callback is never a canonical fallback.
  * Keep this surface during the compatibility window. Do not wrap an executing
  * callback as a pure resolver: that would act before admission/confirmation.
@@ -84,8 +84,8 @@ export interface MeridianContextValue {
   invocation?: InvocationHost;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
-  /** Compatibility hook for not-yet-migrated implicit interactions. Authored
-   * Action controls use invocation.resolveSemantic, never this fallback. */
+  /** Compatibility hook, not an action grant. Authored actions and implicit MUI
+   * entity navigation use invocation.resolveSemantic, never this fallback. */
   onAction?: MeridianActionHandler;
   /** Optional host glyph resolver for `icon` keys. Absent ⇒ no glyph drawn. */
   renderIcon?: MeridianIconResolver;
