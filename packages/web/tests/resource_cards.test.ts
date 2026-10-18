@@ -41,12 +41,12 @@ const descriptor = create(PanelDescriptorSchema, {
         meta: [{ label: "Region", fieldPath: "region", display: { type: ValueType.DATE } }],
         actions: {
           actions: [
-            { id: "resume", label: "Resume", visibleWhen: "phase==Suspended", invoke: { service: "workspace.Workspaces", method: "Resume" } },
+            { id: "resume", label: "Resume", visibleWhen: "phase==Suspended", invoke: { service: "workspace.Workspaces", method: "Resume", bindings: [{ requestField: "name", source: { case: "rowField", value: "name" } }] } },
             {
               id: "delete",
               label: "Delete",
               style: 3,
-              invoke: { service: "workspace.Workspaces", method: "Delete" },
+              invoke: { service: "workspace.Workspaces", method: "Delete", bindings: [{ requestField: "name", source: { case: "rowField", value: "name" } }] },
               confirm: { title: "Delete workspace?", message: "This cannot be undone.", confirmLabel: "Delete" },
             },
           ],
@@ -71,11 +71,12 @@ describe("ResourceCardPanel (web-components)", () => {
     const button = root.querySelector<HTMLButtonElement>(".mer-resource-action")!;
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Unavailable");
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
+    expect(root.textContent).not.toContain("Unavailable");
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(requests).toEqual([{ selected: { name: "Dev", phase: "Suspended" } }, { selected: { name: "Dev", phase: "Suspended" } }]);
-    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+    expect(requests).toEqual([{ name: "Dev" }, { name: "Dev" }]);
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Action completed.");
   });
   it("applies declared displays to resource-card title slots", async () => {
     const panel = create(PanelDescriptorSchema, {
@@ -205,7 +206,7 @@ describe("ResourceCardPanel (web-components)", () => {
     (confirm as HTMLButtonElement).click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(calls.map((call) => call.method)).toEqual(["List", "Delete"]);
-    expect((calls[1].request as { selected: { name: string } }).selected.name).toBe("Dev");
+    expect(calls[1].request).toEqual({ name: "Dev" });
   });
 
   it("does not forward a mutation when the host leaves admission at its secure default", async () => {
@@ -235,9 +236,9 @@ describe("ResourceCardPanel (web-components)", () => {
 
     expect(calls).toEqual(["List"]);
     expect(denials).toEqual([{ tier: "mutation", method: "Delete" }]);
-    expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/admission\.mutations/);
+    expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/Action denied/);
     expect(root.querySelector(".mer-resource-action-danger")?.getAttribute("data-error"))
-      .toMatch(/admission\.mutations/);
+      .toBeNull();
   });
 
   it("applies the host read allowlist before a populate reaches the invoker", async () => {

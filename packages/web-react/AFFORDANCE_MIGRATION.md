@@ -143,7 +143,8 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-Remaining web-components row/resource actions and chat/TUI adoption
+Web-components ordinary forms, table rows and resource-card RPCs now have
+focused migration candidates. Chat/TUI and complete renderer-wide acceptance
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -224,9 +225,9 @@ refresh failure use this path. It has no URI-anchor, clipboard or legacy fallbac
 
 Panel/view/slot disposal withdraws controls and aborts observation. Header and
 slot controls count toward the existing composition ceiling. The DOM context
-adapter is runtime-only, not a new serialized DTO or request interpreter. Form,
-row/resource action and other modality adoption still need their own evidence;
-this slice does not complete renderer-wide acceptance or authorize cutover.
+adapter is runtime-only, not a new serialized DTO or request interpreter. The
+form/table/resource slices below provide their own evidence; other modalities
+and complete renderer-wide acceptance remain separate and cutover-gated.
 
 ## Web-components ordinary form adoption
 
@@ -256,5 +257,24 @@ refresh, while legacy row behavior still refreshes and does not synthesize IDs.
 Panel-wide pending guards cover reentrant host callbacks and noncooperative
 cancellation. The origin and cancellation stay reachable, and changed rows or
 replacement scopes cannot own late feedback/refresh. Failed refresh retains the
-selected table and is distinct from a failed effect. Resource-card confirmation,
-other modalities and complete renderer-wide acceptance remain separate work.
+selected table and is distinct from a failed effect. Resource-card confirmation
+is covered below; other modalities and complete acceptance remain separate work.
+
+## Web-components resource-card adoption
+
+Existing ResourceAction RPCs now project into the common dispatcher, preserving
+visibility/styles and explicit bindings without inventing ID/refresh behavior.
+The shared snapshot has an optional runtime-only consent hook: admission comes
+first, then consent, then the same-scope check before actual Rust assembly and
+transport. It is not a serialized capability or grant. Other hosts that omit it
+keep their existing behavior, including their separate semantic-resolver consent.
+
+Resource confirmation owns a bounded protobuf ConfirmSpec snapshot, displays
+literal named/described text, focuses Cancel, cycles Tab/Shift+Tab and handles
+Escape. Per-card pending guards cover reentrant callbacks and noncooperative
+settlement. A changed row/context/policy/target/spec cannot execute old consent;
+complete declaration changes withdraw the old projection until remount (including
+removed/replaced target/confirmation objects). A no-longer-visible record cannot
+dispatch through a retained button. Disposal removes consent without stealing focus, and failures require fresh consent
+on retry. Late populate and effect completion cannot update replacement cards.
+Full chat/TUI/producer/deprecation adoption and cutover remain outstanding.

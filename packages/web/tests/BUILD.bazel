@@ -257,7 +257,7 @@ vitest_test(
 # and must be explicitly allowed by the host.
 vitest_test(
     name = "resource_cards",
-    srcs = ["resource_cards.test.ts"],
+    srcs = ["resource_cards.test.ts", "resource_admission.test.ts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
         "//packages/web:node_modules/@savvifi/meridian-proto-ts",

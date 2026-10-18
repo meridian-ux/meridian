@@ -11,11 +11,11 @@
 // whole messages to protobuf BINARY (`toBinary`) when calling the wasm — which
 // decodes them with prost. There is no JSON / snake_case DTO in between.
 
-import { toBinary } from "@bufbuild/protobuf";
+import { create, toBinary } from "@bufbuild/protobuf";
 import { buildFormField, buildInteractiveForm } from "./form.js";
 import { buildLlmPrompt, hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 import { buildPrompt } from "./prompt.js";
-import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { AffordanceSchema, type Affordance, type ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -23,7 +23,6 @@ import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_
 import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { actionFeedback } from "./action_feedback.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
@@ -34,6 +33,7 @@ import {
   ActionStyle,
   type ResourceCardPanel,
   type ResourceAction,
+  type ConfirmSpec,
 } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
@@ -1281,9 +1281,10 @@ async function renderResourceCards(
     ) as object;
     response = await opts.invoker.invoke(panel.populate.service, panel.populate.method, request);
   } catch (err) {
-    metaEl.textContent = `Failed: ${(err as Error).message}`;
+    if (ACTION_LIFETIMES.get(opts)?.()) metaEl.textContent = `Failed: ${(err as Error).message}`;
     return;
   }
+  if (!ACTION_LIFETIMES.get(opts)?.()) return;
 
   const rawRows = panel.rowsField ? readAt(response, panel.rowsField) : response;
   const rows = Array.isArray(rawRows) ? rawRows : [];
@@ -1340,9 +1341,14 @@ async function renderResourceCards(
     }
     if (panel.template.actions?.actions.length) {
       const actions = el("div", "mer-resource-card-actions");
+      const controls: ReturnType<typeof createInvocationControl>[] = [];
+      let pending = false;
       for (const action of panel.template.actions.actions) {
         if (!resourceActionVisible(action, row)) continue;
-        actions.appendChild(buildResourceAction(opts, action, row));
+        const control = buildResourceAction(opts, action, row, () => pending, value => {
+          pending = value; for (const item of controls) item.sync();
+        });
+        controls.push(control); actions.appendChild(control.element);
       }
       if (actions.childElementCount) card.appendChild(actions);
     }
@@ -1361,50 +1367,56 @@ function buildResourceAction(
   opts: PreparedRenderPanelOptions,
   action: ResourceAction,
   row: object,
-): HTMLElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `mer-resource-action mer-resource-action-${resourceActionStyle(action.style)}`;
-  button.textContent = action.label;
-  const feedback = actionFeedback(button, !!action.invoke && createAdmissionGate(opts.admission).admits("mutation", action.invoke.service, action.invoke.method));
-  button.onclick = () => {
-    if (!action.invoke) return;
-    const run = async () => {
-      const request = opts.wasm.buildRequest(
-        toBinary(RpcCallSchema, action.invoke!),
-        { ...opts.context, selectedRow: row },
-      );
-      await (opts.mutationInvoker ?? opts.invoker).invoke(
-        action.invoke!.service,
-        action.invoke!.method,
-        request,
-      );
+  blocked: () => boolean,
+  onPending: (pending: boolean) => void,
+): ReturnType<typeof createInvocationControl> {
+  const control = createInvocationControl({ ...opts, declaration: action,
+    action: normalizeAffordance(create(AffordanceSchema, { id: action.id, label: action.label,
+      invoke: action.invoke ? { case: "rpc", value: action.invoke } : undefined })),
+    invoker: ACTION_INVOKERS.get(opts) ?? opts.invoker,
+    readRecord: () => resourceActionVisible(action, row) ? row : null,
+    alive: ACTION_LIFETIMES.get(opts) ?? (() => false), onDispose: dispose => onDispose(opts.root, dispose),
+    blocked, onPending,
+    confirmation: action.confirm ? { spec: action.confirm,
+      present: (spec, _context, signal) => resourceConfirmation(control.element, control.button, spec, signal) } : undefined,
+  });
+  control.button.classList.add("mer-resource-action", `mer-resource-action-${resourceActionStyle(action.style)}`);
+  control.element.classList.add("mer-resource-action-feedback");
+  return control;
+}
+
+let nextResourceConfirmation = 0;
+function resourceConfirmation(host: HTMLElement, origin: HTMLButtonElement, spec: ConfirmSpec, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return Promise.resolve(false);
+  return new Promise(resolve => {
+    const prompt = el("div", "mer-resource-confirm"); prompt.setAttribute("role", "alertdialog");
+    const id = `mer-resource-confirm-${++nextResourceConfirmation}`;
+    const title = el("strong", "mer-resource-confirm-title", spec.title); title.id = `${id}-title`;
+    const message = el("p", "mer-resource-confirm-message", spec.message); message.id = `${id}-message`;
+    prompt.setAttribute("aria-labelledby", title.id); prompt.setAttribute("aria-describedby", message.id); prompt.append(title, message);
+    let settled = false;
+    const finish = (accepted: boolean) => {
+      if (settled) return; settled = true;
+      const restore = !signal.aborted && prompt.contains(document.activeElement) && origin.isConnected;
+      signal.removeEventListener("abort", aborted); prompt.remove();
+      if (restore) origin.focus(); resolve(accepted);
     };
-    const attempt = () => {
-      void feedback.run(run);
-    };
-    if (!action.confirm || button.getAttribute("aria-disabled") === "true") {
-      attempt();
-      return;
-    }
-    const prompt = el("div", "mer-resource-confirm");
-    prompt.setAttribute("role", "alertdialog");
-    prompt.appendChild(el("strong", "mer-resource-confirm-title", action.confirm.title));
-    prompt.appendChild(el("p", "mer-resource-confirm-message", action.confirm.message));
+    const aborted = () => finish(false);
     const confirm = document.createElement("button");
     confirm.type = "button";
-    confirm.textContent = action.confirm.confirmLabel || "Confirm";
-    confirm.onclick = () => { prompt.remove(); attempt(); };
+    confirm.textContent = spec.confirmLabel || "Confirm";
+    confirm.onclick = () => finish(true);
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.textContent = "Cancel";
-    cancel.onclick = () => prompt.remove();
+    cancel.onclick = () => finish(false);
+    prompt.addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); finish(false); }
+      if (event.key === "Tab") { event.preventDefault(); (document.activeElement === confirm ? cancel : confirm).focus(); }
+    });
     prompt.append(confirm, cancel);
-    button.parentElement?.appendChild(prompt);
-  };
-  const wrapper = el("span", "mer-resource-action-feedback");
-  wrapper.append(button, feedback.message);
-  return wrapper;
+    signal.addEventListener("abort", aborted, { once: true }); host.appendChild(prompt); cancel.focus();
+  });
 }
 
 function resourceActionStyle(style: ActionStyle): "default" | "primary" | "danger" {
