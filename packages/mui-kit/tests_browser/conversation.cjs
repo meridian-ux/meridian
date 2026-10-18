@@ -9,7 +9,7 @@ const cases = toJson(StructSchema, fromBinary(StructSchema, fs.readFileSync(path
 const bytes = (name, kind) => [...fs.readFileSync(path.join(directory, `${name}.${kind}.binpb`))];
 
 async function main() {
-  const clients = new Set(); let turns = 0;
+  const clients = new Set(); let turns = 0, mounts = 0, unifiedMounts = 0;
   const bundle = fs.readFileSync(path.resolve(process.argv[3]), "utf8");
   const css = fs.readFileSync(path.resolve(process.argv[4]), "utf8");
   const server = http.createServer((request, response) => {
@@ -41,17 +41,26 @@ async function main() {
     const errors = []; page.on("pageerror", error => errors.push(error.message));
     await page.route(/^https?:\/\//, route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     await page.goto(origin); await page.waitForFunction(() => !!window.conversationConformance);
+    await page.evaluate(() => {
+      window.fixtureClipboardWrites = [];
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async text => { window.fixtureClipboardWrites.push(text); } } });
+    });
     const emit = async (name, seq, id) => {
       const frame = await page.evaluate(({ view, seq, id }) => window.conversationConformance.frame(view, seq, id), { view: bytes(name, "view"), seq: String(seq), id });
       assert.equal(clients.size, 1);
       for (const client of clients) client.write(`data: ${frame}\n\n`);
     };
-    const mount = async (kit, fixture, allowExport = false, holdReads = false) => {
+    const emitCanonical = async (kind, seq, replacement = false) => {
+      const frame = await page.evaluate(({ kind, seq, replacement }) => window.conversationConformance.canonicalFrame(kind, seq, replacement), { kind, seq: String(seq), replacement });
+      assert.equal(clients.size, 1); for (const client of clients) client.write(`data: ${frame}\n\n`);
+    };
+    const mount = async (kit, fixture, allowExport = false, holdReads = false, unifiedMode) => {
       await page.evaluate(() => window.conversationConformance.dispose()); await waitClients(0);
-      await page.evaluate(({ kit, context, responses, allowExport, holdReads }) => window.conversationConformance.mount(kit, context, responses, allowExport, holdReads), {
-        kit, context: bytes(fixture.name, "context"), responses: bytes(fixture.name, "responses"), allowExport, holdReads,
+      await page.evaluate(({ kit, context, responses, allowExport, holdReads, unifiedMode }) => window.conversationConformance.mount(kit, context, responses, allowExport, holdReads, unifiedMode), {
+        kit, context: bytes(fixture.name, "context"), responses: bytes(fixture.name, "responses"), allowExport, holdReads, unifiedMode,
       });
       await waitClients(1);
+      mounts++; if (unifiedMode) unifiedMounts++;
     };
     for (const kit of ["html", "shadcn", "mui-kit"]) {
       for (const fixture of cases) for (const width of [1100, 320]) {
@@ -118,12 +127,74 @@ async function main() {
       assert.equal(await page.getByText("Fetched scoped", { exact: true }).count(), 0);
       assert.equal(await page.getByText("Shared nested root", { exact: true }).count(), 2);
       assert.deepEqual(await page.evaluate(() => window.conversationConformance.calls()), ["fixture.Layout.Scoped"]);
-      console.log(`${kit}: 28 real HTTP/SSE rich-host mounts, upserts/replay, denied/admitted actions, and late-read isolation verified`);
+      const originButton = () => page.getByRole("button", { name: "Unified action", exact: true });
+      for (const kind of ["rpc", "uri", "command", "navigate", "openPanel", "openView", "copy"]) for (const allow of [false, true]) {
+        await mount(kit, stacked, false, false, allow ? "allow" : "deny"); await emitCanonical(kind, 1); const action = originButton(); await action.waitFor();
+        assert.equal(await page.getByRole("button", { name: "Legacy trap", exact: true }).count(), 0, "canonical collection must suppress legacy actions");
+        assert.deepEqual(await page.evaluate(() => window.conversationConformance.effects()), [], "SSE/render must not invoke");
+        await action.focus(); assert.deepEqual(await page.evaluate(() => window.conversationConformance.effects()), [], "focus must not invoke"); await page.keyboard.press("Enter");
+        if (!allow) {
+          await page.getByText(/Action denied/).waitFor(); assert.deepEqual(await page.evaluate(() => window.conversationConformance.effects()), []);
+          assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 0);
+        } else {
+          await page.getByText("Action completed.", { exact: true }).waitFor(); const events = await page.evaluate(() => window.conversationConformance.effects());
+          assert.equal(events.length, 1); assert.equal(events[0].kind, kind); assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 1);
+          if (kind === "rpc") assert.deepEqual(events[0].target, { service: "fixture.Chat", method: "Get", request: { id: 0, flag: false, name: "raw/e\u0301" } });
+          else {
+            assert.deepEqual(events[0].context.selectedRow, { id: 0, flag: false }); assert.deepEqual(events[0].context.formValues, { name: "raw/e\u0301" }); assert.equal(events[0].context.currentResourcePath, "chat/raw");
+            if (kind === "uri") assert.equal(events[0].target, "/chat/raw");
+            if (kind === "command") assert.equal(events[0].target, "literal command, not clipboard");
+            if (kind === "navigate") assert.equal(events[0].target.route, "/chat/raw");
+            if (kind === "openPanel") { assert.equal(events[0].target.panelId, "chat-panel"); assert.equal(await page.getByText("Inline panel", { exact: true }).count(), 0, "a logging capability must not implicitly mount a panel"); }
+            if (kind === "openView") assert.equal(events[0].target, "chat-view"); if (kind === "copy") assert.equal(events[0].target, "first/e\u0301");
+          }
+        }
+        assert.deepEqual(await page.evaluate(() => window.conversationConformance.calls()), [], "no legacy/default transport fallback");
+      }
+      for (const kind of ["uri", "command", "navigate", "openPanel", "openView", "copy"]) {
+        await mount(kit, stacked, false, false, "missing"); await emitCanonical(kind, 1); await originButton().focus(); await page.keyboard.press("Space");
+        await page.getByText(/Action denied/).waitFor(); assert.deepEqual(await page.evaluate(() => window.conversationConformance.effects()), []);
+        assert.deepEqual(await page.evaluate(() => window.conversationConformance.calls()), []);
+      }
+      for (const kind of ["empty", "empty-target", "unsafe"]) {
+        await mount(kit, stacked, false, false, "allow"); await emitCanonical(kind, 1); await page.getByText("Unified chat view", { exact: true }).waitFor();
+        assert.equal(await page.getByRole("button", { name: "Legacy trap", exact: true }).count(), 0);
+        if (kind === "empty") assert.equal(await originButton().count(), 0);
+        else {
+          const action = originButton(); await action.waitFor();
+          assert.equal(await action.isDisabled(), true); assert.ok(await action.getAttribute("aria-describedby"), "unavailable action must link its explanation");
+          if (kind === "unsafe") assert.match(await page.locator("#root").innerText(), /unsafe or missing/i);
+          else await page.getByText(/Action unavailable/).waitFor();
+        }
+        assert.deepEqual(await page.evaluate(() => window.conversationConformance.effects()), []); assert.deepEqual(await page.evaluate(() => window.conversationConformance.calls()), []);
+      }
+      await mount(kit, stacked, false, false, "fail"); await emitCanonical("copy", 1); await originButton().focus(); await page.keyboard.press("Enter");
+      await page.getByText(/Action failed/).waitFor(); assert.doesNotMatch(await page.locator("#root").innerText(), /private chat fixture failure/);
+      assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 0); await originButton().focus(); await page.keyboard.press("Space"); await page.getByText("Action completed.", { exact: true }).waitFor();
+      assert.equal((await page.evaluate(() => window.conversationConformance.effects())).length, 2); assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 1);
+
+      await mount(kit, stacked, false, false, "pending"); await emitCanonical("copy", 1); await originButton().focus(); await page.keyboard.press("Enter");
+      await page.waitForFunction(() => window.conversationConformance.effects().length === 1);
+      await emitCanonical("copy", 2, true); await page.getByText("Replacement chat view", { exact: true }).waitFor();
+      await page.waitForFunction(() => window.conversationConformance.aborted()[0] === true); await originButton().focus(); await page.keyboard.press("Enter");
+      assert.equal((await page.evaluate(() => window.conversationConformance.effects())).length, 1, "replacement must retain the unsettled duplicate guard");
+      await page.evaluate(() => window.conversationConformance.releaseEffects()); await page.getByRole("button", { name: "Cancel action", exact: true }).waitFor({ state: "hidden" });
+      assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 0); assert.equal(await page.getByText("Action completed.", { exact: true }).count(), 0);
+      await originButton().focus(); await page.keyboard.press("Space"); await page.waitForFunction(() => window.conversationConformance.effects().length === 2);
+      const events = await page.evaluate(() => window.conversationConformance.effects()); assert.equal(events[0].target, "first/e\u0301"); assert.equal(events[1].target, "second/raw");
+      const cancel = page.getByRole("button", { name: "Cancel action", exact: true }); await cancel.waitFor(); await page.keyboard.press("Tab"); assert.equal(await cancel.evaluate(node => node === document.activeElement), true);
+      await page.keyboard.press("Enter"); await originButton().focus(); await page.keyboard.press("Enter");
+      assert.deepEqual(await page.evaluate(() => window.conversationConformance.aborted()), [true, true]); assert.equal((await page.evaluate(() => window.conversationConformance.effects())).length, 2);
+      await cancel.focus(); await page.evaluate(() => window.conversationConformance.releaseEffects()); await cancel.waitFor({ state: "hidden" });
+      assert.equal(await originButton().evaluate(node => node === document.activeElement), true); assert.equal(await page.evaluate(() => window.conversationConformance.refreshes()), 0);
+      console.log(`${kit}: ${cases.length * 2} layout mounts plus legacy/rich-host canonical admission, typed seven-target effects, missing capabilities, stale SSE replacement and noncooperative cancellation verified`);
     }
     await page.evaluate(() => window.conversationConformance.dispose()); await waitClients(0);
     assert.equal(turns, 0, "view emission/navigation must never post a conversation turn");
+    assert.deepEqual(await page.evaluate(() => window.fixtureClipboardWrites), [], "only the explicit fixture capability may handle copy/command intent");
     assert.deepEqual(errors, []);
-    console.log("84 rich conversation mounts verified; local fixture SSE only, no live backend.");
+    assert.equal(unifiedMounts, 75);
+    console.log(`${mounts} rich conversation mounts verified (${unifiedMounts} unified invocation mounts); local fixture SSE only, no live backend.`);
   } finally {
     await browser?.close(); for (const client of clients) client.end();
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
