@@ -62,16 +62,26 @@ async function main() {
           const style = getComputedStyle(control);
           return (kit === "mui" && primary && role !== "neutral" ? style.backgroundColor : style.color) === expected;
         }, { primary, role, expected, kit }, { timeout: 3000 });
-        const actual = await page.getByRole("link", { name: "Presentation action" }).evaluate(control => ({
+        const actual = await page.getByRole("button", { name: "Presentation action" }).evaluate(control => ({
           color: getComputedStyle(control).color, background: getComputedStyle(control).backgroundColor,
           weight: getComputedStyle(control).fontWeight, href: control.getAttribute("href"),
         }));
-        if (actual.href !== "/next" || (kit === "mui" && primary && role !== "neutral" ? actual.background : actual.color) !== expected)
+        if (actual.href !== null || (kit === "mui" && primary && role !== "neutral" ? actual.background : actual.color) !== expected)
           throw new Error(`MUI Tone ${tone}, emphasis ${emphasis}: ${JSON.stringify(actual)}, expected ${expected}`);
         if (emphasis !== undefined && actual.weight !== (primary ? "700" : "500")) throw new Error("Themed emphasis was dropped");
       }
       await page.evaluate(kit => window.meridianPresentation(5, 1, true, kit), kit);
-      if (!await page.getByRole("button", { name: "Presentation action" }).isDisabled()) throw new Error("Presentation enabled a denied URI");
+      const before = page.url();
+      let dialogs = 0;
+      const dismiss = async dialog => { dialogs++; await dialog.dismiss(); };
+      page.on("dialog", dismiss);
+      try {
+        const control = page.getByRole("button", { name: "Presentation action" });
+        if (await control.getAttribute("href") !== null) throw new Error("Presentation exposed an unadmitted destination");
+        await control.click();
+        await page.getByRole("status").filter({ hasText: "Action denied: this host has not enabled the required capability." }).waitFor({ state: "visible" });
+        if (page.url() !== before || dialogs !== 0) throw new Error("Presentation executed a denied URI");
+      } finally { page.off("dialog", dismiss); }
       }
     });
 

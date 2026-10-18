@@ -22,7 +22,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -51,7 +51,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -80,7 +80,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -109,7 +109,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -138,7 +138,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -167,7 +167,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -196,7 +196,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -225,7 +225,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -254,7 +254,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -283,7 +283,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -312,7 +312,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
@@ -341,7 +341,7 @@ RootWebArea name="Meridian AX conformance" focusable=true
             StaticText name="The list of every employer your organization administers."
           paragraph name=""
             StaticText name="The sponsors list"
-          link name="Open Sponsors" description="Continue in the sponsor list" focusable=true
+          button name="Open Sponsors" description="Continue in the sponsor list" focusable=true invalid="false"
             StaticText name="Open Sponsors"
           StaticText name="Continue in the sponsor list"
         listitem name="" level=1
