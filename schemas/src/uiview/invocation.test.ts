@@ -38,6 +38,30 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
+it.each([false, true])("adapter confirmation %s is consent after admission, never a grant", async accepted => {
+  const host = setup(rpc); const confirm = vi.fn(async () => accepted);
+  host.replace({ ...host.snapshot, confirm }); expect(confirm).not.toHaveBeenCalled();
+  const result = await host.dispatcher.activate(); expect(confirm).toHaveBeenCalledTimes(1);
+  expect(confirm).toHaveBeenCalledWith(host.snapshot.context, expect.any(AbortSignal));
+  expect(result.status).toBe(accepted ? "succeeded" : "cancelled"); expect(host.effects.rpc.invoke).toHaveBeenCalledTimes(accepted ? 1 : 0);
+});
+
+it.each(["mutation", "target", "capability", "missing target"])("does not ask adapter consent for %s denial", async reason => {
+  const host = setup(reason === "missing target" ? {} : rpc); const confirm = vi.fn(async () => true);
+  host.replace({ ...host.snapshot, confirm, admission: reason === "mutation" ? undefined : host.snapshot.admission,
+    admit: () => reason !== "target", capabilities: reason === "capability" ? {} : host.effects });
+  expect((await host.dispatcher.activate()).status).toBe("denied"); expect(confirm).not.toHaveBeenCalled(); expect(host.effects.rpc.invoke).not.toHaveBeenCalled();
+});
+
+it.each(["scope", "cancel", "dispose", "reject"])("adapter confirmation handles %s without an effect or refresh", async change => {
+  const host = setup(rpc); const consent = deferred<boolean>(); const confirm = vi.fn(() => consent.promise);
+  host.replace({ ...host.snapshot, confirm }); const run = host.dispatcher.activate(); expect(confirm).toHaveBeenCalledTimes(1);
+  if (change === "scope") host.replace({ ...host.snapshot, context: { ...host.snapshot.context, selectedRow: { id: 0 } } });
+  if (change === "cancel") host.dispatcher.cancel(); if (change === "dispose") host.dispatcher.dispose();
+  if (change === "reject") consent.reject(Error("private consent failure")); else consent.resolve(true);
+  expect((await run).status).toBe(change === "scope" ? "stale" : change === "reject" ? "failed" : "cancelled"); expect(host.effects.rpc.invoke).not.toHaveBeenCalled(); expect(host.snapshot.refresh).not.toHaveBeenCalled();
+});
+
 it.each(["form", "lro"] as const)("submits %s through the actual Rust automatic mapping builder", async kind => {
   const host = setup({ rpc: { service: "raw.Service", method: "Get", bindings: [
     { requestField: "copied", formField: "name" }, { requestField: "forbidden", formField: "unmodeled" },

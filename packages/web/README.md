@@ -107,8 +107,9 @@ the mount to repaint changed host/descriptor inputs.
 
 These controls accept bounded own-data JSON context, reject getters/cycles and
 oversized snapshots before host work, and include header/slot actions in the
-existing composition ceiling. This does not complete row/resource action,
-or other renderer/modality adoption; those legacy workflows remain separate.
+existing composition ceiling. Ordinary forms, table rows and resource-card RPCs
+also use this dispatcher as described below. Other modality adoption and complete
+renderer-wide acceptance remain separate.
 
 ### Ordinary form submission
 
@@ -205,7 +206,32 @@ settlement. The originating action and Cancel remain keyboard reachable. A row
 change invalidates pending consent; replacement/disposal suppresses late effects,
 feedback and refresh updates. Refresh failure retains the selected table and is
 reported separately from effect failure, without replaying the effect. Resource
-card confirmations remain on their separate path pending migration.
+card confirmations use the consent path described below.
+
+## Resource-card actions
+
+Resource RPCs use the same mutation-only admission and Rust request builder,
+with the card's own row overriding ambient host selection. Existing visibility
+predicates and primary/danger styling remain. Unbound calls stay empty; no ID
+binding or refresh behavior is invented.
+
+Authored confirmation is consent, never authorization. Denied or missing targets
+do not open a prompt. Confirmation text stays literal and linked to its named
+alert dialog; the safe Cancel choice receives initial focus. Tab/Shift+Tab cycle
+within the prompt, Escape declines, and accepting/declining returns focus only
+when it still belongs there. Changed row/context/policy/target/confirmation data
+invalidates consent before the effect. Changes to the resource declaration
+withdraw its mounted projection until the host remounts the updated descriptor;
+this includes replacing/removing the target or confirmation object. A card that
+no longer matches its visibility predicate cannot dispatch through an old button.
+Replacement/disposal aborts observation
+and removes the prompt without stealing focus.
+
+One per-card guard covers confirmation, effect and cancellation through
+noncooperative settlement. The originating control and action cancellation stay
+reachable, failures are sanitized, and retry requires fresh consent with current
+bindings. Late populate/effect results cannot alter a replacement card. These
+prompts do not claim to make the entire host application modal.
 
 ## Build & test
 

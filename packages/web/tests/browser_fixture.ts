@@ -17,6 +17,27 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  resourceSettle: () => {},
+  resourceInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.resourceCalls = "0"; container.dataset.resourceAborted = "false";
+    controls.resourceSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "fixture.Resource", method: "List" }, rowsField: "items", template: { titleField: "name", actions: { actions: [
+          { id: "use", label: "Use resource", style: 3, invoke: { service: "fixture.Resource", method: "Get", bindings: [
+            { requestField: "id", source: { case: "rowField", value: "id" } }, { requestField: "flag", source: { case: "rowField", value: "flag" } },
+          ] }, confirm: { title: "Use this resource?", message: "Literal <b>resource</b>", confirmLabel: "Accept resource", destructive: true } },
+          { id: "other", label: "Other resource action", invoke: { service: "fixture.Resource", method: "Get" } },
+        ] } },
+      } } }), invoker: { invoke: async (_service, method) => { if (method !== "List") throw Error("No default mutation fallback"); return { items: [{ id: 0, name: "Resource zero", flag: false }] }; } },
+      admission: { reads: ["fixture.Resource/List"], mutations: mode === "deny" ? [] : ["fixture.Resource/Get"] },
+      invocation: { capabilities: { rpc: { invoke: async (_service, _method, request, signal) => {
+        container.dataset.resourceCalls = String(Number(container.dataset.resourceCalls) + 1); container.dataset.resourceRequest = JSON.stringify(request);
+        signal.addEventListener("abort", () => { container.dataset.resourceAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.resourceSettle = resolve; }); return {};
+      } } } },
+    });
+  },
   tableSettle: () => {},
   tableInvocation: (mode: "allow" | "deny" | "pending") => {
     const container = root(); container.dataset.tableCalls = "0"; container.dataset.tableAborted = "false";

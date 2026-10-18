@@ -57,6 +57,9 @@ export interface InvocationSnapshot {
   readonly resolveSemantic?: (action: Action, context: RenderContext,
     subject: InvocationSnapshot["subject"]) => SemanticResolution | undefined;
   readonly refresh?: (signal: AbortSignal) => Promise<void>;
+  /** Adapter-owned consent UI, not a grant. Runs only after target admission;
+   * the same immutable scope must still be current when consent settles. */
+  readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
   /** Adapter-owned compatibility behavior, never a descriptor permission bit.
    * Only legacy row controls whose old renderer supplied an unbound id opt in. */
   readonly legacyRowIdFallback?: boolean;
@@ -159,6 +162,11 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         throw new Denied("target-policy");
       }
       current();
+      if (snapshot.confirm) {
+        const confirmed = await snapshot.confirm(snapshot.context, signal);
+        current();
+        if (confirmed !== true) return { status: "cancelled" };
+      }
       switch (intent.case) {
         case "rpc": {
           const call = intent.value;

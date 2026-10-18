@@ -2,6 +2,7 @@ import { clone } from "@bufbuild/protobuf";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { ConfirmSpecSchema, type ConfirmSpec } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import { affordancePresentation, createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, safeNavigationHref,
   type AdmissionPolicy, type InvocationHost, type InvocationOutcome, type InvocationSnapshot, type RenderContext, type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
@@ -49,6 +50,9 @@ export function assertInvocationDescriptorData(value: unknown): void { inertJson
 
 export interface InvocationControlOptions {
   action: NormalizedAction;
+  /** Original protobuf declaration. A change withdraws this mounted projection;
+   * the host must remount to publish a replacement declaration. */
+  declaration?: object;
   invoker: RpcInvoker;
   context: RenderContext;
   record?: object;
@@ -58,6 +62,7 @@ export interface InvocationControlOptions {
   blocked?: () => boolean;
   /** Renderer-owned refresh must check currentness before applying async data. */
   refresh?: (signal: AbortSignal, current: () => boolean) => Promise<void>;
+  confirmation?: { spec: ConfirmSpec; present: (spec: ConfirmSpec, context: RenderContext, signal: AbortSignal) => Promise<boolean> };
   subject?: InvocationSnapshot["subject"];
   invocation?: InvocationHost;
   admission?: AdmissionPolicy;
@@ -93,7 +98,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
   const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel action"; cancel.hidden = true;
   const id = `mer-invocation-${++nextId}`; feedback.id = `${id}-feedback`; description.id = `${id}-description`;
   let disposed = false, cache: { signature: unknown[]; snapshot: InvocationSnapshot } | undefined;
-  let collecting = false, activating = false;
+  let collecting = false, activating = false, declarationJson: string | undefined;
   const ownContextField = (context: object, key: string) => {
     const field = Object.getOwnPropertyDescriptor(context, key);
     if (field && !("value" in field)) throw Error("Invalid invocation context.");
@@ -102,6 +107,9 @@ export function createInvocationControl(options: InvocationControlOptions) {
   const read = (): InvocationSnapshot | undefined => {
     if (disposed || !options.alive()) return undefined;
     try {
+      const currentDeclaration = inertJson(options.declaration ?? null, true);
+      if (declarationJson !== undefined && declarationJson !== currentDeclaration) return undefined;
+      declarationJson = currentDeclaration;
       const { action, invocation: host, admission, invoker } = options;
       const context = host?.context ?? options.context;
       const record = options.readRecord ? options.readRecord() : options.record;
@@ -120,14 +128,17 @@ export function createInvocationControl(options: InvocationControlOptions) {
           uiIdentity: ownContextField(context, "uiIdentity") ?? null, selectedRow: record,
           formValues: ownContextField(context, "formValues"), signals: ownContextField(context, "signals"), selections: ownContextField(context, "selections") });
       const submissionJson = inertJson(options.submission ?? null, true);
+      const confirmationJson = inertJson(options.confirmation?.spec ?? null, true);
       const policyJson = inertJson(admission === "unrestricted" ? admission : { reads: admission?.reads, mutations: admission?.mutations, inferFromAipVerbs: admission?.inferFromAipVerbs });
       const subjectJson = inertJson(options.subject ?? null);
       const caps = host?.capabilities, admit = host?.admit;
       const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues, options.recordKey?.(),
         invoker, invoker.invoke, caps?.uri, caps?.command, caps?.navigate, caps?.openPanel, caps?.openView, caps?.copy, caps?.rpc, caps?.rpc?.invoke,
-        admit, host?.resolveSemantic, host?.refresh, options.refresh, admission === "unrestricted" ? undefined : admission?.onDenied];
+        admit, host?.resolveSemantic, host?.refresh, options.refresh, confirmationJson, options.confirmation?.present, admission === "unrestricted" ? undefined : admission?.onDenied];
       if (cache && signature.every((value, index) => Object.is(value, cache!.signature[index]))) return cache.snapshot;
       // Clone protos only after inert bounds/accessor/cycle admission.
+      const confirmation = options.confirmation;
+      const confirmSpec = confirmation ? clone(ConfirmSpecSchema, confirmation.spec) : undefined;
       const snapshot: InvocationSnapshot = {
         action: new NormalizedAction(clone(AffordanceSchema, action.affordance), action.semanticAction ? clone(ActionSchema, action.semanticAction) : undefined, action.legacyOrigin),
         context: JSON.parse(contextJson), subject: JSON.parse(subjectJson) ?? undefined,
@@ -135,6 +146,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
         capabilities: { ...caps, rpc: caps?.rpc ?? { invoke: (service, method, request) => invoker.invoke(service, method, request) } },
         resolveSemantic: host?.resolveSemantic,
         refresh: options.refresh ? signal => options.refresh!(signal, () => !signal.aborted && read() === snapshot) : host?.refresh,
+        confirm: confirmation && confirmSpec ? (context, signal) => confirmation.present(confirmSpec, context, signal) : undefined,
         submission: options.submission ? { kind: options.submission.kind, fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
         admit: (intent, context) => {
           if (intent.case === "uri" && !safeNavigationHref(intent.value) || intent.case === "navigate" && !safeNavigationHref(intent.value.route)) return false;
@@ -144,7 +156,10 @@ export function createInvocationControl(options: InvocationControlOptions) {
       cache = { signature, snapshot }; return snapshot;
     } catch { cache = undefined; return undefined; }
   };
-  const dispatcher = createInvocationDispatcher(read);
+  const dispatcher = createInvocationDispatcher(() => {
+    const scope = read();
+    return options.readRecord && !scope?.context.selectedRow ? undefined : scope;
+  });
   const dispose = () => { disposed = true; cache = undefined; dispatcher.dispose(); };
   options.onDispose(dispose);
   const initial = read(), aff = initial?.action.affordance;
@@ -185,7 +200,8 @@ export function createInvocationControl(options: InvocationControlOptions) {
     if (pending || policyDenied || button.disabled) button.setAttribute("aria-disabled", "true");
     else button.removeAttribute("aria-disabled");
     if (!pending && !feedback.textContent) {
-      if (policyDenied) setMessage("Unavailable: this action is not permitted.");
+      if (!scope) setMessage("Action unavailable: the descriptor or context is invalid. Update the view before retrying.", true);
+      else if (policyDenied) setMessage("Unavailable: this action is not permitted.");
       else button.setAttribute("aria-describedby", description.textContent ? description.id : "");
     }
   };
