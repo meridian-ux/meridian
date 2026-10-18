@@ -3,12 +3,34 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { clone, createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { LEGACY_DEPRECATIONS, LEGACY_MESSAGE_DEPRECATIONS } from "./affordance_migration_probe.mjs";
 
 const descriptors = fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
   "../../crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb", import.meta.url,
 )));
 const registry = createFileRegistry(descriptors);
 const schema = registry.getMessage("meridian.ui.v1.Affordance");
+
+test("obsolete compatibility message types are deprecated, retained, and never confused with canonical panels", () => {
+  for (const name of LEGACY_MESSAGE_DEPRECATIONS) {
+    const message = registry.getMessage(`meridian.ui.v1.${name}`);
+    assert(message, `obsolete type removed before approved cutover: ${name}`);
+    assert.equal(message.proto.options?.deprecated, true, name);
+    assert(message.fields.length > 0, `${name} fields were removed`);
+  }
+  for (const name of ["Affordance", "ActionPanel", "Command", "FormPanel", "PanelDescriptor"]) {
+    assert.notEqual(registry.getMessage(`meridian.ui.v1.${name}`).proto.options?.deprecated, true, name);
+  }
+});
+
+test("every retained legacy invocation field is explicitly deprecated without removal", () => {
+  for (const [name, fields] of Object.entries(LEGACY_DEPRECATIONS)) for (const fieldName of fields) {
+    const message = registry.getMessage(`meridian.ui.v1.${name}`);
+    const field = message.fields.find(field => field.name === fieldName);
+    assert(field, `legacy field removed before the approved cutover: ${name}.${fieldName}`);
+    assert.equal(field.proto.options?.deprecated, true, `${name}.${fieldName}`);
+  }
+});
 
 test("candidate Affordance preserves existing types and tags with explicit relocated ownership", () => {
   assert.equal(schema.file.proto.name, "proto/interaction.proto");

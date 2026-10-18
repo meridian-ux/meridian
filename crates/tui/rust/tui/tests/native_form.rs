@@ -18,6 +18,7 @@ impl RpcInvoker for ReadHost {
         panic!("no populate or mutation transport should be invoked");
     }
 }
+#[allow(deprecated)] // Shared old/new submit fixture, including fallback traps.
 fn descriptor(canonical: bool) -> PanelDescriptor {
     PanelDescriptor {
         title: "Edit record".into(),
@@ -515,6 +516,7 @@ fn consent_revocation_transport_failure_retry_and_completed_refresh_failure_keep
 }
 
 #[test]
+#[allow(deprecated)] // This test specifically owns the retained old submit path.
 fn legacy_submission_is_admitted_without_a_raw_handoff_and_readonly_is_inert() {
     let mut descriptor = actual_form(None);
     let panel = form_mut(&mut descriptor);

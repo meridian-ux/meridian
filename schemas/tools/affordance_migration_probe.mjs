@@ -8,8 +8,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { clone, createFileRegistry, fromBinary, fromJson, isFieldSet, toBinary, toJson } from "@bufbuild/protobuf";
-import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { clearField, clone, createFileRegistry, fromBinary, fromJson, isFieldSet, toBinary, toJson } from "@bufbuild/protobuf";
+import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FieldOptionsSchema, MessageOptionsSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { checkLine, loadImage, REFERENCES } from "./compatibility_line.mjs";
 import { mergeDescriptorSets } from "./merge_descriptor_sets.mjs";
 
@@ -43,6 +43,39 @@ export const POLICY_ADDITIONS = Object.freeze({
   TablePanel: [["affordances", 8, "AffordanceCollection affordances = 8;", ".meridian.ui.v1.AffordanceCollection", false]],
   FormPanel: [["submit_affordance", 6, "Affordance submit_affordance = 6;", ".meridian.ui.v1.Affordance", false]],
 });
+
+// The retained 0.x compatibility fields, not permission to alter other options.
+export const LEGACY_DEPRECATIONS = Object.freeze({
+  Affordance: ["style"],
+  Command: ["rpc", "open_panel", "open_view_id", "navigate"],
+  FormPanel: ["submit"], TablePanel: ["actions"],
+  ViewDescriptor: ["actions"], Slot: ["actions"],
+});
+export const LEGACY_MESSAGE_DEPRECATIONS = Object.freeze(["Action", "RowAction", "OpenPanel"]);
+
+function withoutApprovedDeprecations(fullName, previous, current) {
+  if (fullName !== `meridian.ui.v1.${previous.name}` || previous.$typeName !== "google.protobuf.DescriptorProto"
+    || !(Object.hasOwn(LEGACY_DEPRECATIONS, previous.name) || LEGACY_MESSAGE_DEPRECATIONS.includes(previous.name))) return current;
+  const copy = clone(DescriptorProtoSchema, current);
+  if (LEGACY_MESSAGE_DEPRECATIONS.includes(previous.name) && copy.options?.deprecated === true && previous.options?.deprecated !== true) {
+    const deprecated = MessageOptionsSchema.fields.find(option => option.name === "deprecated");
+    if (!previous.options || !isFieldSet(previous.options, deprecated)) clearField(copy.options, deprecated);
+    else copy.options.deprecated = previous.options.deprecated;
+    if (previous.options === undefined && toBinary(MessageOptionsSchema, copy.options).length === 0) delete copy.options;
+  }
+  for (const name of LEGACY_DEPRECATIONS[previous.name] ?? []) {
+    const old = previous.field.find(field => field.name === name);
+    const field = copy.field.find(field => field.name === name);
+    if (!old || field?.options?.deprecated !== true || old.options?.deprecated === true) continue;
+    // Reset only the approved bit. Preserve every other option/unknown extension
+    // so unrelated changes still fail the exact declaration comparison below.
+    const deprecated = FieldOptionsSchema.fields.find(option => option.name === "deprecated");
+    if (!old.options || !isFieldSet(old.options, deprecated)) clearField(field.options, deprecated);
+    else field.options.deprecated = old.options.deprecated;
+    if (old.options === undefined && toBinary(FieldOptionsSchema, field.options).length === 0) delete field.options;
+  }
+  return copy;
+}
 
 export function assertAvailableFields(message, fields) {
   const names = new Set([...message.field.map(field => field.name), ...message.reservedName]);
@@ -121,8 +154,9 @@ export function assertCandidateDeclarations(before, after) {
   const oldDeclarations = declarations(before);
   const newDeclarations = declarations(after);
   for (const [name, original] of oldDeclarations) {
-    const next = newDeclarations.get(name);
-    assert(next, `declaration disappeared: ${name}`);
+    const current = newDeclarations.get(name);
+    assert(current, `declaration disappeared: ${name}`);
+    const next = withoutApprovedDeprecations(name, original, current);
     const additions = POLICY_ADDITIONS[original.name];
     if (additions) {
       const copy = structuredClone(next);

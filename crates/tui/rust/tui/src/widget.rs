@@ -1411,7 +1411,7 @@ impl PanelView {
                         Some(NativeInvocationOutcome::Denied.message().into());
                     return None;
                 }
-                let submit = panel.submit.as_ref()?;
+                let submit = meridian_uiview::legacy::form_submit(panel)?;
                 let request = match form_request(
                     submit,
                     context,

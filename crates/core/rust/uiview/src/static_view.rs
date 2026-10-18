@@ -95,7 +95,11 @@ impl Text {
     fn view(&mut self, view: &ViewDescriptor, depth: usize) -> Result<(), StaticViewError> {
         self.node(depth)?;
         self.line(format_args!("View: {} [{}]", view.title, view.id))?;
-        self.action_source(&view.actions, view.affordances.as_ref(), depth)?;
+        self.action_source(
+            crate::legacy::view_actions(view),
+            view.affordances.as_ref(),
+            depth,
+        )?;
         if view.slots.len() > self.nodes {
             return Err(StaticViewError);
         }
@@ -183,7 +187,11 @@ impl Text {
             ))?;
             return Ok(());
         }
-        self.action_source(&slot.actions, slot.affordances.as_ref(), depth)?;
+        self.action_source(
+            crate::legacy::slot_actions(slot),
+            slot.affordances.as_ref(),
+            depth,
+        )?;
         if let Some(view) = &slot.sub_view {
             if slot.sub_view_populate.is_some() {
                 self.copy("Repeated template only; records require an interactive/data host.")?;
@@ -355,7 +363,7 @@ impl Text {
                 self.affordance(action, depth)?;
             }
         } else {
-            for action in &table.actions {
+            for action in crate::legacy::table_actions(table) {
                 self.node(depth)?;
                 self.line(format_args!("Row action: {}", action.label))?;
                 self.rpc("Destination", action.rpc.as_ref())?;
@@ -395,7 +403,7 @@ impl Text {
                 if let Some(canonical) = &p.submit_affordance {
                     self.affordance(canonical, depth)?;
                 } else {
-                    self.rpc("Submit", p.submit.as_ref())?;
+                    self.rpc("Submit", crate::legacy::form_submit(p))?;
                 }
             }
             Some(Body::Prompt(p)) => {
@@ -633,6 +641,7 @@ mod tests {
     use crate::proto::*;
 
     #[test]
+    #[allow(deprecated)] // Canonical precedence must defeat these legacy traps.
     fn canonical_collections_win_whole_in_passive_composition() {
         for populated in [false, true] {
             let source = || {
@@ -689,6 +698,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)] // Retain the old submit as a deliberate fallback trap.
     fn canonical_submit_never_revives_legacy_rpc_even_without_intent() {
         for target in [
             None,
@@ -902,6 +912,7 @@ mod tests {
         assert!(text.contains("Section: side"));
     }
     #[test]
+    #[allow(deprecated)] // Prove old submit destinations also remain passive.
     fn marked_secrets_stay_hidden_while_raw_defaults_and_destinations_remain_inert() {
         let fields = vec![
             FormField {

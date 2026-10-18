@@ -450,7 +450,10 @@ impl NativeInvocationDispatcher {
             NativeAction::Row(source) => (source.rpc.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Resource(source) => (source.invoke.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),
-            NativeAction::Form(panel, _) => (panel.submit.as_ref().map(NativeTarget::Rpc), false),
+            NativeAction::Form(panel, _) => (
+                meridian_uiview::legacy::form_submit(panel).map(NativeTarget::Rpc),
+                false,
+            ),
             NativeAction::Command(command) => (
                 command.action.as_ref().and_then(|intent| match intent {
                     command::Action::Rpc(call) => Some(NativeTarget::Rpc(call)),

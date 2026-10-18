@@ -1503,7 +1503,6 @@ mod tests {
                     ..Default::default()
                 },
             ],
-            actions: vec![],
             pagination: None,
             ..Default::default()
         };

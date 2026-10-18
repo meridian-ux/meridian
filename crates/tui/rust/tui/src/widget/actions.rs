@@ -1,6 +1,7 @@
 //! In-process action-control state. Protobuf owns declarations; cached rows stay
 //! borrowed at activation, never reconstructed from formatted terminal text.
 use super::*;
+use meridian_uiview::legacy;
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -67,11 +68,10 @@ fn declaration(panel: &PanelDescriptor) -> Option<Vec<u8>> {
     let labels: Vec<&str> = match &panel.body {
         Some(Body::Table(table)) => {
             let canonical = table.affordances.as_ref().map_or(0, |set| set.items.len());
-            if table.actions.len().saturating_add(canonical) > 1_000 {
+            if legacy::table_actions(table).len().saturating_add(canonical) > 1_000 {
                 return None;
             }
-            table
-                .actions
+            legacy::table_actions(table)
                 .iter()
                 .map(|a| a.label.as_str())
                 .chain(
@@ -211,7 +211,10 @@ fn actions<'a>(
     match &panel.body {
         Some(Body::Table(table)) => match &table.affordances {
             Some(set) => set.items.iter().map(NativeAction::Canonical).collect(),
-            None => table.actions.iter().map(NativeAction::Row).collect(),
+            None => legacy::table_actions(table)
+                .iter()
+                .map(NativeAction::Row)
+                .collect(),
         },
         Some(Body::ResourceCards(cards)) => cards
             .template
@@ -347,7 +350,9 @@ pub(super) fn finish(
         captured.rendered = state.invocation_visible;
     }
     let authored = match &panel.body {
-        Some(Body::Table(table)) => table.affordances.is_some() || !table.actions.is_empty(),
+        Some(Body::Table(table)) => {
+            table.affordances.is_some() || !legacy::table_actions(table).is_empty()
+        }
         Some(Body::ResourceCards(cards)) => cards
             .template
             .as_ref()

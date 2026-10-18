@@ -116,6 +116,14 @@ test("the Launchpad manifest covers every Command.action arm", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 
+test("oneof field options retain every arm and unsupported syntax never becomes a partial inventory", () => {
+  const source = 'message Command { oneof action {\n RpcCall rpc = 8 [deprecated = true];\n string view = 10;\n} }';
+  assert.deepEqual(parseScopedOneofArms(source, "Command.action").map(arm => [arm.name, arm.number]), [["rpc", 8], ["view", 10]]);
+  for (const bad of ['broken field syntax;', 'string hidden = 12 [unterminated;', 'option custom = true;']) {
+    assert.throws(() => parseScopedOneofArms(source.replace('string view = 10;', bad), "Command.action"), /unparsed oneof declaration/);
+  }
+});
+
 test("proto-dependent Swift packages require cataloged renderer metadata", (t) => {
   const repoRoot = mkdtempSync(join(tmpdir(), "meridian-swift-renderers-"));
   t.after(() => rmSync(repoRoot, { recursive: true, force: true }));

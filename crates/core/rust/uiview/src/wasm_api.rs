@@ -290,8 +290,17 @@ pub fn build_submission_request(
     let panel = PanelDescriptor::decode(descriptor)
         .map_err(|_| JsError::new("invalid submission descriptor"))?;
     let (call, fields, kind) = match panel.body {
-        Some(crate::proto::panel_descriptor::Body::Form(panel)) => {
-            (panel.submit, panel.fields, crate::SubmissionKind::Form)
+        Some(crate::proto::panel_descriptor::Body::Form(mut panel)) => {
+            // Presence is authoritative, including an empty/non-RPC intent.
+            // This builder assembles requests; it neither admits nor invokes.
+            let call = match panel.submit_affordance.take() {
+                Some(action) => match action.invoke {
+                    Some(crate::proto::affordance::Invoke::Rpc(call)) => Some(call),
+                    _ => None,
+                },
+                None => crate::legacy::take_form_submit(&mut panel),
+            };
+            (call, panel.fields, crate::SubmissionKind::Form)
         }
         Some(crate::proto::panel_descriptor::Body::Lro(panel)) => {
             (panel.start, panel.inputs, crate::SubmissionKind::Lro)

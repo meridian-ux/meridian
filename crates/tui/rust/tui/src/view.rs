@@ -6,6 +6,7 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::{
+    legacy,
     proto::{
         layout, panel_descriptor::Body, Action, AffordanceCollection, PanelDescriptor, Slot,
         ViewDescriptor,
@@ -636,11 +637,11 @@ impl ViewHost {
                     let (legacy, canonical_actions) = if slot {
                         let source =
                             slot_at(&self.descriptor, &target.source).expect("mounted slot");
-                        (&source.actions, source.affordances.as_ref())
+                        (legacy::slot_actions(source), source.affordances.as_ref())
                     } else {
                         let source =
                             view_at(&self.descriptor, &target.source).expect("mounted view");
-                        (&source.actions, source.affordances.as_ref())
+                        (legacy::view_actions(source), source.affordances.as_ref())
                     };
                     let action = if canonical {
                         NativeAction::Canonical(
@@ -661,13 +662,13 @@ impl ViewHost {
                     return Ok(None);
                 }
                 let actions = if slot {
-                    &slot_at(&self.descriptor, &target.source)
-                        .expect("mounted slot")
-                        .actions
+                    legacy::slot_actions(
+                        slot_at(&self.descriptor, &target.source).expect("mounted slot"),
+                    )
                 } else {
-                    &view_at(&self.descriptor, &target.source)
-                        .expect("mounted view")
-                        .actions
+                    legacy::view_actions(
+                        view_at(&self.descriptor, &target.source).expect("mounted view"),
+                    )
                 };
                 if let Some(call) = actions[index].call.as_ref() {
                     let request = RequestBuilder::build_for_boundary_with(
@@ -821,7 +822,7 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         return Err(limit());
     }
     let mut labels = vec![view.title.as_str(), view.id.as_str()];
-    for action in &view.actions {
+    for action in legacy::view_actions(view) {
         labels.extend([action.id.as_str(), action.label.as_str()]);
     }
     if let Some(actions) = &view.affordances {
@@ -841,7 +842,7 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         if let Some(p) = &slot.panel {
             labels.push(&p.title);
         }
-        for action in &slot.actions {
+        for action in legacy::slot_actions(slot) {
             labels.extend([action.id.as_str(), action.label.as_str()]);
         }
         if let Some(actions) = &slot.affordances {
@@ -863,12 +864,15 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
 }
 
 fn local_cost(view: &ViewDescriptor) -> usize {
-    1 + view.actions.len()
+    1 + legacy::view_actions(view).len()
         + view.affordances.as_ref().map_or(0, |a| a.items.len())
         + view
             .slots
             .iter()
-            .map(|s| 1 + s.actions.len() + s.affordances.as_ref().map_or(0, |a| a.items.len()))
+            .map(|s| {
+                1 + legacy::slot_actions(s).len()
+                    + s.affordances.as_ref().map_or(0, |a| a.items.len())
+            })
             .sum::<usize>()
 }
 
@@ -1019,7 +1023,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
         }
         self.text(format!("View: {} [{}]", view.title, view.id));
         self.actions(
-            &view.actions,
+            legacy::view_actions(view),
             view.affordances.as_ref(),
             path,
             source,
@@ -1162,7 +1166,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             return Ok(());
         }
         self.actions(
-            &slot.actions,
+            legacy::slot_actions(slot),
             slot.affordances.as_ref(),
             &path,
             &source,
