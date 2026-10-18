@@ -143,7 +143,7 @@ and may further restrict all destination capabilities; no implicit opener exists
 
 ## Still required
 
-Web-components and chat/launchpad/TUI adoption
+Web-components and chat/TUI adoption
 remain separate work.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
@@ -194,3 +194,20 @@ noncooperative cancellation. Linked sanitized outcomes, reachable cancellation,
 focus return, and committed context/unmount invalidation use the shared hook.
 The optional presenter row slot is runtime React content, not serialized intent
 or a permission grant. Its leading navigation cell matches the supplied header.
+
+## Standalone Launchpad adoption
+
+Standalone Launchpad normalizes canonical/legacy command intent through the
+same dispatcher, including actual Rust RPC bindings. Canonical whole-presence
+wins over legacy action/deep-link hints. No executing router, window location,
+open-panel mount, open-view callback, or old action-handler fallback is inferred.
+Deprecated callback prop types remain, but hosts must explicitly register typed
+capabilities and policy. Search/shortcut/group metadata stays on Command.
+
+Close and original-envelope `onRun` notification happen only after actual
+successful settlement; denied/failed/canceled/stale actions and failed refresh
+stay explained rather than appearing successful. Query/descriptor/resolver
+replacement withdraws obsolete agent results; bounded owned agent descriptors
+share the aggregate control ceiling. Native keyboard controls, linked sanitized
+feedback, cancellation, focus return, and the palette-wide guard survive query
+replacement and close/reopen through noncooperative settlement.

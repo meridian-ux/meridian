@@ -3,7 +3,8 @@ import { createElement } from "react";
 import { create } from "@bufbuild/protobuf";
 import { CommandSchema, LaunchpadSchema, type Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { safeNavigationHref, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
 import { afterEach, expect, it, vi } from "vitest";
 import * as api from "../src/index.js";
 import devManifest from "../package.json";
@@ -27,14 +28,17 @@ it("publishes the reviewed root ESM entrypoint and compatible schema/renderer pe
   }
 });
 
-function mount(command: Command, callbacks: Partial<api.LaunchpadProps>, invoke = vi.fn(async () => ({}))) {
+function mount(command: Command, callbacks: Partial<api.LaunchpadProps>, invoke = vi.fn(async () => ({})), extra: InvocationHost["capabilities"] = {}) {
   const descriptor = create(LaunchpadSchema, { groups: [{ id: "commands", commands: [command] }] });
-  render(createElement(MeridianProvider, { invoker: { invoke }, kit: htmlKit, adhoc: {}, children:
+  render(createElement(MeridianProvider, { invoker: { invoke }, kit: htmlKit, adhoc: {}, invocation: { admit: () => true, capabilities: {
+    navigate: async target => { callbacks.onNavigate?.(safeNavigationHref(target.route)!); },
+    openView: async view => { callbacks.onOpenView?.(view); }, ...extra,
+  } }, children:
     createElement(api.Launchpad, { descriptor, open: true, onClose: () => {}, ...callbacks }) }));
   return invoke;
 }
 
-it("notifies navigation, close, then onRun with the original canonical command", () => {
+it("notifies admitted navigation, close, then success-only onRun with the original command", async () => {
   const order: string[] = [];
   const command = create(CommandSchema, { id: "nav", title: "Navigate", action: {
     case: "navigate", value: { route: " /builds " },
@@ -44,22 +48,22 @@ it("notifies navigation, close, then onRun with the original canonical command",
     onNavigate: route => { expect(route).toBe("/builds"); order.push("navigate"); },
     onClose: () => { order.push("close"); }, onRun,
   });
-  fireEvent.mouseDown(screen.getByRole("option"));
-  expect(order).toEqual(["navigate", "close", "run"]);
+  fireEvent.click(screen.getByRole("option"));
+  await waitFor(() => expect(order).toEqual(["navigate", "close", "run"]));
   expect(onRun).toHaveBeenCalledOnce();
 });
 
-it("onRun is a dispatch notification even when default mutation admission denies RPC", async () => {
+it("denied RPC stays visible without success notification or close", async () => {
   const command = create(CommandSchema, { id: "rpc", title: "Export", action: {
     case: "rpc", value: { service: "acme.v1.Exporter", method: "Export" },
   } });
   const onRun = vi.fn();
   const onClose = vi.fn();
   const invoke = mount(command, { onRun, onClose });
-  fireEvent.mouseDown(screen.getByRole("option"));
-  expect(onRun).toHaveBeenCalledWith(command);
-  expect(onClose).toHaveBeenCalledOnce();
-  await Promise.resolve();
+  fireEvent.click(screen.getByRole("option"));
+  expect((await screen.findByRole("alert")).textContent).toContain("mutation policy");
+  expect(onRun).not.toHaveBeenCalled();
+  expect(onClose).not.toHaveBeenCalled();
   expect(invoke).not.toHaveBeenCalled();
 });
 
@@ -70,12 +74,12 @@ it("blocked navigation emits neither dispatch notification nor close", () => {
   const onRun = vi.fn();
   const onClose = vi.fn();
   mount(command, { onRun, onClose });
-  fireEvent.mouseDown(screen.getByRole("option"));
+  fireEvent.click(screen.getByRole("option"));
   expect(onRun).not.toHaveBeenCalled();
   expect(onClose).not.toHaveBeenCalled();
 });
 
-it("open-view uses the host callback and then closes/notifies", () => {
+it("open-view uses the explicit host capability and then closes/notifies", async () => {
   const command = create(CommandSchema, { id: "view", title: "Open view", action: {
     case: "openViewId", value: "views/builds",
   } });
@@ -85,19 +89,21 @@ it("open-view uses the host callback and then closes/notifies", () => {
     onClose: () => { order.push("close"); },
     onRun: value => { expect(value).toBe(command); order.push("run"); },
   });
-  fireEvent.mouseDown(screen.getByRole("option"));
-  expect(order).toEqual(["view", "close", "run"]);
+  fireEvent.click(screen.getByRole("option"));
+  await waitFor(() => expect(order).toEqual(["view", "close", "run"]));
 });
 
-it("open-panel notifies after focusing without closing the palette", () => {
+it("open-panel requires explicit host capability; never implicitly mounts descriptor content", async () => {
   const command = create(CommandSchema, { id: "panel", title: "Open panel", action: {
     case: "openPanel", value: { panel: { panelId: "focused", title: "Details" } },
   } });
   const onClose = vi.fn();
   const onRun = vi.fn();
-  mount(command, { onClose, onRun });
-  fireEvent.mouseDown(screen.getByRole("option"));
-  expect(screen.getByRole("button", { name: /Back/ })).toBeDefined();
-  expect(onClose).not.toHaveBeenCalled();
-  expect(onRun).toHaveBeenCalledWith(command);
+  const openPanel = vi.fn(async () => {});
+  mount(command, { onClose, onRun }, undefined, { openPanel });
+  fireEvent.click(screen.getByRole("option"));
+  await waitFor(() => expect(onRun).toHaveBeenCalledWith(command));
+  expect(openPanel).toHaveBeenCalledWith(expect.objectContaining({ panelId: "focused" }), expect.any(Object), expect.any(AbortSignal));
+  expect(screen.queryByRole("button", { name: /Back/ })).toBeNull();
+  expect(onClose).toHaveBeenCalledOnce();
 });
