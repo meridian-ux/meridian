@@ -102,6 +102,34 @@ def declared_value_types():
     return {value.number for value in field.file.pool.FindEnumTypeByName("meridian.ui.v1.ValueType").values}
 
 
+def rendered_value_arms(panel=None):
+    """Discover display fields in current content, not future activation targets.
+
+    An Affordance can open a different PanelDescriptor. That graph edge does not
+    render the target while displaying the affordance. Do not skip Affordance
+    wholesale: a new display field outside its invocation still needs fixtures.
+    """
+    activation_oneofs = {("meridian.ui.v1.Affordance", "invoke"),
+                         ("meridian.ui.v1.Command", "action")}
+
+    def carries_display(descriptor, seen):
+        if descriptor is None:
+            return False
+        if descriptor.full_name == "meridian.ui.v1.ValueDisplay":
+            return True
+        if descriptor.full_name in seen:
+            return False
+        seen = seen | {descriptor.full_name}
+        return any(carries_display(field.message_type, seen) for field in descriptor.fields
+                   if not (field.containing_oneof and
+                           (descriptor.full_name, field.containing_oneof.name) in activation_oneofs))
+
+    if panel is None:
+        panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
+    return {field.name for field in panel.oneofs_by_name["body"].fields
+            if carries_display(field.message_type, set())}
+
+
 def validate_value_coverage(read, constrained, inputs):
     """Validate corpus completeness before either comparison or recording.
 
@@ -109,16 +137,7 @@ def validate_value_coverage(read, constrained, inputs):
     payload types. A new declared type must reach every family, not just one
     convenient read surface. The descriptor defines the value-bearing arms.
     """
-    def carries_display(descriptor, seen):
-        if descriptor.full_name == "meridian.ui.v1.ValueDisplay":
-            return True
-        if descriptor.full_name in seen:
-            return False
-        return any(field.message_type and carries_display(field.message_type, seen | {descriptor.full_name})
-                   for field in descriptor.fields)
-    panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
-    declared_arms = {field.name for field in panel.oneofs_by_name["body"].fields
-                     if carries_display(field.message_type, set())}
+    declared_arms = rendered_value_arms()
     groups = [read["panelArms"], constrained["stringArms"], constrained["numberArms"], list(INPUT_ARMS)]
     arms = [arm for group in groups for arm in group]
     if len(arms) != len(set(arms)) or set(arms) != declared_arms:
