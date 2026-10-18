@@ -71,18 +71,21 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
-  it("preserves the canonical ActionPanel's named navigation control without dialing an RPC", async () => {
+  it("activates the canonical ActionPanel only through the host URI capability without dialing an RPC", async () => {
     const source = FIXTURES.find(fixture => fixture.shape === "action")!.descriptor;
     const descriptor = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, source));
     const invoke = vi.fn(async () => ({}));
-    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke } },
+    const uri = vi.fn(async () => {});
+    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
+      invocation: { capabilities: { uri }, admit: intent => intent.case === "uri" } },
       createElement(PanelRenderer, { descriptor })), async container => {
-      const link = container.querySelector("a")!;
-      expect(link.textContent).toBe("Add to Cursor");
-      expect(link.getAttribute("href")).toBe("cursor://anysphere.cursor-deeplink/mcp/install");
-      // Cancel browser navigation while checking the actual activation path.
-      link.addEventListener("click", event => event.preventDefault());
-      await act(async () => link.click());
+      const button = container.querySelector("button")!;
+      expect(button.textContent).toBe("Add to Cursor");
+      expect(container.querySelector("a")).toBeNull();
+      expect(uri).not.toHaveBeenCalled();
+      await act(async () => button.click());
+      expect(uri).toHaveBeenCalledTimes(1);
+      expect(uri).toHaveBeenCalledWith("cursor://anysphere.cursor-deeplink/mcp/install", expect.any(Object), expect.any(AbortSignal));
       expect(invoke).not.toHaveBeenCalled();
     });
   });
@@ -135,7 +138,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
-  it("preserves the ActionPanel command copy contract without invoking an RPC", async () => {
+  it("denies ActionPanel commands without an explicit host capability and never copies them", async () => {
     const invoke = vi.fn(async () => ({}));
     const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: {
       action: { label: "Copy command", invoke: { case: "command", value: "meridian inspect" } },
@@ -144,9 +147,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       createElement(PanelRenderer, { descriptor })), async container => {
       const button = container.querySelector("button")!;
       expect(button.textContent).toBe("Copy command");
-      expect(button.dataset.copy).toBe("meridian inspect");
+      expect(button.dataset.copy).toBeUndefined();
       await act(async () => button.click());
       expect(invoke).not.toHaveBeenCalled();
+      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
     });
   });
 

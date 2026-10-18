@@ -3,7 +3,7 @@
 exports[`muiKit canonical panel conformance > renders the action fixture without crashing > mui-kit/action 1`] = `
 "p
   "One click adds it to Cursor."
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -57,7 +57,7 @@ h6
   "Cursor"
 p
   "One click installs it."
-a href="cursor://install"
+button type="button"
   "Add to Cursor"
 "~/.cursor/mcp.json (json)"
 button aria-label="copy snippet" type="button"
@@ -206,7 +206,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li

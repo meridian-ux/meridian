@@ -29,6 +29,7 @@ vitest_test(
     name = "stateful_conformance",
     srcs = [
         "tests/conformance.test.tsx",
+        "tests/affordance_invocation.test.ts",
         "tests/prompt.test.tsx",
         "tests/llm_prompt.test.tsx",
         "tests/content.test.tsx",
@@ -61,6 +62,7 @@ vitest_test(
     },
     deps = [
         ":stateful_test_sources",
+        "//packages/web-react:affordance_contract",
         ":node_modules/jsdom",
         ":node_modules/vitest",
         ":node_modules/@testing-library/react",

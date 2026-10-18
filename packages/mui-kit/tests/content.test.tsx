@@ -4,7 +4,7 @@
 // of the web-react conformance over these shapes and the TUI content.rs tests.
 
 import { create } from "@bufbuild/protobuf";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
@@ -19,12 +19,13 @@ import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
 import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { PanelRenderer } from "@savvifi/meridian-web-react";
-import { createElement } from "react";
+import { act, createElement } from "react";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+beforeEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 
 const invoker: RpcInvoker = { invoke: async () => ({}) };
 
@@ -73,7 +74,7 @@ function renderPanel(descriptor: Parameters<typeof PanelRenderer>[0]["descriptor
   );
 }
 
-it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, and invocation admission", emphasis => {
+it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, and invocation admission", async emphasis => {
   for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
     const writeText = vi.fn(async () => {});
     vi.stubGlobal("navigator", { clipboard: { writeText } });
@@ -88,15 +89,12 @@ it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, a
       expect(control.className).toContain(primary ? "MuiButton-contained" : "MuiButton-outlined");
       expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
       if (tone !== undefined) expect(control.className).toContain(`MuiButton-color${["Inherit", "Inherit", "Info", "Success", "Warning", "Error", "Primary"][tone] ?? "Inherit"}`);
-      if (target.startsWith("javascript:")) {
-        expect((control as HTMLButtonElement).disabled).toBe(true);
-        fireEvent.click(control);
-        expect(writeText).not.toHaveBeenCalled();
-      } else if (command) {
-        expect(writeText).not.toHaveBeenCalled();
-        fireEvent.click(control);
-        expect(writeText).toHaveBeenCalledWith(target);
-      } else expect(control.getAttribute("href")).toBe("/next");
+      expect(control.tagName).toBe("BUTTON");
+      expect(control.hasAttribute("href")).toBe(false);
+      expect(control.hasAttribute("data-copy")).toBe(false);
+      await act(async () => fireEvent.click(control));
+      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
+      expect(writeText).not.toHaveBeenCalled();
       unmount();
     }
   }
@@ -155,7 +153,7 @@ describe("muiKit renders the brand-neutral content shapes", () => {
       }),
     );
     await screen.findByText("mcp.example.com/mcp"); // endpoint chip
-    await screen.findByRole("link", { name: "Add to Cursor" }); // one-click affordance
+    await screen.findByRole("button", { name: "Add to Cursor" }); // host-admitted activation
     await screen.findByText(/~\/\.cursor\/mcp\.json \(json\)/); // snippet caption + language
   });
 
@@ -300,7 +298,7 @@ describe("muiKit content field-completeness", () => {
   });
 
   it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(
-    "unsafe Affordance URI degrades to a disabled control: %s",
+    "unadmitted Affordance URI has no browser link or implicit opener: %s",
     async (uri) => {
       const { container } = renderPanel(create(PanelDescriptorSchema, {
         body: { case: "action", value: {
@@ -310,8 +308,8 @@ describe("muiKit content field-completeness", () => {
       }));
       expect(container.querySelector("a")).toBeNull();
       const control = await screen.findByRole("button", { name: "Open destination" });
-      expect((control as HTMLButtonElement).disabled).toBe(true);
-      expect(control.getAttribute("aria-disabled")).toBe("true");
+      await act(async () => fireEvent.click(control));
+      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
       expect(control.getAttribute("data-icon")).toBe("open");
       await screen.findByText("Untrusted target");
     },

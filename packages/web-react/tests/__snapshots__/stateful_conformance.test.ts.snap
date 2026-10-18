@@ -7,7 +7,7 @@ h3
   "action · empty"
 h2
   "action · empty"
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -20,7 +20,7 @@ h2
   "action · overflow"
 p
   "One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -33,7 +33,7 @@ h2
   "action · typical"
 p
   "One click adds it to Cursor."
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -587,7 +587,7 @@ h3
   "Cursor"
 p
   "One click installs it."
-a href="cursor://install"
+button type="button"
   "Add to Cursor"
 figure
   figcaption
@@ -1040,7 +1040,7 @@ h3
   "Cursor"
 p
   "One click installs it."
-a href="cursor://install"
+button type="button"
   "Add to Cursor"
 figure
   figcaption
@@ -8482,7 +8482,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8507,7 +8507,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8532,7 +8532,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8557,7 +8557,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8582,7 +8582,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8607,7 +8607,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8632,7 +8632,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8657,7 +8657,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8682,7 +8682,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8707,7 +8707,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8732,7 +8732,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8757,7 +8757,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -8796,7 +8796,7 @@ ol
     p
       "The list of every employer your organization administers."
     img alt="The sponsors list" src="/evidence/sponsors.png"
-    a title="Continue in the sponsor list" href="/sponsors"
+    button title="Continue in the sponsor list" type="button"
       "Open Sponsors"
     "Continue in the sponsor list"
   li
@@ -9921,7 +9921,7 @@ h3
   "action · empty"
 h3
   "action · empty"
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -9934,7 +9934,7 @@ h3
   "action · overflow"
 p
   "One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor.One click adds it to Cursor."
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -9947,7 +9947,7 @@ h3
   "action · typical"
 p
   "One click adds it to Cursor."
-a href="cursor://anysphere.cursor-deeplink/mcp/install"
+button type="button"
   "Add to Cursor""
 `;
 
@@ -10498,7 +10498,7 @@ h3
   "Cursor"
 p
   "One click installs it."
-a href="cursor://install"
+button type="button"
   "Add to Cursor"
 figure
   figcaption
@@ -10951,7 +10951,7 @@ h3
   "Cursor"
 p
   "One click installs it."
-a href="cursor://install"
+button type="button"
   "Add to Cursor"
 figure
   figcaption
@@ -18395,7 +18395,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18420,7 +18420,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18445,7 +18445,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18470,7 +18470,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18495,7 +18495,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18520,7 +18520,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18545,7 +18545,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18570,7 +18570,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18595,7 +18595,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18620,7 +18620,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18645,7 +18645,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18670,7 +18670,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li
@@ -18710,7 +18710,7 @@ section aria-label="Steps"
       p
         "The list of every employer your organization administers."
       img alt="The sponsors list" src="/evidence/sponsors.png"
-      a title="Continue in the sponsor list" href="/sponsors"
+      button title="Continue in the sponsor list" type="button"
         "Open Sponsors"
       "Continue in the sponsor list"
     li

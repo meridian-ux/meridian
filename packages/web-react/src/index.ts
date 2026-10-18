@@ -86,6 +86,7 @@ export {
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { useDisplayNow } from "./display_now.js";
 export { useStatData } from "./stat_data.js";
+export { useAffordanceInvocation } from "./affordance_invocation.js";
 export { buildSubmissionRequest } from "./action_request.js";
 export { useLroLifecycle, LroResult } from "./lro_lifecycle.js";
 export { usePromptResponse } from "./prompt.js";

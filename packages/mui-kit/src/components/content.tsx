@@ -39,12 +39,12 @@ import {
   useIcon,
   useMeridian,
   useStatData,
+  useAffordanceInvocation,
 } from "@savvifi/meridian-web-react";
 import {
   computeStat,
   affordancePresentation,
   safeAssetSrc,
-  safeNavigationHref,
   statSparklinePoints,
   trendArrow,
 } from "@savvifi/meridian-schemas/uiview";
@@ -85,6 +85,7 @@ function Glyph({ name }: { name: string }): ReactNode {
 }
 
 function AffordanceButton({ affordance }: { affordance: Affordance }): ReactNode {
+  const invocation = useAffordanceInvocation(affordance);
   const { primary, tone, style } = affordancePresentation(affordance);
   const colors = { neutral: "inherit", info: "info", success: "success", warning: "warning", danger: "error", accent: "primary" } as const;
   const glyph = useIcon(affordance.icon);
@@ -99,31 +100,28 @@ function AffordanceButton({ affordance }: { affordance: Affordance }): ReactNode
     color: tone === undefined ? undefined : colors[tone as keyof typeof colors],
     style: affordance.emphasis === undefined ? undefined : { fontWeight: style.fontWeight, borderWidth: style.borderWidth, borderStyle: style.borderStyle },
   };
-  const href = affordance.invoke.case === "uri" ? safeNavigationHref(affordance.invoke.value) : undefined;
-  const unavailableUri = affordance.invoke.case === "uri" && !href;
   const button =
-    href ? (
-      <Button component={Link} href={href} {...common}>
-        {affordance.label}
-      </Button>
-    ) : (
       <Button
-        disabled={unavailableUri}
-        aria-disabled={unavailableUri || undefined}
-        onClick={() => copyText(affordance.invoke.case === "command" ? affordance.invoke.value : "")}
+        type="button"
+        disabled={invocation.unavailable}
+        aria-disabled={invocation.pending || invocation.unavailable || undefined}
+        aria-busy={invocation.pending || undefined}
+        aria-label={affordance.label.trim() ? undefined : "Action"}
+        aria-describedby={invocation.feedback ? invocation.feedbackId : undefined}
+        onClick={event => { void invocation.activate(event.currentTarget); }}
         {...common}
       >
         {affordance.label}
-      </Button>
-    );
+      </Button>;
   // Render the description inline (not just as a tooltip) so it is never dropped.
-  if (!affordance.description) return button;
   return (
     <Stack spacing={0.25} alignItems="flex-start">
       {button}
-      <Typography variant="caption" color="text.secondary">
+      {affordance.description && <Typography variant="caption" color="text.secondary">
         {affordance.description}
-      </Typography>
+      </Typography>}
+      {invocation.feedback && <Typography id={invocation.feedbackId} role="status" aria-live="polite" variant="caption">{invocation.feedback}</Typography>}
+      {invocation.pending && <Button type="button" size="small" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</Button>}
     </Stack>
   );
 }
