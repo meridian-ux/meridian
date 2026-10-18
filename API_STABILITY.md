@@ -92,20 +92,25 @@ Required props are a canonical `descriptor`, controlled `open`, and `onClose`.
 Optional callbacks are `onNavigate(route)`, `onOpenView(viewId)`, `onRun(command)`,
 and `onResolveQuery(query): Promise<Command[]>`; `agentGroupTitle` defaults to
 `Ask the agent`. It needs a `MeridianProvider`. The host owns the open gesture;
-opening resets transient query/focused-panel state. Escape/backdrop and terminal
-dispatch request closing; an `openPanel` action enters a focused step instead.
+opening resets the transient query. Escape/backdrop request closing. Successful
+settlement closes; open-panel targets require explicit host capabilities rather
+than mounting descriptor content implicitly inside the palette.
 
-Admitted deep links take precedence over actions and use browser navigation.
-Navigate actions use `onNavigate` or browser navigation; unsafe destinations are
-disabled and emit neither `onRun` nor `onClose`. Open-view actions use
-`onOpenView` or the provider handler with `("open-view", viewId)`. RPC actions use
-the provider mutation invoker with service, method and an empty request object;
+Legacy deep links take precedence over old actions only and require an explicit
+URI capability and target policy, never implicit browser navigation.
+Navigate and open-view actions require explicit provider invocation capabilities
+and target policy. `onNavigate` and `onOpenView` remain deprecated type-compatible
+props, not grants; no browser navigation or old provider-handler fallback exists.
+Unsafe destinations are disabled and emit neither `onRun` nor `onClose`.
+Canonical Command affordance presence wins over legacy action/deep-link hints.
+RPC actions use
+the shared dispatcher and actual Rust binding builder with current raw context;
 the host's mutation allowlist remains authoritative and defaults to deny.
 
-`onRun` receives the original canonical command after local dispatch, including
-an attempted RPC denied by admission. It is synchronous telemetry, not a Promise
-of RPC success: RPC failures are not surfaced by this callback. For terminal
-actions, `onClose` runs before `onRun`. `openPanel` notifies without closing.
+`onRun` receives the original canonical command only after actual successful
+settlement, with `onClose` first. Denial, transport failure, cancellation, stale
+context, and failed refresh neither close nor notify. Linked sanitized feedback
+explains failures; refresh failure never becomes automatic effect replay.
 Host callback exceptions are not converted to transport failures by this API.
 
 Resolver queries are trimmed and debounced 250 ms while open. Changing the
@@ -113,6 +118,13 @@ query/resolver, closing or unmounting invalidates previous results; it cannot
 abort host work already started. Synchronous throws/rejections leave no agent
 results. Resolving never dispatches commands. See the package README and agent
 lifecycle tests for the full behavior.
+
+Command activation cancellation is separate from query-resolver cancellation:
+the shared dispatcher signals active capabilities and suppresses obsolete
+completion on query/context replacement, close or unmount. The palette-wide
+pending guard survives query replacement and close/reopen until noncooperative
+effects settle. Bounded owned agent results and local/default commands share
+the control ceiling. Native keyboard/focus/cancel behavior has real-Chrome tests.
 
 `filterLaunchpad(descriptor, query)` returns groups of original command messages;
 empty queries preserve declared order and prepend resolvable default IDs under

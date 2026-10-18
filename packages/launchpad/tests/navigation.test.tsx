@@ -8,7 +8,8 @@ import {
   type Command,
 } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -28,13 +29,15 @@ function mount(command: Command, onNavigate = vi.fn(), onClose = vi.fn()) {
   render(
     createElement(
       MeridianProvider,
-      { invoker, kit: htmlKit, adhoc: {} },
-      createElement(Launchpad, {
+      { invoker, kit: htmlKit, adhoc: {}, invocation: { admit: () => true, capabilities: {
+        navigate: async target => { onNavigate(safeNavigationHref(target.route)); },
+        uri: async uri => { window.location.assign(safeNavigationHref(uri)!); },
+      } }, children: createElement(Launchpad, {
         descriptor: descriptor(command),
         open: true,
         onClose,
         onNavigate,
-      }),
+      }) },
     ),
   );
   return { onNavigate, onClose };
@@ -59,7 +62,7 @@ function spyOnAssign(): { assign: ReturnType<typeof vi.fn>; restore: () => void 
 }
 
 describe("<Launchpad> navigation admission", () => {
-  it("gives an admitted deep link precedence over its fallback action", () => {
+  it("gives an explicitly admitted legacy deep link precedence over its fallback action", async () => {
     const location = spyOnAssign();
     const command = create(CommandSchema, {
       id: "editor",
@@ -69,9 +72,9 @@ describe("<Launchpad> navigation admission", () => {
     });
     const { onNavigate, onClose } = mount(command);
 
-    fireEvent.mouseDown(screen.getByRole("option", { name: "Open editor" }));
+    fireEvent.click(screen.getByRole("option", { name: "Open editor" }));
 
-    expect(location.assign).toHaveBeenCalledWith("cursor://file/workspace/readme");
+    await waitFor(() => expect(location.assign).toHaveBeenCalledWith("cursor://file/workspace/readme"));
     expect(onNavigate).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledOnce();
     location.restore();
@@ -89,22 +92,22 @@ describe("<Launchpad> navigation admission", () => {
     const option = screen.getByRole("option", { name: "Unsafe editor" });
 
     expect(option.getAttribute("aria-disabled")).toBe("true");
-    fireEvent.mouseDown(option);
+    fireEvent.click(option);
     expect(location.assign).not.toHaveBeenCalled();
     expect(onNavigate).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     location.restore();
   });
 
-  it("admits safe routes and disables unsafe navigate actions", () => {
+  it("admits safe routes with explicit capability and disables unsafe navigate actions", async () => {
     const safe = create(CommandSchema, {
       id: "safe-route",
       title: "Safe route",
       action: { case: "navigate", value: { route: " /builds?status=failing " } },
     });
     const safeMount = mount(safe);
-    fireEvent.mouseDown(screen.getByRole("option", { name: "Safe route" }));
-    expect(safeMount.onNavigate).toHaveBeenCalledWith("/builds?status=failing");
+    fireEvent.click(screen.getByRole("option", { name: "Safe route" }));
+    await waitFor(() => expect(safeMount.onNavigate).toHaveBeenCalledWith("/builds?status=failing"));
     cleanup();
 
     const unsafe = create(CommandSchema, {
@@ -115,7 +118,7 @@ describe("<Launchpad> navigation admission", () => {
     const unsafeMount = mount(unsafe);
     const option = screen.getByRole("option", { name: "Unsafe route" });
     expect(option.getAttribute("aria-disabled")).toBe("true");
-    fireEvent.mouseDown(option);
+    fireEvent.click(option);
     expect(unsafeMount.onNavigate).not.toHaveBeenCalled();
     expect(unsafeMount.onClose).not.toHaveBeenCalled();
   });
