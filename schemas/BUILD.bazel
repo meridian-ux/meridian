@@ -69,6 +69,12 @@ js_binary(
     entry_point = "tools/embed_core_wasm.mjs",
 )
 
+js_binary(
+    name = "proto_facades",
+    entry_point = "tools/proto_facades.mjs",
+    data = [":node_modules/@bufbuild/protobuf"],
+)
+
 alias(
     name = "core_runtime",
     actual = "//schemas/src/uiview:core_runtime",
@@ -171,4 +177,5 @@ exports_files([
     "package.json",
     "tsconfig.json",
     "tools/conformance_snapshots.mjs",
+    "compat/pre-v1.binpb",
 ])
