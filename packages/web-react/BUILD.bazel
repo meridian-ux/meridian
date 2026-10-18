@@ -94,6 +94,7 @@ vitest_test(
     srcs = [
         "tests/conformance.test.ts",
         "tests/affordance_invocation.test.ts",
+        "tests/form_admission.test.tsx",
         "tests/affordance_contract.ts",
         "tests/action_sources_contract.ts",
         "tests/chart.test.ts",

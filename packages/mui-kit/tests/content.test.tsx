@@ -93,7 +93,8 @@ it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, a
       expect(control.hasAttribute("href")).toBe(false);
       expect(control.hasAttribute("data-copy")).toBe(false);
       await act(async () => fireEvent.click(control));
-      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
+      expect(container.querySelector('[role="status"]')!.textContent).toContain(target.startsWith("javascript:") ? "unsafe or missing" : "required capability");
+      expect(control.hasAttribute("disabled")).toBe(target.startsWith("javascript:"));
       expect(writeText).not.toHaveBeenCalled();
       unmount();
     }
@@ -309,7 +310,8 @@ describe("muiKit content field-completeness", () => {
       expect(container.querySelector("a")).toBeNull();
       const control = await screen.findByRole("button", { name: "Open destination" });
       await act(async () => fireEvent.click(control));
-      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
+      expect(container.querySelector('[role="status"]')!.textContent).toContain("unsafe or missing");
+      expect(control.hasAttribute("disabled")).toBe(true);
       expect(control.getAttribute("data-icon")).toBe("open");
       await screen.findByText("Untrusted target");
     },

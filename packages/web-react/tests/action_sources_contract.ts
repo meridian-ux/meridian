@@ -54,6 +54,18 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
   }
 
   describe(`${kit.id} normalized action sources`, () => {
+    it("rejects an unsafe resolved destination at activation, not just disabled paint", async () => {
+      const host = setup();
+      host.view.actions.push(create(ActionSchema, { id: "resolve-navigation", label: "Resolve destination", placement: ActionPlacement.HEADER }));
+      host.invocation = { ...host.invocation, resolveSemantic: () => ({ affordance: create(AffordanceSchema, {
+        invoke: { case: "navigate", value: { route: "javascript:alert(1)" } },
+      }) }) };
+      try {
+        await host.mount(); await host.click("Resolve destination");
+        expect(host.navigate).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled();
+        expect(host.onAction).not.toHaveBeenCalled(); expect(host.container.textContent).toContain("Action denied");
+      } finally { await host.close(); }
+    });
     it("canonical header presence wins over legacy, including an explicit empty collection", async () => {
       const host = setup();
       host.view.actions.push(create(ActionSchema, { id: "legacy", label: "Legacy callback" }));

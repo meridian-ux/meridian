@@ -113,11 +113,41 @@ invalidate their active scopes while retaining pending duplicate guards until
 settlement. A shared palette guard also serializes different commands. The
 retained footprint is bounded to 1,000 command occurrences, including defaults.
 
+## Reference form adoption
+
+HTML and Shadcn ordinary FormPanel submission now uses this dispatcher and the
+actual bounded Rust submission builder. Canonical presence (including empty)
+wins over the legacy save call and label. The existing collector validates
+current fields/dynamic options before activation. Canonical submit description,
+icon key, tone, and explicit emphasis remain visible without granting invocation;
+description and live feedback are linked to the submit control. Only committed
+activation and
+current-scope checks read FormData, never paint, hydration, or focus. Collected
+values replace the host form bag rather than merging undeclared data. Owned
+FormField protos, the selected admitted call, explicit bindings, and automatic
+field-ID mappings retain their own contracts. Raw false, zero, Unicode, and
+binding precedence are preserved. A request-construction failure never falls
+back to the legacy JavaScript interpreter or an old submit call.
+
+Legacy denied-save controls keep their observed disabled/status UI. Canonical
+denial is reachable and explained; pending submission is guarded with linked
+busy status and cancel, retaining focus and duplicate protection until actual
+settlement. Edits/unmount/context replacement suppress late status/refresh.
+Failures are sanitized and input survives retry. Saved status belongs only to
+its original scope; refresh failure remains distinct from effect failure.
+
+The shared browser hook also enforces safe URI/navigation schemes before any
+host capability, including intent produced by a semantic resolver. A permissive
+host grant cannot enable executable/document-local schemes. Hosts still supply
+and may further restrict all destination capabilities; no implicit opener exists.
+
 ## Still required
 
-Form submission with automatic field mapping and validation,
+MUI controlled form submission/reset behavior,
 implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
 remain separate work.
+Reference LRO inputs retain the existing complete start/poll/finalize workflow;
+the ordinary FormPanel migration does not replace it with an acknowledged RPC.
 The existing legacy shapes remain during the compatibility window; canonical
 presence must win whole, including empty/false, when those sources migrate.
 Private/public producer upgrades, external migration/removal prerequisites, and
