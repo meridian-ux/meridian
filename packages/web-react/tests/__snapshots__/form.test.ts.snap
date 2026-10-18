@@ -78,7 +78,7 @@ exports[`HTML form transport > prefills through reads, retains typed values, esc
   label
     "Enabled"
     input type="checkbox"
-  button type="submit"
+  button type="submit" aria-describedby="Saved."
     "Save record"
   p role="status"
     "Saved.""
@@ -95,10 +95,10 @@ exports[`HTML form transport > prefills through reads, retains typed values, esc
   label
     "Enabled"
     input type="checkbox"
-  button type="submit"
+  button type="submit" aria-describedby="Action failed. Try again with the current context."
     "Save record"
   p role="alert"
-    "<img src=x> failed""
+    "Action failed. Try again with the current context.""
 `;
 
 exports[`HTML form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saved 1`] = `
@@ -112,7 +112,7 @@ exports[`HTML form transport > submits typed raw values with bindings, blocks du
   label
     "Enabled"
     input type="checkbox" checked
-  button type="submit"
+  button type="submit" aria-describedby="Saved."
     "Save record"
   p role="status"
     "Saved.""
@@ -129,10 +129,12 @@ exports[`HTML form transport > submits typed raw values with bindings, blocks du
   label
     "Enabled"
     input type="checkbox" checked
-  button type="submit" disabled
+  button aria-disabled="true" type="submit" aria-describedby="Saving…"
     "Save record"
   p role="status"
-    "Saving…""
+    "Saving…"
+  button type="button"
+    "Cancel action""
 `;
 
 exports[`Shadcn form transport > keeps failed and malformed dynamic option sources unavailable > enum options empty 1`] = `
@@ -213,7 +215,7 @@ exports[`Shadcn form transport > prefills through reads, retains typed values, e
   label
     "Enabled"
     input type="checkbox"
-  button type="submit"
+  button type="submit" aria-describedby="Saved."
     "Save record"
   p role="status"
     "Saved.""
@@ -230,10 +232,10 @@ exports[`Shadcn form transport > prefills through reads, retains typed values, e
   label
     "Enabled"
     input type="checkbox"
-  button type="submit"
+  button type="submit" aria-describedby="Action failed. Try again with the current context."
     "Save record"
   p role="alert"
-    "<img src=x> failed""
+    "Action failed. Try again with the current context.""
 `;
 
 exports[`Shadcn form transport > submits typed raw values with bindings, blocks duplicate requests, and reports success > form saved 1`] = `
@@ -247,7 +249,7 @@ exports[`Shadcn form transport > submits typed raw values with bindings, blocks 
   label
     "Enabled"
     input type="checkbox" checked
-  button type="submit"
+  button type="submit" aria-describedby="Saved."
     "Save record"
   p role="status"
     "Saved.""
@@ -264,8 +266,10 @@ exports[`Shadcn form transport > submits typed raw values with bindings, blocks 
   label
     "Enabled"
     input type="checkbox" checked
-  button type="submit" disabled
+  button aria-disabled="true" type="submit" aria-describedby="Saving…"
     "Save record"
   p role="status"
-    "Saving…""
+    "Saving…"
+  button type="button"
+    "Cancel action""
 `;

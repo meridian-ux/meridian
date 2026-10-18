@@ -78,7 +78,12 @@ async function main() {
       try {
         const control = page.getByRole("button", { name: "Presentation action" });
         if (await control.getAttribute("href") !== null) throw new Error("Presentation exposed an unadmitted destination");
-        await control.click();
+        if (!await control.isDisabled()) throw new Error("Presentation enabled an unsafe URI");
+        await page.getByRole("status").filter({ hasText: "Action denied: this destination is unsafe or missing." }).waitFor({ state: "visible" });
+        await page.evaluate(kit => window.meridianPresentation(5, 1, false, kit), kit);
+        const safeControl = page.getByRole("button", { name: "Presentation action" });
+        if (await safeControl.isDisabled()) throw new Error("Safe ungranted URI cannot explain its denial");
+        await safeControl.click();
         await page.getByRole("status").filter({ hasText: "Action denied: this host has not enabled the required capability." }).waitFor({ state: "visible" });
         if (page.url() !== before || dialogs !== 0) throw new Error("Presentation executed a denied URI");
       } finally { page.off("dialog", dismiss); }

@@ -75,8 +75,11 @@ Adapters must bound and own declarations, validate fields and dynamic options,
 read the current collected values at activation and after asynchronous consent,
 and replace snapshot identity on any form/input/policy/context change. The
 builder does not perform input validation or decide that a UI is current. The
-React form controls still use their legacy paths at this foundation stage;
-connecting them, preserving validation and reset semantics, is required next.
+HTML/Shadcn ordinary FormPanel controls now connect this builder through the
+shared current-scope hook while preserving input/option validation. MUI's
+controlled form/reset path remains to adopt it. Reference LRO inputs keep their
+complete existing operation workflow; do not substitute a single dispatch for
+operation completion. Other renderer form adoption remains outstanding.
 No renderer-adoption acceptance box is satisfied by engine tests alone.
 
 ### Renderer adoption

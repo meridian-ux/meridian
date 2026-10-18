@@ -73,6 +73,16 @@ export function affordanceContract(kit: ComponentKit, runtime: {
   }
 
   describe(`${kit.id} real Affordance activation`, () => {
+    it.each<JsonObject>([{ uri: "javascript:alert(1)" }, { navigate: { route: "data:text/html,unsafe" } }])("keeps unsafe destinations noninteractive despite a permissive host: %j", async target => {
+      const host = setup(target);
+      try {
+        await host.mount(); expect(host.button().disabled).toBe(true);
+        expect(host.container.textContent).toContain("unsafe or missing");
+        await host.click(); expect(host.admit).not.toHaveBeenCalled();
+        for (const effect of Object.values(host.capabilities)) expect(effect).not.toHaveBeenCalled();
+        expect(host.invoke).not.toHaveBeenCalled(); expect(host.onAction).not.toHaveBeenCalled();
+      } finally { await host.close(); }
+    });
     it.each([
       ["uri", { uri: "cursor://raw/e\u0301" }], ["command", { command: "raw '$arg'\n" }],
       ["navigate", { navigate: { route: "/raw/e\u0301" } }], ["openPanel", { openPanel: { panelId: "inline",

@@ -1,11 +1,12 @@
-import { useContext, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { assertFormDefaultBudget, createAdmissionGate, validateFormValues } from "@savvifi/meridian-schemas/uiview";
-import { useMeridian } from "./provider.js";
+import { affordancePresentation, assertFormDefaultBudget, createAdmissionGate, normalizeFormSubmit, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { useIcon, useMeridian } from "./provider.js";
 import { bindingRequestJson, boundedDescriptorJson, MeridianRecordContext, useMeridianSelection } from "./pagination.js";
 import { buildSubmissionRequest } from "./action_request.js";
 import { FormEnumValues, FormFieldRow, FormInitialValues, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
+import { useActionInvocation } from "./affordance_invocation.js";
 
 // Runtime form state. Serialized RPC requests use the existing RpcInvoker contract.
 export function formDefaultsError(fields: readonly FormField[]): string | undefined {
@@ -104,8 +105,27 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
   const enums = useRef(new Map<string, readonly string[]>());
   const counts = useRef(new Map<string, number>());
   const alive = useRef(true);
+  const form = useRef<HTMLFormElement>(null);
   const call = panel.submit;
   const allowed = Boolean(call?.service && call.method && createAdmissionGate(admission).admits("mutation", call.service, call.method));
+  const operationInput = submissionKind === "lro";
+  const action = normalizeFormSubmit(panel, submitLabel ?? `Save ${panel.itemNoun}`.trim());
+  const presentation = affordancePresentation(action.affordance);
+  const icon = useIcon(operationInput ? undefined : action.affordance.icon);
+  const descriptionId = useId();
+  const readValues = useCallback(() => {
+    if (!form.current) throw new Error("Form is no longer available.");
+    return readFormFields(panel.fields, new FormData(form.current), enums.current, counts.current);
+  }, [panel.fields]);
+  const invocation = useActionInvocation(action, { enabled: !operationInput && edit && !defaultError && !loading,
+    submission: { fields: panel.fields, kind: "form" }, readFormValues: readValues });
+  // Keep the observed pre-canonical disabled/read-only UI; canonical denial
+  // stays reachable for the dispatcher's explicit sanitized explanation.
+  const legacyBlocked = panel.submitAffordance === undefined && invocation.policyDenied;
+  const hasSubmit = panel.submitAffordance !== undefined || call !== undefined;
+  const formMessage = invocation.pending ? submittingLabel ?? "Saving…"
+    : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions."
+    : invocation.outcome?.status === "succeeded" && invocation.outcome.refresh !== "failed" ? status : invocation.feedback;
   useEffect(() => {
     alive.current = true;
     let active = true;
@@ -120,25 +140,48 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (defaultError || !edit || !allowed || !call || loading || busy.current) return;
+    if (defaultError || !edit || loading || busy.current || (operationInput ? !allowed || !call
+      : legacyBlocked || invocation.pending || invocation.unavailable || invocation.predicateDenied)) return;
     setError(""); setStatus("");
     try {
-      const values = readFormFields(panel.fields, new FormData(event.currentTarget), enums.current, counts.current);
+      const values = readValues();
+      if (!operationInput) {
+        const trigger = (event.nativeEvent as SubmitEvent).submitter;
+        const result = await invocation.activate(trigger instanceof HTMLElement ? trigger : undefined);
+        if (result?.status === "succeeded" && result.refresh !== "failed") setStatus(successLabel ?? "Saved.");
+        return;
+      }
       busy.current = true; setStatus(submittingLabel ?? "Saving…");
       if (onSubmitValues) await onSubmitValues(values);
-      else await mutationInvoker.invoke(call.service, call.method, buildSubmissionRequest(call, panel.fields, values, selection.values, submissionKind ?? "form", record));
+      else await mutationInvoker.invoke(call!.service, call!.method, buildSubmissionRequest(call!, panel.fields, values, selection.values, "lro", record));
       if (alive.current) setStatus(successLabel ?? "Saved.");
     } catch (reason) {
       if (alive.current) { setStatus(""); setError(reason instanceof Error ? reason.message : String(reason)); }
     } finally { busy.current = false; }
   }
-  return <form className={className} data-mode={panel.mode} onSubmit={submit}>
+  return <form ref={form} className={className} data-mode={panel.mode} onSubmit={submit} onInput={() => {
+    if (!operationInput) { setStatus(""); if (invocation.pending) invocation.cancel(); }
+  }}>
     {defaultError ? <p role="alert">{defaultError}</p> : loading ? <p role="status">Loading…</p> : <FormEnumValues.Provider value={enums.current}><FormRepeatedCounts.Provider value={counts.current}><FormInitialValues.Provider value={initial}>
       {panel.fields.map(field => <FormFieldRow key={field.fieldId} c={c} field={field} mode={panel.mode} />)}
     </FormInitialValues.Provider></FormRepeatedCounts.Provider></FormEnumValues.Provider>}
-    {edit && call && <button type="submit" disabled={!!defaultError || loading || status === (submittingLabel ?? "Saving…") || !allowed}>{submitLabel ?? `Save ${panel.itemNoun}`.trim()}</button>}
-    {edit && call && !allowed && <p role="status">Saving is not permitted.</p>}
-    {status && <p role="status">{status}</p>}
+    {edit && hasSubmit && <button type="submit" disabled={!!defaultError || loading || (operationInput
+      ? status === (submittingLabel ?? "Saving…") || !allowed : legacyBlocked || invocation.unavailable || invocation.predicateDenied)}
+      style={operationInput ? undefined : presentation.style}
+      data-mer-tone={operationInput ? undefined : presentation.tone}
+      data-mer-emphasis={operationInput || action.affordance.emphasis === undefined ? undefined : presentation.primary ? "primary" : "secondary"}
+      data-icon={operationInput ? undefined : action.affordance.icon || undefined}
+      aria-busy={!operationInput && invocation.pending || undefined}
+      aria-disabled={!operationInput && (invocation.pending || !legacyBlocked && invocation.policyDenied) || undefined}
+      aria-describedby={operationInput ? undefined : [action.affordance.description && descriptionId, formMessage && invocation.feedbackId].filter(Boolean).join(" ") || undefined}>
+      {!operationInput && icon}
+      {operationInput ? submitLabel ?? `Save ${panel.itemNoun}`.trim() : action.affordance.label || "Submit"}</button>}
+    {edit && hasSubmit && !operationInput && action.affordance.description && <p id={descriptionId}>{action.affordance.description}</p>}
+    {edit && hasSubmit && (operationInput ? !allowed : legacyBlocked) && <p role="status">Saving is not permitted.</p>}
+    {operationInput ? status && <p role="status">{status}</p> : formMessage && <p
+      role={invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}
+      id={invocation.feedbackId}>{formMessage}</p>}
+    {!operationInput && invocation.pending && <button type="button" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</button>}
     {error && <p role="alert">{error}</p>}
   </form>;
 }
