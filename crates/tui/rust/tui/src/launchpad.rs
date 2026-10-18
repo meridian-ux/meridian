@@ -19,22 +19,28 @@
 //                           renderer's `data-active` row is.
 //   * icons               → `glyph()` (the shared terminal icon seam).
 //
-// The palette PICKS; the host RUNS. A terminal host already owns the transport
-// (`RpcInvoker`) and the panel loop (`PanelView` / `render_prompt`), so this
-// renderer decodes the chosen `Command.action` into a `LaunchpadOutcome` and
-// hands it back rather than dispatching — the one place it deliberately differs
-// from the React tier, which dispatches through the provider seam it sits in.
+// The palette PICKS; the host authorizes and RUNS. The explicit invocation path
+// uses the shared native dispatcher and supplies no default transport. Legacy
+// response handoff remains a 0.x compatibility path, never an admission grant.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use meridian_uiview::proto::{command::Action, Command, Launchpad, PanelDescriptor, RpcCall};
-use meridian_uiview::{filter_launchpad, flatten, FilteredGroup};
+use meridian_uiview::proto::{
+    command::Action, Affordance, Command, Launchpad, PanelDescriptor, RpcCall,
+};
+use meridian_uiview::{filter_launchpad, flatten, Context, FilteredGroup};
+use prost::Message;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::Frame;
+use std::sync::Arc;
 
 use crate::content::glyph;
 use crate::theme::Palette;
+use crate::{
+    NativeAction, NativeInvocationContext, NativeInvocationDispatcher, NativeInvocationHost,
+    NativeInvocationOutcome,
+};
 
 /// The id of the synthetic group holding agent-resolved commands. Mirrors the
 /// React renderer's `__agent__` group.
@@ -46,6 +52,8 @@ pub const AGENT_GROUP_ID: &str = "__agent__";
 /// / `Navigate` through its own router.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LaunchpadOutcome<'a> {
+    /// Typed intent only, never an admission grant. Presence suppresses legacy hints.
+    Canonical(&'a Affordance),
     Rpc(&'a RpcCall),
     OpenPanel(&'a PanelDescriptor),
     OpenViewId(&'a str),
@@ -57,6 +65,9 @@ pub enum LaunchpadOutcome<'a> {
 
 /// Decode a command's action for the host to run.
 pub fn command_outcome(command: &Command) -> LaunchpadOutcome<'_> {
+    if let Some(action) = &command.affordance {
+        return LaunchpadOutcome::Canonical(action);
+    }
     match command.action.as_ref() {
         Some(Action::Rpc(call)) => LaunchpadOutcome::Rpc(call),
         Some(Action::OpenPanel(open)) => match open.panel.as_ref() {
@@ -79,15 +90,107 @@ pub enum LaunchpadResponse {
     Cancelled,
 }
 
+/// The admitted path never returns a raw command for the host to execute again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NativeLaunchpadResponse {
+    Executed,
+    Cancelled,
+}
+
+/// Runtime-only identity for one palette instance and query generation.
+/// A stale asynchronous resolution cannot populate a newer or reopened query.
+#[derive(Clone)]
+pub struct NativeLaunchpadQueryToken(Arc<()>);
+
+#[derive(Clone, PartialEq, Eq)]
+struct InvocationFrame {
+    descriptor: Vec<u8>,
+    agent: Vec<u8>,
+    context: Vec<u8>,
+    query: String,
+    active: usize,
+}
+
+const INVOCATION_LIMIT: &str = "Command denied: palette or context limit exceeded.";
+const INVOCATION_STALE: &str =
+    "Command stopped because its source or context changed; redraw before retrying.";
+
+fn bounded_commands(descriptor: &Launchpad, agent: &[Command]) -> bool {
+    let mut count = descriptor
+        .groups
+        .len()
+        .saturating_add(agent.len())
+        .saturating_add(descriptor.default_command_ids.len());
+    if count > 1_000 {
+        return false;
+    }
+    for group in &descriptor.groups {
+        count = count.saturating_add(group.commands.len());
+        if count > 1_000 {
+            return false;
+        }
+        for command in &group.commands {
+            count = count.saturating_add(command.keywords.len());
+            if count > 1_000 {
+                return false;
+            }
+        }
+    }
+    for command in agent {
+        count = count.saturating_add(command.keywords.len());
+        if count > 1_000 {
+            return false;
+        }
+    }
+    let mut bytes = descriptor.encoded_len();
+    for command in agent {
+        bytes = bytes
+            .saturating_add(command.encoded_len())
+            .saturating_add(10);
+    }
+    bytes <= 4 * 1024 * 1024
+}
+
 /// The palette's live state: the query, the cursor, and any agent-resolved
-/// commands. Pure — no terminal, no I/O — so a host can drive it inside its own
-/// event loop (`on_key` + `draw`), and so it is testable without a TTY.
-#[derive(Debug, Clone)]
+/// commands. Hosts drive it inside their own event loop, without a TTY in tests.
+/// Drawing/filtering are pure; only explicit invocation events can run capabilities.
 pub struct LaunchpadState {
     query: String,
     active: usize,
     agent_commands: Vec<Command>,
     agent_group_title: String,
+    invocations: NativeInvocationDispatcher,
+    invocation_frame: Option<InvocationFrame>,
+    completed: bool,
+    feedback: Option<&'static str>,
+    query_token: NativeLaunchpadQueryToken,
+}
+
+impl std::fmt::Debug for LaunchpadState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LaunchpadState")
+            .field("active", &self.active)
+            .field("agent_commands", &self.agent_commands.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl Clone for LaunchpadState {
+    fn clone(&self) -> Self {
+        // A new UI owner cannot inherit another owner's in-flight effects or tokens.
+        let mut copy = Self::default();
+        copy.query = self.query.clone();
+        copy.active = self.active;
+        copy.agent_commands = self.agent_commands.clone();
+        copy.agent_group_title = self.agent_group_title.clone();
+        copy
+    }
+}
+
+impl Drop for LaunchpadState {
+    fn drop(&mut self) {
+        self.invocations.cancel();
+    }
 }
 
 impl Default for LaunchpadState {
@@ -97,6 +200,11 @@ impl Default for LaunchpadState {
             active: 0,
             agent_commands: Vec::new(),
             agent_group_title: "Ask the agent".into(),
+            invocations: NativeInvocationDispatcher::default(),
+            invocation_frame: None,
+            completed: false,
+            feedback: None,
+            query_token: NativeLaunchpadQueryToken(Arc::new(())),
         }
     }
 }
@@ -108,6 +216,7 @@ impl LaunchpadState {
 
     /// Override the heading for agent-resolved commands.
     pub fn with_agent_group_title(mut self, title: impl Into<String>) -> Self {
+        self.invalidate_invocation();
         self.agent_group_title = title.into();
         self
     }
@@ -118,7 +227,13 @@ impl LaunchpadState {
 
     /// Replace the query (resets the cursor to the first row, as typing does).
     pub fn set_query(&mut self, query: impl Into<String>) {
-        self.query = query.into();
+        let query = query.into();
+        if query != self.query {
+            self.agent_commands.clear();
+            self.query_token = NativeLaunchpadQueryToken(Arc::new(()));
+        }
+        self.invalidate_invocation();
+        self.query = query;
         self.active = 0;
     }
 
@@ -129,12 +244,161 @@ impl LaunchpadState {
     /// The AI-launchpad seam: the peer of the React renderer's `onResolveQuery`.
     /// A terminal host can't await inside `on_key`, so the async half stays the
     /// host's business — it resolves the query against its agent however it
-    /// likes (thread, channel, its own runtime) and hands the commands here; they
-    /// surface under a trailing agent group and run through the same dispatch.
+    /// likes (thread, channel, its own runtime). This compatibility setter is for
+    /// synchronous current-query data; async replies must use the query token API.
     pub fn set_agent_commands(&mut self, commands: Vec<Command>) {
-        self.agent_commands = commands;
+        self.invalidate_invocation();
+        if bounded_commands(&Launchpad::default(), &commands) {
+            self.agent_commands = commands;
+        } else {
+            self.agent_commands.clear();
+            self.feedback = Some(INVOCATION_LIMIT);
+        }
         // The list under the cursor just changed shape; keep it in range.
         self.active = 0;
+    }
+
+    pub fn query_token(&self) -> NativeLaunchpadQueryToken {
+        self.query_token.clone()
+    }
+
+    pub fn set_agent_commands_for_query(
+        &mut self,
+        token: &NativeLaunchpadQueryToken,
+        commands: Vec<Command>,
+    ) -> bool {
+        if !Arc::ptr_eq(&token.0, &self.query_token.0) {
+            return false;
+        }
+        self.set_agent_commands(commands);
+        self.feedback.is_none()
+    }
+
+    /// Withdraw the mounted invocation frame and cancel observation.
+    pub fn invalidate_invocation(&mut self) {
+        self.invocations.cancel();
+        self.invocation_frame = None;
+        self.completed = false;
+        self.feedback = None;
+    }
+
+    pub fn invocation_dispatcher(&self) -> NativeInvocationDispatcher {
+        self.invocations.clone()
+    }
+
+    /// End this open/query generation. Old async agent replies cannot reopen it.
+    pub fn close(&mut self) {
+        self.invalidate_invocation();
+        self.agent_commands.clear();
+        self.query_token = NativeLaunchpadQueryToken(Arc::new(()));
+    }
+
+    fn capture(&self, descriptor: &Launchpad, context: &Context) -> Result<InvocationFrame, ()> {
+        if self.query.len() > 16 * 1024
+            || self.agent_group_title.len() > 16 * 1024
+            || !bounded_commands(descriptor, &self.agent_commands)
+        {
+            return Err(());
+        }
+        let context = crate::invocation::context_key(NativeInvocationContext::new(context))?;
+        let mut agent = Vec::new();
+        for command in &self.agent_commands {
+            command
+                .encode_length_delimited(&mut agent)
+                .map_err(|_| ())?;
+        }
+        Ok(InvocationFrame {
+            descriptor: descriptor.encode_to_vec(),
+            agent,
+            context,
+            query: self.query.clone(),
+            active: self.active,
+        })
+    }
+
+    /// Capture the current bounded frame. Draw/filter never invokes host callbacks.
+    pub fn draw_with_invocation(
+        &mut self,
+        frame: &mut Frame,
+        area: Rect,
+        descriptor: &Launchpad,
+        context: &Context,
+        palette: &Palette,
+    ) {
+        let Ok(current) = self.capture(descriptor, context) else {
+            self.invalidate_invocation();
+            self.feedback = Some(INVOCATION_LIMIT);
+            frame.render_widget(Paragraph::new(INVOCATION_LIMIT), area);
+            return;
+        };
+        if self.invocation_frame.as_ref() != Some(&current) {
+            self.invocations.cancel();
+            self.completed = false;
+            if self.invocation_frame.is_some() {
+                self.feedback = None;
+            }
+        }
+        self.invocation_frame = Some(current);
+        self.draw(frame, area, descriptor, palette);
+    }
+
+    /// Execute only the command from the currently drawn frame. Success closes;
+    /// denial, failure, or refresh failure stays open with fixed feedback.
+    pub fn on_key_with_invocation(
+        &mut self,
+        key: KeyEvent,
+        descriptor: &Launchpad,
+        context: &Context,
+        host: &NativeInvocationHost<'_>,
+    ) -> Option<NativeLaunchpadResponse> {
+        if key.kind != KeyEventKind::Press {
+            return None;
+        }
+        if key.code != KeyCode::Enter {
+            let cancel = key.code == KeyCode::Esc
+                || (key.modifiers.contains(KeyModifiers::CONTROL)
+                    && matches!(key.code, KeyCode::Char('c' | 'C')));
+            if !cancel
+                && key.code != KeyCode::Backspace
+                && (self.query.len() > 16 * 1024
+                    || self.agent_group_title.len() > 16 * 1024
+                    || !bounded_commands(descriptor, &self.agent_commands))
+            {
+                self.invalidate_invocation();
+                self.feedback = Some(INVOCATION_LIMIT);
+                return None;
+            }
+            return self
+                .on_key(key, descriptor)
+                .and_then(|response| match response {
+                    LaunchpadResponse::Cancelled => Some(NativeLaunchpadResponse::Cancelled),
+                    LaunchpadResponse::Run(_) => None,
+                });
+        }
+        let current = self.capture(descriptor, context).ok();
+        if current.is_none() || current != self.invocation_frame {
+            self.invalidate_invocation();
+            self.feedback = Some(INVOCATION_STALE);
+            return None;
+        }
+        if self.completed {
+            return None;
+        }
+        let command = self.selected(descriptor)?;
+        let outcome = self.invocations.invoke(
+            NativeAction::Command(command),
+            NativeInvocationContext::new(context),
+            host,
+        );
+        self.feedback = Some(outcome.message());
+        self.completed = matches!(
+            outcome,
+            NativeInvocationOutcome::Succeeded | NativeInvocationOutcome::RefreshFailed
+        );
+        if outcome == NativeInvocationOutcome::Succeeded {
+            self.query_token = NativeLaunchpadQueryToken(Arc::new(()));
+        }
+        (outcome == NativeInvocationOutcome::Succeeded).then_some(NativeLaunchpadResponse::Executed)
     }
 
     pub fn agent_commands(&self) -> &[Command] {
@@ -184,27 +448,47 @@ impl LaunchpadState {
         if key.kind != KeyEventKind::Press {
             return None;
         }
-        let len = self.commands(descriptor).len();
         match key.code {
-            KeyCode::Esc => return Some(LaunchpadResponse::Cancelled),
+            KeyCode::Esc => {
+                self.close();
+                return Some(LaunchpadResponse::Cancelled);
+            }
             KeyCode::Enter => {
+                if self
+                    .selected(descriptor)
+                    .is_some_and(|c| c.affordance.is_some())
+                {
+                    self.feedback = Some(NativeInvocationOutcome::Denied.message());
+                    return None;
+                }
                 let chosen = self.selected(descriptor).cloned();
                 return chosen.map(LaunchpadResponse::Run);
             }
-            KeyCode::Down => self.move_by(1, len),
-            KeyCode::Up => self.move_by(-1, len),
+            KeyCode::Down => {
+                let len = self.commands(descriptor).len();
+                self.move_by(1, len);
+                self.invalidate_invocation();
+            }
+            KeyCode::Up => {
+                let len = self.commands(descriptor).len();
+                self.move_by(-1, len);
+                self.invalidate_invocation();
+            }
             KeyCode::Backspace => {
-                self.query.pop();
-                self.active = 0;
+                let mut query = self.query.clone();
+                query.pop();
+                self.set_query(query);
             }
             KeyCode::Char(c) => {
                 // Ctrl-C is the host's quit gesture, not a query character.
                 if key.modifiers.contains(KeyModifiers::CONTROL) && (c == 'c' || c == 'C') {
-                    return Some(LaunchpadResponse::Cancelled);
+                    return self
+                        .on_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE), descriptor);
                 }
                 if !key.modifiers.contains(KeyModifiers::CONTROL) {
-                    self.query.push(c);
-                    self.active = 0;
+                    let mut query = self.query.clone();
+                    query.push(c);
+                    self.set_query(query);
                 }
             }
             _ => {}
@@ -246,6 +530,18 @@ impl LaunchpadState {
             Paragraph::new(self.list_lines(descriptor, palette)),
             rows[2],
         );
+        if let Some(feedback) = self.feedback {
+            if inner.height > 0 {
+                frame.render_widget(
+                    Paragraph::new(feedback).style(palette.meta()),
+                    Rect {
+                        y: inner.y + inner.height - 1,
+                        height: 1,
+                        ..inner
+                    },
+                );
+            }
+        }
     }
 
     /// The query line: the typed text plus a block cursor, or the descriptor's
@@ -501,6 +797,38 @@ mod tests {
         );
         c.action = Some(Action::Rpc(RpcCall::default()));
         assert!(matches!(command_outcome(&c), LaunchpadOutcome::Rpc(_)));
+    }
+
+    #[test]
+    fn canonical_presence_never_decodes_a_legacy_navigation_trap() {
+        let c = Command {
+            affordance: Some(meridian_uiview::proto::Affordance::default()),
+            action: Some(Action::Navigate(Navigate {
+                route: "/legacy-trap".into(),
+            })),
+            ..command("same", "Canonical empty intent")
+        };
+        assert!(!matches!(
+            command_outcome(&c),
+            LaunchpadOutcome::Navigate(_)
+        ));
+    }
+
+    #[test]
+    fn ordinary_palette_does_not_return_an_unadmitted_canonical_command() {
+        let descriptor = Launchpad {
+            groups: vec![CommandGroup {
+                commands: vec![Command {
+                    affordance: Some(meridian_uiview::proto::Affordance::default()),
+                    ..command("canonical", "Canonical empty intent")
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert!(LaunchpadState::new()
+            .on_key(key(KeyCode::Enter), &descriptor)
+            .is_none());
     }
 
     #[test]

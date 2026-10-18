@@ -2,7 +2,10 @@
 //! borrowed projections, callbacks and cancellation are in-process UI state.
 use crate::RpcError;
 use meridian_uiview::{
-    proto::{affordance::Invoke, Action, Affordance, Navigate, PanelDescriptor, RpcCall},
+    proto::{
+        affordance::Invoke, command, Action, Affordance, Command, Navigate, PanelDescriptor,
+        RpcCall,
+    },
     Context, RequestBuilder, RequestOverrides,
 };
 use serde_json::Value;
@@ -70,6 +73,8 @@ pub(crate) fn context_key(context: NativeInvocationContext<'_>) -> Result<Vec<u8
 pub enum NativeAction<'a> {
     Canonical(&'a Affordance),
     Legacy(&'a Action),
+    /// Canonical presence suppresses every legacy command hint as a whole.
+    Command(&'a Command),
 }
 
 /// Borrowed canonical intent, not a wire DTO or permission token.
@@ -123,7 +128,7 @@ impl<'a> NativeInvocationContext<'a> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NativeCancellation(Arc<AtomicBool>);
 impl NativeCancellation {
     pub fn cancel(&self) {
@@ -207,7 +212,7 @@ impl NativeInvocationOutcome {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct NativeInvocationDispatcher {
     active: Arc<Mutex<Option<NativeCancellation>>>,
 }
@@ -267,6 +272,14 @@ impl NativeInvocationDispatcher {
         signal: &NativeCancellation,
     ) -> NativeInvocationOutcome {
         use NativeInvocationOutcome as O;
+        let action = match action {
+            NativeAction::Command(command) => command
+                .affordance
+                .as_ref()
+                .map(NativeAction::Canonical)
+                .unwrap_or(action),
+            _ => action,
+        };
         let resolved = match action {
             NativeAction::Legacy(action) if action.call.is_none() => {
                 if action.id.is_empty() {
@@ -291,6 +304,17 @@ impl NativeInvocationDispatcher {
             .unwrap_or(action);
         let (target, refresh) = match action {
             NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),
+            NativeAction::Command(command) => (
+                command.action.as_ref().and_then(|intent| match intent {
+                    command::Action::Rpc(call) => Some(NativeTarget::Rpc(call)),
+                    command::Action::Navigate(route) => Some(NativeTarget::Navigate(route)),
+                    command::Action::OpenViewId(id) => Some(NativeTarget::OpenView(id)),
+                    command::Action::OpenPanel(open) => {
+                        open.panel.as_ref().map(NativeTarget::OpenPanel)
+                    }
+                }),
+                false,
+            ),
             NativeAction::Canonical(action) => {
                 if let Some(filter) = &action.enabled_when {
                     if meridian_uiview::row_filter_matches(

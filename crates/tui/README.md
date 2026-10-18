@@ -125,8 +125,47 @@ Compatibility boundary: legacy `ViewResponse::Action` handoff and
 `PanelAppState::invoke` still exist during the 0.x migration window; neither is
 an admission grant. Prefer the explicit host API for both canonical and legacy
 header/slot controls; denial there never falls back to that handoff. Widget row,
-resource, form and palette adoption and final deprecation/cutover remain separate
+resource and form adoption and final deprecation/cutover remain separate
 work. The standalone executable stays offline and never gains mutation transport.
+
+### Admitted native palette
+
+Use `LaunchpadState::draw_with_invocation(..., context, palette)` and
+`on_key_with_invocation(key, descriptor, context, host)` together. Drawing and
+shared-core filtering execute no host callbacks. Enter uses the shared typed
+native dispatcher: canonical `Command.affordance` presence wins wholesale,
+including missing intent, over legacy action and deep-link hints. All seven
+canonical targets and all four typed legacy command targets require admission;
+a semantic command ID or deep link is never an invented route.
+
+`NativeLaunchpadResponse::Executed` means the effect already ran; dismiss the
+palette and do not execute the command again. Only success returns that response.
+Denial, failure, cancellation, or refresh failure stays open with fixed feedback.
+A completed effect with failed refresh cannot run again from the same mounted
+frame. Escape/Ctrl-C returns `Cancelled`; `close()` ends the open generation.
+The synchronous host contract and separate LRO workflow remain unchanged.
+
+The admitted path captures exact bounded descriptor, query, cursor, agent, and
+context keys. Changes withdraw old key activation until redraw and cancel
+retained workers without releasing their single-flight guard before settlement.
+Query/cursor edits and agent replacement also withdraw the frame; closing or
+dropping the owner cancels observation. Cloning creates an independent owner,
+without inherited invocation state or query tokens. No transport is installed.
+
+For asynchronous agent resolution, retain `query_token()` and return results
+through `set_agent_commands_for_query(&token, commands)`. Stale query generations
+(including A→B→A), closed/successfully dismissed palettes, and other owners reject
+that token. Query changes clear old agent results. `set_agent_commands` is only a
+synchronous current-query compatibility setter. The admitted path rejects the
+whole input above 1,000 aggregate groups/commands/keywords/default references or
+4 MiB encoded declarations; query and agent heading are capped at 16 KiB. Context
+keys use the existing cumulative native copy/key/depth limits. No limits increase.
+
+The old `on_key` still hands off legacy commands during the 0.x migration, but
+visibly denies canonical commands without the explicit host. `command_outcome`
+now returns `LaunchpadOutcome::Canonical` for present canonical intent; native
+hosts with exhaustive matches must handle that variant at migration cutover.
+Neither decoding nor a compatibility response is an admission grant.
 
 ### Composition and input lifecycle
 
