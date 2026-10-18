@@ -17,6 +17,24 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  formSettle: () => {},
+  formInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.formCalls = "0"; container.dataset.formAborted = "false";
+    controls.formSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2,
+        submit: { service: "legacy.Forms", method: "Delete" },
+        submitAffordance: { label: "Save current", invoke: { case: "copy", value: "canonical literal" } },
+        fields: [{ fieldId: "name", label: "Name", kind: { case: "text", value: { defaultValue: "initial", minLength: 2 } } }],
+      } } }), invoker: { invoke: async () => { throw Error("No legacy RPC in canonical form"); } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
+        container.dataset.formCalls = String(Number(container.dataset.formCalls) + 1);
+        container.dataset.formValue = String(current.formValues.name);
+        signal.addEventListener("abort", () => { container.dataset.formAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.formSettle = resolve; });
+      } } },
+    });
+  },
   invocationSettle: () => {},
   invocation: (mode: "allow" | "deny" | "pending") => {
     const container = root(); container.dataset.calls = "0"; container.dataset.aborted = "false";
