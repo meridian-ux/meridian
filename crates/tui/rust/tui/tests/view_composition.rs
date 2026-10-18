@@ -1,5 +1,8 @@
 //! Whole canonical ViewDescriptor wires rendered by the real native host.
 use meridian_tui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use meridian_tui::{
+    NativeCancellation, NativeInvocationContext, NativeInvocationHost, NativeTarget,
+};
 use meridian_tui::{RpcError, RpcInvoker, ViewHost, ViewResponse};
 use meridian_uiview::{proto::*, Context};
 use prost::Message;
@@ -103,6 +106,510 @@ fn sections(view: &mut ViewHost, context: &Context, host: &Host, width: u16) -> 
         output.push_str(&draw(view, context, host, width));
     }
     output
+}
+
+#[test]
+fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widths() {
+    use affordance::Invoke;
+    let targets = vec![
+        Invoke::Rpc(RpcCall {
+            service: "fixture.Records".into(),
+            method: "Get".into(),
+            bindings: vec![
+                FieldBinding {
+                    request_field: "id".into(),
+                    source: Some(field_binding::Source::RowField("id".into())),
+                },
+                FieldBinding {
+                    request_field: "flag".into(),
+                    source: Some(field_binding::Source::RowField("flag".into())),
+                },
+            ],
+        }),
+        Invoke::Uri("cursor://raw".into()),
+        Invoke::Command("literal\nnot copied".into()),
+        Invoke::Navigate(Navigate {
+            route: "/raw".into(),
+        }),
+        Invoke::OpenPanel(Box::new(PanelDescriptor {
+            panel_id: "inline".into(),
+            ..Default::default()
+        })),
+        Invoke::OpenView("raw-view".into()),
+        Invoke::Copy("raw/e\u{301}".into()),
+    ];
+    for width in [80, 140] {
+        for in_slot in [false, true] {
+            for target in &targets {
+                let canonical = Some(AffordanceCollection {
+                    items: vec![Affordance {
+                        id: "control".into(),
+                        label: "Canonical action".into(),
+                        invoke: Some(target.clone()),
+                        ..Default::default()
+                    }],
+                });
+                let legacy = vec![Action {
+                    id: "trap".into(),
+                    label: "Legacy trap".into(),
+                    call: Some(call("Delete")),
+                    ..Default::default()
+                }];
+                let descriptor = if in_slot {
+                    ViewDescriptor {
+                        slots: vec![Slot {
+                            title: "Canonical slot".into(),
+                            actions: legacy,
+                            affordances: canonical,
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    }
+                } else {
+                    ViewDescriptor {
+                        title: "Canonical header".into(),
+                        actions: legacy,
+                        affordances: canonical,
+                        ..Default::default()
+                    }
+                };
+                let mut state = wire(descriptor);
+                let reads = Host::default();
+                let effects = RefCell::new(vec![]);
+                let context = Context {
+                    selected_row: Some(json!({"id":0,"flag":false})),
+                    ..Default::default()
+                };
+                let screen = draw(&mut state, &context, &reads, width);
+                assert!(screen.contains("Canonical action"));
+                assert!(!screen.contains("Legacy trap"));
+                assert!(reads.calls.borrow().is_empty());
+                assert!(key(&mut state, &context, KeyCode::Enter).is_none());
+                assert!(draw(&mut state, &context, &reads, width).contains("Action denied:"));
+                let text =
+                    |value: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
+                        assert_eq!(current.selected_row(), context.selected_row.as_ref());
+                        effects.borrow_mut().push(value.to_owned());
+                        Ok(())
+                    };
+                let rpc = |source: &RpcCall,
+                           request: Value,
+                           _: NativeInvocationContext<'_>,
+                           _: &NativeCancellation| {
+                    assert_eq!(source.method, "Get");
+                    assert_eq!(request, json!({"id":0,"flag":false}));
+                    effects.borrow_mut().push("rpc".into());
+                    Ok(())
+                };
+                let navigate =
+                    |source: &Navigate, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+                        effects.borrow_mut().push(source.route.clone());
+                        Ok(())
+                    };
+                let panel = |source: &PanelDescriptor,
+                             _: NativeInvocationContext<'_>,
+                             _: &NativeCancellation| {
+                    effects.borrow_mut().push(source.panel_id.clone());
+                    Ok(())
+                };
+                let mutations = |source: &RpcCall, _: NativeInvocationContext<'_>| {
+                    source.service == "fixture.Records" && source.method == "Get"
+                };
+                let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+                let host = NativeInvocationHost {
+                    rpc: Some(&rpc),
+                    uri: Some(&text),
+                    command: Some(&text),
+                    navigate: Some(&navigate),
+                    open_panel: Some(&panel),
+                    open_view: Some(&text),
+                    copy: Some(&text),
+                    mutations: Some(&mutations),
+                    admit: Some(&allow),
+                    ..Default::default()
+                };
+                assert!(state
+                    .handle_key_with_invocation(
+                        KeyEvent::new(KeyCode::Char(' '), KeyModifiers::NONE),
+                        &context,
+                        &host
+                    )
+                    .unwrap()
+                    .is_none());
+                assert_eq!(effects.borrow().len(), 1);
+                assert!(draw(&mut state, &context, &reads, width).contains("Action completed."));
+                assert!(
+                    reads.calls.borrow().is_empty(),
+                    "no legacy transport fallback"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn canonical_empty_collections_and_explicit_legacy_host_denial_never_fall_back() {
+    let legacy = Action {
+        label: "Legacy trap".into(),
+        call: Some(call("Get")),
+        ..Default::default()
+    };
+    let mut state = wire(ViewDescriptor {
+        actions: vec![legacy.clone()],
+        affordances: Some(AffordanceCollection::default()),
+        ..Default::default()
+    });
+    let context = Context::default();
+    let reads = Host::default();
+    assert!(!draw(&mut state, &context, &reads, 80).contains("Legacy trap"));
+    assert!(key(&mut state, &context, KeyCode::Enter).is_none());
+    let mut legacy_state = wire(ViewDescriptor {
+        actions: vec![legacy],
+        ..Default::default()
+    });
+    draw(&mut legacy_state, &context, &reads, 80);
+    assert!(legacy_state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &NativeInvocationHost::default()
+        )
+        .unwrap()
+        .is_none());
+    assert!(draw(&mut legacy_state, &context, &reads, 80).contains("Action denied:"));
+    assert!(reads.calls.borrow().is_empty());
+}
+
+#[test]
+fn changed_native_context_withdraws_a_mounted_control_until_redraw() {
+    let mut state = wire(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Use scope".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    });
+    let reads = Host::default();
+    let mut context = Context::default();
+    let effects = RefCell::new(vec![]);
+    let effect = |_: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
+        effects
+            .borrow_mut()
+            .push(current.current_resource_path().map(str::to_owned));
+        Ok(())
+    };
+    let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+    let host = NativeInvocationHost {
+        copy: Some(&effect),
+        admit: Some(&allow),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    context.current_resource_path = Some("replacement/raw".into());
+    assert!(state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host
+        )
+        .unwrap()
+        .is_none());
+    assert!(effects.borrow().is_empty());
+    assert!(draw(&mut state, &context, &reads, 80).contains("context changed"));
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert_eq!(*effects.borrow(), [Some("replacement/raw".into())]);
+}
+
+#[test]
+fn canonical_action_footprints_and_labels_retain_composition_limits() {
+    assert!(ViewHost::new(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance::default(); 1001]
+        }),
+        ..Default::default()
+    })
+    .is_err());
+    assert!(ViewHost::new(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "x".repeat(16 * 1024 + 1),
+                ..Default::default()
+            }]
+        }),
+        ..Default::default()
+    })
+    .is_err());
+}
+
+#[test]
+fn repeated_canonical_controls_borrow_the_real_row_not_the_ambient_host_row() {
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Use repeated row".into(),
+                enabled_when: Some(RowFilter {
+                    field_path: "flag".into(),
+                    equals: "false".into(),
+                }),
+                invoke: Some(affordance::Invoke::Rpc(RpcCall {
+                    bindings: ["id", "flag", "count", "name"]
+                        .into_iter()
+                        .map(|field| FieldBinding {
+                            request_field: field.into(),
+                            source: Some(field_binding::Source::RowField(field.into())),
+                        })
+                        .collect(),
+                    ..call("Get")
+                })),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut state = wire(ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(call("Rows")),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    let reads = Host::default();
+    *reads.rows.borrow_mut() =
+        Some(json!({"rows":[{"id":0,"flag":false,"count":0,"name":"raw/e\u{301}"}]}));
+    let context = Context {
+        selected_row: Some(json!({"id":"ambient trap","irrelevant":"x".repeat(5*1024*1024)})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let calls = RefCell::new(vec![]);
+    let rpc = |_: &RpcCall,
+               request: Value,
+               current: NativeInvocationContext<'_>,
+               _: &NativeCancellation| {
+        assert_eq!(current.selected_row().unwrap()["id"], json!(0));
+        calls.borrow_mut().push(request);
+        Ok(())
+    };
+    let policy = |_: &RpcCall, _: NativeInvocationContext<'_>| true;
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &NativeInvocationHost {
+                rpc: Some(&rpc),
+                mutations: Some(&policy),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        *calls.borrow(),
+        [json!({"id":0,"flag":false,"count":0,"name":"raw/e\u{301}"})]
+    );
+    assert_eq!(
+        reads
+            .calls
+            .borrow()
+            .iter()
+            .map(|(method, _)| method.as_str())
+            .collect::<Vec<_>>(),
+        ["Rows"]
+    );
+}
+
+#[test]
+fn dropping_the_native_view_cancels_an_owned_host_worker_without_releasing_its_guard_early() {
+    use std::sync::mpsc::channel;
+    use std::time::Duration;
+    let state = wire(ViewDescriptor::default());
+    let dispatcher = state.invocation_dispatcher();
+    let (started_tx, started_rx) = channel();
+    let (finish_tx, finish_rx) = channel();
+    let worker = std::thread::spawn(move || {
+        let base = Context::default();
+        let action = Affordance {
+            invoke: Some(affordance::Invoke::Copy("literal".into())),
+            ..Default::default()
+        };
+        let effect = |_: &str, _: NativeInvocationContext<'_>, signal: &NativeCancellation| {
+            started_tx.send(signal.clone()).unwrap();
+            finish_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            assert!(dispatcher.pending());
+            Ok(())
+        };
+        let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+        dispatcher.invoke(
+            meridian_tui::NativeAction::Canonical(&action),
+            NativeInvocationContext::new(&base),
+            &NativeInvocationHost {
+                copy: Some(&effect),
+                admit: Some(&allow),
+                ..Default::default()
+            },
+        )
+    });
+    let signal = started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    drop(state);
+    assert!(signal.is_cancelled());
+    finish_tx.send(()).unwrap();
+    assert_eq!(
+        worker.join().unwrap(),
+        meridian_tui::NativeInvocationOutcome::Cancelled
+    );
+}
+
+#[test]
+fn repeated_parent_read_scope_changes_block_activation_before_redraw() {
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Scoped action".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut populate = call("Rows");
+    populate.bindings.push(FieldBinding {
+        request_field: "scope".into(),
+        source: Some(field_binding::Source::RowField("scope".into())),
+    });
+    let descriptor = ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(populate),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let mut state = wire(descriptor);
+    let reads = Host::default();
+    *reads.rows.borrow_mut() = Some(json!({"rows":[{"id":0}]}));
+    let mut context = Context {
+        selected_row: Some(json!({"scope":"first"})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let effects = RefCell::new(vec![]);
+    let effect = |value: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+        effects.borrow_mut().push(value.to_owned());
+        Ok(())
+    };
+    let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+    let host = NativeInvocationHost {
+        copy: Some(&effect),
+        admit: Some(&allow),
+        ..Default::default()
+    };
+    context.selected_row = Some(json!({"scope":"replacement"}));
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert!(effects.borrow().is_empty());
+    draw(&mut state, &context, &reads, 80);
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert_eq!(*effects.borrow(), ["literal"]);
+    assert_eq!(
+        *reads.calls.borrow(),
+        [
+            ("Rows".into(), json!({"scope":"first"})),
+            ("Rows".into(), json!({"scope":"replacement"}))
+        ]
+    );
+}
+
+#[test]
+fn equal_valued_repeated_row_replacement_cancels_a_retained_worker() {
+    use std::sync::mpsc::channel;
+    use std::time::Duration;
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Scoped action".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut populate = call("Rows");
+    populate.bindings.push(FieldBinding {
+        request_field: "scope".into(),
+        source: Some(field_binding::Source::RowField("scope".into())),
+    });
+    let mut state = wire(ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(populate),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    let reads = Host::default();
+    *reads.rows.borrow_mut() = Some(json!({"rows":[{"id":0}]}));
+    let mut context = Context {
+        selected_row: Some(json!({"scope":"first"})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let dispatcher = state.invocation_dispatcher();
+    let (started_tx, started_rx) = channel();
+    let (finish_tx, finish_rx) = channel();
+    let worker = std::thread::spawn(move || {
+        let base = Context::default();
+        let action = Affordance {
+            invoke: Some(affordance::Invoke::Copy("literal".into())),
+            ..Default::default()
+        };
+        let effect = |_: &str, _: NativeInvocationContext<'_>, signal: &NativeCancellation| {
+            started_tx.send(signal.clone()).unwrap();
+            finish_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            Ok(())
+        };
+        let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+        dispatcher.invoke(
+            meridian_tui::NativeAction::Canonical(&action),
+            NativeInvocationContext::new(&base),
+            &NativeInvocationHost {
+                copy: Some(&effect),
+                admit: Some(&allow),
+                ..Default::default()
+            },
+        )
+    });
+    let signal = started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    context.selected_row = Some(json!({"scope":"replacement"}));
+    draw(&mut state, &context, &reads, 80);
+    assert!(signal.is_cancelled());
+    finish_tx.send(()).unwrap();
+    assert_eq!(
+        worker.join().unwrap(),
+        meridian_tui::NativeInvocationOutcome::Cancelled
+    );
 }
 
 #[test]

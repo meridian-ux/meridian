@@ -11,6 +11,7 @@ rust_library(
         "src/enum_options.rs",
         "src/conversation.rs",
         "src/invoker.rs",
+        "src/invocation.rs",
         "src/inline_prompt.rs",
         "src/launchpad.rs",
         "src/lib.rs",

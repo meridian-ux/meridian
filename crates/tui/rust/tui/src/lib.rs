@@ -39,6 +39,7 @@ mod content;
 mod conversation;
 mod enum_options;
 mod inline_prompt;
+pub mod invocation;
 mod invoker;
 mod launchpad;
 mod llm_prompt;
@@ -57,6 +58,10 @@ pub use content::{
 };
 pub use conversation::{block_lines, conversation_lines, render_conversation, status_line};
 pub use inline_prompt::PanelPromptResponse;
+pub use invocation::{
+    NativeAction, NativeCancellation, NativeInvocationContext, NativeInvocationDispatcher,
+    NativeInvocationHost, NativeInvocationOutcome, NativeTarget,
+};
 pub use invoker::{RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession};
 pub use launchpad::{
     command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState, AGENT_GROUP_ID,

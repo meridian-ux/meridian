@@ -6,7 +6,10 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::{
-    proto::{layout, panel_descriptor::Body, Action, PanelDescriptor, Slot, ViewDescriptor},
+    proto::{
+        layout, panel_descriptor::Body, Action, AffordanceCollection, PanelDescriptor, Slot,
+        ViewDescriptor,
+    },
     Context, ProtoPaths, RequestBudget, RequestBuilder, RequestOverrides,
 };
 use prost::Message;
@@ -20,8 +23,9 @@ use ratatui::{
 use serde_json::Value;
 
 use crate::{
-    FormSubmission, LroRunId, LroSubmission, Palette, PanelPromptResponse, PanelView, RpcError,
-    RpcInvoker, StreamInvoker,
+    FormSubmission, LroRunId, LroSubmission, NativeAction, NativeInvocationContext,
+    NativeInvocationDispatcher, NativeInvocationHost, Palette, PanelPromptResponse, PanelView,
+    RpcError, RpcInvoker, StreamInvoker,
 };
 
 const MAX_NODES: usize = 1000;
@@ -43,8 +47,15 @@ pub enum ViewResponse {
 #[derive(Clone, PartialEq, Eq)]
 enum TargetKind {
     Panel,
-    Tab { view: Path, slot: usize },
-    Action { index: usize, slot: bool },
+    Tab {
+        view: Path,
+        slot: usize,
+    },
+    Action {
+        index: usize,
+        slot: bool,
+        canonical: bool,
+    },
     Retry,
 }
 
@@ -63,6 +74,7 @@ struct Entry<'a> {
 }
 
 struct Repeat {
+    source: Path,
     request: Value,
     record: Option<Arc<Value>>,
     rows: Result<Vec<Arc<Value>>, String>,
@@ -85,6 +97,9 @@ pub struct ViewHost {
     reveal_focus: bool,
     viewport: usize,
     error: Option<String>,
+    invocations: NativeInvocationDispatcher,
+    action_context: Option<Vec<u8>>,
+    record_context: Option<Vec<u8>>,
 }
 
 impl ViewHost {
@@ -106,6 +121,9 @@ impl ViewHost {
             reveal_focus: true,
             viewport: 1,
             error: None,
+            invocations: NativeInvocationDispatcher::default(),
+            action_context: None,
+            record_context: None,
         })
     }
 
@@ -126,6 +144,9 @@ impl ViewHost {
     /// values used by those reads. Gates and repeated-populate request changes
     /// are also reconciled on every render.
     pub fn invalidate(&mut self) {
+        self.invocations.cancel();
+        self.action_context = None;
+        self.record_context = None;
         self.panels.clear();
         self.repeats.clear();
         self.targets.clear();
@@ -219,10 +240,48 @@ impl ViewHost {
             });
         }
         let old_focus = self.targets.get(self.focus).cloned();
-        self.targets = entries
+        let next_targets: Vec<_> = entries
             .iter()
             .filter_map(|entry| entry.target.clone())
             .collect();
+        if self.targets.len() != next_targets.len()
+            || self.targets.iter().zip(&next_targets).any(|(old, new)| {
+                old.path != new.path
+                    || old.source != new.source
+                    || old.kind != new.kind
+                    || !same_record(&old.record, &new.record)
+            })
+        {
+            self.invocations.cancel();
+        }
+        self.targets = next_targets;
+        let next_context = if self.targets.iter().any(|target| {
+            matches!(target.kind, TargetKind::Action { .. }) && target.record.is_none()
+        }) {
+            crate::invocation::context_key(NativeInvocationContext::new(context)).ok()
+        } else {
+            None
+        };
+        if self.action_context != next_context {
+            self.invocations.cancel();
+        }
+        self.action_context = next_context;
+        let next_record = if self.targets.iter().any(|target| {
+            matches!(target.kind, TargetKind::Action { .. }) && target.record.is_some()
+        }) {
+            // Derived records are immutable Arcs already owned/bounded by the
+            // repeat cache. Do not copy an irrelevant ambient selected row.
+            crate::invocation::context_key(
+                NativeInvocationContext::new(context).with_record(Some(&Value::Null)),
+            )
+            .ok()
+        } else {
+            None
+        };
+        if self.record_context != next_record {
+            self.invocations.cancel();
+        }
+        self.record_context = next_record;
         self.focus = self.focus.min(self.targets.len().saturating_sub(1));
         if let Some(old) = old_focus {
             if let Some(index) = self
@@ -370,6 +429,30 @@ impl ViewHost {
         key: KeyEvent,
         context: &Context,
     ) -> Result<Option<ViewResponse>, RpcError> {
+        self.handle_key_inner(key, context, None)
+    }
+
+    /// Synchronous explicit host execution. Legacy response handoff is never
+    /// used as a fallback after denial. Long operations keep their LRO protocol.
+    pub fn handle_key_with_invocation(
+        &mut self,
+        key: KeyEvent,
+        context: &Context,
+        host: &NativeInvocationHost<'_>,
+    ) -> Result<Option<ViewResponse>, RpcError> {
+        self.handle_key_inner(key, context, Some(host))
+    }
+
+    pub fn invocation_dispatcher(&self) -> NativeInvocationDispatcher {
+        self.invocations.clone()
+    }
+
+    fn handle_key_inner(
+        &mut self,
+        key: KeyEvent,
+        context: &Context,
+        host: Option<&NativeInvocationHost<'_>>,
+    ) -> Result<Option<ViewResponse>, RpcError> {
         self.error = None;
         let prompt_paging = self.targets.get(self.focus).is_some_and(|target| {
             matches!(target.kind, TargetKind::Panel)
@@ -451,7 +534,60 @@ impl ViewHost {
             TargetKind::Retry if key.code == KeyCode::Enter => {
                 self.repeats.remove(&target.path);
             }
-            TargetKind::Action { index, slot } if key.code == KeyCode::Enter => {
+            TargetKind::Action {
+                index,
+                slot,
+                canonical,
+            } if key.code == KeyCode::Enter
+                || (canonical || host.is_some()) && key.code == KeyCode::Char(' ') =>
+            {
+                if canonical || host.is_some() {
+                    let no_ambient_row = Value::Null;
+                    let current = crate::invocation::context_key(
+                        NativeInvocationContext::new(context)
+                            .with_record(target.record.as_ref().map(|_| &no_ambient_row)),
+                    )
+                    .ok();
+                    let captured = if target.record.is_some() {
+                        &self.record_context
+                    } else {
+                        &self.action_context
+                    };
+                    if current.is_none()
+                        || &current != captured
+                        || !self.repeat_scopes_current(&target.path, context)
+                    {
+                        self.invalidate();
+                        self.error = Some("Action stopped because its context changed or is invalid; redraw before retrying.".into());
+                        return Ok(None);
+                    }
+                    let (legacy, canonical_actions) = if slot {
+                        let source =
+                            slot_at(&self.descriptor, &target.source).expect("mounted slot");
+                        (&source.actions, source.affordances.as_ref())
+                    } else {
+                        let source =
+                            view_at(&self.descriptor, &target.source).expect("mounted view");
+                        (&source.actions, source.affordances.as_ref())
+                    };
+                    let action = if canonical {
+                        NativeAction::Canonical(
+                            &canonical_actions
+                                .expect("mounted canonical collection")
+                                .items[index],
+                        )
+                    } else {
+                        NativeAction::Legacy(&legacy[index])
+                    };
+                    let default_host = NativeInvocationHost::default();
+                    let outcome = self.invocations.invoke(
+                        action,
+                        NativeInvocationContext::new(context).with_record(target.record.as_deref()),
+                        host.unwrap_or(&default_host),
+                    );
+                    self.error = Some(outcome.message().into());
+                    return Ok(None);
+                }
                 let actions = if slot {
                     &slot_at(&self.descriptor, &target.source)
                         .expect("mounted slot")
@@ -518,6 +654,34 @@ impl ViewHost {
         }
         Ok(None)
     }
+
+    fn repeat_scopes_current(&self, target: &[usize], context: &Context) -> bool {
+        self.repeats
+            .iter()
+            .filter(|(path, _)| target.starts_with(path))
+            .all(|(_, repeat)| {
+                let Some(call) = slot_at(&self.descriptor, &repeat.source)
+                    .and_then(|slot| slot.sub_view_populate.as_ref())
+                else {
+                    return false;
+                };
+                RequestBuilder::build_for_boundary_with(
+                    call,
+                    context,
+                    RequestOverrides {
+                        selected_row: repeat.record.as_deref(),
+                        ..Default::default()
+                    },
+                )
+                .is_ok_and(|request| request == repeat.request)
+            })
+    }
+}
+
+impl Drop for ViewHost {
+    fn drop(&mut self) {
+        self.invocations.cancel();
+    }
 }
 
 fn limit() -> RpcError {
@@ -537,9 +701,17 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         return Err(limit());
     }
     let mut cost = local_cost(view);
+    if cost > MAX_NODES {
+        return Err(limit());
+    }
     let mut labels = vec![view.title.as_str(), view.id.as_str()];
     for action in &view.actions {
         labels.extend([action.id.as_str(), action.label.as_str()]);
+    }
+    if let Some(actions) = &view.affordances {
+        for action in &actions.items {
+            labels.extend([action.id.as_str(), action.label.as_str()]);
+        }
     }
     for slot in &view.slots {
         labels.extend([
@@ -556,6 +728,11 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         for action in &slot.actions {
             labels.extend([action.id.as_str(), action.label.as_str()]);
         }
+        if let Some(actions) = &slot.affordances {
+            for action in &actions.items {
+                labels.extend([action.id.as_str(), action.label.as_str()]);
+            }
+        }
         if let Some(child) = &slot.sub_view {
             cost += descriptor_cost(child, depth + 1)?;
         }
@@ -571,10 +748,11 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
 
 fn local_cost(view: &ViewDescriptor) -> usize {
     1 + view.actions.len()
+        + view.affordances.as_ref().map_or(0, |a| a.items.len())
         + view
             .slots
             .iter()
-            .map(|s| 1 + s.actions.len())
+            .map(|s| 1 + s.actions.len() + s.affordances.as_ref().map_or(0, |a| a.items.len()))
             .sum::<usize>()
 }
 
@@ -668,20 +846,44 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
     fn actions(
         &mut self,
         actions: &'a [Action],
+        canonical: Option<&'a AffordanceCollection>,
         path: &[usize],
         source: &[usize],
         record: &Option<Arc<Value>>,
         slot: bool,
     ) {
-        for (index, action) in actions.iter().enumerate() {
+        let canonical_labels = canonical
+            .into_iter()
+            .flat_map(|a| &a.items)
+            .map(|a| (a.label.as_str(), a.id.as_str()));
+        let legacy_labels = canonical
+            .is_none()
+            .then_some(actions)
+            .into_iter()
+            .flatten()
+            .map(|a| (a.label.as_str(), a.id.as_str()));
+        for (index, (label, id)) in canonical_labels.chain(legacy_labels).enumerate() {
             self.entries.push(Entry {
-                label: format!("Action: {} [{}]", action.label, action.id),
+                label: format!(
+                    "Action: {} [{}]{}",
+                    if label.is_empty() { "Action" } else { label },
+                    id,
+                    if canonical.is_some() {
+                        " [host admission required]"
+                    } else {
+                        ""
+                    }
+                ),
                 panel: None,
                 target: Some(Target {
                     path: path.to_vec(),
                     source: source.to_vec(),
                     record: record.clone(),
-                    kind: TargetKind::Action { index, slot },
+                    kind: TargetKind::Action {
+                        index,
+                        slot,
+                        canonical: canonical.is_some(),
+                    },
                 }),
             });
         }
@@ -700,7 +902,14 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             return Err(limit());
         }
         self.text(format!("View: {} [{}]", view.title, view.id));
-        self.actions(&view.actions, path, source, &record, false);
+        self.actions(
+            &view.actions,
+            view.affordances.as_ref(),
+            path,
+            source,
+            &record,
+            false,
+        );
         let mut ordered: Vec<_> = (0..view.slots.len()).collect();
         ordered.sort_by_key(|i| view.slots[*i].position);
         for i in ordered.iter().copied().filter(|i| {
@@ -836,7 +1045,14 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             });
             return Ok(());
         }
-        self.actions(&slot.actions, &path, &source, &record, true);
+        self.actions(
+            &slot.actions,
+            slot.affordances.as_ref(),
+            &path,
+            &source,
+            &record,
+            true,
+        );
         if let Some(child) = &slot.sub_view {
             if let Some(call) = &slot.sub_view_populate {
                 self.seen_repeats.insert(path.clone());
@@ -885,6 +1101,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
                     self.repeats.insert(
                         path.clone(),
                         Repeat {
+                            source: source.clone(),
                             request,
                             record: record.clone(),
                             rows,
