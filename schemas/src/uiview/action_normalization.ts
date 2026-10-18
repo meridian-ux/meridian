@@ -12,7 +12,7 @@ import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
  */
 export class NormalizedAction {
   constructor(readonly affordance: Affordance, readonly semanticAction?: Action,
-    readonly legacyOrigin?: "action" | "row") {}
+    readonly legacyOrigin?: "action" | "row" | "command") {}
 }
 
 export function normalizeAffordance(action: Affordance): NormalizedAction {
@@ -78,7 +78,7 @@ export function normalizeCommand(command: Command): { envelope: Command; action:
   }
   return { envelope: command, action: new NormalizedAction(create(AffordanceSchema, {
     id: command.id, label: command.title, description: command.subtitle, icon: command.icon, invoke,
-  })) };
+  }), undefined, "command") };
 }
 
 /** The caller supplies its existing localized submit label. Field validation,

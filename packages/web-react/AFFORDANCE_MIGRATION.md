@@ -96,9 +96,26 @@ Do not wire the old global `.mer-copy` handler to canonical Affordances: these
 controls intentionally carry no command/copy payload data attributes. Dedicated
 Snippet and CopyValue controls retain their separate existing copy contract.
 
+## Palette adoption
+
+The MUI shell palette also uses normalized commands and the shared dispatcher.
+Search still uses the Command title/subtitle/keywords, and renders its icon and
+shortcut; those fields never replace explicit canonical intent. This shell's
+legacy URL-state mode projects `deep_link` to a URI action only when canonical
+Affordance presence is absent. Empty or denied canonical intent never revives
+that hint or the old oneof. Unsafe URI/navigation destinations stay unavailable.
+All targets require the same explicit host policy/capability wiring as panel
+actions; the shell's routing seam and `hrefFor` are not automatic grants. Hosts
+wanting focused panel steps must implement their granted `openPanel` capability,
+not rely on a descriptor causing implicit mounting. Pure matching/focus does no
+IO. Search reordering retains logical controls; filtering and close/reopen
+invalidate their active scopes while retaining pending duplicate guards until
+settlement. A shared palette guard also serializes different commands. The
+retained footprint is bounded to 1,000 command occurrences, including defaults.
+
 ## Still required
 
-Palette commands, form submission with automatic field mapping and validation,
+Form submission with automatic field mapping and validation,
 implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
 remain separate work.
 The existing legacy shapes remain during the compatibility window; canonical
