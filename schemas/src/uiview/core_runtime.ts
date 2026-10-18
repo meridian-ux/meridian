@@ -7,7 +7,8 @@ import type { RenderContext } from "./transport.js";
 /** Use the bounded Rust builder, not a second JavaScript binding interpreter. */
 export const coreRequests: Readonly<{
   buildRequest(call: Uint8Array, context: RenderContext): object;
-}> = Object.freeze({ buildRequest: bindings.buildRequest });
+  buildSubmissionRequest(descriptor: Uint8Array, context: RenderContext, values: unknown): object;
+}> = Object.freeze({ buildRequest: bindings.buildRequest, buildSubmissionRequest: bindings.buildSubmissionRequest });
 
 /** Bounded native/WASM metadata formatter shared by operation realizations. */
 // Explicit public signatures keep private wasm-bindgen classes (and optional

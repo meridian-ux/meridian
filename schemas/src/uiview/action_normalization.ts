@@ -12,7 +12,7 @@ import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
  */
 export class NormalizedAction {
   constructor(readonly affordance: Affordance, readonly semanticAction?: Action,
-    readonly legacyOrigin?: "action" | "row" | "command") {}
+    readonly legacyOrigin?: "action" | "row" | "command" | "form") {}
 }
 
 export function normalizeAffordance(action: Affordance): NormalizedAction {
@@ -85,7 +85,7 @@ export function normalizeCommand(command: Command): { envelope: Command; action:
  * automatic form mappings, and bounded request construction remain separate;
  * no RpcCall is executed while selecting the intent. */
 export function normalizeFormSubmit(form: FormPanel, legacyLabel: string): NormalizedAction {
-  return new NormalizedAction(form.submitAffordance ?? create(AffordanceSchema, {
+  return form.submitAffordance === undefined ? new NormalizedAction(create(AffordanceSchema, {
     label: legacyLabel, invoke: form.submit === undefined ? undefined : { case: "rpc", value: form.submit },
-  }));
+  }), undefined, "form") : new NormalizedAction(form.submitAffordance);
 }

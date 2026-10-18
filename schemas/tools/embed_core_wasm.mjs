@@ -9,6 +9,7 @@ export function embedCore(glue, bytes, declarations) {
     || !/function formatValueDisplayAt\(/.test(glue)
     || !/function matchesFormPattern\(/.test(glue)
     || !/function buildRequest\(/.test(glue)
+    || !/function buildSubmissionRequest\(/.test(glue)
     || !/function matchesRowFilter\(/.test(glue)) throw new Error("Incomplete core formatter/validation bindings");
   if (!WebAssembly.validate(bytes)) throw new Error("Invalid core WebAssembly bytes");
   // No URL, fs, fetch, top-level await, or host configuration on the runtime

@@ -57,6 +57,30 @@ mutation. Adapters should offer a separate read refresh, not an action retry.
 
 ## Remaining integration
 
+### Submission builder foundation
+
+An optional renderer-owned `InvocationSubmission` selects the existing bounded
+Rust submission builder for an admitted RPC, with automatic field mapping and
+bindings in one budget. Field declarations remain protobuf; validated collected
+values must be captured in `context.formValues`. A protobuf PanelDescriptor
+envelope is built only from those fields and the selected admitted call, never
+from a competing legacy submit/start target. Form IDs remain literal, and
+explicit bindings win automatic collisions. LRO retains its distinct existing
+`request_field` path mapping. Row-id compatibility hints do not apply to either
+mode. Construction failure never falls back to ordinary RPC request building.
+Non-RPC targets still require explicit capabilities/policy and receive the same
+current context; this marker is not a capability or an RPC permission grant.
+
+Adapters must bound and own declarations, validate fields and dynamic options,
+read the current collected values at activation and after asynchronous consent,
+and replace snapshot identity on any form/input/policy/context change. The
+builder does not perform input validation or decide that a UI is current. The
+React form controls still use their legacy paths at this foundation stage;
+connecting them, preserving validation and reset semantics, is required next.
+No renderer-adoption acceptance box is satisfied by engine tests alone.
+
+### Renderer adoption
+
 Adopt this engine in actual web-components and React controls (all kits), header
 and row actions, palette commands, conversation blocks, ActionPanel, and form
 submission. Form adoption must retain validation and the existing bounded Rust

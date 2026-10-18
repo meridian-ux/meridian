@@ -2,6 +2,8 @@ import { clone, create, toBinary } from "@bufbuild/protobuf";
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { NormalizedAction } from "./action_normalization.js";
 import { createAdmissionGate, type AdmissionPolicy } from "./admission.js";
 import { matchesRowFilter } from "./affordance_predicate.js";
@@ -28,6 +30,15 @@ export interface SemanticResolution {
   readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
 }
 
+/** Renderer-owned, in-process submission mode. Declarations stay protobuf;
+ * collected values live in the snapshot's existing context.formValues seam.
+ * The adapter must validate current inputs/options and bound/own declarations
+ * before capture. This marker grants no permission and performs no validation. */
+export interface InvocationSubmission {
+  readonly fields: readonly FormField[];
+  readonly kind: "form" | "lro";
+}
+
 /** Immutable, in-process activation scope owned by the renderer adapter.
  * readCurrent MUST return the same object while current, and replace it on any
  * descriptor, row/subject, form, selection, identity, policy, capability, or
@@ -49,6 +60,7 @@ export interface InvocationSnapshot {
   /** Adapter-owned compatibility behavior, never a descriptor permission bit.
    * Only legacy row controls whose old renderer supplied an unbound id opt in. */
   readonly legacyRowIdFallback?: boolean;
+  readonly submission?: InvocationSubmission;
 }
 
 /** Optional host wiring shared by browser mounts and React providers. Runtime
@@ -151,7 +163,7 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         case "rpc": {
           const call = intent.value;
           let bindings = call;
-          if (snapshot.legacyRowIdFallback && (snapshot.action.legacyOrigin === "row" || snapshot.action.legacyOrigin === "action")
+          if (!snapshot.submission && snapshot.legacyRowIdFallback && (snapshot.action.legacyOrigin === "row" || snapshot.action.legacyOrigin === "action")
             && !snapshot.action.semanticAction && call.bindings.length === 0) {
             const id = Object.getOwnPropertyDescriptor(snapshot.context.selectedRow ?? {}, "id");
             if (id && !("value" in id)) throw new Error("Invalid row context.");
@@ -160,7 +172,17 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
               bindings.bindings.push(create(FieldBindingSchema, { requestField: "id", source: { case: "rowField", value: "id" } }));
             }
           }
-          const request = coreRequests.buildRequest(toBinary(RpcCallSchema, bindings), snapshot.context);
+          let request: object;
+          if (snapshot.submission) {
+            const { fields, kind } = snapshot.submission;
+            if (kind !== "form" && kind !== "lro") throw new Error("Unsupported submission kind.");
+            // Use only the admitted target. The adapter cannot smuggle a legacy
+            // submit/start call into the builder alongside canonical intent.
+            const descriptor = create(PanelDescriptorSchema, { body: kind === "form"
+              ? { case: "form", value: { fields: [...fields], submit: call } }
+              : { case: "lro", value: { inputs: [...fields], start: call } } });
+            request = coreRequests.buildSubmissionRequest(toBinary(PanelDescriptorSchema, descriptor), snapshot.context, snapshot.context.formValues);
+          } else request = coreRequests.buildRequest(toBinary(RpcCallSchema, bindings), snapshot.context);
           current();
           await capabilities.rpc!.invoke(call.service, call.method, request, signal);
           break;
