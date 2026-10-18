@@ -49,6 +49,11 @@ int32_t meridian_core_build_request(
     const uint8_t *call, size_t call_len,
     const uint8_t *context, size_t context_len,
     uint8_t **output, size_t *output_len);
+/* RowFilter (64 KiB) + selected google.protobuf.Value (1 MiB) -> runtime bool.
+   Pure comparison, never authorization. matched resets to zero on failure. */
+int32_t meridian_core_matches_row_filter(
+    const uint8_t *filter, size_t filter_len,
+    const uint8_t *row, size_t row_len, uint8_t *matched);
 /* Regex strings are UTF-8 byte regions, not NUL-terminated C strings.
    matched is 0/1 on success; malformed/unsupported patterns fail closed. */
 int32_t meridian_core_matches_form_pattern(

@@ -11,8 +11,10 @@ export const staticViewText: (bytes: Uint8Array) => string = bindings.staticView
 
 export const coreValidation: Readonly<{
   matchesFormPattern(pattern: string, value: string): boolean;
+  matchesRowFilter(filter: Uint8Array, row: unknown): boolean;
 }> = Object.freeze({
   matchesFormPattern: bindings.matchesFormPattern,
+  matchesRowFilter: bindings.matchesRowFilter,
 });
 
 export const coreFormatting: Readonly<{

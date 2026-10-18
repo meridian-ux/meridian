@@ -82,6 +82,26 @@ public enum MeridianCore {
         return try Google_Protobuf_Value(serializedBytes: Data(bytes: output, count: count))
     }
 
+    public static func matchesRowFilter(
+        _ filter: Meridian_Ui_V1_RowFilter, row: Google_Protobuf_Value
+    ) throws -> Bool {
+        guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
+            throw MeridianCoreError.incompatibleABI
+        }
+        let declaration = try filter.serializedData(), input = try row.serializedData()
+        var matched: UInt8 = 0
+        let status = declaration.withUnsafeBytes { declarationBytes in
+            input.withUnsafeBytes { inputBytes in
+                meridian_core_matches_row_filter(
+                    declarationBytes.bindMemory(to: UInt8.self).baseAddress, declarationBytes.count,
+                    inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count, &matched
+                )
+            }
+        }
+        guard status == 0 else { throw MeridianCoreError.nativeStatus(status) }
+        return matched != 0
+    }
+
     public static func matchesFormPattern(_ pattern: String, value: String) throws -> Bool {
         guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
             throw MeridianCoreError.incompatibleABI
