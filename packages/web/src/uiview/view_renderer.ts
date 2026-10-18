@@ -13,9 +13,7 @@ import type {
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import {
   createAdmissionGate,
-  type AdmissionGate,
   normalizeViewActions,
-  type RpcInvoker,
 } from "@savvifi/meridian-schemas/uiview";
 
 import { disposePanel, plainValue, renderPanel } from "./renderer.js";
@@ -88,27 +86,12 @@ export function disposeView(root: HTMLElement): void {
   session.slots.clear();
 }
 
-function gatedInvoker(
-  invoker: RpcInvoker,
-  gate: AdmissionGate,
-  tier: "read" | "mutation",
-): RpcInvoker {
-  return {
-    async invoke(service, method, request) {
-      gate.check(tier, service, method);
-      return invoker.invoke(service, method, request);
-    },
-  };
-}
-
 /** Renders a ViewDescriptor. The layout mode selects the arrangement of slots. */
 export async function renderView(opts: RenderViewOptions): Promise<void> {
   return renderViewTree(opts, { used: 0 }, 0);
 }
 
 async function renderViewTree(opts: RenderViewOptions, budget: { used: number }, depth: number): Promise<void> {
-  const gate = createAdmissionGate(opts.admission);
-  const mutationInvoker = gatedInvoker(opts.invoker, gate, "mutation");
   const { root, view } = opts;
   disposeView(root);
   try {
@@ -139,7 +122,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
     (a, b) => (a.position || 0) - (b.position || 0),
   );
   for (const slot of sorted.filter(slot => slot.placement?.headerRow)) {
-    await renderSlot(header, slot, opts, mutationInvoker, session);
+    await renderSlot(header, slot, opts, session);
     if (!session.active) return;
   }
   const slots = sorted.filter(slot => !slot.placement?.headerRow);
@@ -160,7 +143,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
     container.appendChild(side);
     for (const slot of slots) {
       // Column.COLUMN_SIDEBAR = 2; everything else is main.
-      await renderSlot(slot.placement?.column === 2 ? side : main, slot, opts, mutationInvoker, session);
+      await renderSlot(slot.placement?.column === 2 ? side : main, slot, opts, session);
       if (!session.active) return;
     }
     return;
@@ -170,7 +153,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
     // Only labeled slots are tabs. Other regions remain visible above the
     // selector, in baseline position order, exactly like shared React views.
     for (const slot of slots.filter(slot => !slot.placement?.tabLabel)) {
-      await renderSlot(container, slot, opts, mutationInvoker, session);
+      await renderSlot(container, slot, opts, session);
       if (!session.active) return;
     }
     const ordered = slots.filter(slot => slot.placement?.tabLabel).sort(
@@ -203,7 +186,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
         tabs.children[i].setAttribute("aria-selected", i === index ? "true" : "false");
       });
       activeSlot = { active: true, panels: new Set(), views: new Set(), controls: new Set() };
-      await renderSlot(tabSections[index], ordered[index], opts, mutationInvoker, session, activeSlot);
+      await renderSlot(tabSections[index], ordered[index], opts, session, activeSlot);
     };
 
     for (const [index, slot] of ordered.entries()) {
@@ -254,7 +237,7 @@ async function renderViewTree(opts: RenderViewOptions, budget: { used: number },
 
   // list + stacked: slots rendered in position order.
   for (const slot of slots) {
-    await renderSlot(container, slot, opts, mutationInvoker, session);
+    await renderSlot(container, slot, opts, session);
     if (!session.active) return;
   }
 }
@@ -263,7 +246,6 @@ async function renderSlot(
   parent: HTMLElement,
   slot: Slot,
   opts: RenderViewOptions,
-  mutationInvoker: RpcInvoker,
   session: ViewSession,
   mount: SlotSession = { active: true, panels: new Set(), views: new Set(), controls: new Set() },
 ): Promise<HTMLElement> {
