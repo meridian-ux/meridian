@@ -9,14 +9,14 @@
 // from a graph-backed host's a host's internal MUI component library patterns) — no a host's internal MUI component library dependency — so the MUI table +
 // form patterns are reusable by any meridian host, not just a studio console.
 
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useActionFeedback } from "./action_feedback.js";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { MuiActionControl, NormalizedRowActionsMenu } from "./action_control.js";
 import { MuiMountThemeBoundary } from "./theme_provider.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { Alert, Box, Button, Chip, IconButton, Link, Menu, Stack, Typography } from "@mui/material";
+import { normalizeLegacyAction, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -28,12 +28,13 @@ import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
 import {
+  ActionGroup,
   buildSubmissionRequest,
   useLroLifecycle,
   LroResult,
   bindingRequestJson,
-  buildActionBindingRequest,
   MeridianRowActionsContext,
+  MeridianNormalizedRowActionsContext,
   MeridianRecordContext,
   MeridianViewContext,
   PaginationMode,
@@ -66,7 +67,7 @@ import {
   type TablePanel,
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { ActionPlacement, type Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -92,7 +93,7 @@ import {
   MediaView,
 } from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
-import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
+import { MeridianTable, type MeridianColumn } from "./components/table.js";
 import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
@@ -111,14 +112,6 @@ function getNested(source: unknown, path: string): unknown {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key];
     return undefined;
   }, source);
-}
-
-/** Evaluate the bounded equality predicate carried by a table row action. */
-function rowActionEnabled(action: TablePanel["actions"][number], row: Row): boolean {
-  const filter = action.enabledWhen;
-  if (!filter) return true;
-  const actual = getNested(row, filter.fieldPath);
-  return actual != null && String(actual) === filter.equals;
 }
 
 /**
@@ -195,7 +188,6 @@ function compareCellValues(a: unknown, b: unknown): number {
 }
 
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
-  const mutationInvoker = useMutationRpcInvoker();
   // usePagedRows (meridian-web-react) is the kit-agnostic pagination brain:
   // CLIENT returns all fetched rows (we slice locally); OFFSET / CURSOR fetch one
   // page at a time via the invoker. MeridianTable just displays a page + a pager.
@@ -332,69 +324,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         ? `Showing ${rows.length} of ${paged.total} ${noun}`
         : `Showing ${rows.length} ${noun}`;
 
-  // Row actions render INSIDE each row as a ⋮ overflow menu (matching the old
-  // studio TableActionsView — not a bar above the table). Two sources merge:
-  //  - TablePanel.actions resolve declared bindings against the clicked row and
-  //    current selection; unbound calls retain the legacy { id: row.id } request.
-  //  - View-level ROW-placement actions (MeridianRowActionsContext): an op action
-  //    (with a `call`) invokes against the row; a host-resolved action (no call —
-  //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
-  const selection = useMeridianSelection();
-  const actionScope = useMemo(() => ({ panel, mutationInvoker, values: selection.values, viewRowActions }), [panel, mutationInvoker, selection.values, viewRowActions]);
-  const feedback = useActionFeedback(actionScope);
-  const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
-    const result: MeridianRowAction<Row>[] = [];
-    (panel.actions ?? []).forEach((action, index) => {
-      const feedbackProps = feedback.props(action.rpc);
-      result.push({
-        id: `panel-action-${index}`,
-        ...feedbackProps,
-        label: action.label,
-        disabledForRow: (row: Row) =>
-          !action.rpc?.service || !action.rpc.method || !rowActionEnabled(action, row),
-        disabledTitle: "Unavailable for this row.",
-        onClick: (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (action.rpc?.service && action.rpc.method && rowActionEnabled(action, row)) {
-            void feedback.run(async () => {
-              const call = action.rpc!;
-              await mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
-                !call.bindings.length && id != null ? { id } : undefined));
-              // proto3 cannot distinguish an omitted bool from authored false,
-              // while RowAction documents refresh_on_success as default true.
-              // Match the browser reference renderers and always refresh.
-              paged.refresh();
-            });
-          }
-        },
-      });
-    });
-    for (const action of viewRowActions) {
-      result.push({
-        id: action.id,
-        ...feedback.props(action.call),
-        label: action.label,
-        onClick: (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (action.call) {
-            void feedback.run(() => {
-              const call = action.call!;
-              return mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
-                !call.bindings.length && id != null ? { id } : undefined));
-            });
-            return;
-          }
-          onAction?.(action.id, subjectKind, id as string | number | undefined);
-        },
-      });
-    }
-    return result;
-  }, [panel.actions, viewRowActions, mutationInvoker, onAction, subjectKind, feedback, selection.values, paged.refresh]);
+  const normalizedViewActions = useContext(MeridianNormalizedRowActionsContext);
+  const perRowActions = [...normalizeTableActions(panel), ...(normalizedViewActions ?? viewRowActions.map(normalizeLegacyAction))];
+  const refresh = useCallback(async () => { paged.refresh(); }, [paged.refresh]);
 
   return (
-    <Box>
-      {feedback.feedback}
+    <ActionGroup><Box>
       {paged.error ? (
         <Alert severity="error" className="mer-table-error">
           Failed to load {panel.itemNoun || "items"}.
@@ -419,14 +355,15 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
               setClientPage(0);
             },
           }}
-          rowActions={perRowActions.length > 0 ? perRowActions : undefined}
+          renderRowActions={perRowActions.length > 0 ? row => <NormalizedRowActionsMenu actions={perRowActions}
+            row={row} subjectKind={subjectKind} refresh={refresh} /> : undefined}
           onRowClick={onRowClick}
           sort={{ columnId: sort.columnId, direction: sort.direction, onToggle: toggleSort }}
           footer={footer}
           size="medium"
         />
       )}
-    </Box>
+    </Box></ActionGroup>
   );
 }
 
@@ -1053,50 +990,24 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
   );
 }
 
-function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
-  const selection = useMeridianSelection();
-  const record = useContext(MeridianRecordContext);
-  const scope = useMemo(() => ({ actions, invoker, values: selection.values, record }), [actions, invoker, selection.values, record]);
-  const feedback = useActionFeedback(scope);
+function ActionBar({ actions, normalizedActions }: ActionBarProps): ReactNode {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const { subjectKind } = useContext(MeridianViewContext);
-  const onAction = useActionHandler();
-  // Fire a header/overflow action: RpcCall actions go through the invoker; no-call
-  // actions (host-resolved keys — nav/custom) route to the host's onAction with
-  // the view subject (no row id at the header level).
-  const fire = (action: Action): void => {
-    if (action.call) {
-      void feedback.run(() => invoke(invoker, action.call, buildActionBindingRequest(action.call, selection.values, record)));
-      return;
-    }
-    onAction?.(action.id, subjectKind);
-  };
-  if (!actions || actions.length === 0) return null;
-  // OVERFLOW actions collapse into a kebab (⋮) menu; the rest render inline
-  // (PRIMARY = contained, others = outlined). Honors the projected placement.
-  const inline = actions.filter((a: Action) => a.placement !== ActionPlacement.OVERFLOW);
-  const overflow = actions.filter((a: Action) => a.placement === ActionPlacement.OVERFLOW);
+  const { subjectKind, subjectId } = useContext(MeridianViewContext);
+  const visible = (normalizedActions ?? actions.map(normalizeLegacyAction)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
+  if (!visible.length) return null;
+  const inline = visible.filter(a => a.affordance.placement !== ActionPlacement.OVERFLOW);
+  const overflow = visible.filter(a => a.affordance.placement === ActionPlacement.OVERFLOW);
+  const subject = { entityType: subjectKind, entityId: subjectId || undefined };
   return (
-    <Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
-      {feedback.feedback}
-      {inline.map((action: Action) => (
-        <Box key={action.id} display="inline-flex" alignItems="center" gap={1}>
-          <Button
-            {...feedback.props(action.call)}
-            size="small"
-            variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
-            onClick={() => fire(action)}
-          >
-            {action.label}
-          </Button>
-          {feedback.denial(action.call)}
-        </Box>
-      ))}
+    <ActionGroup><Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
+      {inline.map((action, index) => <MuiActionControl key={action.affordance.id || index} action={action} options={{ subject }} />)}
       {overflow.length > 0 && (
         <>
           <IconButton
             size="small"
             aria-label="more actions"
+            aria-haspopup="menu"
+            aria-expanded={!!anchor}
             className="mer-actions-overflow"
             onClick={(event) => setAnchor(event.currentTarget)}
           >
@@ -1104,26 +1015,13 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
               &#8942;
             </Box>
           </IconButton>
-          <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
-            {overflow.map((action: Action) => (
-              <MenuItem
-                key={action.id}
-                {...feedback.props(action.call)}
-                onClick={() => {
-                  setAnchor(null);
-                  fire(action);
-                }}
-              >
-                <Box display="inline-flex" alignItems="center" gap={1}>
-                  <span>{action.label}</span>
-                  {feedback.denial(action.call)}
-                </Box>
-              </MenuItem>
-            ))}
+          <Menu keepMounted anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+            {overflow.map((action, index) => <MuiActionControl key={action.affordance.id || index} action={action} menuItem
+              options={{ subject, enabled: !!anchor }} onSuccess={() => setAnchor(null)} />)}
           </Menu>
         </>
       )}
-    </Stack>
+    </Stack></ActionGroup>
   );
 }
 

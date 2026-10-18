@@ -42,7 +42,7 @@ js_library(
 js_library(
     name = "affordance_contract",
     testonly = True,
-    srcs = ["tests/affordance_contract.ts"],
+    srcs = ["tests/affordance_contract.ts", "tests/action_sources_contract.ts"],
     deps = [
         ":web_react_lib",
         ":node_modules/react",
@@ -95,6 +95,7 @@ vitest_test(
         "tests/conformance.test.ts",
         "tests/affordance_invocation.test.ts",
         "tests/affordance_contract.ts",
+        "tests/action_sources_contract.ts",
         "tests/chart.test.ts",
         "tests/interactive_conformance.test.ts",
         "tests/form.test.ts",

@@ -747,7 +747,7 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("retains every operation and unique fixture names", () => {
-    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 355 })) {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 8, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 355 })) {
       const cases = core[operation];
       expect(cases, operation).toHaveLength(count);
       expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);

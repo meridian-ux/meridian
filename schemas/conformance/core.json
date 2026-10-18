@@ -2420,6 +2420,38 @@
       }
     },
     {
+      "name": "unset-selection-omits-only-synthesized-envelopes",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaJAoFb3V0ZXIyGwoZCgVpbm5lcjIQCg4KBXVuc2V0QgV1bnNldBoMCgNyYXcaBWVtcHR5GgsKB2xpdGVyYWwqAA==",
+      "context": {
+        "selectedRow": {
+          "empty": {}
+        },
+        "selections": {
+          "unset": ""
+        }
+      },
+      "expected": {
+        "raw": {},
+        "literal": ""
+      }
+    },
+    {
+      "name": "selection-preserves-zero-false-and-whitespace",
+      "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaDAoEemVyb0IEemVybxoICgJub0ICbm8aDgoFc3BhY2VCBXNwYWNl",
+      "context": {
+        "selections": {
+          "zero": 0,
+          "no": false,
+          "space": "  "
+        }
+      },
+      "expected": {
+        "zero": 0,
+        "no": false,
+        "space": "  "
+      }
+    },
+    {
       "name": "ordered-path-overwrite",
       "rpc": "Cgl0ZXN0LkNvcmUSBENhbGwaCAoBYSoDb2xkGgoKA2EuYioDbmV3GgsKA2EuYioEbGFzdA==",
       "context": {},

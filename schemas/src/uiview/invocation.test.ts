@@ -94,6 +94,49 @@ it("existing three-argument RpcInvoker hosts remain source-compatible", async ()
   expect(invoke).toHaveBeenCalledTimes(1);
 });
 
+it.each([false, true])("legacy row id fallback is adapter-owned and optional (%s)", async legacyRowIdFallback => {
+  const host = setup();
+  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
+    rpc: { service: "raw.Service", method: "Get" },
+  })), context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", legacyRowIdFallback ? { id: 0 } : {}, expect.any(AbortSignal));
+});
+
+it("a compatibility hint cannot add id to canonical intent or replace authored bindings", async () => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
+  host.replace({ ...host.snapshot, context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
+  host.effects.rpc.invoke.mockClear();
+  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
+    rpc: { service: "raw.Service", method: "Get", bindings: [{ requestField: "authored", source: { case: "literal", value: "raw" } }] },
+  })) });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", { authored: "raw" }, expect.any(AbortSignal));
+});
+
+it("legacy id fallback rejects accessors without evaluating them", async () => {
+  const host = setup();
+  const get = vi.fn(() => "private");
+  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
+    rpc: { service: "raw.Service", method: "Get" },
+  })), context: { ...context(), selectedRow: Object.defineProperty({}, "id", { enumerable: true, get }) }, legacyRowIdFallback: true });
+  expect(await host.dispatcher.activate()).toEqual({ status: "failed" });
+  expect(get).not.toHaveBeenCalled();
+  expectNoEffects(host.effects);
+});
+
+it("typed semantic resolution is authoritative and never acquires a legacy RPC id default", async () => {
+  const host = setup();
+  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "resolve-row" })),
+    context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true,
+    resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, { rpc: { service: "raw.Service", method: "Get" } }) }),
+  });
+  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
+});
+
 it.each([undefined, { reads: ["*"] }, { mutations: [] }])("Get RPC never escapes mutation admission (%j)", async admission => {
   const host = setup(rpc);
   host.replace({ ...host.snapshot, admission });

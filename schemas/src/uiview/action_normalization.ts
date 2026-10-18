@@ -11,7 +11,8 @@ import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
  * Only the activation dispatcher may ask the host's pure resolver for intent.
  */
 export class NormalizedAction {
-  constructor(readonly affordance: Affordance, readonly semanticAction?: Action) {}
+  constructor(readonly affordance: Affordance, readonly semanticAction?: Action,
+    readonly legacyOrigin?: "action" | "row") {}
 }
 
 export function normalizeAffordance(action: Affordance): NormalizedAction {
@@ -32,7 +33,7 @@ export function normalizeLegacyAction(action: Action): NormalizedAction {
     // Keep its old region and carry that prominence separately, not as color.
     emphasis: action.placement === ActionPlacement.PRIMARY ? Emphasis.PRIMARY : undefined,
     invoke: action.call === undefined ? undefined : { case: "rpc", value: action.call },
-  }), action.call === undefined ? action : undefined);
+  }), action.call === undefined ? action : undefined, "action");
 }
 
 export function normalizeLegacyRowAction(action: RowAction): NormalizedAction {
@@ -43,7 +44,7 @@ export function normalizeLegacyRowAction(action: RowAction): NormalizedAction {
     // Both existing browser renderers always refresh after success. The old
     // proto3 bool has no presence; false must not silently change that behavior.
     refreshOnSuccess: true,
-  }));
+  }), undefined, "row");
 }
 
 /** Presence wins as a unit, including an explicitly empty collection or intent. */

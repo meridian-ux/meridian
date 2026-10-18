@@ -70,7 +70,8 @@ function rows(container: HTMLElement) {
 }
 
 function buttons(container: HTMLElement) {
-  return Array.from(container.querySelectorAll<HTMLButtonElement>('[aria-label="Row actions"] button'));
+  return Array.from(container.querySelectorAll<HTMLButtonElement>('[aria-label="Row actions"] button'))
+    .filter(button => button.textContent !== "Cancel action");
 }
 
 function selected(container: HTMLElement) {
@@ -206,17 +207,17 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}], ["demo.Builds", "Inspect", request]]);
       expect(Object.hasOwn(Object.prototype, "meridianTableTest")).toBe(false);
       expect(rawRows).toEqual(ROWS);
-      expect(buttons(view.container).every(button => button.disabled)).toBe(true);
+      expect(buttons(view.container).every(button => button.disabled || button.getAttribute("aria-disabled") === "true")).toBe(true);
       expect(inspect.getAttribute("aria-busy")).toBe("true");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Running…");
+      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Action is running.");
 
       await act(async () => first.reject(new Error("<b>private backend details</b>")));
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       expect(view.container.textContent).not.toContain("private backend details");
       expect(view.container.querySelector("b")).toBeNull();
       expect(inspect.disabled).toBe(false);
       expect(inspect.hasAttribute("aria-busy")).toBe(false);
-      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action failed. Try again.");
+      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action failed. Try again with the current context.");
       expect(selected(view.container)).toEqual(["false", "true"]);
       expect(reads).toBe(1);
 
@@ -234,7 +235,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       await act(async () => refreshed.resolve({ items: [{ ...ROWS[0], name: "Replacement" }] }));
       expect(selected(view.container)).toEqual(["false"]);
       expect(view.container.textContent).toContain("Replacement");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+      expect(view.container.querySelector('[role="status"]')).toBeNull(); // Never attach old-row results to refreshed rows.
       await act(async () => inspect.click());
       expect(invoke.mock.calls.map(([, method]) => method)).toEqual(["List", "Inspect", "Inspect", "List"]);
     } finally { await view.close(); }
@@ -254,8 +255,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}]]);
       expect(onDenied).toHaveBeenCalledTimes(1);
       expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({ tier: "mutation", service: "demo.Builds", method: "Inspect" }));
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("This action is unavailable.");
-      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("This action is unavailable.");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
+      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
       expect(selected(view.container)).toEqual(["true", "false"]);
     } finally { await view.close(); }
   });
@@ -274,7 +275,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}], ["demo.Builds", "Archive", {}], ["demo.Builds", "List", {}]]);
       expect(view.container.textContent).toContain("Failed to load table.");
       expect(view.container.textContent).not.toContain("private read failure");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+      expect(view.container.querySelector('[role="status"]')).toBeNull(); // Failure belongs to the read, not an old-row toast.
       expect(rows(view.container)).toHaveLength(0);
       expect(buttons(view.container).every(button => button.disabled)).toBe(true);
     } finally { await view.close(); }

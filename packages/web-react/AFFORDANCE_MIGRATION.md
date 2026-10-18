@@ -1,8 +1,8 @@
 # Affordance activation candidate
 
-Canonical Affordance controls in the HTML, Shadcn, and MUI kits use the shared
-host invocation dispatcher. This includes ActionPanel and nested catalog,
-connection-flow, and walkthrough actions. URI targets are buttons, not links
+Canonical and normalized header/slot/row controls in the HTML, Shadcn, and MUI
+kits use the shared host invocation dispatcher. This includes ActionPanel and
+nested catalog, connection-flow, and walkthrough actions. URI targets are buttons, not links
 that can bypass admission through a context menu or a new tab. Command targets
 do not copy text. Clipboard intent requires the explicit `copy` arm.
 
@@ -37,6 +37,19 @@ bounded Rust request builder. Optional target policy can further restrict RPCs,
 never waive mutation admission. Do not pass an executing `onAction` callback as
 the pure semantic resolver.
 
+Legacy no-call Action IDs remain semantic keys. `resolveSemantic` must return
+typed intent without executing an old callback, and may return an explicit
+confirmation callback. Accepting confirmation is not a permission grant. The
+resolver receives the original semantic fields, current context, and header/row
+subject identity (including zero row IDs). Canonical collections win whole,
+including explicit empty collections; denial never revives legacy intent.
+
+The default `RpcInvoker` still receives exactly its original three arguments.
+Hosts with cancellation-aware transport can explicitly provide
+`invocation.capabilities.rpc.invoke(service, method, request, signal)`. This
+capability still requires mutation admission and never falls back to the default
+transport after denial or failure.
+
 ## Context and lifecycle
 
 Pass host identity/resource/form/signals through `invocation.context` (or the
@@ -44,13 +57,14 @@ mount's `context`). The ambient repeated-record context and active view selectio
 override the corresponding host row/selection values. Context uses the existing
 bounded JSON host seam; authored descriptors remain protobuf.
 
-Treat React commits as context updates: rerender the provider/control when data,
-policy, capabilities, or identity changes. Do not mutate application state behind
-React without a render. The adapter makes bounded owned descriptor/context
-copies, detects changed values even when source objects are reused on rerender,
-and publishes the new snapshot only at commit. Speculative renders do not
-retarget a live control. Neither render, hydration, nor focus executes admission
-callbacks or invocation capabilities.
+Rerender the provider/control when replacing descriptors, policies, capabilities,
+or identity handles. New source handles publish only on commit: a speculative
+replacement render cannot retarget the live control. The existing mutable
+selection bag and committed runtime data remain live. At activation and after
+confirmation/admission callbacks, a bounded reader refreshes owned snapshots and
+invalidates stale consent even when the bag changed without a React render.
+Neither render, hydration, nor focus executes host policy/resolver callbacks or
+invocation capabilities.
 
 Pending actions expose busy state and a cancel control. Cancellation is best
 effort, not rollback of a request already sent; duplicate activation remains
@@ -64,14 +78,29 @@ clipboard payloads, or bound secrets. Only a successful effect can refresh;
 explicit false suppresses refresh. A refresh failure is reported as completed
 with refresh unavailable, not as a failed effect to retry.
 
+Bars and tables retain their group-wide pending guard. Closing/reopening an
+overflow keeps the dispatcher lifetime and cannot replay an operation that
+ignores abort. A failed action stays in its menu with sanitized feedback and a
+reachable retry. Closing disables that retained control; it is not an active
+hidden invocation path. Menus retain placement and keyboard focus/navigation.
+
+Legacy row request adaptation is explicit, not a descriptor grant: MUI retains
+its observed bare `{id}` default only for unbound legacy row calls; reference
+kits retain `{}`. Canonical calls never receive either invented bindings or
+legacy refresh behavior. Legacy RowAction refresh remains always-on as observed,
+while canonical false is authoritative. Shared Rust request construction omits
+unset empty-string selections and synthesized empty nested envelopes, but keeps
+raw empty objects, literals, zero, false, and whitespace unchanged.
+
 Do not wire the old global `.mer-copy` handler to canonical Affordances: these
 controls intentionally carry no command/copy payload data attributes. Dedicated
 Snippet and CopyValue controls retain their separate existing copy contract.
 
 ## Still required
 
-View/header/row actions, palette commands, form submission with automatic field
-mapping and validation, and chat/launchpad/TUI adoption remain separate work.
+Palette commands, form submission with automatic field mapping and validation,
+implicit row-click navigation, web-components, and chat/launchpad/TUI adoption
+remain separate work.
 The existing legacy shapes remain during the compatibility window; canonical
 presence must win whole, including empty/false, when those sources migrate.
 Private/public producer upgrades, external migration/removal prerequisites, and
