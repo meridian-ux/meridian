@@ -5,9 +5,11 @@ RootWebArea name="Meridian AX conformance" focusable=true
         StaticText name="form-input-enum"
     heading name="enum" level=3
       StaticText name="enum"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
     LabelText name=""
       StaticText name="Declared input"
     combobox name="Declared input READY" value="READY" expanded=false focusable=true hasPopup="listbox" required=false
       StaticText name="READY"
-    button name="SAVE" focusable=true invalid="false"
+    button name="SAVE" description="Saving is not permitted." disabled=true focusable=true invalid="false"
       StaticText name="SAVE"
