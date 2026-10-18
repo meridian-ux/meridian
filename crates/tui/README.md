@@ -125,7 +125,7 @@ Compatibility boundary: legacy `ViewResponse::Action` handoff and
 `PanelAppState::invoke` still exist during the 0.x migration window; neither is
 an admission grant. Prefer the explicit host API for both canonical and legacy
 header/slot controls; denial there never falls back to that handoff. Widget row,
-resource and form adoption and final deprecation/cutover remain separate
+resource adoption and final deprecation/cutover remain separate
 work. The standalone executable stays offline and never gains mutation transport.
 
 ### Admitted native palette
@@ -166,6 +166,50 @@ visibly denies canonical commands without the explicit host. `command_outcome`
 now returns `LaunchpadOutcome::Canonical` for present canonical intent; native
 hosts with exhaustive matches must handle that variant at migration cutover.
 Neither decoding nor a compatibility response is an admission grant.
+
+### Validated native form submission
+
+After `PanelView::render`, use `handle_form_key_with_invocation(form, context,
+key_event, host)`. Composed `ViewHost::handle_key_with_invocation` uses this path
+automatically. It returns an invocation outcome, not a raw `FormSubmission` to
+execute again. Canonical `submit_affordance` presence is authoritative, even
+without intent; legacy submit RPCs also require explicit admission on this path.
+The ordinary form key handler visibly denies canonical submission without a host.
+Canonical label, description, icon, tone, and emphasis use the existing native
+affordance presentation; literal copy payloads stay hidden and panel targets
+remain inert metadata during rendering.
+
+Validate current collected values before policy, confirmation, or effects. All
+seven targets use the shared dispatcher; RPC uses the actual core form assembler,
+including automatic declared field IDs and explicit-binding precedence. Native
+policy/effect callbacks use `form_value(id)` or the `form_values()` iterator for
+effective collected fields, not ambient host shadows or undeclared prefill IDs.
+Values remain typed/raw, including zero, false, nested objects, arrays, maps, and
+Unicode. This iterator replaces the provisional ambient-map getter in the
+unmerged native-host migration API.
+
+Hosts must read-admit/resolve remote enum choices before supplying the native
+descriptor and clear `options_source` on those resolved fields. An unresolved
+source denies submission even with legacy static options present. No implicit
+options transport or new read permission is installed. Compound-editor Enter
+commits the local value; a separate form Enter validates and submits. Readonly
+forms and the separate LRO/Prompt token workflows never become ordinary actions.
+
+Form context changes withdraw old activation until redraw, then reload defaults
+and prefill. Repeated-parent read requests are checked before activation. Local
+immutable records override ambient selection. A composed view shares its two
+bounded context captures and single-flight group across headers and forms, rather
+than allocating a context key per form. Invalidation, edits, record replacement,
+and drop cancel observation without releasing noncooperative work early. The API
+remains synchronous; host-owned workers retain the existing cancellation contract.
+
+Prefill/record overlays charge defaults plus copied source cumulatively against
+the existing 4 MiB/depth budget before merging. Form declarations retain existing
+1,000-field/default-expansion and 4 MiB descriptor bounds; request construction
+still enforces its stricter declaration and copy limits. Failure preserves edits
+with sanitized feedback. A successful save or completed-effect refresh failure
+cannot replay merely through repeated Enter or focus movement; an actual value
+edit, source reload, or explicit invalidation starts a new submission revision.
 
 ### Composition and input lifecycle
 

@@ -3,10 +3,10 @@
 use crate::RpcError;
 use meridian_uiview::{
     proto::{
-        affordance::Invoke, command, Action, Affordance, Command, Navigate, PanelDescriptor,
-        RpcCall,
+        affordance::Invoke, command, Action, Affordance, Command, FormField, FormMode, FormPanel,
+        Navigate, PanelDescriptor, RpcCall,
     },
-    Context, RequestBuilder, RequestOverrides,
+    Context, RequestBuilder, RequestOverrides, SubmissionKind,
 };
 use serde_json::Value;
 use std::io::Write;
@@ -14,6 +14,29 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
+
+fn form_fields_ready(fields: &[FormField], depth: usize, remaining: &mut usize) -> bool {
+    use meridian_uiview::proto::{form_field::Kind, repeated_field::Element};
+    if depth > 64 || fields.len() > *remaining {
+        return false;
+    }
+    *remaining -= fields.len();
+    fields.iter().all(|field| match field.kind.as_ref() {
+        Some(Kind::EnumSelection(spec)) => spec.options_source.is_none(),
+        Some(Kind::Nested(spec)) => form_fields_ready(&spec.fields, depth + 1, remaining),
+        Some(Kind::Repeated(spec)) => match spec.element.as_ref() {
+            Some(Element::Scalar(field)) => {
+                form_fields_ready(std::slice::from_ref(field.as_ref()), depth + 1, remaining)
+            }
+            Some(Element::Object(object)) => {
+                form_fields_ready(&object.fields, depth + 1, remaining)
+            }
+            None => false,
+        },
+        None => false,
+        _ => true,
+    })
+}
 
 // Owned currentness bytes live only in this process. The existing JSON Context
 // is not a new wire DTO. Bound cumulative copies BEFORE cloning each value and
@@ -45,16 +68,23 @@ pub(crate) fn context_key(context: NativeInvocationContext<'_>) -> Result<Vec<u8
         serde_json::to_writer(&mut bytes, owned.get("v").unwrap_or(&Value::Null))
             .map_err(|_| ())?;
     }
-    for values in [
-        &context.context.form_values,
-        &context.context.signals,
-        &context.context.selections,
-    ] {
-        if values.len() > 65_536 {
-            return Err(());
-        }
+    let sources: [Box<dyn Iterator<Item = (&str, &Value)> + '_>; 3] = [
+        Box::new(context.form_values()),
+        Box::new(context.context.signals.iter().map(|(k, v)| (k.as_str(), v))),
+        Box::new(
+            context
+                .context
+                .selections
+                .iter()
+                .map(|(k, v)| (k.as_str(), v)),
+        ),
+    ];
+    for values in sources {
         bytes.write_all(b",[").map_err(|_| ())?;
-        for (index, (key, value)) in values.iter().enumerate() {
+        for (index, (key, value)) in values.enumerate() {
+            if index >= 65_536 {
+                return Err(());
+            }
             let mut owned = Value::Null;
             budget.assign(&mut owned, "v", value).map_err(|_| ())?;
             if index > 0 {
@@ -75,6 +105,8 @@ pub enum NativeAction<'a> {
     Legacy(&'a Action),
     /// Canonical presence suppresses every legacy command hint as a whole.
     Command(&'a Command),
+    /// Current collected values, not ambient host fields or a prebuilt request.
+    Form(&'a FormPanel, &'a Value),
 }
 
 /// Borrowed canonical intent, not a wire DTO or permission token.
@@ -95,16 +127,24 @@ pub struct NativeInvocationContext<'a> {
     context: &'a Context,
     /// A repeated/selected record overrides ambient host selection, including null.
     record: Option<&'a Value>,
+    form: Option<(&'a [FormField], &'a Value)>,
 }
 impl<'a> NativeInvocationContext<'a> {
     pub fn new(context: &'a Context) -> Self {
         Self {
             context,
             record: None,
+            form: None,
         }
     }
     pub fn with_record(self, record: Option<&'a Value>) -> Self {
         Self { record, ..self }
+    }
+    pub fn with_form(self, fields: &'a [FormField], values: &'a Value) -> Self {
+        Self {
+            form: Some((fields, values)),
+            ..self
+        }
     }
     /// Effective selection, including the repeated control's record override.
     /// Policies and effects must not authorize against an unrelated ambient row.
@@ -117,8 +157,31 @@ impl<'a> NativeInvocationContext<'a> {
     pub fn ui_identity(&self) -> Option<&Value> {
         self.context.ui_identity.as_ref()
     }
-    pub fn form_values(&self) -> &std::collections::HashMap<String, Value> {
-        &self.context.form_values
+    pub fn form_value(&self, id: &str) -> Option<&Value> {
+        match self.form {
+            Some((fields, values)) => fields
+                .iter()
+                .any(|f| f.field_id == id)
+                .then(|| values.get(id))
+                .flatten(),
+            None => self.context.form_values.get(id),
+        }
+    }
+    /// Effective declared fields when submitting a form; never ambient shadows
+    /// or undeclared prefill properties. Values remain borrowed and uncoerced.
+    pub fn form_values(&self) -> impl Iterator<Item = (&str, &Value)> {
+        self.form
+            .is_none()
+            .then_some(&self.context.form_values)
+            .into_iter()
+            .flat_map(|values| values.iter().map(|(key, value)| (key.as_str(), value)))
+            .chain(self.form.into_iter().flat_map(|(fields, values)| {
+                fields.iter().filter_map(move |field| {
+                    values
+                        .get(&field.field_id)
+                        .map(|value| (field.field_id.as_str(), value))
+                })
+            }))
     }
     pub fn signals(&self) -> &std::collections::HashMap<String, Value> {
         &self.context.signals
@@ -254,6 +317,21 @@ impl NativeInvocationDispatcher {
             *active = Some(signal.clone());
         }
         let _attempt = Attempt(self);
+        let context = if let NativeAction::Form(panel, values) = action {
+            if panel.mode != FormMode::Edit as i32 {
+                return NativeInvocationOutcome::Denied;
+            }
+            context.with_form(&panel.fields, values)
+        } else {
+            context
+        };
+        if let Some((fields, values)) = context.form {
+            if !form_fields_ready(fields, 0, &mut 1_000)
+                || meridian_uiview::validate_form_values(fields, values).is_err()
+            {
+                return NativeInvocationOutcome::Denied;
+            }
+        }
         if context_key(context).is_err() {
             return NativeInvocationOutcome::Denied;
         }
@@ -276,6 +354,11 @@ impl NativeInvocationDispatcher {
             NativeAction::Command(command) => command
                 .affordance
                 .as_ref()
+                .map(NativeAction::Canonical)
+                .unwrap_or(action),
+            NativeAction::Form(panel, _) => panel
+                .submit_affordance
+                .as_deref()
                 .map(NativeAction::Canonical)
                 .unwrap_or(action),
             _ => action,
@@ -304,6 +387,7 @@ impl NativeInvocationDispatcher {
             .unwrap_or(action);
         let (target, refresh) = match action {
             NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),
+            NativeAction::Form(panel, _) => (panel.submit.as_ref().map(NativeTarget::Rpc), false),
             NativeAction::Command(command) => (
                 command.action.as_ref().and_then(|intent| match intent {
                     command::Action::Rpc(call) => Some(NativeTarget::Rpc(call)),
@@ -382,14 +466,26 @@ impl NativeInvocationDispatcher {
             return O::Cancelled;
         }
         let request = if let NativeTarget::Rpc(call) = target {
-            match RequestBuilder::build_for_boundary_with(
-                call,
-                context.context,
-                RequestOverrides {
-                    selected_row: context.record,
-                    ..Default::default()
-                },
-            ) {
+            let built = if let Some((fields, values)) = context.form {
+                RequestBuilder::build_submission_with_row(
+                    call,
+                    context.context,
+                    fields,
+                    values,
+                    SubmissionKind::Form,
+                    context.record,
+                )
+            } else {
+                RequestBuilder::build_for_boundary_with(
+                    call,
+                    context.context,
+                    RequestOverrides {
+                        selected_row: context.record,
+                        ..Default::default()
+                    },
+                )
+            };
+            match built {
                 Ok(request) => Some(request),
                 Err(_) => return O::Failed,
             }
@@ -525,10 +621,7 @@ mod tests {
         let events = RefCell::new(vec![]);
         let record = json!({"id":0,"flag":false});
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: Some(&record),
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(Some(&record));
         let text = |value: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
             assert_eq!(current.selected_row(), Some(&record));
             events.borrow_mut().push(value.to_owned());
@@ -619,10 +712,7 @@ mod tests {
     fn rpc_mutation_permission_is_required_even_for_get_and_target_policy_cannot_waive_it() {
         let calls = Cell::new(0);
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let effect =
             |_: &RpcCall, _: Value, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
                 calls.set(calls.get() + 1);
@@ -646,10 +736,7 @@ mod tests {
     fn non_rpc_capability_without_target_admission_is_not_a_grant() {
         let calls = Cell::new(0);
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let effect = |_: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
             calls.set(calls.get() + 1);
             Ok(())
@@ -675,10 +762,7 @@ mod tests {
         let permitted = Cell::new(true);
         let calls = Cell::new(0);
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let effect =
             |_: &RpcCall, _: Value, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
                 calls.set(calls.get() + 1);
@@ -730,10 +814,7 @@ mod tests {
         let calls = Cell::new(0);
         let base = context();
         let row = json!({"flag":false});
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: Some(&row),
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(Some(&row));
         let policy = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| {
             calls.set(calls.get() + 1);
             true
@@ -776,10 +857,7 @@ mod tests {
     fn semantic_resolution_is_explicit_and_retains_raw_subject_without_inventing_navigation() {
         let base = context();
         let row = json!({"id":0});
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: Some(&row),
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(Some(&row));
         let action = Action {
             id: "semantic-key".into(),
             ..Default::default()
@@ -824,10 +902,7 @@ mod tests {
     fn reentrant_and_cancelled_operations_keep_the_guard_until_noncooperative_settlement() {
         let dispatcher = NativeInvocationDispatcher::default();
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let action = actions().remove(6);
         let refreshes = Cell::new(0);
         let effect = |_: &str, _: NativeInvocationContext<'_>, signal: &NativeCancellation| {
@@ -866,10 +941,7 @@ mod tests {
     #[test]
     fn failed_refresh_is_distinct_from_effect_failure_and_errors_do_not_leak() {
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let effects = Cell::new(0);
         let effect = |_: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
             effects.set(effects.get() + 1);
@@ -902,10 +974,7 @@ mod tests {
     #[test]
     fn unsafe_destinations_never_reach_a_permissive_host_and_commands_do_not_copy() {
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let calls = Cell::new(0);
         let effect = |_: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
             calls.set(calls.get() + 1);
@@ -984,10 +1053,7 @@ mod tests {
         assert_eq!(
             dispatcher.invoke(
                 NativeAction::Canonical(&action),
-                NativeInvocationContext {
-                    context: &base,
-                    record: Some(&row)
-                },
+                NativeInvocationContext::new(&base).with_record(Some(&row)),
                 &host
             ),
             NativeInvocationOutcome::Failed
@@ -997,10 +1063,7 @@ mod tests {
         assert_eq!(
             dispatcher.invoke(
                 NativeAction::Canonical(&action),
-                NativeInvocationContext {
-                    context: &base,
-                    record: Some(&row)
-                },
+                NativeInvocationContext::new(&base).with_record(Some(&row)),
                 &host
             ),
             NativeInvocationOutcome::Succeeded
@@ -1010,10 +1073,7 @@ mod tests {
         assert_eq!(
             dispatcher.invoke(
                 NativeAction::Canonical(&action),
-                NativeInvocationContext {
-                    context: &base,
-                    record: Some(&row)
-                },
+                NativeInvocationContext::new(&base).with_record(Some(&row)),
                 &host
             ),
             NativeInvocationOutcome::Denied
@@ -1048,10 +1108,7 @@ mod tests {
         let action = actions().remove(0);
         let failed = dispatcher.invoke(
             NativeAction::Canonical(&action),
-            NativeInvocationContext {
-                context: &base,
-                record: Some(&row),
-            },
+            NativeInvocationContext::new(&base).with_record(Some(&row)),
             &host,
         );
         assert_eq!(failed, NativeInvocationOutcome::Failed);
@@ -1061,10 +1118,7 @@ mod tests {
         assert_eq!(
             dispatcher.invoke(
                 NativeAction::Canonical(&action),
-                NativeInvocationContext {
-                    context: &base,
-                    record: Some(&row)
-                },
+                NativeInvocationContext::new(&base).with_record(Some(&row)),
                 &host
             ),
             NativeInvocationOutcome::Succeeded
@@ -1081,10 +1135,7 @@ mod tests {
     #[test]
     fn non_rpc_consent_rechecks_revocable_policy_and_false_never_refreshes() {
         let base = context();
-        let scope = NativeInvocationContext {
-            context: &base,
-            record: None,
-        };
+        let scope = NativeInvocationContext::new(&base).with_record(None);
         let allowed = Cell::new(true);
         let calls = Cell::new(0);
         let refreshes = Cell::new(0);

@@ -98,8 +98,8 @@ pub struct ViewHost {
     viewport: usize,
     error: Option<String>,
     invocations: NativeInvocationDispatcher,
-    action_context: Option<Vec<u8>>,
-    record_context: Option<Vec<u8>>,
+    action_context: Option<Arc<Vec<u8>>>,
+    record_context: Option<Arc<Vec<u8>>>,
 }
 
 impl ViewHost {
@@ -255,29 +255,34 @@ impl ViewHost {
             self.invocations.cancel();
         }
         self.targets = next_targets;
-        let next_context = if self.targets.iter().any(|target| {
-            matches!(target.kind, TargetKind::Action { .. }) && target.record.is_none()
-        }) {
-            crate::invocation::context_key(NativeInvocationContext::new(context)).ok()
-        } else {
-            None
-        };
+        let next_context =
+            if self.targets.iter().any(|target| {
+                invocation_target(&self.descriptor, target) && target.record.is_none()
+            }) {
+                crate::invocation::context_key(NativeInvocationContext::new(context))
+                    .ok()
+                    .map(Arc::new)
+            } else {
+                None
+            };
         if self.action_context != next_context {
             self.invocations.cancel();
         }
         self.action_context = next_context;
-        let next_record = if self.targets.iter().any(|target| {
-            matches!(target.kind, TargetKind::Action { .. }) && target.record.is_some()
-        }) {
-            // Derived records are immutable Arcs already owned/bounded by the
-            // repeat cache. Do not copy an irrelevant ambient selected row.
-            crate::invocation::context_key(
-                NativeInvocationContext::new(context).with_record(Some(&Value::Null)),
-            )
-            .ok()
-        } else {
-            None
-        };
+        let next_record =
+            if self.targets.iter().any(|target| {
+                invocation_target(&self.descriptor, target) && target.record.is_some()
+            }) {
+                // Derived records are immutable Arcs already owned/bounded by the
+                // repeat cache. Do not copy an irrelevant ambient selected row.
+                crate::invocation::context_key(
+                    NativeInvocationContext::new(context).with_record(Some(&Value::Null)),
+                )
+                .ok()
+                .map(Arc::new)
+            } else {
+                None
+            };
         if self.record_context != next_record {
             self.invocations.cancel();
         }
@@ -305,13 +310,20 @@ impl ViewHost {
             .iter()
             .filter(|t| matches!(t.kind, TargetKind::Panel))
         {
-            let widget = self
-                .panels
-                .entry(target.path.clone())
-                .or_insert_with(|| PanelView::with_palette(self.palette));
+            let widget = self.panels.entry(target.path.clone()).or_insert_with(|| {
+                PanelView::with_palette(self.palette)
+                    .with_invocation_dispatcher(self.invocations.clone())
+            });
             // Reset changed records even before their section enters the viewport.
             if let Err(error) = widget.set_record(target.record.clone()) {
                 self.error = Some(error.to_string());
+            }
+            if invocation_target(&self.descriptor, target) {
+                widget.set_form_scope(if target.record.is_some() {
+                    self.record_context.clone()
+                } else {
+                    self.action_context.clone()
+                });
             }
         }
         self.viewport = area.height.saturating_sub(1).max(1) as usize;
@@ -361,10 +373,11 @@ impl ViewHost {
                     .draw(|section| {
                         let section_area = section.area();
                         if let (Some(panel), Some(target)) = (entry.panel, entry.target.as_ref()) {
-                            let widget = self
-                                .panels
-                                .entry(target.path.clone())
-                                .or_insert_with(|| PanelView::with_palette(self.palette));
+                            let widget =
+                                self.panels.entry(target.path.clone()).or_insert_with(|| {
+                                    PanelView::with_palette(self.palette)
+                                        .with_invocation_dispatcher(self.invocations.clone())
+                                });
                             if let Err(error) = widget.set_record(target.record.clone()) {
                                 section
                                     .render_widget(Paragraph::new(error.to_string()), section_area);
@@ -554,7 +567,7 @@ impl ViewHost {
                         &self.action_context
                     };
                     if current.is_none()
-                        || &current != captured
+                        || current.as_ref() != captured.as_deref()
                         || !self.repeat_scopes_current(&target.path, context)
                     {
                         self.invalidate();
@@ -618,14 +631,33 @@ impl ViewHost {
                 let panel = slot_at(&self.descriptor, &target.source)
                     .and_then(|s| s.panel.as_ref())
                     .expect("mounted panel");
+                if matches!(panel.body, Some(Body::Form(_)))
+                    && key.code == KeyCode::Enter
+                    && !self.repeat_scopes_current(&target.path, context)
+                {
+                    self.invalidate();
+                    self.error =
+                        Some("Form parent context changed; redraw before retrying.".into());
+                    return Ok(None);
+                }
                 let Some(widget) = self.panels.get_mut(&target.path) else {
                     return Ok(None);
                 };
                 match &panel.body {
                     Some(Body::Form(form)) => {
+                        if host.is_some() || form.submit_affordance.is_some() {
+                            let denied = NativeInvocationHost::default();
+                            widget.handle_form_key_with_invocation(
+                                form,
+                                context,
+                                key,
+                                host.unwrap_or(&denied),
+                            );
+                            return Ok(None);
+                        }
                         return Ok(widget
                             .handle_form_key(form, context, key.code)
-                            .map(ViewResponse::Form))
+                            .map(ViewResponse::Form));
                     }
                     Some(Body::Lro(lro)) => {
                         return Ok(widget
@@ -694,6 +726,14 @@ fn same_record(old: &Option<Arc<Value>>, new: &Option<Arc<Value>>) -> bool {
         (Some(old), Some(new)) => Arc::ptr_eq(old, new),
         _ => false,
     }
+}
+
+fn invocation_target(view: &ViewDescriptor, target: &Target) -> bool {
+    matches!(target.kind, TargetKind::Action { .. })
+        || (matches!(target.kind, TargetKind::Panel)
+            && slot_at(view, &target.source)
+                .and_then(|slot| slot.panel.as_ref())
+                .is_some_and(|panel| matches!(panel.body, Some(Body::Form(_)))))
 }
 
 fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcError> {

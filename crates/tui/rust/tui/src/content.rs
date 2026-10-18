@@ -864,6 +864,11 @@ pub fn render_form(
         },
         palette.meta(),
     )));
+    if panel.mode == FormMode::Edit as i32 {
+        if let Some(action) = panel.submit_affordance.as_deref() {
+            lines.push(affordance_line(action, palette));
+        }
+    }
     lines.push(Line::from(""));
     let mut next_index = 0;
     let mut selected_index = selected.min(panel.fields.len().saturating_sub(1));

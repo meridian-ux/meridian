@@ -101,7 +101,7 @@ impl std::io::Write for CountWriter {
 impl RequestBudget {
     /// Shared boundary accounting without insertion or cloning. Render planning
     /// uses this before constructing repeated cells/cards from borrowed values.
-    pub(crate) fn admit_copy(&mut self, value: &Value) -> Result<(), RequestLimitExceeded> {
+    pub fn admit_copy(&mut self, value: &Value) -> Result<(), RequestLimitExceeded> {
         self.charge(value, "", 0)
     }
 
