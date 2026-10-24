@@ -203,6 +203,18 @@ test("manual dry run never mutates while apply reconciles missing issues", async
   assert.deepEqual((await host.run({ eventName: "schedule" })).map(value => value.outcome), ["already-present", "present"]);
   assert.equal(host.state.writes.length, 1); assert.equal(host.state.items.length, 2);
 });
+test("reconciliation enumerates all open issues without trusting a private label filter", async () => {
+  const host = fixture(REPOSITORIES[1]); host.state.issueIds = [ISSUE, "I_unlabeled"];
+  host.state.query = async (query, variables) => {
+    if (query.includes("query RoadmapIssues")) assert(!query.includes("labels:"));
+    if (query.includes("query RoadmapIssue(") && variables.issue === "I_unlabeled") return { node: {
+      __typename: "Issue", id: "I_unlabeled", state: "OPEN", repository: { nameWithOwner: REPOSITORIES[1] },
+      labels: { nodes: [], totalCount: 0, pageInfo: { hasNextPage: false, endCursor: null } },
+    } };
+  };
+  assert.deepEqual((await host.run({ eventName: "schedule" })).map(value => value.outcome), ["present", "ineligible"]);
+  assert.equal(host.state.writes.length, 1); assert.equal(host.state.writes[0][1].issue, ISSUE);
+});
 test("transport never retries mutations; arbitrary network errors are sanitized", async () => {
   let calls = 0; const api = githubClient("private-token", { fetcher: async () => { calls++; throw Error("private network payload"); } });
   await assert.rejects(api.mutate("mutation X {}", {}), error => error.code === "network" && !error.message.includes("private")); assert.equal(calls, 1);

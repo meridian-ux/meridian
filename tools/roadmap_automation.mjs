@@ -85,7 +85,10 @@ const PAGE = "pageInfo { hasNextPage endCursor } totalCount";
 const PROJECT = `query RoadmapProject { organization(login: "meridian-ux") { login projectV2(number: 1) { id number title closed } } }`;
 const ITEMS = `query RoadmapItems($project: ID!, $after: String) { node(id: $project) { ... on ProjectV2 { id items(first: 100, after: $after) { ${PAGE} nodes { id content { __typename ... on Issue { id } } } } } } }`;
 const ISSUE = `query RoadmapIssue($issue: ID!, $after: String) { node(id: $issue) { __typename ... on Issue { id state repository { nameWithOwner } labels(first: 100, after: $after) { ${PAGE} nodes { id name } } } } }`;
-const ISSUES = `query RoadmapIssues($after: String, $name: String!) { repository(owner: "meridian-ux", name: $name) { nameWithOwner issues(first: 100, after: $after, states: OPEN, labels: ["roadmap"]) { ${PAGE} nodes { id } } } }`;
+// Enumerate every open issue, then refetch labels individually. The prior cloud
+// gateway sometimes returned no private issues when a label filter was supplied;
+// reconciliation must not mistake a filtered empty result for complete coverage.
+const ISSUES = `query RoadmapIssues($after: String, $name: String!) { repository(owner: "meridian-ux", name: $name) { nameWithOwner issues(first: 100, after: $after, states: OPEN) { ${PAGE} nodes { id } } } }`;
 const ADD = `mutation RoadmapAdd($project: ID!, $issue: ID!) { addProjectV2ItemById(input: { projectId: $project, contentId: $issue }) { item { id content { __typename ... on Issue { id } } } } }`;
 
 // Fail closed if a connection is truncated, inconsistent, duplicated, or loops.

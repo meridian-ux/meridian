@@ -57,6 +57,11 @@ reconciliation in each repository repairs missed/replaced deliveries; schedule
 timeliness is GitHub-managed, not a real-time guarantee. No webhook server or
 cross-repository dispatch permission is required.
 
+Reconciliation enumerates all open issues without a server-side label filter,
+then checks each issue's complete current labels. The earlier cloud gateway's
+private-repository label-filter anomaly must not turn a filtered empty list into
+false proof that no eligible issues were missed.
+
 Each decision completely paginates Project items and refetches the issue's actual
 node, repository, open state, and complete labels immediately before adding.
 The event's labels/state/free text are not authoritative. Connections fail closed
