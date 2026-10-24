@@ -1,7 +1,9 @@
 # Proposal: scoped roadmap Project automation
 
-Status: proposal authorized; **not installed or enabled**. No app, key, secret,
-permission grant, workflow, paid plan, or new issue is created by this document.
+Status: implementation PRs authorized; **not installed or enabled**. Owner-gated
+workflow definitions, offline fixtures, and a [rollout runbook](ROADMAP_AUTOMATION_RUNBOOK.md)
+are prepared. No App, key, secret, permission grant, paid plan, new issue, or live
+activation is created by this candidate.
 
 ## Target and permission boundary
 
@@ -43,11 +45,13 @@ Each run would:
    fully paginated labels, rather than trusting a stale event or its free text.
 3. Resolve organization `meridian-ux`, Project number `1`, and its approved node
    ID. Reject a mismatch. Fully paginate item identities before mutation.
-4. Serialize per Project/issue identity. If already present, succeed without
+4. Serialize within each repository. Across repositories/native rules, rely on
+   the documented API contract that adding existing content returns its existing
+   item ID, not on a nonexistent cross-repository Actions lock. If already present, succeed without
    mutation. Otherwise use only `addProjectV2ItemById`; after an ambiguous
    timeout, requery before retrying. Use bounded rate-limit/backoff handling and
    fail visibly on GraphQL errors or incomplete pagination.
-5. Record only safe repository/issue/item identifiers and outcome. Do not log
+5. Record only fixed outcome names. Do not log
    tokens, private issue titles/bodies, or complete event payloads. Private
    repository logs remain private.
 
@@ -80,7 +84,7 @@ or approve any live test issues and mutations; do not manufacture canaries or
 change real roadmap issue state merely to test the automation. Acceptance needs
 actual successful automatic addition from **both** repositories, duplicate-safe
 replays, visible failures, and evidence that unrelated items/fields stayed intact.
-An offline fixture suite or a proposal is not that production evidence.
+An offline fixture suite or an inactive implementation is not that production evidence.
 
 The owner must separately approve App registration/installation, exact grants,
 key generation and storage, restricted secret availability, pinned workflow PRs,
