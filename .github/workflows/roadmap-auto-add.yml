@@ -1,0 +1,56 @@
+name: Roadmap auto-add (owner activation required)
+
+on:
+  issues:
+    types: [opened, reopened, labeled, transferred]
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Add eligible missing issues (also requires owner apply mode)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Repository-local serialization only. Cross-repository delivery/transfer races
+# rely on GitHub's documented existing-item-ID semantics, not this group name.
+# Pending event replacement is repaired by the complete scheduled reconciliation.
+concurrency:
+  group: meridian-roadmap-project-1
+  cancel-in-progress: false
+
+jobs:
+  auto-add:
+    if: >-
+      vars.MERIDIAN_ROADMAP_AUTO_ADD_ENABLED == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      (github.repository == 'meridian-ux/meridian' || github.repository == 'meridian-ux/meridian-internal')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
+      - name: Mint explicitly scoped short-lived App token
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.MERIDIAN_ROADMAP_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MERIDIAN_ROADMAP_APP_PRIVATE_KEY }}
+          owner: meridian-ux
+          repositories: ${{ github.event.repository.name }}
+          permission-issues: read
+          permission-metadata: read
+          permission-organization-projects: ${{ vars.MERIDIAN_ROADMAP_AUTO_ADD_MODE == 'apply' && (github.event_name != 'workflow_dispatch' || inputs.apply) && 'write' || 'read' }}
+          skip-token-revoke: false
+      - name: Refetch, validate, reconcile, and verify Project membership
+        run: node tools/roadmap_automation.mjs
+        env:
+          MERIDIAN_ROADMAP_APP_TOKEN: ${{ steps.app.outputs.token }}
+          MERIDIAN_ROADMAP_PROJECT_ID: ${{ vars.MERIDIAN_ROADMAP_PROJECT_ID }}
+          MERIDIAN_ROADMAP_AUTO_ADD_ENABLED: ${{ vars.MERIDIAN_ROADMAP_AUTO_ADD_ENABLED }}
+          MERIDIAN_ROADMAP_APPLY: ${{ vars.MERIDIAN_ROADMAP_AUTO_ADD_MODE == 'apply' && (github.event_name != 'workflow_dispatch' || inputs.apply) }}
