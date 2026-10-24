@@ -113,7 +113,7 @@ own allowed repository. Failures never print arbitrary event/API bodies or error
 
 Pinned actions reviewed for this candidate:
 
-- `actions/checkout@11d5960a326750d5838078e36cf38b85af677262` (v4).
+- `actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803` (v6, Node 24).
 - `actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510`
   (v3, Node 24). Explicit permission inputs and default post-job revocation were
   verified in that revision's `action.yml`; `skip-token-revoke: false` is explicit.
