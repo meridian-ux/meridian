@@ -68,7 +68,14 @@ const legacy = create(ActionSchema, {id: 'legacy', label: 'Legacy'});
 const canonical = create(AffordanceSchema, {label: 'Copy', invoke: {case: 'copy', value: ''}});
 const view = create(ViewDescriptorSchema, {actions: [legacy], affordances: create(AffordanceCollectionSchema, {items: [canonical]})});
 const actions = normalizeViewActions(view);
-const host: InvocationHost = {admit: () => true, resolveSemantic: () => ({affordance: canonical, confirm: async () => false})};
+const host: InvocationHost = {admit: () => true, confirm: async (target, context, subject, signal) => {
+  const label: string = target.label;
+  const aborted: boolean = signal.aborted;
+  const id: string | number | undefined = subject?.entityId;
+  return !aborted && label.length > 0 && id !== undefined && context.uiIdentity !== undefined;
+}, resolveSemantic: () => ({affordance: canonical, confirm: async () => false})};
+// @ts-expect-error Consent must remain boolean, not an untyped permission grant.
+const invalidConsent: InvocationHost = {confirm: async () => 'yes'};
 // @ts-expect-error Retained compatibility fields must not erode to any.
 const invalidLegacyLabel: number = legacy.label;
 // @ts-expect-error Canonical targets must retain their typed payload.
@@ -153,22 +160,26 @@ for (const permitted of [false, true]) for (const consent of [false, true]) {
   assert.deepEqual(calls, !permitted ? [] : consent ? ['admission', 'consent', 'effect'] : ['admission', 'consent']);
   web.disposeView(mount); mount.remove();
 }
-for (const permitted of [false, true]) {
-  let effects = 0, resolutions = 0;
+for (const permitted of [false, true]) for (const consent of [false, true]) {
+  let effects = 0, resolutions = 0, confirmations = 0;
   const mount = document.createElement('div'); document.body.append(mount);
   await web.renderView({root: mount, view: create(ViewDescriptorSchema, {
+    subjectKind: 'Rows', subjectId: 'raw/id',
     actions: [{id: 'conflicting-old', label: 'Must not revive', call: {service: 'old.Service', method: 'Delete'}}],
     affordances: create(AffordanceCollectionSchema, {items: [rpc]}),
   }), wasm: {}, context, admission: {mutations: permitted ? ['raw.Service/Get'] : []},
-  invocation: {context, admit: () => true, resolveSemantic: () => {resolutions++; throw Error('canonical must not resolve legacy');}},
+  invocation: {context, admit: () => true, confirm: async (target, current, subject, signal) => {
+    assert.equal(target.invoke.case, 'rpc'); assert.deepEqual(current, context);
+    assert.deepEqual(subject, {entityType: 'Rows', entityId: 'raw/id'}); assert.equal(signal.aborted, false); confirmations++; return consent;
+  }, resolveSemantic: () => {resolutions++; throw Error('canonical must not resolve legacy');}},
   invoker: {invoke: async (service, method, request) => {
     assert.equal(service, 'raw.Service'); assert.equal(method, 'Get'); assert.deepEqual(request, {id: 0, active: false}); effects++; return {};
   }}});
   assert.equal(mount.querySelectorAll('button.mer-affordance').length, 1);
-  assert(!mount.textContent.includes('Must not revive')); assert.equal(effects, 0); assert.equal(resolutions, 0);
+  assert(!mount.textContent.includes('Must not revive')); assert.equal(effects, 0); assert.equal(resolutions, 0); assert.equal(confirmations, 0);
   mount.querySelector('button.mer-affordance').click();
-  await feedback(mount, permitted ? 'Action completed.' : 'Action denied:');
-  assert.equal(effects, permitted ? 1 : 0); assert.equal(resolutions, 0);
+  await feedback(mount, !permitted ? 'Action denied:' : consent ? 'Action completed.' : 'Action canceled.');
+  assert.equal(effects, permitted && consent ? 1 : 0); assert.equal(resolutions, 0); assert.equal(confirmations, permitted ? 1 : 0);
   web.disposeView(mount); mount.remove();
 }
 // Present-empty canonical envelopes suppress legacy actions in the packaged UI.
@@ -177,7 +188,7 @@ await web.renderView({root: empty, view: create(ViewDescriptorSchema, {actions: 
   wasm: {}, context, invoker: {invoke: async () => {throw Error('unexpected legacy invocation');}}});
 assert.equal(empty.querySelector('button.mer-affordance'), null); assert(!empty.textContent.includes('Must not revive'));
 web.disposeView(empty); empty.remove();
-console.log('Installed web artifact invocation: four policy/consent cases, two canonical precedence/admission cases, and empty override passed.');
+console.log('Installed web artifact invocation: four legacy and four canonical policy/consent cases, and empty override passed.');
 dom.window.close();
 `);
 try {

@@ -27,6 +27,48 @@ function setup(intent: JsonObject = { copy: "literal" }) {
   return { root, opts, caps, invoke, context, admit, descriptor, button, draw: () => renderPanel(opts) };
 }
 
+it.each([[false, false], [false, true], [true, false], [true, true]])("canonical header host consent after admission (allowed=%s consent=%s)", async (allowed, consent) => {
+  const host = setup(), confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => consent), resolveSemantic = vi.fn();
+  await renderView({ ...host.opts, admission: { mutations: allowed ? ["raw.Service/Get"] : [] },
+    invocation: { ...host.opts.invocation, confirm, resolveSemantic }, view: create(ViewDescriptorSchema, {
+      subjectKind: "Rows", subjectId: "raw/id", actions: [{ id: "delete", label: "Must not revive" }],
+      affordances: { items: [{ id: "delete", label: "Confirm canonical", invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] },
+    }) });
+  expect(confirm).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled(); host.button().click();
+  await vi.waitFor(() => expect(host.root.textContent).toContain(!allowed ? "Action denied:" : consent ? "Action completed." : "Action canceled."));
+  expect(confirm).toHaveBeenCalledTimes(allowed ? 1 : 0); expect(host.invoke).toHaveBeenCalledTimes(allowed && consent ? 1 : 0);
+  if (allowed) expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ id: "delete" }), host.context, { entityType: "Rows", entityId: "raw/id" }, expect.any(AbortSignal));
+  expect(resolveSemantic).not.toHaveBeenCalled(); expect(host.root.textContent).not.toContain("Must not revive");
+});
+
+it.each(["callback", "context", "cancel", "dispose", "reject"])("canonical host consent stops after %s change", async change => {
+  const host = setup({ copy: "literal", refreshOnSuccess: true });
+  let settle!: (value: boolean) => void, reject!: (reason: Error) => void;
+  const confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(() => new Promise<boolean>((resolve, fail) => { settle = resolve; reject = fail; }));
+  const next = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => true), refresh = vi.fn(async () => {});
+  // Mutate the supplied runtime host, not a retained render-time snapshot.
+  const invocation = { ...host.opts.invocation, confirm, refresh };
+  host.opts.invocation = invocation; await host.draw(); host.button().click();
+  await vi.waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+  host.button().click(); expect(confirm).toHaveBeenCalledTimes(1);
+  if (change === "callback") invocation.confirm = next;
+  if (change === "context") host.context.currentResourcePath = "replacement";
+  if (change === "cancel") host.root.querySelector<HTMLButtonElement>("button:not(.mer-affordance)")!.click();
+  if (change === "dispose") disposePanel(host.root);
+  if (change === "reject") reject(Error("private host prompt")); else settle(true);
+  if (change !== "dispose") {
+    await vi.waitFor(() => expect(host.button().hasAttribute("aria-busy")).toBe(false));
+    if (change === "reject" || change === "cancel") expect(host.root.textContent).toContain(change === "reject" ? "Action failed." : "Action canceled.");
+    // A late result must not paint status against the replacement scope.
+    else expect(host.root.querySelector('[role="status"], [role="alert"]')).toBeNull();
+  }
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(host.caps.copy).not.toHaveBeenCalled(); expect(refresh).not.toHaveBeenCalled(); expect(host.root.textContent).not.toContain("private host prompt");
+  if (change === "callback") {
+    host.button().click(); await vi.waitFor(() => expect(host.caps.copy).toHaveBeenCalledTimes(1)); expect(next).toHaveBeenCalledTimes(1);
+  }
+});
+
 it.each<JsonObject>([{ uri: "/safe" }, { command: "literal shell" }, { navigate: { route: "/safe" } }, { openPanel: { panelId: "inline" } }, { openView: "view" }, { copy: "literal" }])("admits actual panel %j without implicit href/copy", async intent => {
   const host = setup(intent); await host.draw(); host.button().focus();
   expect(host.admit).not.toHaveBeenCalled(); expect(host.root.querySelector("a[href]")).toBeNull();

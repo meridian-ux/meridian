@@ -10,7 +10,7 @@ Create one dispatcher per logical control. Its `readCurrent` callback must retur
 the current immutable `InvocationSnapshot`, or `undefined` after removal. Retain
 that exact object until something changes. Replace it whenever the descriptor,
 row/subject, form values, selection, identity, policy, capabilities, or semantic
-resolver changes. Do not capture the initial descriptor in a click closure, mutate
+resolver or confirmation callback changes. Do not capture the initial descriptor in a click closure, mutate
 nested context in place, or allocate a new snapshot on every read. Those patterns
 do not satisfy this API's contract. Renderer adoption tests must exercise actual
 updates and unmounts, not just call the engine with static fixtures.
@@ -19,7 +19,7 @@ Rendering, inspection, filtering, and focus do not call `activate`. On activatio
 the dispatcher reads the current scope, performs optional pure legacy semantic
 resolution, evaluates `enabled_when` with the shared Rust predicate,
 and admits the selected target. Only then does it request semantic confirmation,
-followed by adapter confirmation, when provided. Denied actions never ask for
+followed by typed host confirmation and adapter confirmation, when provided. Denied actions never ask for
 consent and cannot turn a policy denial into cancellation. It checks scope
 identity after callbacks and
 asynchronous work. A changed scope stops execution; retry starts again with the
@@ -38,6 +38,15 @@ Affordance plus an optional host confirmation callback. It must not execute the
 old `onAction` callback. Confirmation cancellation stops execution; confirmation
 acceptance is not an admission grant. Canonical targets never consult the legacy
 resolver after denial. An empty semantic ID remains invalid.
+
+`InvocationHost.confirm` optionally receives the resolved Affordance proto,
+current context, original subject identity, and AbortSignal. It works for all
+seven canonical targets without a legacy semantic resolver. It is a runtime-only
+consent callback, not a serialized permission or an effect executor. When several
+consent seams are present, each must return exactly true, in the order above.
+After each asynchronous callback the same immutable scope must remain current;
+callback replacement invalidates prior consent. Missing host confirmation retains
+the existing behavior, and does not bypass an adapter's own confirmation UI.
 
 ## Results and cancellation
 

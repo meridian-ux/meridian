@@ -77,13 +77,13 @@ function frameFor(action: NormalizedAction, options: ActionInvocationOptions, ho
   } catch { /* Fail visibly without evaluating data accessors. */ }
   const denied = admission === "unrestricted" ? undefined : admission?.onDenied;
   const { uri, command, navigate, openPanel, openView, copy, rpc } = host?.capabilities ?? {};
-  const admit = host?.admit, resolveSemantic = host?.resolveSemantic, refresh = options.refresh ?? host?.refresh;
+  const admit = host?.admit, resolveSemantic = host?.resolveSemantic, confirm = host?.confirm, refresh = options.refresh ?? host?.refresh;
   const invoke = invoker.invoke, rpcInvoke = rpc?.invoke;
   const signature = [descriptorKey, semanticKey, contextKey, subjectKey, policyKey, submissionKey, denied,
     action.legacyOrigin, action.legacyOrigin ? affordance.invoke.value : affordance, action.semanticAction, affordance.enabledWhen,
     options.enabled, options.legacyRowIdFallback, options.row, options.submission?.fields, options.readFormValues,
     record, selection, invoker, invoke,
-    uri, command, navigate, openPanel, openView, copy, rpc, rpcInvoke, admit, resolveSemantic, refresh];
+    uri, command, navigate, openPanel, openView, copy, rpc, rpcInvoke, admit, resolveSemantic, confirm, refresh];
   const build = (): InvocationSnapshot | undefined => {
     if (options.enabled === false || descriptorKey === undefined || semanticKey === undefined || contextKey === undefined
       || subjectKey === undefined || policyKey === undefined || submissionKey === undefined) return undefined;
@@ -101,7 +101,7 @@ function frameFor(action: NormalizedAction, options: ActionInvocationOptions, ho
           if (intent.case === "uri" && !safeNavigationHref(intent.value)
             || intent.case === "navigate" && !safeNavigationHref(intent.value.route)) return false;
           return admit ? admit(intent, context) : intent.case === "rpc";
-        }, resolveSemantic, refresh, legacyRowIdFallback: options.legacyRowIdFallback,
+        }, resolveSemantic, confirmIntent: confirm, refresh, legacyRowIdFallback: options.legacyRowIdFallback,
         submission: options.submission ? { kind: options.submission.kind,
           fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
       };

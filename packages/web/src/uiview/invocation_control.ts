@@ -134,7 +134,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
       const caps = host?.capabilities, admit = host?.admit;
       const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues, options.recordKey?.(),
         invoker, invoker.invoke, caps?.uri, caps?.command, caps?.navigate, caps?.openPanel, caps?.openView, caps?.copy, caps?.rpc, caps?.rpc?.invoke,
-        admit, host?.resolveSemantic, host?.refresh, options.refresh, confirmationJson, options.confirmation?.present, admission === "unrestricted" ? undefined : admission?.onDenied];
+        admit, host?.resolveSemantic, host?.confirm, host?.refresh, options.refresh, confirmationJson, options.confirmation?.present, admission === "unrestricted" ? undefined : admission?.onDenied];
       if (cache && signature.every((value, index) => Object.is(value, cache!.signature[index]))) return cache.snapshot;
       // Clone protos only after inert bounds/accessor/cycle admission.
       const confirmation = options.confirmation;
@@ -145,6 +145,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
         admission: admission === "unrestricted" ? admission : { ...JSON.parse(policyJson), onDenied: admission?.onDenied },
         capabilities: { ...caps, rpc: caps?.rpc ?? { invoke: (service, method, request) => invoker.invoke(service, method, request) } },
         resolveSemantic: host?.resolveSemantic,
+        confirmIntent: host?.confirm,
         refresh: options.refresh ? signal => options.refresh!(signal, () => !signal.aborted && read() === snapshot) : host?.refresh,
         confirm: confirmation && confirmSpec ? (context, signal) => confirmation.present(confirmSpec, context, signal) : undefined,
         submission: options.submission ? { kind: options.submission.kind, fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
