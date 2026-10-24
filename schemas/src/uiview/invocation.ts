@@ -30,6 +30,10 @@ export interface SemanticResolution {
   readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
 }
 
+/** Runtime-only host consent for the resolved target, never a permission bit. */
+export type InvocationConfirmation = (affordance: Affordance, context: RenderContext,
+  subject: InvocationSnapshot["subject"], signal: AbortSignal) => Promise<boolean>;
+
 /** Renderer-owned, in-process submission mode. Declarations stay protobuf;
  * collected values live in the snapshot's existing context.formValues seam.
  * The adapter must validate current inputs/options and bound/own declarations
@@ -57,6 +61,7 @@ export interface InvocationSnapshot {
   readonly resolveSemantic?: (action: Action, context: RenderContext,
     subject: InvocationSnapshot["subject"]) => SemanticResolution | undefined;
   readonly refresh?: (signal: AbortSignal) => Promise<void>;
+  readonly confirmIntent?: InvocationConfirmation;
   /** Adapter-owned consent UI, not a grant. Runs only after target admission;
    * the same immutable scope must still be current when consent settles. */
   readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
@@ -72,6 +77,7 @@ export interface InvocationHost {
   readonly capabilities?: InvocationCapabilities;
   readonly admit?: InvocationSnapshot["admit"];
   readonly resolveSemantic?: InvocationSnapshot["resolveSemantic"];
+  readonly confirm?: InvocationConfirmation;
   readonly refresh?: InvocationSnapshot["refresh"];
   readonly context?: RenderContext;
 }
@@ -160,9 +166,14 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
       }
       current();
       // Consent cannot grant admission or disguise a denial as cancellation.
-      // Both host confirmation seams run only for an already admitted target.
+      // Every consent seam runs only for an already admitted target.
       if (semanticResolution?.confirm) {
         const confirmed = await semanticResolution.confirm(snapshot.context, signal);
+        current();
+        if (confirmed !== true) return { status: "cancelled" };
+      }
+      if (snapshot.confirmIntent) {
+        const confirmed = await snapshot.confirmIntent(affordance, snapshot.context, snapshot.subject, signal);
         current();
         if (confirmed !== true) return { status: "cancelled" };
       }

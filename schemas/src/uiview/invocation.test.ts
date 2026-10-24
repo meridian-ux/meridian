@@ -38,6 +38,51 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
+it.each<JsonObject>([rpc, { uri: "/safe" }, { command: "raw" }, { navigate: { route: "/safe" } },
+  { openPanel: { panelId: "inline" } }, { openView: "view" }, { copy: "" }])(
+  "host confirmation receives the admitted canonical %j and cannot be skipped", async target => {
+    for (const accepted of [false, true]) {
+      const host = setup(target), confirmIntent = vi.fn<NonNullable<InvocationSnapshot["confirmIntent"]>>(async () => accepted);
+      host.replace({ ...host.snapshot, subject: { entityType: "Rows", entityId: 0 }, confirmIntent });
+      expect(confirmIntent).not.toHaveBeenCalled();
+      expect((await host.dispatcher.activate()).status).toBe(accepted ? "succeeded" : "cancelled");
+      expect(confirmIntent).toHaveBeenCalledTimes(1);
+      expect(confirmIntent).toHaveBeenCalledWith(host.snapshot.action.affordance, host.snapshot.context,
+        { entityType: "Rows", entityId: 0 }, expect.any(AbortSignal));
+      if (!accepted) expectNoEffects(host.effects);
+    }
+  });
+
+it.each(["mutation", "target", "capability", "missing"])("host confirmation cannot grant %s admission", async reason => {
+  const host = setup(reason === "missing" ? {} : rpc), confirmIntent = vi.fn(async () => true);
+  host.replace({ ...host.snapshot, confirmIntent, admission: reason === "mutation" ? undefined : host.snapshot.admission,
+    capabilities: reason === "capability" ? {} : host.effects, admit: () => reason !== "target" });
+  expect((await host.dispatcher.activate()).status).toBe("denied"); expect(confirmIntent).not.toHaveBeenCalled(); expectNoEffects(host.effects);
+});
+
+it("semantic, typed host, and adapter consent all run after admission in order", async () => {
+  const host = setup(rpc), order: string[] = [], resolved = fromJson(AffordanceSchema, rpc);
+  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "legacy" })),
+    resolveSemantic: () => ({ affordance: resolved, confirm: async () => { order.push("semantic"); return true; } }),
+    admit: () => { order.push("admission"); return true; },
+    confirmIntent: async action => { expect(action).toBe(resolved); order.push("host"); return true; },
+    confirm: async () => { order.push("adapter"); return true; } });
+  expect((await host.dispatcher.activate()).status).toBe("succeeded"); expect(order).toEqual(["admission", "semantic", "host", "adapter"]);
+});
+
+it.each(["scope", "cancel", "dispose", "reject"])("host confirmation handles %s without later adapter consent, effect, or refresh", async change => {
+  const host = setup(rpc), consent = deferred<boolean>(), adapter = vi.fn(async () => true);
+  const confirmIntent = vi.fn(() => consent.promise);
+  host.replace({ ...host.snapshot, confirmIntent, confirm: adapter });
+  const run = host.dispatcher.activate(); expect(confirmIntent).toHaveBeenCalledTimes(1);
+  expect(await host.dispatcher.activate()).toEqual({ status: "busy" });
+  if (change === "scope") host.replace({ ...host.snapshot });
+  if (change === "cancel") host.dispatcher.cancel(); if (change === "dispose") host.dispatcher.dispose();
+  if (change === "reject") consent.reject(Error("private consent details")); else consent.resolve(true);
+  expect((await run).status).toBe(change === "scope" ? "stale" : change === "reject" ? "failed" : "cancelled");
+  expect(adapter).not.toHaveBeenCalled(); expectNoEffects(host.effects); expect(host.snapshot.refresh).not.toHaveBeenCalled();
+});
+
 it.each([false, true])("adapter confirmation %s is consent after admission, never a grant", async accepted => {
   const host = setup(rpc); const confirm = vi.fn(async () => accepted);
   host.replace({ ...host.snapshot, confirm }); expect(confirm).not.toHaveBeenCalled();

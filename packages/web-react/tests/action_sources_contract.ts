@@ -54,6 +54,39 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
   }
 
   describe(`${kit.id} normalized action sources`, () => {
+    it.each([[false, false], [false, true], [true, false], [true, true]])(
+      "canonical header host consent after admission (allowed=%s consent=%s)", async (allowed, consent) => {
+        const host = setup(), confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => consent), resolveSemantic = vi.fn();
+        host.admission = { mutations: allowed ? ["raw.Service/Get"] : [] };
+        host.view.actions.push(create(ActionSchema, { id: "delete", label: "Must not revive" }));
+        host.view.affordances = create(AffordanceCollectionSchema, { items: [{ id: "delete", label: "Canonical confirm",
+          invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] });
+        host.invocation = { ...host.invocation, confirm, resolveSemantic };
+        try {
+          await host.mount(); expect(confirm).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled();
+          await host.click("Canonical confirm");
+          expect(confirm).toHaveBeenCalledTimes(allowed ? 1 : 0); expect(host.invoke).toHaveBeenCalledTimes(allowed && consent ? 1 : 0);
+          if (allowed) expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ id: "delete", invoke: { case: "rpc", value: expect.objectContaining({ service: "raw.Service", method: "Get" }) } }),
+            expect.any(Object), { entityType: "raw-kind", entityId: "raw/e\u0301" }, expect.any(AbortSignal));
+          expect(host.container.textContent).toContain(!allowed ? "mutation policy" : consent ? "Action completed." : "Action canceled.");
+          expect(resolveSemantic).not.toHaveBeenCalled(); expect(host.onAction).not.toHaveBeenCalled();
+        } finally { await host.close(); }
+      });
+
+    it("canonical consent is invalidated by replacement of the host confirmation callback", async () => {
+      const host = setup(); let release!: (value: boolean) => void;
+      const confirm = vi.fn(() => new Promise<boolean>(resolve => { release = resolve; }));
+      const replacement = vi.fn(async () => true);
+      host.view.affordances = create(AffordanceCollectionSchema, { items: [{ label: "Confirm current", invoke: { case: "copy", value: "raw" } }] });
+      host.invocation = { ...host.invocation, confirm };
+      try {
+        await host.mount(); await host.click("Confirm current"); expect(confirm).toHaveBeenCalledTimes(1);
+        host.invocation = { ...host.invocation, confirm: replacement }; await host.update();
+        await act(async () => release(true)); expect(host.copy).not.toHaveBeenCalled();
+        await host.click("Confirm current"); expect(replacement).toHaveBeenCalledTimes(1); expect(host.copy).toHaveBeenCalledTimes(1);
+      } finally { release?.(true); await host.close(); }
+    });
+
     it("rejects an unsafe resolved destination at activation, not just disabled paint", async () => {
       const host = setup();
       host.view.actions.push(create(ActionSchema, { id: "resolve-navigation", label: "Resolve destination", placement: ActionPlacement.HEADER }));
