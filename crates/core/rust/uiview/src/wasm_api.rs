@@ -298,7 +298,7 @@ pub fn build_submission_request(
                     Some(crate::proto::affordance::Invoke::Rpc(call)) => Some(call),
                     _ => None,
                 },
-                None => crate::legacy::take_form_submit(&mut panel),
+                None => None,
             };
             (call, panel.fields, crate::SubmissionKind::Form)
         }

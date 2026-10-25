@@ -50,13 +50,13 @@ message Affordance {
     // Literal clipboard payload, including empty. Never disclose it in logs.
     string copy = 14;
   }
-  // Prominence hint. The renderer maps it to its own weighting (web = contained
-  // vs outlined button, tui = highlighted vs plain keybinding).
-  AffordanceStyle style = 7 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
+  // Retired 0.x prominence field. Tags and names are never reused.
+  reserved 7;
+  reserved "style";
   // Semantic color, independent of prominence and invocation authority. Absent
-  // retains legacy styling; present unspecified/unknown selects neutral.
+  // selects the host default; present unspecified/unknown selects neutral.
   optional Tone tone = 8 [(google.api.field_behavior) = OPTIONAL];
-  // Absence adapts legacy style. Present unspecified/unknown uses ordinary
+  // Absence selects ordinary prominence. Present unspecified/unknown uses ordinary
   // surface prominence, never reviving a legacy PRIMARY hint.
   optional Emphasis emphasis = 9 [(google.api.field_behavior) = OPTIONAL];
   // Explicit presence overrides legacy placement, including unspecified.
@@ -72,16 +72,6 @@ enum Emphasis {
   EMPHASIS_UNSPECIFIED = 0;
   EMPHASIS_PRIMARY = 1;
   EMPHASIS_SECONDARY = 2;
-}
-
-// How prominently an affordance renders.
-enum AffordanceStyle {
-  option deprecated = true;
-  AFFORDANCE_STYLE_UNSPECIFIED = 0;
-  // The primary call to action.
-  AFFORDANCE_STYLE_PRIMARY = 1;
-  // A secondary / alternate affordance.
-  AFFORDANCE_STYLE_SECONDARY = 2;
 }
 
 // PanelDescriptor body variant: a panel that is a single Affordance (plus
@@ -171,32 +161,13 @@ message Command {
   string shortcut = 6 [(google.api.field_behavior) = OPTIONAL];
   // Optional URL-state hint for hosts whose palette is URL-driven (a studio
   // studio palette encodes state as `?cmd=<entityType>/<mode>`). Orthogonal to
-  // `action`: a host that round-trips palette state through the URL sets the
-  // link when the command is chosen; a host that runs `action` directly ignores it.
+  // `affordance`: a host that round-trips palette state through the URL sets the
+  // link when the command is chosen; a host that runs the intent directly ignores it.
   string deep_link = 7 [(google.api.field_behavior) = OPTIONAL];
-  // What running the command does. Exactly one arm.
-  oneof action {
-    // Fire an RPC directly through the host's RpcInvoker (e.g. delete, export,
-    // re-run). Same primitive as ViewDescriptor.Action.call.
-    RpcCall rpc = 8 [deprecated = true];
-    // Open a panel in a focused step (a create/edit FormPanel, a confirm
-    // PromptPanel, a wizard). The host renders it through its ComponentKit /
-    // PanelRenderer, then returns to the palette or dismisses.
-    OpenPanel open_panel = 9 [deprecated = true];
-    // Navigate to a ViewDescriptor (view.proto) by id — the same target a
-    // NavNode leaf uses.
-    string open_view_id = 10 [deprecated = true];
-    // Navigate to a raw route/href the host resolves (its router / hrefResolver).
-    Navigate navigate = 11 [deprecated = true];
-  }
+  reserved 8, 9, 10, 11;
+  reserved "rpc", "open_panel", "open_view_id", "navigate";
+  // The one canonical intent; its presence never grants invocation permission.
   Affordance affordance = 12;
-}
-
-// Open a panel as a focused step of the palette.
-message OpenPanel {
-  option deprecated = true;
-  // The panel to render (e.g. a FormPanel in EDIT mode with prefilled fields).
-  PanelDescriptor panel = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Navigate to a host-resolved route.
@@ -444,9 +415,8 @@ message FormPanel {
   repeated FormField fields = 1 [(google.api.field_behavior) = REQUIRED];
   // READONLY (detail card) or EDIT (editable form).
   FormMode mode = 2 [(google.api.field_behavior) = OPTIONAL];
-  // Save RPC fired on submit. Meaningful in EDIT mode; READONLY
-  // panels are populated via the slot/panel fetch and set no submit.
-  RpcCall submit = 3 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
+  reserved 3;
+  reserved "submit";
   // Singular noun for labels / empty states (e.g. "product").
   string item_noun = 4 [(google.api.field_behavior) = OPTIONAL];
   // Optional RPC that returns the initial field values for an EDIT form.
@@ -541,9 +511,8 @@ message TablePanel {
   string placeholder = 4 [(google.api.field_behavior) = OPTIONAL];
   // Column definitions in display order.
   repeated TableColumn columns = 5 [(google.api.field_behavior) = REQUIRED];
-  // Actions exposed on the selected row (typically rendered as
-  // buttons above the table).
-  repeated RowAction actions = 6 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
+  reserved 6;
+  reserved "actions";
   // How the table pages. Absent ⇒ CLIENT (paginate the fetched rows in
   // the renderer) — backward compatible with pre-0.3.0 descriptors.
   Pagination pagination = 7 [(google.api.field_behavior) = OPTIONAL];
@@ -624,21 +593,6 @@ message ColumnLink {
   string target_kind = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// One action button exposed on the row's actions bar.
-message RowAction {
-  option deprecated = true;
-  // Button label.
-  string label = 1 [(google.api.field_behavior) = REQUIRED];
-  // RPC fired when the button is clicked.
-  RpcCall rpc = 2 [(google.api.field_behavior) = REQUIRED];
-  // Optional: only enable the button when the selected row matches
-  // this predicate (e.g. "only enable Resolve for OPEN tickets").
-  RowFilter enabled_when = 3 [(google.api.field_behavior) = OPTIONAL];
-  // Optional: re-fetch the table once the action completes. Default
-  // true.
-  bool refresh_on_success = 4 [(google.api.field_behavior) = OPTIONAL];
-}
-
 // Predicate over a selected row. Today: equality on a single string
 // field. Extensible to more operators later without breaking changes.
 message RowFilter {
@@ -683,8 +637,8 @@ message ViewDescriptor {
   Layout layout = 6 [(google.api.field_behavior) = REQUIRED];
   // The slots (panels + placement), in `position` order.
   repeated Slot slots = 7 [(google.api.field_behavior) = REQUIRED];
-  // View-level (header) actions.
-  repeated Action actions = 8 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
+  reserved 8;
+  reserved "actions";
   // For a DETAIL view: the id of the record this view is about. Detail panels
   // (detail_header / record_card) bind it into their `populate` request so the
   // renderer fetches the right record. Empty on LIST / non-entity views.
@@ -739,8 +693,8 @@ message Slot {
   // The panel rendered in this slot. Optional now that a slot may instead hold a
   // nested view (`sub_view`); exactly one of `panel` / `sub_view` is set.
   PanelDescriptor panel = 6 [(google.api.field_behavior) = OPTIONAL];
-  // Slot-level (row) actions.
-  repeated Action actions = 7 [deprecated = true, (google.api.field_behavior) = OPTIONAL];
+  reserved 7;
+  reserved "actions";
   // A NESTED view rendered in this slot instead of a panel — meridian's
   // composition primitive: a slot may embed a whole ViewDescriptor (its own
   // layout + slots + panels), which the renderer draws recursively. Each nested
@@ -789,21 +743,6 @@ enum Column {
   COLUMN_UNSPECIFIED = 0;
   COLUMN_MAIN = 1;
   COLUMN_SIDEBAR = 2;
-}
-
-// A neutral action = a labeled RpcCall with a placement. Covers the host's
-// row/header actions (edit / clone / delete / export / ...). The renderer draws
-// the affordance; the host's RpcInvoker performs the call.
-message Action {
-  option deprecated = true;
-  // Stable identifier (e.g. "edit", "delete").
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-  // Display label.
-  string label = 2 [(google.api.field_behavior) = REQUIRED];
-  // The RPC this action fires.
-  RpcCall call = 3 [(google.api.field_behavior) = OPTIONAL];
-  // Where the affordance renders.
-  ActionPlacement placement = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Where an action's affordance renders.

@@ -1,5 +1,16 @@
 # Proposal: versioned Affordance declaration migration
 
+## Authorized draft removal follow-up
+
+The owner has authorized preparing the combined removal implementation,
+including AffordanceStyle retirement, at the proposed single alpha boundary.
+See [REMOVAL.md](migration/REMOVAL.md) for the exact transition checker and honest
+current verification limits. The draft source is now canonical-only; older
+additive proof descriptions below are historical context, not a claim that all
+removal consumers compile or that the new major boundary is integrated.
+Production FILE selection, merging, live activation, and publication remain
+separately gated. No existing frozen reference or production FILE rule changed.
+
 Status: migration implementation PRs authorized; **not approved for production cutover**.
 Companion to [AFFORDANCE_RFC.md](AFFORDANCE_RFC.md), roadmap #47/#48.
 The user has now authorized coordinated implementation PRs, explicit versioned

@@ -69,17 +69,8 @@ impl Text {
         }
         Ok(())
     }
-    fn actions(&mut self, actions: &[proto::Action], depth: usize) -> Result<(), StaticViewError> {
-        for action in actions {
-            self.node(depth)?;
-            self.line(format_args!("Action: {} [{}]", action.label, action.id))?;
-            self.rpc("Destination", action.call.as_ref())?;
-        }
-        Ok(())
-    }
     fn action_source(
         &mut self,
-        legacy: &[proto::Action],
         canonical: Option<&proto::AffordanceCollection>,
         depth: usize,
     ) -> Result<(), StaticViewError> {
@@ -87,19 +78,13 @@ impl Text {
             for action in &canonical.items {
                 self.affordance(action, depth)?;
             }
-            Ok(())
-        } else {
-            self.actions(legacy, depth)
         }
+        Ok(())
     }
     fn view(&mut self, view: &ViewDescriptor, depth: usize) -> Result<(), StaticViewError> {
         self.node(depth)?;
         self.line(format_args!("View: {} [{}]", view.title, view.id))?;
-        self.action_source(
-            crate::legacy::view_actions(view),
-            view.affordances.as_ref(),
-            depth,
-        )?;
+        self.action_source(view.affordances.as_ref(), depth)?;
         if view.slots.len() > self.nodes {
             return Err(StaticViewError);
         }
@@ -187,11 +172,7 @@ impl Text {
             ))?;
             return Ok(());
         }
-        self.action_source(
-            crate::legacy::slot_actions(slot),
-            slot.affordances.as_ref(),
-            depth,
-        )?;
+        self.action_source(slot.affordances.as_ref(), depth)?;
         if let Some(view) = &slot.sub_view {
             if slot.sub_view_populate.is_some() {
                 self.copy("Repeated template only; records require an interactive/data host.")?;
@@ -362,12 +343,6 @@ impl Text {
             for action in &canonical.items {
                 self.affordance(action, depth)?;
             }
-        } else {
-            for action in crate::legacy::table_actions(table) {
-                self.node(depth)?;
-                self.line(format_args!("Row action: {}", action.label))?;
-                self.rpc("Destination", action.rpc.as_ref())?;
-            }
         }
         self.copy("[rows unavailable without host data]")
     }
@@ -402,8 +377,6 @@ impl Text {
                 self.fields(&p.fields, true, depth + 1)?;
                 if let Some(canonical) = &p.submit_affordance {
                     self.affordance(canonical, depth)?;
-                } else {
-                    self.rpc("Submit", crate::legacy::form_submit(p))?;
                 }
             }
             Some(Body::Prompt(p)) => {
