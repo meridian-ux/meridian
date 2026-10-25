@@ -1,11 +1,10 @@
 import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
 import { expect, it, vi } from "vitest";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { RowActionSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { normalizeAffordance, normalizeCommand, normalizeLegacyAction, normalizeLegacyRowAction } from "./action_normalization.js";
+import { normalizeAffordance, normalizeCommand } from "./action_normalization.js";
+import { readFrozen } from "../../tests/frozen_affordance.js";
 import { createInvocationDispatcher, type InvocationSnapshot, type InvocationCapabilities } from "./invocation.js";
 import type { RpcInvoker } from "./transport.js";
 
@@ -60,14 +59,13 @@ it.each(["mutation", "target", "capability", "missing"])("host confirmation cann
   expect((await host.dispatcher.activate()).status).toBe("denied"); expect(confirmIntent).not.toHaveBeenCalled(); expectNoEffects(host.effects);
 });
 
-it("semantic, typed host, and adapter consent all run after admission in order", async () => {
+it("typed host and adapter consent both run after admission in order", async () => {
   const host = setup(rpc), order: string[] = [], resolved = fromJson(AffordanceSchema, rpc);
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "legacy" })),
-    resolveSemantic: () => ({ affordance: resolved, confirm: async () => { order.push("semantic"); return true; } }),
+  host.replace({ ...host.snapshot, action: normalizeAffordance(resolved),
     admit: () => { order.push("admission"); return true; },
     confirmIntent: async action => { expect(action).toBe(resolved); order.push("host"); return true; },
     confirm: async () => { order.push("adapter"); return true; } });
-  expect((await host.dispatcher.activate()).status).toBe("succeeded"); expect(order).toEqual(["admission", "semantic", "host", "adapter"]);
+  expect((await host.dispatcher.activate()).status).toBe("succeeded"); expect(order).toEqual(["admission", "host", "adapter"]);
 });
 
 it.each(["scope", "cancel", "dispose", "reject"])("host confirmation handles %s without later adapter consent, effect, or refresh", async change => {
@@ -146,8 +144,7 @@ it("submission mode cannot grant mutation permission or touch declarations befor
 
 it("submission uses the selected canonical call, never a legacy row default", async () => {
   const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
-  host.replace({ ...host.snapshot, submission: { fields: [], kind: "form" }, legacyRowIdFallback: true,
-    action: normalizeLegacyRowAction(create(RowActionSchema, { rpc: { service: "raw.Service", method: "Get" } })),
+  host.replace({ ...host.snapshot, submission: { fields: [], kind: "form" },
     context: { ...context(), selectedRow: { id: 0 } } });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
   expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
@@ -189,12 +186,12 @@ function expectOnceWith(callback: unknown, ...args: unknown[]) {
   expect(callback).toHaveBeenCalledWith(...args);
 }
 
-it("constructing and inspecting a dispatcher performs no resolution, policy, confirmation, or IO", () => {
+it("constructing and inspecting a dispatcher performs no policy, confirmation, or IO", () => {
   const host = setup();
-  const resolveSemantic = vi.fn();
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "semantic" })), resolveSemantic });
+  const confirmIntent = vi.fn();
+  host.replace({ ...host.snapshot, action: normalizeAffordance(create(AffordanceSchema, { id: "semantic" })), confirmIntent });
   expect(host.dispatcher.pending).toBe(false);
-  expect(resolveSemantic).not.toHaveBeenCalled();
+  expect(confirmIntent).not.toHaveBeenCalled();
   expect(host.snapshot.admit).not.toHaveBeenCalled();
   expectNoEffects(host.effects);
 });
@@ -236,56 +233,51 @@ it("existing three-argument RpcInvoker hosts remain source-compatible", async ()
   expect(invoke).toHaveBeenCalledTimes(1);
 });
 
-it.each([false, true])("legacy row id fallback is adapter-owned and optional (%s)", async legacyRowIdFallback => {
-  const host = setup();
-  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
-    rpc: { service: "raw.Service", method: "Get" },
-  })), context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback });
+it.each([false, true])("row id requires an authored binding (%s)", async bindId => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get", bindings: bindId ? [{ requestField: "id", rowField: "id" }] : [] } });
+  host.replace({ ...host.snapshot, context: { ...context(), selectedRow: { id: 0 } } });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
-  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", legacyRowIdFallback ? { id: 0 } : {}, expect.any(AbortSignal));
+  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", bindId ? { id: 0 } : {}, expect.any(AbortSignal));
 });
 
-it("a compatibility hint cannot add id to canonical intent or replace authored bindings", async () => {
+it("canonical requests do not invent id or replace authored bindings", async () => {
   const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
-  host.replace({ ...host.snapshot, context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true });
+  host.replace({ ...host.snapshot, context: { ...context(), selectedRow: { id: 0 } } });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
   expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
   host.effects.rpc.invoke.mockClear();
-  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
-    rpc: { service: "raw.Service", method: "Get", bindings: [{ requestField: "authored", source: { case: "literal", value: "raw" } }] },
+  host.replace({ ...host.snapshot, action: normalizeAffordance(fromJson(AffordanceSchema, {
+    rpc: { service: "raw.Service", method: "Get", bindings: [{ requestField: "authored", literal: "raw" }] },
   })) });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
   expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", { authored: "raw" }, expect.any(AbortSignal));
 });
 
-it("legacy palette origin never opts into a renderer's row id compatibility default", async () => {
+it("canonical palette never invents a row id default", async () => {
   const host = setup();
   host.replace({ ...host.snapshot, action: normalizeCommand(create(CommandSchema, {
-    action: { case: "rpc", value: { service: "raw.Service", method: "Get" } },
-  })).action, context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true });
+    affordance: { invoke: { case: "rpc", value: { service: "raw.Service", method: "Get", bindings: [] } } },
+  })).action, context: { ...context(), selectedRow: { id: 0 } } });
   expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
   expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
 });
 
-it("legacy id fallback rejects accessors without evaluating them", async () => {
-  const host = setup();
+it("canonical row request rejects accessors without evaluating them", async () => {
+  const host = setup({ rpc: { service: "raw.Service", method: "Get" } });
   const get = vi.fn(() => "private");
-  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
-    rpc: { service: "raw.Service", method: "Get" },
-  })), context: { ...context(), selectedRow: Object.defineProperty({}, "id", { enumerable: true, get }) }, legacyRowIdFallback: true });
+  host.replace({ ...host.snapshot, context: { ...context(), selectedRow: Object.defineProperty({}, "id", { enumerable: true, get }) } });
   expect(await host.dispatcher.activate()).toEqual({ status: "failed" });
   expect(get).not.toHaveBeenCalled();
   expectNoEffects(host.effects);
 });
 
-it("typed semantic resolution is authoritative and never acquires a legacy RPC id default", async () => {
+it("a retired palette RPC is not a canonical target even with an admitted host", async () => {
   const host = setup();
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "resolve-row" })),
-    context: { ...context(), selectedRow: { id: 0 } }, legacyRowIdFallback: true,
-    resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, { rpc: { service: "raw.Service", method: "Get" } }) }),
-  });
-  expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
-  expectOnceWith(host.effects.rpc.invoke, "raw.Service", "Get", {}, expect.any(AbortSignal));
+  host.replace({ ...host.snapshot, action: normalizeCommand(readFrozen(CommandSchema, {
+    id: "retired", rpc: { service: "raw.Service", method: "Get" },
+  })).action });
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-target" });
+  expectNoEffects(host.effects);
 });
 
 it.each([undefined, { reads: ["*"] }, { mutations: [] }])("Get RPC never escapes mutation admission (%j)", async admission => {
@@ -351,17 +343,14 @@ it("evaluates enabled_when against the current row via Rust, not earlier paint",
   expectNoEffects(host.effects);
 });
 
-it("no-call legacy IDs require a pure resolver and retain exact row/header subject context", async () => {
+it("explicit targets retain exact row/header subject context without resolving IDs", async () => {
   for (const subject of [{ entityType: "row", entityId: 0 }, { entityType: "header", entityId: "e\u0301" }]) {
     const host = setup();
-    const legacy = create(ActionSchema, { id: "https://not-a-destination.test", label: "Confirm" });
-    const confirm = vi.fn(async () => true);
-    const resolved = fromJson(AffordanceSchema, { navigate: { route: "/form/subject" } });
-    const resolveSemantic = vi.fn(() => ({ affordance: resolved, confirm }));
-    host.replace({ ...host.snapshot, action: normalizeLegacyAction(legacy), subject, resolveSemantic });
+    const confirmIntent = vi.fn<NonNullable<InvocationSnapshot["confirmIntent"]>>(async () => true);
+    const resolved = fromJson(AffordanceSchema, { id: "https://not-a-destination.test", navigate: { route: "/form/subject" } });
+    host.replace({ ...host.snapshot, action: normalizeAffordance(resolved), subject, confirmIntent });
     expect(await host.dispatcher.activate()).toMatchObject({ status: "succeeded" });
-    expectOnceWith(resolveSemantic, legacy, host.snapshot.context, subject);
-    expectOnceWith(confirm, host.snapshot.context, expect.any(AbortSignal));
+    expectOnceWith(confirmIntent, resolved, host.snapshot.context, subject, expect.any(AbortSignal));
     expectOnceWith(host.effects.navigate, resolved.invoke.value, host.snapshot.context, expect.any(AbortSignal));
     expect(host.effects.rpc.invoke).not.toHaveBeenCalled();
   }
@@ -369,16 +358,16 @@ it("no-call legacy IDs require a pure resolver and retain exact row/header subje
 
 it.each<JsonObject>([rpc, { uri: "/safe" }, { command: "raw" }, { navigate: { route: "/safe" } },
   { openPanel: { panelId: "inline" } }, { openView: "view" }, { copy: "literal" }])(
-  "admitted semantic %j preserves consent order and cancellation", async target => {
+  "admitted canonical %j preserves consent order and cancellation", async target => {
     for (const consent of [false, true]) {
       const host = setup(target), order: string[] = [];
-      const semantic = vi.fn(async () => { order.push("semantic"); return consent; });
+      const semantic = vi.fn(async () => { order.push("host"); return consent; });
       const adapter = vi.fn(async () => { order.push("adapter"); return true; });
-      host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "semantic" })),
+      host.replace({ ...host.snapshot,
         admit: () => { order.push("admission"); return true; }, confirm: adapter,
-        resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, target), confirm: semantic }) });
+        confirmIntent: semantic });
       expect((await host.dispatcher.activate()).status).toBe(consent ? "succeeded" : "cancelled");
-      expect(order).toEqual(consent ? ["admission", "semantic", "adapter"] : ["admission", "semantic"]);
+      expect(order).toEqual(consent ? ["admission", "host", "adapter"] : ["admission", "host"]);
       expect(semantic).toHaveBeenCalledTimes(1); expect(adapter).toHaveBeenCalledTimes(consent ? 1 : 0);
       if (!consent) expectNoEffects(host.effects);
       else {
@@ -389,23 +378,22 @@ it.each<JsonObject>([rpc, { uri: "/safe" }, { command: "raw" }, { navigate: { ro
     }
   });
 
-it.each([false, true])("denied semantic actions do not ask for confirmation %s or disguise denial as cancellation", async consent => {
+it.each([false, true])("denied canonical actions do not ask for confirmation %s or disguise denial as cancellation", async consent => {
   const host = setup(rpc);
   const confirm = vi.fn(async () => consent);
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "confirm-delete" })),
-    resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, rpc), confirm }), admission: undefined });
+  host.replace({ ...host.snapshot, confirmIntent: confirm, admission: undefined });
   expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "mutation-policy" });
   expect(confirm).not.toHaveBeenCalled();
   expectNoEffects(host.effects);
 });
 
-it.each(["mutation", "target", "capability", "missing", "disabled"])("semantic %s denial precedes both confirmation hooks", async reason => {
+it.each(["mutation", "target", "capability", "missing", "disabled"])("canonical %s denial precedes both confirmation hooks", async reason => {
   const host = setup(rpc), semantic = vi.fn(async () => true), adapter = vi.fn(async () => true);
   const resolved = fromJson(AffordanceSchema, reason === "missing" ? {} : {
     ...rpc, ...(reason === "disabled" ? { enabledWhen: { fieldPath: "state", equals: "CLOSED" } } : {}),
   });
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "semantic" })),
-    resolveSemantic: () => ({ affordance: resolved, confirm: semantic }), confirm: adapter,
+  host.replace({ ...host.snapshot, action: normalizeAffordance(resolved),
+    confirmIntent: semantic, confirm: adapter,
     admission: reason === "mutation" ? undefined : host.snapshot.admission,
     admit: () => reason !== "target", capabilities: reason === "capability" ? {} : host.effects });
   const expected = { mutation: "mutation-policy", target: "target-policy", capability: "missing-capability", missing: "missing-target", disabled: "disabled" };
@@ -414,43 +402,41 @@ it.each(["mutation", "target", "capability", "missing", "disabled"])("semantic %
   expectNoEffects(host.effects); expect(host.snapshot.refresh).not.toHaveBeenCalled();
 });
 
-it("missing/unresolved semantic actions visibly deny instead of treating the ID as a URI", async () => {
+it("an ID-only canonical action visibly denies instead of treating the ID as a URI", async () => {
   const host = setup();
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema, { id: "/not-a-route" })) });
-  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-resolver" });
-  host.replace({ ...host.snapshot, resolveSemantic: () => undefined });
-  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "unresolved-action" });
-  expectNoEffects(host.effects);
-});
-
-it("an empty legacy semantic ID cannot be resolved into an executable default", async () => {
-  const host = setup();
-  const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, { copy: "must-not-run" }) }));
-  host.replace({ ...host.snapshot, action: normalizeLegacyAction(create(ActionSchema)), resolveSemantic });
+  host.replace({ ...host.snapshot, action: normalizeAffordance(create(AffordanceSchema, { id: "/not-a-route" })) });
   expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-target" });
-  expect(resolveSemantic).not.toHaveBeenCalled();
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-target" });
   expectNoEffects(host.effects);
 });
 
-it("canonical denial never runs an available legacy resolver", async () => {
+it("an empty canonical ID cannot be confirmed into an executable default", async () => {
+  const host = setup();
+  const confirmIntent = vi.fn(async () => true);
+  host.replace({ ...host.snapshot, action: normalizeAffordance(create(AffordanceSchema)), confirmIntent });
+  expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "missing-target" });
+  expect(confirmIntent).not.toHaveBeenCalled();
+  expectNoEffects(host.effects);
+});
+
+it("canonical denial never runs available host consent", async () => {
   const host = setup({ command: "denied" });
-  const resolveSemantic = vi.fn();
-  host.replace({ ...host.snapshot, resolveSemantic, admit: () => false });
+  const confirmIntent = vi.fn(async () => true);
+  host.replace({ ...host.snapshot, confirmIntent, admit: () => false });
   expect(await host.dispatcher.activate()).toEqual({ status: "denied", reason: "target-policy" });
-  expect(resolveSemantic).not.toHaveBeenCalled();
+  expect(confirmIntent).not.toHaveBeenCalled();
   expectNoEffects(host.effects);
 });
 
 it("scope changes during confirmation stop execution; retry resolves the new current subject", async () => {
   const host = setup();
   const consent = deferred<boolean>();
-  const action = normalizeLegacyAction(create(ActionSchema, { id: "confirm" }));
-  const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, { copy: "first" }), confirm: () => consent.promise }));
-  host.replace({ ...host.snapshot, action, resolveSemantic });
+  const action = normalizeAffordance(fromJson(AffordanceSchema, { id: "confirm", copy: "first" }));
+  host.replace({ ...host.snapshot, action, confirmIntent: () => consent.promise });
   const first = host.dispatcher.activate();
   expect(host.dispatcher.pending).toBe(true);
   expect(await host.dispatcher.activate()).toEqual({ status: "busy" });
-  host.replace({ ...host.snapshot, subject: { entityId: "new" }, resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, { copy: "new" }) }) });
+  host.replace({ ...host.snapshot, subject: { entityId: "new" }, action: normalizeAffordance(fromJson(AffordanceSchema, { copy: "new" })), confirmIntent: async () => true });
   consent.resolve(true);
   expect(await first).toEqual({ status: "stale" });
   expectNoEffects(host.effects);
@@ -529,10 +515,10 @@ it("invalid request input fails before authenticated transport and never leaks g
   expectNoEffects(host.effects);
 });
 
-it("successful legacy rows refresh; canonical false suppresses refresh; refresh failure does not replay IO", async () => {
+it("authored true refreshes; canonical false suppresses refresh; refresh failure does not replay IO", async () => {
   const host = setup();
-  host.replace({ ...host.snapshot, action: normalizeLegacyRowAction(create(RowActionSchema, {
-    rpc: { service: "raw.Service", method: "Get" }, refreshOnSuccess: false,
+  host.replace({ ...host.snapshot, action: normalizeAffordance(fromJson(AffordanceSchema, {
+    rpc: { service: "raw.Service", method: "Get" }, refreshOnSuccess: true,
   })) });
   expect(await host.dispatcher.activate()).toEqual({ status: "succeeded", refresh: "succeeded" });
   expect(host.snapshot.refresh).toHaveBeenCalledTimes(1);

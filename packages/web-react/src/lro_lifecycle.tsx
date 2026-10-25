@@ -4,11 +4,12 @@ import { create } from "@bufbuild/protobuf";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { AffordanceCollectionSchema } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
 import { AdmissionDeniedError, formatLroMetadata } from "@savvifi/meridian-schemas/uiview";
 import { boundedJson, boundedResponse, buildLroFinalizeRequest, buildSubmissionRequest } from "./action_request.js";
 import { MeridianRecordContext, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { useMeridian } from "./provider.js";
-import { MeridianRowActionsContext } from "./view_renderer.js";
+import { MeridianRowActionsContext, MeridianNormalizedRowActionsContext } from "./view_renderer.js";
 
 type Row = Record<string, unknown>;
 const CANCELLED = Symbol("cancelled operation observation");
@@ -132,10 +133,11 @@ export function useLroLifecycle(panel: LroPanel) {
  * authored populate/actions. Final results do not trigger another read or RPC. */
 export function LroResult({ panel, source }: { panel: LroPanel; source: Row | undefined }): ReactNode {
   const { kit, invoker } = useMeridian();
-  const table = useMemo(() => panel.result ? create(TablePanelSchema, { ...panel.result, populate: undefined, actions: [], pagination: undefined }) : undefined, [panel.result]);
+  const table = useMemo(() => panel.result ? create(TablePanelSchema, { ...panel.result, populate: undefined,
+    affordances: create(AffordanceCollectionSchema), pagination: undefined }) : undefined, [panel.result]);
   if (!table || !source) return null;
   const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: table } });
-  return <MeridianRowActionsContext.Provider value={NO_ROW_ACTIONS}><MeridianRecordContext.Provider value={source}>
+  return <MeridianNormalizedRowActionsContext.Provider value={NO_ROW_ACTIONS}><MeridianRowActionsContext.Provider value={NO_ROW_ACTIONS}><MeridianRecordContext.Provider value={source}>
     <kit.Table panel={table} descriptor={descriptor} invoker={invoker} />
-  </MeridianRecordContext.Provider></MeridianRowActionsContext.Provider>;
+  </MeridianRecordContext.Provider></MeridianRowActionsContext.Provider></MeridianNormalizedRowActionsContext.Provider>;
 }

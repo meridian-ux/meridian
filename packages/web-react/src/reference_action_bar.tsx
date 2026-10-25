@@ -1,6 +1,6 @@
 import { useContext, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { affordancePresentation, normalizeLegacyAction } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, normalizeAffordance } from "@savvifi/meridian-schemas/uiview";
 import type { ActionBarProps } from "./component_kit.js";
 import { ActionControl } from "./action_control.js";
 import { ActionGroup } from "./action_group.js";
@@ -32,7 +32,7 @@ export function ReferenceActionBar({ actions, normalizedActions, variant }: Acti
     if (overflowOpen) menu.current?.querySelector<HTMLButtonElement>('button[role="menuitem"]:not(:disabled)')?.focus();
   }, [overflowOpen]);
   const c = classes[variant];
-  const visible = (normalizedActions ?? actions.map(normalizeLegacyAction)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
+  const visible = (normalizedActions ?? actions.map(normalizeAffordance)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
   if (!visible.length) return null;
   const inline = visible.filter(a => a.affordance.placement !== ActionPlacement.OVERFLOW);
   const overflow = visible.filter(a => a.affordance.placement === ActionPlacement.OVERFLOW);

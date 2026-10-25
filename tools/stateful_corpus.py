@@ -356,7 +356,7 @@ def artifacts():
             key = {"llm_prompt": "llmPrompt"}.get(arm, arm)
             if arm == "form":
                 body = {"fields": [field], "mode": 1 if readonly else 2,
-                        "submit": {"service": "fixture.Inputs", "method": "Submit"}}
+                        "submitAffordance": {"rpc": {"service": "fixture.Inputs", "method": "Submit"}}}
             elif arm == "prompt":
                 body = {"fields": [field], "acceptLabel": "Submit"}
             elif arm == "lro":

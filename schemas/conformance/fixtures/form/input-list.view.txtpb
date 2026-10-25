@@ -29,9 +29,11 @@ slots {
         }
       }
       mode: FORM_MODE_EDIT
-      submit {
-        service: "fixture.Inputs"
-        method: "Submit"
+      submit_affordance {
+        rpc {
+          service: "fixture.Inputs"
+          method: "Submit"
+        }
       }
     }
   }

@@ -25,7 +25,7 @@ describe("React submission contract (shared-core cases)", () => {
       { requestField: "tenant", source: { case: "selectionKey", value: "tenant" } },
     ] });
     const values = { "a.b": value, title: "raw", nested: { zero: 0, flag: false }, items: [{ "raw.key": "001.20" }, 0], hidden: "not sent" };
-    const descriptor = create(PanelDescriptorSchema, { body: kind === "form" ? { case: "form", value: { fields, submit: rpc } }
+    const descriptor = create(PanelDescriptorSchema, { body: kind === "form" ? { case: "form", value: { fields, submitAffordance: { invoke: { case: "rpc", value: rpc } } } }
       : { case: "lro", value: { inputs: fields, start: rpc } } });
     expect(buildSubmissionRequest(rpc, fields, values, { tenant: "live" }, kind, { id: 0 })).toEqual(coreSubmission(
       toBinary(PanelDescriptorSchema, descriptor),

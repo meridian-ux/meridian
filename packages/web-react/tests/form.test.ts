@@ -15,9 +15,9 @@ import { MeridianRecordContext } from "../src/pagination.js";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form transport", (_, kit) => {
-  const panel = () => create(FormPanelSchema, { mode: 2, itemNoun: "record", submit: {
+  const panel = () => create(FormPanelSchema, { mode: 2, itemNoun: "record", submitAffordance: { label: "Save record", invoke: { case: "rpc", value: {
     service: "demo.Records", method: "Update", bindings: [{ requestField: "scope", source: { case: "literal", value: "scope-1" } }],
-  }, fields: [
+  } } }, fields: [
     { fieldId: "name", requestField: "legacy.name", label: "Name", kind: { case: "text", value: { defaultValue: "Ada", minLength: 2 } } },
     { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 2 } } },
     { fieldId: "enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: true } } },
@@ -34,7 +34,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   it("rejects oversized RPC declarations without losing entered values, even on smaller-input retry", async () => {
     const p = panel();
-    p.submit!.bindings[0].source = { case: "literal", value: "s".repeat(400_000) };
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings[0].source = { case: "literal", value: "s".repeat(400_000) };
     const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
     const view = await mount(p, invoke);
     try {
@@ -56,7 +57,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     const p = panel();
     // Keep the call below the unchanged 64 KiB declaration boundary. Repeated
     // borrowed copies still consume work even though they overwrite one key.
-    p.submit!.bindings = Array.from({ length: 10 }, () => create(FieldBindingSchema, {
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings = Array.from({ length: 10 }, () => create(FieldBindingSchema, {
       requestField: "scope", source: { case: "rowField", value: "payload" },
     }));
     const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
@@ -79,7 +81,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
 
   it("uses explicit binding precedence and declared formField sources without changing the entered value", async () => {
     const p = panel();
-    p.submit!.bindings.push(...[
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings.push(...[
       { requestField: "name", source: { case: "literal" as const, value: "bound" } },
       { requestField: "copy", source: { case: "formField" as const, value: "name" } },
       { requestField: "hidden", source: { case: "formField" as const, value: "secret" } },
@@ -222,7 +225,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     } finally { await view.close(); }
   });
   const enumPanel = () => create(FormPanelSchema, { mode: 2,
-    submit: { service: "demo.Records", method: "Update" }, fields: [
+    submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "demo.Records", method: "Update" } } }, fields: [
       { fieldId: "region", label: "Region", kind: { case: "enumSelection", value: {
         defaultValue: "west", optionsSource: { service: "demo.Options", method: "List", optionsField: "outer.items", valueField: "id", labelField: "display.label" },
       } } },
@@ -381,8 +384,11 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     } finally { await view.close(); }
     const denied = await mount(panel(), invoke, false);
     try {
-      expect(denied.container.querySelector<HTMLButtonElement>("button")!.disabled).toBe(true);
+      // Canonical controls retain a reachable denial explanation; enabled UI
+      // is not permission to dispatch the mutation.
+      expect(denied.container.querySelector<HTMLButtonElement>("button")!.disabled).toBe(false);
       await act(async () => { submit(denied.container); });
+      expect(denied.container.querySelector('[role="alert"]')?.textContent).toContain("mutation policy");
       expect(invoke).not.toHaveBeenCalled();
     } finally { await denied.close(); }
   });
@@ -410,7 +416,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
   });
   it("prefills and submits nested objects, repeated scalars, and string maps", async () => {
     const p = create(FormPanelSchema, { mode: 2, prefill: { service: "demo.Records", method: "Get" },
-      submit: { service: "demo.Records", method: "Update" }, fields: [
+      submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "demo.Records", method: "Update" } } }, fields: [
         { fieldId: "profile", kind: { case: "nested", value: { fields: [
           { fieldId: "name", label: "Name", kind: { case: "text", value: {} } },
         ] } } },

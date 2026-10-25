@@ -46,8 +46,8 @@ export type RenderViewOptions = Omit<
 interface SlotSession { active: boolean; panels: Set<HTMLElement>; views: Set<HTMLElement>; controls: Set<() => void> }
 interface ViewSession { active: boolean; slots: Set<SlotSession>; budget: { used: number }; cost: number; depth: number; controls: Set<() => void> }
 function ownViewCost(view: ViewDescriptor): number {
-  let cost = 1 + view.slots.length + (view.affordances?.items.length ?? view.actions.length);
-  for (const slot of view.slots) cost += slot.affordances?.items.length ?? slot.actions.length;
+  let cost = 1 + view.slots.length + (view.affordances?.items.length ?? 0);
+  for (const slot of view.slots) cost += slot.affordances?.items.length ?? 0;
   return cost;
 }
 const VIEWS = new WeakMap<HTMLElement, ViewSession>();
@@ -361,14 +361,14 @@ async function renderSlot(
     if (!alive()) { disposePanel(panelRoot); return section; }
   }
 
-  if ((slot.affordances?.items.length ?? slot.actions.length) > 0) {
+  if ((slot.affordances?.items.length ?? 0) > 0) {
     section.appendChild(buildActions(slot, opts, alive, dispose => mount.controls.add(dispose)));
   }
   return section;
 }
 
 // Resolve declared bindings at activation so retries use the current host context.
-function buildActions(source: Pick<ViewDescriptor, "actions" | "affordances">, opts: RenderViewOptions, alive: () => boolean, onDispose: (dispose: () => void) => void): HTMLElement {
+function buildActions(source: Pick<ViewDescriptor, "affordances">, opts: RenderViewOptions, alive: () => boolean, onDispose: (dispose: () => void) => void): HTMLElement {
   const bar = document.createElement("div");
   bar.className = "meridian-uiview-actions";
   for (const action of normalizeViewActions(source)) {

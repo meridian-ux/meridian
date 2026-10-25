@@ -3,10 +3,8 @@
 import { Box, Button, Dialog, DialogContent, Divider, InputAdornment, List,
   ListItemButton, ListItemIcon, ListItemText, TextField, Typography } from "@mui/material";
 import * as React from "react";
-import { create } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { Command, Launchpad } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { normalizeCommand, NormalizedAction, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import { ActionGroup, useActionGroup, useActionInvocation, useIcon } from "@savvifi/meridian-web-react";
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
@@ -17,13 +15,9 @@ function CommandIcon({ iconKey }: { iconKey: string }) {
   return glyph ? <ListItemIcon sx={{ minWidth: 36 }}>{glyph}</ListItemIcon> : null;
 }
 
-// Search metadata stays on Command. This shell chooses URL-driven legacy
-// commands; canonical presence wins whole, even when its intent is empty.
+// Search/URL metadata is not invocation intent and cannot supply a fallback.
 function paletteAction(command: Command) {
-  const normalized = normalizeCommand(command).action;
-  return command.affordance === undefined && command.deepLink
-    ? new NormalizedAction(create(AffordanceSchema, { id: command.id, label: command.title,
-      invoke: { case: "uri", value: command.deepLink } }), undefined, "command") : normalized;
+  return normalizeCommand(command).action;
 }
 
 function exceedsBudget(launchpad: Launchpad | undefined) {

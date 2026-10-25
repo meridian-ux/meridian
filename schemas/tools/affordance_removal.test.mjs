@@ -1,13 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { clone, create, createFileRegistry, fromBinary, fromJson, toBinary } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema, MessageOptionsSchema } from "@bufbuild/protobuf/wkt";
-import { expectedRemoval, loadRemovalReference, RETIRED_FIELDS, RETIRED_MESSAGES, RETIRED_ENUMS, verifyRemoval } from "./affordance_removal.mjs";
+import { expectedRemoval, loadRemovalReference, RETIRED_FIELDS, RETIRED_MESSAGES, RETIRED_ENUMS, survivingImportReference, verifyRemoval } from "./affordance_removal.mjs";
+import { applyFacades, descriptorFiles, modulePath } from "./proto_facades.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const scratch = mkdtempSync(join(tmpdir(), "meridian-removal-contract-"));
@@ -17,6 +18,46 @@ const actual = fromBinary(FileDescriptorSetSchema, readFileSync(join(scratch, "a
 const previous = loadRemovalReference();
 const file = image => image.file.find(file => file.name === "proto/interaction.proto");
 const message = (image, name) => file(image).messageType.find(message => message.name === name);
+
+test("surviving import reference is derived exactly and is not a production FILE reference", () => {
+  const bytes = readFileSync(join(root, "schemas/compat/v1-surviving-imports.binpb"));
+  assert.deepEqual(bytes, Buffer.from(toBinary(FileDescriptorSetSchema, survivingImportReference())));
+  const registry = createFileRegistry(fromBinary(FileDescriptorSetSchema, bytes));
+  for (const name of RETIRED_MESSAGES) assert.equal(registry.getMessage(`meridian.ui.v1.${name}`), undefined);
+  assert.equal(registry.getEnum("meridian.ui.v1.AffordanceStyle"), undefined);
+  assert.equal(registry.getMessage("meridian.ui.v1.Affordance").file.proto.name, "proto/affordance.proto");
+  assert(!readFileSync(join(root, "schemas/tools/compatibility_line.mjs"), "utf8").includes("v1-surviving-imports.binpb"));
+});
+
+for (const mode of ["ts", "js+dts"]) test(`actual pinned ${mode} generation forwards surviving exports without retired API shims`, () => {
+  const output = join(scratch, mode.replace("+", "-"));
+  function generate(image, directory) {
+    const generated = spawnSync(join(root, "node_modules/.bin/buf"), ["generate", image, "--template", JSON.stringify({
+      version: "v2", plugins: [{ local: join(root, "node_modules/.bin/protoc-gen-es"), out: directory,
+        opt: [`target=${mode}`, "import_extension=js"] }],
+    })], { cwd: root, encoding: "utf8" });
+    assert.equal(generated.status, 0, generated.stderr);
+  }
+  generate(join(scratch, "actual.binpb"), output);
+  const baselinePath = join(root, "schemas/compat/v1-surviving-imports.binpb");
+  const current = descriptorFiles([actual]);
+  const extension = mode === "ts" ? ".ts" : ".d.ts";
+  const sources = [...current.keys()].filter(name => existsSync(join(output, modulePath(name) + extension)));
+  const plan = applyFacades({ baseline: descriptorFiles([survivingImportReference()]), current, sources,
+    input: output, output, mode, generateBaseline: () => {
+      const directory = join(scratch, `old-${mode}`);
+      generate(baselinePath, directory);
+      return directory;
+    } });
+  assert.equal(plan.size, 9);
+  for (const name of plan.keys()) {
+    const source = readFileSync(join(output, modulePath(name) + extension), "utf8");
+    assert.match(source, /meridian compatibility exports:start/);
+    assert(!/\b(?:ActionSchema|RowActionSchema|OpenPanelSchema|AffordanceStyleSchema)\b/.test(source));
+    assert(!/export type \{[^}]*\b(?:Action|RowAction|OpenPanel)\b/.test(source));
+  }
+  assert.match(readFileSync(join(output, "proto/view_pb" + extension), "utf8"), /ViewDescriptorSchema/);
+});
 
 test("real source compiles to exactly nine reserved fields, three retired messages, and one enum", () => {
   assert.deepEqual(verifyRemoval(previous, actual), { fields: 9, messages: 3, enums: 1 });

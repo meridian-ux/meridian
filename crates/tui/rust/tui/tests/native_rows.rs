@@ -5,6 +5,7 @@ use meridian_tui::{
     NativeAction, NativeCancellation, NativeInvocationContext, NativeInvocationHost,
     NativeInvocationOutcome, NativeTarget, PanelView, RpcError, RpcInvoker, ViewHost,
 };
+use meridian_uiview::prost::Message;
 use meridian_uiview::{proto::*, Context};
 use serde_json::{json, Value};
 use std::cell::{Cell, RefCell};
@@ -25,35 +26,36 @@ fn read() -> RpcCall {
         ..Default::default()
     }
 }
-#[allow(deprecated)] // Legacy row fixture; canonical tests override as a unit.
 fn table() -> PanelDescriptor {
+    // Encode a retired RowAction label directly, then decode with v1 bindings.
+    let label = b"Legacy trap";
+    let retired = [vec![0x0a, label.len() as u8], label.to_vec()].concat();
+    let mut retired_table = vec![0x32, retired.len() as u8];
+    retired_table.extend(retired);
+    let mut canonical = TablePanel {
+        populate: Some(read()),
+        rows_field: "rows".into(),
+        columns: vec![TableColumn {
+            field_path: "name".into(),
+            header: "Name".into(),
+            ..Default::default()
+        }],
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Canonical archive".into(),
+                invoke: Some(affordance::Invoke::Copy("private literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    }
+    .encode_to_vec();
+    canonical.extend(retired_table);
     PanelDescriptor {
         title: "Records".into(),
-        body: Some(panel_descriptor::Body::Table(TablePanel {
-            populate: Some(read()),
-            rows_field: "rows".into(),
-            columns: vec![TableColumn {
-                field_path: "name".into(),
-                header: "Name".into(),
-                ..Default::default()
-            }],
-            actions: vec![RowAction {
-                label: "Legacy trap".into(),
-                rpc: Some(RpcCall {
-                    method: "DeleteLegacyTrap".into(),
-                    ..read()
-                }),
-                ..Default::default()
-            }],
-            affordances: Some(AffordanceCollection {
-                items: vec![Affordance {
-                    label: "Canonical archive".into(),
-                    invoke: Some(affordance::Invoke::Copy("private literal".into())),
-                    ..Default::default()
-                }],
-            }),
-            ..Default::default()
-        })),
+        body: Some(panel_descriptor::Body::Table(
+            TablePanel::decode(canonical.as_slice()).unwrap(),
+        )),
         ..Default::default()
     }
 }
@@ -398,20 +400,21 @@ fn empty_canonical_missing_subject_capability_and_intent_never_use_ambient_fallb
 }
 
 #[test]
-#[allow(deprecated)] // Deliberately verifies the retained old row contract.
-fn legacy_row_predicate_is_current_and_requests_never_invent_an_id_binding() {
+fn canonical_row_predicate_is_current_and_requests_never_invent_an_id_binding() {
     let mut panel = table();
     let table = table_mut(&mut panel);
-    table.affordances = None;
-    table.actions = vec![RowAction {
-        label: "Legacy row".into(),
-        rpc: Some(call()),
-        enabled_when: Some(RowFilter {
-            field_path: "enabled".into(),
-            equals: "true".into(),
-        }),
-        ..Default::default()
-    }];
+    table.affordances = Some(AffordanceCollection {
+        items: vec![Affordance {
+            label: "Canonical row".into(),
+            invoke: Some(affordance::Invoke::Rpc(call())),
+            refresh_on_success: Some(true),
+            enabled_when: Some(RowFilter {
+                field_path: "enabled".into(),
+                equals: "true".into(),
+            }),
+            ..Default::default()
+        }],
+    });
     let context = Context {
         selected_row: Some(json!({"enabled":true})),
         ..Default::default()
@@ -459,12 +462,12 @@ fn legacy_row_predicate_is_current_and_requests_never_invent_an_id_binding() {
         json!({"row_id":1,"zero":2,"flag":true,"name":"second"})
     );
     assert_eq!(refreshes.get(), 1);
-    table_mut(&mut panel).actions[0]
-        .rpc
-        .as_mut()
-        .unwrap()
-        .bindings
-        .clear();
+    let Some(affordance::Invoke::Rpc(call)) =
+        &mut table_mut(&mut panel).affordances.as_mut().unwrap().items[0].invoke
+    else {
+        panic!("missing canonical RPC")
+    };
+    call.bindings.clear();
     paint(&mut state, &panel, &context, &reads);
     state.select_next();
     paint(&mut state, &panel, &context, &reads);
@@ -658,14 +661,10 @@ fn resource_semantic_ids_need_a_pure_typed_resolver_not_a_route_or_rpc_fallback(
         .actions[0]
         .confirm = Some(spec.clone());
     paint(&mut state, &panel, &context, &reads);
-    let generic = |_: &Action, _: NativeInvocationContext<'_>| {
-        panic!("resource IDs must not use the generic action resolver")
-    };
     let host = NativeInvocationHost {
         copy: Some(&effect),
         admit: Some(&allow),
         resolve_resource: Some(&resolve),
-        resolve_semantic: Some(&generic),
         refresh: Some(&refresh),
         ..Default::default()
     };
@@ -986,16 +985,17 @@ fn resource_window_keeps_the_active_card_visible_and_shortcuts_use_filtered_orde
 }
 
 #[test]
-#[allow(deprecated)] // Legacy refresh behavior remains tested during 0.x.
 fn refresh_failure_never_replays_completed_rows_and_transport_retry_is_sanitized() {
     let mut panel = table();
     let table = table_mut(&mut panel);
-    table.affordances = None;
-    table.actions = vec![RowAction {
-        label: "Read-named mutation".into(),
-        rpc: Some(call()),
-        ..Default::default()
-    }];
+    table.affordances = Some(AffordanceCollection {
+        items: vec![Affordance {
+            label: "Read-named mutation".into(),
+            invoke: Some(affordance::Invoke::Rpc(call())),
+            refresh_on_success: Some(true),
+            ..Default::default()
+        }],
+    });
     let context = Context::default();
     let reads = rows();
     let mut state = PanelView::new();

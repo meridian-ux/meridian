@@ -23,11 +23,10 @@ import type { ComponentKit } from "./component_kit.js";
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
 /**
- * Legacy host handler retained for source compatibility. Authored no-call
- * Action controls and implicit MUI entity navigation now use the pure
- * invocation.resolveSemantic seam; this callback is never a canonical fallback.
- * Keep this surface during the compatibility window. Do not wrap an executing
- * callback as a pure resolver: that would act before admission/confirmation.
+ * Legacy host handler retained for source compatibility, never invoked as an
+ * Affordance fallback. Authored controls require concrete canonical intent.
+ * MUI entity navigation uses resolveHref plus canonical invocation admission.
+ * Do not execute a callback from a pure destination resolver.
  */
 export type MeridianActionHandler = (
   actionId: string,
@@ -84,8 +83,7 @@ export interface MeridianContextValue {
   invocation?: InvocationHost;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
-  /** Compatibility hook, not an action grant. Authored actions and implicit MUI
-   * entity navigation use invocation.resolveSemantic, never this fallback. */
+  /** Compatibility hook, not an action grant or a canonical fallback. */
   onAction?: MeridianActionHandler;
   /** Optional host glyph resolver for `icon` keys. Absent ⇒ no glyph drawn. */
   renderIcon?: MeridianIconResolver;

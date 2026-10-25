@@ -12,7 +12,8 @@ import { descriptorFiles, modulePath } from "./proto_facades.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const buf = join(root, "node_modules/.bin/buf"), plugin = join(root, "node_modules/.bin/protoc-gen-es");
-const baseline = join(root, "schemas/compat/pre-v1.binpb"), output = join(root, "packages/proto-ts");
+// Generator export inventory only. The maintained FILE reference is unchanged.
+const baseline = join(root, "schemas/compat/v1-surviving-imports.binpb"), output = join(root, "packages/proto-ts");
 const scratch = mkdtempSync(join(tmpdir(), "meridian-codegen-"));
 function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit" });

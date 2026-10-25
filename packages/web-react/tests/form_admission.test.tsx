@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
+import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
+import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { act, createElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
@@ -17,13 +19,14 @@ afterAll(() => vi.unstubAllGlobals());
 describe.each([htmlKit, shadcnKit])("$id actual form admission", kit => {
   function setup(intent: JsonObject = { copy: "literal" }) {
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2, itemNoun: "legacy record",
-      submit: { service: "legacy.Forms", method: "Delete" }, submitAffordance: fromJson(AffordanceSchema, { label: "Canonical submit", ...intent }), fields: [
+      submitAffordance: fromJson(AffordanceSchema, { label: "Canonical submit", ...intent }), fields: [
         { fieldId: "name", requestField: "legacy.name", label: "Name", kind: { case: "text", value: { defaultValue: "raw/e\u0301", minLength: 2 } } },
         { fieldId: "zero", label: "Zero", kind: { case: "integer", value: { defaultValue: 0 } } },
         { fieldId: "flag", label: "Flag", kind: { case: "boolean", value: { defaultValue: false } } },
       ] } } });
     if (descriptor.body.case !== "form") throw new Error("Expected form");
     const form = descriptor.body.value;
+    Object.assign(descriptor.body.value, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, descriptor.body.value), submit: { service: "legacy.Forms", method: "Delete" } }));
     const invoke = vi.fn(async () => ({}));
     const capability = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
     const caps = { copy: capability(), uri: capability(), command: capability(), navigate: capability(), openPanel: capability(), openView: capability() };

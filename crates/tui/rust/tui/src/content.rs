@@ -18,11 +18,10 @@
 //   * Catalog       → a list, one row per item (name · state — description).
 
 use meridian_uiview::proto::{
-    affordance::Invoke, form_field::Kind, Affordance, AffordanceStyle, CatalogPanel, ChartPanel,
-    ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis,
-    FormField, FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel,
-    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
-    Tone,
+    affordance::Invoke, form_field::Kind, Affordance, CatalogPanel, ChartPanel, ChoicePanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis, FormField, FormMode,
+    FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel, ResourceAction,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel, Tone,
 };
 use meridian_uiview::RenderedCard;
 use meridian_uiview::{format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics};
@@ -1036,10 +1035,7 @@ pub(crate) fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static
         Some(Invoke::Copy(_)) => ("⧉", "Copy destination [value hidden]".into()),
         None => ("•", String::new()),
     };
-    let primary = a.emphasis.map_or(
-        meridian_uiview::legacy::affordance_style(a) == AffordanceStyle::Primary as i32,
-        |emphasis| emphasis == Emphasis::Primary as i32,
-    );
+    let primary = a.emphasis == Some(Emphasis::Primary as i32);
     let mut label_style = if primary {
         palette.title()
     } else {
@@ -2221,7 +2217,7 @@ mod tests {
                     Invoke::Uri("/next".into()),
                     Invoke::Command("echo raw command".into()),
                 ] {
-                    let primary = emphasis.is_none() || emphasis == Some(1);
+                    let primary = emphasis == Some(1);
                     let color = if tone.is_none() && !primary {
                         palette.fg
                     } else {
@@ -2229,7 +2225,6 @@ mod tests {
                     };
                     let action = Affordance {
                         label: "Action".into(),
-                        style: AffordanceStyle::Primary as i32,
                         tone,
                         emphasis,
                         invoke: Some(invoke),
@@ -2267,7 +2262,6 @@ mod tests {
             label: "Open".into(),
             description: String::new(),
             icon: String::new(),
-            style: 0,
             invoke: Some(Invoke::Uri("https://x".into())),
             tone: None,
             emphasis: None,

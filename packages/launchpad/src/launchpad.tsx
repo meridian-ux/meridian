@@ -9,8 +9,7 @@
 // <MeridianProvider>.
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { clone, create } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { clone } from "@bufbuild/protobuf";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -18,7 +17,7 @@ import type {
   Command,
   Launchpad as LaunchpadDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { affordancePresentation, normalizeCommand, NormalizedAction, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionGroup, boundedDescriptorJson, useActionGroup, useActionInvocation,
   useIcon,
@@ -95,10 +94,7 @@ function CommandRow({
   onSuccess: () => void;
   onHover: () => void;
 }): ReactNode {
-  const normalized = normalizeCommand(command).action;
-  const action = command.affordance === undefined && command.deepLink
-    ? new NormalizedAction(create(AffordanceSchema, { id: command.id, label: command.title,
-      description: command.subtitle, icon: command.icon, invoke: { case: "uri", value: command.deepLink } }), undefined, "command") : normalized;
+  const action = normalizeCommand(command).action;
   const invocation = useActionInvocation(action);
   const group = useActionGroup();
   const owner = useId();

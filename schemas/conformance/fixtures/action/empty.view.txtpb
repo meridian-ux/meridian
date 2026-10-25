@@ -14,7 +14,7 @@ slots {
         id: "add-to-cursor"
         label: "Add to Cursor"
         uri: "cursor://anysphere.cursor-deeplink/mcp/install"
-        style: AFFORDANCE_STYLE_PRIMARY
+        emphasis: EMPHASIS_PRIMARY
       }
     }
   }

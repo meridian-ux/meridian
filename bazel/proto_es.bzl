@@ -170,7 +170,7 @@ proto_es = rule(
             cfg = "exec",
         ),
         "_baseline": attr.label(
-            default = "//schemas:compat/pre-v1.binpb",
+            default = "//schemas:compat/v1-surviving-imports.binpb",
             allow_single_file = True,
         ),
         "_facades": attr.label(

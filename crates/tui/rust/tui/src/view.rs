@@ -6,10 +6,8 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::{
-    legacy,
     proto::{
-        layout, panel_descriptor::Body, Action, AffordanceCollection, PanelDescriptor, Slot,
-        ViewDescriptor,
+        layout, panel_descriptor::Body, AffordanceCollection, PanelDescriptor, Slot, ViewDescriptor,
     },
     Context, ProtoPaths, RequestBudget, RequestBuilder, RequestOverrides,
 };
@@ -48,15 +46,8 @@ pub enum ViewResponse {
 #[derive(Clone, PartialEq, Eq)]
 enum TargetKind {
     Panel,
-    Tab {
-        view: Path,
-        slot: usize,
-    },
-    Action {
-        index: usize,
-        slot: bool,
-        canonical: bool,
-    },
+    Tab { view: Path, slot: usize },
+    Action { index: usize, slot: bool },
     Retry,
 }
 
@@ -540,13 +531,7 @@ impl ViewHost {
             return Ok(None);
         }
         let live_control = host.is_some()
-            || matches!(
-                target.kind,
-                TargetKind::Action {
-                    canonical: true,
-                    ..
-                }
-            )
+            || matches!(target.kind, TargetKind::Action { .. })
             || (matches!(target.kind, TargetKind::Panel)
                 && slot_at(&self.descriptor, &target.source)
                     .and_then(|slot| slot.panel.as_ref())
@@ -607,85 +592,48 @@ impl ViewHost {
             TargetKind::Retry if key.code == KeyCode::Enter => {
                 self.repeats.remove(&target.path);
             }
-            TargetKind::Action {
-                index,
-                slot,
-                canonical,
-            } if key.code == KeyCode::Enter
-                || (canonical || host.is_some()) && key.code == KeyCode::Char(' ') =>
+            TargetKind::Action { index, slot }
+                if key.code == KeyCode::Enter || key.code == KeyCode::Char(' ') =>
             {
-                if canonical || host.is_some() {
-                    let no_ambient_row = Value::Null;
-                    let current = crate::invocation::context_key(
-                        NativeInvocationContext::new(context)
-                            .with_record(target.record.as_ref().map(|_| &no_ambient_row)),
-                    )
-                    .ok();
-                    let captured = if target.record.is_some() {
-                        &self.record_context
-                    } else {
-                        &self.action_context
-                    };
-                    if current.is_none()
-                        || current.as_ref() != captured.as_deref()
-                        || !self.repeat_scopes_current(&target.path, context)
-                    {
-                        self.invalidate();
-                        self.error = Some("Action stopped because its context changed or is invalid; redraw before retrying.".into());
-                        return Ok(None);
-                    }
-                    let (legacy, canonical_actions) = if slot {
-                        let source =
-                            slot_at(&self.descriptor, &target.source).expect("mounted slot");
-                        (legacy::slot_actions(source), source.affordances.as_ref())
-                    } else {
-                        let source =
-                            view_at(&self.descriptor, &target.source).expect("mounted view");
-                        (legacy::view_actions(source), source.affordances.as_ref())
-                    };
-                    let action = if canonical {
-                        NativeAction::Canonical(
-                            &canonical_actions
-                                .expect("mounted canonical collection")
-                                .items[index],
-                        )
-                    } else {
-                        NativeAction::Legacy(&legacy[index])
-                    };
-                    let default_host = NativeInvocationHost::default();
-                    let outcome = self.invocations.invoke(
-                        action,
-                        NativeInvocationContext::new(context).with_record(target.record.as_deref()),
-                        host.unwrap_or(&default_host),
-                    );
-                    self.error = Some(outcome.message().into());
+                let no_ambient_row = Value::Null;
+                let current = crate::invocation::context_key(
+                    NativeInvocationContext::new(context)
+                        .with_record(target.record.as_ref().map(|_| &no_ambient_row)),
+                )
+                .ok();
+                let captured = if target.record.is_some() {
+                    &self.record_context
+                } else {
+                    &self.action_context
+                };
+                if current.is_none()
+                    || current.as_ref() != captured.as_deref()
+                    || !self.repeat_scopes_current(&target.path, context)
+                {
+                    self.invalidate();
+                    self.error = Some("Action stopped because its context changed or is invalid; redraw before retrying.".into());
                     return Ok(None);
                 }
-                let actions = if slot {
-                    legacy::slot_actions(
-                        slot_at(&self.descriptor, &target.source).expect("mounted slot"),
-                    )
+                let canonical_actions = if slot {
+                    let source = slot_at(&self.descriptor, &target.source).expect("mounted slot");
+                    source.affordances.as_ref()
                 } else {
-                    legacy::view_actions(
-                        view_at(&self.descriptor, &target.source).expect("mounted view"),
-                    )
+                    let source = view_at(&self.descriptor, &target.source).expect("mounted view");
+                    source.affordances.as_ref()
                 };
-                if let Some(call) = actions[index].call.as_ref() {
-                    let request = RequestBuilder::build_for_boundary_with(
-                        call,
-                        context,
-                        RequestOverrides {
-                            selected_row: target.record.as_deref(),
-                            ..Default::default()
-                        },
-                    )
-                    .map_err(|_| limit())?;
-                    return Ok(Some(ViewResponse::Action {
-                        service: call.service.clone(),
-                        method: call.method.clone(),
-                        request,
-                    }));
-                }
+                let action = NativeAction::Canonical(
+                    &canonical_actions
+                        .expect("mounted canonical collection")
+                        .items[index],
+                );
+                let default_host = NativeInvocationHost::default();
+                let outcome = self.invocations.invoke(
+                    action,
+                    NativeInvocationContext::new(context).with_record(target.record.as_deref()),
+                    host.unwrap_or(&default_host),
+                );
+                self.error = Some(outcome.message().into());
+                return Ok(None);
             }
             TargetKind::Panel => {
                 let panel = slot_at(&self.descriptor, &target.source)
@@ -822,9 +770,6 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         return Err(limit());
     }
     let mut labels = vec![view.title.as_str(), view.id.as_str()];
-    for action in legacy::view_actions(view) {
-        labels.extend([action.id.as_str(), action.label.as_str()]);
-    }
     if let Some(actions) = &view.affordances {
         for action in &actions.items {
             labels.extend([action.id.as_str(), action.label.as_str()]);
@@ -841,9 +786,6 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         }
         if let Some(p) = &slot.panel {
             labels.push(&p.title);
-        }
-        for action in legacy::slot_actions(slot) {
-            labels.extend([action.id.as_str(), action.label.as_str()]);
         }
         if let Some(actions) = &slot.affordances {
             for action in &actions.items {
@@ -864,15 +806,11 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
 }
 
 fn local_cost(view: &ViewDescriptor) -> usize {
-    1 + legacy::view_actions(view).len()
-        + view.affordances.as_ref().map_or(0, |a| a.items.len())
+    1 + view.affordances.as_ref().map_or(0, |a| a.items.len())
         + view
             .slots
             .iter()
-            .map(|s| {
-                1 + legacy::slot_actions(s).len()
-                    + s.affordances.as_ref().map_or(0, |a| a.items.len())
-            })
+            .map(|s| 1 + s.affordances.as_ref().map_or(0, |a| a.items.len()))
             .sum::<usize>()
 }
 
@@ -965,7 +903,6 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
 
     fn actions(
         &mut self,
-        actions: &'a [Action],
         canonical: Option<&'a AffordanceCollection>,
         path: &[usize],
         source: &[usize],
@@ -976,34 +913,20 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             .into_iter()
             .flat_map(|a| &a.items)
             .map(|a| (a.label.as_str(), a.id.as_str()));
-        let legacy_labels = canonical
-            .is_none()
-            .then_some(actions)
-            .into_iter()
-            .flatten()
-            .map(|a| (a.label.as_str(), a.id.as_str()));
-        for (index, (label, id)) in canonical_labels.chain(legacy_labels).enumerate() {
+        for (index, (label, id)) in canonical_labels.enumerate() {
             self.entries.push(Entry {
                 label: format!(
                     "Action: {} [{}]{}",
                     if label.is_empty() { "Action" } else { label },
                     id,
-                    if canonical.is_some() {
-                        " [host admission required]"
-                    } else {
-                        ""
-                    }
+                    " [host admission required]"
                 ),
                 panel: None,
                 target: Some(Target {
                     path: path.to_vec(),
                     source: source.to_vec(),
                     record: record.clone(),
-                    kind: TargetKind::Action {
-                        index,
-                        slot,
-                        canonical: canonical.is_some(),
-                    },
+                    kind: TargetKind::Action { index, slot },
                 }),
             });
         }
@@ -1022,14 +945,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             return Err(limit());
         }
         self.text(format!("View: {} [{}]", view.title, view.id));
-        self.actions(
-            legacy::view_actions(view),
-            view.affordances.as_ref(),
-            path,
-            source,
-            &record,
-            false,
-        );
+        self.actions(view.affordances.as_ref(), path, source, &record, false);
         let mut ordered: Vec<_> = (0..view.slots.len()).collect();
         ordered.sort_by_key(|i| view.slots[*i].position);
         for i in ordered.iter().copied().filter(|i| {
@@ -1165,14 +1081,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             });
             return Ok(());
         }
-        self.actions(
-            legacy::slot_actions(slot),
-            slot.affordances.as_ref(),
-            &path,
-            &source,
-            &record,
-            true,
-        );
+        self.actions(slot.affordances.as_ref(), &path, &source, &record, true);
         if let Some(child) = &slot.sub_view {
             if let Some(call) = &slot.sub_view_populate {
                 self.seen_repeats.insert(path.clone());

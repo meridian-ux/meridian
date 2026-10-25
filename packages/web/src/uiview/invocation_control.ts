@@ -1,6 +1,5 @@
 import { clone } from "@bufbuild/protobuf";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { ConfirmSpecSchema, type ConfirmSpec } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import { affordancePresentation, createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, safeNavigationHref,
@@ -9,6 +8,7 @@ import { affordancePresentation, createAdmissionGate, createInvocationDispatcher
 
 // Runtime-only bounded snapshot ownership, not an alternate request builder.
 // Actual request/binding admission remains in the shared Rust dispatcher.
+const typedArrayLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "length")!.get!;
 function inertJson(value: unknown, descriptor = false): string {
   let work = 4 * 1024 * 1024, nodes = 65_536;
   const reserve = (cost: number) => { if (!Number.isSafeInteger(cost) || cost < 0 || (work -= cost) < 0) throw Error("Invalid invocation data."); };
@@ -26,6 +26,17 @@ function inertJson(value: unknown, descriptor = false): string {
     if (typeof value === "string") { reserve(6 * value.length + 2); return value; }
     if (typeof value === "number" && Number.isFinite(value)) return value;
     if (!value || typeof value !== "object" || ancestors.has(value)) throw Error("Invalid invocation data.");
+    if (descriptor && Object.getPrototypeOf(value) === Uint8Array.prototype) {
+      // Generated unknown fields retain wire bytes, not an executable target.
+      // Own numeric elements only; never invoke custom iteration or accessors.
+      const length = typedArrayLength.call(value) as number;
+      reserve(length * 96);
+      nodes -= length;
+      if (nodes < 0) throw Error("Invalid invocation data.");
+      const bytes: number[] = [];
+      for (let index = 0; index < length; index++) bytes.push(own(value, String(index)) as number);
+      return bytes;
+    }
     if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) throw Error("Invalid invocation data.");
     ancestors.add(value);
     try {
@@ -113,7 +124,7 @@ export function createInvocationControl(options: InvocationControlOptions) {
       const { action, invocation: host, admission, invoker } = options;
       const context = host?.context ?? options.context;
       const record = options.readRecord ? options.readRecord() : options.record;
-      const actionJson = inertJson(action.affordance, true), semanticJson = inertJson(action.semanticAction ?? null, true);
+      const actionJson = inertJson(action.affordance, true);
       let values: Record<string, unknown> | undefined;
       if (collecting && options.readFormValues) {
         try { values = options.readFormValues(); } catch (reason) { options.onInvalid?.(reason); throw reason; }
@@ -132,19 +143,18 @@ export function createInvocationControl(options: InvocationControlOptions) {
       const policyJson = inertJson(admission === "unrestricted" ? admission : { reads: admission?.reads, mutations: admission?.mutations, inferFromAipVerbs: admission?.inferFromAipVerbs });
       const subjectJson = inertJson(options.subject ?? null);
       const caps = host?.capabilities, admit = host?.admit;
-      const signature = [actionJson, semanticJson, contextJson, policyJson, subjectJson, submissionJson, action.legacyOrigin, options.readFormValues, options.recordKey?.(),
+      const signature = [actionJson, contextJson, policyJson, subjectJson, submissionJson, options.readFormValues, options.recordKey?.(),
         invoker, invoker.invoke, caps?.uri, caps?.command, caps?.navigate, caps?.openPanel, caps?.openView, caps?.copy, caps?.rpc, caps?.rpc?.invoke,
-        admit, host?.resolveSemantic, host?.confirm, host?.refresh, options.refresh, confirmationJson, options.confirmation?.present, admission === "unrestricted" ? undefined : admission?.onDenied];
+        admit, host?.confirm, host?.refresh, options.refresh, confirmationJson, options.confirmation?.present, admission === "unrestricted" ? undefined : admission?.onDenied];
       if (cache && signature.every((value, index) => Object.is(value, cache!.signature[index]))) return cache.snapshot;
       // Clone protos only after inert bounds/accessor/cycle admission.
       const confirmation = options.confirmation;
       const confirmSpec = confirmation ? clone(ConfirmSpecSchema, confirmation.spec) : undefined;
       const snapshot: InvocationSnapshot = {
-        action: new NormalizedAction(clone(AffordanceSchema, action.affordance), action.semanticAction ? clone(ActionSchema, action.semanticAction) : undefined, action.legacyOrigin),
+        action: new NormalizedAction(clone(AffordanceSchema, action.affordance)),
         context: JSON.parse(contextJson), subject: JSON.parse(subjectJson) ?? undefined,
         admission: admission === "unrestricted" ? admission : { ...JSON.parse(policyJson), onDenied: admission?.onDenied },
         capabilities: { ...caps, rpc: caps?.rpc ?? { invoke: (service, method, request) => invoker.invoke(service, method, request) } },
-        resolveSemantic: host?.resolveSemantic,
         confirmIntent: host?.confirm,
         refresh: options.refresh ? signal => options.refresh!(signal, () => !signal.aborted && read() === snapshot) : host?.refresh,
         confirm: confirmation && confirmSpec ? (context, signal) => confirmation.present(confirmSpec, context, signal) : undefined,

@@ -15,7 +15,7 @@ export function NormalizedRowActionsMenu({ actions, row, subjectKind, refresh }:
       onClick={event => { event.stopPropagation(); setAnchor(event.currentTarget); }}>&#8942;</IconButton>
     <Menu keepMounted anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
       {actions.map((action, index) => <MuiActionControl key={action.affordance.id || index} action={action} menuItem
-        options={{ row, subject: { entityType: subjectKind, entityId }, refresh, legacyRowIdFallback: true, enabled: !!anchor }}
+        options={{ row, subject: { entityType: subjectKind, entityId }, refresh, enabled: !!anchor }}
         onSuccess={() => setAnchor(null)} />)}
     </Menu>
   </>;
@@ -30,7 +30,7 @@ export function MuiActionControl({ action, options, menuItem, onSuccess, autoFoc
   const owner = useId();
   const otherPending = group?.owner !== undefined && group.owner !== owner;
   const intent = action.affordance.invoke;
-  const missing = !action.semanticAction && (intent.case === undefined || intent.case === "rpc" && (!intent.value.service || !intent.value.method));
+  const missing = intent.case === undefined || intent.case === "rpc" && (!intent.value.service || !intent.value.method);
   const message = invocation.feedback ?? (missing ? "Action unavailable: this target is missing or unsupported."
     : invocation.policyDenied ? "This action is unavailable." : undefined);
   const { primary, tone, style } = affordancePresentation(action.affordance);

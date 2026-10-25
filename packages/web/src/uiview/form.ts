@@ -51,7 +51,7 @@ export function buildInteractiveForm(panel: FormPanel, host: {
   };
   const invalid = (reason: unknown) => { if (alive) error.textContent = reason instanceof Error ? reason.message : "Invalid form values."; };
   const install = () => {
-    if (!alive || !ready || !edit || loading || control || panel.submit === undefined && panel.submitAffordance === undefined) return;
+    if (!alive || !ready || !edit || loading || control || panel.submitAffordance === undefined) return;
     control = host.createSubmit(declarations, readCurrent, pending => { busy = pending; if (alive) update(); }, invalid);
     control.button.type = "submit"; control.button.onclick = null;
     element.insertBefore(control.element, status);

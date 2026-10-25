@@ -30,6 +30,9 @@ use meridian_uiview::proto::{
 };
 use meridian_uiview::Context;
 
+mod support;
+use support::AdmittedFormFixture;
+
 /// Refuses everything, loudly — the same posture as the binary's OfflineInvoker.
 /// A `Result::Ok(json!({}))` here would let a panel that never got its data look
 /// like it rendered fine, which is the failure this whole test is guarding.
@@ -357,11 +360,14 @@ mod bounded_requests {
                 })),
                 ..Default::default()
             }],
-            submit: Some(RpcCall {
-                service: "fixture.Form".into(),
-                method: "Save".into(),
+            submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(RpcCall {
+                    service: "fixture.Form".into(),
+                    method: "Save".into(),
+                    ..Default::default()
+                })),
                 ..Default::default()
-            }),
+            })),
             ..Default::default()
         };
         let descriptor = PanelDescriptor {
@@ -371,7 +377,7 @@ mod bounded_requests {
         let mut view = PanelView::new();
         buffer(&mut view, &descriptor, &Spy(Cell::new(0)));
         let submitted = view
-            .handle_form_key(&form, &Context::default(), KeyCode::Enter)
+            .test_form_key(&form, &Context::default(), KeyCode::Enter)
             .unwrap();
         assert_eq!(submitted.request, serde_json::json!({"input.name":"raw"}));
     }
@@ -565,7 +571,6 @@ mod bounded_requests {
         }
     }
     #[test]
-    #[allow(deprecated)] // Legacy submit must retain the same construction bounds.
     fn automatic_form_and_lro_paths_are_bounded_without_returning_a_submission() {
         let field = FormField {
             field_id: "input".into(),
@@ -586,7 +591,10 @@ mod bounded_requests {
         let form = FormPanel {
             mode: FormMode::Edit as i32,
             fields: vec![field.clone()],
-            submit: Some(bad_call()),
+            submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(bad_call())),
+                ..Default::default()
+            })),
             ..Default::default()
         };
         let descriptor = PanelDescriptor {
@@ -596,9 +604,11 @@ mod bounded_requests {
         let mut view = PanelView::new();
         buffer(&mut view, &descriptor, &spy);
         assert!(view
-            .handle_form_key(&form, &Context::default(), KeyCode::Enter)
+            .test_form_key(&form, &Context::default(), KeyCode::Enter)
             .is_none());
-        assert!(buffer(&mut view, &descriptor, &spy).contains(ERROR));
+        // The admitted dispatcher sanitizes construction failures; no request
+        // reached the test host (test_form_key returned None).
+        assert!(buffer(&mut view, &descriptor, &spy).contains("Action failed."));
         let lro = LroPanel {
             inputs: vec![field],
             start: Some(call),
@@ -664,11 +674,14 @@ mod inline_form_validation {
                 FormPanel {
                     fields,
                     mode: FormMode::Edit as i32,
-                    submit: Some(RpcCall {
-                        service: "fixture.Forms".into(),
-                        method: "Save".into(),
+                    submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                        invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(RpcCall {
+                            service: "fixture.Forms".into(),
+                            method: "Save".into(),
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    }),
+                    })),
                     ..Default::default()
                 }
                 .into(),
@@ -704,12 +717,12 @@ mod inline_form_validation {
     }
     fn edit(view: &mut PanelView, form: &FormPanel, text: &str) {
         let ctx = Context::default();
-        assert!(view.handle_form_key(form, &ctx, KeyCode::F(2)).is_none());
-        view.handle_form_key(form, &ctx, KeyCode::Delete);
+        assert!(view.test_form_key(form, &ctx, KeyCode::F(2)).is_none());
+        view.test_form_key(form, &ctx, KeyCode::Delete);
         for character in text.chars() {
-            view.handle_form_key(form, &ctx, KeyCode::Char(character));
+            view.test_form_key(form, &ctx, KeyCode::Char(character));
         }
-        assert!(view.handle_form_key(form, &ctx, KeyCode::Enter).is_none());
+        assert!(view.test_form_key(form, &ctx, KeyCode::Enter).is_none());
     }
     #[test]
     fn all_nine_kinds_edit_and_emit_raw_typed_values() {
@@ -767,18 +780,18 @@ mod inline_form_validation {
         let output = draw(&mut view, &descriptor);
         assert!(!output.contains("hidden"));
         for _ in 0..6 {
-            view.handle_form_key(form, &Context::default(), KeyCode::Tab);
+            view.test_form_key(form, &Context::default(), KeyCode::Tab);
         }
         edit(&mut view, form, r#"{"enabled":true}"#);
-        view.handle_form_key(form, &Context::default(), KeyCode::Tab);
+        view.test_form_key(form, &Context::default(), KeyCode::Tab);
         edit(&mut view, form, r#"["", "0001"]"#);
-        view.handle_form_key(form, &Context::default(), KeyCode::Tab);
-        view.handle_form_key(form, &Context::default(), KeyCode::F(2));
+        view.test_form_key(form, &Context::default(), KeyCode::Tab);
+        view.test_form_key(form, &Context::default(), KeyCode::F(2));
         assert!(draw(&mut view, &descriptor).contains("as JSON"));
-        view.handle_form_key(form, &Context::default(), KeyCode::Esc);
+        view.test_form_key(form, &Context::default(), KeyCode::Esc);
         edit(&mut view, form, r#"{"empty":"", "zero":"0"}"#);
         let response = view
-            .handle_form_key(form, &Context::default(), KeyCode::Enter)
+            .test_form_key(form, &Context::default(), KeyCode::Enter)
             .unwrap();
         assert_eq!(
             response.request,
@@ -798,12 +811,12 @@ mod inline_form_validation {
         let mut view = PanelView::new();
         draw(&mut view, &descriptor);
         assert!(view
-            .handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+            .test_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
             .is_none());
         assert!(draw(&mut view, &descriptor).contains("invalid length"));
-        view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Char('y'));
+        view.test_form_key(form(&descriptor), &Context::default(), KeyCode::Char('y'));
         assert_eq!(
-            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+            view.test_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
                 .unwrap()
                 .request["name"],
             "xy"
@@ -827,11 +840,11 @@ mod inline_form_validation {
             }),
         )]);
         assert!(view
-            .handle_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
+            .test_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
             .is_none());
         assert!(draw(&mut view, &replacement).contains("replacement"));
         assert_eq!(
-            view.handle_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
+            view.test_form_key(form(&replacement), &Context::default(), KeyCode::Enter)
                 .unwrap()
                 .request,
             json!({"name":"replacement"})
@@ -869,7 +882,7 @@ mod inline_form_validation {
             r#"{"unicode":"🦀","pattern":"already ready"}"#,
         );
         assert_eq!(
-            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+            view.test_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
                 .unwrap()
                 .request,
             json!({"nested":{"unicode":"🦀","pattern":"already ready"}})
@@ -896,7 +909,7 @@ mod inline_form_validation {
             KeyCode::Enter,
         ] {
             assert!(view
-                .handle_form_key(form(&descriptor), &Context::default(), key)
+                .test_form_key(form(&descriptor), &Context::default(), key)
                 .is_none());
         }
         assert_eq!(draw(&mut view, &descriptor), before);
@@ -914,11 +927,11 @@ mod inline_form_validation {
             KeyCode::F(2),
         ] {
             assert!(view
-                .handle_form_key(form(&descriptor), &Context::default(), key)
+                .test_form_key(form(&descriptor), &Context::default(), key)
                 .is_none());
         }
         assert_eq!(
-            view.handle_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
+            view.test_form_key(form(&descriptor), &Context::default(), KeyCode::Enter)
                 .unwrap()
                 .request,
             json!({})
@@ -1930,11 +1943,14 @@ fn form_descriptor() -> PanelDescriptor {
                     },
                 ],
                 mode: FormMode::Edit as i32,
-                submit: Some(RpcCall {
-                    service: "demo.Deploy".into(),
-                    method: "Apply".into(),
+                submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                    invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(RpcCall {
+                        service: "demo.Deploy".into(),
+                        method: "Apply".into(),
+                        ..Default::default()
+                    })),
                     ..Default::default()
-                }),
+                })),
                 item_noun: "deployment".into(),
                 prefill: Some(RpcCall {
                     service: "demo.Deploy".into(),
@@ -2963,11 +2979,14 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
                             ..Default::default()
                         },
                     ],
-                    submit: Some(RpcCall {
-                        service: "demo.Records".into(),
-                        method: "Save".into(),
+                    submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                        invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(RpcCall {
+                            service: "demo.Records".into(),
+                            method: "Save".into(),
+                            ..Default::default()
+                        })),
                         ..Default::default()
-                    }),
+                    })),
                     ..Default::default()
                 }
                 .into(),
@@ -3015,6 +3034,10 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
             "Unknown: 0012.50".into(),
             "State: Approved".into(),
         ];
+        if mode == FormMode::Edit {
+            // Canonical submit intent is authored, so its target is visible.
+            expected.insert(2, "↵ demo.Records/Save".into());
+        }
         assert_eq!(render(&mut view, &mut terminal), expected);
         // Inspect palette roles separately: normalized text cannot establish tone.
         let label_color = |terminal: &Terminal<TestBackend>, label: &str| {
@@ -3028,12 +3051,12 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
         };
         assert_eq!(label_color(&terminal, "Approved"), palette.success);
         if mode != FormMode::Edit {
-            assert!(view.handle_form_key(form, &ctx, KeyCode::Enter).is_none());
+            assert!(view.test_form_key(form, &ctx, KeyCode::Enter).is_none());
             continue;
         }
         let mut raw = json!({"Due":"2026-03-29", "Legacy":"2026-03-29",
             "Unspecified":"2026-03-29", "Invalid":"not-a-date", "Unknown":"0012.50", "State":"approved"});
-        let submission = view.handle_form_key(form, &ctx, KeyCode::Enter).unwrap();
+        let submission = view.test_form_key(form, &ctx, KeyCode::Enter).unwrap();
         assert_eq!(
             (submission.service.as_str(), submission.method.as_str()),
             ("demo.Records", "Save")
@@ -3041,26 +3064,26 @@ fn form_display_wire_text_goldens_preserve_editable_values() {
         assert_eq!(submission.request, raw);
 
         // Editing acts on the date token, not its displayed label.
-        view.handle_form_key(form, &ctx, KeyCode::Backspace);
-        view.handle_form_key(form, &ctx, KeyCode::Char('8'));
+        view.test_form_key(form, &ctx, KeyCode::Backspace);
+        view.test_form_key(form, &ctx, KeyCode::Char('8'));
         raw["Due"] = json!("2026-03-28");
-        expected[2] = "▶ Due: Mar 28, 2026".into();
+        expected[3] = "▶ Due: Mar 28, 2026".into();
         assert_eq!(render(&mut view, &mut terminal), expected);
         for _ in 0..5 {
-            view.handle_form_key(form, &ctx, KeyCode::Down);
+            view.test_form_key(form, &ctx, KeyCode::Down);
         }
-        expected[2] = "Due: Mar 28, 2026".into();
+        expected[3] = "Due: Mar 28, 2026".into();
         for (token, label, color) in [
             ("needs_review", "Needs review", palette.danger),
             ("other", "other", palette.code_fg),
         ] {
-            view.handle_form_key(form, &ctx, KeyCode::Right);
-            expected[7] = format!("▶ State: {label}");
+            view.test_form_key(form, &ctx, KeyCode::Right);
+            expected[8] = format!("▶ State: {label}");
             assert_eq!(render(&mut view, &mut terminal), expected);
             assert_eq!(label_color(&terminal, label), color);
             raw["State"] = json!(token);
             assert_eq!(
-                view.handle_form_key(form, &ctx, KeyCode::Enter)
+                view.test_form_key(form, &ctx, KeyCode::Enter)
                     .unwrap()
                     .request,
                 raw
@@ -3188,14 +3211,14 @@ fn form_prefill_renders_and_submit_contains_edited_values() {
         "enum selection missing:\n{output}"
     );
 
-    view.handle_form_key(form, &ctx, KeyCode::Char('x'));
-    view.handle_form_key(form, &ctx, KeyCode::Down);
-    view.handle_form_key(form, &ctx, KeyCode::Down);
-    view.handle_form_key(form, &ctx, KeyCode::Char(' '));
-    view.handle_form_key(form, &ctx, KeyCode::Down);
-    view.handle_form_key(form, &ctx, KeyCode::Right);
+    view.test_form_key(form, &ctx, KeyCode::Char('x'));
+    view.test_form_key(form, &ctx, KeyCode::Down);
+    view.test_form_key(form, &ctx, KeyCode::Down);
+    view.test_form_key(form, &ctx, KeyCode::Char(' '));
+    view.test_form_key(form, &ctx, KeyCode::Down);
+    view.test_form_key(form, &ctx, KeyCode::Right);
     let submission = view
-        .handle_form_key(form, &ctx, KeyCode::Enter)
+        .test_form_key(form, &ctx, KeyCode::Enter)
         .expect("editable form should submit");
     assert_eq!(submission.service, "demo.Deploy");
     assert_eq!(submission.method, "Apply");
@@ -3578,6 +3601,7 @@ fn an_empty_descriptor_draws_rather_than_panicking() {
 }
 #[cfg(test)]
 mod ambient_records {
+    use super::AdmittedFormFixture;
     use meridian_tui::crossterm::event::KeyCode;
     use meridian_tui::{PanelView, RpcError, RpcInvoker};
     use meridian_uiview::{
@@ -3657,7 +3681,10 @@ mod ambient_records {
                 FormPanel {
                     fields: fields(),
                     mode: 2,
-                    submit: Some(call()),
+                    submit_affordance: Some(Box::new(meridian_uiview::proto::Affordance {
+                        invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(call())),
+                        ..Default::default()
+                    })),
                     ..Default::default()
                 }
                 .into(),
@@ -3737,11 +3764,11 @@ mod ambient_records {
         let mut view = PanelView::new();
         view.set_record(Some(record.clone())).unwrap();
         draw(&mut view, &descriptor, &host);
-        view.handle_form_key(panel, &Context::default(), KeyCode::Char('x'));
+        view.test_form_key(panel, &Context::default(), KeyCode::Char('x'));
         view.set_record(Some(record.clone())).unwrap();
         draw(&mut view, &descriptor, &host);
         let submitted = view
-            .handle_form_key(panel, &Context::default(), KeyCode::Enter)
+            .test_form_key(panel, &Context::default(), KeyCode::Enter)
             .unwrap();
         assert_eq!(
             submitted.request,
@@ -3751,7 +3778,7 @@ mod ambient_records {
         view.set_record(Some(row("Second"))).unwrap();
         assert!(draw(&mut view, &descriptor, &host).contains("Second"));
         assert_eq!(
-            view.handle_form_key(panel, &Context::default(), KeyCode::Enter)
+            view.test_form_key(panel, &Context::default(), KeyCode::Enter)
                 .unwrap()
                 .request["title"],
             "Second"

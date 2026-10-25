@@ -26,16 +26,17 @@ export function loadRemovalReference() {
   return fromBinary(FileDescriptorSetSchema, bytes);
 }
 
-export function expectedRemoval(reference) {
+export function expectedRemoval(reference, { requireDeprecated = true } = {}) {
   const result = clone(FileDescriptorSetSchema, reference);
-  const interaction = result.file.find(file => file.name === "proto/interaction.proto");
-  assert(interaction, "complete additive reference required");
+  const files = result.file.filter(file => file.package === "meridian.ui.v1");
+  const messages = files.flatMap(file => file.messageType);
+  const enums = files.flatMap(file => file.enumType);
   for (const [name, retired] of Object.entries(RETIRED_FIELDS)) {
-    const message = interaction.messageType.find(message => message.name === name);
+    const message = messages.find(message => message.name === name);
     assert(message, `missing source declaration: ${name}`);
     for (const [fieldName, number] of Object.entries(retired)) {
       const field = message.field.find(field => field.name === fieldName);
-      assert(field && field.number === number && field.options?.deprecated === true,
+      assert(field && field.number === number && (!requireDeprecated || field.options?.deprecated === true),
         `retired source differs: ${name}.${fieldName}`);
       message.reservedRange.push({ $typeName: "google.protobuf.DescriptorProto.ReservedRange", start: number, end: number + 1 });
       message.reservedName.push(fieldName);
@@ -48,14 +49,25 @@ export function expectedRemoval(reference) {
     }
   }
   for (const name of RETIRED_MESSAGES) {
-    assert(interaction.messageType.some(message => message.name === name && message.options?.deprecated));
+    assert(messages.some(message => message.name === name && (!requireDeprecated || message.options?.deprecated)));
   }
   for (const name of RETIRED_ENUMS) {
-    assert(interaction.enumType.some(enumeration => enumeration.name === name && enumeration.options?.deprecated));
+    assert(enums.some(enumeration => enumeration.name === name && (!requireDeprecated || enumeration.options?.deprecated)));
   }
-  interaction.messageType = interaction.messageType.filter(message => !RETIRED_MESSAGES.includes(message.name));
-  interaction.enumType = interaction.enumType.filter(enumeration => !RETIRED_ENUMS.includes(enumeration.name));
+  for (const file of files) {
+    file.messageType = file.messageType.filter(message => !RETIRED_MESSAGES.includes(message.name));
+    file.enumType = file.enumType.filter(enumeration => !RETIRED_ENUMS.includes(enumeration.name));
+  }
   return result;
+}
+
+export function survivingImportReference() {
+  const bytes = readFileSync(new URL("../compat/pre-v1.binpb", import.meta.url));
+  assert.equal(createHash("sha256").update(bytes).digest("hex"),
+    "5f0b554ad8d1b2ccdf708ff725b8b462d0c19c5ce69d51be73ea8c12bd89be16");
+  // This is generator input for surviving old import paths, never a FILE
+  // baseline. Derive it from the immutable old schema, not an export-name list.
+  return expectedRemoval(fromBinary(FileDescriptorSetSchema, bytes), { requireDeprecated: false });
 }
 
 function canonicalBytes(image) {

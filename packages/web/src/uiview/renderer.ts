@@ -1671,7 +1671,7 @@ function buildTable(
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
-    const selectable = onSelect !== null && (table.affordances === undefined ? table.actions.length > 0 : table.affordances.items.length > 0);
+    const selectable = onSelect !== null && (table.affordances?.items.length ?? 0) > 0;
     rows.forEach((row, i) => {
       const tr = document.createElement("tr");
       tr.dataset.row = String(i);

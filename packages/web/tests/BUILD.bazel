@@ -99,6 +99,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
+        "//schemas:frozen_affordance_test_data",
         ":src_lib",
     ],
 )
@@ -281,6 +282,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
+        "//schemas:frozen_affordance_test_data",
     ],
 )
 

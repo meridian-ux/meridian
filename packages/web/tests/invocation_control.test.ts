@@ -9,6 +9,20 @@ import { afterEach, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel, type RenderPanelOptions } from "../src/uiview/renderer.js";
 import { disposeView, renderView } from "../src/uiview/view_renderer.js";
 import { webComponentsRenderer } from "../src/uiview/web_components_renderer.js";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
+import { assertInvocationDescriptorData, ownInvocationData } from "../src/uiview/invocation_control.js";
+
+it("descriptor wire bytes are bounded and inert, never accepted as raw request data", () => {
+  const bytes = new Uint8Array([0, 127, 255]);
+  const trap = vi.fn(() => { throw Error("Do not execute byte hooks"); });
+  Object.defineProperty(bytes, Symbol.iterator, { get: trap });
+  Object.defineProperty(bytes, "length", { get: trap });
+  Object.defineProperty(bytes, "toJSON", { get: trap });
+  expect(() => assertInvocationDescriptorData({ wire: bytes })).not.toThrow();
+  expect(() => assertInvocationDescriptorData({ wire: new Uint8Array(100_000) })).toThrow();
+  expect(() => ownInvocationData({ wire: bytes })).toThrow();
+  expect(trap).not.toHaveBeenCalled();
+});
 
 const wasm = { renderTable: () => [], buildPopulateRequest: () => ({}), readPath: () => null,
   buildRequest: () => { throw Error("Do not use the legacy host builder for user actions"); }, renderTablePanel: () => [], formatLroMetadata: () => "" };
@@ -28,17 +42,17 @@ function setup(intent: JsonObject = { copy: "literal" }) {
 }
 
 it.each([[false, false], [false, true], [true, false], [true, true]])("canonical header host consent after admission (allowed=%s consent=%s)", async (allowed, consent) => {
-  const host = setup(), confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => consent), resolveSemantic = vi.fn();
+  const host = setup(), confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => consent);
   await renderView({ ...host.opts, admission: { mutations: allowed ? ["raw.Service/Get"] : [] },
-    invocation: { ...host.opts.invocation, confirm, resolveSemantic }, view: create(ViewDescriptorSchema, {
+    invocation: { ...host.opts.invocation, confirm }, view: readFrozen(ViewDescriptorSchema, {
       subjectKind: "Rows", subjectId: "raw/id", actions: [{ id: "delete", label: "Must not revive" }],
-      affordances: { items: [{ id: "delete", label: "Confirm canonical", invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] },
+      affordances: { items: [{ id: "delete", label: "Confirm canonical", rpc: { service: "raw.Service", method: "Get" } }] },
     }) });
   expect(confirm).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled(); host.button().click();
   await vi.waitFor(() => expect(host.root.textContent).toContain(!allowed ? "Action denied:" : consent ? "Action completed." : "Action canceled."));
   expect(confirm).toHaveBeenCalledTimes(allowed ? 1 : 0); expect(host.invoke).toHaveBeenCalledTimes(allowed && consent ? 1 : 0);
   if (allowed) expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ id: "delete" }), host.context, { entityType: "Rows", entityId: "raw/id" }, expect.any(AbortSignal));
-  expect(resolveSemantic).not.toHaveBeenCalled(); expect(host.root.textContent).not.toContain("Must not revive");
+  expect(host.root.textContent).not.toContain("Must not revive");
 });
 
 it.each(["callback", "context", "cancel", "dispose", "reject"])("canonical host consent stops after %s change", async change => {
@@ -147,36 +161,31 @@ it.each(["header", "slot"])("normalizes %s canonical presence whole, including e
   await renderView({ ...host.opts, view }); expect(host.root.querySelector("button.mer-affordance")).toBeNull(); expect(host.invoke).not.toHaveBeenCalled();
 });
 
-it("rechecks current raw row/subject after semantic confirmation and disposes headers", async () => {
+it("rechecks current raw row/subject after canonical confirmation and disposes headers", async () => {
   const host = setup(); let consent!: (value: boolean) => void;
   const confirm = vi.fn(() => new Promise<boolean>(resolve => { consent = resolve; }));
-  const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, { copy: "resolved" }), confirm }));
-  const view = create(ViewDescriptorSchema, { subjectKind: "Rows", subjectId: "raw/id", actions: [{ id: "open", label: "Open" }] });
-  await renderView({ ...host.opts, invocation: { ...host.opts.invocation, resolveSemantic }, view }); host.button().click();
-  expect(resolveSemantic).toHaveBeenCalledWith(expect.objectContaining({ id: "open" }), host.context, { entityType: "Rows", entityId: "raw/id" });
+  const view = create(ViewDescriptorSchema, { subjectKind: "Rows", subjectId: "raw/id", affordances: { items: [{ id: "open", label: "Open", invoke: { case: "copy", value: "resolved" } }] } });
+  await renderView({ ...host.opts, invocation: { ...host.opts.invocation, confirm }, view }); host.button().click();
+  expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ id: "open" }), host.context, { entityType: "Rows", entityId: "raw/id" }, expect.any(AbortSignal));
   host.context.selectedRow.id = 2; consent(true); await new Promise(resolve => setTimeout(resolve, 0));
   expect(host.caps.copy).not.toHaveBeenCalled(); host.button().click(); disposeView(host.root); consent(true);
   await new Promise(resolve => setTimeout(resolve, 0)); expect(host.caps.copy).not.toHaveBeenCalled();
 });
 
-it.each([false, true])("denied semantic header never asks consent %s and visibly reports denial", async consent => {
+it.each([false, true])("denied canonical header never asks consent %s and visibly reports denial", async consent => {
   const host = setup(), confirm = vi.fn(async () => consent);
-  const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, {
-    rpc: { service: "raw.Service", method: "Get" },
-  }), confirm }));
   await renderView({ ...host.opts, admission: { mutations: [] },
-    invocation: { ...host.opts.invocation, resolveSemantic },
-    view: create(ViewDescriptorSchema, { actions: [{ id: "semantic", label: "Confirm" }] }) });
+    invocation: { ...host.opts.invocation, confirm },
+    view: create(ViewDescriptorSchema, { affordances: { items: [{ id: "canonical", label: "Confirm", invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] } }) });
   host.button().click();
   await vi.waitFor(() => expect(host.root.textContent).toContain("Action denied:"));
   expect(confirm).not.toHaveBeenCalled(); expect(host.invoke).not.toHaveBeenCalled();
 });
 
-it.each([false, true])("admitted semantic header honors confirmation %s", async consent => {
+it.each([false, true])("admitted canonical header honors confirmation %s", async consent => {
   const host = setup(), confirm = vi.fn(async () => consent);
-  await renderView({ ...host.opts, invocation: { ...host.opts.invocation,
-    resolveSemantic: () => ({ affordance: fromJson(AffordanceSchema, { rpc: { service: "raw.Service", method: "Get" } }), confirm }) },
-    view: create(ViewDescriptorSchema, { actions: [{ id: "semantic", label: "Confirm" }] }) });
+  await renderView({ ...host.opts, invocation: { ...host.opts.invocation, confirm },
+    view: create(ViewDescriptorSchema, { affordances: { items: [{ id: "canonical", label: "Confirm", invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] } }) });
   host.button().click();
   await vi.waitFor(() => expect(host.root.textContent).toContain(consent ? "Action completed." : "Action canceled."));
   expect(confirm).toHaveBeenCalledTimes(1); expect(host.invoke).toHaveBeenCalledTimes(consent ? 1 : 0);
@@ -207,11 +216,12 @@ it("uses the same admission for nested step commands instead of copying their te
   expect(host.caps.copy).not.toHaveBeenCalled();
 });
 
-it("rejects unsafe semantically resolved destinations despite permissive host policy", async () => {
-  const host = setup(); const resolveSemantic = vi.fn(() => ({ affordance: fromJson(AffordanceSchema, { uri: "javascript:alert(1)" }) }));
-  await renderView({ ...host.opts, invocation: { ...host.opts.invocation, resolveSemantic },
-    view: create(ViewDescriptorSchema, { actions: [{ id: "open", label: "Open" }] }) });
-  host.button().click(); await vi.waitFor(() => expect(host.root.textContent).toContain("Action denied")); expect(host.caps.uri).not.toHaveBeenCalled();
+it("rejects unsafe canonical destinations despite permissive host policy", async () => {
+  const host = setup();
+  await renderView({ ...host.opts,
+    view: create(ViewDescriptorSchema, { affordances: { items: [{ id: "open", label: "Open", invoke: { case: "uri", value: "javascript:alert(1)" } }] } }) });
+  expect(host.button().disabled).toBe(true);
+  host.button().click(); await vi.waitFor(() => expect(host.root.textContent).toContain("Action unavailable")); expect(host.caps.uri).not.toHaveBeenCalled();
 });
 
 it("withdraws inactive-tab controls and cancels their pending capability", async () => {

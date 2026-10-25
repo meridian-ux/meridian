@@ -4,9 +4,9 @@ identifier
 │Edit item                             │
 │↑/↓ select · ←/→ numeric · F2 JSON ·  │
 │Enter submit                          │
+│ ↵   fixture.Inputs/Submit            │
 │                                      │
 │▶ Declared input: 000123              │
-│                                      │
 │                                      │
 └──────────────────────────────────────┘
 end viewport

@@ -20,13 +20,11 @@
 //   * icons               → `glyph()` (the shared terminal icon seam).
 //
 // The palette PICKS; the host authorizes and RUNS. The explicit invocation path
-// uses the shared native dispatcher and supplies no default transport. Legacy
-// response handoff remains a 0.x compatibility path, never an admission grant.
+// uses the shared native dispatcher and supplies no default transport or raw
+// response handoff.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use meridian_uiview::proto::{
-    command::Action, Affordance, Command, Launchpad, PanelDescriptor, RpcCall,
-};
+use meridian_uiview::proto::{Affordance, Command, Launchpad};
 use meridian_uiview::{filter_launchpad, flatten, Context, FilteredGroup};
 use prost::Message;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
@@ -46,20 +44,12 @@ use crate::{
 /// React renderer's `__agent__` group.
 pub const AGENT_GROUP_ID: &str = "__agent__";
 
-/// What running the chosen command does, decoded from `Command.action`. The peer
-/// of the React renderer's dispatch switch — the host runs it: `Rpc` through its
-/// `RpcInvoker`, `OpenPanel` through `PanelView` / `render_prompt`, `OpenViewId`
-/// / `Navigate` through its own router.
+/// Inspection of authored canonical intent, never permission to execute it.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LaunchpadOutcome<'a> {
-    /// Typed intent only, never an admission grant. Presence suppresses legacy hints.
+    /// Typed intent only, never an admission grant.
     Canonical(&'a Affordance),
-    Rpc(&'a RpcCall),
-    OpenPanel(&'a PanelDescriptor),
-    OpenViewId(&'a str),
-    Navigate(&'a str),
-    /// The command carries no action (or an OpenPanel with no panel) — the host
-    /// should close without running anything.
+    /// The command carries no canonical intent.
     None,
 }
 
@@ -68,16 +58,7 @@ pub fn command_outcome(command: &Command) -> LaunchpadOutcome<'_> {
     if let Some(action) = &command.affordance {
         return LaunchpadOutcome::Canonical(action);
     }
-    match command.action.as_ref() {
-        Some(Action::Rpc(call)) => LaunchpadOutcome::Rpc(call),
-        Some(Action::OpenPanel(open)) => match open.panel.as_ref() {
-            Some(panel) => LaunchpadOutcome::OpenPanel(panel),
-            None => LaunchpadOutcome::None,
-        },
-        Some(Action::OpenViewId(id)) => LaunchpadOutcome::OpenViewId(id),
-        Some(Action::Navigate(nav)) => LaunchpadOutcome::Navigate(&nav.route),
-        None => LaunchpadOutcome::None,
-    }
+    LaunchpadOutcome::None
 }
 
 /// Why the palette closed.
@@ -742,9 +723,14 @@ mod tests {
         assert!(state.commands(&descriptor).is_empty());
         // …until the host's agent resolves the query.
         let mut agent = command("agent-1", "Agent: open failing builds");
-        agent.action = Some(Action::Navigate(Navigate {
-            route: "/builds?status=failing".into(),
-        }));
+        agent.affordance = Some(Affordance {
+            invoke: Some(meridian_uiview::proto::affordance::Invoke::Navigate(
+                Navigate {
+                    route: "/builds?status=failing".into(),
+                },
+            )),
+            ..Default::default()
+        });
         state.set_agent_commands(vec![agent]);
 
         let groups = state.groups(&descriptor);
@@ -752,15 +738,33 @@ mod tests {
         assert_eq!(groups[0].id, AGENT_GROUP_ID);
         assert_eq!(groups[0].title, "Ask the agent");
 
-        match state.on_key(key(KeyCode::Enter), &descriptor) {
-            Some(LaunchpadResponse::Run(c)) => {
-                assert_eq!(
-                    command_outcome(&c),
-                    LaunchpadOutcome::Navigate("/builds?status=failing")
-                );
-            }
-            other => panic!("expected Run, got {other:?}"),
-        }
+        let calls = std::cell::Cell::new(0);
+        let effect =
+            |route: &Navigate, _: NativeInvocationContext<'_>, _: &crate::NativeCancellation| {
+                assert_eq!(route.route, "/builds?status=failing");
+                calls.set(calls.get() + 1);
+                Ok(())
+            };
+        let allow = |_: crate::NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+        let host = NativeInvocationHost {
+            navigate: Some(&effect),
+            admit: Some(&allow),
+            ..Default::default()
+        };
+        let context = Context::default();
+        let mut terminal =
+            ratatui::Terminal::new(ratatui::backend::TestBackend::new(80, 20)).unwrap();
+        terminal
+            .draw(|f| {
+                state.draw_with_invocation(f, f.area(), &descriptor, &context, &Palette::default())
+            })
+            .unwrap();
+        assert_eq!(calls.get(), 0, "drawing cannot navigate");
+        assert_eq!(
+            state.on_key_with_invocation(key(KeyCode::Enter), &descriptor, &context, &host),
+            Some(NativeLaunchpadResponse::Executed)
+        );
+        assert_eq!(calls.get(), 1);
     }
 
     #[test]
@@ -790,28 +794,47 @@ mod tests {
     fn command_outcome_decodes_each_action_arm() {
         let mut c = command("x", "X");
         assert_eq!(command_outcome(&c), LaunchpadOutcome::None);
-        c.action = Some(Action::OpenViewId("products".into()));
+        c.affordance = Some(Affordance {
+            invoke: Some(meridian_uiview::proto::affordance::Invoke::OpenView(
+                "products".into(),
+            )),
+            ..Default::default()
+        });
         assert_eq!(
             command_outcome(&c),
-            LaunchpadOutcome::OpenViewId("products")
+            LaunchpadOutcome::Canonical(c.affordance.as_ref().unwrap())
         );
-        c.action = Some(Action::Rpc(RpcCall::default()));
-        assert!(matches!(command_outcome(&c), LaunchpadOutcome::Rpc(_)));
+        c.affordance = Some(Affordance {
+            invoke: Some(meridian_uiview::proto::affordance::Invoke::Rpc(
+                meridian_uiview::proto::RpcCall::default(),
+            )),
+            ..Default::default()
+        });
+        assert!(matches!(
+            command_outcome(&c),
+            LaunchpadOutcome::Canonical(_)
+        ));
     }
 
     #[test]
     fn canonical_presence_never_decodes_a_legacy_navigation_trap() {
-        let c = Command {
+        let mut wire = Command {
             affordance: Some(meridian_uiview::proto::Affordance::default()),
-            action: Some(Action::Navigate(Navigate {
-                route: "/legacy-trap".into(),
-            })),
             ..command("same", "Canonical empty intent")
+        }
+        .encode_to_vec();
+        let old_navigation = Navigate {
+            route: "/legacy-trap".into(),
+        }
+        .encode_to_vec();
+        prost::encoding::encode_key(11, prost::encoding::WireType::LengthDelimited, &mut wire);
+        prost::encoding::encode_varint(old_navigation.len() as u64, &mut wire);
+        wire.extend_from_slice(&old_navigation);
+        let c = Command::decode(wire.as_slice()).unwrap();
+        let LaunchpadOutcome::Canonical(action) = command_outcome(&c) else {
+            panic!("canonical presence lost")
         };
-        assert!(!matches!(
-            command_outcome(&c),
-            LaunchpadOutcome::Navigate(_)
-        ));
+        assert!(action.invoke.is_none());
     }
 
     #[test]

@@ -21,7 +21,7 @@ export const FORM_DEFAULT_BUDGET_CASES = [
   const fields: JsonObject[] = [{ fieldId: "choice", enumSelection: { optionsSource: {
     service: "fixture.Options", method: "List", optionsField: "items", valueField: "value" } } }, ...fixture.fields];
   const bodies: Record<string, { arm: string; body: JsonObject }> = {
-    form: { arm: "form", body: { fields, mode: 2, submit: call,
+    form: { arm: "form", body: { fields, mode: 2, submitAffordance: { rpc: call },
       prefill: { service: "fixture.Inputs", method: "Get" } } },
     readonlyForm: { arm: "form", body: { fields, mode: 1 } },
     prompt: { arm: "prompt", body: { fields } },
@@ -60,7 +60,7 @@ export const OPTION_INPUT_CASES = OPTION_INPUT_VALUES.flatMap(entry => {
     ...(typeof entry.raw === "string" ? { text: { defaultValue: entry.raw } }
       : { number: { defaultValue: entry.raw } }) };
   const bodies: Record<string, { arm: string; body: JsonObject }> = {
-    form: { arm: "form", body: { fields: [field], mode: 2, submit: { service: "fixture.Inputs", method: "Submit" } } },
+    form: { arm: "form", body: { fields: [field], mode: 2, submitAffordance: { rpc: { service: "fixture.Inputs", method: "Submit" } } } },
     prompt: { arm: "prompt", body: { fields: [field], acceptLabel: "Submit" } },
     lro: { arm: "lro", body: { inputs: [field], start: { service: "fixture.Inputs", method: "Start" },
       metadataType: "fixture.Metadata", responseType: "fixture.Response" } },

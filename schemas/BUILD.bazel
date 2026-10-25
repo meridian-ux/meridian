@@ -5,6 +5,13 @@ load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
 package(default_visibility = ["//visibility:public"])
 
 js_library(
+    name = "frozen_affordance_test_data",
+    srcs = ["tests/frozen_affordance.ts", "compat/v1-additive-pre-removal.binpb"],
+    deps = [":node_modules/@bufbuild/protobuf"],
+    testonly = True,
+)
+
+js_library(
     name = "value_option_data",
     srcs = ["conformance/value_option_cases.ts", "conformance/core.json"],
     deps = [":node_modules/@bufbuild/protobuf", ":node_modules/@savvifi/meridian-proto-ts"],
@@ -178,4 +185,6 @@ exports_files([
     "tsconfig.json",
     "tools/conformance_snapshots.mjs",
     "compat/pre-v1.binpb",
+    "compat/v1-surviving-imports.binpb",
+    "compat/v1-additive-pre-removal.binpb",
 ])
