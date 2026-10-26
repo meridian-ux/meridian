@@ -14,6 +14,7 @@ import { Conversation } from "../../chat/src/conversation.js";
 import { CONVERSATION_CSS } from "../../chat/src/styles.js";
 import type { ViewBlock } from "../../chat/src/wire.js";
 import { muiKit } from "../src/mui_kit.js";
+import legacyViewBytes from "./legacy-view.bin.json";
 
 let mounted: Root | undefined;
 let calls: string[] = [];
@@ -107,11 +108,12 @@ const controls = {
       openView: { openView: "chat-view" }, copy: { copy: replacement ? "second/raw" : "first/e\u0301" },
     };
     const view = create(ViewDescriptorSchema, { id: "canonical-chat", title: replacement ? "Replacement chat view" : "Unified chat view",
-      actions: [{ id: "legacy-trap", label: "Legacy trap", call: { service: "fixture.Legacy", method: "Delete" } }],
       affordances: { items: kind === "empty" ? [] : [fromJson(AffordanceSchema, { id: "same-control", label: "Unified action", description: "Typed chat host capability",
         ...(kind === "empty-target" ? {} : kind === "unsafe" ? { uri: "javascript:alert(1)" } : targets[kind]), refreshOnSuccess: true })] },
     });
-    return controls.frame([...toBinary(ViewDescriptorSchema, view)], seq);
+    // Real old wire from the hash-pinned additive schema, not an ignored JSON
+    // property. The unit gate verifies the exact bytes against that schema.
+    return controls.frame([...legacyViewBytes, ...toBinary(ViewDescriptorSchema, view)], seq);
   },
 };
 const style = document.createElement("style"); style.textContent = CONVERSATION_CSS; document.head.append(style);

@@ -31,6 +31,12 @@ vitest_test(
         "tests/conformance.test.tsx",
         "tests/affordance_invocation.test.ts",
         "tests/form_admission.test.tsx",
+        "tests/form_map.test.tsx",
+        "tests/form_options.test.tsx",
+        "tests/enum_options.test.tsx",
+        "tests/view.test.tsx",
+        "tests/legacy_browser_wire.test.ts",
+        "harness/legacy-view.bin.json",
         "tests/row_navigation.test.tsx",
         "tests/shell_palette_admission.test.tsx",
         "tests/shell_frame.test.tsx",
@@ -175,7 +181,7 @@ esbuild(
 
 esbuild(
     name = "conversation_bundle",
-    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/conversation.tsx"],
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/conversation.tsx", "harness/legacy-view.bin.json"],
     entry_point = "harness/conversation.tsx",
     bundle = True,
     format = "iife",

@@ -2,7 +2,6 @@ import { create, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { act, createElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceCollectionSchema } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
 import { ActionPlacement, SlotSchema, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";

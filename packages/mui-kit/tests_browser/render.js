@@ -53,7 +53,9 @@ async function main() {
       for (const kit of ["mui", "html", "shadcn"]) {
       for (const emphasis of [undefined, 0, 1, 2, 999]) for (const { tone, role } of cases) {
         await page.evaluate(({ tone, emphasis, kit }) => window.meridianPresentation(tone, emphasis, false, kit), { tone, emphasis, kit });
-        const primary = emphasis === undefined || emphasis === 1;
+        // Only explicit canonical emphasis is primary; the removed style field
+        // must not supply a hidden default for an absent emphasis.
+        const primary = emphasis === 1;
         const expected = colors[role];
         if (!expected) throw new Error(`Missing independent color expectation for Tone role ${role}`);
         await page.waitForFunction(({ primary, role, expected, kit }) => {

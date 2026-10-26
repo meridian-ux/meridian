@@ -126,7 +126,8 @@ it("revalidates committed context after asynchronous canonical confirmation", as
 });
 
 it("applies current-row host admission rather than granting the implicit open action", async () => {
-  const host = setup(); host.admit.mockImplementation((_target, context) => context.selectedRow?.active === true);
+  const host = setup(); host.admit.mockImplementation((_target, context) =>
+    context.selectedRow !== undefined && context.selectedRow !== null && "active" in context.selectedRow && context.selectedRow.active === true);
   host.mount(); await host.ready(); fireEvent.click(host.open());
   expect((await screen.findByRole("alert")).textContent).toContain("host target policy");
   expect(host.navigate).not.toHaveBeenCalled();

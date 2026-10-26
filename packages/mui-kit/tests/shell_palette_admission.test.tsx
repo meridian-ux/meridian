@@ -1,5 +1,5 @@
-import { create, type JsonObject, fromJson } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { create, type JsonObject } from "@bufbuild/protobuf";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import { AppShellSchema } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
 import { act } from "react";
@@ -16,9 +16,9 @@ afterAll(() => vi.unstubAllGlobals());
 const Link = ({ href, children }: { href: string; children?: ReactNode }) => <a href={href}>{children}</a>;
 
 function setup(intent: JsonObject = { copy: "raw" }) {
-  const command = create(CommandSchema, { id: "command", title: "Search title", subtitle: "Envelope detail",
-    keywords: ["synonym"], shortcut: "g p", affordance: fromJson(AffordanceSchema, intent),
-    action: { case: "navigate", value: { route: "/legacy-must-not-run" } }, deepLink: "/legacy-link" });
+  const command = readFrozen(CommandSchema, { id: "command", title: "Search title", subtitle: "Envelope detail",
+    keywords: ["synonym"], shortcut: "g p", affordance: intent,
+    navigate: { route: "/legacy-must-not-run" }, deepLink: "/legacy-link" });
   const shell = create(AppShellSchema, { title: "Palette", launchpad: { groups: [{ id: "commands", title: "Commands", commands: [command] }] } });
   const invoke = vi.fn(async () => ({})), navigate = vi.fn(), hrefFor = vi.fn(), onAction = vi.fn();
   const capability = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
