@@ -56,7 +56,7 @@ const scalarPanel = create(PanelDescriptorSchema, {
     value: create(FormPanelSchema, {
       mode: FormMode.EDIT,
       itemNoun: "item",
-      submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+      submitAffordance: { label: "Save item", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "save" }) } },
       fields: [
         create(FormFieldSchema, {
           fieldId: "tags",
@@ -93,7 +93,7 @@ const navGroupsPanel = create(PanelDescriptorSchema, {
     value: create(FormPanelSchema, {
       mode: FormMode.EDIT,
       itemNoun: "site",
-      submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+      submitAffordance: { label: "Save site", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "save" }) } },
       fields: [
         create(FormFieldSchema, {
           fieldId: "groups",

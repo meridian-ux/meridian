@@ -4,7 +4,7 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { MeridianRowActionsContext, PanelRenderer } from "@savvifi/meridian-web-react";
-import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);
@@ -24,7 +24,7 @@ it.each([false, true])("MUI renders polled/finalized results with inputs=%s and 
   const invoke = vi.fn(async (_s: string, method: string, _request: object) => method === "Start" ? { name: "operations/mui", done: false }
     : method === "WaitOperation" ? new Promise<object>(resolve => { finish = resolve; }) : { items: [{ name: "MUI completed result" }] });
   render(<MeridianMuiProvider invoker={{ invoke }} admission={{ mutations: ["demo.Jobs/Start", "demo.Jobs/Finalize"] }}>
-    <MeridianRowActionsContext.Provider value={[create(ActionSchema, { id: "forbidden", label: "Not a result action", call: { service: "must.not", method: "Mutate" } })]}>
+    <MeridianRowActionsContext.Provider value={[create(AffordanceSchema, { id: "forbidden", label: "Not a result action", invoke: { case: "rpc", value: { service: "must.not", method: "Mutate" } } })]}>
       <PanelRenderer descriptor={fixture(inputs)} />
     </MeridianRowActionsContext.Provider>
   </MeridianMuiProvider>);

@@ -1,4 +1,4 @@
-// A bound submit: an EDIT FormPanel whose `submit` RpcCall carries FieldBindings.
+// A bound submit: an EDIT FormPanel whose canonical submit RPC carries FieldBindings.
 //
 // The scope a record-attached write needs (post a comment on THIS task →
 // `resourceId`) is CONTEXT, not input: there is no form control for it and there
@@ -40,11 +40,11 @@ function composerPanel(bindings: ReturnType<typeof create<typeof FieldBindingSch
       value: create(FormPanelSchema, {
         mode: FormMode.EDIT,
         itemNoun: "comment",
-        submit: create(RpcCallSchema, {
+        submitAffordance: { label: "Save comment", invoke: { case: "rpc", value: create(RpcCallSchema, {
           service: "demo.catalog.v1.Discussion",
           method: "post-comment",
           bindings,
-        }),
+        }) } },
         fields: [
           create(FormFieldSchema, {
             fieldId: "text",
@@ -125,7 +125,7 @@ describe("FormPanel(EDIT) prefill", () => {
         value: create(FormPanelSchema, {
           mode: FormMode.EDIT,
           prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
-          submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+          submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "save" }) } },
           fields: [
             create(FormFieldSchema, {
               fieldId: "text",
@@ -165,7 +165,7 @@ describe("FormPanel(EDIT) prefill", () => {
         value: create(FormPanelSchema, {
           mode: FormMode.EDIT,
           prefill: create(RpcCallSchema, { service: "svc", method: "prefill" }),
-          submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+          submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "save" }) } },
           fields: [
             create(FormFieldSchema, {
               fieldId: "settings",
@@ -277,7 +277,7 @@ describe("FormPanel(EDIT) submit — clearing a composer", () => {
         case: "form",
         value: create(FormPanelSchema, {
           mode: FormMode.EDIT,
-          submit: create(RpcCallSchema, { service: "svc", method: "post-comment" }),
+          submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "post-comment" }) } },
           fields: [
             create(FormFieldSchema, {
               fieldId: "text",

@@ -14,7 +14,7 @@ afterAll(() => vi.unstubAllGlobals());
 function descriptor(kind: "form" | "lro", scope: string) {
   const call = { service: "demo.Inputs", method: "Submit", bindings: [{ requestField: "scope", source: { case: "literal" as const, value: scope } }] };
   const fields = [{ fieldId: "text", requestField: "request.text", label: "Text", kind: { case: "text" as const, value: { defaultValue: "first" } } }];
-  return create(PanelDescriptorSchema, { body: kind === "form" ? { case: "form", value: { mode: 2, submit: call, fields } }
+  return create(PanelDescriptorSchema, { body: kind === "form" ? { case: "form", value: { mode: 2, submitAffordance: { label: "Save", invoke: { case: "rpc", value: call } }, fields } }
     : { case: "lro", value: { start: call, inputs: fields } } });
 }
 

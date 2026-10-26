@@ -24,7 +24,7 @@ function setup(intent: JsonObject = { copy: "literal" }) {
     ] } } });
   if (descriptor.body.case !== "form") throw new Error("Expected form");
   const form = descriptor.body.value;
-  Object.assign(form, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, form), submit: { service: "legacy.Forms", method: "Delete" } }));
+  Object.assign(form, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, form) as JsonObject, submit: { service: "legacy.Forms", method: "Delete" } }));
   const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
   const cap = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
   const caps = { uri: cap(), command: cap(), navigate: cap(), openPanel: cap(), openView: cap(), copy: cap() };

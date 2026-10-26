@@ -12,6 +12,7 @@
 //     the hydrating render disagreed.
 
 import { create } from "@bufbuild/protobuf";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import * as React from "react";
@@ -205,7 +206,7 @@ describe("the launchpad navigates through the host's router", () => {
             create(CommandSchema, {
               id: "teams",
               title: "Teams",
-              action: { case: "navigate", value: { route: "/teams" } },
+              affordance: { label: "Teams", invoke: { case: "navigate", value: { route: "/teams" } } },
             }),
           ],
         }),
@@ -252,7 +253,7 @@ describe("the launchpad navigates through the host's router", () => {
           commands: [create(CommandSchema, {
             id: "unsafe-route",
             title: "Unsafe route",
-            action: { case: "navigate", value: { route: "javascript:alert(1)" } },
+            affordance: { label: "Unsafe route", invoke: { case: "navigate", value: { route: "javascript:alert(1)" } } },
           })],
         })],
       }),
@@ -270,7 +271,7 @@ describe("the launchpad navigates through the host's router", () => {
 });
 
 describe("the launchpad admits authored deep links", () => {
-  function withDeepLink(deepLink: string) {
+  function withDeepLink(deepLink: string, canonical = true) {
     return shellWith({
       launchpad: create(LaunchpadSchema, {
         groups: [
@@ -278,11 +279,12 @@ describe("the launchpad admits authored deep links", () => {
             id: "deep-links",
             title: "Deep links",
             commands: [
-              create(CommandSchema, {
+              readFrozen(CommandSchema, {
                 id: "open-editor",
                 title: "Open editor",
-                deepLink,
-                action: { case: "navigate", value: { route: "/must-not-run" } },
+                deepLink: canonical ? "javascript:legacy-hint-must-not-run" : deepLink,
+                navigate: { route: "/must-not-run" },
+                ...(canonical ? { affordance: { label: "Open editor", uri: deepLink } } : {}),
               }),
             ],
           }),
@@ -291,7 +293,7 @@ describe("the launchpad admits authored deep links", () => {
     });
   }
 
-  it("preserves an explicitly admitted application deep link instead of running its fallback action", async () => {
+  it("preserves an explicitly admitted canonical application URI instead of running legacy hints", async () => {
     const navigate = vi.fn();
     const location = spyOnAssign();
     mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("cursor://file/workspace/readme"), {
@@ -319,6 +321,19 @@ describe("the launchpad admits authored deep links", () => {
     expect(location.assign).not.toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
     location.restore();
+  });
+
+  it.each(["cursor://file/workspace/readme", "javascript:alert(1)"])("keeps a legacy-only URI %s and old action inert", async deepLink => {
+    const navigate = vi.fn(), uri = vi.fn(async () => {});
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink(deepLink, false), {
+      invocation: { admit: () => true, capabilities: { uri } },
+    });
+    fireEvent.click(screen.getByLabelText("Open the launchpad"));
+    const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Open editor" });
+    expect(command.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(command);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Action unavailable"));
+    expect(uri).not.toHaveBeenCalled(); expect(navigate).not.toHaveBeenCalled();
   });
 });
 

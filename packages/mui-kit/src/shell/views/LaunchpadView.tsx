@@ -37,16 +37,18 @@ function PaletteCommand({ command, visible, open, position, selected, highlight,
 }) {
   const action = paletteAction(command);
   const intent = action.affordance.invoke;
+  const missingTarget = intent.case === undefined;
   const unsafe = intent.case === "uri" ? !safeNavigationHref(intent.value)
     : intent.case === "navigate" ? !safeNavigationHref(intent.value.route) : false;
   const invocation = useActionInvocation(action, { enabled: open && visible });
   const group = useActionGroup();
   const owner = React.useId();
-  const message = unsafe ? "Action denied: this destination is unsafe or missing."
+  const message = missingTarget ? "Action unavailable: this command has no canonical target."
+    : unsafe ? "Action denied: this destination is unsafe or missing."
     : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
   const otherPending = group?.owner !== undefined && group.owner !== owner;
   const run = (trigger: HTMLElement) => {
-    if (unsafe) return;
+    if (missingTarget || unsafe) return;
     if (group && !group.acquire(owner)) return;
     void invocation.activate(trigger).then(result => {
       if (result?.status === "succeeded") close();
@@ -55,8 +57,8 @@ function PaletteCommand({ command, visible, open, position, selected, highlight,
   return <li hidden={!visible} style={{ listStyle: "none" }}>
     <ListItemButton component="button" type="button" sx={{ width: "100%", textAlign: "left" }} data-launchpad-position={visible ? position : undefined}
       selected={selected} onMouseEnter={highlight}
-      disabled={unsafe || otherPending || invocation.unavailable || invocation.predicateDenied}
-      aria-disabled={unsafe || invocation.pending || invocation.policyDenied || undefined}
+      disabled={missingTarget || unsafe || otherPending || invocation.unavailable || invocation.predicateDenied}
+      aria-disabled={missingTarget || unsafe || invocation.pending || invocation.policyDenied || undefined}
       aria-busy={invocation.pending || undefined}
       aria-describedby={message ? invocation.feedbackId : undefined}
       onClick={event => run(event.currentTarget)}>
