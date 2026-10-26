@@ -1,6 +1,7 @@
 // Browser test seam: descriptors, context, and fake responses arrive only as
 // canonical protobuf bytes. No second view schema or live transport exists here.
-import { create, fromBinary, toJson } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
+import { ColumnFormat } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
@@ -23,6 +24,27 @@ let calls: string[] = [];
 const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 const struct = (bytes: number[]) => toJson(StructSchema, fromBinary(StructSchema, Uint8Array.from(bytes)));
 const controls = {
+  async renderDenseMuiTable() {
+    // Real ViewRenderer composition inherits overflow-wrap:anywhere. Preserve
+    // whole header words while long raw data remains bounded by a scroll region.
+    const view = create(ViewDescriptorSchema, { title: "Dense target table", subjectKind: "fixture/Target", slots: [{
+      id: "targets", panel: { body: { case: "table", value: {
+        populate: { service: "fixture.Dense", method: "List" }, rowsField: "items", columns: [
+          { header: "Name", fieldPath: "name" },
+          { header: "Source", fieldPath: "source", format: ColumnFormat.ENUM_NAME },
+          { header: "State", fieldPath: "state", format: ColumnFormat.ENUM_NAME },
+          { header: "Endpoint", fieldPath: "endpoint" },
+          { header: "Error", fieldPath: "error" },
+          { header: "Struct Hash", fieldPath: "hash" },
+        ],
+      } } },
+    }] });
+    const response = fromJson(StructSchema, { "fixture.Dense.List": { items: [{
+      name: "alpha", source: "TARGET_SOURCE_REFLECTION", state: "TARGET_STATE_UNREACHABLE",
+      endpoint: "https://example.test/" + "x".repeat(2000), error: "offline", hash: "h".repeat(64),
+    }] } });
+    await controls.render("mui-kit", [...toBinary(ViewDescriptorSchema, view)], [], [...toBinary(StructSchema, response)]);
+  },
   async mountThemedMuiPanel() {
     const root = document.getElementById("root")!;
     mountedPanel = await reactWebRenderer(muiKit).mount({

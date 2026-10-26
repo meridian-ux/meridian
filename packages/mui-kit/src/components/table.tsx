@@ -192,7 +192,9 @@ export function MeridianTable<T>({
     <>
       <TableContainer>
         <Table size={size}>
-          <TableHead>
+          {/* View composition allows arbitrary data to wrap anywhere. Headings
+              keep word boundaries; TableContainer owns any horizontal overflow. */}
+          <TableHead sx={{ overflowWrap: "normal" }}>
             <TableRow>
               {renderRow && <TableCell>{rowHeader}</TableCell>}
               {columns.map((column) => {
