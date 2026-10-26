@@ -35,9 +35,17 @@ AIP-158 request shape rather than assumed.
 
 \medskip
 \noindent
-Cell values are synthesised per column \emph{format} — this is a structure catalog,
+Cell values are synthesized per column \emph{format} — this is a structure catalog,
 not live data — but every label, column, panel and RPC binding shown is the real
 projected output.
+
+\medskip
+\noindent
+The catalog records an exact producer-candidate commit, not a deployed service.
+Resource type domains are normalized to \texttt{meridian.example.com}; RPC names,
+bindings, and request fields retain the generated contract. Row and header
+controls open the served request form. Only an explicit form submission carries
+the mutation RPC.
 
 \input{../proto-figures/figures.tex}
 
