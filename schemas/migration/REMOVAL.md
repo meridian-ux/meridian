@@ -71,6 +71,16 @@ names. Unknown wire-byte preservation is not compatibility or authorization.
 
 ## Current implementation boundary
 
+An immutable Git archive of candidate revision
+`5adedf0ee950c96603d5b97b75833ddea196eb30`, built with Buf 1.72.0 as a
+source-info-free full-module descriptor, has SHA-256
+`022c995b582690be2aea4f9c63126cfc93652a168c38d1f3e54c337aa824d55c`.
+The exact removal checker passes. After accounting for the four retired full
+names, 41 surviving declarations change file ownership relative to maintained
+0.x; do not reuse the intermediate additive count of 45 as a final retained-move
+count. Both retained FILE comparisons reject this image with exit 100. This is
+an audit candidate, not a selected baseline or approved integrated release.
+
 The core, TUI, shared browser dispatcher, React reference kits, MUI, and
 web-components production readers now use canonical intent only. No retired
 semantic resolver, implicit row-ID binding, deep-link-as-target fallback, or raw
@@ -108,13 +118,31 @@ The pinned Java removal consumer and all six isolated public TypeScript source
 projects pass as well. Historical compatibility and current removal evidence
 remain separate; these successes do not activate a baseline.
 
-Full removal validation is **not green yet**. Remaining work includes migrating
-older browser action/row/form fixtures and semantic/AX snapshots, the full CI
-recheck, coordinated downstream producer/host upgrades, and final
-installed/archive consumer validation. Existing tests must be migrated to frozen bindings or
-canonical expectations, not deleted or made expected failures. A broad local
-Bazel run also timed out under competing builds; that run is a failure, not a
-pass. Recheck without changing the test deadlines.
+The known browser action/row/form fixture migrations now pass complete local
+React (9,282 tests), MUI (4,976), and launchpad (56) suites; all six public source
+projects and the complete MUI source/test/harness configuration type-check.
+MUI browser, Conversation browser, stateful/geometry, and layout checks pass.
+All 1,708 computed AX trees pass normal read-only verification after reviewing
+exactly 54 form trees for canonical policy-denial focusability/status changes.
+Earlier failures/timeouts remain historical failures, not successes; passing
+reruns kept the original deadlines and assertions.
+
+The detached web-components npm consumer now checks actual removal artifacts,
+not stale imports of removed Action APIs. It verifies strict public declarations,
+retired API rejection, frozen historical wire, canonical admission/consent, raw
+bindings, isolated browser imports, and runtime denial without legacy revival.
+The coordinated private draft separately installs all five coupled SDK archives
+from exact public runtime revision `df899525684ea7809ac0e9332bb05524f59b3a39`;
+its renderer/app/producer tests and real loopback HTTP/SSE browser integration
+pass. Published-profile evidence remains separate from candidate evidence.
+
+Full removal validation is **not green yet**. Complete remote CI, the external
+Studio producer migration, remaining consumer/notice inventory, and integrated
+release-line verification are still required. The Studio catalog rejects the
+producer's retired `actions` JSON key; do not bypass that strict decoder or
+restore a compatibility shim. No targeted local success proves complete release
+acceptance. Existing frozen compatibility inputs and FILE rejection checks stay
+unchanged; the migration references above are audit inputs, not active baselines.
 
 No final v1 baseline/version or release artifact is activated by these changes.
 Keep the candidate draft/unmerged and preserve final exact-artifact cutover,
