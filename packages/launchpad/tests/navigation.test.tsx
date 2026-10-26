@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { create } from "@bufbuild/protobuf";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import {
   CommandGroupSchema,
   CommandSchema,
@@ -62,13 +63,14 @@ function spyOnAssign(): { assign: ReturnType<typeof vi.fn>; restore: () => void 
 }
 
 describe("<Launchpad> navigation admission", () => {
-  it("gives an explicitly admitted legacy deep link precedence over its fallback action", async () => {
+  it("uses an explicitly admitted canonical app URI, not legacy hints or actions", async () => {
     const location = spyOnAssign();
-    const command = create(CommandSchema, {
+    const command = readFrozen(CommandSchema, {
       id: "editor",
       title: "Open editor",
-      deepLink: "cursor://file/workspace/readme",
-      action: { case: "navigate", value: { route: "/must-not-run" } },
+      deepLink: "cursor://must-not-run",
+      navigate: { route: "/must-not-run" },
+      affordance: { label: "Open editor", uri: "cursor://file/workspace/readme" },
     });
     const { onNavigate, onClose } = mount(command);
 
@@ -80,18 +82,19 @@ describe("<Launchpad> navigation admission", () => {
     location.restore();
   });
 
-  it("disables an unsafe deep link without falling through to its action", () => {
+  it.each(["javascript:alert(1)", "cursor://file/workspace/readme"])("keeps legacy-only deep link %s inert without falling through to its action", deepLink => {
     const location = spyOnAssign();
-    const command = create(CommandSchema, {
+    const command = readFrozen(CommandSchema, {
       id: "unsafe-editor",
       title: "Unsafe editor",
-      deepLink: "javascript:alert(1)",
-      action: { case: "navigate", value: { route: "/must-not-run" } },
+      deepLink,
+      navigate: { route: "/must-not-run" },
     });
     const { onNavigate, onClose } = mount(command);
     const option = screen.getByRole("option", { name: "Unsafe editor" });
 
     expect(option.getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByRole("alert").textContent).toContain("no canonical target");
     fireEvent.click(option);
     expect(location.assign).not.toHaveBeenCalled();
     expect(onNavigate).not.toHaveBeenCalled();
@@ -103,7 +106,8 @@ describe("<Launchpad> navigation admission", () => {
     const safe = create(CommandSchema, {
       id: "safe-route",
       title: "Safe route",
-      action: { case: "navigate", value: { route: " /builds?status=failing " } },
+      deepLink: "javascript:must-not-override-canonical-target",
+      affordance: { label: "Safe route", invoke: { case: "navigate", value: { route: " /builds?status=failing " } } },
     });
     const safeMount = mount(safe);
     fireEvent.click(screen.getByRole("option", { name: "Safe route" }));
@@ -113,7 +117,7 @@ describe("<Launchpad> navigation admission", () => {
     const unsafe = create(CommandSchema, {
       id: "unsafe-route",
       title: "Unsafe route",
-      action: { case: "navigate", value: { route: "data:text/html,unsafe" } },
+      affordance: { label: "Unsafe route", invoke: { case: "navigate", value: { route: "data:text/html,unsafe" } } },
     });
     const unsafeMount = mount(unsafe);
     const option = screen.getByRole("option", { name: "Unsafe route" });

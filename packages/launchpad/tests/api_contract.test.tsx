@@ -40,9 +40,9 @@ function mount(command: Command, callbacks: Partial<api.LaunchpadProps>, invoke 
 
 it("notifies admitted navigation, close, then success-only onRun with the original command", async () => {
   const order: string[] = [];
-  const command = create(CommandSchema, { id: "nav", title: "Navigate", action: {
+  const command = create(CommandSchema, { id: "nav", title: "Navigate", affordance: { label: "Navigate", invoke: {
     case: "navigate", value: { route: " /builds " },
-  } });
+  } } });
   const onRun = vi.fn(value => { expect(value).toBe(command); order.push("run"); });
   mount(command, {
     onNavigate: route => { expect(route).toBe("/builds"); order.push("navigate"); },
@@ -54,9 +54,9 @@ it("notifies admitted navigation, close, then success-only onRun with the origin
 });
 
 it("denied RPC stays visible without success notification or close", async () => {
-  const command = create(CommandSchema, { id: "rpc", title: "Export", action: {
+  const command = create(CommandSchema, { id: "rpc", title: "Export", affordance: { label: "Export", invoke: {
     case: "rpc", value: { service: "acme.v1.Exporter", method: "Export" },
-  } });
+  } } });
   const onRun = vi.fn();
   const onClose = vi.fn();
   const invoke = mount(command, { onRun, onClose });
@@ -68,9 +68,9 @@ it("denied RPC stays visible without success notification or close", async () =>
 });
 
 it("blocked navigation emits neither dispatch notification nor close", () => {
-  const command = create(CommandSchema, { id: "unsafe", title: "Unsafe", action: {
+  const command = create(CommandSchema, { id: "unsafe", title: "Unsafe", affordance: { label: "Unsafe", invoke: {
     case: "navigate", value: { route: "javascript:alert(1)" },
-  } });
+  } } });
   const onRun = vi.fn();
   const onClose = vi.fn();
   mount(command, { onRun, onClose });
@@ -80,9 +80,9 @@ it("blocked navigation emits neither dispatch notification nor close", () => {
 });
 
 it("open-view uses the explicit host capability and then closes/notifies", async () => {
-  const command = create(CommandSchema, { id: "view", title: "Open view", action: {
-    case: "openViewId", value: "views/builds",
-  } });
+  const command = create(CommandSchema, { id: "view", title: "Open view", affordance: { label: "Open view", invoke: {
+    case: "openView", value: "views/builds",
+  } } });
   const order: string[] = [];
   mount(command, {
     onOpenView: id => { expect(id).toBe("views/builds"); order.push("view"); },
@@ -94,9 +94,9 @@ it("open-view uses the explicit host capability and then closes/notifies", async
 });
 
 it("open-panel requires explicit host capability; never implicitly mounts descriptor content", async () => {
-  const command = create(CommandSchema, { id: "panel", title: "Open panel", action: {
-    case: "openPanel", value: { panel: { panelId: "focused", title: "Details" } },
-  } });
+  const command = create(CommandSchema, { id: "panel", title: "Open panel", affordance: { label: "Open panel", invoke: {
+    case: "openPanel", value: { panelId: "focused", title: "Details" },
+  } } });
   const onClose = vi.fn();
   const onRun = vi.fn();
   const openPanel = vi.fn(async () => {});

@@ -118,6 +118,7 @@ vitest_test(
         ":launchpad_lib",
         ":node_modules/@testing-library/dom",
         ":api_manifests",
+        "//schemas:frozen_affordance_test_data",
         ":node_modules/@testing-library/react",
         ":node_modules/jsdom",
         ":node_modules/react",

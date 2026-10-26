@@ -42,7 +42,7 @@ describe("<Launchpad> agent seam", () => {
   it("cancels the debounce while closed and ignores a result from a closed session", async () => {
     vi.useFakeTimers();
     let resolve!: (commands: Command[]) => void;
-    const command = create(CommandSchema, { id: "stale", title: "Old session command", action: { case: "navigate", value: { route: "/old" } } });
+    const command = create(CommandSchema, { id: "stale", title: "Old session command", affordance: { label: "Old session command", invoke: { case: "navigate", value: { route: "/old" } } } });
     const resolver = vi.fn(() => new Promise<typeof command[]>(done => { resolve = done; }));
     const descriptor = demoLaunchpad();
     const view = (open: boolean) => createElement(MeridianProvider, { invoker, kit: htmlKit, adhoc: {}, children:
@@ -64,7 +64,7 @@ describe("<Launchpad> agent seam", () => {
 
   it("withdraws old commands on query changes, resolver replacement, and removal", async () => {
     vi.useFakeTimers();
-    const command = create(CommandSchema, { id: "old", title: "Old result", action: { case: "navigate", value: { route: "/old" } } });
+    const command = create(CommandSchema, { id: "old", title: "Old result", affordance: { label: "Old result", invoke: { case: "navigate", value: { route: "/old" } } } });
     const resolver = vi.fn(async () => [command]);
     const replacement = vi.fn(async () => []);
     const descriptor = demoLaunchpad();
@@ -107,7 +107,7 @@ describe("<Launchpad> agent seam", () => {
     vi.useFakeTimers();
     const pending = new Map<string, (commands: Command[]) => void>();
     const resolver = vi.fn((query: string) => new Promise<Command[]>(resolve => { pending.set(query, resolve); }));
-    const makeCommand = (id: string) => create(CommandSchema, { id, title: `${id} result`, action: { case: "navigate", value: { route: `/${id}` } } });
+    const makeCommand = (id: string) => create(CommandSchema, { id, title: `${id} result`, affordance: { label: `${id} result`, invoke: { case: "navigate", value: { route: `/${id}` } } } });
     const { unmount } = renderLaunchpad({ onResolveQuery: resolver });
     const input = screen.getByPlaceholderText(/Search or jump/i);
     fireEvent.change(input, { target: { value: "first" } });
@@ -129,7 +129,7 @@ describe("<Launchpad> agent seam", () => {
     const agentCommand = create(CommandSchema, {
       id: "agent-1",
       title: "Agent: open failing builds",
-      action: { case: "navigate", value: { route: "/builds?status=failing" } },
+      affordance: { label: "Agent: open failing builds", invoke: { case: "navigate", value: { route: "/builds?status=failing" } } },
     });
     const onResolveQuery = vi.fn(async (q: string) => (q ? [agentCommand] : []));
     const onNavigate = vi.fn();

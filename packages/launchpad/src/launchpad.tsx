@@ -104,11 +104,13 @@ function CommandRow({
   const title = command.affordance === undefined ? command.title : action.affordance.label;
   const descriptionId = `${owner}-description`;
   const intent = action.affordance.invoke;
+  const missingTarget = intent.case === undefined;
   const unsafe = intent.case === "uri" ? !safeNavigationHref(intent.value)
     : intent.case === "navigate" ? !safeNavigationHref(intent.value.route) : false;
-  const disabled = unsafe || invocation.unavailable || invocation.predicateDenied
+  const disabled = missingTarget || unsafe || invocation.unavailable || invocation.predicateDenied
     || group?.owner !== undefined && group.owner !== owner;
-  const message = invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
+  const message = missingTarget ? "Action unavailable: this command has no canonical target."
+    : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
   const run = (trigger: HTMLElement) => {
     if (disabled || invocation.pending || group && !group.acquire(owner)) return;
     const search = trigger.closest('[role="dialog"]')?.querySelector<HTMLInputElement>('input[role="combobox"]');
@@ -176,7 +178,7 @@ function CommandRow({
         </kbd>
       ) : null}
     </button>
-    {message && <span id={invocation.feedbackId} role={invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}>{message}</span>}
+    {message && <span id={invocation.feedbackId} role={missingTarget || invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}>{message}</span>}
     {invocation.pending && <button type="button" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</button>}
     </div>
   );

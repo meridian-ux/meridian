@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
+import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { CommandSchema, LaunchpadSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import type { AdmissionPolicy, InvocationHost } from "@savvifi/meridian-schemas/uiview";
@@ -11,7 +12,10 @@ import { Launchpad } from "../src/index.js";
 afterEach(cleanup);
 function setup(intent: JsonObject = { copy: "canonical" }) {
   const command = create(CommandSchema, { id: "raw-command", title: "Envelope title", keywords: ["discoverable"], deepLink: "javascript:must-not-fall-back",
-    action: { case: "navigate", value: { route: "/legacy" } }, affordance: fromJson(AffordanceSchema, { label: "Canonical command", ...intent }) });
+    affordance: fromJson(AffordanceSchema, { label: "Canonical command", ...intent }) });
+  Object.assign(command, readFrozen(CommandSchema, {
+    ...toJson(CommandSchema, command) as JsonObject, navigate: { route: "/legacy" },
+  }));
   const descriptor = create(LaunchpadSchema, { groups: [{ id: "commands", commands: [command] }] });
   const cap = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
   const caps = { uri: cap(), command: cap(), navigate: cap(), openPanel: cap(), openView: cap(), copy: cap() };
