@@ -95,8 +95,9 @@ effective `selected_row()` accessor for policy and effects; the raw ambient
 selection is not exposed. Repeated records override ambient selection, preserving
 raw zero, false and Unicode. RPC assembly
 uses the existing bounded Rust request builder, with no invented ID binding.
-Legacy no-call action IDs require a pure `resolve_semantic`, not an executing
-`onAction` callback or an inferred route. Permission/resolver callbacks must be
+Retired Action IDs do not resolve to destinations, and the generic
+`resolve_semantic` API is removed. Author canonical intent instead. Permission
+and separate ResourceAction resolver callbacks must be
 pure; policy is rechecked after optional consent and request construction.
 Confirmation is not authorization. Failures have fixed messages without raw
 transport errors or bound values. A failed refresh is a completed effect, not a
@@ -121,10 +122,10 @@ remain private in-process state, never an interchange/audit DTO. Protobuf contro
 counts include canonical collections in the existing 1,000-node composition
 ceiling and retain the 16 KiB label and 4 MiB descriptor caps.
 
-Compatibility boundary: legacy `ViewResponse::Action` handoff and
-`PanelAppState::invoke` still exist during the 0.x migration window; neither is
-an admission grant. Prefer the explicit host API for both canonical and legacy
-header/slot controls; denial there never falls back to that handoff. Final
+Compatibility boundary: the `ViewResponse::Action` variant and
+`PanelAppState::invoke` helper remain in-process host API shapes, not permission
+grants or revived legacy descriptor sources. Canonical header/slot controls use
+the explicit admitted host path; denial never returns a raw mutation handoff. Final
 producer migration/deprecation/cutover remains separate work. The standalone
 executable stays offline and never gains mutation transport.
 
@@ -133,10 +134,9 @@ executable stays offline and never gains mutation transport.
 Use `LaunchpadState::draw_with_invocation(..., context, palette)` and
 `on_key_with_invocation(key, descriptor, context, host)` together. Drawing and
 shared-core filtering execute no host callbacks. Enter uses the shared typed
-native dispatcher: canonical `Command.affordance` presence wins wholesale,
-including missing intent, over legacy action and deep-link hints. All seven
-canonical targets and all four typed legacy command targets require admission;
-a semantic command ID or deep link is never an invented route.
+native dispatcher reads only `Command.affordance`, including when intent is
+missing. All seven canonical targets require admission. Historical command
+fields, semantic command IDs, and deep links never recover a destination.
 
 `NativeLaunchpadResponse::Executed` means the effect already ran; dismiss the
 palette and do not execute the command again. Only success returns that response.
@@ -161,19 +161,19 @@ whole input above 1,000 aggregate groups/commands/keywords/default references or
 4 MiB encoded declarations; query and agent heading are capped at 16 KiB. Context
 keys use the existing cumulative native copy/key/depth limits. No limits increase.
 
-The old `on_key` still hands off legacy commands during the 0.x migration, but
-visibly denies canonical commands without the explicit host. `command_outcome`
-now returns `LaunchpadOutcome::Canonical` for present canonical intent; native
-hosts with exhaustive matches must handle that variant at migration cutover.
-Neither decoding nor a compatibility response is an admission grant.
+The old `on_key` visibly denies present canonical commands without the explicit
+host. It may still return a metadata-only envelope, but `command_outcome` returns
+`LaunchpadOutcome::None` without canonical intent, not a legacy execution target.
+Present intent returns `LaunchpadOutcome::Canonical`; exhaustive host matches
+must handle that variant. Neither decoding nor a compatibility response grants admission.
 
 ### Validated native form submission
 
 After `PanelView::render`, use `handle_form_key_with_invocation(form, context,
 key_event, host)`. Composed `ViewHost::handle_key_with_invocation` uses this path
 automatically. It returns an invocation outcome, not a raw `FormSubmission` to
-execute again. Canonical `submit_affordance` presence is authoritative, even
-without intent; legacy submit RPCs also require explicit admission on this path.
+execute again. Only canonical `submit_affordance` supplies submission intent;
+historical submit RPC wire fields are inert and cannot recover a call.
 The ordinary form key handler visibly denies canonical submission without a host.
 Canonical label, description, icon, tone, and emphasis use the existing native
 affordance presentation; literal copy payloads stay hidden and panel targets
@@ -222,14 +222,15 @@ The selected resource card starts the visible card window. Action captions stay
 visible separately from fixed outcome feedback; danger uses the existing palette
 role, not a new token.
 
-Table `affordances` presence replaces the entire legacy action collection,
-including an empty collection. Legacy `RowAction.enabled_when` and resource
-visibility predicates are checked against the actual selected record. No selected
+In the unmerged removal candidate, tables read only canonical `affordances`,
+including an empty collection; historical RowAction wire is inert. Canonical
+`enabled_when` and resource visibility predicates are checked against the actual selected record. No selected
 record means no effect, even for a literal copy; ambient selection is never a
 fallback. RPC request assembly retains typed zero/false/Unicode values without
 invented ID bindings. All seven canonical targets use the shared admission host.
-Legacy row/resource RPCs preserve default refresh; a semantically resolved
-canonical affordance can explicitly suppress it with `refresh_on_success=false`.
+Table refresh uses the authored canonical setting, including explicit
+`refresh_on_success=false`. ResourceAction retains its separate existing refresh
+contract and resolver; it is not one of the retired Action/RowAction DTOs.
 
 A resource action with no `invoke` requires the pure typed `resolve_resource`
 callback. Its ID is never a route, synthetic action, or RPC fallback. A present
@@ -419,7 +420,8 @@ Hosts can call `PanelView::selected_row_request(&call, &context, legacy_id_fallb
 to resolve an action's declared bindings against the selected raw table or resource
 row. The helper uses the core request builder, preserves host context, and returns
 `None` without a selection. Unbound calls produce `{}` unless the caller opts into
-the legacy non-null row `id` fallback. Hosts still decide whether an action is
+the explicit runtime-only non-null row `id` fallback. Canonical renderer invocation
+does not opt into that helper fallback or invent bindings. Hosts still decide whether an action is
 eligible, authorize it, invoke the RPC, and refresh the panel after success.
 
 ```bash

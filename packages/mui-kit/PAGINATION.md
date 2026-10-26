@@ -1,5 +1,11 @@
 # Pagination in meridian (design note — next major, 0.3.0)
 
+Historical pre-0.3 design note, not the current schema reference. Pagination is
+implemented; the old `RowAction` snippet below records that earlier design.
+The unmerged removal candidate reads canonical `TablePanel.affordances` only;
+see the [current declarations](../../schemas/proto/interaction.proto) and
+[removal boundary](../../schemas/migration/REMOVAL.md). This note authorizes no cutover.
+
 **Goal:** bring that library's pagination capability up into the meridian *contract* so
 every renderer (MUI, web-components, TUI) paginates from one descriptor — not just
 the MUI kit by accident of `DataTableView`. Requested 2026-06-30.

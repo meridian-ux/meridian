@@ -18,9 +18,9 @@ FILE-transition preparation, and public/private consumer upgrades. Final product
 cutover remains separately approval-gated. No main-branch declaration move,
 baseline activation, release publication, or FILE relaxation is authorized here.
 
-## Canonical implementation candidate (unmerged)
+## Historical additive implementation candidate (unmerged)
 
-The candidate now explicitly marks nine retained invocation/presentation fields
+Before the removal follow-up above, the additive candidate explicitly marked nine retained invocation/presentation fields
 and the three obsolete message types deprecated; the [migration guide](migration/DEPRECATION.md) lists
 exact tags, replacements, warning implications, and mandatory 1.0 removal
 prerequisites. This narrowly tested metadata addition is not removal or production
