@@ -22,7 +22,7 @@ function setup(intent: JsonObject = { copy: "canonical" }) {
   } } });
   if (descriptor.body.case !== "form") throw Error("form");
   const form = descriptor.body.value;
-  Object.assign(form, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, form), submit: { service: "legacy.Forms", method: "Delete" } }));
+  Object.assign(form, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, form) as JsonObject, submit: { service: "legacy.Forms", method: "Delete" } }));
   const cap = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
   const caps = { uri: cap(), command: cap(), navigate: cap(), openPanel: cap(), openView: cap(), copy: cap() };
   const invoke = vi.fn(async (_service: string, _method: string, _request: object) => ({}));

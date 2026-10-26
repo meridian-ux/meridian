@@ -30,6 +30,7 @@ slots {
       }
       mode: FORM_MODE_READONLY
       submit_affordance {
+        label: "Save"
         rpc {
           service: "fixture.Inputs"
           method: "Submit"

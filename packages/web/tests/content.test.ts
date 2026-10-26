@@ -67,12 +67,12 @@ it.each([undefined, 0, 1, 2, 999])("action emphasis %s and Tone never bypass adm
     for (const target of ["/next", "javascript:alert(1)", "echo raw command"]) {
       const command = target.startsWith("echo");
       const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-        label: "Action", description: "Explain", style: 1, tone, emphasis,
+        label: "Action", description: "Explain", tone, emphasis,
         invoke: command ? { case: "command", value: target } : { case: "uri", value: target },
       } } } });
       const root = await draw(descriptor, false, { admit: () => true, capabilities: { uri: admittedTarget, command: admittedTarget } });
       const control = root.querySelector(".mer-affordance") as HTMLElement;
-      const primary = emphasis === undefined || emphasis === 1;
+      const primary = emphasis === 1;
       expect(control.classList.contains("mer-affordance-primary")).toBe(primary);
       expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
       if (emphasis !== undefined) expect(control.style.borderWidth).toBe(primary ? "2px" : "1px");

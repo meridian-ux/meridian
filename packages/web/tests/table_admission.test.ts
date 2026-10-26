@@ -4,15 +4,15 @@ import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { afterEach, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel, type RenderPanelOptions } from "../src/uiview/renderer.js";
+import { withRetiredTrap } from "./retired_wire.js";
 
 afterEach(() => { for (const root of document.querySelectorAll<HTMLElement>("[data-table-test]")) disposePanel(root); document.body.replaceChildren(); });
 function setup(intent: JsonObject = { copy: "raw" }) {
   const root = document.createElement("div"); root.dataset.tableTest = ""; document.body.append(root);
-  const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: {
+  const descriptor = withRetiredTrap(create(PanelDescriptorSchema, { body: { case: "table", value: {
     populate: { service: "Rows", method: "List" }, columns: [{ header: "Name", fieldPath: "name" }],
-    actions: [{ label: "Legacy trap", rpc: { service: "Rows", method: "Delete" } }],
     affordances: { items: [fromJson(AffordanceSchema, { label: "Canonical row", ...intent })] },
-  } } });
+  } } }));
   if (descriptor.body.case !== "table") throw Error("table");
   const table = descriptor.body.value;
   const rows = [{ raw: { id: 0, name: "raw/e\u0301", phase: false }, cells: ["first"] }, { raw: { id: 2, name: "second", phase: true }, cells: ["second"] }];
@@ -96,10 +96,18 @@ it("reports refresh failure separately without losing selected input or replayin
   expect(host.root.textContent).not.toContain("private refresh"); expect(host.root.querySelector('[aria-selected="true"]')).not.toBeNull();
 });
 
-it("legacy row RPC keeps empty unbound request and refreshes without inventing an id", async () => {
-  const host = setup(); host.table.affordances = undefined; host.table.actions[0].rpc!.method = "Get";
+it("canonical row RPC keeps empty unbound request and explicitly refreshes without inventing an id", async () => {
+  const host = setup({ rpc: { service: "Rows", method: "Get" }, refreshOnSuccess: true });
   await host.draw(); host.select(); host.button().click(); await vi.waitFor(() => expect(host.invoke).toHaveBeenCalledTimes(3));
   expect(host.invoke.mock.calls[1]).toEqual(["Rows", "Get", {}]); expect(host.buildRequest).not.toHaveBeenCalled();
+});
+
+it("historical row bytes without canonical intent are inert, not a mutation fallback", async () => {
+  const host = setup(); host.table.affordances = undefined;
+  await host.draw(); host.select();
+  expect(host.root.querySelector(".mer-affordance")).toBeNull();
+  expect(host.invoke).toHaveBeenCalledTimes(1);
+  expect(host.buildRequest).not.toHaveBeenCalled();
 });
 
 it("holds the group guard before reentrant host policy/capability execution", async () => {

@@ -154,7 +154,7 @@ describe("renderView tab keyboard navigation", () => {
     let finish!: (value: object) => void;
     const invoke = vi.fn((_service: string, method: string, _request: object) => method === "Header" ? new Promise<object>(resolve => { finish = resolve; }) : Promise.resolve({}));
     const old = renderView({ root, wasm, context, invoker: { invoke }, admission: "unrestricted", view: create(ViewDescriptorSchema, {
-      title: "Old view", actions: [{ label: "Old action", call: { service: "demo", method: "Mutate" } }], slots: [
+      title: "Old view", affordances: { items: [{ label: "Old action", invoke: { case: "rpc", value: { service: "demo", method: "Mutate" } } }] }, slots: [
         { id: "header", placement: { headerRow: true }, panel: { body: { case: "table", value: { populate: { service: "demo", method: "Header" } } } } },
         { id: "never", panel: { body: { case: "table", value: { populate: { service: "demo", method: "Never" } } } } },
       ],
@@ -245,7 +245,7 @@ describe("renderView admission", () => {
         { requestField: "id", source: { case: "rowField", value: "id" } },
       ] } } },
     ] });
-    const action = { label: "Save", call };
+    const action = { label: "Save", invoke: { case: "rpc" as const, value: call } };
     const current = { ...context, selectedRow: { id: "first" }, formValues: { enabled: false, count: 0 } };
     const buildRequest = vi.fn((bytes: Uint8Array, ctx: typeof current) => {
       expect(fromBinary(RpcCallSchema, bytes)).toEqual(call);
@@ -256,7 +256,7 @@ describe("renderView admission", () => {
     const invoke = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue({});
     await renderView({ root, context: current, wasm: { ...wasm, buildRequest }, admission: "unrestricted",
       invoker: { invoke }, view: create(ViewDescriptorSchema, location === "view"
-        ? { actions: [action] } : { slots: [{ id: "details", actions: [action] }] }),
+        ? { affordances: { items: [action] } } : { slots: [{ id: "details", affordances: { items: [action] } }] }),
     });
     root.querySelector("button")!.click();
     await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context."));
@@ -276,8 +276,8 @@ describe("renderView admission", () => {
     const invoke = vi.fn();
     const onDenied = vi.fn();
     await renderView({ root, wasm: { ...wasm, buildRequest }, context, invoker: { invoke }, admission: { onDenied },
-      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save",
-        bindings: [{ requestField: "kind", source: { case: "literal", value: "item" } }] } }] }),
+      view: create(ViewDescriptorSchema, { affordances: { items: [{ label: "Save", invoke: { case: "rpc", value: { service: "demo.Items", method: "Save",
+        bindings: [{ requestField: "kind", source: { case: "literal", value: "item" } }] } } }] } }),
     });
     root.querySelector("button")!.click();
     await vi.waitFor(() => expect(onDenied).toHaveBeenCalledTimes(1));
@@ -288,7 +288,7 @@ describe("renderView admission", () => {
     const root = document.createElement("div");
     const calls: unknown[] = [];
     await renderView({ root, wasm, context, admission: "unrestricted",
-      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save" } }] }),
+      view: create(ViewDescriptorSchema, { affordances: { items: [{ label: "Save", invoke: { case: "rpc", value: { service: "demo.Items", method: "Save" } } }] } }),
       invoker: { invoke: async (...args) => { calls.push(args); if (calls.length === 1) throw new Error("<b>offline</b>"); return {}; } },
     });
     const button = root.querySelector("button")!;
@@ -309,7 +309,7 @@ describe("renderView admission", () => {
     const view = create(ViewDescriptorSchema, {
       id: "orders",
       title: "Orders",
-      actions: [{ id: "delete", label: "Delete", call: { service: "acme.Orders", method: "DeleteOrder" } }],
+      affordances: { items: [{ id: "delete", label: "Delete", invoke: { case: "rpc", value: { service: "acme.Orders", method: "DeleteOrder" } } }] },
       layout: { mode: { case: "list", value: {} } },
     });
     await renderView({
@@ -343,7 +343,7 @@ describe("renderView admission", () => {
     const view = create(ViewDescriptorSchema, {
       id: "orders",
       title: "Orders",
-      actions: [{ id: "archive", label: "Archive", call: { service: "acme.Orders", method: "ArchiveOrder" } }],
+      affordances: { items: [{ id: "archive", label: "Archive", invoke: { case: "rpc", value: { service: "acme.Orders", method: "ArchiveOrder" } } }] },
       layout: { mode: { case: "list", value: {} } },
     });
     await renderView({
