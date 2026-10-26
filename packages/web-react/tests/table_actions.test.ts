@@ -5,7 +5,8 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema, type PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { PaginationMode, PaginationSchema, RowActionSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { PaginationMode, PaginationSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { AdmissionPolicy, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { htmlKit } from "../src/html_kit.js";
@@ -30,8 +31,8 @@ function fixture() {
       { header: "Enabled", fieldPath: "enabled", valueDisplay: { type: ValueType.BOOLEAN } },
       { header: "Owner", fieldPath: "owner.id", link: { targetKind: "member" } },
     ],
-    actions: [
-      { label: "Inspect", rpc: { service: "demo.Builds", method: "Inspect", bindings: [
+    affordances: { items: [
+      { label: "Inspect", refreshOnSuccess: true, invoke: { case: "rpc", value: { service: "demo.Builds", method: "Inspect", bindings: [
         { requestField: "name", source: { case: "rowField", value: "id" } },
         { requestField: "mode", source: { case: "literal", value: "audit" } },
         { requestField: "empty", source: { case: "literal", value: "" } },
@@ -46,16 +47,22 @@ function fixture() {
           { requestField: "missing", source: { case: "rowField", value: "absent.id" } },
           { requestField: "form", source: { case: "formField", value: "id" } },
         ] } } },
-      ] } },
-      { label: "Archive", rpc: { service: "demo.Builds", method: "Archive" },
+      ] } } },
+      { label: "Archive", invoke: { case: "rpc", value: { service: "demo.Builds", method: "Archive" } },
         enabledWhen: { fieldPath: "phase", equals: "Succeeded" }, refreshOnSuccess: true },
-    ],
+    ] },
   } } });
 }
 
 function table(descriptor: PanelDescriptor) {
   if (descriptor.body.case !== "table") throw new Error("Expected a table fixture");
   return descriptor.body.value;
+}
+
+function firstRpc(descriptor: PanelDescriptor) {
+  const intent = table(descriptor).affordances!.items[0].invoke;
+  if (intent.case !== "rpc") throw Error("Expected explicit canonical table RPC");
+  return intent.value;
 }
 
 function deferred() {
@@ -113,7 +120,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it.each(["__proto__.meridianTableTest", "constructor.prototype.meridianTableTest"])("rejects the whole %s request before dispatch", async path => {
     const descriptor = fixture();
-    table(descriptor).actions[0].rpc!.bindings.push(create(FieldBindingSchema, {
+    firstRpc(descriptor).bindings.push(create(FieldBindingSchema, {
       requestField: path, source: { case: "literal", value: "unsafe" },
     }));
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
@@ -130,13 +137,13 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("selects raw rows by pointer, Enter, and Space and evaluates filters without changing cell displays", async () => {
     const descriptor = fixture();
-    table(descriptor).actions.push(...[
+    table(descriptor).affordances!.items.push(...[
       { label: "False value", enabledWhen: { fieldPath: "enabled", equals: "false" } },
       { label: "Zero value", enabledWhen: { fieldPath: "count", equals: "0" } },
       { label: "Nested value", enabledWhen: { fieldPath: "owner.id", equals: "owner-2" } },
       { label: "Missing value", enabledWhen: { fieldPath: "missing", equals: "" } },
       { label: "Missing RPC" },
-    ].map(action => create(RowActionSchema, { rpc: action.label === "Missing RPC" ? undefined : { service: "demo.Builds", method: "Inspect" }, ...action })));
+    ].map(action => create(AffordanceSchema, { invoke: action.label === "Missing RPC" ? undefined : { case: "rpc", value: { service: "demo.Builds", method: "Inspect" } }, ...action })));
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
     const view = await mount(descriptor, invoke);
     try {
@@ -182,7 +189,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("binds raw values and current scope, suppresses duplicates, retries failure, and clears selection after refresh", async () => {
     const descriptor = fixture();
-    table(descriptor).actions[0].rpc!.bindings.push(
+    firstRpc(descriptor).bindings.push(
       create(FieldBindingSchema, { requestField: "ownerOverride", source: { case: "rowField", value: "owner" } }),
       create(FieldBindingSchema, { requestField: "ownerOverride.id", source: { case: "literal", value: "delegated-owner" } }),
     );
@@ -227,7 +234,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(view.container.querySelector('[role="alert"]')).toBeNull();
       expect(invoke).toHaveBeenLastCalledWith("demo.Builds", "Inspect", { ...request, payload: { ...request.payload, scope: "year-2" } });
       await act(async () => retry.resolve({}));
-      expect(reads).toBe(2); // Default refresh_on_success is also honored after wire decoding.
+      expect(reads).toBe(2); // Explicit canonical refresh survives wire decoding.
       expect(view.container.querySelector("table")?.getAttribute("aria-busy")).toBe("true");
       expect(buttons(view.container).every(button => button.disabled)).toBe(true);
       await act(async () => rows(view.container)[0].click());
@@ -341,7 +348,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("leaves tables without actions nonselectable", async () => {
     const descriptor = fixture();
-    table(descriptor).actions = [];
+    table(descriptor).affordances!.items = [];
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
     const view = await mount(descriptor, invoke);
     try {

@@ -4,7 +4,6 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ActionPlacement, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
@@ -35,22 +34,20 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     const invoke = vi.fn(async () => ({}));
     const onAction = vi.fn();
     const navigate = vi.fn(async () => {});
-    const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", actions: [
-      { id: "run", label: "Run now", placement: ActionPlacement.PRIMARY,
-        call: { service: "demo.Reports", method: "Run" } },
-      { id: "edit", label: "Edit report", placement: ActionPlacement.HEADER },
+    const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", affordances: { items: [
+      { id: "run", label: "Run now", placement: ActionPlacement.HEADER, emphasis: 1,
+        invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } } },
+      { id: "edit", label: "Edit report", placement: ActionPlacement.HEADER,
+        invoke: { case: "navigate", value: { route: "/reports/edit" } } },
       { id: "export", label: "Export CSV", placement: ActionPlacement.OVERFLOW,
-        call: { service: "demo.Reports", method: "Export", bindings: [
+        invoke: { case: "rpc", value: { service: "demo.Reports", method: "Export", bindings: [
           { requestField: "format", source: { case: "literal", value: "csv" } },
-        ] } },
+        ] } } },
       { id: "row-delete", label: "Delete row", placement: ActionPlacement.ROW },
-    ] });
+    ] } });
     await mounted(createElement(MeridianProvider, {
       kit, adhoc: {}, invoker: { invoke }, onAction, admission: "unrestricted",
-      invocation: { capabilities: { navigate }, admit: intent => intent.case === "navigate" || intent.case === "rpc",
-        resolveSemantic: action => action.id === "edit" ? { affordance: create(AffordanceSchema, {
-          invoke: { case: "navigate", value: { route: "/reports/edit" } },
-        }) } : undefined },
+      invocation: { capabilities: { navigate }, admit: intent => intent.case === "navigate" || intent.case === "rpc" },
     }, createElement(ViewRenderer, { view })), async container => {
       expect(kit.ActionBar).toBeDefined();
       expect(container.querySelector("[data-action-bar]")?.getAttribute("data-action-bar")).toBe(kit.id);
@@ -100,10 +97,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
 
   it("invokes an admitted unbound view action exactly once with an empty request", async () => {
     const invoke = vi.fn(async () => ({}));
-    const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "actions", affordances: { items: [{
       id: "run", label: "Run report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Run" },
-    }] });
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: { mutations: ["demo.Reports/Run"] } }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
@@ -119,8 +116,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     const invoke = vi.fn(async () => ({}));
     const selection = { values: { scope: "year-1" }, set: () => {} };
     const record = { owner: { id: "member-7" }, enabled: false, count: 0 };
-    const view = create(ViewDescriptorSchema, { id: "bound", actions: [{
-      id: "run", label: "Run bound report", call: { service: "demo.Reports", method: "Run", bindings: [
+    const view = create(ViewDescriptorSchema, { id: "bound", affordances: { items: [{
+      id: "run", label: "Run bound report", invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run", bindings: [
         { requestField: "mode", source: { case: "literal", value: "audit" } },
         { requestField: "filter", source: { case: "nested", value: { fields: [
           { requestField: "year", source: { case: "selectionKey", value: "scope" } },
@@ -129,8 +126,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
           { requestField: "count", source: { case: "rowField", value: "count" } },
           { requestField: "missing", source: { case: "selectionKey", value: "unset" } },
         ] } } },
-      ] },
-    }] });
+      ] } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
       createElement(MeridianRecordContext.Provider, { value: record }, createElement(ViewRenderer, { view, selection }))), async container => {
       await act(async () => container.querySelector("button")!.click());
@@ -164,7 +161,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
 
   it.each([false, true])("omits unavailable sources but rejects an unsafe request as a whole (unsafe=%s)", async unsafe => {
     const invoke = vi.fn(async () => ({}));
-    const view = create(ViewDescriptorSchema, { id: "missing", actions: [{ id: "run", label: "Run", call: {
+    const view = create(ViewDescriptorSchema, { id: "missing", affordances: { items: [{ id: "run", label: "Run", invoke: { case: "rpc", value: {
       service: "demo.Reports", method: "Run", bindings: [
         { requestField: "record", source: { case: "rowField", value: "id" } },
         { requestField: "form", source: { case: "formField", value: "name" } },
@@ -173,7 +170,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
         ] } } },
         ...(unsafe ? [{ requestField: "__proto__.meridianTest", source: { case: "literal" as const, value: "unsafe" } }] : []),
       ],
-    } }] });
+    } } }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
       createElement(ViewRenderer, { view })), async container => {
       await act(async () => container.querySelector("button")!.click());
@@ -188,12 +185,12 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
   it("blocks a denied mutation before transport and reports the exact denied call to the host", async () => {
     const invoke = vi.fn(async () => ({}));
     const onDenied = vi.fn();
-    const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "actions", affordances: { items: [{
       id: "delete", label: "Delete report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Delete", bindings: [
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Delete", bindings: [
         { requestField: "id", source: { case: "literal", value: "protected-report" } },
-      ] },
-    }] });
+      ] } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: { mutations: [], onDenied } }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
@@ -216,10 +213,10 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     let reject!: (reason: Error) => void;
     const invoke = vi.fn().mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }))
       .mockResolvedValue({});
-    const view = create(ViewDescriptorSchema, { id: "retry", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "retry", affordances: { items: [{
       id: "run", label: "Run report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Run" },
-    }] });
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: "unrestricted" }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
