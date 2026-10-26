@@ -26,7 +26,7 @@ describe.each([htmlKit, shadcnKit])("$id actual form admission", kit => {
       ] } } });
     if (descriptor.body.case !== "form") throw new Error("Expected form");
     const form = descriptor.body.value;
-    Object.assign(descriptor.body.value, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, descriptor.body.value), submit: { service: "legacy.Forms", method: "Delete" } }));
+    Object.assign(descriptor.body.value, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, descriptor.body.value) as JsonObject, submit: { service: "legacy.Forms", method: "Delete" } }));
     const invoke = vi.fn(async () => ({}));
     const capability = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
     const caps = { copy: capability(), uri: capability(), command: capability(), navigate: capability(), openPanel: capability(), openView: capability() };

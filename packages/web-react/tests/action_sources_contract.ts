@@ -1,4 +1,4 @@
-import { create, toJson } from "@bufbuild/protobuf";
+import { create, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { act, createElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
@@ -59,7 +59,7 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
       "canonical header host consent after admission (allowed=%s consent=%s)", async (allowed, consent) => {
         const host = setup(), confirm = vi.fn<NonNullable<InvocationHost["confirm"]>>(async () => consent);
         host.admission = { mutations: allowed ? ["raw.Service/Get"] : [] };
-        Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view), actions: [{ id: "delete", label: "Must not revive" }] }));
+        Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view) as JsonObject, actions: [{ id: "delete", label: "Must not revive" }] }));
         host.view.affordances = create(AffordanceCollectionSchema, { items: [{ id: "delete", label: "Canonical confirm",
           invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] });
         host.invocation = { ...host.invocation, confirm };
@@ -101,7 +101,7 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
     });
     it("canonical header presence wins over legacy, including an explicit empty collection", async () => {
       const host = setup();
-      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view), actions: [{ id: "legacy", label: "Legacy callback" }] }));
+      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view) as JsonObject, actions: [{ id: "legacy", label: "Legacy callback" }] }));
       host.view.affordances = create(AffordanceCollectionSchema, { items: [{ id: "canonical", label: "Canonical copy",
         placement: ActionPlacement.HEADER, invoke: { case: "copy", value: "raw" } }] });
       try {
@@ -203,7 +203,7 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
     it("canonical denial cannot revive a same-ID legacy callback or resolver", async () => {
       const host = setup();
       host.admission = { mutations: [] };
-      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view), actions: [{ id: "same", label: "Legacy" }] }));
+      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view) as JsonObject, actions: [{ id: "same", label: "Legacy" }] }));
       host.view.affordances = create(AffordanceCollectionSchema, { items: [{ id: "same", label: "Canonical",
         invoke: { case: "rpc", value: { service: "raw.Service", method: "Get" } } }] });
       try {
@@ -324,7 +324,7 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
     it("canonical table empty hides legacy table actions but not independently authored view-row intent", async () => {
       const host = setup(true);
       if (host.panel.body.case !== "table") throw new Error("Expected table");
-      Object.assign(host.panel.body.value, readFrozen(TablePanelSchema, { ...toJson(TablePanelSchema, host.panel.body.value), actions: [{ label: "Legacy table", rpc: { service: "raw.Service", method: "Get" } }] }));
+      Object.assign(host.panel.body.value, readFrozen(TablePanelSchema, { ...toJson(TablePanelSchema, host.panel.body.value) as JsonObject, actions: [{ label: "Legacy table", rpc: { service: "raw.Service", method: "Get" } }] }));
       host.panel.body.value.affordances = create(AffordanceCollectionSchema);
       host.view.affordances = create(AffordanceCollectionSchema, { items: [{ label: "View row", placement: ActionPlacement.ROW,
         invoke: { case: "copy", value: "view row" } }] });
@@ -341,7 +341,7 @@ export function actionSourcesContract(kit: ComponentKit, runtime: Parameters<typ
       const host = setup(true);
       if (host.panel.body.case !== "table") throw new Error("Expected table");
       host.panel.body.value.affordances = create(AffordanceCollectionSchema, { items: [{ label: "Table copy", invoke: { case: "copy", value: "table" } }] });
-      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view), actions: [{ id: "old-row", label: "Old view row", placement: ActionPlacement.ROW }] }));
+      Object.assign(host.view, readFrozen(ViewDescriptorSchema, { ...toJson(ViewDescriptorSchema, host.view) as JsonObject, actions: [{ id: "old-row", label: "Old view row", placement: ActionPlacement.ROW }] }));
       host.view.affordances = create(AffordanceCollectionSchema);
       try {
         await host.mount(); await host.selectRow(); await host.click("Table copy");
