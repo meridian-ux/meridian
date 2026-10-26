@@ -124,10 +124,13 @@ The table below is **generated** from the coverage manifest by
 |---|---|
 | `rpc` | ● |
 | `open_panel` | ● |
-| `open_view_id` | ● |
+| `open_view` | ● |
+| `uri` | ● |
+| `command` | ● |
+| `copy` | ● |
 | `navigate` | ● |
 
-**4 arms × 1 renderer = 4 cells; 4 render, 0 do not.**
+**7 arms × 1 renderer = 7 cells; 7 render, 0 do not.**
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · ? unverified · – not applicable.

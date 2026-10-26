@@ -1898,22 +1898,6 @@ dl
     "1:45 PM UTC""
 `;
 
-exports[`html stateful ViewDescriptor corpus > 'detail_header/value-unknown-type' > html/detail_header/value-time 1`] = `
-"h2
-  "value-time"
-h3
-  "time"
-h2
-  "time"
-h3
-  "Fixture record"
-dl
-  dt
-    "Declared value"
-  dd
-    "1:45 PM UTC""
-`;
-
 exports[`html stateful ViewDescriptor corpus > 'detail_header/value-unknown-type' > html/detail_header/value-unknown-type 1`] = `
 "h2
   "value-unknown-type"

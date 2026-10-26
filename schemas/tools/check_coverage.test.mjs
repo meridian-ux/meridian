@@ -55,6 +55,19 @@ test("the committed non-panel modality coverage and catalog agree", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 
+test("launchpad coverage follows all canonical invocation arms, never the retired Command oneof", () => {
+  const manifest = realManifest(), catalog = realCatalog();
+  assert.equal(manifest.modalities.launchpad.oneof, "Affordance.invoke");
+  assert.equal(catalog.modalities.launchpad.oneof, "Affordance.invoke");
+  const arms = parseScopedOneofArms(readFileSync(join(ROOT, "proto/interaction.proto"), "utf8"), "Affordance.invoke");
+  assert.deepEqual(arms.map(arm => arm.name), ["uri", "command", "rpc", "navigate", "open_panel", "open_view", "copy"]);
+  assert.deepEqual(Object.keys(manifest.modalities.launchpad.arms).sort(), arms.map(arm => arm.name).sort());
+  delete manifest.modalities.launchpad.arms.copy;
+  assert(checkModalities(manifest, catalog).some(error => /launchpad.copy.*no declared coverage/.test(error)));
+  manifest.modalities.launchpad.oneof = catalog.modalities.launchpad.oneof = "Command.action";
+  assert(checkModalities(manifest, catalog).some(error => /Command.action.*no oneof/.test(error)));
+});
+
 test("the external playground requires every Block arm and explains canvas delegation", () => {
   const manifest = realManifest();
   const kinds = manifest.modalities.conversation.arms;
@@ -109,10 +122,10 @@ test("a declared new workspace renderer missing from the catalog fails", (t) => 
   assert.ok(errors.some((error) => /new-renderer.*has no catalog entry/.test(error)));
 });
 
-test("the Launchpad manifest covers every Command.action arm", () => {
+test("the Launchpad manifest covers every canonical Affordance.invoke arm", () => {
   const proto = readFileSync(join(ROOT, "proto/interaction.proto"), "utf8");
-  const arms = parseScopedOneofArms(proto, "Command.action");
-  assert.deepEqual(arms.map((arm) => arm.name), ["rpc", "open_panel", "open_view_id", "navigate"]);
+  const arms = parseScopedOneofArms(proto, "Affordance.invoke");
+  assert.deepEqual(arms.map((arm) => arm.name), ["uri", "command", "rpc", "navigate", "open_panel", "open_view", "copy"]);
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
 });
 

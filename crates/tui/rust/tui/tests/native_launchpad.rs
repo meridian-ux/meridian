@@ -323,7 +323,7 @@ fn all_four_canonical_typed_commands_use_the_admitted_path_not_hint_routing() {
         ),
         (Invoke::OpenView("view".into()), "view"),
         (
-            Invoke::OpenPanel(Box::new(PanelDescriptor::default())),
+            Invoke::OpenPanel(Box::default()),
             "panel",
         ),
     ] {

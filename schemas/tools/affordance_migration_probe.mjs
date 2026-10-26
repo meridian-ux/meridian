@@ -12,6 +12,7 @@ import { clearField, clone, createFileRegistry, fromBinary, fromJson, isFieldSet
 import { DescriptorProtoSchema, FieldDescriptorProtoSchema, FieldOptionsSchema, MessageOptionsSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { checkLine, loadImage, REFERENCES } from "./compatibility_line.mjs";
 import { mergeDescriptorSets } from "./merge_descriptor_sets.mjs";
+import { loadRemovalReference } from "./affordance_removal.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const BUF = join(ROOT, "node_modules/.bin/buf");
@@ -439,12 +440,16 @@ export async function probe() {
 
 // Explicit implementation phase: compare the real source image with the frozen
 // old reader, rather than inventing a second hypothetical migration of facades.
-export async function probeCanonical() {
+export async function probeCanonical({ frozenAdditive = false } = {}) {
   const work = mkdtempSync(join(tmpdir(), "meridian-affordance-canonical-"));
   try {
     const oldImage = join(work, "old.binpb"), nextImage = join(work, "candidate.binpb");
     cpSync(REFERENCES["maintained-0x"], oldImage);
-    const before = loadImage(oldImage), after = build(ROOT, nextImage);
+    const before = loadImage(oldImage);
+    // The retained additive contract is historical evidence, not a claim that
+    // today's removal source retains those APIs. Its loader verifies the digest.
+    const after = frozenAdditive ? loadRemovalReference() : build(ROOT, nextImage);
+    if (frozenAdditive) writeFileSync(nextImage, toBinary(FileDescriptorSetSchema, after));
     checkLine("maintained-0x", oldImage);
     assertCandidateDeclarations(before, after);
     const transition = checkLine("v1-candidate", nextImage);
@@ -467,7 +472,7 @@ export async function probeCanonical() {
     assert.match(rejection.stdout + rejection.stderr, /previously present|deleted/i);
     const result = await verifyGeneratedCandidate({ work, before, after,
       component: PROPOSED_COMPONENT, oldImage, nextImage });
-    return { ...result, phase: "canonical-candidate", ownershipChanges: transition.ownership,
+    return { ...result, phase: frozenAdditive ? "frozen-additive" : "canonical-candidate", ownershipChanges: transition.ownership,
       maintainedFileStatus: transition.legacy.status, candidateFileStatus: transition.selected.status };
   } catch (error) {
     rmSync(work, { recursive: true, force: true });
