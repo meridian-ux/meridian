@@ -74,12 +74,17 @@ node tools/check_web_package.mjs
 
 The check packs all three local artifacts, verifies exported files, installs
 them without lifecycle scripts into a fresh temporary directory, typechecks
-the public imports (including typed old-path facades and canonical envelopes),
+the public imports (including surviving typed facades, canonical envelopes,
+and negative checks for removed DTO/host APIs),
 bundles the installed browser entrypoints with pinned esbuild, and executes a
-browser-DOM smoke test. Installed controls also prove denied semantic actions
-ask no consent, admitted actions honor accepted/declined consent, raw zero/false
-RPC bindings reach the packaged Rust builder unchanged, and an explicit empty
-canonical envelope never revives legacy buttons. It does not resolve
+browser-DOM smoke test. Installed controls also prove denied canonical targets
+ask no consent, admitted targets honor accepted/declined consent, raw zero/false
+RPC bindings reach the packaged Rust builder unchanged, and historical-only or
+explicitly empty canonical envelopes never revive legacy buttons. Historical
+traps are real wire bytes produced with the digest-pinned additive descriptor,
+not ignored unknown JSON keys. Metadata alone cannot recover a destination.
+This tests the removal candidate; the frozen additive compatibility probes
+remain separate. The detached check does not resolve
 first-party dependencies from workspace symlinks or publish to npm. CI also
 retains all existing renderer, compatibility, and conformance gates.
 
