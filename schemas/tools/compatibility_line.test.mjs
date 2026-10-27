@@ -8,7 +8,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership, verifyRemovalCandidateReference } from "./compatibility_line.mjs";
+import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership, verifyRemovalCandidateReference, verifyMaintenanceVersion } from "./compatibility_line.mjs";
+import { RETIRED_FIELDS, verifyRetirement } from "./affordance_removal.mjs";
 import { completeCandidate } from "./prepare_compatibility_candidate.mjs";
 
 test("snapshot preparation retains every unchanged file omitted by the narrow probe", () => {
@@ -150,4 +151,64 @@ test("the removal CLI prints both complete old-line reports and cannot approve a
   const approval = spawnSync(process.execPath, [...args, "--approve"], { encoding: "utf8" });
   assert.notEqual(approval.status, 0);
   assert.match(approval.stderr, /usage:/);
+});
+
+test("maintenance proposal permits FILE-compatible additions while the exact initial rehearsal still rejects them", () => {
+  const work = mkdtempSync(join(tmpdir(), "meridian-maintenance-proposal-"));
+  try {
+    const image = loadImage(REFERENCES["v1-removal-candidate"]);
+    image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .push(create(DescriptorProtoSchema, { name: "FutureAddition" }));
+    const path = join(work, "addition.binpb");
+    writeFileSync(path, toBinary(FileDescriptorSetSchema, image));
+    const result = checkLine("v1-maintenance-proposal", path);
+    assert.equal(result.selected.status, 0);
+    assert.equal(result.legacy.status, 100);
+    assert.equal(result.additive.status, 100);
+    assert.equal(result.ownership.length, 41);
+    assert.throws(() => checkLine("v1-removal-candidate", path), /exact reviewed removal/);
+    const label = image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .find(message => message.name === "Affordance").field.find(field => field.name === "label");
+    label.number = 99;
+    writeFileSync(path, toBinary(FileDescriptorSetSchema, image));
+    assert.throws(() => checkLine("v1-maintenance-proposal", path), /FILE rejected/);
+  } finally { rmSync(work, { recursive: true, force: true }); }
+});
+
+test("maintenance proposal keeps all nine retired fields and reservations retired", () => {
+  for (const [owner, fields] of Object.entries(RETIRED_FIELDS)) {
+    for (const [name, number] of Object.entries(fields)) {
+      for (const kind of ["name", "range", "field"]) {
+        const image = loadImage(REFERENCES["v1-removal-candidate"]);
+        const message = image.file.flatMap(file => file.messageType).find(item => item.name === owner);
+        if (kind === "name") message.reservedName = message.reservedName.filter(value => value !== name);
+        if (kind === "range") message.reservedRange = message.reservedRange.filter(range => !(range.start <= number && number < range.end));
+        if (kind === "field") message.field.push({ ...message.field[0], name: "resurrected", number });
+        assert.throws(() => verifyRetirement(image), /retirement reservation missing|retired field resurrected/);
+      }
+    }
+  }
+});
+
+test("maintenance proposal rejects retired full names even with a new declaration kind", () => {
+  for (const name of ["Action", "RowAction", "OpenPanel", "AffordanceStyle"]) {
+    const image = loadImage(REFERENCES["v1-removal-candidate"]);
+    image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .push(create(DescriptorProtoSchema, { name }));
+    assert.throws(() => verifyRetirement(image), /retired full name resurrected/);
+  }
+  const image = loadImage(REFERENCES["v1-removal-candidate"]);
+  image.file.flatMap(file => file.messageType).find(item => item.name === "Command")
+    .oneofDecl.push({ $typeName: "google.protobuf.OneofDescriptorProto", name: "action" });
+  assert.throws(() => verifyRetirement(image), /retired Command.action oneof resurrected/);
+});
+
+test("maintenance proposal is major-1-only and does not create production aliases", () => {
+  for (const version of ["1.0.0-alpha.1", "1.0.0", "1.12.3+build.7"]) verifyMaintenanceVersion(version);
+  for (const version of ["0.25.1", "2.0.0", "latest", "v1.0.0", "1", "1.00.0"]) {
+    assert.throws(() => verifyMaintenanceVersion(version), /major-1/);
+  }
+  const result = checkLine("v1-maintenance-proposal", REFERENCES["v1-removal-candidate"]);
+  assert.equal(result.selected.status, 0);
+  for (const line of ["v1", "production", "default"]) assert.throws(() => checkLine(line, REFERENCES["v1-removal-candidate"]), /unknown release line/);
 });

@@ -9,16 +9,29 @@ import { spawnSync } from "node:child_process";
 import { fromBinary } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { descriptorFiles } from "./proto_facades.mjs";
-import { loadRemovalReference, survivingImportReference, verifyRemoval } from "./affordance_removal.mjs";
+import { loadRemovalReference, survivingImportReference, verifyRemoval, verifyRetirement } from "./affordance_removal.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const REFERENCES = Object.freeze({
   "maintained-0x": join(root, "schemas/compat/pre-v1.binpb"),
   "v1-candidate": join(root, "schemas/compat/v1-affordance-candidate.binpb"),
   "v1-removal-candidate": join(root, "schemas/compat/v1-removal-candidate.binpb"),
+  "v1-maintenance-proposal": join(root, "schemas/compat/v1-removal-candidate.binpb"),
 });
 export const loadImage = path => fromBinary(FileDescriptorSetSchema, readFileSync(path));
 export const REMOVAL_CANDIDATE_SHA256 = "022c995b582690be2aea4f9c63126cfc93652a168c38d1f3e54c337aa824d55c";
+
+export function verifyMaintenanceVersion(version) {
+  assert.match(version, /^1\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/,
+    "maintenance proposal requires an explicit major-1 module version");
+}
+
+function moduleVersion() {
+  const block = readFileSync(join(root, "MODULE.bazel"), "utf8").match(/^module\((.*?)^\)/ms)?.[1];
+  const version = block?.match(/^\s*version\s*=\s*"([^"]+)"/m)?.[1];
+  assert(version, "missing module(version) for maintenance proposal");
+  return version;
+}
 
 export function verifyRemovalCandidateReference(bytes) {
   assert.equal(createHash("sha256").update(bytes).digest("hex"), REMOVAL_CANDIDATE_SHA256,
@@ -84,12 +97,16 @@ export function checkLine(line, image) {
     assert.equal(checked.status, 0, `maintained-0x FILE rejected this image:\n${checked.report}`);
     return { line, ownership: [], legacy: checked, selected: checked };
   }
-  if (line === "v1-removal-candidate") {
-    // An opt-in initial-cutover rehearsal, not the future production v1 policy.
-    // Freeze the audited removal image, and reject even compatible unrelated
-    // additions here: they need their own review before this exact cutover.
+  if (line === "v1-removal-candidate" || line === "v1-maintenance-proposal") {
+    // Both modes use the inactive, digest-guarded audit reference. The initial
+    // cutover is exact; the separate maintenance proposal also permits FILE-
+    // compatible additions while preserving the reviewed retirement invariants.
     verifyRemovalCandidateReference(readFileSync(REFERENCES[line]));
-    verifyRemoval(loadRemovalReference(), candidate);
+    if (line === "v1-removal-candidate") verifyRemoval(loadRemovalReference(), candidate);
+    else {
+      verifyMaintenanceVersion(moduleVersion());
+      verifyRetirement(candidate);
+    }
     const ownership = ownershipChanges(survivingImportReference(), candidate);
     const legacy = fileCheck(image, REFERENCES["maintained-0x"]);
     requireCompatibilityRejection(legacy);
@@ -111,7 +128,7 @@ export function checkLine(line, image) {
 
 function main(args) {
   assert(args.length === 4 && args[0] === "--line" && args[2] === "--image",
-    "usage: compatibility_line.mjs --line maintained-0x|v1-candidate|v1-removal-candidate --image descriptor.binpb");
+    "usage: compatibility_line.mjs --line maintained-0x|v1-candidate|v1-removal-candidate|v1-maintenance-proposal --image descriptor.binpb");
   const result = checkLine(args[1], args[3]);
   if (result.line !== "maintained-0x") {
     process.stdout.write(`Maintained 0.x FILE: REJECTED (exit ${result.legacy.status}); full report follows\n${result.legacy.report}\n`);

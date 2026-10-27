@@ -86,6 +86,31 @@ export function verifyRemoval(reference, candidate) {
   return { fields: 9, messages: 3, enums: 1 };
 }
 
+// Proposed post-cutover invariants. FILE protects the surviving contract, but
+// adding a formerly deleted type is normally compatible with an empty slot.
+// Keep the reviewed retirements explicit without prohibiting new v1 APIs.
+export function verifyRetirement(candidate) {
+  const files = candidate.file.filter(file => file.package === "meridian.ui.v1");
+  const messages = files.flatMap(file => file.messageType);
+  const retired = new Set([...RETIRED_MESSAGES, ...RETIRED_ENUMS]);
+  for (const file of files) {
+    for (const item of [...file.messageType, ...file.enumType, ...file.service]) {
+      assert(!retired.has(item.name), `retired full name resurrected: meridian.ui.v1.${item.name}`);
+    }
+  }
+  for (const [name, fields] of Object.entries(RETIRED_FIELDS)) {
+    const message = messages.find(item => item.name === name);
+    assert(message, `missing retirement owner: ${name}`);
+    for (const [fieldName, number] of Object.entries(fields)) {
+      assert(!message.field.some(field => field.name === fieldName || field.number === number),
+        `retired field resurrected: ${name}.${fieldName}`);
+      assert(message.reservedName.includes(fieldName) && message.reservedRange.some(range => range.start <= number && number < range.end),
+        `retirement reservation missing: ${name}.${fieldName}`);
+    }
+    if (name === "Command") assert(!message.oneofDecl.some(oneof => oneof.name === "action"), "retired Command.action oneof resurrected");
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   assert(process.argv.length === 4 && process.argv[2] === "--check",
     "usage: affordance_removal.mjs --check full-module.binpb");
