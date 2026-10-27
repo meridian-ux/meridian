@@ -1,5 +1,6 @@
 // Release-line preparation, not a production cutover selector. The repository's
 // default FILE policy is unchanged; an explicit candidate check cannot activate it.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -138,4 +139,4 @@ function main(args) {
   console.log(`${result.line} FILE: passed against its explicit frozen baseline`);
   if (result.line !== "maintained-0x") console.log("PREPARATION ONLY: no production baseline activation, cutover, release, or publication approval");
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+if (isMain(import.meta.url)) main(process.argv.slice(2));

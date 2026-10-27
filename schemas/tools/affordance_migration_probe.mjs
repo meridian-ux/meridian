@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Proposal-only experiment. Nothing is generated into production source/package
 // directories, and expected FILE rejection is evidence, not a gate exception.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -491,5 +492,5 @@ async function main() {
   } finally { if (!args.includes("--keep")) rmSync(result.work, { recursive: true, force: true }); }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+if (isMain(import.meta.url))
   await main();

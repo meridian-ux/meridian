@@ -23,7 +23,7 @@ py_binary(
     name = "re_record_conformance",
     srcs = ["tools/re_record_conformance.py"],
     main = "tools/re_record_conformance.py",
-    data = ["//schemas:tools/conformance_snapshots.mjs"],
+    data = ["//schemas:tools/conformance_snapshots.mjs", "//schemas:tools/cli_entrypoint.mjs"],
 )
 
 # EVERY JS target in this repo depends on `//:node_modules/<pkg>`, and those

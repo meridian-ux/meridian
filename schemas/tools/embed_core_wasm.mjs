@@ -1,5 +1,6 @@
 // Package the pinned Rust bridge as a synchronous, self-contained ES module.
 // The same generator feeds Bazel's published package and local pnpm consumers.
+import { isMain } from "./cli_entrypoint.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +22,7 @@ export function embedCore(glue, bytes, declarations) {
   };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   const [glue, bytes, types, javascriptOut, declarationsOut] = process.argv.slice(2)
     .map(path => resolve(process.env.JS_BINARY__EXECROOT ?? ".", path));
   if (!declarationsOut) throw new Error("usage: embed_core_wasm.mjs glue.js bytes.wasm types.d.ts output.js output.d.ts");

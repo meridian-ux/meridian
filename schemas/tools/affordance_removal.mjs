@@ -1,5 +1,6 @@
 // Exact draft major-boundary validation. This is not a FILE-policy selector,
 // migration executor, or permission to activate/publish the candidate.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -111,7 +112,7 @@ export function verifyRetirement(candidate) {
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   assert(process.argv.length === 4 && process.argv[2] === "--check",
     "usage: affordance_removal.mjs --check full-module.binpb");
   const candidate = fromBinary(FileDescriptorSetSchema, readFileSync(process.argv[3]));

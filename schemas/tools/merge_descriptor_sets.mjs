@@ -1,5 +1,6 @@
 // Assemble Cargo's self-contained image from the actual Bazel proto dependency
 // outputs. Never fill missing dependencies from a stale reference image.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -37,4 +38,4 @@ function main(args) {
   writeFileSync(args[1], toBinary(FileDescriptorSetSchema, image));
   console.log(`Generated self-contained descriptor: ${image.file.length} files`);
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+if (isMain(import.meta.url)) main(process.argv.slice(2));
