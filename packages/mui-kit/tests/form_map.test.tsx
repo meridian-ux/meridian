@@ -29,7 +29,7 @@ function mapView(): ViewDescriptor {
       value: create(FormPanelSchema, {
         mode: FormMode.EDIT,
         itemNoun: "item",
-        submit: create(RpcCallSchema, { service: "svc", method: "save" }),
+        submitAffordance: { label: "Save item", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "svc", method: "save" }) } },
         fields: [
           create(FormFieldSchema, {
             fieldId: "metadata",

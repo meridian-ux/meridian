@@ -124,7 +124,9 @@ describe("TablePanel row selection + actions", () => {
     // The actual shared Rust builder now evaluates these bindings. The old
     // injectable host builder must not supply an alternate request/fallback.
     const buildRequest = vi.fn(() => { throw Error("Do not use the old builder"); });
-    const declared = tableWithActionsFixture.body.case === "table" ? tableWithActionsFixture.body.value.actions[0].rpc! : null!;
+    const intent = tableWithActionsFixture.body.case === "table" ? tableWithActionsFixture.body.value.affordances!.items[0].invoke : null!;
+    if (intent.case !== "rpc") throw Error("Expected canonical table RPC");
+    const declared = intent.value;
     expect(declared.service).toBe("acme.Builds"); expect(declared.method).toBe("ListBuildTargets");
     expect(declared.bindings).toHaveLength(1); expect(declared.bindings[0].requestField).toBe("name");
     expect(declared.bindings[0].source).toEqual({ case: "rowField", value: "name" });

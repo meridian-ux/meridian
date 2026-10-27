@@ -69,17 +69,8 @@ impl Text {
         }
         Ok(())
     }
-    fn actions(&mut self, actions: &[proto::Action], depth: usize) -> Result<(), StaticViewError> {
-        for action in actions {
-            self.node(depth)?;
-            self.line(format_args!("Action: {} [{}]", action.label, action.id))?;
-            self.rpc("Destination", action.call.as_ref())?;
-        }
-        Ok(())
-    }
     fn action_source(
         &mut self,
-        legacy: &[proto::Action],
         canonical: Option<&proto::AffordanceCollection>,
         depth: usize,
     ) -> Result<(), StaticViewError> {
@@ -87,19 +78,13 @@ impl Text {
             for action in &canonical.items {
                 self.affordance(action, depth)?;
             }
-            Ok(())
-        } else {
-            self.actions(legacy, depth)
         }
+        Ok(())
     }
     fn view(&mut self, view: &ViewDescriptor, depth: usize) -> Result<(), StaticViewError> {
         self.node(depth)?;
         self.line(format_args!("View: {} [{}]", view.title, view.id))?;
-        self.action_source(
-            crate::legacy::view_actions(view),
-            view.affordances.as_ref(),
-            depth,
-        )?;
+        self.action_source(view.affordances.as_ref(), depth)?;
         if view.slots.len() > self.nodes {
             return Err(StaticViewError);
         }
@@ -187,11 +172,7 @@ impl Text {
             ))?;
             return Ok(());
         }
-        self.action_source(
-            crate::legacy::slot_actions(slot),
-            slot.affordances.as_ref(),
-            depth,
-        )?;
+        self.action_source(slot.affordances.as_ref(), depth)?;
         if let Some(view) = &slot.sub_view {
             if slot.sub_view_populate.is_some() {
                 self.copy("Repeated template only; records require an interactive/data host.")?;
@@ -362,12 +343,6 @@ impl Text {
             for action in &canonical.items {
                 self.affordance(action, depth)?;
             }
-        } else {
-            for action in crate::legacy::table_actions(table) {
-                self.node(depth)?;
-                self.line(format_args!("Row action: {}", action.label))?;
-                self.rpc("Destination", action.rpc.as_ref())?;
-            }
         }
         self.copy("[rows unavailable without host data]")
     }
@@ -402,8 +377,6 @@ impl Text {
                 self.fields(&p.fields, true, depth + 1)?;
                 if let Some(canonical) = &p.submit_affordance {
                     self.affordance(canonical, depth)?;
-                } else {
-                    self.rpc("Submit", crate::legacy::form_submit(p))?;
                 }
             }
             Some(Body::Prompt(p)) => {
@@ -639,9 +612,26 @@ pub fn static_view_text(view: &ViewDescriptor) -> Result<String, StaticViewError
 mod tests {
     use super::*;
     use crate::proto::*;
+    use prost::Message;
+
+    // Exercise actual retired wire fields, not replacement source-level DTOs.
+    fn retired_wire<M: Message + Default>(value: M, tag: u32, payload: &[u8]) -> M {
+        let mut wire = value.encode_to_vec();
+        prost::encoding::encode_key(tag, prost::encoding::WireType::LengthDelimited, &mut wire);
+        prost::encoding::encode_varint(payload.len() as u64, &mut wire);
+        wire.extend_from_slice(payload);
+        M::decode(wire.as_slice()).unwrap()
+    }
+
+    fn retired_label(tag: u32, label: &str) -> Vec<u8> {
+        let mut wire = Vec::new();
+        prost::encoding::encode_key(tag, prost::encoding::WireType::LengthDelimited, &mut wire);
+        prost::encoding::encode_varint(label.len() as u64, &mut wire);
+        wire.extend_from_slice(label.as_bytes());
+        wire
+    }
 
     #[test]
-    #[allow(deprecated)] // Canonical precedence must defeat these legacy traps.
     fn canonical_collections_win_whole_in_passive_composition() {
         for populated in [false, true] {
             let source = || {
@@ -657,35 +647,35 @@ mod tests {
                     },
                 })
             };
-            let view = ViewDescriptor {
-                title: "Canonical projection".into(),
-                actions: vec![Action {
-                    label: "Legacy header trap".into(),
-                    ..Default::default()
-                }],
-                affordances: source(),
-                slots: vec![Slot {
-                    title: "Slot".into(),
-                    actions: vec![Action {
-                        label: "Legacy slot trap".into(),
-                        ..Default::default()
-                    }],
+            let view = retired_wire(
+                ViewDescriptor {
+                    title: "Canonical projection".into(),
                     affordances: source(),
-                    panel: Some(PanelDescriptor {
-                        body: Some(Body::Table(TablePanel {
-                            actions: vec![RowAction {
-                                label: "Legacy row trap".into(),
-                                ..Default::default()
-                            }],
+                    slots: vec![retired_wire(
+                        Slot {
+                            title: "Slot".into(),
                             affordances: source(),
+                            panel: Some(PanelDescriptor {
+                                body: Some(Body::Table(retired_wire(
+                                    TablePanel {
+                                        affordances: source(),
+                                        ..Default::default()
+                                    },
+                                    6,
+                                    &retired_label(1, "Legacy row trap"),
+                                ))),
+                                ..Default::default()
+                            }),
                             ..Default::default()
-                        })),
-                        ..Default::default()
-                    }),
+                        },
+                        7,
+                        &retired_label(2, "Legacy slot trap"),
+                    )],
                     ..Default::default()
-                }],
-                ..Default::default()
-            };
+                },
+                8,
+                &retired_label(2, "Legacy header trap"),
+            );
             let text = static_view_text(&view).unwrap();
             assert!(!text.contains("Legacy"), "{text}");
             assert_eq!(
@@ -698,7 +688,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(deprecated)] // Retain the old submit as a deliberate fallback trap.
     fn canonical_submit_never_revives_legacy_rpc_even_without_intent() {
         for target in [
             None,
@@ -711,19 +700,23 @@ mod tests {
             let view = ViewDescriptor {
                 slots: vec![Slot {
                     panel: Some(PanelDescriptor {
-                        body: Some(Body::Form(Box::new(FormPanel {
-                            submit: Some(RpcCall {
+                        body: Some(Body::Form(Box::new(retired_wire(
+                            FormPanel {
+                                submit_affordance: Some(Box::new(Affordance {
+                                    label: "Canonical submit".into(),
+                                    invoke: target,
+                                    ..Default::default()
+                                })),
+                                ..Default::default()
+                            },
+                            3,
+                            &RpcCall {
                                 service: "Legacy".into(),
                                 method: "Trap".into(),
                                 ..Default::default()
-                            }),
-                            submit_affordance: Some(Box::new(Affordance {
-                                label: "Canonical submit".into(),
-                                invoke: target,
-                                ..Default::default()
-                            })),
-                            ..Default::default()
-                        }))),
+                            }
+                            .encode_to_vec(),
+                        )))),
                         ..Default::default()
                     }),
                     ..Default::default()
@@ -948,11 +941,14 @@ mod tests {
                     panel: Some(PanelDescriptor {
                         body: Some(Body::Form(Box::new(FormPanel {
                             fields,
-                            submit: Some(RpcCall {
-                                service: "fixture".into(),
-                                method: "Delete".into(),
+                            submit_affordance: Some(Box::new(Affordance {
+                                invoke: Some(affordance::Invoke::Rpc(RpcCall {
+                                    service: "fixture".into(),
+                                    method: "Delete".into(),
+                                    ..Default::default()
+                                })),
                                 ..Default::default()
-                            }),
+                            })),
                             ..Default::default()
                         }))),
                         ..Default::default()

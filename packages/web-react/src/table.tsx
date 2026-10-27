@@ -1,6 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { ColumnFormat, type TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { normalizeLegacyAction, normalizeTableActions, formatByDisplay, formatLegacyNumber, isSafeHttpUrl, resolveValueLink, type NormalizedAction, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { normalizeAffordance, normalizeTableActions, formatByDisplay, formatLegacyNumber, isSafeHttpUrl, resolveValueLink, type NormalizedAction, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { useDisplayNow } from "./display_now.js";
 import { resolvePath, selectionDeps, useMeridianSelection, usePagedRows } from "./pagination.js";
 import { useHrefResolver } from "./provider.js";
@@ -46,7 +46,7 @@ export function TableContent({ panel, invoker, styled = false }: { panel: TableP
   const selectedRow = data.rows[selectedIndex];
   const legacyViewActions = useContext(MeridianRowActionsContext);
   const canonicalViewActions = useContext(MeridianNormalizedRowActionsContext);
-  const actions = [...normalizeTableActions(panel), ...(canonicalViewActions ?? legacyViewActions.map(normalizeLegacyAction))];
+  const actions = [...normalizeTableActions(panel), ...(canonicalViewActions ?? legacyViewActions.map(normalizeAffordance))];
   const selectable = actions.length > 0;
   const refresh = useCallback(async () => { setSelected(undefined); data.refresh(); }, [data.refresh]);
   const select = (index: number) => {

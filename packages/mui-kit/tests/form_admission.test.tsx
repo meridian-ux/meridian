@@ -1,7 +1,8 @@
-import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
+import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import { act } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -16,13 +17,14 @@ afterAll(() => vi.unstubAllGlobals());
 
 function setup(intent: JsonObject = { copy: "literal" }) {
   const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2, itemNoun: "legacy",
-    submit: { service: "legacy.Forms", method: "Delete" }, submitAffordance: fromJson(AffordanceSchema, { label: "Canonical submit", ...intent }), fields: [
+    submitAffordance: fromJson(AffordanceSchema, { label: "Canonical submit", ...intent }), fields: [
       { fieldId: "name", label: "Name", requestField: "legacy.name", kind: { case: "text", value: { defaultValue: "initial", minLength: 2 } } },
       { fieldId: "zero", label: "Zero", kind: { case: "integer", value: { defaultValue: 0 } } },
       { fieldId: "flag", label: "Flag", kind: { case: "boolean", value: { defaultValue: false } } },
     ] } } });
   if (descriptor.body.case !== "form") throw new Error("Expected form");
   const form = descriptor.body.value;
+  Object.assign(form, readFrozen(FormPanelSchema, { ...toJson(FormPanelSchema, form) as JsonObject, submit: { service: "legacy.Forms", method: "Delete" } }));
   const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({}));
   const cap = () => vi.fn(async (_target: unknown, _context: unknown, _signal: AbortSignal) => {});
   const caps = { uri: cap(), command: cap(), navigate: cap(), openPanel: cap(), openView: cap(), copy: cap() };

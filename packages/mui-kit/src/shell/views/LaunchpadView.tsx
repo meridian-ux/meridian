@@ -3,10 +3,8 @@
 import { Box, Button, Dialog, DialogContent, Divider, InputAdornment, List,
   ListItemButton, ListItemIcon, ListItemText, TextField, Typography } from "@mui/material";
 import * as React from "react";
-import { create } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { Command, Launchpad } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { normalizeCommand, NormalizedAction, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import { ActionGroup, useActionGroup, useActionInvocation, useIcon } from "@savvifi/meridian-web-react";
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
@@ -17,13 +15,9 @@ function CommandIcon({ iconKey }: { iconKey: string }) {
   return glyph ? <ListItemIcon sx={{ minWidth: 36 }}>{glyph}</ListItemIcon> : null;
 }
 
-// Search metadata stays on Command. This shell chooses URL-driven legacy
-// commands; canonical presence wins whole, even when its intent is empty.
+// Search/URL metadata is not invocation intent and cannot supply a fallback.
 function paletteAction(command: Command) {
-  const normalized = normalizeCommand(command).action;
-  return command.affordance === undefined && command.deepLink
-    ? new NormalizedAction(create(AffordanceSchema, { id: command.id, label: command.title,
-      invoke: { case: "uri", value: command.deepLink } }), undefined, "command") : normalized;
+  return normalizeCommand(command).action;
 }
 
 function exceedsBudget(launchpad: Launchpad | undefined) {
@@ -43,16 +37,18 @@ function PaletteCommand({ command, visible, open, position, selected, highlight,
 }) {
   const action = paletteAction(command);
   const intent = action.affordance.invoke;
+  const missingTarget = intent.case === undefined;
   const unsafe = intent.case === "uri" ? !safeNavigationHref(intent.value)
     : intent.case === "navigate" ? !safeNavigationHref(intent.value.route) : false;
   const invocation = useActionInvocation(action, { enabled: open && visible });
   const group = useActionGroup();
   const owner = React.useId();
-  const message = unsafe ? "Action denied: this destination is unsafe or missing."
+  const message = missingTarget ? "Action unavailable: this command has no canonical target."
+    : unsafe ? "Action denied: this destination is unsafe or missing."
     : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
   const otherPending = group?.owner !== undefined && group.owner !== owner;
   const run = (trigger: HTMLElement) => {
-    if (unsafe) return;
+    if (missingTarget || unsafe) return;
     if (group && !group.acquire(owner)) return;
     void invocation.activate(trigger).then(result => {
       if (result?.status === "succeeded") close();
@@ -61,8 +57,8 @@ function PaletteCommand({ command, visible, open, position, selected, highlight,
   return <li hidden={!visible} style={{ listStyle: "none" }}>
     <ListItemButton component="button" type="button" sx={{ width: "100%", textAlign: "left" }} data-launchpad-position={visible ? position : undefined}
       selected={selected} onMouseEnter={highlight}
-      disabled={unsafe || otherPending || invocation.unavailable || invocation.predicateDenied}
-      aria-disabled={unsafe || invocation.pending || invocation.policyDenied || undefined}
+      disabled={missingTarget || unsafe || otherPending || invocation.unavailable || invocation.predicateDenied}
+      aria-disabled={missingTarget || unsafe || invocation.pending || invocation.policyDenied || undefined}
       aria-busy={invocation.pending || undefined}
       aria-describedby={message ? invocation.feedbackId : undefined}
       onClick={event => run(event.currentTarget)}>

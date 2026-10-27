@@ -12,7 +12,7 @@ export function ActionControl({ action, options, className, menuItem, onSuccess 
   const owner = useId();
   const otherPending = group?.owner !== undefined && group.owner !== owner;
   const intent = action.affordance.invoke;
-  const missing = !action.semanticAction && (intent.case === undefined || intent.case === "rpc" && (!intent.value.service || !intent.value.method));
+  const missing = intent.case === undefined || intent.case === "rpc" && (!intent.value.service || !intent.value.method);
   const message = invocation.feedback ?? (missing ? "Action unavailable: this target is missing or unsupported."
     : invocation.policyDenied ? "This action is unavailable." : undefined);
   const { primary, tone, style } = affordancePresentation(action.affordance);

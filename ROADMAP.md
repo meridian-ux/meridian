@@ -124,10 +124,13 @@ The table below is **generated** from the coverage manifest by
 |---|---|
 | `rpc` | ● |
 | `open_panel` | ● |
-| `open_view_id` | ● |
+| `open_view` | ● |
+| `uri` | ● |
+| `command` | ● |
+| `copy` | ● |
 | `navigate` | ● |
 
-**4 arms × 1 renderer = 4 cells; 4 render, 0 do not.**
+**7 arms × 1 renderer = 7 cells; 7 render, 0 do not.**
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · ? unverified · – not applicable.
@@ -283,7 +286,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 | concept | today it is spelled | distilled to |
 |---|---|---|
 | **Tone** — how serious, how it looks | shared `Tone` (6 roles), presence-aware conversation/action adoption, and descriptor-driven stable-renderer theme proofs; compatible legacy APIs remain | integrated additive presentation contract — [#10](../../issues/10); preview SwiftUI remains explicitly outside full native parity |
-| **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
+| **Affordance** — what can I do here | Original migration baseline: `Affordance.invoke {uri, command}`, `Command.action`, `RowAction`, `ActionPanel`, kit `ActionBar`, and `ActionPlacement` | Draft canonical-only seven-target `Affordance` through one admission seam — [#11](../../issues/11); [removal candidate](schemas/migration/REMOVAL.md) remains unmerged and cutover-gated |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` defines radius/unit plus bounded spacing/density/stroke, with shared web bindings and explicit terminal degradation ([contract](schemas/METRICS.md)); four layout modes have per-modality realization rules; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | integrated stable-renderer Metrics/Typography bindings, layout degradation rules, nine-kind form validation, and complete glossary — [#13](../../issues/13); SwiftUI retains preview scope |
 

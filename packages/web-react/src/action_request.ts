@@ -9,6 +9,7 @@ const WORK = 4 * 1024 * 1024;
 const DEPTH = 64;
 const NODES = 65_536;
 const DECLARATION = 64 * 1024;
+const typedArrayLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "length")!.get!;
 const unsafe = (key: string) => key === "__proto__" || key === "constructor" || key === "prototype";
 const reject = (): never => { throw new Error("Request construction rejected."); };
 
@@ -56,6 +57,17 @@ class Budget {
       return value;
     }
     if (!value || typeof value !== "object" || ancestors.has(value)) return reject();
+    if (descriptor && Object.getPrototypeOf(value) === Uint8Array.prototype) {
+      // Protobuf unknown fields carry wire bytes. Retain bounded identity,
+      // without consulting an attacker-supplied iterator/length/toJSON hook.
+      const length = typedArrayLength.call(value) as number;
+      this.reserve(length * 96);
+      this.nodes -= length;
+      if (this.nodes < 0) reject();
+      const bytes: number[] = [];
+      for (let index = 0; index < length; index++) bytes.push(own(value, String(index)) as number);
+      return bytes;
+    }
     const array = Array.isArray(value);
     if (!array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) reject();
     ancestors.add(value);

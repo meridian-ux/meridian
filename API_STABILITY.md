@@ -96,13 +96,14 @@ opening resets the transient query. Escape/backdrop request closing. Successful
 settlement closes; open-panel targets require explicit host capabilities rather
 than mounting descriptor content implicitly inside the palette.
 
-Legacy deep links take precedence over old actions only and require an explicit
-URI capability and target policy, never implicit browser navigation.
+In the unmerged [removal candidate](schemas/migration/REMOVAL.md), only
+`Command.affordance` supplies invocation intent. Retired command fields and
+`deep_link` metadata never supply a target; absent or empty intent stays inert.
 Navigate and open-view actions require explicit provider invocation capabilities
 and target policy. `onNavigate` and `onOpenView` remain deprecated type-compatible
 props, not grants; no browser navigation or old provider-handler fallback exists.
 Unsafe destinations are disabled and emit neither `onRun` nor `onClose`.
-Canonical Command affordance presence wins over legacy action/deep-link hints.
+Canonical command metadata remains separate from its typed invocation target.
 RPC actions use
 the shared dispatcher and actual Rust binding builder with current raw context;
 the host's mutation allowlist remains authoritative and defaults to deny.

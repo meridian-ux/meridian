@@ -48,7 +48,7 @@ jobs:
       - name: Actual canonical Swift migration-consumer tests
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --canonical --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/swift-affordance-probe.json")"
           generator_dir="$(swift build --package-path .build/checkouts/swift-protobuf --scratch-path .build/swift-protobuf-generator --show-bin-path)"
           python3 tools/affordance_swift_probe.py --canonical --scratch "$probe_dir" --generator "$generator_dir/protoc-gen-swift"
@@ -69,7 +69,7 @@ jobs:
       - name: Compiled Java migration-consumer and descriptor-ownership probe
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --canonical --keep > "$RUNNER_TEMP/affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/affordance-probe.json")"
           protoc_archive="$RUNNER_TEMP/meridian-protoc.zip"
           curl --fail --location --silent --show-error -o "$protoc_archive" https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protoc-33.4-linux-x86_64.zip
@@ -77,7 +77,7 @@ jobs:
           unzip -q "$protoc_archive" -d "$RUNNER_TEMP/meridian-protoc"
           runtime_jar="$RUNNER_TEMP/protobuf-java-4.33.4.jar"
           curl --fail --location --silent --show-error -o "$runtime_jar" https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/4.33.4/protobuf-java-4.33.4.jar
-          python3 tools/affordance_java_probe.py --scratch "$probe_dir" \
+          python3 tools/affordance_java_probe.py --removal --scratch "$probe_dir" \
             --protoc "$RUNNER_TEMP/meridian-protoc/bin/protoc" \
             --java "$JAVA_HOME/bin/java" --javac "$JAVA_HOME/bin/javac" --runtime-jar "$runtime_jar"
 
@@ -97,7 +97,7 @@ jobs:
       - name: Actual canonical Rust candidate workspace tests
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --canonical --keep > "$RUNNER_TEMP/rust-affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/rust-affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/rust-affordance-probe.json")"
           python3 -u tools/affordance_rust_probe.py --canonical --scratch "$probe_dir"
 
@@ -242,7 +242,7 @@ jobs:
       - name: Mirror conformance self-test
         run: node --test "schemas/tools/*.test.mjs"
 
-      - name: Proposal-only Affordance migration, facades, and real TS consumers
+      - name: Exact Affordance removal, frozen additive contracts, and real TS consumers
         run: node schemas/tools/affordance_consumer_probe.mjs
 
       - name: Admission gate

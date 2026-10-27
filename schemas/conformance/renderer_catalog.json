@@ -17,7 +17,7 @@
     },
     "launchpad": {
       "schema": "schemas/proto/interaction.proto",
-      "oneof": "Command.action",
+      "oneof": "Affordance.invoke",
       "coverage": "schemas/conformance/coverage.json"
     }
   },

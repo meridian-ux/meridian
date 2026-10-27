@@ -106,7 +106,7 @@ function FormSession({ panel, c, className, submitLabel, submittingLabel, succes
   const counts = useRef(new Map<string, number>());
   const alive = useRef(true);
   const form = useRef<HTMLFormElement>(null);
-  const call = panel.submit;
+  const call = panel.submitAffordance?.invoke.case === "rpc" ? panel.submitAffordance.invoke.value : undefined;
   const allowed = Boolean(call?.service && call.method && createAdmissionGate(admission).admits("mutation", call.service, call.method));
   const operationInput = submissionKind === "lro";
   const action = normalizeFormSubmit(panel, submitLabel ?? `Save ${panel.itemNoun}`.trim());

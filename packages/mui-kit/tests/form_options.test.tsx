@@ -13,7 +13,7 @@ const field = () => create(FormFieldSchema, { fieldId: "region", label: "Region"
 } } });
 function mount(invoke: ReturnType<typeof vi.fn>, prefill = false) {
   const view = create(ViewDescriptorSchema, { id: "form", layout: { mode: { case: "stacked", value: {} } }, slots: [{ id: "form", panel: {
-    panelId: "form", body: { case: "form", value: { mode: 2, fields: [field()], submit: { service: "Regions", method: "Save" },
+    panelId: "form", body: { case: "form", value: { mode: 2, fields: [field()], submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "Regions", method: "Save" } } },
       ...(prefill ? { prefill: { service: "Regions", method: "Get" } } : {}),
     } },
   } }] });

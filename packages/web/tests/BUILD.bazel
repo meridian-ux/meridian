@@ -8,7 +8,7 @@ package(default_visibility = ["//visibility:public"])
 # Chrome/Playwright runner in mui-kit; the rendered bundle contains no MUI code.
 esbuild(
     name = "browser_fixture_bundle",
-    srcs = ["browser_fixture.ts", ":src_lib", "//packages/web/theme:binding", "//schemas:tone_conformance_data"],
+    srcs = ["browser_fixture.ts", "retired_wire.ts", ":src_lib", "//packages/web/theme:binding", "//schemas:tone_conformance_data"],
     entry_point = "browser_fixture.ts",
     bundle = True,
     format = "iife",
@@ -85,6 +85,8 @@ vitest_test(
         "form.test.ts",
         "form_admission.test.ts",
         "table_admission.test.ts",
+        "retired_wire.test.ts",
+        "retired_wire.ts",
         "llm_prompt.test.ts",
         "prompt.test.ts",
         "media.test.ts",
@@ -99,6 +101,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
+        "//schemas:frozen_affordance_test_data",
         ":src_lib",
     ],
 )
@@ -217,6 +220,7 @@ vitest_test(
         "//packages/web:node_modules/vitest",
         "//schemas:core_conformance_data",
         "//schemas:value_option_data",
+        "//schemas:frozen_affordance_test_data",
         "//schemas:conformance_fixtures",
         ":src_lib",
     ],
@@ -281,6 +285,7 @@ vitest_test(
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
+        "//schemas:frozen_affordance_test_data",
     ],
 )
 

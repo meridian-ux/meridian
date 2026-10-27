@@ -25,6 +25,7 @@
 
 import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { validateFormValues } from "@savvifi/meridian-schemas/uiview";
@@ -155,9 +156,9 @@ describe("composed views through actual WASM", () => {
       { id: "card", panel: { body: { case: "recordCard", value: { fields: [
         { fieldId: "title", label: "Card title", kind: { case: "text", value: {} } },
       ] } } } },
-      { id: "form", panel: { body: { case: "form", value: { mode: 2, submit: { service: "fixture.Composite", method: "Save", bindings: [
+      { id: "form", panel: { body: { case: "form", value: { mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Composite", method: "Save", bindings: [
         { requestField: "recordId", source: { case: "rowField", value: "id" } },
-      ] }, fields: [
+      ] } } }, fields: [
         { fieldId: "title", label: "Title", kind: { case: "text", value: {} } },
         { fieldId: "enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: true } } },
         { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 7 } } },
@@ -848,7 +849,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     { navigate: { route: "/next" } }, { openView: "next" }, { openPanel: { panelId: "next" } }];
   it.each(nonRpcSubmissions)(
     "canonical non-RPC submission never revives the old form RPC %#", intent => {
-      const descriptor = fromJson(PanelDescriptorSchema, { form: {
+      const descriptor = readFrozen(PanelDescriptorSchema, { form: {
         submit: { service: "legacy.Service", method: "Trap" }, submitAffordance: intent,
       } });
       expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, {}))
@@ -856,7 +857,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     });
 
   it("canonical RPC submission owns its bindings and raw values instead of using the old call", () => {
-    const descriptor = fromJson(PanelDescriptorSchema, { form: {
+    const descriptor = readFrozen(PanelDescriptorSchema, { form: {
       fields: [{ fieldId: "zero", integer: {} }, { fieldId: "disabled", boolean: {} }, { fieldId: "raw", text: {} }],
       submit: { service: "legacy.Service", method: "Trap", bindings: [{ requestField: "target", literal: "legacy" }] },
       submitAffordance: { rpc: { service: "current.Service", method: "Submit", bindings: [
@@ -874,7 +875,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     const fields = [{ fieldId: "input.name", requestField: "settings.name", kind: { case: "text" as const, value: {} } }];
     const call = { bindings: [{ requestField: "bound", source: { case: "formField" as const, value: "input.name" } }] };
     const descriptor = create(PanelDescriptorSchema, {
-      body: arm === "form" ? { case: "form", value: { fields, submit: call } }
+      body: arm === "form" ? { case: "form", value: { fields, submitAffordance: { invoke: { case: "rpc", value: call } } } }
         : { case: "lro", value: { inputs: fields, start: call } },
     });
     const request = wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, { "input.name": "001.20", hidden: "not sent" });
@@ -890,7 +891,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       requestField: "same", source: { case: "context" as const, value: 2 },
     })) };
     const descriptor = create(PanelDescriptorSchema, {
-      body: arm === "form" ? { case: "form", value: { fields, mode: 2, submit: call } }
+      body: arm === "form" ? { case: "form", value: { fields, mode: 2, submitAffordance: { invoke: { case: "rpc", value: call } } } }
         : { case: "lro", value: { inputs: fields, start: call } },
     });
     // Keep the Form case inside the adapter's existing snapshot ceiling so
@@ -935,7 +936,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
     const oldBuilder = vi.fn(() => { throw Error("private legacy builder"); });
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+      mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Form", method: "Save" } } }, fields: [],
     } } });
     try {
       await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : oldBuilder }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
@@ -1050,7 +1051,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       if (kind === "opaque") value = new Date();
       const rpc = create(RpcCallSchema, {});
       const table = create(PanelDescriptorSchema, { body: { case: "table", value: { populate: rpc } } });
-      const form = create(PanelDescriptorSchema, { body: { case: "form", value: { submit: rpc } } });
+      const form = create(PanelDescriptorSchema, { body: { case: "form", value: { submitAffordance: { invoke: { case: "rpc", value: rpc } } } } });
       const context = { ...CTX, uiIdentity: value as object };
       for (const call of [
         () => wasm.buildRequest(toBinary(RpcCallSchema, rpc), context),
@@ -1080,7 +1081,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it("enforces the request JSON output ceiling independently of copy-work accounting", () => {
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      submit: {}, fields: [{ fieldId: "x", kind: { case: "text", value: {} } }],
+      submitAffordance: { invoke: { case: "rpc", value: {} } }, fields: [{ fieldId: "x", kind: { case: "text", value: {} } }],
     } } });
     const bytes = toBinary(PanelDescriptorSchema, descriptor);
     const limit = 4 * 1024 * 1024;
@@ -1121,7 +1122,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it("shares one input conversion budget between submission context and field values", () => {
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      submit: {}, fields: [{ fieldId: "extra", kind: { case: "text", value: {} } }],
+      submitAffordance: { invoke: { case: "rpc", value: {} } }, fields: [{ fieldId: "extra", kind: { case: "text", value: {} } }],
     } } });
     expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), {
       ...CTX, uiIdentity: { unused: "x".repeat(2 * 1024 * 1024) },
@@ -1133,7 +1134,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
     const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+      mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Form", method: "Save" } } }, fields: [],
     } } });
     try {
       await renderPanel({ root, descriptor, wasm, context: { ...CTX, uiIdentity: cyclic }, invoker: { invoke }, admission: "unrestricted" });

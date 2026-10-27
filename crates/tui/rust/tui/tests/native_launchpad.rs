@@ -8,11 +8,12 @@ use meridian_tui::{
 };
 use meridian_uiview::{
     proto::{
-        affordance::Invoke, command::Action, field_binding, Affordance, Command, CommandGroup,
-        FieldBinding, Launchpad, Navigate, OpenPanel, PanelDescriptor, RowFilter, RpcCall,
+        affordance::Invoke, field_binding, Affordance, Command, CommandGroup, FieldBinding,
+        Launchpad, Navigate, PanelDescriptor, RowFilter, RpcCall,
     },
     Context,
 };
+use prost::Message;
 use serde_json::{json, Value};
 use std::cell::{Cell, RefCell};
 
@@ -36,20 +37,31 @@ fn palette(command: Command) -> Launchpad {
         ..Default::default()
     }
 }
+fn retired_command(command: Command, tag: u32, payload: &[u8]) -> Command {
+    let mut wire = command.encode_to_vec();
+    prost::encoding::encode_key(tag, prost::encoding::WireType::LengthDelimited, &mut wire);
+    prost::encoding::encode_varint(payload.len() as u64, &mut wire);
+    wire.extend_from_slice(payload);
+    Command::decode(wire.as_slice()).unwrap()
+}
 fn canonical(invoke: Option<Invoke>) -> Command {
-    Command {
-        affordance: Some(Affordance {
-            label: "Canonical run".into(),
-            invoke,
-            refresh_on_success: Some(false),
-            ..Default::default()
-        }),
-        action: Some(Action::Navigate(Navigate {
+    retired_command(
+        Command {
+            affordance: Some(Affordance {
+                label: "Canonical run".into(),
+                invoke,
+                refresh_on_success: Some(false),
+                ..Default::default()
+            }),
+            deep_link: "/deep-link-trap".into(),
+            ..command("same", "Run command")
+        },
+        11,
+        &Navigate {
             route: "/legacy-trap".into(),
-        })),
-        deep_link: "/deep-link-trap".into(),
-        ..command("same", "Run command")
-    }
+        }
+        .encode_to_vec(),
+    )
 }
 fn paint(
     state: &mut LaunchpadState,
@@ -264,7 +276,7 @@ fn empty_canonical_missing_capabilities_and_rpc_read_names_do_not_grant_executio
 }
 
 #[test]
-fn all_four_legacy_typed_commands_use_the_admitted_path_not_hint_routing() {
+fn all_four_canonical_typed_commands_use_the_admitted_path_not_hint_routing() {
     let context = Context::default();
     let events = RefCell::new(vec![]);
     let rpc = |_: &RpcCall, _: Value, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
@@ -296,7 +308,7 @@ fn all_four_legacy_typed_commands_use_the_admitted_path_not_hint_routing() {
     };
     for (action, expected) in [
         (
-            Action::Rpc(RpcCall {
+            Invoke::Rpc(RpcCall {
                 service: "raw.Records".into(),
                 method: "Get".into(),
                 ..Default::default()
@@ -304,21 +316,19 @@ fn all_four_legacy_typed_commands_use_the_admitted_path_not_hint_routing() {
             "rpc",
         ),
         (
-            Action::Navigate(Navigate {
+            Invoke::Navigate(Navigate {
                 route: "/raw".into(),
             }),
             "navigate",
         ),
-        (Action::OpenViewId("view".into()), "view"),
-        (
-            Action::OpenPanel(OpenPanel {
-                panel: Some(PanelDescriptor::default()),
-            }),
-            "panel",
-        ),
+        (Invoke::OpenView("view".into()), "view"),
+        (Invoke::OpenPanel(Box::default()), "panel"),
     ] {
         let descriptor = palette(Command {
-            action: Some(action),
+            affordance: Some(Affordance {
+                invoke: Some(action),
+                ..Default::default()
+            }),
             deep_link: "/not-a-route-grant".into(),
             ..command("x", "Run")
         });
@@ -339,11 +349,15 @@ fn all_four_legacy_typed_commands_use_the_admitted_path_not_hint_routing() {
         );
         assert_eq!(events.borrow().last(), Some(&expected));
     }
-    for action in [None, Some(Action::OpenPanel(OpenPanel::default()))] {
-        let descriptor = palette(Command {
-            action,
+    for retired in [false, true] {
+        let command = Command {
             deep_link: "/never".into(),
             ..command("semantic-id", "Run")
+        };
+        let descriptor = palette(if retired {
+            retired_command(command, 9, &[])
+        } else {
+            command
         });
         let mut state = LaunchpadState::new();
         paint(&mut state, &descriptor, &context, 140);

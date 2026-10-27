@@ -32,7 +32,7 @@ test("the packaged module imports detached and formats synchronously without fet
       new URL("../../crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb", import.meta.url))));
     const PanelDescriptorSchema = registry.getMessage("meridian.ui.v1.PanelDescriptor");
     const submission = Buffer.from(toBinary(PanelDescriptorSchema, fromJson(PanelDescriptorSchema, { form: {
-      submit: { service: "raw.Service", method: "Get" }, fields: [{ fieldId: "raw" }, { fieldId: "flag" }],
+      submitAffordance: { rpc: { service: "raw.Service", method: "Get" } }, fields: [{ fieldId: "raw" }, { fieldId: "flag" }],
     } }))).toString("base64");
     for (const TZ of ["Pacific/Honolulu", "Asia/Tokyo"]) {
       const result = spawnSync(process.execPath, ["--input-type=module", "-e", `

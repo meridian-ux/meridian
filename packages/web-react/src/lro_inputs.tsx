@@ -9,7 +9,8 @@ import { LroResult, useLroLifecycle } from "./lro_lifecycle.js";
 // not merely an acknowledged start. The shared hook owns host RPC observation.
 export function LroInputs({ panel, c, className }: { panel: LroPanel; c: FormFieldClasses; className: string }) {
   const operation = useLroLifecycle(panel);
-  const form = create(FormPanelSchema, { mode: 2, fields: panel.inputs, submit: panel.start });
+  const form = create(FormPanelSchema, { mode: 2, fields: panel.inputs,
+    submitAffordance: panel.start ? { invoke: { case: "rpc", value: panel.start } } : undefined });
   return <><FormContent panel={form} c={c} className={className} submitLabel={panel.runButtonLabel || "Run"}
     submittingLabel="Running…" successLabel="" submissionKind="lro" onSubmitValues={operation.run} />
     {operation.message && <p role="status">{operation.message}</p>}

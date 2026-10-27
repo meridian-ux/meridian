@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { create } from "@bufbuild/protobuf";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
@@ -74,7 +74,7 @@ describe("web-components StepsPanel", () => {
                 label: "View deploys",
                 description: "Watch the rollout",
                 icon: "open",
-                style: AffordanceStyle.PRIMARY,
+                emphasis: Emphasis.PRIMARY,
                 invoke: { case: "uri", value: "/deploys" },
               },
             }],

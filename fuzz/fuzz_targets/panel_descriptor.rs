@@ -157,9 +157,13 @@ fuzz_target!(|bytes: &[u8]| {
                 let _ = render_gallery(&response, &gallery);
             }
             Some(Body::Form(form)) => {
-                if let Some(call) = form.submit {
+                if let Some(meridian_uiview::proto::affordance::Invoke::Rpc(call)) = form
+                    .submit_affordance
+                    .as_ref()
+                    .and_then(|action| action.invoke.as_ref())
+                {
                     let _ = RequestBuilder::build_submission(
-                        &call,
+                        call,
                         &Context::default(),
                         &form.fields,
                         &serde_json::json!({}),

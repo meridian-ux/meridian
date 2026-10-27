@@ -6,6 +6,7 @@ use meridian_tui::{
     NativeTarget, PanelView, RpcError, RpcInvoker, ViewHost,
 };
 use meridian_uiview::{proto::*, Context};
+use prost::Message;
 use serde_json::{json, Value};
 use std::{
     cell::{Cell, RefCell},
@@ -18,29 +19,39 @@ impl RpcInvoker for ReadHost {
         panic!("no populate or mutation transport should be invoked");
     }
 }
-#[allow(deprecated)] // Shared old/new submit fixture, including fallback traps.
+fn retired_submit(form: FormPanel, call: RpcCall) -> FormPanel {
+    let mut wire = form.encode_to_vec();
+    let payload = call.encode_to_vec();
+    prost::encoding::encode_key(3, prost::encoding::WireType::LengthDelimited, &mut wire);
+    prost::encoding::encode_varint(payload.len() as u64, &mut wire);
+    wire.extend_from_slice(&payload);
+    FormPanel::decode(wire.as_slice()).unwrap()
+}
+
 fn descriptor(canonical: bool) -> PanelDescriptor {
     PanelDescriptor {
         title: "Edit record".into(),
-        body: Some(panel_descriptor::Body::Form(Box::new(FormPanel {
-            fields: vec![FormField {
-                field_id: "name".into(),
-                label: "Name".into(),
-                kind: Some(form_field::Kind::Text(TextInput {
-                    default_value: "raw/e\u{301}".into(),
+        body: Some(panel_descriptor::Body::Form(Box::new(retired_submit(
+            FormPanel {
+                fields: vec![FormField {
+                    field_id: "name".into(),
+                    label: "Name".into(),
+                    kind: Some(form_field::Kind::Text(TextInput {
+                        default_value: "raw/e\u{301}".into(),
+                        ..Default::default()
+                    })),
                     ..Default::default()
-                })),
+                }],
+                mode: FormMode::Edit as i32,
+                submit_affordance: canonical.then(|| Box::new(Affordance::default())),
                 ..Default::default()
-            }],
-            mode: FormMode::Edit as i32,
-            submit: Some(RpcCall {
+            },
+            RpcCall {
                 service: "raw.Records".into(),
                 method: "DeleteLegacyTrap".into(),
                 ..Default::default()
-            }),
-            submit_affordance: canonical.then(|| Box::new(Affordance::default())),
-            ..Default::default()
-        }))),
+            },
+        )))),
         ..Default::default()
     }
 }
@@ -516,12 +527,10 @@ fn consent_revocation_transport_failure_retry_and_completed_refresh_failure_keep
 }
 
 #[test]
-#[allow(deprecated)] // This test specifically owns the retained old submit path.
-fn legacy_submission_is_admitted_without_a_raw_handoff_and_readonly_is_inert() {
+fn retired_submission_cannot_revive_and_canonical_submission_is_admitted_without_a_raw_handoff() {
     let mut descriptor = actual_form(None);
     let panel = form_mut(&mut descriptor);
     panel.submit_affordance = None;
-    panel.submit = Some(call());
     let context = Context::default();
     let requests = RefCell::new(vec![]);
     let rpc =
@@ -546,6 +555,21 @@ fn legacy_submission_is_admitted_without_a_raw_handoff_and_readonly_is_inert() {
         .unwrap()
         .is_none());
     assert!(requests.borrow().is_empty());
+    assert!(state
+        .handle_key_with_invocation(key(KeyCode::Enter), &context, &host)
+        .unwrap()
+        .is_none());
+    assert_eq!(
+        requests.borrow().len(),
+        0,
+        "retired wire submit cannot grant a canonical target"
+    );
+    form_mut(&mut descriptor).submit_affordance = Some(Box::new(Affordance {
+        invoke: Some(affordance::Invoke::Rpc(call())),
+        ..Default::default()
+    }));
+    let mut state = composed(descriptor.clone());
+    paint_view(&mut state, &context, 140, &ReadHost);
     assert!(state
         .handle_key_with_invocation(key(KeyCode::Enter), &context, &host)
         .unwrap()

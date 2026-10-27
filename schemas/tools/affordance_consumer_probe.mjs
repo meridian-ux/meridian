@@ -6,7 +6,7 @@ import { rmSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { probeCanonical } from "./affordance_migration_probe.mjs";
+import { probeRemoval } from "./affordance_removal_probe.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const PUBLIC_PROJECTS = Object.freeze([
@@ -30,14 +30,15 @@ export function compileProject(config, generated) {
 }
 
 export async function probeConsumers(configs = PUBLIC_PROJECTS.map(path => join(ROOT, path))) {
-  const result = await probeCanonical();
+  const result = await probeRemoval();
   try {
     const consumers = [];
     for (const config of configs) {
       const item = { project: relative(ROOT, config).startsWith("..") ? "<external-project>" : relative(ROOT, config) };
       // Adopted SDK source names new fields/types. Test that real source against
-      // the actual candidate, and test frozen old source against both worlds in
-      // probeCanonical. Compiling new source with missing old APIs is not an
+      // the actual removal candidate, while probeRemoval separately checks
+      // frozen old source against both historical worlds. Compiling new source
+      // with missing old APIs is not an
       // old-consumer compatibility test.
       for (const mode of ["after-js+dts"]) {
         const compiled = compileProject(config, join(result.work, mode));

@@ -6,10 +6,10 @@ import {
 } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 
 /**
- * A representative Launchpad exercising all four action arms:
+ * A representative Launchpad exercising four canonical intent arms:
  *  - open_panel   → "New product" opens a create FormPanel
  *  - navigate     → "Go to settings"
- *  - open_view_id → "Products"
+ *  - open_view   → "Products"
  *  - rpc          → "Export data"
  * plus a default (suggested) command and a keyword-only match.
  */
@@ -28,10 +28,9 @@ export function demoLaunchpad(): Launchpad {
             subtitle: "Create a product",
             keywords: ["add"],
             icon: "plus",
-            action: {
+            affordance: { label: "New product", icon: "plus", invoke: {
               case: "openPanel",
               value: {
-                panel: {
                   panelId: "new-product-form",
                   title: "New product",
                   body: {
@@ -42,9 +41,8 @@ export function demoLaunchpad(): Launchpad {
                       ],
                     },
                   },
-                },
               },
-            },
+            } },
           },
         ],
       },
@@ -56,12 +54,12 @@ export function demoLaunchpad(): Launchpad {
             id: "go-settings",
             title: "Go to settings",
             keywords: ["preferences"],
-            action: { case: "navigate", value: { route: "/settings" } },
+            affordance: { label: "Go to settings", invoke: { case: "navigate", value: { route: "/settings" } } },
           },
           {
             id: "list-products",
             title: "Products",
-            action: { case: "openViewId", value: "products-list" },
+            affordance: { label: "Products", invoke: { case: "openView", value: "products-list" } },
           },
         ],
       },
@@ -72,7 +70,7 @@ export function demoLaunchpad(): Launchpad {
           {
             id: "export",
             title: "Export data",
-            action: { case: "rpc", value: { service: "acme.v1.Exporter", method: "Export" } },
+            affordance: { label: "Export data", invoke: { case: "rpc", value: { service: "acme.v1.Exporter", method: "Export" } } },
           },
         ],
       },

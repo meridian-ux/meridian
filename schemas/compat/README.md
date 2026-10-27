@@ -43,8 +43,11 @@ node schemas/tools/compatibility_line.mjs --line v1-candidate --image schemas/co
 
 The first command must fail. The second may pass only as candidate preparation;
 its output explicitly reports the legacy rejection and pending production
-approval. Tests reject extra ownership moves, missing declarations, unknown
-release lines, and incompatible field changes under the candidate FILE baseline.
+approval. Expected legacy rejection requires Buf's exact compatibility exit
+code 100 as well as the ownership report; partial deletion output followed by
+a tool failure is not compatibility evidence. Tests reject extra ownership moves,
+missing declarations, unknown release lines, and incompatible field changes under
+the candidate FILE baseline.
 There is no `--approve`, automatic fallback, broad ignore, WIRE downgrade, or
 workflow selector change. The existing `buf.yaml` remains FILE-based and intact.
 
@@ -59,6 +62,41 @@ node schemas/tools/prepare_compatibility_candidate.mjs --baseline schemas/compat
 
 Compare the digest and ownership report before proposing any frozen-reference
 update. Preparation never overwrites a frozen reference implicitly.
+
+## Exact removal-candidate rehearsal
+
+`v1-removal-candidate.binpb` is a new **inactive audit reference**, not a
+replacement for any existing reference. It is the source-info-free full-module
+image built with Buf 1.72.0 from public candidate
+`e7975a6ecec98217f2a9c76b7f9a2a59a4bf3dea`. SHA-256:
+`022c995b582690be2aea4f9c63126cfc93652a168c38d1f3e54c337aa824d55c`.
+The digest and exact transformation from the separately frozen actual additive
+image are both checked before it can serve as a rehearsal reference.
+
+```sh
+node schemas/tools/compatibility_line.mjs --line v1-removal-candidate --image <full-module-removal-image>.binpb
+```
+
+This explicitly requested mode:
+
+1. Requires the exact nine field removals/name-and-tag reservations, empty
+   Command oneof retirement, three message removals and AffordanceStyle removal.
+   Whole-image comparison retains all other declarations and conformance files.
+2. Reports **41 surviving declaration ownership moves**, after accounting for
+   the four retired full names separately, not 45 surviving moves.
+3. Requires **both** maintained-0x and actual pre-removal additive FILE checks to
+   reject with compatibility exit 100, retaining both complete reports. Tool
+   failures and unexpected compatibility success cannot count as that evidence.
+4. Runs FILE against the digest-guarded removal-candidate reference and prints
+   `PREPARATION ONLY`, without changing any selected policy or reference.
+
+This is an exact **initial-cutover rehearsal**, deliberately stricter than a
+future v1 maintenance gate: even unrelated FILE-compatible additions require
+separate review here. It does not implement the post-approval maintenance
+policy, expose a `v1`/`production` alias or `--approve` switch, change required CI's
+selector, change package versions, or authorize merging/activation/publication.
+The existing maintained and additive line names retain their original behavior
+and continue rejecting removal. The root `buf.yaml` remains unchanged.
 
 Before any activation, an explicit cutover review must approve final 0.x/v1
 source revisions, immutable descriptor digests, the complete ownership report,

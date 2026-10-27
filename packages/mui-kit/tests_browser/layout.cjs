@@ -119,6 +119,37 @@ async function main() {
       if (root.children.length || root.style.getPropertyValue("--mer-space-1") !== "17px") throw new Error("Public MUI unmount lost host ownership");
       root.style.removeProperty("--mer-space-1"); document.getElementById("host-theme-guard").remove();
     });
+    for (const width of [1000, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(() => window.layoutConformance.renderDenseMuiTable());
+      await page.getByRole("columnheader", { name: "Endpoint", exact: true }).waitFor();
+      await page.evaluate(() => {
+        const headers = [...document.querySelectorAll("#root thead th")];
+        if (headers.length !== 7) throw new Error("Dense table must keep navigation and all six data headers");
+        let words = 0;
+        for (const header of headers) {
+          const nodes = document.createTreeWalker(header, NodeFilter.SHOW_TEXT);
+          while (nodes.nextNode()) {
+            const node = nodes.currentNode;
+            for (const match of node.textContent.matchAll(/\S+/g)) {
+              const range = document.createRange();
+              range.setStart(node, match.index); range.setEnd(node, match.index + match[0].length);
+              const rects = [...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0);
+              if (rects.length > 1) throw new Error(`Table header word fragmented across lines: ${match[0]}`);
+              words++;
+            }
+          }
+        }
+        if (words < 8) throw new Error("Dense header geometry check did not inspect real words");
+        const container = document.querySelector("#root .MuiTableContainer-root");
+        if (!container || getComputedStyle(container).overflowX !== "auto") throw new Error("Table must own horizontal scrolling");
+        if (document.documentElement.scrollWidth > innerWidth + 1) throw new Error("Dense table overflow escaped its scroll region");
+        if (!container.textContent.includes("https://example.test/" + "x".repeat(2000))) throw new Error("Long raw cell data was truncated");
+      });
+      await page.getByRole("columnheader", { name: "Name", exact: true }).click();
+      assert.deepEqual(await page.evaluate(() => window.layoutConformance.calls()), ["fixture.Dense.List"], "header layout/sort cannot issue a mutation or extra fetch");
+    }
+    console.log("Dense MUI headers keep word boundaries at 320/1000px; raw data and scoped scrolling preserved.");
     for (const kit of kits) {
       for (const fixture of cases) for (const width of [1100, 320]) {
         try {

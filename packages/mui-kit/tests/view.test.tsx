@@ -19,7 +19,6 @@ import {
   PanelDescriptorSchema,
 } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import {
   PaginationMode,
   PaginationSchema,
@@ -77,7 +76,7 @@ const PRODUCT_ACTIONS = ["edit", "clone", "delete", "export_yaml"].map((id) => (
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
+  invoke: { case: "rpc" as const, value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }) },
 }));
 
 // products/views/list-view → ListLayout + one TablePanel content slot.
@@ -88,7 +87,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.LIST,
   layout: { mode: { case: "list", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "content",
@@ -127,7 +126,7 @@ const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.DETAIL,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "header",
@@ -334,12 +333,13 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "organizations",
   kind: ViewKind.LIST,
   layout: { mode: { case: "list", value: {} } },
-  actions: [
-    // no-call HEADER action (host-resolved key → a route)
-    { id: "create", label: "New Organization", placement: ActionPlacement.HEADER },
-    // no-call ROW action → per-row button, bound to the row id
-    { id: "view_details", label: "View Details", placement: ActionPlacement.ROW },
-  ],
+  affordances: { items: [
+    { id: "create", label: "New Organization", placement: ActionPlacement.HEADER,
+      invoke: { case: "navigate", value: { route: "/organizations/new" } } },
+    // A concrete read-view target; the admitted host binds the current record.
+    { id: "view_details", label: "View Details", placement: ActionPlacement.ROW,
+      invoke: { case: "openView", value: "organizations.detail" } },
+  ] },
   slots: [
     {
       id: "content",
@@ -362,26 +362,29 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-function semanticHost(lookups: Array<[string, string | undefined, string | number | undefined]>, routes: string[]): InvocationHost {
-  return { admit: intent => intent.case === "navigate", capabilities: { navigate: async target => { routes.push(target.route); } },
-    resolveSemantic: (action, _context, subject) => {
-      lookups.push([action.id, subject?.entityType, subject?.entityId]);
-      return { affordance: create(AffordanceSchema, { invoke: { case: "navigate", value: {
-        route: action.id === "create" ? "/organizations/new" : `/organizations/${encodeURIComponent(String(subject?.entityId))}`,
-      } } }) };
+function canonicalHost(activated: Array<[string, unknown]>, routes: string[]): InvocationHost {
+  return { admit: intent => intent.case === "navigate" && intent.value.route === "/organizations/new"
+      || intent.case === "openView" && intent.value === "organizations.detail",
+    capabilities: {
+      navigate: async target => { activated.push(["navigate", target.route]); routes.push(target.route); },
+      openView: async (view, context) => {
+        const row = context.selectedRow as { id?: unknown } | null;
+        if (view !== "organizations.detail" || typeof row?.id !== "string") throw Error("Unsupported read-view context");
+        activated.push([view, row.id]); routes.push(`/organizations/${encodeURIComponent(row.id)}`);
+      },
     },
   };
 }
 
-describe("muiKit host semantic action resolution", () => {
-  it("resolves a no-call HEADER action before admitted navigation without executing the old callback", async () => {
+describe("muiKit canonical host navigation", () => {
+  it("admits an explicit HEADER navigation target without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
-    const lookups: typeof calls = [], routes: string[] = [];
+    const activated: Array<[string, unknown]> = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
-        invocation={semanticHost(lookups, routes)}
+        invocation={canonicalHost(activated, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
@@ -389,18 +392,18 @@ describe("muiKit host semantic action resolution", () => {
     const createBtn = await screen.findByRole("button", { name: "New Organization" });
     fireEvent.click(createBtn);
     await waitFor(() => expect(routes).toEqual(["/organizations/new"]));
-    expect(lookups).toEqual([["create", "organizations", undefined]]);
+    expect(activated).toEqual([["navigate", "/organizations/new"]]);
     expect(calls).toEqual([]);
   });
 
-  it("resolves a per-row semantic action with the current row ID without executing the old callback", async () => {
+  it("opens the explicit read-view target with the current row ID without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
-    const lookups: typeof calls = [], routes: string[] = [];
+    const activated: Array<[string, unknown]> = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
-        invocation={semanticHost(lookups, routes)}
+        invocation={canonicalHost(activated, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
@@ -412,7 +415,7 @@ describe("muiKit host semantic action resolution", () => {
     const viewDetails = await screen.findByRole("menuitem", { name: "View Details" });
     fireEvent.click(viewDetails);
     await waitFor(() => expect(routes).toEqual(["/organizations/org-1"]));
-    expect(lookups).toEqual([["view_details", "organizations", "org-1"]]);
+    expect(activated).toEqual([["organizations.detail", "org-1"]]);
     expect(calls).toEqual([]);
   });
 });

@@ -661,7 +661,7 @@ impl PanelView {
 
     /// The affordance the host should invoke (open the URI / run the command) for
     /// the current selection on a Catalog / Action / ConnectFlow panel — the
-    /// invocation seam the host wires to Enter, like table RowActions. Returns
+    /// invocation seam the host wires to Enter, like table affordances. Returns
     /// None for shapes with no invocable affordance at the cursor.
     pub fn selected_affordance<'d>(
         &self,
@@ -1406,31 +1406,10 @@ impl PanelView {
                 if !cached.validate(&panel.fields) {
                     return None;
                 }
-                if panel.submit_affordance.is_some() {
-                    cached.validation_error =
-                        Some(NativeInvocationOutcome::Denied.message().into());
-                    return None;
-                }
-                let submit = meridian_uiview::legacy::form_submit(panel)?;
-                let request = match form_request(
-                    submit,
-                    context,
-                    &panel.fields,
-                    &cached.values,
-                    SubmissionKind::Form,
-                    self.ambient_record.as_deref(),
-                ) {
-                    Ok(request) => request,
-                    Err(_) => {
-                        cached.validation_error = Some(REQUEST_ERROR.into());
-                        return None;
-                    }
-                };
-                return Some(FormSubmission {
-                    service: submit.service.clone(),
-                    method: submit.method.clone(),
-                    request,
-                });
+                // Without an explicit invocation host, submission is denied.
+                // The admitted path below owns validation, consent, and effects.
+                cached.validation_error = Some(NativeInvocationOutcome::Denied.message().into());
+                return None;
             }
             code if boolean_edit
                 || !matches!(
@@ -1854,7 +1833,7 @@ impl PanelView {
     }
 
     /// Convenience: returns the currently-selected row's raw JSON,
-    /// for hosts that want to fire RowActions.
+    /// for hosts that supply current-row context to admitted affordances.
     pub fn selected_row(&self) -> Option<&serde_json::Value> {
         if let Some(cached) = self.current_table() {
             let index = self.table_state.selected()?;

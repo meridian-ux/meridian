@@ -235,6 +235,12 @@
                           "label": "Subject Id",
                           "requestField": "view_descriptor.subject_id",
                           "text": {}
+                        },
+                        {
+                          "fieldId": "view_descriptor.affordances",
+                          "label": "Affordances",
+                          "nested": {},
+                          "requestField": "view_descriptor.affordances"
                         }
                       ]
                     },
@@ -709,22 +715,16 @@
             "panel": {
               "panelId": "target-list",
               "table": {
-                "actions": [
-                  {
-                    "label": "Refresh Target",
-                    "refreshOnSuccess": true,
-                    "rpc": {
-                      "bindings": [
-                        {
-                          "requestField": "name",
-                          "rowField": "name"
-                        }
-                      ],
-                      "method": "RefreshTarget",
-                      "service": "meridian.proto.v1.ProjectionService"
+                "affordances": {
+                  "items": [
+                    {
+                      "label": "Refresh Target",
+                      "openView": "targets/own/layouts/method.meridian.proto.v1.ProjectionService.RefreshTarget",
+                      "placement": "ACTION_PLACEMENT_ROW",
+                      "refreshOnSuccess": false
                     }
-                  }
-                ],
+                  ]
+                },
                 "columns": [
                   {
                     "fieldPath": "name",
@@ -780,18 +780,75 @@
       }
     },
     {
+      "group": "Operations",
+      "kind": "invoke",
+      "label": "RefreshTarget — request",
+      "name": "method.meridian.proto.v1.ProjectionService.RefreshTarget",
+      "view": {
+        "id": "request-target-meridian.proto.v1.ProjectionService-RefreshTarget",
+        "layout": {
+          "stacked": {}
+        },
+        "route": "/targets/requests/meridian.proto.v1.ProjectionService/RefreshTarget",
+        "slots": [
+          {
+            "id": "request",
+            "panel": {
+              "form": {
+                "fields": [
+                  {
+                    "description": "Enter the full resource name. Opening this view does not submit the request.",
+                    "fieldId": "name",
+                    "label": "Name *",
+                    "requestField": "name",
+                    "text": {
+                      "minLength": 1
+                    }
+                  }
+                ],
+                "itemNoun": "Refresh Target",
+                "mode": "FORM_MODE_EDIT",
+                "submitAffordance": {
+                  "label": "Refresh Target",
+                  "refreshOnSuccess": false,
+                  "rpc": {
+                    "bindings": [
+                      {
+                        "formField": "name",
+                        "requestField": "name"
+                      }
+                    ],
+                    "method": "RefreshTarget",
+                    "service": "meridian.proto.v1.ProjectionService"
+                  }
+                }
+              },
+              "panelId": "invoke-RefreshTarget",
+              "title": "Refresh Target"
+            }
+          }
+        ],
+        "subjectKind": "meridian.example.com/Target",
+        "title": "Refresh Target"
+      }
+    },
+    {
       "group": "Resources",
       "kind": "detail",
       "label": "target — detail",
       "name": "target.detail",
       "view": {
-        "actions": [
-          {
-            "id": "target-RefreshTarget",
-            "label": "Refresh Target",
-            "placement": "ACTION_PLACEMENT_OVERFLOW"
-          }
-        ],
+        "affordances": {
+          "items": [
+            {
+              "id": "target-RefreshTarget",
+              "label": "Refresh Target",
+              "openView": "targets/own/layouts/method.meridian.proto.v1.ProjectionService.RefreshTarget",
+              "placement": "ACTION_PLACEMENT_OVERFLOW",
+              "refreshOnSuccess": false
+            }
+          ]
+        },
         "id": "target-detail",
         "kind": "VIEW_KIND_DETAIL",
         "layout": {
@@ -988,19 +1045,23 @@
                 ],
                 "itemNoun": "Resolve Commands",
                 "mode": "FORM_MODE_EDIT",
-                "submit": {
-                  "bindings": [
-                    {
-                      "formField": "query",
-                      "requestField": "query"
-                    },
-                    {
-                      "formField": "context",
-                      "requestField": "context"
-                    }
-                  ],
-                  "method": "ResolveCommands",
-                  "service": "meridian.ui.v1.LayoutService"
+                "submitAffordance": {
+                  "label": "Save Resolve Commands",
+                  "refreshOnSuccess": false,
+                  "rpc": {
+                    "bindings": [
+                      {
+                        "formField": "query",
+                        "requestField": "query"
+                      },
+                      {
+                        "formField": "context",
+                        "requestField": "context"
+                      }
+                    ],
+                    "method": "ResolveCommands",
+                    "service": "meridian.ui.v1.LayoutService"
+                  }
                 }
               },
               "panelId": "invoke-ResolveCommands",
@@ -1040,5 +1101,5 @@
       }
     }
   ],
-  "generatedFrom": "meridian-proto: own contract via the FileDescriptorSet path"
+  "generatedFrom": "meridian-proto: crates/projector/testdata/golden/render-bundle.json at meridian-ux/meridian-internal@545e11d86a353d92f6ea101624607e2f8548d70d; resource type domains normalized to meridian.example.com"
 }

@@ -8,8 +8,8 @@ import { create } from "@bufbuild/protobuf";
 
 import {
   ActionPanelSchema,
-  AffordanceStyle,
 } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
 import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import { ChartPanelSchema } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -268,7 +268,7 @@ export const FIXTURES: Fixture[] = [
           action: {
             id: "add-to-cursor",
             label: "Add to Cursor",
-            style: AffordanceStyle.PRIMARY,
+            emphasis: Emphasis.PRIMARY,
             invoke: { case: "uri", value: "cursor://anysphere.cursor-deeplink/mcp/install" },
           },
         }),
@@ -297,7 +297,7 @@ export const FIXTURES: Fixture[] = [
                 {
                   id: "add",
                   label: "Add to Cursor",
-                  style: AffordanceStyle.PRIMARY,
+                  emphasis: Emphasis.PRIMARY,
                   invoke: { case: "uri", value: "cursor://install" },
                 },
               ],
@@ -511,7 +511,7 @@ export const FIXTURES: Fixture[] = [
                 label: "Open Sponsors",
                 description: "Continue in the sponsor list",
                 icon: "open",
-                style: AffordanceStyle.PRIMARY,
+                emphasis: Emphasis.PRIMARY,
                 invoke: { case: "uri", value: "/sponsors" },
               },
             },

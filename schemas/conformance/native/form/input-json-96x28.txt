@@ -3,10 +3,10 @@ json
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │Edit item                                                                                     │
 │↑/↓ select · ←/→ numeric · F2 JSON · Enter submit                                             │
+│ ↵ Save  fixture.Inputs/Submit                                                                │
 │                                                                                              │
 │▶ Declared input: {"ready":true}                                                              │
 │     Ready: true                                                                              │
-│                                                                                              │
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │

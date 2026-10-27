@@ -1,10 +1,10 @@
-import { AffordanceStyle, Emphasis, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { conversationToneRole } from "./conversation_tone.js";
 
 // Derived in-process presentation only. Serialized action data remains the
 // canonical Affordance proto; this projection cannot grant a capability.
-export function affordancePresentation(action: Pick<Affordance, "style" | "tone" | "emphasis">) {
-  const primary = action.emphasis === undefined ? action.style === AffordanceStyle.PRIMARY : action.emphasis === Emphasis.PRIMARY;
+export function affordancePresentation(action: Pick<Affordance, "tone" | "emphasis">) {
+  const primary = action.emphasis === Emphasis.PRIMARY;
   const tone = conversationToneRole(action.tone);
   const style: { color?: string; borderColor?: string; backgroundColor?: string; fontWeight?: string; borderWidth?: string; borderStyle?: string } = {};
   if (action.emphasis !== undefined) {

@@ -3,8 +3,8 @@
 use crate::RpcError;
 use meridian_uiview::{
     proto::{
-        affordance::Invoke, command, Action, Affordance, Command, ConfirmSpec, FormField, FormMode,
-        FormPanel, Navigate, PanelDescriptor, ResourceAction, RowAction, RpcCall,
+        affordance::Invoke, Affordance, Command, ConfirmSpec, FormField, FormMode, FormPanel,
+        Navigate, PanelDescriptor, ResourceAction, RpcCall,
     },
     Context, RequestBuilder, RequestOverrides, SubmissionKind,
 };
@@ -102,12 +102,10 @@ pub(crate) fn context_key(context: NativeInvocationContext<'_>) -> Result<Vec<u8
 #[non_exhaustive]
 pub enum NativeAction<'a> {
     Canonical(&'a Affordance),
-    Legacy(&'a Action),
-    /// Canonical presence suppresses every legacy command hint as a whole.
+    /// Commands carry canonical intent only.
     Command(&'a Command),
     /// Current collected values, not ambient host fields or a prebuilt request.
     Form(&'a FormPanel, &'a Value),
-    Row(&'a RowAction),
     Resource(&'a ResourceAction),
     /// Literal authored Snippet/CopyValue content; never formatted display text.
     Copy(&'a str),
@@ -227,8 +225,6 @@ pub type NativePolicy<'a> =
     dyn for<'c> Fn(NativeTarget<'c>, NativeInvocationContext<'c>) -> bool + 'a;
 pub type NativeMutationPolicy<'a> =
     dyn for<'c> Fn(&RpcCall, NativeInvocationContext<'c>) -> bool + 'a;
-pub type NativeResolver<'a> =
-    dyn for<'c> Fn(&Action, NativeInvocationContext<'c>) -> Option<Affordance> + 'a;
 pub type NativeResourceResolver<'a> =
     dyn for<'c> Fn(&ResourceAction, NativeInvocationContext<'c>) -> Option<Affordance> + 'a;
 pub type NativeResourceConfirmation<'a> = dyn for<'c> Fn(
@@ -254,7 +250,6 @@ pub type NativeRefresh<'a> =
 pub struct NativeInvocationHost<'a> {
     pub mutations: Option<&'a NativeMutationPolicy<'a>>,
     pub admit: Option<&'a NativePolicy<'a>>,
-    pub resolve_semantic: Option<&'a NativeResolver<'a>>,
     pub resolve_resource: Option<&'a NativeResourceResolver<'a>>,
     /// Required when a ResourceAction declares a ConfirmSpec. Generic consent
     /// cannot silently discard the resource's literal confirmation contract.
@@ -367,7 +362,7 @@ impl NativeInvocationDispatcher {
         signal: &NativeCancellation,
     ) -> NativeInvocationOutcome {
         use NativeInvocationOutcome as O;
-        let legacy_refresh = matches!(action, NativeAction::Row(_) | NativeAction::Resource(_));
+        let resource_refresh = matches!(action, NativeAction::Resource(_));
         let resource = if let NativeAction::Resource(source) = action {
             Some(source)
         } else {
@@ -382,18 +377,6 @@ impl NativeInvocationDispatcher {
             }
             if !crate::content::resource_action_visible(source, row)
                 || (source.confirm.is_some() && host.confirm_resource.is_none())
-            {
-                return O::Denied;
-            }
-        }
-        if let NativeAction::Row(source) = action {
-            let Some(row) = context.selected_row() else {
-                return O::Denied;
-            };
-            if source
-                .enabled_when
-                .as_ref()
-                .is_some_and(|filter| meridian_uiview::row_filter_matches(filter, row) != Ok(true))
             {
                 return O::Denied;
             }
@@ -424,18 +407,6 @@ impl NativeInvocationDispatcher {
                 };
                 Some(value)
             }
-            NativeAction::Legacy(action) if action.call.is_none() => {
-                if action.id.is_empty() {
-                    return O::Denied;
-                }
-                let Some(resolve) = host.resolve_semantic else {
-                    return O::Denied;
-                };
-                let Some(value) = resolve(action, context) else {
-                    return O::Denied;
-                };
-                Some(value)
-            }
             _ => None,
         };
         if signal.is_cancelled() {
@@ -447,24 +418,9 @@ impl NativeInvocationDispatcher {
             .unwrap_or(action);
         let (target, refresh) = match action {
             NativeAction::Copy(value) => (Some(NativeTarget::Copy(value)), false),
-            NativeAction::Row(source) => (source.rpc.as_ref().map(NativeTarget::Rpc), true),
             NativeAction::Resource(source) => (source.invoke.as_ref().map(NativeTarget::Rpc), true),
-            NativeAction::Legacy(action) => (action.call.as_ref().map(NativeTarget::Rpc), false),
-            NativeAction::Form(panel, _) => (
-                meridian_uiview::legacy::form_submit(panel).map(NativeTarget::Rpc),
-                false,
-            ),
-            NativeAction::Command(command) => (
-                command.action.as_ref().and_then(|intent| match intent {
-                    command::Action::Rpc(call) => Some(NativeTarget::Rpc(call)),
-                    command::Action::Navigate(route) => Some(NativeTarget::Navigate(route)),
-                    command::Action::OpenViewId(id) => Some(NativeTarget::OpenView(id)),
-                    command::Action::OpenPanel(open) => {
-                        open.panel.as_ref().map(NativeTarget::OpenPanel)
-                    }
-                }),
-                false,
-            ),
+            // These variants remain only when their canonical intent is absent.
+            NativeAction::Form(_, _) | NativeAction::Command(_) => (None, false),
             NativeAction::Canonical(action) => {
                 if let Some(filter) = &action.enabled_when {
                     if meridian_uiview::row_filter_matches(
@@ -484,7 +440,10 @@ impl NativeInvocationDispatcher {
                     Invoke::OpenView(v) => NativeTarget::OpenView(v),
                     Invoke::Copy(v) => NativeTarget::Copy(v),
                 });
-                (target, action.refresh_on_success.unwrap_or(legacy_refresh))
+                (
+                    target,
+                    action.refresh_on_success.unwrap_or(resource_refresh),
+                )
             }
         };
         let Some(target) = target else {
@@ -934,46 +893,45 @@ mod tests {
         assert_eq!(calls.get(), 0);
     }
     #[test]
-    fn semantic_resolution_is_explicit_and_retains_raw_subject_without_inventing_navigation() {
+    fn canonical_intent_is_explicit_and_retains_raw_subject_without_inventing_navigation() {
         let base = context();
         let row = json!({"id":0});
         let scope = NativeInvocationContext::new(&base).with_record(Some(&row));
-        let action = Action {
+        let mut action = Affordance {
             id: "semantic-key".into(),
             ..Default::default()
         };
         let calls = Cell::new(0);
-        let resolve = |source: &Action, current: NativeInvocationContext<'_>| {
-            assert_eq!(source.id, "semantic-key");
-            assert_eq!(current.selected_row(), Some(&row));
-            Some(Affordance {
-                invoke: Some(Invoke::Copy("resolved".into())),
-                ..Default::default()
-            })
-        };
-        let effect = |target: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
-            assert_eq!(target, "resolved");
-            calls.set(calls.get() + 1);
-            Ok(())
-        };
+        let effect =
+            |target: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
+                assert_eq!(current.selected_row(), Some(&row));
+                assert_eq!(target, "resolved");
+                calls.set(calls.get() + 1);
+                Ok(())
+            };
         let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
         let dispatcher = NativeInvocationDispatcher::default();
         assert_eq!(
             dispatcher.invoke(
-                NativeAction::Legacy(&action),
+                NativeAction::Canonical(&action),
                 scope,
                 &NativeInvocationHost::default()
             ),
             NativeInvocationOutcome::Denied
         );
         let host = NativeInvocationHost {
-            resolve_semantic: Some(&resolve),
             copy: Some(&effect),
             admit: Some(&allow),
             ..Default::default()
         };
         assert_eq!(
-            dispatcher.invoke(NativeAction::Legacy(&action), scope, &host),
+            dispatcher.invoke(NativeAction::Canonical(&action), scope, &host),
+            NativeInvocationOutcome::Denied
+        );
+        assert_eq!(calls.get(), 0, "an ID alone cannot infer a target");
+        action.invoke = Some(Invoke::Copy("resolved".into()));
+        assert_eq!(
+            dispatcher.invoke(NativeAction::Canonical(&action), scope, &host),
             NativeInvocationOutcome::Succeeded
         );
         assert_eq!(calls.get(), 1);

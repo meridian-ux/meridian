@@ -18,7 +18,7 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, Stack, Typography } from "@mui/material";
-import { affordancePresentation, normalizeFormSubmit, type NormalizedAction, normalizeLegacyAction, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, normalizeFormSubmit, type NormalizedAction, normalizeAffordance, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -317,7 +317,7 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
 
   const viewRowActions = useContext(MeridianRowActionsContext);
   const normalizedViewActions = useContext(MeridianNormalizedRowActionsContext);
-  const perRowActions = [...normalizeTableActions(panel), ...(normalizedViewActions ?? viewRowActions.map(normalizeLegacyAction))];
+  const perRowActions = [...normalizeTableActions(panel), ...(normalizedViewActions ?? viewRowActions.map(normalizeAffordance))];
   const refresh = useCallback(async () => { paged.refresh(); }, [paged.refresh]);
 
   return (
@@ -827,7 +827,7 @@ function FieldForm({
       description={description || undefined}
       submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error) || submission.pending, onSubmit: handleSubmit,
         control: submitAction ? <>
-          <Button type="submit" variant={submitAction.legacyOrigin === "form" || presentation.primary ? "contained" : "outlined"}
+          <Button type="submit" variant={presentation.primary ? "contained" : "outlined"}
             disabled={disabled || submitDisabled || options.pending || !!options.error || invocation.unavailable || invocation.predicateDenied}
             aria-disabled={invocation.pending || invocation.policyDenied || undefined} aria-busy={invocation.pending || undefined}
             aria-describedby={[submitAction.affordance.description && descriptionId, actionMessage && invocation.feedbackId].filter(Boolean).join(" ") || undefined}
@@ -1077,7 +1077,7 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
 function ActionBar({ actions, normalizedActions }: ActionBarProps): ReactNode {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const { subjectKind, subjectId } = useContext(MeridianViewContext);
-  const visible = (normalizedActions ?? actions.map(normalizeLegacyAction)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
+  const visible = (normalizedActions ?? actions.map(normalizeAffordance)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
   if (!visible.length) return null;
   const inline = visible.filter(a => a.affordance.placement !== ActionPlacement.OVERFLOW);
   const overflow = visible.filter(a => a.affordance.placement === ActionPlacement.OVERFLOW);

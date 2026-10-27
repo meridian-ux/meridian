@@ -9,6 +9,17 @@ from tools.stateful_corpus import ROOT, STATES, INPUT_ARMS, artifacts, check, cl
 
 
 class StatefulCorpusTest(unittest.TestCase):
+    def test_editable_input_forms_author_their_submit_label_and_rpc(self):
+        files = artifacts()
+        View = classes()["meridian.ui.v1.ViewDescriptor"]
+        for case in input_cases():
+            view = View.FromString(files[f"form/input-{case['name']}.view.binpb"])
+            form = view.slots[0].panel.form
+            self.assertEqual(form.submit_affordance.label, "Save")
+            self.assertEqual(form.submit_affordance.WhichOneof("invoke"), "rpc")
+            self.assertEqual(form.submit_affordance.rpc.service, "fixture.Inputs")
+            self.assertEqual(form.submit_affordance.rpc.method, "Submit")
+
     def test_open_panel_activation_does_not_make_current_action_content_a_value_display(self):
         panel = classes()["meridian.ui.v1.PanelDescriptor"].DESCRIPTOR
         affordance = panel.file.pool.FindMessageTypeByName("meridian.ui.v1.Affordance")

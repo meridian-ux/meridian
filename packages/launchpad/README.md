@@ -12,21 +12,26 @@ native renderer can consume the same `Launchpad` descriptor and the same pure
 
 ## Command actions
 
-A present `Command.affordance` wins whole, even when its intent or label is
-empty. It supports all seven canonical targets through explicit host capabilities.
-Otherwise the existing `Command.action` is normalized:
+This checkout prepares the unmerged [Affordance removal candidate](../../schemas/migration/REMOVAL.md),
+not an activated release. `Command.affordance` is the only invocation source,
+including when its intent or label is empty. All seven targets require their
+explicit host capability and applicable admission:
 
 | arm | effect |
 | --- | --- |
 | `rpc` | mutation admission and the actual Rust binding builder, then the host RPC capability/transport |
-| `open_panel` | explicitly admitted `invocation.capabilities.openPanel`; no implicit panel mounting |
-| `open_view_id` | explicitly admitted `invocation.capabilities.openView` |
+| `openPanel` | explicitly admitted `invocation.capabilities.openPanel`; no implicit panel mounting |
+| `openView` | explicitly admitted `invocation.capabilities.openView` |
 | `navigate` | explicitly admitted `invocation.capabilities.navigate`; no router/window fallback |
+| `uri` | explicitly admitted URI capability, with safe-scheme validation |
+| `command` | explicitly admitted command capability; never an implicit shell or clipboard action |
+| `copy` | explicitly admitted clipboard capability; preserves the literal payload |
 
 `Command.deep_link` is an orthogonal hint for hosts whose palette state is
-URL-driven (e.g. a studio console `?cmd=…`). Only legacy commands select it ahead
-of their old action; it requires an explicit URI capability and policy. It never
-overrides a present canonical affordance. Unsafe schemes remain rejected.
+URL-driven (e.g. a studio console `?cmd=…`). It is not an invocation source.
+Legacy `Command.action` wire fields, missing affordances, and metadata alone
+cannot recover a target. Such commands stay inert and visibly unavailable.
+Unsafe schemes remain rejected even with a permissive host policy.
 
 ## Usage
 

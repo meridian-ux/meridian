@@ -80,6 +80,31 @@ fn view(mode: Option<layout::Mode>) -> ViewDescriptor {
 fn wire(view: ViewDescriptor) -> ViewHost {
     ViewHost::new(ViewDescriptor::decode(view.encode_to_vec().as_slice()).unwrap()).unwrap()
 }
+fn retired_action<M: Message + Default>(value: M, tag: u32) -> M {
+    // Old Action.label = 2. Preserve a real retired wire field, not a v1 DTO.
+    let label = b"Legacy trap";
+    let action = [vec![0x12, label.len() as u8], label.to_vec()].concat();
+    let mut bytes = value.encode_to_vec();
+    let mut key = (tag << 3) | 2;
+    while key > 127 {
+        bytes.push((key as u8 & 127) | 128);
+        key >>= 7;
+    }
+    bytes.push(key as u8);
+    bytes.push(action.len() as u8);
+    bytes.extend(action);
+    M::decode(bytes.as_slice()).unwrap()
+}
+fn controls(id: &str, label: &str, call: RpcCall) -> Option<AffordanceCollection> {
+    Some(AffordanceCollection {
+        items: vec![Affordance {
+            id: id.into(),
+            label: label.into(),
+            invoke: Some(affordance::Invoke::Rpc(call)),
+            ..Default::default()
+        }],
+    })
+}
 fn draw(view: &mut ViewHost, context: &Context, host: &Host, width: u16) -> String {
     let mut terminal = Terminal::new(TestBackend::new(width, 24)).unwrap();
     terminal
@@ -150,29 +175,27 @@ fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widt
                         ..Default::default()
                     }],
                 });
-                let legacy = vec![Action {
-                    id: "trap".into(),
-                    label: "Legacy trap".into(),
-                    call: Some(call("Delete")),
-                    ..Default::default()
-                }];
                 let descriptor = if in_slot {
                     ViewDescriptor {
-                        slots: vec![Slot {
-                            title: "Canonical slot".into(),
-                            actions: legacy,
-                            affordances: canonical,
-                            ..Default::default()
-                        }],
+                        slots: vec![retired_action(
+                            Slot {
+                                title: "Canonical slot".into(),
+                                affordances: canonical,
+                                ..Default::default()
+                            },
+                            7,
+                        )],
                         ..Default::default()
                     }
                 } else {
-                    ViewDescriptor {
-                        title: "Canonical header".into(),
-                        actions: legacy,
-                        affordances: canonical,
-                        ..Default::default()
-                    }
+                    retired_action(
+                        ViewDescriptor {
+                            title: "Canonical header".into(),
+                            affordances: canonical,
+                            ..Default::default()
+                        },
+                        8,
+                    )
                 };
                 let mut state = wire(descriptor);
                 let reads = Host::default();
@@ -249,26 +272,19 @@ fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widt
 }
 
 #[test]
-#[allow(deprecated)] // Legacy fallback is the behavior under test.
-fn canonical_empty_collections_and_explicit_legacy_host_denial_never_fall_back() {
-    let legacy = Action {
-        label: "Legacy trap".into(),
-        call: Some(call("Get")),
-        ..Default::default()
-    };
-    let mut state = wire(ViewDescriptor {
-        actions: vec![legacy.clone()],
-        affordances: Some(AffordanceCollection::default()),
-        ..Default::default()
-    });
+fn canonical_empty_and_absent_collections_never_revive_retired_wire_actions() {
+    let mut state = wire(retired_action(
+        ViewDescriptor {
+            affordances: Some(AffordanceCollection::default()),
+            ..Default::default()
+        },
+        8,
+    ));
     let context = Context::default();
     let reads = Host::default();
     assert!(!draw(&mut state, &context, &reads, 80).contains("Legacy trap"));
     assert!(key(&mut state, &context, KeyCode::Enter).is_none());
-    let mut legacy_state = wire(ViewDescriptor {
-        actions: vec![legacy],
-        ..Default::default()
-    });
+    let mut legacy_state = wire(retired_action(ViewDescriptor::default(), 8));
     draw(&mut legacy_state, &context, &reads, 80);
     assert!(legacy_state
         .handle_key_with_invocation(
@@ -278,7 +294,7 @@ fn canonical_empty_collections_and_explicit_legacy_host_denial_never_fall_back()
         )
         .unwrap()
         .is_none());
-    assert!(draw(&mut legacy_state, &context, &reads, 80).contains("Action denied:"));
+    assert!(!draw(&mut legacy_state, &context, &reads, 80).contains("Legacy trap"));
     assert!(reads.calls.borrow().is_empty());
 }
 
@@ -753,19 +769,17 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
                     FormPanel {
                         fields,
                         mode: FormMode::Edit as i32,
-                        submit: Some(save.clone()),
+                        submit_affordance: Some(Box::new(Affordance {
+                            invoke: Some(affordance::Invoke::Rpc(save.clone())),
+                            ..Default::default()
+                        })),
                         ..Default::default()
                     }
                     .into(),
                 )),
                 ..Default::default()
             }),
-            actions: vec![Action {
-                id: "save".into(),
-                label: "Save row".into(),
-                call: Some(save),
-                ..Default::default()
-            }],
+            affordances: controls("save", "Save row", save),
             ..Default::default()
         }],
         ..Default::default()
@@ -790,33 +804,63 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
     assert!(output.contains("001.20") && output.contains("Second"));
     assert!(!output.contains("Content ignored"));
     assert_eq!(host.calls.borrow().len(), 1);
-    // Initial focus is the first row's slot action, then its real form.
-    let Some(ViewResponse::Action {
-        request, method, ..
-    }) = key(&mut view, &context, KeyCode::Enter)
-    else {
-        panic!("action missing")
+    // sections() pages through the full document. Restore visible ownership
+    // before trying the first row's control through the admitted dispatcher.
+    for _ in 0..25 {
+        key(&mut view, &context, KeyCode::PageUp);
+    }
+    draw(&mut view, &context, &host, 80);
+    let requests = RefCell::new(Vec::new());
+    let policy = |_: &RpcCall, _: NativeInvocationContext<'_>| true;
+    let rpc =
+        |call: &RpcCall, request: Value, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+            assert_eq!(call.method, "Save");
+            requests.borrow_mut().push(request);
+            Ok(())
+        };
+    let invocation = NativeInvocationHost {
+        mutations: Some(&policy),
+        rpc: Some(&rpc),
+        ..Default::default()
     };
-    assert_eq!(method, "Save");
-    assert_eq!(request, json!({"recordId": "a"}));
+    // Initial focus is the first row's slot action, then its real form.
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
+    assert_eq!(requests.borrow().as_slice(), &[json!({"recordId": "a"})]);
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
-    let Some(ViewResponse::Form(submission)) = key(&mut view, &context, KeyCode::Enter) else {
-        panic!("form missing")
-    };
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
     assert_eq!(
-        submission.request,
+        requests.borrow()[1],
         json!({"recordId": "a", "name": "001.20", "enabled": false, "count": 0})
     );
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
-    let Some(ViewResponse::Form(submission)) = key(&mut view, &context, KeyCode::Enter) else {
-        panic!("second form missing")
-    };
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
     assert_eq!(
-        submission.request,
+        requests.borrow()[2],
         json!({"recordId": "b", "name": "Second", "enabled": true, "count": 2})
     );
     assert_eq!(
@@ -832,12 +876,7 @@ fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
     let mut descriptor = view(None);
     descriptor.slots.truncate(1);
     descriptor.slots[0].depends_on_selection_key = "scope".into();
-    descriptor.slots[0].actions.push(Action {
-        id: "danger".into(),
-        label: "Delete".into(),
-        call: Some(call("Delete")),
-        ..Default::default()
-    });
+    descriptor.slots[0].affordances = controls("danger", "Delete", call("Delete"));
     let host = Host::default();
     let mut context = Context::default();
     let mut view = wire(descriptor);
@@ -871,12 +910,7 @@ fn falsey_scope_gates_block_reads_and_stale_actions_at_native_widths() {
                     title_source_path: "title".into(),
                     ..Default::default()
                 }));
-            slot.actions.push(Action {
-                id: "danger".into(),
-                label: "Delete".into(),
-                call: Some(call("Delete")),
-                ..Default::default()
-            });
+            slot.affordances = controls("danger", "Delete", call("Delete"));
             let mut context = Context::default();
             if let Some(value) = value.clone() {
                 context.selections.insert("scope".into(), value);
@@ -964,12 +998,7 @@ fn empty_views_keep_identity_and_header_actions_and_long_labels_are_reachable() 
     let mut descriptor = ViewDescriptor {
         id: "empty".into(),
         title: "Still here".into(),
-        actions: vec![Action {
-            id: "export".into(),
-            label: "Export".into(),
-            call: Some(call("Export")),
-            ..Default::default()
-        }],
+        affordances: controls("export", "Export", call("Export")),
         ..Default::default()
     };
     let host = Host::default();
@@ -980,11 +1009,9 @@ fn empty_views_keep_identity_and_header_actions_and_long_labels_are_reachable() 
             && output.contains("No sections.")
             && output.contains("Export")
     );
-    assert!(matches!(
-        key(&mut view, &Context::default(), KeyCode::Enter),
-        Some(ViewResponse::Action { .. })
-    ));
-    descriptor.actions[0].label = "長い label ".repeat(30);
+    assert!(key(&mut view, &Context::default(), KeyCode::Enter).is_none());
+    assert!(draw(&mut view, &Context::default(), &host, 80).contains("Action denied:"));
+    descriptor.affordances.as_mut().unwrap().items[0].label = "長い label ".repeat(30);
     let output = sections(&mut wire(descriptor), &Context::default(), &host, 80);
     let symbols: BTreeSet<_> = output.chars().collect();
     assert!(symbols.contains(&'長'));

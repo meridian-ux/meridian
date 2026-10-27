@@ -8,7 +8,7 @@ import { expect, it, vi } from "vitest";
 import { renderPanel, disposePanel, type UiviewWasm } from "../src/uiview/renderer.js";
 const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };
 const descriptor = () => create(PanelDescriptorSchema, { body: { case: "form", value: {
-  mode: 2, submit: { service: "demo.Form", method: "Save", bindings: [{ requestField: "resource", source: { case: "literal", value: "record" } }] },
+  mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "demo.Form", method: "Save", bindings: [{ requestField: "resource", source: { case: "literal", value: "record" } }] } } },
   prefill: { service: "demo.Form", method: "Get" }, fields: [
     { fieldId: "title", label: "Title", kind: { case: "text", value: { defaultValue: "default", minLength: 2 } } },
     { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 2 } } },
@@ -25,7 +25,11 @@ const wasm: UiviewWasm = {
   // conformance_wasm.test.ts against the compiled Rust implementation.
   buildSubmissionRequest: (bytes, context, values) => {
     const body = fromBinary(PanelDescriptorSchema, bytes).body;
-    if (body.case === "form") return { ...values, ...wasm.buildRequest(toBinary(RpcCallSchema, body.value.submit!), { ...context, formValues: values }) };
+    if (body.case === "form") {
+      const intent = body.value.submitAffordance;
+      if (intent?.invoke.case !== "rpc") throw Error("submission RPC missing");
+      return { ...values, ...wasm.buildRequest(toBinary(RpcCallSchema, intent.invoke.value), { ...context, formValues: values }) };
+    }
     if (body.case !== "lro") throw new Error("not a submission");
     const result: Record<string, unknown> = {};
     const merge = (fields: typeof body.value.inputs, input: Record<string, unknown>, prefix = "") => {
@@ -180,7 +184,7 @@ it("preserves enum labels, tones, fallback options, and raw submissions", async 
   for (const labeled of [true, false]) {
     const root = document.createElement("div");
     const panel = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "demo.Form", method: "Save", bindings: [{ requestField: "resource", source: { case: "literal", value: "record" } }] }, fields: [
+      mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "demo.Form", method: "Save", bindings: [{ requestField: "resource", source: { case: "literal", value: "record" } }] } } }, fields: [
         { fieldId: "region", kind: { case: "enumSelection", value: {
           defaultValue: "west", allowedValues: ["west", "east", "other"],
           options: labeled ? [{ value: "west", label: "Western region", tone: ValueTone.SUCCESS }, { value: "east", tone: ValueTone.DANGER }, { value: "other", tone: 99 as ValueTone }] : [],

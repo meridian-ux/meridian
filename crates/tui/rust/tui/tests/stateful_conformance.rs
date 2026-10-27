@@ -21,6 +21,8 @@ use prost::Message;
 use prost_types::{value::Kind, Struct, Value};
 use ratatui::{backend::TestBackend, Terminal};
 use serde_json::{json, Value as Json};
+mod support;
+use support::AdmittedFormFixture;
 
 fn data_root() -> PathBuf {
     let mut candidates = vec![PathBuf::from("schemas/conformance")];
@@ -842,13 +844,13 @@ fn shared_stateful_panels_match_native_buffers() {
             match panel.body.as_ref().unwrap() {
                 Body::Form(form) if state.starts_with("read-") => {
                     assert!(widget
-                        .handle_form_key(form, &context, KeyCode::Enter)
+                        .test_form_key(form, &context, KeyCode::Enter)
                         .is_none());
                 }
                 Body::Form(form) => assert_eq!(
                     protobuf_json_numbers(
                         widget
-                            .handle_form_key(form, &context, KeyCode::Enter)
+                            .test_form_key(form, &context, KeyCode::Enter)
                             .unwrap_or_else(|| panic!("{name}: valid defaults must submit"))
                             .request
                     ),
@@ -967,7 +969,7 @@ fn typed_input_defaults_collect_raw_protobuf_values_without_transport() {
             let collected = match panel.body.as_ref().unwrap() {
                 Body::Form(form) => {
                     widget
-                        .handle_form_key(form, &context, KeyCode::Enter)
+                        .test_form_key(form, &context, KeyCode::Enter)
                         .unwrap_or_else(|| panic!("{name}: valid defaults must submit"))
                         .request
                 }
@@ -1119,7 +1121,7 @@ fn native_input_options_preserve_raw_defaults_and_readonly_presentation() {
                 let collected = match panel.body.as_ref().unwrap() {
                     Body::Form(form) => {
                         widget
-                            .handle_form_key(form, &context, KeyCode::Enter)
+                            .test_form_key(form, &context, KeyCode::Enter)
                             .unwrap_or_else(|| panic!("{name}: valid submit"))
                             .request
                     }
@@ -1204,7 +1206,7 @@ fn excessive_form_and_lro_default_expansion_fails_visibly_without_execution() {
         );
         match panel.body.as_ref().unwrap() {
             Body::Form(form) => assert!(widget
-                .handle_form_key(form, &context, KeyCode::Enter)
+                .test_form_key(form, &context, KeyCode::Enter)
                 .is_none()),
             Body::Lro(lro) => assert!(widget
                 .handle_lro_key(lro, &context, KeyCode::Enter)

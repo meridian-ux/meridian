@@ -1,7 +1,6 @@
-import { clone, create, toBinary } from "@bufbuild/protobuf";
+import { create, toBinary } from "@bufbuild/protobuf";
 import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import type { NormalizedAction } from "./action_normalization.js";
@@ -22,13 +21,6 @@ export type InvocationCapabilities = {
   // cancellation cannot undo a request already sent by such a transport.
   rpc?: { invoke(service: string, method: string, request: object, signal: AbortSignal): Promise<object> };
 };
-
-/** A pure host lookup, not the old executing onAction callback. A confirmation
- * is explicit host UI; true is consent only, never invocation admission. */
-export interface SemanticResolution {
-  readonly affordance: Affordance;
-  readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
-}
 
 /** Runtime-only host consent for the resolved target, never a permission bit. */
 export type InvocationConfirmation = (affordance: Affordance, context: RenderContext,
@@ -58,16 +50,11 @@ export interface InvocationSnapshot {
   readonly admission?: AdmissionPolicy;
   readonly capabilities: InvocationCapabilities;
   readonly admit?: (intent: Intent, context: RenderContext) => boolean;
-  readonly resolveSemantic?: (action: Action, context: RenderContext,
-    subject: InvocationSnapshot["subject"]) => SemanticResolution | undefined;
   readonly refresh?: (signal: AbortSignal) => Promise<void>;
   readonly confirmIntent?: InvocationConfirmation;
   /** Adapter-owned consent UI, not a grant. Runs only after target admission;
    * the same immutable scope must still be current when consent settles. */
   readonly confirm?: (context: RenderContext, signal: AbortSignal) => Promise<boolean>;
-  /** Adapter-owned compatibility behavior, never a descriptor permission bit.
-   * Only legacy row controls whose old renderer supplied an unbound id opt in. */
-  readonly legacyRowIdFallback?: boolean;
   readonly submission?: InvocationSubmission;
 }
 
@@ -76,7 +63,6 @@ export interface InvocationSnapshot {
 export interface InvocationHost {
   readonly capabilities?: InvocationCapabilities;
   readonly admit?: InvocationSnapshot["admit"];
-  readonly resolveSemantic?: InvocationSnapshot["resolveSemantic"];
   readonly confirm?: InvocationConfirmation;
   readonly refresh?: InvocationSnapshot["refresh"];
   readonly context?: RenderContext;
@@ -123,17 +109,7 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
         if (latest !== snapshot) throw new Stopped("stale");
       };
       current();
-      let affordance = snapshot.action.affordance;
-      let semanticResolution: SemanticResolution | undefined;
-      if (snapshot.action.semanticAction !== undefined) {
-        if (!snapshot.action.semanticAction.id) throw new Denied("missing-target");
-        if (!snapshot.resolveSemantic) throw new Denied("missing-resolver");
-        const resolution = snapshot.resolveSemantic(snapshot.action.semanticAction, snapshot.context, snapshot.subject);
-        current();
-        if (!resolution) throw new Denied("unresolved-action");
-        affordance = resolution.affordance;
-        semanticResolution = resolution;
-      }
+      const affordance = snapshot.action.affordance;
       const intent = affordance.invoke;
       if (intent.case === undefined) throw new Denied("missing-target");
       // Unknown wire fields decode to no arm; retain a defensive runtime check
@@ -167,11 +143,6 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
       current();
       // Consent cannot grant admission or disguise a denial as cancellation.
       // Every consent seam runs only for an already admitted target.
-      if (semanticResolution?.confirm) {
-        const confirmed = await semanticResolution.confirm(snapshot.context, signal);
-        current();
-        if (confirmed !== true) return { status: "cancelled" };
-      }
       if (snapshot.confirmIntent) {
         const confirmed = await snapshot.confirmIntent(affordance, snapshot.context, snapshot.subject, signal);
         current();
@@ -185,16 +156,6 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
       switch (intent.case) {
         case "rpc": {
           const call = intent.value;
-          let bindings = call;
-          if (!snapshot.submission && snapshot.legacyRowIdFallback && (snapshot.action.legacyOrigin === "row" || snapshot.action.legacyOrigin === "action")
-            && !snapshot.action.semanticAction && call.bindings.length === 0) {
-            const id = Object.getOwnPropertyDescriptor(snapshot.context.selectedRow ?? {}, "id");
-            if (id && !("value" in id)) throw new Error("Invalid row context.");
-            if (id?.value != null) {
-              bindings = clone(RpcCallSchema, call);
-              bindings.bindings.push(create(FieldBindingSchema, { requestField: "id", source: { case: "rowField", value: "id" } }));
-            }
-          }
           let request: object;
           if (snapshot.submission) {
             const { fields, kind } = snapshot.submission;
@@ -202,10 +163,10 @@ export function createInvocationDispatcher(readCurrent: () => InvocationSnapshot
             // Use only the admitted target. The adapter cannot smuggle a legacy
             // submit/start call into the builder alongside canonical intent.
             const descriptor = create(PanelDescriptorSchema, { body: kind === "form"
-              ? { case: "form", value: { fields: [...fields], submit: call } }
+              ? { case: "form", value: { fields: [...fields], submitAffordance: { invoke: { case: "rpc", value: call } } } }
               : { case: "lro", value: { inputs: [...fields], start: call } } });
             request = coreRequests.buildSubmissionRequest(toBinary(PanelDescriptorSchema, descriptor), snapshot.context, snapshot.context.formValues);
-          } else request = coreRequests.buildRequest(toBinary(RpcCallSchema, bindings), snapshot.context);
+          } else request = coreRequests.buildRequest(toBinary(RpcCallSchema, call), snapshot.context);
           current();
           await capabilities.rpc!.invoke(call.service, call.method, request, signal);
           break;

@@ -31,6 +31,12 @@ vitest_test(
         "tests/conformance.test.tsx",
         "tests/affordance_invocation.test.ts",
         "tests/form_admission.test.tsx",
+        "tests/form_map.test.tsx",
+        "tests/form_options.test.tsx",
+        "tests/enum_options.test.tsx",
+        "tests/view.test.tsx",
+        "tests/legacy_browser_wire.test.ts",
+        "harness/legacy-view.bin.json",
         "tests/row_navigation.test.tsx",
         "tests/shell_palette_admission.test.tsx",
         "tests/shell_frame.test.tsx",
@@ -73,6 +79,7 @@ vitest_test(
         ":node_modules/@testing-library/react",
         "//schemas:conformance_fixtures",
         "//schemas:value_option_data",
+        "//schemas:frozen_affordance_test_data",
     ],
 )
 
@@ -174,7 +181,7 @@ esbuild(
 
 esbuild(
     name = "conversation_bundle",
-    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/conversation.tsx"],
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/conversation.tsx", "harness/legacy-view.bin.json"],
     entry_point = "harness/conversation.tsx",
     bundle = True,
     format = "iife",
@@ -422,8 +429,9 @@ tectonic_pdf(
 # views were derived from PROTOBUF DESCRIPTORS alone. Nobody authored them — a
 # resource model was recovered from google.api.* annotations and projected.
 #
-# The bundle is meridian-proto's own `render-bundle` golden, so what is drawn here is
-# byte-identical to what its test suite pins.
+# The bundle is meridian-proto's committed `render-bundle` golden, with only
+# resource type domains normalized to the public example domain. Its provenance
+# and strict canonical navigation/form contract are checked by projector_catalog.
 
 # Names must match the `name` of each entry in harness/proto-viewdescriptors.json;
 # the capture tool writes one PNG per view and tectonic_pdf needs them declared.
@@ -435,6 +443,7 @@ PROTO_VIEWS = [
     "service.list",
     "service.detail",
     "target.list",
+    "method.meridian.proto.v1.ProjectionService.RefreshTarget",
     "target.detail",
     "invoke.ResolveCommands",
     "service.meridian.proto.v1.ProjectionService",

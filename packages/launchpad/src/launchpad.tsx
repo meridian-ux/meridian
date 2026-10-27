@@ -9,8 +9,7 @@
 // <MeridianProvider>.
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { clone, create } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { clone } from "@bufbuild/protobuf";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -18,7 +17,7 @@ import type {
   Command,
   Launchpad as LaunchpadDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { affordancePresentation, normalizeCommand, NormalizedAction, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
 import {
   ActionGroup, boundedDescriptorJson, useActionGroup, useActionInvocation,
   useIcon,
@@ -95,10 +94,7 @@ function CommandRow({
   onSuccess: () => void;
   onHover: () => void;
 }): ReactNode {
-  const normalized = normalizeCommand(command).action;
-  const action = command.affordance === undefined && command.deepLink
-    ? new NormalizedAction(create(AffordanceSchema, { id: command.id, label: command.title,
-      description: command.subtitle, icon: command.icon, invoke: { case: "uri", value: command.deepLink } }), undefined, "command") : normalized;
+  const action = normalizeCommand(command).action;
   const invocation = useActionInvocation(action);
   const group = useActionGroup();
   const owner = useId();
@@ -108,11 +104,13 @@ function CommandRow({
   const title = command.affordance === undefined ? command.title : action.affordance.label;
   const descriptionId = `${owner}-description`;
   const intent = action.affordance.invoke;
+  const missingTarget = intent.case === undefined;
   const unsafe = intent.case === "uri" ? !safeNavigationHref(intent.value)
     : intent.case === "navigate" ? !safeNavigationHref(intent.value.route) : false;
-  const disabled = unsafe || invocation.unavailable || invocation.predicateDenied
+  const disabled = missingTarget || unsafe || invocation.unavailable || invocation.predicateDenied
     || group?.owner !== undefined && group.owner !== owner;
-  const message = invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
+  const message = missingTarget ? "Action unavailable: this command has no canonical target."
+    : invocation.predicateDenied ? "Action denied: the current record does not meet its conditions." : invocation.feedback;
   const run = (trigger: HTMLElement) => {
     if (disabled || invocation.pending || group && !group.acquire(owner)) return;
     const search = trigger.closest('[role="dialog"]')?.querySelector<HTMLInputElement>('input[role="combobox"]');
@@ -180,7 +178,7 @@ function CommandRow({
         </kbd>
       ) : null}
     </button>
-    {message && <span id={invocation.feedbackId} role={invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}>{message}</span>}
+    {message && <span id={invocation.feedbackId} role={missingTarget || invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}>{message}</span>}
     {invocation.pending && <button type="button" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</button>}
     </div>
   );

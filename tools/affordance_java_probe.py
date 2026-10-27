@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--java", required=True)
     parser.add_argument("--javac", required=True)
     parser.add_argument("--runtime-jar", type=Path, required=True, help="protobuf-java 4.33.4")
+    parser.add_argument("--removal", action="store_true", help="Also require the actual final-removal consumer to pass")
     args = parser.parse_args()
     if hashlib.sha256(args.runtime_jar.read_bytes()).hexdigest() != RUNTIME_SHA256:
         raise RuntimeError("Expected the exact protobuf-java 4.33.4 runtime artifact")
@@ -61,6 +62,10 @@ def main():
             command = [args.java, "-cp", f"{consumers}:{output}:{args.runtime_jar}", "LegacyAffordanceConsumer"]
             print(f"{name}: {run(command)}")
             run([*command, "--legacy-descriptor"], failure=name != "old")
+        if args.removal:
+            run([args.javac, "-cp", f"{classes['candidate']}:{args.runtime_jar}", "-d", str(consumers),
+                 str(ROOT / "schemas/migration/CanonicalAffordanceConsumer.java")])
+            print(run([args.java, "-cp", f"{consumers}:{classes['candidate']}:{args.runtime_jar}", "CanonicalAffordanceConsumer"]))
         print(f"Java probe passed with {version}: unchanged legacy bytecode works in all three worlds; "
               "descriptor-ownership assertions fail in both migrated worlds as expected.")
 

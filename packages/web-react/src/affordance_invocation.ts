@@ -1,6 +1,5 @@
 import { clone } from "@bufbuild/protobuf";
 import { AffordanceSchema, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { useContext, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, normalizeAffordance, safeNavigationHref,
@@ -38,7 +37,6 @@ export interface ActionInvocationOptions {
   subject?: InvocationSnapshot["subject"];
   refresh?: InvocationSnapshot["refresh"];
   enabled?: boolean;
-  legacyRowIdFallback?: boolean;
   submission?: InvocationSnapshot["submission"];
   /** Pure current-input collector/validator. Called only during activation and
    * its current-scope checks, never render, hydration, or focus. */
@@ -53,16 +51,15 @@ function frameFor(action: NormalizedAction, options: ActionInvocationOptions, ho
   collectedValues?: Record<string, unknown>) {
   const affordance = action.affordance;
   const context = host?.context;
-  let descriptorKey: string | undefined, semanticKey: string | undefined, contextKey: string | undefined;
+  let descriptorKey: string | undefined, contextKey: string | undefined;
   let subjectKey: string | undefined, policyKey: string | undefined, submissionKey: string | undefined;
   try {
     if (options.enabled === false) {
       // Retain the logical control/duplicate guard while closed, without
       // materializing its future descriptor or repeated runtime context.
-      descriptorKey = semanticKey = subjectKey = contextKey = submissionKey = "";
+      descriptorKey = subjectKey = contextKey = submissionKey = "";
     } else {
       descriptorKey = boundedJson(affordance);
-      semanticKey = boundedJson(action.semanticAction ?? null);
       subjectKey = boundedJson(options.subject ?? null);
       submissionKey = boundedJson(options.submission ?? null);
       contextKey = boundedJson({ currentResourcePath: context?.currentResourcePath ?? null, uiIdentity: context?.uiIdentity ?? null,
@@ -77,20 +74,19 @@ function frameFor(action: NormalizedAction, options: ActionInvocationOptions, ho
   } catch { /* Fail visibly without evaluating data accessors. */ }
   const denied = admission === "unrestricted" ? undefined : admission?.onDenied;
   const { uri, command, navigate, openPanel, openView, copy, rpc } = host?.capabilities ?? {};
-  const admit = host?.admit, resolveSemantic = host?.resolveSemantic, confirm = host?.confirm, refresh = options.refresh ?? host?.refresh;
+  const admit = host?.admit, confirm = host?.confirm, refresh = options.refresh ?? host?.refresh;
   const invoke = invoker.invoke, rpcInvoke = rpc?.invoke;
-  const signature = [descriptorKey, semanticKey, contextKey, subjectKey, policyKey, submissionKey, denied,
-    action.legacyOrigin, action.legacyOrigin ? affordance.invoke.value : affordance, action.semanticAction, affordance.enabledWhen,
-    options.enabled, options.legacyRowIdFallback, options.row, options.submission?.fields, options.readFormValues,
+  const signature = [descriptorKey, contextKey, subjectKey, policyKey, submissionKey, denied,
+    affordance, affordance.enabledWhen,
+    options.enabled, options.row, options.submission?.fields, options.readFormValues,
     record, selection, invoker, invoke,
-    uri, command, navigate, openPanel, openView, copy, rpc, rpcInvoke, admit, resolveSemantic, confirm, refresh];
+    uri, command, navigate, openPanel, openView, copy, rpc, rpcInvoke, admit, confirm, refresh];
   const build = (): InvocationSnapshot | undefined => {
-    if (options.enabled === false || descriptorKey === undefined || semanticKey === undefined || contextKey === undefined
+    if (options.enabled === false || descriptorKey === undefined || contextKey === undefined
       || subjectKey === undefined || policyKey === undefined || submissionKey === undefined) return undefined;
     try {
       return {
-        action: new NormalizedAction(clone(AffordanceSchema, affordance),
-          action.semanticAction ? clone(ActionSchema, action.semanticAction) : undefined, action.legacyOrigin),
+        action: new NormalizedAction(clone(AffordanceSchema, affordance)),
         context: JSON.parse(contextKey) as RenderContext,
         subject: JSON.parse(subjectKey) ?? undefined,
         admission: policyKey === "unrestricted" ? "unrestricted" : { ...JSON.parse(policyKey), onDenied: denied },
@@ -101,7 +97,7 @@ function frameFor(action: NormalizedAction, options: ActionInvocationOptions, ho
           if (intent.case === "uri" && !safeNavigationHref(intent.value)
             || intent.case === "navigate" && !safeNavigationHref(intent.value.route)) return false;
           return admit ? admit(intent, context) : intent.case === "rpc";
-        }, resolveSemantic, confirmIntent: confirm, refresh, legacyRowIdFallback: options.legacyRowIdFallback,
+        }, confirmIntent: confirm, refresh,
         submission: options.submission ? { kind: options.submission.kind,
           fields: options.submission.fields.map(field => clone(FormFieldSchema, field)) } : undefined,
       };
@@ -114,7 +110,7 @@ export function useAffordanceInvocation(affordance: Affordance) {
   return useActionInvocation(normalizeAffordance(affordance));
 }
 
-/** One shared host dispatcher for canonical and normalized legacy sources. */
+/** One shared host dispatcher for canonical sources. */
 export function useActionInvocation(action: NormalizedAction, options: ActionInvocationOptions = {}) {
   const { invocation, admission, actionInvoker } = useMeridian();
   const record = useContext(MeridianRecordContext);

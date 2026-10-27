@@ -20,38 +20,38 @@ const view = create(ViewDescriptorSchema, {
   id: "mui-admission-view",
   kind: ViewKind.LIST,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: [{
+  affordances: { items: [{
     id: "delete",
     label: "Delete",
     placement: ActionPlacement.HEADER,
-    call: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }),
-  }],
+    invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }) },
+  }] },
 });
 
 const overflowView = create(ViewDescriptorSchema, {
   id: "mui-admission-overflow-view",
   kind: ViewKind.LIST,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: [{
+  affordances: { items: [{
     id: "delete",
     label: "Delete",
     placement: ActionPlacement.OVERFLOW,
-    call: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }),
-  }],
+    invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }) },
+  }] },
 });
 
 describe("MUI admission boundary", () => {
   for (const overflow of [false, true]) {
     it(`resolves ${overflow ? "overflow" : "header"} bindings from real record and selection context`, async () => {
-      const requestView = create(ViewDescriptorSchema, { id: "bound-actions", kind: ViewKind.LIST, actions: [{
+      const requestView = create(ViewDescriptorSchema, { id: "bound-actions", kind: ViewKind.LIST, affordances: { items: [{
         id: "run", label: "Run", placement: overflow ? ActionPlacement.OVERFLOW : ActionPlacement.HEADER,
-        call: { service: "demo.Actions", method: "Run", bindings: [{ requestField: "payload", source: { case: "nested", value: { fields: [
+        invoke: { case: "rpc", value: { service: "demo.Actions", method: "Run", bindings: [{ requestField: "payload", source: { case: "nested", value: { fields: [
           { requestField: "zero", source: { case: "rowField", value: "zero" } },
           { requestField: "no", source: { case: "rowField", value: "no" } },
           { requestField: "tenant", source: { case: "selectionKey", value: "tenant" } },
           { requestField: "empty", source: { case: "literal", value: "" } },
-        ] } } }] },
-      }] });
+        ] } } }] } },
+      }] } });
       const requests: object[] = [];
       render(<MeridianMuiProvider admission={{ mutations: ["demo.Actions/Run"] }} invoker={{ invoke: async (_s, _m, request) => { requests.push(request); return {}; } }}>
         <MeridianRecordContext.Provider value={{ zero: 0, no: false }}>
@@ -65,13 +65,13 @@ describe("MUI admission boundary", () => {
 
     it.each(["unsafe", "large", "cycle"])(`rejects %s ${overflow ? "overflow" : "header"} bindings before dispatch`, async mode => {
       const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
-      const requestView = create(ViewDescriptorSchema, { id: "invalid-actions", kind: ViewKind.LIST, actions: [{
+      const requestView = create(ViewDescriptorSchema, { id: "invalid-actions", kind: ViewKind.LIST, affordances: { items: [{
         id: "run", label: "Run", placement: overflow ? ActionPlacement.OVERFLOW : ActionPlacement.HEADER,
-        call: { service: "demo.Actions", method: "Run", bindings: [
+        invoke: { case: "rpc", value: { service: "demo.Actions", method: "Run", bindings: [
           { requestField: "safe", source: { case: "literal", value: "not sent alone" } },
           { requestField: mode === "unsafe" ? "__proto__.scope" : "payload", source: { case: "rowField", value: "payload" } },
-        ] },
-      }] });
+        ] } },
+      }] } });
       const requests: object[] = [];
       render(<MeridianMuiProvider admission={{ mutations: ["demo.Actions/Run"] }} invoker={{ invoke: async (_s, _m, request) => { requests.push(request); return {}; } }}>
         <MeridianRecordContext.Provider value={{ payload: mode === "cycle" ? cyclic : "x".repeat(800_000) }}><ViewRenderer view={requestView} /></MeridianRecordContext.Provider>

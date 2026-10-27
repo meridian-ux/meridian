@@ -1,7 +1,6 @@
 //! In-process action-control state. Protobuf owns declarations; cached rows stay
 //! borrowed at activation, never reconstructed from formatted terminal text.
 use super::*;
-use meridian_uiview::legacy;
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -68,19 +67,14 @@ fn declaration(panel: &PanelDescriptor) -> Option<Vec<u8>> {
     let labels: Vec<&str> = match &panel.body {
         Some(Body::Table(table)) => {
             let canonical = table.affordances.as_ref().map_or(0, |set| set.items.len());
-            if legacy::table_actions(table).len().saturating_add(canonical) > 1_000 {
+            if canonical > 1_000 {
                 return None;
             }
-            legacy::table_actions(table)
+            table
+                .affordances
                 .iter()
-                .map(|a| a.label.as_str())
-                .chain(
-                    table
-                        .affordances
-                        .iter()
-                        .flat_map(|set| &set.items)
-                        .flat_map(|a| [a.label.as_str(), a.id.as_str()]),
-                )
+                .flat_map(|set| &set.items)
+                .flat_map(|a| [a.label.as_str(), a.id.as_str()])
                 .collect()
         }
         Some(Body::ResourceCards(cards)) => {
@@ -211,10 +205,7 @@ fn actions<'a>(
     match &panel.body {
         Some(Body::Table(table)) => match &table.affordances {
             Some(set) => set.items.iter().map(NativeAction::Canonical).collect(),
-            None => legacy::table_actions(table)
-                .iter()
-                .map(NativeAction::Row)
-                .collect(),
+            None => vec![],
         },
         Some(Body::ResourceCards(cards)) => cards
             .template
@@ -350,9 +341,7 @@ pub(super) fn finish(
         captured.rendered = state.invocation_visible;
     }
     let authored = match &panel.body {
-        Some(Body::Table(table)) => {
-            table.affordances.is_some() || !legacy::table_actions(table).is_empty()
-        }
+        Some(Body::Table(table)) => table.affordances.is_some(),
         Some(Body::ResourceCards(cards)) => cards
             .template
             .as_ref()
@@ -366,7 +355,6 @@ pub(super) fn finish(
     let mut line = if let Some(action) = available.get(state.row_actions.selected) {
         let mut line = match action {
             NativeAction::Canonical(action) => content::affordance_line(action, &state.palette),
-            NativeAction::Row(action) => Line::styled(action.label.clone(), state.palette.title()),
             NativeAction::Resource(action) => Line::styled(
                 action.label.clone(),
                 content::resource_action_style(action, &state.palette),
@@ -387,7 +375,6 @@ pub(super) fn finish(
             .push(Span::styled(" · ←/→ action · Enter", state.palette.meta()));
         let filter = match action {
             NativeAction::Canonical(action) => action.enabled_when.as_ref(),
-            NativeAction::Row(action) => action.enabled_when.as_ref(),
             _ => None,
         };
         if filter.is_some_and(|filter| {

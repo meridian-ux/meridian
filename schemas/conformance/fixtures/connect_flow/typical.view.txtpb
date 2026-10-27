@@ -20,7 +20,7 @@ slots {
           id: "add"
           label: "Add to Cursor"
           uri: "cursor://install"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
         configs {
           content: "{ \"mcpServers\": { \"demo\": { \"url\": \"https://mcp.example/mcp\" } } }"

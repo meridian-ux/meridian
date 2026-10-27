@@ -43,8 +43,8 @@ export interface MeridianMuiProviderProps {
   adhoc?: Record<string, ReactAdhocFactory>;
   /**
    * Legacy host callback retained for source compatibility, not an action grant.
-   * Authored no-call actions and implicit rows use invocation.resolveSemantic; do not
-   * execute an old callback during pure resolution or after canonical denial.
+   * Authored controls require concrete canonical intent. Entity destinations
+   * use resolveHref plus invocation admission, never this callback.
    */
   onAction?: MeridianActionHandler;
   /** Host glyph resolver for the content shapes' `icon` keys (renderer draws,

@@ -7,6 +7,7 @@ import { renderView } from "../src/uiview/view_renderer.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { applyTheme } from "../theme/web/theme.js";
 import { toneCases } from "../../../schemas/conformance/tone_cases.js";
+import { withRetiredTrap } from "./retired_wire.js";
 
 // Runtime test controls only. Descriptors remain canonical protobuf messages;
 // the local fake transport uses the renderer's established JSON RPC contract.
@@ -44,11 +45,10 @@ const controls = {
     controls.tableSettle = () => {};
     const rows = [{ raw: { id: 0, name: "first" }, cells: ["First row"] }, { raw: { id: 2, name: "second" }, cells: ["Second row"] }];
     return renderPanel({ root: container, wasm: { ...wasm, renderTable: () => rows }, context,
-      descriptor: create(PanelDescriptorSchema, { body: { case: "table", value: {
+      descriptor: withRetiredTrap(create(PanelDescriptorSchema, { body: { case: "table", value: {
         populate: { service: "fixture.Rows", method: "List" }, columns: [{ header: "Name", fieldPath: "name" }],
-        actions: [{ label: "Legacy trap", rpc: { service: "legacy.Rows", method: "Delete" } }],
         affordances: { items: [{ label: "Use row", invoke: { case: "copy", value: "canonical" } }, { label: "Other row action", invoke: { case: "copy", value: "other" } }] },
-      } } }), invoker: { invoke: async (service) => { if (service !== "fixture.Rows") throw Error("Legacy fallback"); return {}; } },
+      } } })), invoker: { invoke: async (service) => { if (service !== "fixture.Rows") throw Error("Legacy fallback"); return {}; } },
       invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
         container.dataset.tableCalls = String(Number(container.dataset.tableCalls) + 1); container.dataset.tableRow = String((current.selectedRow as { id: number }).id);
         signal.addEventListener("abort", () => { container.dataset.tableAborted = "true"; }, { once: true });
@@ -61,11 +61,10 @@ const controls = {
     const container = root(); container.dataset.formCalls = "0"; container.dataset.formAborted = "false";
     controls.formSettle = () => {};
     return renderPanel({ root: container, wasm, context,
-      descriptor: create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2,
-        submit: { service: "legacy.Forms", method: "Delete" },
+      descriptor: withRetiredTrap(create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2,
         submitAffordance: { label: "Save current", invoke: { case: "copy", value: "canonical literal" } },
         fields: [{ fieldId: "name", label: "Name", kind: { case: "text", value: { defaultValue: "initial", minLength: 2 } } }],
-      } } }), invoker: { invoke: async () => { throw Error("No legacy RPC in canonical form"); } },
+      } } })), invoker: { invoke: async () => { throw Error("No legacy RPC in canonical form"); } },
       invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
         container.dataset.formCalls = String(Number(container.dataset.formCalls) + 1);
         container.dataset.formValue = String(current.formValues.name);
@@ -110,7 +109,7 @@ const controls = {
     applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());
     return renderPanel({ root: root(), wasm, context,
     descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-      label: "Presentation action", style: 1, tone, emphasis,
+      label: "Presentation action", tone, emphasis,
       invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
     } } } }),
     invoker: { invoke: async () => { throw new Error("Presentation cannot invoke an RPC"); } },

@@ -7,7 +7,7 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
 import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
@@ -81,11 +81,11 @@ it.each([undefined, 0, 1, 2, 999])("MUI separates emphasis %s, semantic color, a
     for (const target of ["/next", "javascript:alert(1)", "echo raw command"]) {
       const command = target.startsWith("echo");
       const { container, unmount } = renderPanel(create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-        label: "Action", description: "Explain", style: 1, tone, emphasis,
+        label: "Action", description: "Explain", tone, emphasis,
         invoke: command ? { case: "command", value: target } : { case: "uri", value: target },
       } } } }));
       const control = container.querySelector("button, a") as HTMLElement;
-      const primary = emphasis === undefined || emphasis === 1;
+      const primary = emphasis === 1;
       expect(control.className).toContain(primary ? "MuiButton-contained" : "MuiButton-outlined");
       expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
       if (tone !== undefined) expect(control.className).toContain(`MuiButton-color${["Inherit", "Inherit", "Info", "Success", "Warning", "Error", "Primary"][tone] ?? "Inherit"}`);
@@ -142,7 +142,7 @@ describe("muiKit renders the brand-neutral content shapes", () => {
                   {
                     id: "add",
                     label: "Add to Cursor",
-                    style: AffordanceStyle.PRIMARY,
+                    emphasis: Emphasis.PRIMARY,
                     invoke: { case: "uri", value: "cursor://install" },
                   },
                 ],

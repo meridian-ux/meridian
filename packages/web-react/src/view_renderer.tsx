@@ -13,10 +13,10 @@ import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.
 import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type {
-  Action,
   Slot,
   ViewDescriptor,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { normalizeViewActions, type NormalizedAction } from "@savvifi/meridian-schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
@@ -40,7 +40,7 @@ import {
  * active kit's table to render per-row and fire with the row bound (graph-backed rows
  * carry `id`, so the kit invokes `{ id: row.id }`). Empty ⇒ no per-row column.
  */
-export const MeridianRowActionsContext = createContext<Action[]>([]);
+export const MeridianRowActionsContext = createContext<Affordance[]>([]);
 export const MeridianNormalizedRowActionsContext = createContext<readonly NormalizedAction[] | undefined>(undefined);
 
 /**
@@ -50,7 +50,7 @@ export const MeridianNormalizedRowActionsContext = createContext<readonly Normal
  */
 export const MeridianViewContext = createContext<{ subjectKind?: string; subjectId?: string }>({});
 
-function ActionsView({ actions, normalizedActions }: { actions: Action[]; normalizedActions: readonly NormalizedAction[] }): ReactNode {
+function ActionsView({ actions, normalizedActions }: { actions: Affordance[]; normalizedActions: readonly NormalizedAction[] }): ReactNode {
   const { kit, mutationInvoker } = useMeridian();
   const { subjectKind, subjectId } = useContext(MeridianViewContext);
   if (normalizedActions.length === 0) return null;
@@ -137,7 +137,7 @@ function SlotView({ slot }: { slot: Slot }): ReactNode {
       <section className="mer-slot mer-slot-subview" data-slot={slot.id} data-role={slot.role}>
         {slot.title ? <h3 className="mer-slot-title">{slot.title}</h3> : null}
         {slot.subViewPopulate ? <RepeatedSubView slot={slot} /> : <ViewRenderer view={slot.subView} />}
-        <ActionsView actions={slot.affordances === undefined ? slot.actions : []} normalizedActions={normalizeViewActions(slot)} />
+        <ActionsView actions={slot.affordances?.items ?? []} normalizedActions={normalizeViewActions(slot)} />
       </section>
     );
   }
@@ -148,7 +148,7 @@ function SlotView({ slot }: { slot: Slot }): ReactNode {
     <section className="mer-slot" data-slot={slot.id} data-role={slot.role}>
       {title ? <h3 className="mer-slot-title">{title}</h3> : null}
       <PanelRenderer descriptor={panel} />
-      <ActionsView actions={slot.affordances === undefined ? slot.actions : []} normalizedActions={normalizeViewActions(slot)} />
+      <ActionsView actions={slot.affordances?.items ?? []} normalizedActions={normalizeViewActions(slot)} />
     </section>
   );
 }
@@ -299,7 +299,7 @@ export function ViewRenderer({
             ))}
           </div>
         ) : null}
-        <ActionsView actions={view.affordances === undefined ? view.actions.filter(a => a.placement !== ActionPlacement.ROW) : []} normalizedActions={headerActions} />
+        <ActionsView actions={(view.affordances?.items ?? []).filter(a => a.placement !== ActionPlacement.ROW)} normalizedActions={headerActions} />
       </header>
       {body}
     </div>
@@ -311,7 +311,7 @@ export function ViewRenderer({
   const withRowActions = (
     <MeridianSelectionContext.Provider value={scope}>
       <MeridianViewContext.Provider value={{ subjectKind: view.subjectKind, subjectId: view.subjectId }}>
-        <MeridianRowActionsContext.Provider value={view.affordances === undefined ? view.actions.filter(a => a.placement === ActionPlacement.ROW) : []}>
+        <MeridianRowActionsContext.Provider value={(view.affordances?.items ?? []).filter(a => a.placement === ActionPlacement.ROW)}>
           <MeridianNormalizedRowActionsContext.Provider value={rowActions}>
           {rendered}
           </MeridianNormalizedRowActionsContext.Provider>

@@ -1,20 +1,23 @@
 import { create } from "@bufbuild/protobuf";
-import { ActionSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { normalizeLegacyAction } from "@savvifi/meridian-schemas/uiview";
-import { useActionGroup, useActionInvocation } from "@savvifi/meridian-web-react";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { normalizeAffordance } from "@savvifi/meridian-schemas/uiview";
+import { useActionGroup, useActionInvocation, useMeridian } from "@savvifi/meridian-web-react";
 import { Button, TableCell, TableRow, Typography } from "@mui/material";
-import { useId, type ReactNode } from "react";
+import { useId, useMemo, type ReactNode } from "react";
 
-const OPEN = normalizeLegacyAction(create(ActionSchema, { id: "open", label: "Open" }));
-
-/** Implicit entity navigation is semantic intent, never a legacy callback grant. */
+/** Host-resolved entity destinations still require canonical invocation admission. */
 export function AdmittedNavigationRow({ row, subjectKind, children }: {
   row: Record<string, unknown>; subjectKind: string; children: ReactNode;
 }): ReactNode {
   const ownId = Object.getOwnPropertyDescriptor(row, "id");
   const id = ownId && "value" in ownId ? ownId.value : undefined;
   const valid = typeof id === "string" && id.length > 0 || typeof id === "number" && Number.isFinite(id);
-  const invocation = useActionInvocation(OPEN, { row,
+  const { resolveHref } = useMeridian();
+  const route = valid ? resolveHref?.(subjectKind, String(id)) : undefined;
+  const open = useMemo(() => normalizeAffordance(create(AffordanceSchema, {
+    id: "open", label: "Open", invoke: route ? { case: "navigate", value: { route } } : undefined,
+  })), [route]);
+  const invocation = useActionInvocation(open, { row,
     subject: { entityType: subjectKind, entityId: valid ? id as string | number : undefined }, enabled: valid });
   const group = useActionGroup();
   const owner = useId();

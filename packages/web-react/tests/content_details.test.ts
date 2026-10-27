@@ -9,7 +9,6 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
 import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
@@ -54,12 +53,12 @@ it.each([undefined, 0, 1, 2, 999])("reference kits honor emphasis presence %s wi
   for (const [, kit] of kits) for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
     for (const uri of ["/next", "javascript:alert(1)"]) {
       const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-        label: "Action", description: "Explain", icon: "action", style: 1, tone, emphasis,
+        label: "Action", description: "Explain", icon: "action", tone, emphasis,
         invoke: { case: "uri", value: uri },
       } } } });
       const decoded = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, descriptor));
       const html = render(kit, decoded);
-      const primary = emphasis === undefined || emphasis === 1;
+      const primary = emphasis === 1;
       expect(html.includes("mer-affordance-primary") || html.includes("bg-primary")).toBe(primary);
       if (tone === undefined) expect(html).not.toContain("data-mer-tone");
       else expect(html).toContain(`data-mer-tone="${["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral"}"`);

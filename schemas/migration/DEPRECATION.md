@@ -1,9 +1,14 @@
 # Affordance compatibility-field migration
 
-Status: **unmerged implementation candidate**, not an activated production
-schema, published SDK, or approved 1.0 removal. See the [cutover policy](../AFFORDANCE_MIGRATION.md#exact-proposed-cutover-policy--requires-separate-approval).
+Status: **historical additive-phase guide**, not an activated production schema,
+published SDK, or approved 1.0 removal. This document describes the retained
+0.x compatibility APIs at additive revision
+`412d3e15f92e9396f9966e388aafa5576e1a592d`, including its legacy reader module.
+Those APIs are deliberately absent from the current unmerged
+[removal candidate](REMOVAL.md). Do not copy the historical legacy accessors
+into a canonical-only consumer. See the [cutover policy](../AFFORDANCE_MIGRATION.md#exact-proposed-cutover-policy--requires-separate-approval).
 
-The nine old fields below now carry `deprecated = true` in the candidate.
+In that additive phase, the nine old fields below carry `deprecated = true`.
 They remain present with the same names, tags, types, and behavior during the
 0.x compatibility window. Do not delete them, clear their data, or pretend that
 descriptor deprecation alone migrates a producer or grants invocation authority.

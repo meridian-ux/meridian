@@ -8,6 +8,18 @@ const rowCall = () => create(RpcCallSchema, { service: "demo.Rows", method: "Run
 ] });
 
 describe("bounded React action assembly", () => {
+  it("bounds protobuf descriptor bytes without invoking custom hooks or admitting raw request bytes", () => {
+    const bytes = new Uint8Array([0, 127, 255]);
+    let callbacks = 0;
+    const trap = () => { callbacks++; throw Error("Do not execute descriptor hooks"); };
+    Object.defineProperty(bytes, Symbol.iterator, { get: trap });
+    Object.defineProperty(bytes, "length", { get: trap });
+    Object.defineProperty(bytes, "toJSON", { get: trap });
+    expect(JSON.parse(boundedJson({ wire: bytes }))).toEqual({ wire: [0, 127, 255] });
+    expect(() => boundedJson({ wire: new Uint8Array(100_000) })).toThrow();
+    expect(() => boundedActionRequest(rowCall(), {}, { payload: bytes })).toThrow();
+    expect(callbacks).toBe(0);
+  });
   it("preserves raw JSON, prototype-looking data keys, and source ownership", () => {
     const data = JSON.parse('{"__proto__":{"raw":true},"zero":0,"no":false,"empty":"","list":[null,2]}');
     const row = { payload: data };

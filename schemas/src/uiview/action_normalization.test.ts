@@ -1,14 +1,15 @@
 import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbuild/protobuf";
 import { expect, it } from "vitest";
-import { AffordanceSchema, Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { AffordanceCollectionSchema } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
-import { ActionPlacement, ActionSchema, SlotSchema, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { RowActionSchema, TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { ActionPlacement, SlotSchema, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
 import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { normalizeAffordance, normalizeLegacyAction, normalizeLegacyRowAction, normalizeViewActions,
+import { normalizeAffordance, normalizeViewActions,
   normalizeTableActions, normalizeCommand, normalizeFormSubmit } from "./action_normalization.js";
+import { readFrozen } from "../../tests/frozen_affordance.js";
 
 const call = create(RpcCallSchema, { service: "raw.Service", method: "Get", bindings: [
   { requestField: "subject", source: { case: "rowField", value: "raw.e\u0301" } },
@@ -24,39 +25,35 @@ it("direct Affordance keeps every typed target and policy field as one untouched
     const bytes = toBinary(AffordanceSchema, source);
     const result = normalizeAffordance(source);
     expect(result.affordance).toBe(source);
-    expect(result.semanticAction).toBeUndefined();
     expect(toBinary(AffordanceSchema, result.affordance)).toEqual(bytes);
   }
 });
 
-it.each([0, 1, 2, 3, 4, 999])("preserves legacy Action placement %s and exact RPC data without mutation", placement => {
-  const source = create(ActionSchema, { id: " raw\0e\u0301 ", label: "Confirm first", placement, call });
-  const bytes = toBinary(ActionSchema, source);
-  const normalized = normalizeLegacyAction(source);
+it.each([0, 1, 2, 3, 4, 999])("preserves canonical placement %s and exact RPC data without mutation", placement => {
+  const source = create(AffordanceSchema, { id: " raw\0e\u0301 ", label: "Confirm first", placement, invoke: { case: "rpc", value: call } });
+  const bytes = toBinary(AffordanceSchema, source);
+  const normalized = normalizeAffordance(source);
   expect(normalized.affordance).toMatchObject({ id: source.id, label: source.label, placement,
     invoke: { case: "rpc", value: call } });
-  expect(normalized.semanticAction).toBeUndefined();
-  expect(normalized.affordance.emphasis).toBe(placement === ActionPlacement.PRIMARY ? Emphasis.PRIMARY : undefined);
-  expect(toBinary(ActionSchema, source)).toEqual(bytes);
+  expect(normalized.affordance.emphasis).toBeUndefined();
+  expect(toBinary(AffordanceSchema, source)).toEqual(bytes);
 });
 
-it("keeps no-call IDs as semantic keys, never URI/view/command guesses", () => {
+it("never guesses URI/view/command targets from no-call IDs", () => {
   for (const id of ["confirm-delete", "https://example.test", "view/raw", "raw '$argument'", ""]) {
-    const source = create(ActionSchema, { id, label: "Host meaning", placement: ActionPlacement.HEADER });
-    const normalized = normalizeLegacyAction(source);
+    const source = create(AffordanceSchema, { id, label: "Host meaning", placement: ActionPlacement.HEADER });
+    const normalized = normalizeAffordance(source);
     expect(normalized.affordance.id).toBe(id);
     expect(normalized.affordance.invoke.case).toBeUndefined();
-    expect(normalized.semanticAction).toBe(source);
   }
-  const invalidCall = create(ActionSchema, { id: "do-not-resolve", call: {} });
-  expect(normalizeLegacyAction(invalidCall).semanticAction).toBeUndefined();
-  expect(normalizeLegacyAction(invalidCall).affordance.invoke.case).toBe("rpc");
+  const invalidCall = create(AffordanceSchema, { id: "do-not-resolve", invoke: { case: "rpc", value: {} } });
+  expect(normalizeAffordance(invalidCall).affordance.invoke.case).toBe("rpc");
 });
 
 it("canonical view/slot presence wins, including empty overrides and unusable intents", () => {
   for (const schema of [ViewDescriptorSchema, SlotSchema]) {
-    const source = create(schema, { id: "root", actions: [{ id: "semantic", label: "Legacy" }] });
-    expect(normalizeViewActions(source)[0].semanticAction?.id).toBe("semantic");
+    const source = readFrozen(schema, { id: "root", actions: [{ id: "semantic", label: "Legacy" }] });
+    expect(normalizeViewActions(source)).toEqual([]);
     source.affordances = create(AffordanceCollectionSchema);
     expect(normalizeViewActions(fromBinary(schema, toBinary(schema, source)))).toEqual([]);
     const empty = create(AffordanceSchema);
@@ -64,28 +61,26 @@ it("canonical view/slot presence wins, including empty overrides and unusable in
     const [normalized] = normalizeViewActions(source);
     expect(normalized.affordance).toBe(empty);
     expect(normalized.affordance.label).toBe("");
-    expect(normalized.semanticAction).toBeUndefined();
   }
 });
 
-it.each([false, true])("legacy RowAction refresh %s preserves actual always-refresh behavior", refreshOnSuccess => {
-  const source = create(RowActionSchema, { label: "Resolve", rpc: call,
+it.each([false, true])("canonical row refresh %s remains authoritative", refreshOnSuccess => {
+  const source = create(AffordanceSchema, { label: "Resolve", placement: ActionPlacement.ROW, invoke: { case: "rpc", value: call },
     enabledWhen: { fieldPath: "state", equals: "OPEN" }, refreshOnSuccess });
-  const bytes = toBinary(RowActionSchema, source);
-  const normalized = normalizeLegacyRowAction(source).affordance;
+  const bytes = toBinary(AffordanceSchema, source);
+  const normalized = normalizeAffordance(source).affordance;
   expect(normalized).toMatchObject({ label: source.label, placement: ActionPlacement.ROW,
-    enabledWhen: source.enabledWhen, refreshOnSuccess: true, invoke: { case: "rpc", value: call } });
-  expect(normalizeTableActions(create(TablePanelSchema, { actions: [source] }))[0].affordance).toEqual(normalized);
-  const missing = normalizeLegacyRowAction(create(RowActionSchema));
+    enabledWhen: source.enabledWhen, refreshOnSuccess, invoke: { case: "rpc", value: call } });
+  expect(normalizeTableActions(create(TablePanelSchema, { affordances: { items: [source] } }))[0].affordance).toEqual(normalized);
+  const missing = normalizeAffordance(create(AffordanceSchema));
   expect(missing.affordance.invoke.case).toBeUndefined();
-  expect(missing.semanticAction).toBeUndefined();
-  expect(toBinary(RowActionSchema, source)).toEqual(bytes);
+  expect(toBinary(AffordanceSchema, source)).toEqual(bytes);
 });
 
 it("canonical table actions retain explicit false/zero/empty instead of merging legacy policy", () => {
-  const source = create(TablePanelSchema, { actions: [{ label: "Legacy", rpc: call, refreshOnSuccess: true }],
+  const source = readFrozen(TablePanelSchema, { actions: [{ label: "Legacy", rpc: { service: call.service, method: call.method }, refreshOnSuccess: true }],
     affordances: { items: [{ label: "", tone: 0, emphasis: 0, placement: 0, refreshOnSuccess: false,
-      invoke: { case: "copy", value: "" } }] } });
+      copy: "" }] } });
   const wire = toBinary(TablePanelSchema, source);
   const normalized = normalizeTableActions(fromBinary(TablePanelSchema, wire));
   expect(normalized).toHaveLength(1);
@@ -95,24 +90,23 @@ it("canonical table actions retain explicit false/zero/empty instead of merging 
   expect(normalizeTableActions(source)).toEqual([]);
 });
 
-it("rejects excessive selected collections before projection, without reviving ignored legacy actions", () => {
-  const many = Array.from({ length: 1001 }, () => create(ActionSchema, { id: "legacy" }));
-  expect(() => normalizeViewActions({ actions: many })).toThrow("Action collection exceeds limits.");
-  expect(normalizeViewActions({ actions: many, affordances: create(AffordanceCollectionSchema) })).toEqual([]);
-  const rows = many.map(() => create(RowActionSchema));
-  expect(() => normalizeTableActions({ actions: rows })).toThrow("Action collection exceeds limits.");
+it("rejects excessive selected collections before projection, without reviving retired wire actions", () => {
+  const many = Array.from({ length: 1001 }, () => ({ id: "legacy" }));
+  expect(normalizeViewActions(readFrozen(ViewDescriptorSchema, { actions: many }))).toEqual([]);
+  expect(normalizeTableActions(readFrozen(TablePanelSchema, { actions: many.map(() => ({ label: "legacy" })) }))).toEqual([]);
   const canonical = create(AffordanceCollectionSchema, { items: many.map(() => create(AffordanceSchema)) });
-  expect(() => normalizeTableActions({ actions: [], affordances: canonical })).toThrow("Action collection exceeds limits.");
-  expect(normalizeViewActions({ actions: many.slice(0, 1000) })).toHaveLength(1000);
+  expect(() => normalizeTableActions({ affordances: canonical })).toThrow("Action collection exceeds limits.");
+  expect(() => normalizeViewActions({ affordances: canonical })).toThrow("Action collection exceeds limits.");
+  expect(normalizeViewActions({ affordances: create(AffordanceCollectionSchema, { items: canonical.items.slice(0, 1000) }) })).toHaveLength(1000);
 });
 
-it("adapts every legacy palette target while retaining the full search/menu envelope", () => {
+it("keeps canonical palette targets and full search/menu envelopes without reviving retired arms", () => {
   const sources = [
-    create(CommandSchema, { action: { case: "rpc", value: call } }),
-    create(CommandSchema, { action: { case: "navigate", value: { route: "/raw/e\u0301" } } }),
-    create(CommandSchema, { action: { case: "openViewId", value: "view/e\u0301" } }),
-    create(CommandSchema, { action: { case: "openPanel", value: { panel: { panelId: "inline" } } } }),
-    create(CommandSchema, { action: { case: "openPanel", value: {} } }),
+    create(CommandSchema, { affordance: { invoke: { case: "rpc", value: call } } }),
+    create(CommandSchema, { affordance: { invoke: { case: "navigate", value: { route: "/raw/e\u0301" } } } }),
+    create(CommandSchema, { affordance: { invoke: { case: "openView", value: "view/e\u0301" } } }),
+    create(CommandSchema, { affordance: { invoke: { case: "openPanel", value: { panelId: "inline" } } } }),
+    readFrozen(CommandSchema, { openPanel: {} }),
     create(CommandSchema),
   ];
   for (const [index, source] of sources.entries()) {
@@ -122,22 +116,22 @@ it("adapts every legacy palette target while retaining the full search/menu enve
     const result = normalizeCommand(source);
     expect(result.envelope).toBe(source);
     expect(result.action.affordance.invoke.case).toBe(["rpc", "navigate", "openView", "openPanel", undefined, undefined][index]);
-    expect(result.action.affordance).toMatchObject({ id: source.id, label: source.title, description: source.subtitle, icon: source.icon });
+    if (source.affordance) expect(result.action.affordance).toBe(source.affordance);
+    else expect(result.action.affordance).toMatchObject({ id: source.id, label: source.title, description: source.subtitle, icon: source.icon });
     expect(toBinary(CommandSchema, source)).toEqual(bytes);
   }
 });
 
 it("canonical empty command/form messages prohibit legacy target and label revival", () => {
-  const command = create(CommandSchema, { title: "Search envelope", action: { case: "rpc", value: call }, affordance: {} });
+  const command = readFrozen(CommandSchema, { title: "Search envelope", rpc: { service: call.service, method: call.method }, affordance: {} });
   expect(normalizeCommand(command).action.affordance).toBe(command.affordance);
   expect(normalizeCommand(command).action.affordance.invoke.case).toBeUndefined();
   expect(normalizeCommand(command).action.affordance.label).toBe("");
-  const form = create(FormPanelSchema, { submit: call });
-  expect(normalizeFormSubmit(form, "Save record").affordance).toMatchObject({ label: "Save record", invoke: { case: "rpc", value: call } });
-  expect(normalizeFormSubmit(form, "Save record").legacyOrigin).toBe("form");
+  const form = readFrozen(FormPanelSchema, { submit: { service: call.service, method: call.method } });
+  expect(normalizeFormSubmit(form, "Save record").affordance.label).toBe("Save record");
+  expect(normalizeFormSubmit(form, "Save record").affordance.invoke.case).toBeUndefined();
   form.submitAffordance = create(AffordanceSchema);
   expect(normalizeFormSubmit(form, "Must not revive").affordance).toBe(form.submitAffordance);
-  expect(normalizeFormSubmit(form, "Must not revive").legacyOrigin).toBeUndefined();
   expect(normalizeFormSubmit(form, "Must not revive").affordance.invoke.case).toBeUndefined();
   expect(normalizeFormSubmit(create(FormPanelSchema), "Submit").affordance.invoke.case).toBeUndefined();
 });

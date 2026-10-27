@@ -6,8 +6,10 @@ nested catalog, connection-flow, and walkthrough actions. URI targets are button
 that can bypass admission through a context menu or a new tab. Command targets
 do not copy text. Clipboard intent requires the explicit `copy` arm.
 
-This candidate is part of the coordinated Affordance migration, not an activated
-production baseline or a claim that all renderer action sources have migrated.
+This document describes the canonical-only [removal candidate](../../schemas/migration/REMOVAL.md),
+not an activated production baseline. Frozen additive compatibility evidence is
+separate; it does not restore removed APIs in this checkout. Full integration,
+external producer upgrades, and cutover approval remain outstanding.
 
 ## Host wiring
 
@@ -34,15 +36,17 @@ capabilities and policies visibly deny. A capability is not a policy grant.
 Every RPC Affordance separately uses the provider's existing mutation policy,
 including Get/List, with the original authenticated transport and the shared
 bounded Rust request builder. Optional target policy can further restrict RPCs,
-never waive mutation admission. Do not pass an executing `onAction` callback as
-the pure semantic resolver.
+never waive mutation admission. The deprecated `onAction` callback is not an
+invocation fallback or permission grant.
 
-Legacy no-call Action IDs remain semantic keys. `resolveSemantic` must return
-typed intent without executing an old callback, and may return an explicit
-confirmation callback. Accepting confirmation is not a permission grant. The
-resolver receives the original semantic fields, current context, and header/row
-subject identity (including zero row IDs). Canonical collections win whole,
-including explicit empty collections; denial never revives legacy intent.
+The removed Action/RowAction DTOs and `resolveSemantic` API are unavailable.
+Author a complete typed Affordance; IDs and labels are metadata, not destinations.
+Optional `invocation.confirm` receives the canonical affordance, current context,
+and header/row subject identity (including zero row IDs). Consent grants no
+permission. Only canonical collections are read, including explicit-empty
+collections; absent collections and historical wire never revive old controls.
+Product header/row mutations must navigate to actual served request views;
+only explicit form submission carries the mutation RPC and declared inputs.
 
 The default `RpcInvoker` still receives exactly its original three arguments.
 Hosts with cancellation-aware transport can explicitly provide
@@ -63,7 +67,7 @@ replacement render cannot retarget the live control. The existing mutable
 selection bag and committed runtime data remain live. At activation and after
 confirmation/admission callbacks, a bounded reader refreshes owned snapshots and
 invalidates stale consent even when the bag changed without a React render.
-Neither render, hydration, nor focus executes host policy/resolver callbacks or
+Neither render, hydration, nor focus executes host policy/consent callbacks or
 invocation capabilities.
 
 Pending actions expose busy state and a cancel control. Cancellation is best
@@ -84,11 +88,9 @@ ignores abort. A failed action stays in its menu with sanitized feedback and a
 reachable retry. Closing disables that retained control; it is not an active
 hidden invocation path. Menus retain placement and keyboard focus/navigation.
 
-Legacy row request adaptation is explicit, not a descriptor grant: MUI retains
-its observed bare `{id}` default only for unbound legacy row calls; reference
-kits retain `{}`. Canonical calls never receive either invented bindings or
-legacy refresh behavior. Legacy RowAction refresh remains always-on as observed,
-while canonical false is authoritative. Shared Rust request construction omits
+Row RPCs use only their explicit declared bindings; no kit invents an `{id}`
+request from the selected record. Refresh is explicitly authored, and false is
+authoritative. Shared Rust request construction omits
 unset empty-string selections and synthesized empty nested envelopes, but keeps
 raw empty objects, literals, zero, false, and whitespace unchanged.
 
@@ -100,10 +102,10 @@ Snippet and CopyValue controls retain their separate existing copy contract.
 
 The MUI shell palette also uses normalized commands and the shared dispatcher.
 Search still uses the Command title/subtitle/keywords, and renders its icon and
-shortcut; those fields never replace explicit canonical intent. This shell's
-legacy URL-state mode projects `deep_link` to a URI action only when canonical
-Affordance presence is absent. Empty or denied canonical intent never revives
-that hint or the old oneof. Unsafe URI/navigation destinations stay unavailable.
+shortcut; those fields never replace explicit canonical intent. `deep_link`
+is metadata only, not a URI target or old-oneof fallback. Missing canonical
+intent stays inert and visibly unavailable. Unsafe URI/navigation destinations
+stay unavailable.
 All targets require the same explicit host policy/capability wiring as panel
 actions; the shell's routing seam and `hrefFor` are not automatic grants. Hosts
 wanting focused panel steps must implement their granted `openPanel` capability,
@@ -116,8 +118,8 @@ retained footprint is bounded to 1,000 command occurrences, including defaults.
 ## Reference form adoption
 
 HTML and Shadcn ordinary FormPanel submission now uses this dispatcher and the
-actual bounded Rust submission builder. Canonical presence (including empty)
-wins over the legacy save call and label. The existing collector validates
+actual bounded Rust submission builder. Only `submit_affordance` can supply
+submission intent; an empty or absent target invents no save call. The collector validates
 current fields/dynamic options before activation. Canonical submit description,
 icon key, tone, and explicit emphasis remain visible without granting invocation;
 description and live feedback are linked to the submit control. Only committed
@@ -129,28 +131,26 @@ field-ID mappings retain their own contracts. Raw false, zero, Unicode, and
 binding precedence are preserved. A request-construction failure never falls
 back to the legacy JavaScript interpreter or an old submit call.
 
-Legacy denied-save controls keep their observed disabled/status UI. Canonical
-denial is reachable and explained; pending submission is guarded with linked
+Canonical policy denial is reachable and explained; pending submission is guarded with linked
 busy status and cancel, retaining focus and duplicate protection until actual
 settlement. Edits/unmount/context replacement suppress late status/refresh.
 Failures are sanitized and input survives retry. Saved status belongs only to
 its original scope; refresh failure remains distinct from effect failure.
 
 The shared browser hook also enforces safe URI/navigation schemes before any
-host capability, including intent produced by a semantic resolver. A permissive
+host capability. A permissive
 host grant cannot enable executable/document-local schemes. Hosts still supply
 and may further restrict all destination capabilities; no implicit opener exists.
 
 ## Still required
 
-Web-components ordinary forms, table rows and resource-card RPCs now have
-focused migration candidates. Chat/TUI and complete renderer-wide acceptance
-remain separate work.
+The canonical-only web-components, React kits, chat, launchpad, and TUI paths
+have targeted removal evidence. Complete integration and the external Studio
+producer migration are still required; targeted checks alone are not release acceptance.
 Reference LRO inputs retain the existing complete start/poll/finalize workflow;
 the ordinary FormPanel migration does not replace it with an acknowledged RPC.
-The existing legacy shapes remain during the compatibility window; canonical
-presence must win whole, including empty/false, when those sources migrate.
-Private/public producer upgrades, external migration/removal prerequisites, and
+Retired shapes remain only in frozen historical test inputs, not runtime APIs.
+Coordinated private/public producer upgrades, external migration prerequisites, and
 the production cutover still require their own acceptance evidence. This focused
 control adoption alone does not complete the renderer roadmap issue.
 
@@ -180,12 +180,12 @@ late reset/status/refresh. Prompt and LRO callback/operation workflows remain
 separate and unchanged. The MUI form control slot is runtime React content,
 not a new serialized descriptor or permission bit.
 
-## Implicit MUI entity navigation
+## Host-resolved MUI entity navigation
 
-MUI table row clicks now normalize the semantic `open` action with the current
-own scalar identifier and view subject, and use the same shared dispatcher as
-authored controls. Hosts must supply a pure semantic resolver, capability, and
-target policy; the old `onAction` callback is never a fallback. No subject means
+MUI table row clicks use the host's pure `resolveHref(subjectKind, String(id))`
+to construct a canonical navigate target with the current own scalar identifier
+and view subject. Navigation still requires an explicit navigate capability and
+target policy; `resolveHref` is not a grant, and `onAction` is never a fallback. No subject means
 no invented entity navigation. Missing/invalid identifiers render visibly inert.
 
 A named native Open button gives each navigable row keyboard access without
@@ -198,9 +198,9 @@ or a permission grant. Its leading navigation cell matches the supplied header.
 
 ## Standalone Launchpad adoption
 
-Standalone Launchpad normalizes canonical/legacy command intent through the
-same dispatcher, including actual Rust RPC bindings. Canonical whole-presence
-wins over legacy action/deep-link hints. No executing router, window location,
+Standalone Launchpad dispatches only `Command.affordance` through the
+same dispatcher, including actual Rust RPC bindings. Absent or empty intent
+does not fall back to retired action/deep-link hints. No executing router, window location,
 open-panel mount, open-view callback, or old action-handler fallback is inferred.
 Deprecated callback prop types remain, but hosts must explicitly register typed
 capabilities and policy. Search/shortcut/group metadata stays on Command.
@@ -217,8 +217,8 @@ replacement and close/reopen through noncooperative settlement.
 
 The imperative-DOM renderer now forwards explicit invocation capabilities through
 the public mount and uses the shared dispatcher for ActionPanel/nested canonical
-affordances and normalized view/slot controls. Canonical collection presence
-wins whole; no-call legacy actions require pure semantic resolution. All seven
+affordances and canonical view/slot controls. Historical header/slot wire fields
+are inert; metadata does not trigger semantic target resolution. All seven
 targets, Rust RPC bindings, safe destinations, mutation admission, bounded owned
 current snapshots, cancellation, focus return, stale suppression, and distinct
 refresh failure use this path. It has no URI-anchor, clipboard or legacy fallback.
@@ -249,11 +249,11 @@ must not be replaced with a single acknowledged action.
 
 ## Web-components table adoption
 
-Canonical table collections and normalized legacy rows now use the same bounded
+Canonical table collections use the same bounded
 adapter and actual Rust request builder. The panel-local selection overrides
 ambient row context, with native Enter/Space selection and enabledWhen filtering.
-Canonical empty collections suppress legacy controls; explicit false suppresses
-refresh, while legacy row behavior still refreshes and does not synthesize IDs.
+Historical row wire is inert, including when canonical collections are absent;
+explicit false suppresses refresh, and unbound calls do not synthesize IDs.
 Panel-wide pending guards cover reentrant host callbacks and noncooperative
 cancellation. The origin and cancellation stay reachable, and changed rows or
 replacement scopes cannot own late feedback/refresh. Failed refresh retains the
@@ -267,7 +267,7 @@ visibility/styles and explicit bindings without inventing ID/refresh behavior.
 The shared snapshot has an optional runtime-only consent hook: admission comes
 first, then consent, then the same-scope check before actual Rust assembly and
 transport. It is not a serialized capability or grant. Other hosts that omit it
-keep their existing behavior, including their separate semantic-resolver consent.
+keep their existing behavior, including their separate ResourceAction resolver consent.
 
 Resource confirmation owns a bounded protobuf ConfirmSpec snapshot, displays
 literal named/described text, focuses Cancel, cycles Tab/Shift+Tab and handles
@@ -277,4 +277,4 @@ complete declaration changes withdraw the old projection until remount (includin
 removed/replaced target/confirmation objects). A no-longer-visible record cannot
 dispatch through a retained button. Disposal removes consent without stealing focus, and failures require fresh consent
 on retry. Late populate and effect completion cannot update replacement cards.
-Full chat/TUI/producer/deprecation adoption and cutover remain outstanding.
+Complete cross-repository integration and approved cutover remain outstanding.
