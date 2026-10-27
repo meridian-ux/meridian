@@ -5,9 +5,27 @@ load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 package(default_visibility = ["//visibility:public"])
 
 vitest_test(
+    name = "invocation_test",
+    srcs = ["invocation.test.ts"],
+    deps = [":seam", "//schemas:frozen_affordance_test_data", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+)
+
+vitest_test(
+    name = "action_normalization_test",
+    srcs = ["action_normalization.test.ts"],
+    deps = [":seam", "//schemas:frozen_affordance_test_data", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+)
+
+vitest_test(
+    name = "affordance_predicate_test",
+    srcs = ["affordance_predicate.test.ts"],
+    deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+)
+
+vitest_test(
     name = "affordance_presentation_test",
     srcs = ["affordance_presentation.test.ts"],
-    deps = [":seam", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
+    deps = [":seam", "//schemas:frozen_affordance_test_data", "//schemas:node_modules/@bufbuild/protobuf", "//schemas:node_modules/@savvifi/meridian-proto-ts", "//schemas:node_modules/vitest"],
 )
 
 vitest_test(
@@ -63,11 +81,14 @@ ts_project(
     name = "seam",
     srcs = [
         "admission.ts",
+        "action_normalization.ts",
         "affordance_presentation.ts",
+        "affordance_predicate.ts",
         "core_runtime.ts",
         "conversation_tone.ts",
         "conversation_sequence.ts",
         "index.ts",
+        "invocation.ts",
         "navigation.ts",
         "masked_multiline.ts",
         "media.ts",

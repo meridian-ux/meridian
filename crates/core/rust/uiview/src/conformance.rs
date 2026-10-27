@@ -222,7 +222,7 @@ fn shared_core_corpus_keeps_every_operation_and_unique_names() {
     let corpus = corpus();
     for (operation, count) in [
         ("paths", 7),
-        ("requests", 6),
+        ("requests", 8),
         ("tables", 18),
         ("galleries", 4),
         ("metadata", 5),

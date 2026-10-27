@@ -12,8 +12,9 @@
 //     the hydrating render disagreed.
 
 import { create } from "@bufbuild/protobuf";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import * as React from "react";
 
 import { CommandGroupSchema, CommandSchema, LaunchpadSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
@@ -84,9 +85,10 @@ function publishingPage(label = "Create sponsor") {
   };
 }
 
-function mount(seams: Partial<AppShellSeams>, children?: React.ReactNode, shell = shellWith()) {
+function mount(seams: Partial<AppShellSeams>, children?: React.ReactNode, shell = shellWith(),
+  options: Pick<React.ComponentProps<typeof MeridianMuiProvider>, "invocation" | "admission"> = {}) {
   return render(
-    <MeridianMuiProvider invoker={invoker}>
+    <MeridianMuiProvider invoker={invoker} {...options}>
       <AppShellView shell={shell} seams={{ routing: { Link, usePathname: () => "/" }, ...seams }}>
         {children}
       </AppShellView>
@@ -204,7 +206,7 @@ describe("the launchpad navigates through the host's router", () => {
             create(CommandSchema, {
               id: "teams",
               title: "Teams",
-              action: { case: "navigate", value: { route: "/teams" } },
+              affordance: { label: "Teams", invoke: { case: "navigate", value: { route: "/teams" } } },
             }),
           ],
         }),
@@ -212,21 +214,23 @@ describe("the launchpad navigates through the host's router", () => {
     }),
   });
 
-  it("⛔ calls the navigate seam, not window.location", () => {
+  it("calls the explicitly granted host navigate capability, not window.location", async () => {
     const navigate = vi.fn();
     const location = spyOnAssign();
-    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withLaunchpad);
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withLaunchpad, {
+      invocation: { admit: () => true, capabilities: { navigate: async target => { navigate(target.route); } } },
+    });
 
     fireEvent.click(screen.getByLabelText("Open the launchpad"));
     // ⛔ Scoped to the dialog: "Teams" is a rail item too, so an unscoped query matches twice.
     fireEvent.click(within(screen.getByRole("dialog")).getByText("Teams"));
 
-    expect(navigate).toHaveBeenCalledWith("/teams");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/teams"));
     expect(location.assign).not.toHaveBeenCalled();
     location.restore();
   });
 
-  it("falls back to a document load only when the host supplied no navigate", () => {
+  it("visibly denies without a capability instead of falling back to a document load", async () => {
     const location = spyOnAssign();
     mount({}, undefined, withLaunchpad);
 
@@ -234,11 +238,12 @@ describe("the launchpad navigates through the host's router", () => {
     // ⛔ Scoped to the dialog: "Teams" is a rail item too, so an unscoped query matches twice.
     fireEvent.click(within(screen.getByRole("dialog")).getByText("Teams"));
 
-    expect(location.assign).toHaveBeenCalledWith("/teams");
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("required capability"));
+    expect(location.assign).not.toHaveBeenCalled();
     location.restore();
   });
 
-  it("disables an unsafe navigate route before it reaches the host or document", () => {
+  it("denies an unsafe navigate route before it reaches the host or document", async () => {
     const navigate = vi.fn();
     const location = spyOnAssign();
     const unsafe = shellWith({
@@ -248,7 +253,7 @@ describe("the launchpad navigates through the host's router", () => {
           commands: [create(CommandSchema, {
             id: "unsafe-route",
             title: "Unsafe route",
-            action: { case: "navigate", value: { route: "javascript:alert(1)" } },
+            affordance: { label: "Unsafe route", invoke: { case: "navigate", value: { route: "javascript:alert(1)" } } },
           })],
         })],
       }),
@@ -257,8 +262,8 @@ describe("the launchpad navigates through the host's router", () => {
 
     fireEvent.click(screen.getByLabelText("Open the launchpad"));
     const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Unsafe route" });
-    expect(command.getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(command);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Action denied"));
     expect(navigate).not.toHaveBeenCalled();
     expect(location.assign).not.toHaveBeenCalled();
     location.restore();
@@ -266,7 +271,7 @@ describe("the launchpad navigates through the host's router", () => {
 });
 
 describe("the launchpad admits authored deep links", () => {
-  function withDeepLink(deepLink: string) {
+  function withDeepLink(deepLink: string, canonical = true) {
     return shellWith({
       launchpad: create(LaunchpadSchema, {
         groups: [
@@ -274,11 +279,12 @@ describe("the launchpad admits authored deep links", () => {
             id: "deep-links",
             title: "Deep links",
             commands: [
-              create(CommandSchema, {
+              readFrozen(CommandSchema, {
                 id: "open-editor",
                 title: "Open editor",
-                deepLink,
-                action: { case: "navigate", value: { route: "/must-not-run" } },
+                deepLink: canonical ? "javascript:legacy-hint-must-not-run" : deepLink,
+                navigate: { route: "/must-not-run" },
+                ...(canonical ? { affordance: { label: "Open editor", uri: deepLink } } : {}),
               }),
             ],
           }),
@@ -287,20 +293,22 @@ describe("the launchpad admits authored deep links", () => {
     });
   }
 
-  it("preserves an admitted application deep link instead of running its fallback action", () => {
+  it("preserves an explicitly admitted canonical application URI instead of running legacy hints", async () => {
     const navigate = vi.fn();
     const location = spyOnAssign();
-    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("cursor://file/workspace/readme"));
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("cursor://file/workspace/readme"), {
+      invocation: { admit: () => true, capabilities: { uri: async href => { location.assign(href); } } },
+    });
 
     fireEvent.click(screen.getByLabelText("Open the launchpad"));
     fireEvent.click(within(screen.getByRole("dialog")).getByText("Open editor"));
 
-    expect(location.assign).toHaveBeenCalledWith("cursor://file/workspace/readme");
+    await waitFor(() => expect(location.assign).toHaveBeenCalledWith("cursor://file/workspace/readme"));
     expect(navigate).not.toHaveBeenCalled();
     location.restore();
   });
 
-  it("disables an executable deep link without falling through to its action", () => {
+  it("denies an executable deep link without falling through to its action", async () => {
     const navigate = vi.fn();
     const location = spyOnAssign();
     mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink("javascript:alert(1)"));
@@ -308,11 +316,24 @@ describe("the launchpad admits authored deep links", () => {
     fireEvent.click(screen.getByLabelText("Open the launchpad"));
     const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Open editor" });
 
-    expect(command.getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(command);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Action denied"));
     expect(location.assign).not.toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
     location.restore();
+  });
+
+  it.each(["cursor://file/workspace/readme", "javascript:alert(1)"])("keeps a legacy-only URI %s and old action inert", async deepLink => {
+    const navigate = vi.fn(), uri = vi.fn(async () => {});
+    mount({ routing: { Link, usePathname: () => "/", navigate } }, undefined, withDeepLink(deepLink, false), {
+      invocation: { admit: () => true, capabilities: { uri } },
+    });
+    fireEvent.click(screen.getByLabelText("Open the launchpad"));
+    const command = within(screen.getByRole("dialog")).getByRole("button", { name: "Open editor" });
+    expect(command.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(command);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Action unavailable"));
+    expect(uri).not.toHaveBeenCalled(); expect(navigate).not.toHaveBeenCalled();
   });
 });
 

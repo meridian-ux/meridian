@@ -18,11 +18,10 @@
 //   * Catalog       → a list, one row per item (name · state — description).
 
 use meridian_uiview::proto::{
-    affordance::Invoke, form_field::Kind, Affordance, AffordanceStyle, CatalogPanel, ChartPanel,
-    ChoicePanel, ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis,
-    FormField, FormMode, FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel,
-    ResourceAction, ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel,
-    Tone,
+    affordance::Invoke, form_field::Kind, Affordance, CatalogPanel, ChartPanel, ChoicePanel,
+    ConnectFlowPanel, CopyValue, CopyValuePanel, DetailHeaderPanel, Emphasis, FormField, FormMode,
+    FormPanel, GrammarPanel, LroPanel, MediaPanel, RecordCardPanel, ResourceAction,
+    ResourceCardPanel, Snippet, SnippetPanel, StatPanel, StepsPanel, StreamPanel, Tone,
 };
 use meridian_uiview::RenderedCard;
 use meridian_uiview::{format_display_value, format_value, trend_arrow, ProtoPaths, StatSemantics};
@@ -71,8 +70,8 @@ pub fn render_steps(frame: &mut Frame, area: Rect, panel: &StepsPanel, palette: 
                 palette.meta(),
             )));
         }
-        // StepsPanel is full-parity content. This read-only rendering cannot
-        // activate a nested affordance, but it must retain its authored intent.
+        // Rendering stays read-only. The widget's explicit invocation host
+        // handles nested step affordances after a current key activation.
         if let Some(action) = step.action.as_ref() {
             lines.push(affordance_line(action, palette));
         }
@@ -201,7 +200,9 @@ pub fn render_resource_cards(
     };
 
     let selected = selected % rows.len();
-    for (index, row) in rows.iter().enumerate() {
+    // Keep the active card visible. Earlier rows remain reachable with Up;
+    // rendering from the selected row avoids activating an offscreen record.
+    for (index, row) in rows.iter().enumerate().skip(selected) {
         let active = index == selected;
         let title_style = if active {
             palette.focused()
@@ -265,16 +266,17 @@ pub fn render_resource_cards(
             })
             .unwrap_or_default();
         if !actions.is_empty() {
-            let labels = actions
-                .iter()
-                .enumerate()
-                .map(|(action_index, action)| format!("[{}] {}", action_index + 1, action.label))
-                .collect::<Vec<_>>()
-                .join("  ");
-            lines.push(Line::from(vec![
-                Span::raw("    "),
-                Span::styled(labels, palette.title()),
-            ]));
+            let mut spans = vec![Span::raw("    ")];
+            for (action_index, action) in actions.iter().enumerate() {
+                if action_index > 0 {
+                    spans.push(Span::raw("  "));
+                }
+                spans.push(Span::styled(
+                    format!("[{}] {}", action_index + 1, action.label),
+                    resource_action_style(action, palette),
+                ));
+            }
+            lines.push(Line::from(spans));
         }
         if index + 1 < rows.len() {
             lines.push(Line::from(""));
@@ -365,6 +367,18 @@ fn escape_link_text(text: &str) -> String {
             vec![ch]
         }
     }).collect()
+}
+
+/// Legacy danger uses the same semantic role as canonical Tone::Danger.
+pub(crate) fn resource_action_style(
+    action: &ResourceAction,
+    palette: &Palette,
+) -> ratatui::style::Style {
+    if action.style == meridian_uiview::proto::ActionStyle::Danger as i32 {
+        palette.tone_style(Tone::Danger)
+    } else {
+        palette.title()
+    }
 }
 
 /// The shared visibility predicate used by the web kits: a deliberately small
@@ -864,6 +878,11 @@ pub fn render_form(
         },
         palette.meta(),
     )));
+    if panel.mode == FormMode::Edit as i32 {
+        if let Some(action) = panel.submit_affordance.as_deref() {
+            lines.push(affordance_line(action, palette));
+        }
+    }
     lines.push(Line::from(""));
     let mut next_index = 0;
     let mut selected_index = selected.min(panel.fields.len().saturating_sub(1));
@@ -1005,17 +1024,18 @@ pub fn glyph(key: &str) -> &'static str {
     }
 }
 
-fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
+pub(crate) fn affordance_line(a: &Affordance, palette: &Palette) -> Line<'static> {
     let (marker, target) = match a.invoke.as_ref() {
         Some(Invoke::Uri(u)) => ("↵", u.clone()),
         Some(Invoke::Command(c)) => ("$", c.clone()),
+        Some(Invoke::Rpc(call)) => ("↵", format!("{}/{}", call.service, call.method)),
+        Some(Invoke::Navigate(navigate)) => ("↗", navigate.route.clone()),
+        Some(Invoke::OpenPanel(_)) => ("↗", "Panel destination".into()),
+        Some(Invoke::OpenView(view)) => ("↗", view.clone()),
+        Some(Invoke::Copy(_)) => ("⧉", "Copy destination [value hidden]".into()),
         None => ("•", String::new()),
     };
-    let primary = a
-        .emphasis
-        .map_or(a.style == AffordanceStyle::Primary as i32, |emphasis| {
-            emphasis == Emphasis::Primary as i32
-        });
+    let primary = a.emphasis == Some(Emphasis::Primary as i32);
     let mut label_style = if primary {
         palette.title()
     } else {
@@ -1288,7 +1308,7 @@ pub fn selected_affordance(
         Body::Catalog(p) if !p.items.is_empty() => {
             p.items[selected % p.items.len()].action.as_ref()
         }
-        Body::Action(p) => p.action.as_ref(),
+        Body::Action(p) => p.action.as_deref(),
         Body::ConnectFlow(p) if !p.targets.is_empty() => {
             p.targets[selected % p.targets.len()].actions.first()
         }
@@ -1300,6 +1320,26 @@ pub fn selected_affordance(
 /// selected target's affordances + config snippets. `selected` is the active
 /// target index; `revealed` unmasks a secret endpoint.
 pub fn render_connect_flow(
+    frame: &mut Frame,
+    area: Rect,
+    panel: &ConnectFlowPanel,
+    palette: &Palette,
+    selected: usize,
+    revealed: bool,
+) {
+    render_connect_flow_at_index(
+        frame,
+        area,
+        panel,
+        palette,
+        connect_selected_index(panel, selected),
+        revealed,
+    );
+}
+
+/// Widget-owned cursors already applied the default once. Zero is now an actual
+/// selected index, not another request to apply the default target.
+pub(crate) fn render_connect_flow_at_index(
     frame: &mut Frame,
     area: Rect,
     panel: &ConnectFlowPanel,
@@ -1349,7 +1389,7 @@ pub fn render_connect_flow(
 
     // Bottom: target list | selected target detail.
     let cols = Layout::horizontal([Constraint::Length(20), Constraint::Min(1)]).split(chunks[1]);
-    let sel = connect_selected_index(panel, selected);
+    let sel = selected % panel.targets.len();
 
     // Target list (the Choice).
     let mut list: Vec<Line> = Vec::new();
@@ -1875,6 +1915,74 @@ mod tests {
     use super::*;
 
     #[test]
+    fn typed_affordance_destinations_render_without_exposing_copy_payloads() {
+        use meridian_uiview::proto::{Navigate, PanelDescriptor, RpcCall};
+        use prost::Message;
+        use ratatui::{backend::TestBackend, Terminal};
+        let cases = [
+            (Invoke::Uri("/uri".into()), "/uri"),
+            (Invoke::Command("command".into()), "command"),
+            (
+                Invoke::Rpc(RpcCall {
+                    service: "fixture.Service".into(),
+                    method: "Delete".into(),
+                    ..Default::default()
+                }),
+                "fixture.Service/Delete",
+            ),
+            (
+                Invoke::Navigate(Navigate {
+                    route: "/route".into(),
+                }),
+                "/route",
+            ),
+            (
+                Invoke::OpenPanel(Box::new(PanelDescriptor {
+                    title: "nested-content-must-not-mount".into(),
+                    ..Default::default()
+                })),
+                "Panel destination",
+            ),
+            (Invoke::OpenView("view-id".into()), "view-id"),
+            (
+                Invoke::Copy("clipboard-secret".into()),
+                "Copy destination [value hidden]",
+            ),
+        ];
+        for (invoke, expected) in cases {
+            let authored = Affordance {
+                label: "Activate".into(),
+                invoke: Some(invoke),
+                ..Default::default()
+            };
+            let decoded = Affordance::decode(authored.encode_to_vec().as_slice()).unwrap();
+            let mut terminal = Terminal::new(TestBackend::new(80, 2)).unwrap();
+            terminal
+                .draw(|frame| {
+                    frame.render_widget(
+                        ratatui::widgets::Paragraph::new(affordance_line(
+                            &decoded,
+                            &Palette::default(),
+                        )),
+                        frame.area(),
+                    )
+                })
+                .unwrap();
+            let text: String = terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|cell| cell.symbol())
+                .collect();
+            assert!(text.contains("Activate"));
+            assert!(text.contains(expected), "{text}");
+            assert!(!text.contains("clipboard-secret"));
+            assert!(!text.contains("nested-content-must-not-mount"));
+        }
+    }
+
+    #[test]
     fn embedded_line_breaks_preserve_words_blank_lines_styles_and_following_spans() {
         use ratatui::{
             layout::Alignment,
@@ -2069,6 +2177,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)] // The legacy prominence fallback is part of this proof.
     fn affordance_presentation_keeps_role_prominence_and_target_independent_in_terminal_cells() {
         use prost::Message;
         use ratatui::{backend::TestBackend, style::Modifier, Terminal};
@@ -2108,7 +2217,7 @@ mod tests {
                     Invoke::Uri("/next".into()),
                     Invoke::Command("echo raw command".into()),
                 ] {
-                    let primary = emphasis.is_none() || emphasis == Some(1);
+                    let primary = emphasis == Some(1);
                     let color = if tone.is_none() && !primary {
                         palette.fg
                     } else {
@@ -2116,7 +2225,6 @@ mod tests {
                     };
                     let action = Affordance {
                         label: "Action".into(),
-                        style: AffordanceStyle::Primary as i32,
                         tone,
                         emphasis,
                         invoke: Some(invoke),
@@ -2145,6 +2253,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)] // Preserve the old catalog action fixture unchanged.
     fn selected_affordance_resolves_catalog_item_action() {
         use meridian_uiview::proto::panel_descriptor::Body;
         use meridian_uiview::proto::{affordance::Invoke, CatalogItem, CatalogPanel};
@@ -2153,10 +2262,10 @@ mod tests {
             label: "Open".into(),
             description: String::new(),
             icon: String::new(),
-            style: 0,
             invoke: Some(Invoke::Uri("https://x".into())),
             tone: None,
             emphasis: None,
+            ..Default::default()
         };
         let body = Body::Catalog(CatalogPanel {
             items: vec![CatalogItem {

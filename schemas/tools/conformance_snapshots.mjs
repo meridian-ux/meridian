@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { isMain } from "./cli_entrypoint.mjs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -122,7 +123,7 @@ Runs every browser semantic conformance suite and the snapshot coverage gate.
   --dry-run  Print the commands without executing them.`);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   try {
     const options = parseArgs(process.argv.slice(2));
     if (options.help) {

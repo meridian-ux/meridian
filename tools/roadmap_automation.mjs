@@ -1,7 +1,7 @@
 // GitHub already defines the JSON API/event schema. All other values here are
 // in-process state; no new serialized manifest, grant, or audit DTO is introduced.
-import { readFileSync, statSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export const OWNER = "meridian-ux";
 export const REPOSITORIES = ["meridian-ux/meridian", "meridian-ux/meridian-internal"];
@@ -198,6 +198,7 @@ export async function main(env = process.env) {
   // No private payload or arbitrary event strings, even on a successful run.
   for (const { outcome } of results) console.log(`Roadmap automation: ${outcome}.`);
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && existsSync(process.argv[1])
+    && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   main().catch(error => { console.error(error instanceof AutomationError ? error.message : "Roadmap automation stopped: unexpected-error."); process.exitCode = 1; });
 }

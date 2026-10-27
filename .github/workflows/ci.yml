@@ -45,13 +45,13 @@ jobs:
         run: python3 tools/swiftui.py --ios
       - name: Swift dependency lock is current
         run: git diff --exit-code -- Package.resolved
-      - name: Proposal-only Swift migration-consumer probe
+      - name: Actual canonical Swift migration-consumer tests
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/swift-affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/swift-affordance-probe.json")"
           generator_dir="$(swift build --package-path .build/checkouts/swift-protobuf --scratch-path .build/swift-protobuf-generator --show-bin-path)"
-          python3 tools/affordance_swift_probe.py --scratch "$probe_dir" --generator "$generator_dir/protoc-gen-swift"
+          python3 tools/affordance_swift_probe.py --canonical --scratch "$probe_dir" --generator "$generator_dir/protoc-gen-swift"
 
   affordance-java:
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
       - name: Compiled Java migration-consumer and descriptor-ownership probe
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/affordance-probe.json")"
           protoc_archive="$RUNNER_TEMP/meridian-protoc.zip"
           curl --fail --location --silent --show-error -o "$protoc_archive" https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protoc-33.4-linux-x86_64.zip
@@ -77,7 +77,7 @@ jobs:
           unzip -q "$protoc_archive" -d "$RUNNER_TEMP/meridian-protoc"
           runtime_jar="$RUNNER_TEMP/protobuf-java-4.33.4.jar"
           curl --fail --location --silent --show-error -o "$runtime_jar" https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/4.33.4/protobuf-java-4.33.4.jar
-          python3 tools/affordance_java_probe.py --scratch "$probe_dir" \
+          python3 tools/affordance_java_probe.py --removal --scratch "$probe_dir" \
             --protoc "$RUNNER_TEMP/meridian-protoc/bin/protoc" \
             --java "$JAVA_HOME/bin/java" --javac "$JAVA_HOME/bin/javac" --runtime-jar "$runtime_jar"
 
@@ -94,12 +94,12 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Rust proposal failure-classifier tests
         run: python3 -m unittest tools/test_affordance_rust_probe.py
-      - name: Proposal-only Rust relocation and expanded-candidate checks
+      - name: Actual canonical Rust candidate workspace tests
         run: |
           set -euo pipefail
-          node schemas/tools/affordance_migration_probe.mjs --keep > "$RUNNER_TEMP/rust-affordance-probe.json"
+          node schemas/tools/affordance_removal_probe.mjs --keep > "$RUNNER_TEMP/rust-affordance-probe.json"
           probe_dir="$(jq -r .work "$RUNNER_TEMP/rust-affordance-probe.json")"
-          python3 -u tools/affordance_rust_probe.py --scratch "$probe_dir"
+          python3 -u tools/affordance_rust_probe.py --canonical --scratch "$probe_dir"
 
   core-runtime:
     runs-on: ubuntu-latest
@@ -242,7 +242,15 @@ jobs:
       - name: Mirror conformance self-test
         run: node --test "schemas/tools/*.test.mjs"
 
-      - name: Proposal-only Affordance migration, facades, and real TS consumers
+      - name: Major-1 FILE compatibility
+        run: |
+          set -euo pipefail
+          pnpm exec buf build schemas --as-file-descriptor-set --exclude-source-info \
+            -o "$RUNNER_TEMP/meridian-v1-policy.binpb"
+          node schemas/tools/compatibility_line.mjs --line v1-maintenance-proposal \
+            --image "$RUNNER_TEMP/meridian-v1-policy.binpb"
+
+      - name: Exact Affordance removal, frozen additive contracts, and real TS consumers
         run: node schemas/tools/affordance_consumer_probe.mjs
 
       - name: Admission gate
@@ -255,13 +263,14 @@ jobs:
           pnpm --filter @savvifi/meridian-web exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.json --noEmit
           pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.theme-test.json --noEmit
+          pnpm --filter @savvifi/meridian-web-react exec tsc -p tsconfig.invocation-test.json --noEmit
           pnpm --filter @savvifi/meridian-mui-kit exec tsc -p tsconfig.json --noEmit
 
       # Six package suites report coverage independently. The schemas seam was
       # previously compiled and run with node:test; it now uses Vitest so it is
       # included rather than silently disappearing from package coverage.
       - name: Coverage — schemas
-        run: pnpm --filter @savvifi/meridian-schemas exec vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../coverage/schemas --coverage.include='src/uiview/**/*.{ts,tsx}' --coverage.exclude='src/uiview/**/*.test.ts'
+        run: pnpm --filter @savvifi/meridian-schemas exec vitest run src/uiview/admission.test.ts src/uiview/navigation.test.ts src/uiview/prompt_response.test.ts src/uiview/action_normalization.test.ts src/uiview/affordance_predicate.test.ts src/uiview/invocation.test.ts --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../coverage/schemas --coverage.include='src/uiview/**/*.{ts,tsx}' --coverage.exclude='src/uiview/**/*.test.ts'
       - name: Coverage — chat
         run: pnpm --filter @savvifi/meridian-chat exec vitest run --coverage --coverage.reporter=lcov --coverage.reportsDirectory=../../coverage/chat --coverage.include='src/**/*.{js,jsx,ts,tsx}'
       - name: Coverage — launchpad
@@ -362,6 +371,22 @@ jobs:
           path: coverage
           if-no-files-found: error
           retention-days: 1
+
+      # Preserve the archives that Cargo extracted and compiled above, together
+      # with their standard checksums. This is CI evidence, not cargo publish.
+      - name: Checksums for verified Rust archives
+        working-directory: ${{ runner.temp }}/meridian-crate-packages/package
+        run: sha256sum -- *.crate > SHA256SUMS
+
+      - name: Retain verified Rust archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-packages-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/meridian-crate-packages/package/*.crate
+            ${{ runner.temp }}/meridian-crate-packages/package/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
 
   native-fuzz:
     runs-on: ubuntu-latest
@@ -475,9 +500,21 @@ jobs:
         run: bazel test --announce_rc=false //packages/mui-kit:layout_browser_test //packages/mui-kit:conversation_browser_test //packages/mui-kit:stateful_geometry_test //crates/tui/rust/tui:view_composition_test --test_output=errors
 
       - name: Detached web-components npm consumer
+        env:
+          MERIDIAN_WEB_PACKAGE_ARTIFACTS: ${{ runner.temp }}/meridian-web-packages
         run: |
           bazel build --announce_rc=false //packages/web:pkg //schemas:schemas_pkg //schemas/proto:proto_ts_pkg
           node tools/check_web_package.mjs
+
+      - name: Retain verified web-components consumer archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-packages-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/meridian-web-packages/*.tgz
+            ${{ runner.temp }}/meridian-web-packages/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
 
   registry-admission:
     runs-on: ubuntu-latest

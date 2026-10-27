@@ -58,7 +58,7 @@ const PRODUCT_ACTIONS = ["edit", "clone", "delete", "export_yaml"].map((id) => (
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
+  invoke: { case: "rpc" as const, value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }) },
 }));
 
 // products/views/list-view  →  ListLayout + one TablePanel content slot.
@@ -69,7 +69,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.LIST,
   layout: { mode: { case: "list", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "content",
@@ -104,7 +104,7 @@ const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.DETAIL,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "header",
@@ -289,14 +289,14 @@ const sponsorsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "sponsors",
   kind: ViewKind.DETAIL,
   layout: { mode: { case: "tabbed", value: {} } },
-  actions: [
+  affordances: { items: [
     {
       id: "delete",
       label: "Delete",
       placement: ActionPlacement.HEADER,
-      call: create(RpcCallSchema, { service: "demo.catalog.v1.Sponsor", method: "delete" }),
+      invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.catalog.v1.Sponsor", method: "delete" }) },
     },
-  ],
+  ] },
   slots: [
     {
       id: "header",

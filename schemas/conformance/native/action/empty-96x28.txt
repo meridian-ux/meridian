@@ -26,5 +26,5 @@ action · empty
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+[1/1]  ↵ Add to Cursor  cursor://anysphere.cursor-deeplink/mcp/install · ←/→ action · Enter
 end viewport

@@ -1,8 +1,66 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { componentContaining, assertAvailableFields } from "./affordance_migration_probe.mjs";
-import { create } from "@bufbuild/protobuf";
-import { DescriptorProtoSchema } from "@bufbuild/protobuf/wkt";
+import { componentContaining, assertAvailableFields, assertCandidateDeclarations, verifyLegacyConsumerSource, LEGACY_DEPRECATIONS, LEGACY_MESSAGE_DEPRECATIONS } from "./affordance_migration_probe.mjs";
+import { readFileSync } from "node:fs";
+import { clone, create } from "@bufbuild/protobuf";
+import { DescriptorProtoSchema, FieldOptionsSchema, MessageOptionsSchema } from "@bufbuild/protobuf/wkt";
+import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { loadImage, REFERENCES } from "./compatibility_line.mjs";
+
+test("frozen legacy source cannot silently become a smaller/new-source compatibility test", () => {
+  const source = readFileSync(new URL("../migration/LegacyAffordanceConsumer.ts", import.meta.url), "utf8");
+  assert.doesNotThrow(() => verifyLegacyConsumerSource(source));
+  assert.throws(() => verifyLegacyConsumerSource(""), /frozen legacy TypeScript source changed/);
+  assert.throws(() => verifyLegacyConsumerSource(source.replace("const invalid: number", "const invalid: string")), /frozen legacy/);
+});
+
+test("canonical phase checks every frozen declaration and exact candidate field allocation", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  assert.doesNotThrow(() => assertCandidateDeclarations(previous, candidate));
+  for (const corrupt of [
+    message => { message.field.find(field => field.name === "label").number = 99; },
+    message => { message.field.find(field => field.name === "rpc").typeName = ".meridian.ui.v1.Navigate"; },
+    message => { message.field.find(field => field.name === "placement").proto3Optional = false; },
+    message => { message.field.find(field => field.name === "refresh_on_success").number = 98; },
+    message => { message.field = message.field.filter(field => field.name !== "copy"); },
+    message => { message.field.find(field => field.name === "open_view").oneofIndex = 1; },
+  ]) {
+    const changed = clone(FileDescriptorSetSchema, candidate);
+    corrupt(changed.file.find(file => file.name === "proto/interaction.proto").messageType.find(message => message.name === "Affordance"));
+    assert.throws(() => assertCandidateDeclarations(previous, changed));
+  }
+});
+
+test("canonical phase cannot omit a frozen conformance declaration", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  const conformance = candidate.file.find(file => file.name.startsWith("conformance/") && file.messageType.length);
+  assert(conformance, "frozen full-module input must include conformance declarations");
+  conformance.messageType.pop();
+  assert.throws(() => assertCandidateDeclarations(previous, candidate), /disappeared/);
+});
+
+test("only the nine explicit legacy deprecation bits may change old declaration options", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]);
+  const candidate = loadImage(REFERENCES["v1-candidate"]);
+  const messages = candidate.file.find(file => file.name === "proto/interaction.proto").messageType;
+  assert.equal(Object.values(LEGACY_DEPRECATIONS).flat().length, 9);
+  for (const [name, fields] of Object.entries(LEGACY_DEPRECATIONS)) for (const fieldName of fields) {
+    const field = messages.find(message => message.name === name).field.find(field => field.name === fieldName);
+    field.options ??= create(FieldOptionsSchema);
+    field.options.deprecated = true;
+  }
+  assert.doesNotThrow(() => assertCandidateDeclarations(previous, candidate));
+  const affordance = messages.find(message => message.name === "Affordance");
+  const label = affordance.field.find(field => field.name === "label");
+  label.options ??= create(FieldOptionsSchema); label.options.deprecated = true;
+  assert.throws(() => assertCandidateDeclarations(previous, candidate));
+  delete label.options.deprecated;
+  const style = affordance.field.find(field => field.name === "style");
+  style.options.lazy = true;
+  assert.throws(() => assertCandidateDeclarations(previous, candidate));
+});
 
 test("candidate allocations reject occupied/reserved names and tags, including duplicate proposals", () => {
   const message = create(DescriptorProtoSchema, { name: "Candidate", field: [{ name: "old", number: 1 }],
@@ -12,6 +70,24 @@ test("candidate allocations reject occupied/reserved names and tags, including d
     [["new", 0]], [["new", 2 ** 29]], [["new", 8], ["new", 9]], [["new", 8], ["other", 8]]]) {
     assert.throws(() => assertAvailableFields(message, fields));
   }
+});
+
+test("only the three obsolete message types may gain a deprecation bit, not other options or canonical types", () => {
+  const previous = loadImage(REFERENCES["maintained-0x"]), candidate = loadImage(REFERENCES["v1-candidate"]);
+  const messages = candidate.file.find(file => file.name === "proto/interaction.proto").messageType;
+  assert.deepEqual([...LEGACY_MESSAGE_DEPRECATIONS].sort(), ["Action", "OpenPanel", "RowAction"]);
+  for (const name of LEGACY_MESSAGE_DEPRECATIONS) {
+    const message = messages.find(message => message.name === name);
+    message.options ??= create(MessageOptionsSchema); message.options.deprecated = true;
+  }
+  assert.doesNotThrow(() => assertCandidateDeclarations(previous, candidate));
+  const unrelated = clone(FileDescriptorSetSchema, candidate);
+  const canonical = unrelated.file.find(file => file.name === "proto/interaction.proto").messageType.find(message => message.name === "ActionPanel");
+  canonical.options ??= create(MessageOptionsSchema); canonical.options.deprecated = true;
+  assert.throws(() => assertCandidateDeclarations(previous, unrelated));
+  const action = messages.find(message => message.name === "Action");
+  action.options.mapEntry = true;
+  assert.throws(() => assertCandidateDeclarations(previous, candidate));
 });
 
 test("the migration SCC includes indirect returning dependencies, not downstream leaves", () => {

@@ -17,8 +17,8 @@
 //   * `LaunchpadState` — the command palette: a `meridian.ui.v1.Launchpad`
 //     filtered through the SHARED core (`meridian_uiview::filter_launchpad`,
 //     the same ranking the React renderer uses) with a keyboard model and an
-//     agent seam. It picks a `Command`; the host runs the decoded
-//     `LaunchpadOutcome`.
+//     agent seam. Its explicit native host path admits typed intent before
+//     execution; old decoded handoff remains a 0.x compatibility boundary.
 //   * `render_conversation` — the agent chat transcript: a
 //     `meridian_uiview::ConversationModel` (the SHARED streaming model) painted
 //     block by block. Transport-free; the host feeds the model.
@@ -39,6 +39,7 @@ mod content;
 mod conversation;
 mod enum_options;
 mod inline_prompt;
+pub mod invocation;
 mod invoker;
 mod launchpad;
 mod llm_prompt;
@@ -57,9 +58,14 @@ pub use content::{
 };
 pub use conversation::{block_lines, conversation_lines, render_conversation, status_line};
 pub use inline_prompt::PanelPromptResponse;
+pub use invocation::{
+    NativeAction, NativeCancellation, NativeInvocationContext, NativeInvocationDispatcher,
+    NativeInvocationHost, NativeInvocationOutcome, NativeTarget,
+};
 pub use invoker::{RpcError, RpcInvoker, StreamError, StreamInvoker, StreamSession};
 pub use launchpad::{
-    command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState, AGENT_GROUP_ID,
+    command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState,
+    NativeLaunchpadQueryToken, NativeLaunchpadResponse, AGENT_GROUP_ID,
 };
 pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
 pub use lro::LroRunId;

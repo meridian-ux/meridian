@@ -25,7 +25,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const realManifest = () =>
   JSON.parse(readFileSync(join(ROOT, "conformance/coverage.json"), "utf8"));
 const realArms = () =>
-  parseBodyArms(readFileSync(join(ROOT, "proto/panel.proto"), "utf8"));
+  parseBodyArms(readFileSync(join(ROOT, "proto/interaction.proto"), "utf8"));
 const realCatalog = () =>
   JSON.parse(readFileSync(join(ROOT, "conformance/renderer_catalog.json"), "utf8"));
 
@@ -53,6 +53,19 @@ test("the scoped parser finds every Conversation.Block.kind arm", () => {
 
 test("the committed non-panel modality coverage and catalog agree", () => {
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
+});
+
+test("launchpad coverage follows all canonical invocation arms, never the retired Command oneof", () => {
+  const manifest = realManifest(), catalog = realCatalog();
+  assert.equal(manifest.modalities.launchpad.oneof, "Affordance.invoke");
+  assert.equal(catalog.modalities.launchpad.oneof, "Affordance.invoke");
+  const arms = parseScopedOneofArms(readFileSync(join(ROOT, "proto/interaction.proto"), "utf8"), "Affordance.invoke");
+  assert.deepEqual(arms.map(arm => arm.name), ["uri", "command", "rpc", "navigate", "open_panel", "open_view", "copy"]);
+  assert.deepEqual(Object.keys(manifest.modalities.launchpad.arms).sort(), arms.map(arm => arm.name).sort());
+  delete manifest.modalities.launchpad.arms.copy;
+  assert(checkModalities(manifest, catalog).some(error => /launchpad.copy.*no declared coverage/.test(error)));
+  manifest.modalities.launchpad.oneof = catalog.modalities.launchpad.oneof = "Command.action";
+  assert(checkModalities(manifest, catalog).some(error => /Command.action.*no oneof/.test(error)));
 });
 
 test("the external playground requires every Block arm and explains canvas delegation", () => {
@@ -109,11 +122,19 @@ test("a declared new workspace renderer missing from the catalog fails", (t) => 
   assert.ok(errors.some((error) => /new-renderer.*has no catalog entry/.test(error)));
 });
 
-test("the Launchpad manifest covers every Command.action arm", () => {
-  const proto = readFileSync(join(ROOT, "proto/command_palette.proto"), "utf8");
-  const arms = parseScopedOneofArms(proto, "Command.action");
-  assert.deepEqual(arms.map((arm) => arm.name), ["rpc", "open_panel", "open_view_id", "navigate"]);
+test("the Launchpad manifest covers every canonical Affordance.invoke arm", () => {
+  const proto = readFileSync(join(ROOT, "proto/interaction.proto"), "utf8");
+  const arms = parseScopedOneofArms(proto, "Affordance.invoke");
+  assert.deepEqual(arms.map((arm) => arm.name), ["uri", "command", "rpc", "navigate", "open_panel", "open_view", "copy"]);
   assert.deepEqual(checkModalities(realManifest(), realCatalog()), []);
+});
+
+test("oneof field options retain every arm and unsupported syntax never becomes a partial inventory", () => {
+  const source = 'message Command { oneof action {\n RpcCall rpc = 8 [deprecated = true];\n string view = 10;\n} }';
+  assert.deepEqual(parseScopedOneofArms(source, "Command.action").map(arm => [arm.name, arm.number]), [["rpc", 8], ["view", 10]]);
+  for (const bad of ['broken field syntax;', 'string hidden = 12 [unterminated;', 'option custom = true;']) {
+    assert.throws(() => parseScopedOneofArms(source.replace('string view = 10;', bad), "Command.action"), /unparsed oneof declaration/);
+  }
 });
 
 test("proto-dependent Swift packages require cataloged renderer metadata", (t) => {

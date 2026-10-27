@@ -23,8 +23,9 @@
 // interface claims. If the core ever reverts to Maps, this fails here rather
 // than in a browser three repos downstream.
 
-import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
+import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
+import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import { validateFormValues } from "@savvifi/meridian-schemas/uiview";
@@ -155,9 +156,9 @@ describe("composed views through actual WASM", () => {
       { id: "card", panel: { body: { case: "recordCard", value: { fields: [
         { fieldId: "title", label: "Card title", kind: { case: "text", value: {} } },
       ] } } } },
-      { id: "form", panel: { body: { case: "form", value: { mode: 2, submit: { service: "fixture.Composite", method: "Save", bindings: [
+      { id: "form", panel: { body: { case: "form", value: { mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Composite", method: "Save", bindings: [
         { requestField: "recordId", source: { case: "rowField", value: "id" } },
-      ] }, fields: [
+      ] } } }, fields: [
         { fieldId: "title", label: "Title", kind: { case: "text", value: {} } },
         { fieldId: "enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: true } } },
         { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 7 } } },
@@ -747,7 +748,7 @@ describe("the native crate's shared fixture corpus through real WASM", () => {
   });
 
   it("retains every operation and unique fixture names", () => {
-    for (const [operation, count] of Object.entries({ paths: 7, requests: 6, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 355 })) {
+    for (const [operation, count] of Object.entries({ paths: 7, requests: 8, tables: 18, galleries: 4, metadata: 5, budgets: 4, valueFormats: 355 })) {
       const cases = core[operation];
       expect(cases, operation).toHaveLength(count);
       expect(new Set(cases.map((entry: { name: string }) => entry.name)).size, operation).toBe(count);
@@ -844,11 +845,37 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     })).toEqual({ selection: { zero: 0, disabled: false } });
   });
 
+  const nonRpcSubmissions: JsonObject[] = [{}, { copy: "" }, { uri: "/next" }, { command: "raw" },
+    { navigate: { route: "/next" } }, { openView: "next" }, { openPanel: { panelId: "next" } }];
+  it.each(nonRpcSubmissions)(
+    "canonical non-RPC submission never revives the old form RPC %#", intent => {
+      const descriptor = readFrozen(PanelDescriptorSchema, { form: {
+        submit: { service: "legacy.Service", method: "Trap" }, submitAffordance: intent,
+      } });
+      expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, {}))
+        .toThrow("submission RPC missing");
+    });
+
+  it("canonical RPC submission owns its bindings and raw values instead of using the old call", () => {
+    const descriptor = readFrozen(PanelDescriptorSchema, { form: {
+      fields: [{ fieldId: "zero", integer: {} }, { fieldId: "disabled", boolean: {} }, { fieldId: "raw", text: {} }],
+      submit: { service: "legacy.Service", method: "Trap", bindings: [{ requestField: "target", literal: "legacy" }] },
+      submitAffordance: { rpc: { service: "current.Service", method: "Submit", bindings: [
+        { requestField: "target", literal: "canonical" },
+        { requestField: "zero", formField: "zero" }, { requestField: "disabled", formField: "disabled" },
+        { requestField: "raw", formField: "raw" },
+      ] } },
+    } });
+    expect(wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX,
+      { zero: 0, disabled: false, raw: "raw/e\u0301" }))
+      .toEqual({ target: "canonical", zero: 0, disabled: false, raw: "raw/e\u0301" });
+  });
+
   it.each(["form", "lro"] as const)("assembles %s automatic fields and bindings in the real core", arm => {
     const fields = [{ fieldId: "input.name", requestField: "settings.name", kind: { case: "text" as const, value: {} } }];
     const call = { bindings: [{ requestField: "bound", source: { case: "formField" as const, value: "input.name" } }] };
     const descriptor = create(PanelDescriptorSchema, {
-      body: arm === "form" ? { case: "form", value: { fields, submit: call } }
+      body: arm === "form" ? { case: "form", value: { fields, submitAffordance: { invoke: { case: "rpc", value: call } } } }
         : { case: "lro", value: { inputs: fields, start: call } },
     });
     const request = wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), CTX, { "input.name": "001.20", hidden: "not sent" });
@@ -860,26 +887,28 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it.each(["form", "lro"] as const)("rejects combined %s copy amplification without dispatch, then permits a corrected retry", async arm => {
     const fields = [{ fieldId: "extra", kind: { case: "text" as const, value: {} } }];
-    const call = { service: "fixture.Submit", method: "Run", bindings: Array.from({ length: 5 }, () => ({
+    const call = { service: "fixture.Submit", method: "Run", bindings: Array.from({ length: arm === "form" ? 10 : 5 }, () => ({
       requestField: "same", source: { case: "context" as const, value: 2 },
     })) };
     const descriptor = create(PanelDescriptorSchema, {
-      body: arm === "form" ? { case: "form", value: { fields, mode: 2, submit: call } }
+      body: arm === "form" ? { case: "form", value: { fields, mode: 2, submitAffordance: { invoke: { case: "rpc", value: call } } } }
         : { case: "lro", value: { inputs: fields, start: call } },
     });
-    const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(700_000) } };
+    // Keep the Form case inside the adapter's existing snapshot ceiling so
+    // rejection still proves actual Rust shared copy work, not preflight.
+    const ctx = { ...CTX, uiIdentity: { payload: "x".repeat(arm === "form" ? 400_000 : 700_000) } };
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ done: true }));
     const root = document.createElement("main");
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     try {
       await renderPanel({ root, descriptor, wasm, context: ctx, invoker: { invoke }, admission: "unrestricted" });
       const input = root.querySelector<HTMLInputElement>("input")!;
-      input.value = "y".repeat(900_000);
+      input.value = "y".repeat(arm === "form" ? 200_000 : 900_000);
       const submit = () => arm === "form"
         ? root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
         : root.querySelector<HTMLButtonElement>("button")!.click();
       submit();
-      await vi.waitFor(() => expect(root.textContent).toContain("Submission request construction rejected."));
+      await vi.waitFor(() => expect(root.textContent).toContain(arm === "form" ? "Action failed." : "Submission request construction rejected."));
       expect(invoke).not.toHaveBeenCalled();
       input.value = "ok"; submit();
       await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
@@ -887,18 +916,33 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     } finally { disposePanel(root); }
   });
 
-  it.each(["missing", "rejects"])("fails closed when submission assembly %s", async failure => {
+  it.each(["missing", "rejects"])("LRO fails closed when its host submission assembly %s", async failure => {
     const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
     const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
-    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "lro", value: {
+      start: { service: "fixture.Form", method: "Save" }, inputs: [],
     } } });
     try {
       await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : () => { throw new Error("private payload"); } }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
-      root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
+      root.querySelector<HTMLButtonElement>("button")!.click();
+      await vi.waitFor(() => expect(root.textContent).toContain("Submission request construction rejected."));
       expect(invoke).not.toHaveBeenCalled();
       expect(root.textContent).not.toContain("private payload");
+    } finally { disposePanel(root); }
+  });
+
+  it.each(["missing", "rejects"])("ordinary form uses the shared Rust builder, not host assembly %s", async failure => {
+    const { renderPanel, disposePanel } = await import("../src/uiview/renderer.js");
+    const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
+    const oldBuilder = vi.fn(() => { throw Error("private legacy builder"); });
+    const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
+      mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Form", method: "Save" } } }, fields: [],
+    } } });
+    try {
+      await renderPanel({ root, descriptor, wasm: { ...wasm, buildSubmissionRequest: failure === "missing" ? undefined : oldBuilder }, context: CTX, invoker: { invoke }, admission: "unrestricted" });
+      root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalledWith("fixture.Form", "Save", {}));
+      expect(invoke).toHaveBeenCalledTimes(1); expect(oldBuilder).not.toHaveBeenCalled(); expect(root.textContent).not.toContain("private legacy");
     } finally { disposePanel(root); }
   });
 
@@ -1007,7 +1051,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
       if (kind === "opaque") value = new Date();
       const rpc = create(RpcCallSchema, {});
       const table = create(PanelDescriptorSchema, { body: { case: "table", value: { populate: rpc } } });
-      const form = create(PanelDescriptorSchema, { body: { case: "form", value: { submit: rpc } } });
+      const form = create(PanelDescriptorSchema, { body: { case: "form", value: { submitAffordance: { invoke: { case: "rpc", value: rpc } } } } });
       const context = { ...CTX, uiIdentity: value as object };
       for (const call of [
         () => wasm.buildRequest(toBinary(RpcCallSchema, rpc), context),
@@ -1037,7 +1081,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it("enforces the request JSON output ceiling independently of copy-work accounting", () => {
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      submit: {}, fields: [{ fieldId: "x", kind: { case: "text", value: {} } }],
+      submitAffordance: { invoke: { case: "rpc", value: {} } }, fields: [{ fieldId: "x", kind: { case: "text", value: {} } }],
     } } });
     const bytes = toBinary(PanelDescriptorSchema, descriptor);
     const limit = 4 * 1024 * 1024;
@@ -1078,7 +1122,7 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
 
   it("shares one input conversion budget between submission context and field values", () => {
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      submit: {}, fields: [{ fieldId: "extra", kind: { case: "text", value: {} } }],
+      submitAffordance: { invoke: { case: "rpc", value: {} } }, fields: [{ fieldId: "extra", kind: { case: "text", value: {} } }],
     } } });
     expect(() => wasm.buildSubmissionRequest!(toBinary(PanelDescriptorSchema, descriptor), {
       ...CTX, uiIdentity: { unused: "x".repeat(2 * 1024 * 1024) },
@@ -1090,12 +1134,12 @@ describe("the real wasm satisfies the UiviewWasm interface", () => {
     const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
     const root = document.createElement("main"), invoke = vi.fn(async () => ({}));
     const descriptor = create(PanelDescriptorSchema, { body: { case: "form", value: {
-      mode: 2, submit: { service: "fixture.Form", method: "Save" }, fields: [],
+      mode: 2, submitAffordance: { invoke: { case: "rpc", value: { service: "fixture.Form", method: "Save" } } }, fields: [],
     } } });
     try {
       await renderPanel({ root, descriptor, wasm, context: { ...CTX, uiIdentity: cyclic }, invoker: { invoke }, admission: "unrestricted" });
       root.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Submission request construction rejected."));
+      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/Action unavailable/));
       expect(invoke).not.toHaveBeenCalled();
     } finally { disposePanel(root); }
   });

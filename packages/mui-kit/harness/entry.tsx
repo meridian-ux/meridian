@@ -51,7 +51,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, ViewRenderer, MeridianProvider, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
+import { PanelRenderer, ViewRenderer, MeridianProvider, MeridianViewContext, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";
@@ -134,11 +134,13 @@ const errorInvoker: RpcInvoker = { invoke: async () => { throw new Error("boom")
 const noopInvoker: RpcInvoker = { invoke: async () => ({}) };
 
 // ── builders ────────────────────────────────────────────────────────────────
-const productActions = ["edit", "clone", "delete", "export_yaml"].map((id) => ({
+// Synthetic renderer capability fixtures, backed only by the in-memory invoker.
+// These are not product routes or permission to bypass real request forms.
+const productAffordances = ["edit", "clone", "delete", "export_yaml"].map((id) => ({
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
+  invoke: { case: "rpc" as const, value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }) },
 }));
 
 const productColumns = [
@@ -173,7 +175,7 @@ function listView(id: string, panel: ReturnType<typeof tablePanel>): ViewDescrip
     subjectKind: "products",
     kind: ViewKind.LIST,
     layout: { mode: { case: "list", value: {} } },
-    actions: productActions,
+    affordances: { items: productAffordances },
     slots: [{ id: "content", role: "content", position: 10, panel }],
   });
 }
@@ -187,7 +189,7 @@ const configForm = (mode: FormMode) =>
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
+        submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }) } },
         fields: [
           create(FormFieldSchema, { fieldId: "type", label: "Product Type" }),
           create(FormFieldSchema, { fieldId: "status", label: "Review Status" }),
@@ -289,7 +291,7 @@ function typedFormPanel(mode: FormMode) {
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
+        submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }) } },
         fields: typedFields(),
       }),
     },
@@ -307,7 +309,7 @@ function repeatedNestedPanel(mode: FormMode) {
       value: create(FormPanelSchema, {
         mode,
         itemNoun: "product",
-        submit: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }),
+        submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: "save" }) } },
         fields: [
           create(FormFieldSchema, {
             fieldId: "variants",
@@ -357,7 +359,7 @@ function navGroupsPanel(): ReturnType<typeof typedFormPanel> {
       value: create(FormPanelSchema, {
         mode: FormMode.EDIT,
         itemNoun: "site",
-        submit: create(RpcCallSchema, { service: "demo.catalog.v1.site", method: "save" }),
+        submitAffordance: { label: "Save", invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.catalog.v1.site", method: "save" }) } },
         fields: [
           create(FormFieldSchema, {
             fieldId: "groups",
@@ -673,7 +675,7 @@ const fixtures: Fixture[] = [
       title: "Product Details",
       kind: ViewKind.DETAIL,
       layout: { mode: { case: "stacked", value: {} } },
-      actions: productActions,
+      affordances: { items: productAffordances },
       slots: [
         headerSlot,
         { id: "config", role: "configuration", position: 30, title: "Configuration", panel: configForm(FormMode.READONLY) },
@@ -796,7 +798,7 @@ const fixtures: Fixture[] = [
       title: "Product Details",
       kind: ViewKind.DETAIL,
       layout: { mode: { case: "stacked", value: {} } },
-      actions: productActions,
+      affordances: { items: productAffordances },
       slots: [
         headerSlot,
         { id: "config", role: "configuration", position: 30, title: "Configuration", panel: configForm(FormMode.READONLY) },
@@ -896,6 +898,8 @@ declare global {
     };
     meridianPresentation: (tone?: number, emphasis?: number, denied?: boolean, kit?: "mui" | "html" | "shadcn") => Promise<void>;
     meridianToneCases: typeof toneCases;
+    meridianRowNavigation: (mode: "allow" | "deny" | "pending") => Promise<void>;
+    meridianRowNavigationSettle: () => void;
   }
 }
 
@@ -905,6 +909,34 @@ window.meridianHarness = {
 };
 window.meridianToneCases = toneCases;
 
+// Runtime-only browser interaction fixture. No router, legacy callback, or
+// capability permission is inferred from the existence of a clickable row.
+window.meridianRowNavigation = async mode => {
+  const container = document.getElementById("root")!;
+  if (!root) root = createRoot(container);
+  container.dataset.rowCalls = "0";
+  container.dataset.rowLegacy = "0";
+  container.dataset.rowAborted = "false";
+  window.meridianRowNavigationSettle = () => {};
+  const descriptor = create(PanelDescriptorSchema, { body: { case: "table", value: {
+    populate: { service: "demo.Rows", method: "List" }, rowsField: "items", columns: [{ header: "Name", fieldPath: "label" }],
+  } } });
+  root.render(createElement(MeridianMuiProvider, {
+    key: `row-navigation-${mode}`, invoker: { invoke: async () => ({ items: [{ id: 0, label: "Zero" }, { id: "raw", label: "Second" }] }) },
+    resolveHref: () => "/safe",
+    invocation: {
+      admit: () => mode !== "deny",
+      capabilities: { navigate: async (_target, _context, signal) => {
+        container.dataset.rowCalls = String(Number(container.dataset.rowCalls) + 1);
+        signal.addEventListener("abort", () => { container.dataset.rowAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { window.meridianRowNavigationSettle = resolve; });
+      } },
+    },
+    onAction: () => { container.dataset.rowLegacy = String(Number(container.dataset.rowLegacy) + 1); },
+  }, createElement(MeridianViewContext.Provider, { value: { subjectKind: "Records" } }, createElement(PanelRenderer, { descriptor }))));
+  await new Promise(resolve => setTimeout(resolve, 150));
+};
+
 window.meridianPresentation = async (tone?: number, emphasis?: number, denied = false, kit: "mui" | "html" | "shadcn" = "mui") => {
     const container = document.getElementById("root")!;
     if (!root) root = createRoot(container);
@@ -912,7 +944,7 @@ window.meridianPresentation = async (tone?: number, emphasis?: number, denied = 
     const theme = create(ThemeSchema, { typography: { headingWeight: 700, bodyWeight: 500 }, light: { fg: "#102030", bg: "#ffffff", surface: "#ffffff",
       info: "#205070", success: "#307050", warning: "#806020", danger: "#802030", accent: "#604080" } });
     const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-      label: "Presentation action", style: 1, tone, emphasis,
+      label: "Presentation action", tone, emphasis,
       invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
     } } } });
     const panel = createElement(PanelRenderer, { descriptor });

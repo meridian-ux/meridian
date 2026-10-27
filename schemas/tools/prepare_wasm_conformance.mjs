@@ -1,5 +1,6 @@
 // Copy Bazel's generated web-target bridge next to the local Vite suite.
 // This is only called after a successful pinned wasm_artifacts build.
+import { isMain } from "./cli_entrypoint.mjs";
 import { copyFileSync, mkdtempSync, renameSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,4 +22,4 @@ export function prepareWasm(
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) prepareWasm();
+if (isMain(import.meta.url)) prepareWasm();

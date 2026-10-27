@@ -26,7 +26,9 @@ function renderLaunchpad(props: Record<string, unknown>) {
   return render(
     createElement(
       MeridianProvider,
-      { invoker, kit: htmlKit, adhoc: {}, children: createElement(Launchpad, {
+      { invoker, kit: htmlKit, adhoc: {}, invocation: { admit: () => true, capabilities: {
+        navigate: async target => { (props.onNavigate as ((route: string) => void) | undefined)?.(target.route); },
+      } }, children: createElement(Launchpad, {
         descriptor: demoLaunchpad(),
         open: true,
         onClose: () => {},
@@ -40,7 +42,7 @@ describe("<Launchpad> agent seam", () => {
   it("cancels the debounce while closed and ignores a result from a closed session", async () => {
     vi.useFakeTimers();
     let resolve!: (commands: Command[]) => void;
-    const command = create(CommandSchema, { id: "stale", title: "Old session command", action: { case: "navigate", value: { route: "/old" } } });
+    const command = create(CommandSchema, { id: "stale", title: "Old session command", affordance: { label: "Old session command", invoke: { case: "navigate", value: { route: "/old" } } } });
     const resolver = vi.fn(() => new Promise<typeof command[]>(done => { resolve = done; }));
     const descriptor = demoLaunchpad();
     const view = (open: boolean) => createElement(MeridianProvider, { invoker, kit: htmlKit, adhoc: {}, children:
@@ -62,7 +64,7 @@ describe("<Launchpad> agent seam", () => {
 
   it("withdraws old commands on query changes, resolver replacement, and removal", async () => {
     vi.useFakeTimers();
-    const command = create(CommandSchema, { id: "old", title: "Old result", action: { case: "navigate", value: { route: "/old" } } });
+    const command = create(CommandSchema, { id: "old", title: "Old result", affordance: { label: "Old result", invoke: { case: "navigate", value: { route: "/old" } } } });
     const resolver = vi.fn(async () => [command]);
     const replacement = vi.fn(async () => []);
     const descriptor = demoLaunchpad();
@@ -105,7 +107,7 @@ describe("<Launchpad> agent seam", () => {
     vi.useFakeTimers();
     const pending = new Map<string, (commands: Command[]) => void>();
     const resolver = vi.fn((query: string) => new Promise<Command[]>(resolve => { pending.set(query, resolve); }));
-    const makeCommand = (id: string) => create(CommandSchema, { id, title: `${id} result`, action: { case: "navigate", value: { route: `/${id}` } } });
+    const makeCommand = (id: string) => create(CommandSchema, { id, title: `${id} result`, affordance: { label: `${id} result`, invoke: { case: "navigate", value: { route: `/${id}` } } } });
     const { unmount } = renderLaunchpad({ onResolveQuery: resolver });
     const input = screen.getByPlaceholderText(/Search or jump/i);
     fireEvent.change(input, { target: { value: "first" } });
@@ -127,12 +129,13 @@ describe("<Launchpad> agent seam", () => {
     const agentCommand = create(CommandSchema, {
       id: "agent-1",
       title: "Agent: open failing builds",
-      action: { case: "navigate", value: { route: "/builds?status=failing" } },
+      affordance: { label: "Agent: open failing builds", invoke: { case: "navigate", value: { route: "/builds?status=failing" } } },
     });
     const onResolveQuery = vi.fn(async (q: string) => (q ? [agentCommand] : []));
     const onNavigate = vi.fn();
+    const onRun = vi.fn();
 
-    renderLaunchpad({ onResolveQuery, onNavigate });
+    renderLaunchpad({ onResolveQuery, onNavigate, onRun });
 
     const input = screen.getByPlaceholderText(/Search or jump/i);
     fireEvent.change(input, { target: { value: "failing builds" } });
@@ -146,8 +149,9 @@ describe("<Launchpad> agent seam", () => {
 
     // The agent command appears under its group and dispatches like any command.
     const row = screen.getByText("Agent: open failing builds");
-    fireEvent.mouseDown(row);
+    await act(async () => { fireEvent.click(row); });
     expect(onNavigate).toHaveBeenCalledWith("/builds?status=failing");
+    expect(onRun).toHaveBeenCalledWith(agentCommand);
   });
 
   it("does not call the resolver for an empty query", () => {
@@ -156,7 +160,18 @@ describe("<Launchpad> agent seam", () => {
     expect(onResolveQuery).not.toHaveBeenCalled();
   });
 
-  it("routes rpc commands through the mutation admission boundary", () => {
+  it.each(["count", "bytes"])("rejects agent results exceeding aggregate %s limits before mounting controls", async mode => {
+    vi.useFakeTimers();
+    const command = create(CommandSchema, { id: "oversized", title: "Oversized agent result", keywords: mode === "bytes" ? ["x".repeat(800_000)] : [] });
+    const onResolveQuery = vi.fn(async () => mode === "count" ? Array.from({ length: 1001 }, () => command) : [command]);
+    renderLaunchpad({ onResolveQuery });
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "unmatched agent query" } });
+    await act(async () => { await vi.advanceTimersByTimeAsync(300); });
+    expect(onResolveQuery).toHaveBeenCalledOnce(); expect(screen.queryByText("Oversized agent result")).toBeNull();
+    expect(screen.getByText("No matching commands")).toBeDefined();
+  });
+
+  it("routes rpc commands through the mutation admission boundary", async () => {
     const calls: string[] = [];
     const denials: Array<{ tier: string; service: string; method: string }> = [];
     render(
@@ -172,7 +187,7 @@ describe("<Launchpad> agent seam", () => {
       ),
     );
 
-    fireEvent.mouseDown(screen.getByText("Export data"));
+    await act(async () => { fireEvent.click(screen.getByText("Export data")); });
 
     expect(calls).toEqual([]);
     expect(denials).toMatchObject([{ tier: "mutation", service: "acme.v1.Exporter", method: "Export" }]);

@@ -1,4 +1,5 @@
-load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@meridian_npm//:defs.bzl", "npm_link_all_packages")
@@ -107,6 +108,7 @@ vitest_test(
     name = "launchpad_interaction",
     srcs = [
         "tests/agent-seam.test.tsx",
+        "tests/admission.test.tsx",
         "tests/api_contract.test.tsx",
         "tests/fixtures.ts",
         "tests/navigation.test.tsx",
@@ -116,6 +118,7 @@ vitest_test(
         ":launchpad_lib",
         ":node_modules/@testing-library/dom",
         ":api_manifests",
+        "//schemas:frozen_affordance_test_data",
         ":node_modules/@testing-library/react",
         ":node_modules/jsdom",
         ":node_modules/react",
@@ -142,6 +145,37 @@ vitest_test(
 js_library(
     name = "vitest_config",
     srcs = ["vitest.config.ts"],
+)
+
+esbuild(
+    name = "admission_browser_bundle",
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]) + ["harness/admission.tsx"],
+    entry_point = "harness/admission.tsx",
+    bundle = True,
+    format = "iife",
+    output = "admission.bundle.js",
+    platform = "browser",
+    target = "es2022",
+    tsconfig = "tsconfig.json",
+    deps = [
+        ":node_modules/@bufbuild/protobuf",
+        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+    ],
+)
+
+# Reuse the monorepo's existing pinned Playwright/Chrome test infrastructure;
+# this is test-only and adds no runtime or publication dependency on MUI.
+js_test(
+    name = "admission_browser_test",
+    entry_point = "tests_browser/admission.cjs",
+    args = ["$(rootpath @chrome//:chrome)", "$(rootpath :admission.bundle.js)"],
+    data = [":admission.bundle.js", "//packages/mui-kit:node_modules/playwright", "@chrome//:chrome"],
+    env = {"PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"},
+    env_inherit = ["PATH", "HOME"],
 )
 
 # Renders a Launchpad through htmlKit via react-dom/server: the commands appear,

@@ -1,6 +1,7 @@
 // Complete the probe's production-schema candidate with every unchanged file
 // in the frozen full-module reference. In particular, do not drop conformance
 // DTOs just because the narrower relocation experiment does not copy them.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -21,4 +22,4 @@ function main(args) {
   const load = path => fromBinary(FileDescriptorSetSchema, readFileSync(path));
   writeFileSync(args[5], toBinary(FileDescriptorSetSchema, completeCandidate(load(args[1]), load(args[3]))));
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+if (isMain(import.meta.url)) main(process.argv.slice(2));

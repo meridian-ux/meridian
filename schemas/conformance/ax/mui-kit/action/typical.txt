@@ -7,5 +7,5 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="action · typical"
     paragraph name=""
       StaticText name="One click adds it to Cursor."
-    link name="ADD TO CURSOR" focusable=true
+    button name="ADD TO CURSOR" focusable=true invalid="false"
       StaticText name="ADD TO CURSOR"

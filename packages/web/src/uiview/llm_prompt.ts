@@ -127,13 +127,13 @@ export function hasOptionsSource(field: FormField): boolean {
   return false;
 }
 
-export async function resolveOptions(authored: FormField, invoker: RpcInvoker): Promise<FormField> {
+export async function resolveOptions(authored: FormField, invoker: RpcInvoker, maxOptions?: number | { remaining: number }): Promise<FormField> {
   const field = clone(FormFieldSchema, authored), kind = field.kind;
-  if (kind.case === "nested") kind.value.fields = await Promise.all(kind.value.fields.map(child => resolveOptions(child, invoker)));
+  if (kind.case === "nested") kind.value.fields = await Promise.all(kind.value.fields.map(child => resolveOptions(child, invoker, maxOptions)));
   if (kind.case === "repeated") {
     const element = kind.value.element;
-    if (element.case === "scalar") element.value = await resolveOptions(element.value, invoker);
-    if (element.case === "object") element.value.fields = await Promise.all(element.value.fields.map(child => resolveOptions(child, invoker)));
+    if (element.case === "scalar") element.value = await resolveOptions(element.value, invoker, maxOptions);
+    if (element.case === "object") element.value.fields = await Promise.all(element.value.fields.map(child => resolveOptions(child, invoker, maxOptions)));
   }
   if (kind.case === "enumSelection" && kind.value.optionsSource) {
     const source = kind.value.optionsSource;
@@ -142,6 +142,11 @@ export async function resolveOptions(authored: FormField, invoker: RpcInvoker): 
       record && typeof record === "object" && Object.hasOwn(record, part) ? (record as Record<string, unknown>)[part] : undefined, value);
     const rows = at(await invoker.invoke(source.service, source.method, {}), source.optionsField);
     if (!Array.isArray(rows)) throw new Error("Invalid options response.");
+    if (maxOptions !== undefined) {
+      const remaining = typeof maxOptions === "number" ? maxOptions : maxOptions.remaining;
+      if (rows.length > remaining) throw new Error("Option count exceeds limits.");
+      if (typeof maxOptions !== "number") maxOptions.remaining -= rows.length;
+    }
     kind.value.options = rows.map(row => {
       const value = at(row, source.valueField);
       if (typeof value !== "string" && !(typeof value === "number" && Number.isFinite(value))) throw new Error("Invalid option value.");

@@ -1503,8 +1503,8 @@ mod tests {
                     ..Default::default()
                 },
             ],
-            actions: vec![],
             pagination: None,
+            ..Default::default()
         };
         let rendered = render_table(&response, &table);
         assert_eq!(rendered.len(), 2);

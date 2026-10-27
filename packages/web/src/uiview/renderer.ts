@@ -11,11 +11,11 @@
 // whole messages to protobuf BINARY (`toBinary`) when calling the wasm — which
 // decodes them with prost. There is no JSON / snake_case DTO in between.
 
-import { toBinary } from "@bufbuild/protobuf";
+import { create, toBinary } from "@bufbuild/protobuf";
 import { buildFormField, buildInteractiveForm } from "./form.js";
 import { buildLlmPrompt, hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 import { buildPrompt } from "./prompt.js";
-import type { Affordance, ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { AffordanceSchema, type Affordance, type ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -23,16 +23,17 @@ import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_
 import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { actionFeedback } from "./action_feedback.js";
 import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
 import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
 import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
 import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, affordancePresentation } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, normalizeTableActions, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { buildInvocationControl, createInvocationControl, ownInvocationData } from "./invocation_control.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
   type ResourceAction,
+  type ConfirmSpec,
 } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
@@ -168,6 +169,8 @@ export interface RenderPanelOptions {
   invoker: RpcInvoker;
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
+  /** Explicit capabilities/policy for authored invocation targets. */
+  invocation?: InvocationHost;
   /**
    * Host transport for SERVER-STREAMING methods — what a StreamPanel subscribes
    * through. Optional: streaming is a surface capability, not a given, and a
@@ -277,6 +280,8 @@ function withAdmission(opts: RenderPanelOptions): PreparedRenderPanelOptions {
 // ---------------------------------------------------------------------------
 
 const DISPOSERS = new WeakMap<HTMLElement, Array<() => void>>();
+const ACTION_LIFETIMES = new WeakMap<RenderPanelOptions, () => boolean>();
+const ACTION_INVOKERS = new WeakMap<RenderPanelOptions, RpcInvoker>();
 
 function onDispose(root: HTMLElement, dispose: () => void): void {
   const list = DISPOSERS.get(root);
@@ -357,6 +362,10 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
   const renderOpts = withAdmission(opts);
   const { root, descriptor } = renderOpts;
   disposePanel(root);
+  let active = true;
+  onDispose(root, () => { active = false; });
+  ACTION_LIFETIMES.set(renderOpts, () => active);
+  ACTION_INVOKERS.set(renderOpts, opts.invoker);
   root.innerHTML = "";
   // Kit-neutral conformance normalizer: hosts and snapshot tests can identify
   // the descriptor without depending on a shape's concrete DOM realization.
@@ -398,14 +407,22 @@ export async function renderPanel(opts: RenderPanelOptions): Promise<void> {
     meta.textContent = "";
     const form = buildInteractiveForm(body.value, {
       initialValues: renderOpts.record,
-      allowed: (call) => createAdmissionGate(renderOpts.admission).admits("mutation", call.service, call.method),
-      invoke: (call, values, mutation) => {
-        const request = mutation ? buildSubmission(renderOpts, values) : plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), {
-          ...renderOpts.context, formValues: values,
-        })) as object;
-        return (mutation ? renderOpts.mutationInvoker : renderOpts.invoker).invoke(call.service, call.method,
-          request);
+      prefill: (call) => {
+        const request = plainValue(renderOpts.wasm.buildRequest(toBinary(RpcCallSchema, call), renderOpts.context)) as object;
+        return renderOpts.invoker.invoke(call.service, call.method, request);
       },
+      resolveFields: body.value.fields.some(hasOptionsSource) ? fields => {
+        const budget = { remaining: 1000 }; // One runtime option-expansion ceiling across all fields.
+        return Promise.all(fields.map(field => resolveOptions(field, {
+        invoke: async (service, method, request) => ownInvocationData(await renderOpts.invoker.invoke(service, method, request)) as object,
+      }, budget)));
+      } : undefined,
+      createSubmit: (fields, readFormValues, onPending, onInvalid) => createInvocationControl({ ...renderOpts,
+        invoker: ACTION_INVOKERS.get(renderOpts) ?? renderOpts.invoker,
+        action: normalizeFormSubmit(body.value, `Save ${body.value.itemNoun}`.trim()),
+        submission: { fields, kind: "form" }, readFormValues, onPending, onInvalid,
+        alive: ACTION_LIFETIMES.get(renderOpts) ?? (() => false), onDispose: dispose => onDispose(root, dispose),
+      }),
     });
     root.appendChild(form.element);
     onDispose(root, form.dispose);
@@ -599,39 +616,8 @@ function appendGlyph(opts: RenderPanelOptions, parent: HTMLElement, key: string)
 }
 
 function buildAffordance(opts: RenderPanelOptions, aff: Affordance): HTMLElement {
-  const item = el("span", "mer-affordance-item");
-  const { primary, tone, style } = affordancePresentation(aff);
-  const cls = `mer-affordance${primary ? " mer-affordance-primary" : ""}`;
-  let control: HTMLElement;
-  if (aff.invoke.case === "uri") {
-    const href = safeNavigationHref(aff.invoke.value);
-    if (href) {
-      const a = el("a", cls);
-      (a as HTMLAnchorElement).href = href;
-      control = a;
-    } else {
-      const button = el("button", cls);
-      (button as HTMLButtonElement).type = "button";
-      (button as HTMLButtonElement).disabled = true;
-      button.setAttribute("aria-disabled", "true");
-      control = button;
-    }
-  } else {
-    control = el("button", `${cls} mer-copy`);
-    (control as HTMLButtonElement).type = "button";
-    copyOnClick(control, aff.invoke.case === "command" ? aff.invoke.value : "");
-  }
-  if (aff.icon) control.dataset.icon = aff.icon;
-  if (tone !== undefined) control.dataset.merTone = tone;
-  if (aff.emphasis !== undefined) control.dataset.merEmphasis = primary ? "primary" : "secondary";
-  Object.assign(control.style, style);
-  if (aff.description) control.title = aff.description;
-  appendGlyph(opts, control, aff.icon);
-  control.appendChild(el("span", undefined, aff.label));
-  item.appendChild(control);
-  // Description rendered inline (not just a tooltip) so it is never dropped.
-  if (aff.description) item.appendChild(el("span", "mer-affordance-desc", aff.description));
-  return item;
+  return buildInvocationControl({ ...opts, invoker: ACTION_INVOKERS.get(opts) ?? opts.invoker, action: normalizeAffordance(aff),
+    alive: ACTION_LIFETIMES.get(opts) ?? (() => false), onDispose: dispose => onDispose(opts.root, dispose) });
 }
 
 function buildSnippet(snippet: Snippet): HTMLElement {
@@ -1295,9 +1281,10 @@ async function renderResourceCards(
     ) as object;
     response = await opts.invoker.invoke(panel.populate.service, panel.populate.method, request);
   } catch (err) {
-    metaEl.textContent = `Failed: ${(err as Error).message}`;
+    if (ACTION_LIFETIMES.get(opts)?.()) metaEl.textContent = `Failed: ${(err as Error).message}`;
     return;
   }
+  if (!ACTION_LIFETIMES.get(opts)?.()) return;
 
   const rawRows = panel.rowsField ? readAt(response, panel.rowsField) : response;
   const rows = Array.isArray(rawRows) ? rawRows : [];
@@ -1354,9 +1341,14 @@ async function renderResourceCards(
     }
     if (panel.template.actions?.actions.length) {
       const actions = el("div", "mer-resource-card-actions");
+      const controls: ReturnType<typeof createInvocationControl>[] = [];
+      let pending = false;
       for (const action of panel.template.actions.actions) {
         if (!resourceActionVisible(action, row)) continue;
-        actions.appendChild(buildResourceAction(opts, action, row));
+        const control = buildResourceAction(opts, action, row, () => pending, value => {
+          pending = value; for (const item of controls) item.sync();
+        });
+        controls.push(control); actions.appendChild(control.element);
       }
       if (actions.childElementCount) card.appendChild(actions);
     }
@@ -1375,50 +1367,56 @@ function buildResourceAction(
   opts: PreparedRenderPanelOptions,
   action: ResourceAction,
   row: object,
-): HTMLElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `mer-resource-action mer-resource-action-${resourceActionStyle(action.style)}`;
-  button.textContent = action.label;
-  const feedback = actionFeedback(button, !!action.invoke && createAdmissionGate(opts.admission).admits("mutation", action.invoke.service, action.invoke.method));
-  button.onclick = () => {
-    if (!action.invoke) return;
-    const run = async () => {
-      const request = opts.wasm.buildRequest(
-        toBinary(RpcCallSchema, action.invoke!),
-        { ...opts.context, selectedRow: row },
-      );
-      await (opts.mutationInvoker ?? opts.invoker).invoke(
-        action.invoke!.service,
-        action.invoke!.method,
-        request,
-      );
+  blocked: () => boolean,
+  onPending: (pending: boolean) => void,
+): ReturnType<typeof createInvocationControl> {
+  const control = createInvocationControl({ ...opts, declaration: action,
+    action: normalizeAffordance(create(AffordanceSchema, { id: action.id, label: action.label,
+      invoke: action.invoke ? { case: "rpc", value: action.invoke } : undefined })),
+    invoker: ACTION_INVOKERS.get(opts) ?? opts.invoker,
+    readRecord: () => resourceActionVisible(action, row) ? row : null,
+    alive: ACTION_LIFETIMES.get(opts) ?? (() => false), onDispose: dispose => onDispose(opts.root, dispose),
+    blocked, onPending,
+    confirmation: action.confirm ? { spec: action.confirm,
+      present: (spec, _context, signal) => resourceConfirmation(control.element, control.button, spec, signal) } : undefined,
+  });
+  control.button.classList.add("mer-resource-action", `mer-resource-action-${resourceActionStyle(action.style)}`);
+  control.element.classList.add("mer-resource-action-feedback");
+  return control;
+}
+
+let nextResourceConfirmation = 0;
+function resourceConfirmation(host: HTMLElement, origin: HTMLButtonElement, spec: ConfirmSpec, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return Promise.resolve(false);
+  return new Promise(resolve => {
+    const prompt = el("div", "mer-resource-confirm"); prompt.setAttribute("role", "alertdialog");
+    const id = `mer-resource-confirm-${++nextResourceConfirmation}`;
+    const title = el("strong", "mer-resource-confirm-title", spec.title); title.id = `${id}-title`;
+    const message = el("p", "mer-resource-confirm-message", spec.message); message.id = `${id}-message`;
+    prompt.setAttribute("aria-labelledby", title.id); prompt.setAttribute("aria-describedby", message.id); prompt.append(title, message);
+    let settled = false;
+    const finish = (accepted: boolean) => {
+      if (settled) return; settled = true;
+      const restore = !signal.aborted && prompt.contains(document.activeElement) && origin.isConnected;
+      signal.removeEventListener("abort", aborted); prompt.remove();
+      if (restore) origin.focus(); resolve(accepted);
     };
-    const attempt = () => {
-      void feedback.run(run);
-    };
-    if (!action.confirm || button.getAttribute("aria-disabled") === "true") {
-      attempt();
-      return;
-    }
-    const prompt = el("div", "mer-resource-confirm");
-    prompt.setAttribute("role", "alertdialog");
-    prompt.appendChild(el("strong", "mer-resource-confirm-title", action.confirm.title));
-    prompt.appendChild(el("p", "mer-resource-confirm-message", action.confirm.message));
+    const aborted = () => finish(false);
     const confirm = document.createElement("button");
     confirm.type = "button";
-    confirm.textContent = action.confirm.confirmLabel || "Confirm";
-    confirm.onclick = () => { prompt.remove(); attempt(); };
+    confirm.textContent = spec.confirmLabel || "Confirm";
+    confirm.onclick = () => finish(true);
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.textContent = "Cancel";
-    cancel.onclick = () => prompt.remove();
+    cancel.onclick = () => finish(false);
+    prompt.addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); finish(false); }
+      if (event.key === "Tab") { event.preventDefault(); (document.activeElement === confirm ? cancel : confirm).focus(); }
+    });
     prompt.append(confirm, cancel);
-    button.parentElement?.appendChild(prompt);
-  };
-  const wrapper = el("span", "mer-resource-action-feedback");
-  wrapper.append(button, feedback.message);
-  return wrapper;
+    signal.addEventListener("abort", aborted, { once: true }); host.appendChild(prompt); cancel.focus();
+  });
 }
 
 function resourceActionStyle(style: ActionStyle): "default" | "primary" | "danger" {
@@ -1547,7 +1545,10 @@ async function renderTablePanel(
   let selectedIndex = -1;
   let rows: RenderedRow[] = [];
 
-  const actionsBar = table.actions.length
+  const actions = normalizeTableActions(table);
+  const alive = ACTION_LIFETIMES.get(opts) ?? (() => false);
+  let pending = false;
+  const actionsBar = actions.length
     ? document.createElement("div")
     : null;
   if (actionsBar) {
@@ -1563,21 +1564,9 @@ async function renderTablePanel(
       ? plainRow(rows[selectedIndex].raw)
       : null;
 
-  // A RowAction is enabled only when a row is selected AND `enabled_when`
-  // matches it. The predicate compares against the RENDERED form of the field
-  // (RowFilter's own wording), which is what `readPath` over the raw row gives.
-  const actionEnabled = (action: TablePanel["actions"][number]): boolean => {
-    const row = selectedRow();
-    if (!row) return false;
-    const filter = action.enabledWhen;
-    if (!filter) return true;
-    const actual = wasm.readPath(row, filter.fieldPath);
-    return actual != null && String(actual) === filter.equals;
-  };
-
-  const buttons: Array<{ el: HTMLButtonElement; action: TablePanel["actions"][number] }> = [];
+  const controls: ReturnType<typeof createInvocationControl>[] = [];
   const syncButtons = () => {
-    for (const { el, action } of buttons) el.disabled = !actionEnabled(action);
+    for (const control of controls) control.sync();
   };
 
   const draw = () => {
@@ -1601,13 +1590,14 @@ async function renderTablePanel(
     });
   };
 
-  const refresh = async (): Promise<void> => {
+  const refresh = async (afterEffect = false, signal?: AbortSignal, current?: () => boolean): Promise<void> => {
     let response: object;
     try {
       if (populate) {
         const request = plainValue(wasm.buildPopulateRequest(descriptorBytes, opts.context));
         response = await invoker.invoke(populate.service, populate.method, request as object);
       } else response = opts.record!;
+      if (!alive() || signal?.aborted || current && !current()) return;
       rows = wasm.renderTable(descriptorBytes, response);
       // A re-fetch can shrink the list out from under the selection.
       if (selectedIndex >= rows.length) selectedIndex = -1;
@@ -1615,6 +1605,13 @@ async function renderTablePanel(
       draw();
       syncButtons();
     } catch (err) {
+      if (!alive() || signal?.aborted || current && !current()) return;
+      if (afterEffect) {
+        // A failed refresh must not erase the selected record or masquerade as
+        // a failed mutation that the user should repeat.
+        metaEl.textContent = "Refresh unavailable.";
+        throw err;
+      }
       rows = [];
       selectedIndex = -1;
       host.replaceChildren();
@@ -1624,41 +1621,16 @@ async function renderTablePanel(
     }
   };
 
-  for (const action of table.actions) {
+  for (const action of actions) {
     if (!actionsBar) break;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = action.label;
-    btn.disabled = true;
-    const feedback = actionFeedback(btn, !!action.rpc && createAdmissionGate(opts.admission).admits("mutation", action.rpc.service, action.rpc.method));
-    btn.addEventListener("click", async () => {
-      const row = selectedRow();
-      if (!row || !action.rpc) return;
-      const rpc = action.rpc;
-      btn.disabled = true;
-      await feedback.run(async () => {
-        const request = plainValue(
-          wasm.buildRequest(toBinary(RpcCallSchema, rpc), {
-            ...opts.context,
-            selectedRow: row,
-          }),
-        );
-        await (opts.mutationInvoker ?? invoker).invoke(
-          rpc.service,
-          rpc.method,
-          request as object,
-        );
-        // `RowAction.refresh_on_success` documents a default of TRUE, which a
-        // non-presence proto3 bool cannot express (absent == false). We follow
-        // the documented contract and always re-fetch; a descriptor that must
-        // NOT refresh needs the field made `optional` upstream first.
-        await refresh();
-      });
-      syncButtons();
+    const control = createInvocationControl({ ...opts, action,
+      invoker: ACTION_INVOKERS.get(opts) ?? invoker, readRecord: selectedRow, recordKey: () => selectedIndex,
+      alive, onDispose: dispose => onDispose(root, dispose), blocked: () => pending,
+      onPending: value => { pending = value; syncButtons(); },
+      refresh: (signal, current) => refresh(true, signal, current),
     });
-    buttons.push({ el: btn, action });
-    actionsBar.appendChild(btn);
-    actionsBar.appendChild(feedback.message);
+    controls.push(control);
+    actionsBar.appendChild(control.element);
   }
 
   await refresh();
@@ -1699,7 +1671,7 @@ function buildTable(
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
-    const selectable = onSelect !== null && table.actions.length > 0;
+    const selectable = onSelect !== null && (table.affordances?.items.length ?? 0) > 0;
     rows.forEach((row, i) => {
       const tr = document.createElement("tr");
       tr.dataset.row = String(i);

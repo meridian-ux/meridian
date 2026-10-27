@@ -3,9 +3,9 @@ url
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │Edit item                                                                                     │
 │↑/↓ select · ←/→ numeric · F2 JSON · Enter submit                                             │
+│ ↵ Save  fixture.Inputs/Submit                                                                │
 │                                                                                              │
 │▶ Declared input: https://example.com/a?b=1                                                   │
-│                                                                                              │
 │                                                                                              │
 │                                                                                              │
 │                                                                                              │

@@ -26,5 +26,5 @@ Everyone in your organization shares one sponsor list.
 The list of every employer your organization administers.
 The sponsors list
 ↵ ↗ Open Sponsors  /sponsors  — Continue in the sponsor list
-5. Add a new sponsor [Admin]
+[1/1]  ↵ ↗ Open Sponsors  /sponsors  — Continue in the sponsor list · ←/→ action · Enter
 end viewport

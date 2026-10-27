@@ -154,7 +154,7 @@ describe("renderView tab keyboard navigation", () => {
     let finish!: (value: object) => void;
     const invoke = vi.fn((_service: string, method: string, _request: object) => method === "Header" ? new Promise<object>(resolve => { finish = resolve; }) : Promise.resolve({}));
     const old = renderView({ root, wasm, context, invoker: { invoke }, admission: "unrestricted", view: create(ViewDescriptorSchema, {
-      title: "Old view", actions: [{ label: "Old action", call: { service: "demo", method: "Mutate" } }], slots: [
+      title: "Old view", affordances: { items: [{ label: "Old action", invoke: { case: "rpc", value: { service: "demo", method: "Mutate" } } }] }, slots: [
         { id: "header", placement: { headerRow: true }, panel: { body: { case: "table", value: { populate: { service: "demo", method: "Header" } } } } },
         { id: "never", panel: { body: { case: "table", value: { populate: { service: "demo", method: "Never" } } } } },
       ],
@@ -235,15 +235,17 @@ describe("renderView tab keyboard navigation", () => {
 });
 
 describe("renderView admission", () => {
-  it.each(["view", "slot"])("passes %s action bindings and current context through the WASM request seam", async (location) => {
+  it.each(["view", "slot"])("passes %s action bindings and current context through actual Rust, not the host builder", async (location) => {
     const root = document.createElement("div");
     const call = create(RpcCallSchema, { service: "demo.Items", method: "Save", bindings: [
       { requestField: "kind", source: { case: "literal", value: "item" } },
+      { requestField: "enabled", source: { case: "formField", value: "enabled" } },
+      { requestField: "count", source: { case: "formField", value: "count" } },
       { requestField: "record", source: { case: "nested", value: { fields: [
         { requestField: "id", source: { case: "rowField", value: "id" } },
       ] } } },
     ] });
-    const action = { label: "Save", call };
+    const action = { label: "Save", invoke: { case: "rpc" as const, value: call } };
     const current = { ...context, selectedRow: { id: "first" }, formValues: { enabled: false, count: 0 } };
     const buildRequest = vi.fn((bytes: Uint8Array, ctx: typeof current) => {
       expect(fromBinary(RpcCallSchema, bytes)).toEqual(call);
@@ -254,10 +256,10 @@ describe("renderView admission", () => {
     const invoke = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue({});
     await renderView({ root, context: current, wasm: { ...wasm, buildRequest }, admission: "unrestricted",
       invoker: { invoke }, view: create(ViewDescriptorSchema, location === "view"
-        ? { actions: [action] } : { slots: [{ id: "details", actions: [action] }] }),
+        ? { affordances: { items: [action] } } : { slots: [{ id: "details", affordances: { items: [action] } }] }),
     });
     root.querySelector("button")!.click();
-    await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("offline"));
+    await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context."));
     current.selectedRow = { id: "second" };
     root.querySelector("button")!.click();
     await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
@@ -265,7 +267,7 @@ describe("renderView admission", () => {
       { kind: "item", record: { id: "first" }, enabled: false, count: 0 },
       { kind: "item", record: { id: "second" }, enabled: false, count: 0 },
     ]);
-    expect(buildRequest).toHaveBeenCalledTimes(2);
+    expect(buildRequest).not.toHaveBeenCalled();
   });
 
   it("denies bound actions before request building or transport", async () => {
@@ -274,8 +276,8 @@ describe("renderView admission", () => {
     const invoke = vi.fn();
     const onDenied = vi.fn();
     await renderView({ root, wasm: { ...wasm, buildRequest }, context, invoker: { invoke }, admission: { onDenied },
-      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save",
-        bindings: [{ requestField: "kind", source: { case: "literal", value: "item" } }] } }] }),
+      view: create(ViewDescriptorSchema, { affordances: { items: [{ label: "Save", invoke: { case: "rpc", value: { service: "demo.Items", method: "Save",
+        bindings: [{ requestField: "kind", source: { case: "literal", value: "item" } }] } } }] } }),
     });
     root.querySelector("button")!.click();
     await vi.waitFor(() => expect(onDenied).toHaveBeenCalledTimes(1));
@@ -286,19 +288,20 @@ describe("renderView admission", () => {
     const root = document.createElement("div");
     const calls: unknown[] = [];
     await renderView({ root, wasm, context, admission: "unrestricted",
-      view: create(ViewDescriptorSchema, { actions: [{ label: "Save", call: { service: "demo.Items", method: "Save" } }] }),
+      view: create(ViewDescriptorSchema, { affordances: { items: [{ label: "Save", invoke: { case: "rpc", value: { service: "demo.Items", method: "Save" } } }] } }),
       invoker: { invoke: async (...args) => { calls.push(args); if (calls.length === 1) throw new Error("<b>offline</b>"); return {}; } },
     });
     const button = root.querySelector("button")!;
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(root.querySelector('[role="alert"]')?.textContent).toBe("<b>offline</b>");
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
+    expect(button.dataset.error).toBeUndefined();
     expect(root.querySelector("b")).toBeNull();
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(calls).toEqual([["demo.Items", "Save", {}], ["demo.Items", "Save", {}]]);
     expect(root.querySelector('[role="alert"]')).toBeNull();
-    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Action completed.");
   });
   it("gates view-level call actions as mutations", async () => {
     const root = document.createElement("div");
@@ -306,7 +309,7 @@ describe("renderView admission", () => {
     const view = create(ViewDescriptorSchema, {
       id: "orders",
       title: "Orders",
-      actions: [{ id: "delete", label: "Delete", call: { service: "acme.Orders", method: "DeleteOrder" } }],
+      affordances: { items: [{ id: "delete", label: "Delete", invoke: { case: "rpc", value: { service: "acme.Orders", method: "DeleteOrder" } } }] },
       layout: { mode: { case: "list", value: {} } },
     });
     await renderView({
@@ -330,7 +333,8 @@ describe("renderView admission", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(calls).toEqual([]);
-    expect(button.dataset.error).toMatch(/admission\.mutations/);
+    expect(button.dataset.error).toBeUndefined();
+    expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/Action denied/);
   });
 
   it("forwards a view action only when its method is explicitly allowed", async () => {
@@ -339,7 +343,7 @@ describe("renderView admission", () => {
     const view = create(ViewDescriptorSchema, {
       id: "orders",
       title: "Orders",
-      actions: [{ id: "archive", label: "Archive", call: { service: "acme.Orders", method: "ArchiveOrder" } }],
+      affordances: { items: [{ id: "archive", label: "Archive", invoke: { case: "rpc", value: { service: "acme.Orders", method: "ArchiveOrder" } } }] },
       layout: { mode: { case: "list", value: {} } },
     });
     await renderView({

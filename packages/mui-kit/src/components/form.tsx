@@ -85,8 +85,10 @@ export type MeridianFormField =
 
 export interface MeridianFormSubmit {
   label: string;
-  onSubmit: () => void;
+  onSubmit: (submitter?: HTMLElement) => void;
   disabled?: boolean;
+  /** Optional runtime control slot; the form still owns submit handling. */
+  control?: ReactNode;
 }
 
 export interface MeridianFormProps {
@@ -388,7 +390,8 @@ export function MeridianForm({
           component="form"
           onSubmit={(event) => {
             event.preventDefault();
-            submit.onSubmit();
+            const submitter = (event.nativeEvent as SubmitEvent).submitter;
+            submit.onSubmit(submitter instanceof HTMLElement ? submitter : undefined);
           }}
         >
           {title ? (
@@ -399,9 +402,9 @@ export function MeridianForm({
           {description ? <Box sx={{ mb: 2 }}>{description}</Box> : null}
           <Stack spacing={2}>
             {fields.map((field) => renderField(field, nowMs))}
-            <Button type="submit" variant="contained" disabled={submit.disabled}>
+            {submit.control !== undefined ? submit.control : <Button type="submit" variant="contained" disabled={submit.disabled}>
               {submit.label}
-            </Button>
+            </Button>}
           </Stack>
         </Box>
       </CardContent>

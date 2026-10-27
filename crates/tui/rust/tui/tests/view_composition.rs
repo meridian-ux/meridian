@@ -1,5 +1,8 @@
 //! Whole canonical ViewDescriptor wires rendered by the real native host.
 use meridian_tui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use meridian_tui::{
+    NativeCancellation, NativeInvocationContext, NativeInvocationHost, NativeTarget,
+};
 use meridian_tui::{RpcError, RpcInvoker, ViewHost, ViewResponse};
 use meridian_uiview::{proto::*, Context};
 use prost::Message;
@@ -77,6 +80,31 @@ fn view(mode: Option<layout::Mode>) -> ViewDescriptor {
 fn wire(view: ViewDescriptor) -> ViewHost {
     ViewHost::new(ViewDescriptor::decode(view.encode_to_vec().as_slice()).unwrap()).unwrap()
 }
+fn retired_action<M: Message + Default>(value: M, tag: u32) -> M {
+    // Old Action.label = 2. Preserve a real retired wire field, not a v1 DTO.
+    let label = b"Legacy trap";
+    let action = [vec![0x12, label.len() as u8], label.to_vec()].concat();
+    let mut bytes = value.encode_to_vec();
+    let mut key = (tag << 3) | 2;
+    while key > 127 {
+        bytes.push((key as u8 & 127) | 128);
+        key >>= 7;
+    }
+    bytes.push(key as u8);
+    bytes.push(action.len() as u8);
+    bytes.extend(action);
+    M::decode(bytes.as_slice()).unwrap()
+}
+fn controls(id: &str, label: &str, call: RpcCall) -> Option<AffordanceCollection> {
+    Some(AffordanceCollection {
+        items: vec![Affordance {
+            id: id.into(),
+            label: label.into(),
+            invoke: Some(affordance::Invoke::Rpc(call)),
+            ..Default::default()
+        }],
+    })
+}
 fn draw(view: &mut ViewHost, context: &Context, host: &Host, width: u16) -> String {
     let mut terminal = Terminal::new(TestBackend::new(width, 24)).unwrap();
     terminal
@@ -103,6 +131,503 @@ fn sections(view: &mut ViewHost, context: &Context, host: &Host, width: u16) -> 
         output.push_str(&draw(view, context, host, width));
     }
     output
+}
+
+#[test]
+#[allow(deprecated)] // Dual-written legacy controls must never win precedence.
+fn canonical_header_and_slot_controls_use_typed_native_capabilities_at_both_widths() {
+    use affordance::Invoke;
+    let targets = vec![
+        Invoke::Rpc(RpcCall {
+            service: "fixture.Records".into(),
+            method: "Get".into(),
+            bindings: vec![
+                FieldBinding {
+                    request_field: "id".into(),
+                    source: Some(field_binding::Source::RowField("id".into())),
+                },
+                FieldBinding {
+                    request_field: "flag".into(),
+                    source: Some(field_binding::Source::RowField("flag".into())),
+                },
+            ],
+        }),
+        Invoke::Uri("cursor://raw".into()),
+        Invoke::Command("literal\nnot copied".into()),
+        Invoke::Navigate(Navigate {
+            route: "/raw".into(),
+        }),
+        Invoke::OpenPanel(Box::new(PanelDescriptor {
+            panel_id: "inline".into(),
+            ..Default::default()
+        })),
+        Invoke::OpenView("raw-view".into()),
+        Invoke::Copy("raw/e\u{301}".into()),
+    ];
+    for width in [80, 140] {
+        for in_slot in [false, true] {
+            for target in &targets {
+                let canonical = Some(AffordanceCollection {
+                    items: vec![Affordance {
+                        id: "control".into(),
+                        label: "Canonical action".into(),
+                        invoke: Some(target.clone()),
+                        ..Default::default()
+                    }],
+                });
+                let descriptor = if in_slot {
+                    ViewDescriptor {
+                        slots: vec![retired_action(
+                            Slot {
+                                title: "Canonical slot".into(),
+                                affordances: canonical,
+                                ..Default::default()
+                            },
+                            7,
+                        )],
+                        ..Default::default()
+                    }
+                } else {
+                    retired_action(
+                        ViewDescriptor {
+                            title: "Canonical header".into(),
+                            affordances: canonical,
+                            ..Default::default()
+                        },
+                        8,
+                    )
+                };
+                let mut state = wire(descriptor);
+                let reads = Host::default();
+                let effects = RefCell::new(vec![]);
+                let context = Context {
+                    selected_row: Some(json!({"id":0,"flag":false})),
+                    ..Default::default()
+                };
+                let screen = draw(&mut state, &context, &reads, width);
+                assert!(screen.contains("Canonical action"));
+                assert!(!screen.contains("Legacy trap"));
+                assert!(reads.calls.borrow().is_empty());
+                assert!(key(&mut state, &context, KeyCode::Enter).is_none());
+                assert!(draw(&mut state, &context, &reads, width).contains("Action denied:"));
+                let text =
+                    |value: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
+                        assert_eq!(current.selected_row(), context.selected_row.as_ref());
+                        effects.borrow_mut().push(value.to_owned());
+                        Ok(())
+                    };
+                let rpc = |source: &RpcCall,
+                           request: Value,
+                           _: NativeInvocationContext<'_>,
+                           _: &NativeCancellation| {
+                    assert_eq!(source.method, "Get");
+                    assert_eq!(request, json!({"id":0,"flag":false}));
+                    effects.borrow_mut().push("rpc".into());
+                    Ok(())
+                };
+                let navigate =
+                    |source: &Navigate, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+                        effects.borrow_mut().push(source.route.clone());
+                        Ok(())
+                    };
+                let panel = |source: &PanelDescriptor,
+                             _: NativeInvocationContext<'_>,
+                             _: &NativeCancellation| {
+                    effects.borrow_mut().push(source.panel_id.clone());
+                    Ok(())
+                };
+                let mutations = |source: &RpcCall, _: NativeInvocationContext<'_>| {
+                    source.service == "fixture.Records" && source.method == "Get"
+                };
+                let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+                let host = NativeInvocationHost {
+                    rpc: Some(&rpc),
+                    uri: Some(&text),
+                    command: Some(&text),
+                    navigate: Some(&navigate),
+                    open_panel: Some(&panel),
+                    open_view: Some(&text),
+                    copy: Some(&text),
+                    mutations: Some(&mutations),
+                    admit: Some(&allow),
+                    ..Default::default()
+                };
+                assert!(state
+                    .handle_key_with_invocation(
+                        KeyEvent::new(KeyCode::Char(' '), KeyModifiers::NONE),
+                        &context,
+                        &host
+                    )
+                    .unwrap()
+                    .is_none());
+                assert_eq!(effects.borrow().len(), 1);
+                assert!(draw(&mut state, &context, &reads, width).contains("Action completed."));
+                assert!(
+                    reads.calls.borrow().is_empty(),
+                    "no legacy transport fallback"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn canonical_empty_and_absent_collections_never_revive_retired_wire_actions() {
+    let mut state = wire(retired_action(
+        ViewDescriptor {
+            affordances: Some(AffordanceCollection::default()),
+            ..Default::default()
+        },
+        8,
+    ));
+    let context = Context::default();
+    let reads = Host::default();
+    assert!(!draw(&mut state, &context, &reads, 80).contains("Legacy trap"));
+    assert!(key(&mut state, &context, KeyCode::Enter).is_none());
+    let mut legacy_state = wire(retired_action(ViewDescriptor::default(), 8));
+    draw(&mut legacy_state, &context, &reads, 80);
+    assert!(legacy_state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &NativeInvocationHost::default()
+        )
+        .unwrap()
+        .is_none());
+    assert!(!draw(&mut legacy_state, &context, &reads, 80).contains("Legacy trap"));
+    assert!(reads.calls.borrow().is_empty());
+}
+
+#[test]
+fn changed_native_context_withdraws_a_mounted_control_until_redraw() {
+    let mut state = wire(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Use scope".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    });
+    let reads = Host::default();
+    let mut context = Context::default();
+    let effects = RefCell::new(vec![]);
+    let effect = |_: &str, current: NativeInvocationContext<'_>, _: &NativeCancellation| {
+        effects
+            .borrow_mut()
+            .push(current.current_resource_path().map(str::to_owned));
+        Ok(())
+    };
+    let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+    let host = NativeInvocationHost {
+        copy: Some(&effect),
+        admit: Some(&allow),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    context.current_resource_path = Some("replacement/raw".into());
+    assert!(state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host
+        )
+        .unwrap()
+        .is_none());
+    assert!(effects.borrow().is_empty());
+    assert!(draw(&mut state, &context, &reads, 80).contains("context changed"));
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert_eq!(*effects.borrow(), [Some("replacement/raw".into())]);
+}
+
+#[test]
+fn canonical_action_footprints_and_labels_retain_composition_limits() {
+    assert!(ViewHost::new(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance::default(); 1001]
+        }),
+        ..Default::default()
+    })
+    .is_err());
+    assert!(ViewHost::new(ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "x".repeat(16 * 1024 + 1),
+                ..Default::default()
+            }]
+        }),
+        ..Default::default()
+    })
+    .is_err());
+}
+
+#[test]
+fn repeated_canonical_controls_borrow_the_real_row_not_the_ambient_host_row() {
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Use repeated row".into(),
+                enabled_when: Some(RowFilter {
+                    field_path: "flag".into(),
+                    equals: "false".into(),
+                }),
+                invoke: Some(affordance::Invoke::Rpc(RpcCall {
+                    bindings: ["id", "flag", "count", "name"]
+                        .into_iter()
+                        .map(|field| FieldBinding {
+                            request_field: field.into(),
+                            source: Some(field_binding::Source::RowField(field.into())),
+                        })
+                        .collect(),
+                    ..call("Get")
+                })),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut state = wire(ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(call("Rows")),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    let reads = Host::default();
+    *reads.rows.borrow_mut() =
+        Some(json!({"rows":[{"id":0,"flag":false,"count":0,"name":"raw/e\u{301}"}]}));
+    let context = Context {
+        selected_row: Some(json!({"id":"ambient trap","irrelevant":"x".repeat(5*1024*1024)})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let calls = RefCell::new(vec![]);
+    let rpc = |_: &RpcCall,
+               request: Value,
+               current: NativeInvocationContext<'_>,
+               _: &NativeCancellation| {
+        assert_eq!(current.selected_row().unwrap()["id"], json!(0));
+        calls.borrow_mut().push(request);
+        Ok(())
+    };
+    let policy = |_: &RpcCall, _: NativeInvocationContext<'_>| true;
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &NativeInvocationHost {
+                rpc: Some(&rpc),
+                mutations: Some(&policy),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        *calls.borrow(),
+        [json!({"id":0,"flag":false,"count":0,"name":"raw/e\u{301}"})]
+    );
+    assert_eq!(
+        reads
+            .calls
+            .borrow()
+            .iter()
+            .map(|(method, _)| method.as_str())
+            .collect::<Vec<_>>(),
+        ["Rows"]
+    );
+}
+
+#[test]
+fn dropping_the_native_view_cancels_an_owned_host_worker_without_releasing_its_guard_early() {
+    use std::sync::mpsc::channel;
+    use std::time::Duration;
+    let state = wire(ViewDescriptor::default());
+    let dispatcher = state.invocation_dispatcher();
+    let (started_tx, started_rx) = channel();
+    let (finish_tx, finish_rx) = channel();
+    let worker = std::thread::spawn(move || {
+        let base = Context::default();
+        let action = Affordance {
+            invoke: Some(affordance::Invoke::Copy("literal".into())),
+            ..Default::default()
+        };
+        let effect = |_: &str, _: NativeInvocationContext<'_>, signal: &NativeCancellation| {
+            started_tx.send(signal.clone()).unwrap();
+            finish_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            assert!(dispatcher.pending());
+            Ok(())
+        };
+        let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+        dispatcher.invoke(
+            meridian_tui::NativeAction::Canonical(&action),
+            NativeInvocationContext::new(&base),
+            &NativeInvocationHost {
+                copy: Some(&effect),
+                admit: Some(&allow),
+                ..Default::default()
+            },
+        )
+    });
+    let signal = started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    drop(state);
+    assert!(signal.is_cancelled());
+    finish_tx.send(()).unwrap();
+    assert_eq!(
+        worker.join().unwrap(),
+        meridian_tui::NativeInvocationOutcome::Cancelled
+    );
+}
+
+#[test]
+fn repeated_parent_read_scope_changes_block_activation_before_redraw() {
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Scoped action".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut populate = call("Rows");
+    populate.bindings.push(FieldBinding {
+        request_field: "scope".into(),
+        source: Some(field_binding::Source::RowField("scope".into())),
+    });
+    let descriptor = ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(populate),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let mut state = wire(descriptor);
+    let reads = Host::default();
+    *reads.rows.borrow_mut() = Some(json!({"rows":[{"id":0}]}));
+    let mut context = Context {
+        selected_row: Some(json!({"scope":"first"})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let effects = RefCell::new(vec![]);
+    let effect = |value: &str, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+        effects.borrow_mut().push(value.to_owned());
+        Ok(())
+    };
+    let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+    let host = NativeInvocationHost {
+        copy: Some(&effect),
+        admit: Some(&allow),
+        ..Default::default()
+    };
+    context.selected_row = Some(json!({"scope":"replacement"}));
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert!(effects.borrow().is_empty());
+    draw(&mut state, &context, &reads, 80);
+    state
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &host,
+        )
+        .unwrap();
+    assert_eq!(*effects.borrow(), ["literal"]);
+    assert_eq!(
+        *reads.calls.borrow(),
+        [
+            ("Rows".into(), json!({"scope":"first"})),
+            ("Rows".into(), json!({"scope":"replacement"}))
+        ]
+    );
+}
+
+#[test]
+fn equal_valued_repeated_row_replacement_cancels_a_retained_worker() {
+    use std::sync::mpsc::channel;
+    use std::time::Duration;
+    let child = ViewDescriptor {
+        affordances: Some(AffordanceCollection {
+            items: vec![Affordance {
+                label: "Scoped action".into(),
+                invoke: Some(affordance::Invoke::Copy("literal".into())),
+                ..Default::default()
+            }],
+        }),
+        ..Default::default()
+    };
+    let mut populate = call("Rows");
+    populate.bindings.push(FieldBinding {
+        request_field: "scope".into(),
+        source: Some(field_binding::Source::RowField("scope".into())),
+    });
+    let mut state = wire(ViewDescriptor {
+        slots: vec![Slot {
+            sub_view: Some(child),
+            sub_view_populate: Some(populate),
+            sub_view_rows_field: "rows".into(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    let reads = Host::default();
+    *reads.rows.borrow_mut() = Some(json!({"rows":[{"id":0}]}));
+    let mut context = Context {
+        selected_row: Some(json!({"scope":"first"})),
+        ..Default::default()
+    };
+    draw(&mut state, &context, &reads, 80);
+    let dispatcher = state.invocation_dispatcher();
+    let (started_tx, started_rx) = channel();
+    let (finish_tx, finish_rx) = channel();
+    let worker = std::thread::spawn(move || {
+        let base = Context::default();
+        let action = Affordance {
+            invoke: Some(affordance::Invoke::Copy("literal".into())),
+            ..Default::default()
+        };
+        let effect = |_: &str, _: NativeInvocationContext<'_>, signal: &NativeCancellation| {
+            started_tx.send(signal.clone()).unwrap();
+            finish_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            Ok(())
+        };
+        let allow = |_: NativeTarget<'_>, _: NativeInvocationContext<'_>| true;
+        dispatcher.invoke(
+            meridian_tui::NativeAction::Canonical(&action),
+            NativeInvocationContext::new(&base),
+            &NativeInvocationHost {
+                copy: Some(&effect),
+                admit: Some(&allow),
+                ..Default::default()
+            },
+        )
+    });
+    let signal = started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    context.selected_row = Some(json!({"scope":"replacement"}));
+    draw(&mut state, &context, &reads, 80);
+    assert!(signal.is_cancelled());
+    finish_tx.send(()).unwrap();
+    assert_eq!(
+        worker.join().unwrap(),
+        meridian_tui::NativeInvocationOutcome::Cancelled
+    );
 }
 
 #[test]
@@ -207,6 +732,7 @@ fn tabs_are_manual_keep_persistent_regions_and_never_read_inactive_or_gated_bodi
 }
 
 #[test]
+#[allow(deprecated)] // Retain the original nested legacy form/header fixture.
 fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations() {
     let mut fields = vec![FormField {
         field_id: "name".into(),
@@ -239,20 +765,21 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
             id: "editor".into(),
             panel: Some(PanelDescriptor {
                 title: "Native row editor".into(),
-                body: Some(panel_descriptor::Body::Form(FormPanel {
-                    fields,
-                    mode: FormMode::Edit as i32,
-                    submit: Some(save.clone()),
-                    ..Default::default()
-                })),
+                body: Some(panel_descriptor::Body::Form(
+                    FormPanel {
+                        fields,
+                        mode: FormMode::Edit as i32,
+                        submit_affordance: Some(Box::new(Affordance {
+                            invoke: Some(affordance::Invoke::Rpc(save.clone())),
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }
+                    .into(),
+                )),
                 ..Default::default()
             }),
-            actions: vec![Action {
-                id: "save".into(),
-                label: "Save row".into(),
-                call: Some(save),
-                ..Default::default()
-            }],
+            affordances: controls("save", "Save row", save),
             ..Default::default()
         }],
         ..Default::default()
@@ -277,33 +804,63 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
     assert!(output.contains("001.20") && output.contains("Second"));
     assert!(!output.contains("Content ignored"));
     assert_eq!(host.calls.borrow().len(), 1);
-    // Initial focus is the first row's slot action, then its real form.
-    let Some(ViewResponse::Action {
-        request, method, ..
-    }) = key(&mut view, &context, KeyCode::Enter)
-    else {
-        panic!("action missing")
+    // sections() pages through the full document. Restore visible ownership
+    // before trying the first row's control through the admitted dispatcher.
+    for _ in 0..25 {
+        key(&mut view, &context, KeyCode::PageUp);
+    }
+    draw(&mut view, &context, &host, 80);
+    let requests = RefCell::new(Vec::new());
+    let policy = |_: &RpcCall, _: NativeInvocationContext<'_>| true;
+    let rpc =
+        |call: &RpcCall, request: Value, _: NativeInvocationContext<'_>, _: &NativeCancellation| {
+            assert_eq!(call.method, "Save");
+            requests.borrow_mut().push(request);
+            Ok(())
+        };
+    let invocation = NativeInvocationHost {
+        mutations: Some(&policy),
+        rpc: Some(&rpc),
+        ..Default::default()
     };
-    assert_eq!(method, "Save");
-    assert_eq!(request, json!({"recordId": "a"}));
+    // Initial focus is the first row's slot action, then its real form.
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
+    assert_eq!(requests.borrow().as_slice(), &[json!({"recordId": "a"})]);
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
-    let Some(ViewResponse::Form(submission)) = key(&mut view, &context, KeyCode::Enter) else {
-        panic!("form missing")
-    };
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
     assert_eq!(
-        submission.request,
+        requests.borrow()[1],
         json!({"recordId": "a", "name": "001.20", "enabled": false, "count": 0})
     );
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
     key(&mut view, &context, KeyCode::F(6));
     draw(&mut view, &context, &host, 80);
-    let Some(ViewResponse::Form(submission)) = key(&mut view, &context, KeyCode::Enter) else {
-        panic!("second form missing")
-    };
+    assert!(view
+        .handle_key_with_invocation(
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            &context,
+            &invocation
+        )
+        .unwrap()
+        .is_none());
     assert_eq!(
-        submission.request,
+        requests.borrow()[2],
         json!({"recordId": "b", "name": "Second", "enabled": true, "count": 2})
     );
     assert_eq!(
@@ -314,16 +871,12 @@ fn repeated_nested_views_bind_real_raw_form_values_and_emit_host_owned_mutations
 }
 
 #[test]
+#[allow(deprecated)] // A stale legacy header must also remain gated.
 fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
     let mut descriptor = view(None);
     descriptor.slots.truncate(1);
     descriptor.slots[0].depends_on_selection_key = "scope".into();
-    descriptor.slots[0].actions.push(Action {
-        id: "danger".into(),
-        label: "Delete".into(),
-        call: Some(call("Delete")),
-        ..Default::default()
-    });
+    descriptor.slots[0].affordances = controls("danger", "Delete", call("Delete"));
     let host = Host::default();
     let mut context = Context::default();
     let mut view = wire(descriptor);
@@ -335,6 +888,7 @@ fn closed_gate_blocks_reads_and_stale_action_events_even_before_redraw() {
 }
 
 #[test]
+#[allow(deprecated)] // Exercise falsey gating with the old header envelope.
 fn falsey_scope_gates_block_reads_and_stale_actions_at_native_widths() {
     for width in [80, 140] {
         for value in [
@@ -356,12 +910,7 @@ fn falsey_scope_gates_block_reads_and_stale_actions_at_native_widths() {
                     title_source_path: "title".into(),
                     ..Default::default()
                 }));
-            slot.actions.push(Action {
-                id: "danger".into(),
-                label: "Delete".into(),
-                call: Some(call("Delete")),
-                ..Default::default()
-            });
+            slot.affordances = controls("danger", "Delete", call("Delete"));
             let mut context = Context::default();
             if let Some(value) = value.clone() {
                 context.selections.insert("scope".into(), value);
@@ -444,16 +993,12 @@ fn descriptor_depth_node_and_label_limits_reject_before_mounting() {
 }
 
 #[test]
+#[allow(deprecated)] // Old header labels and reachability remain compatible.
 fn empty_views_keep_identity_and_header_actions_and_long_labels_are_reachable() {
     let mut descriptor = ViewDescriptor {
         id: "empty".into(),
         title: "Still here".into(),
-        actions: vec![Action {
-            id: "export".into(),
-            label: "Export".into(),
-            call: Some(call("Export")),
-            ..Default::default()
-        }],
+        affordances: controls("export", "Export", call("Export")),
         ..Default::default()
     };
     let host = Host::default();
@@ -464,11 +1009,9 @@ fn empty_views_keep_identity_and_header_actions_and_long_labels_are_reachable() 
             && output.contains("No sections.")
             && output.contains("Export")
     );
-    assert!(matches!(
-        key(&mut view, &Context::default(), KeyCode::Enter),
-        Some(ViewResponse::Action { .. })
-    ));
-    descriptor.actions[0].label = "長い label ".repeat(30);
+    assert!(key(&mut view, &Context::default(), KeyCode::Enter).is_none());
+    assert!(draw(&mut view, &Context::default(), &host, 80).contains("Action denied:"));
+    descriptor.affordances.as_mut().unwrap().items[0].label = "長い label ".repeat(30);
     let output = sections(&mut wire(descriptor), &Context::default(), &host, 80);
     let symbols: BTreeSet<_> = output.chars().collect();
     assert!(symbols.contains(&'長'));

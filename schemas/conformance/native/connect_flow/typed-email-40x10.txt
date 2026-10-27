@@ -8,5 +8,5 @@ Typed value: ada@example.com   [c] copy
 │                  ││                  │
 │                  ││                  │
 │                  ││                  │
-└──────────────────┘└──────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

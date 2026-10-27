@@ -4,7 +4,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
@@ -27,7 +27,7 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} step media`, () => {
               label: "Open Sponsors",
               description: "Continue in the sponsor list",
               icon: "open",
-              style: AffordanceStyle.PRIMARY,
+              emphasis: Emphasis.PRIMARY,
               invoke: { case: "uri", value: "/sponsors" },
             },
           },
@@ -51,7 +51,8 @@ for (const kit of [htmlKit, shadcnKit]) describe(`${kit.id} step media`, () => {
       expect(container.querySelectorAll("ol > li")).toHaveLength(2);
       for (const text of ["Start here", "All done", "Admin", "Choose an employer", "Confirm the result"])
         expect(container.textContent).toContain(text);
-      const action = container.querySelector<HTMLAnchorElement>('a[href="/sponsors"]');
+      const action = container.querySelector<HTMLButtonElement>("button");
+      expect(container.querySelector("a")).toBeNull();
       expect(action?.textContent).toContain("Open Sponsors");
       expect(action?.title).toBe("Continue in the sponsor list");
       expect(action?.dataset.icon).toBe("open");

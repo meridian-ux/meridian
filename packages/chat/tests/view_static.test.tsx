@@ -2,6 +2,7 @@
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
 import { BlockSchema, ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { createElement, act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -17,6 +18,32 @@ import type { Block } from "../src/wire.js";
 
 const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];
 describe("passive conversation view realization over the shared binary corpus", () => {
+  it.each([false, true])("canonical collections win whole in both passive transcript tiers, populated=%s", populated => {
+    const canonical = { items: populated ? [create(AffordanceSchema, { label: "Canonical inert action", invoke: { case: "copy", value: "hidden-copy-payload" } })] : [] };
+    const view = create(ViewDescriptorSchema, { title: "Canonical projection", actions: [{ label: "Legacy header trap" }], affordances: canonical,
+      slots: [{ title: "Slot", actions: [{ label: "Legacy slot trap" }], affordances: canonical,
+        panel: { body: { case: "table", value: { actions: [{ label: "Legacy row trap" }], affordances: canonical } } } }],
+    });
+    const wire = toJson(ViewDescriptorSchema, fromBinary(ViewDescriptorSchema, toBinary(ViewDescriptorSchema, view))) as Record<string, unknown>;
+    for (const render of renderers) {
+      const container = document.createElement("div"); container.innerHTML = render({ view: wire });
+      expect(container.textContent).not.toContain("Legacy"); expect(container.textContent).not.toContain("hidden-copy-payload");
+      expect(container.textContent!.split("Canonical inert action").length - 1).toBe(populated ? 3 : 0);
+      expect(container.querySelector("button,a,script,iframe,form")).toBeNull();
+    }
+  });
+  it.each([false, true])("canonical form intent remains passive and suppresses legacy submission, present=%s", present => {
+    const view = create(ViewDescriptorSchema, { slots: [{ panel: { body: { case: "form", value: {
+      submit: { service: "Legacy", method: "Trap" }, submitAffordance: { label: "Canonical submit",
+        invoke: present ? { case: "rpc", value: { service: "Canonical", method: "Get", bindings: [] } } : undefined },
+    } } } }] });
+    const wire = toJson(ViewDescriptorSchema, fromBinary(ViewDescriptorSchema, toBinary(ViewDescriptorSchema, view))) as Record<string, unknown>;
+    for (const render of renderers) {
+      const container = document.createElement("div"); container.innerHTML = render({ view: wire });
+      expect(container.textContent).toContain("Canonical submit [not executed]"); expect(container.textContent).not.toContain("Legacy/Trap");
+      expect(container.querySelector("button,a,script,iframe,form")).toBeNull();
+    }
+  });
   it.each(STATE_CASES)("panel projection: $name", fixture => {
     const wire = toJson(ViewDescriptorSchema, fixture.view);
     const expected = staticViewText(toBinary(ViewDescriptorSchema, fixture.view));

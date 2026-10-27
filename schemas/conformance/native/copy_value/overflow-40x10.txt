@@ -8,5 +8,5 @@ copy_value · overflow
 │duction/integrations/regional-service/│
 │abcdefghijklmnopqrstuvwxyz0123456789AB│
 │CDEFGHIJKLMNOPQRSTUVWXYZ/endpoint?regi│
-└──────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

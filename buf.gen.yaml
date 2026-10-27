@@ -20,7 +20,9 @@ version: v2
 plugins:
   - local: protoc-gen-es
     out: packages/proto-ts
-    opt: target=js+dts
+    opt:
+      - target=js+dts
+      - import_extension=js
 
 # No `managed:` block. protobuf-es does not need one, and the java_package /
 # java_outer_classname options already in the protos are consumed by other

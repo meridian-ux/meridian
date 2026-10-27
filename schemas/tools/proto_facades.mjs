@@ -1,5 +1,6 @@
 // Compatibility exports come from the frozen descriptors and pinned generator,
 // never a hand-maintained list of message or TypeScript names.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -161,4 +162,4 @@ function main(args) {
     console.log(`Descriptor-derived compatibility facades: ${plan.size}`);
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+if (isMain(import.meta.url)) main(process.argv.slice(2));

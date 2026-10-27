@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { create } from "@bufbuild/protobuf";
-import { AffordanceStyle } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
@@ -30,7 +30,8 @@ describe("web-components StepsPanel", () => {
     expect(root.querySelectorAll(".mer-steps > ol")).toHaveLength(1);
     expect([...root.querySelectorAll(".mer-steps > ol > li .mer-step-label")].map(node => node.textContent)).toEqual(["First (Admin)", "Second (Reviewer)"]);
     for (const text of ["Start here", "Finish here", "Narration", "Review the result"]) expect(root.textContent).toContain(text);
-    expect(root.querySelector("a")!.getAttribute("href")).toBe("/next");
+    expect(root.querySelector("a[href]")).toBeNull();
+    expect(root.querySelector("button.mer-affordance")!.textContent).toBe("Continue");
     expect(root.querySelector("img")!.alt).toBe("Frame summary");
   });
 
@@ -42,7 +43,7 @@ describe("web-components StepsPanel", () => {
     expect(root.querySelector(".mer-step-detail")!.textContent).toBe("Narration");
     expect(root.querySelectorAll(".mer-step-media-alt")).toHaveLength(1);
     expect(root.querySelector(".mer-step-media-alt")!.textContent).toBe("Frame summary");
-    expect(root.querySelectorAll("ol > li")).toHaveLength(2); expect(root.querySelector("a")!.textContent).toBe("Continue");
+    expect(root.querySelectorAll("ol > li")).toHaveLength(2); expect(root.querySelector("button.mer-affordance")!.textContent).toBe("Continue");
     await draw(root, "/replacement.png", "Replacement summary");
     image.dispatchEvent(new Event("error"));
     expect(root.textContent).not.toContain("Frame summary"); expect(root.querySelector("img")!.getAttribute("src")).toBe("/replacement.png");
@@ -73,7 +74,7 @@ describe("web-components StepsPanel", () => {
                 label: "View deploys",
                 description: "Watch the rollout",
                 icon: "open",
-                style: AffordanceStyle.PRIMARY,
+                emphasis: Emphasis.PRIMARY,
                 invoke: { case: "uri", value: "/deploys" },
               },
             }],
@@ -84,7 +85,8 @@ describe("web-components StepsPanel", () => {
       context: { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} },
     });
 
-    const action = root.querySelector<HTMLAnchorElement>('.mer-step a[href="/deploys"]');
+    const action = root.querySelector<HTMLButtonElement>('.mer-step button.mer-affordance');
+    expect(root.querySelector('a[href="/deploys"]')).toBeNull();
     expect(action?.textContent).toContain("View deploys");
     expect(action?.title).toBe("Watch the rollout");
     expect(action?.dataset.icon).toBe("open");

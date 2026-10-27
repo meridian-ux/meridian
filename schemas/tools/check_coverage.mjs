@@ -105,9 +105,10 @@ export function parseScopedOneofArms(protoText, scope) {
 
   const body = context.slice(open + 1, end);
   const arms = [];
-  const re = /^\s*([A-Za-z_][\w.]*)\s+([a-z_][a-z0-9_]*)\s*=\s*(\d+)\s*;/gm;
+  const re = /^\s*([A-Za-z_][\w.]*)\s+([a-z_][a-z0-9_]*)\s*=\s*(\d+)\s*(?:\[[^\[\]]*\]\s*)?;/gm;
   let m;
   while ((m = re.exec(body)) !== null) arms.push({ type: m[1], name: m[2], number: Number(m[3]) });
+  if (body.replace(re, "").trim()) throw new Error(`${scope}: unparsed oneof declaration; refusing a partial arm inventory`);
 
   if (arms.length === 0) {
     throw new Error(`${scope}: parsed no arms from oneof`);
@@ -395,7 +396,7 @@ export function check(manifest, arms) {
 function main() {
   const manifest = JSON.parse(readFileSync(join(ROOT, "conformance/coverage.json"), "utf8"));
   const catalog = JSON.parse(readFileSync(join(ROOT, "conformance/renderer_catalog.json"), "utf8"));
-  const arms = parseBodyArms(readFileSync(join(ROOT, "proto/panel.proto"), "utf8"));
+  const arms = parseBodyArms(readFileSync(join(ROOT, "proto/interaction.proto"), "utf8"));
 
   if (process.argv.includes("--matrix")) {
     console.log(renderMatrix(manifest, arms));

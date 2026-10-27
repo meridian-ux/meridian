@@ -1,6 +1,6 @@
 {
   "name": "@savvifi/meridian-web-react",
-  "version": "0.25.1",
+  "version": "1.0.0",
   "meridian": {
     "rendererIds": [
       "web-react",
@@ -33,8 +33,8 @@
   ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@savvifi/meridian-proto-ts": "0.25.1",
-    "@savvifi/meridian-schemas": "0.25.1"
+    "@savvifi/meridian-proto-ts": "1.0.0",
+    "@savvifi/meridian-schemas": "1.0.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",

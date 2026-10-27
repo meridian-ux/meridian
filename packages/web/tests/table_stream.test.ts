@@ -121,18 +121,15 @@ describe("TablePanel row selection + actions", () => {
       return new Promise((resolve, reject) => attempts.push({ resolve, reject }));
     });
     let renders = 0;
-    // Verify the wire request and raw selection handed to the WASM seam. This
-    // double supplies the resolved request; it does not test Rust binding evaluation.
-    const buildRequest = vi.fn((bytes: Uint8Array, context: Parameters<UiviewWasm["buildRequest"]>[1]) => {
-      const rpc = fromBinary(RpcCallSchema, bytes);
-      expect(rpc.service).toBe("acme.Builds");
-      expect(rpc.method).toBe("ListBuildTargets");
-      expect(rpc.bindings).toHaveLength(1);
-      expect(rpc.bindings[0].requestField).toBe("name");
-      expect(rpc.bindings[0].source).toEqual({ case: "rowField", value: "name" });
-      expect(context.selectedRow).toEqual(ROWS[1].raw);
-      return { name: readPath(context.selectedRow!, "name") };
-    });
+    // The actual shared Rust builder now evaluates these bindings. The old
+    // injectable host builder must not supply an alternate request/fallback.
+    const buildRequest = vi.fn(() => { throw Error("Do not use the old builder"); });
+    const intent = tableWithActionsFixture.body.case === "table" ? tableWithActionsFixture.body.value.affordances!.items[0].invoke : null!;
+    if (intent.case !== "rpc") throw Error("Expected canonical table RPC");
+    const declared = intent.value;
+    expect(declared.service).toBe("acme.Builds"); expect(declared.method).toBe("ListBuildTargets");
+    expect(declared.bindings).toHaveLength(1); expect(declared.bindings[0].requestField).toBe("name");
+    expect(declared.bindings[0].source).toEqual({ case: "rowField", value: "name" });
     try {
       await renderPanel({
         root, descriptor: tableWithActionsFixture, context: CTX,
@@ -140,7 +137,7 @@ describe("TablePanel row selection + actions", () => {
         admission: { mutations: ["acme.Builds/ListBuildTargets", "acme.Builds/ListBuildArtifacts"] },
         invoker: { invoke },
       });
-      const [targets, artifacts] = [...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions button")];
+      const [targets, artifacts] = [...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions .mer-affordance")];
       const rows = [...root.querySelectorAll<HTMLTableRowElement>("tbody tr[data-row]")];
       const snapshot = (state: string) => expect(normalizeDom(root)).toMatchSnapshot(`web-components/table-row-actions/${state}`);
       const selection = () => [...root.querySelectorAll("tbody tr[data-row]")].map(row => row.getAttribute("aria-selected"));
@@ -167,15 +164,16 @@ describe("TablePanel row selection + actions", () => {
 
       targets.click();
       await vi.waitFor(() => expect(attempts).toHaveLength(1));
-      expect(targets.disabled).toBe(true);
+      expect(targets.disabled).toBe(false); // Busy control and cancel remain reachable.
       expect(targets.getAttribute("aria-busy")).toBe("true");
       snapshot("pending");
       targets.click();
       expect(invoke).toHaveBeenCalledTimes(2); // Initial read and one mutation.
 
       attempts[0].reject(new Error("<b>Targets unavailable</b>"));
-      await vi.waitFor(() => expect(targets.disabled).toBe(false));
-      expect(root.querySelector('[role="alert"]')?.textContent).toBe("<b>Targets unavailable</b>");
+      await vi.waitFor(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context."));
+      expect(root.textContent).not.toContain("Targets unavailable");
+      expect(targets.disabled).toBe(false);
       expect(root.querySelector('[role="alert"] b')).toBeNull();
       expect(targets.hasAttribute("aria-busy")).toBe(false);
       expect(selection()).toEqual(["false", "true"]);
@@ -184,14 +182,15 @@ describe("TablePanel row selection + actions", () => {
 
       targets.click();
       await vi.waitFor(() => expect(attempts).toHaveLength(2));
-      expect(targets.disabled).toBe(true);
+      expect(targets.disabled).toBe(false);
       expect(targets.getAttribute("aria-busy")).toBe("true");
-      expect(root.querySelector('[role="alert"]')?.textContent).toBe("");
+      expect(root.querySelector('[role="alert"]')).toBeNull();
       snapshot("retry-pending");
 
       attempts[1].resolve({});
-      await vi.waitFor(() => expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed."));
-      expect(buildRequest).toHaveBeenCalledTimes(2);
+      await vi.waitFor(() => expect(renders).toBe(2));
+      expect(buildRequest).not.toHaveBeenCalled();
+      expect(root.textContent).not.toContain("Action completed."); // Removed row cannot own late feedback.
       expect(invoke.mock.calls).toEqual([
         ["acme.Builds", "ListBuilds", {}],
         ["acme.Builds", "ListBuildTargets", { name: "badge-def" }],
@@ -221,7 +220,7 @@ describe("TablePanel row selection + actions", () => {
     await renderPanel({ root, wasm: wasmWith(ROWS), descriptor: tableWithActionsFixture, context: CTX,
       admission: "unrestricted", invoker: { invoke: async (_service, method) => {
         if (method === populate.method) { reads++; return {}; }
-        if (++mutations === 1) throw new Error("Try again");
+        if (++mutations === 1) throw new Error("private row failure");
         return {};
       } },
     });
@@ -229,12 +228,13 @@ describe("TablePanel row selection + actions", () => {
     const button = root.querySelector<HTMLButtonElement>(".meridian-uiview-actions button")!;
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Try again");
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
+    expect(root.textContent).not.toContain("private row failure");
     button.click();
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(mutations).toBe(2);
     expect(reads).toBe(2);
-    expect(root.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+    expect(root.querySelector('[role="status"]')?.textContent).toBe("Action completed.");
   });
   it("renders a button per RowAction, all disabled until a row is selected", async () => {
     const root = document.createElement("div");
@@ -245,7 +245,7 @@ describe("TablePanel row selection + actions", () => {
       invoker: { invoke: async () => ({ builds: [] }) },
       context: CTX,
     });
-    const buttons = [...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions button")];
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions .mer-affordance")];
     expect(buttons.map((b) => b.textContent)).toEqual(["Targets", "Artifacts"]);
     // Nothing selected ⇒ nothing actionable. This is the RESTING state.
     expect(buttons.every((b) => b.disabled)).toBe(true);
@@ -261,7 +261,7 @@ describe("TablePanel row selection + actions", () => {
       context: CTX,
     });
     const [targets, artifacts] = [
-      ...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions button"),
+      ...root.querySelectorAll<HTMLButtonElement>(".meridian-uiview-actions .mer-affordance"),
     ];
     const rows = root.querySelectorAll<HTMLTableRowElement>("tbody tr[data-row]");
 
@@ -282,21 +282,19 @@ describe("TablePanel row selection + actions", () => {
   it("fires the action's RPC with the SELECTED row in context, then re-fetches", async () => {
     const root = document.createElement("div");
     const calls: string[] = [];
-    let seenSelectedRow: unknown = null;
+    let seenRequest: unknown = null;
+    const oldBuilder = vi.fn(() => { throw Error("Obsolete builder"); });
     await renderPanel({
       wasm: {
         ...wasmWith(ROWS),
-        // buildRequest is where the selected row reaches a row-action binding.
-        buildRequest: (_rpc, context) => {
-          seenSelectedRow = context.selectedRow;
-          return {};
-        },
+        buildRequest: oldBuilder,
       },
       root,
       descriptor: tableWithActionsFixture,
       invoker: {
-        invoke: async (service, method) => {
+        invoke: async (service, method, request) => {
           calls.push(`${service}/${method}`);
+          if (method === "ListBuildTargets") seenRequest = request;
           return { builds: [] };
         },
       },
@@ -311,7 +309,8 @@ describe("TablePanel row selection + actions", () => {
     targets?.dispatchEvent(new Event("click", { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(seenSelectedRow).toEqual(ROWS[1].raw);
+    expect(seenRequest).toEqual({ name: ROWS[1].raw.name });
+    expect(oldBuilder).not.toHaveBeenCalled();
     // The action, then the re-fetch (RowAction.refresh_on_success).
     expect(calls).toEqual(["acme.Builds/ListBuildTargets", "acme.Builds/ListBuilds"]);
   });
@@ -435,18 +434,18 @@ describe("wasm `raw` arrives as a Map (serde-wasm-bindgen's default)", () => {
   it("hands the action's context a PLAIN selected row", async () => {
     const root = document.createElement("div");
     let seenSelected: unknown;
+    const oldBuilder = vi.fn(() => { throw Error("Obsolete builder"); });
     await renderPanel({
       wasm: {
         ...wasmWith(mapRows),
-        buildRequest: (_rpc, context) => {
-          seenSelected = context.selectedRow;
-          return {};
-        },
+        buildRequest: oldBuilder,
       },
       root,
       descriptor: tableWithActionsFixture,
       invoker: { invoke: async () => ({ builds: [] }) },
       context: CTX,
+      admission: "unrestricted",
+      invocation: { admit: (_intent, context) => { seenSelected = context.selectedRow; return true; } },
     });
     root.querySelector<HTMLTableRowElement>("tbody tr[data-row]")
       ?.dispatchEvent(new Event("click", { bubbles: true }));
@@ -455,6 +454,7 @@ describe("wasm `raw` arrives as a Map (serde-wasm-bindgen's default)", () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(seenSelected instanceof Map).toBe(false);
     expect((seenSelected as { name?: string })?.name).toBe("botnoc-abc");
+    expect(oldBuilder).not.toHaveBeenCalled();
   });
 });
 

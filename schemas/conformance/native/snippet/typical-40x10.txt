@@ -8,5 +8,5 @@ snippet · typical
 │                                      │
 │                                      │
 │                                      │
-└──────────────────────────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

@@ -5,7 +5,8 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { PanelDescriptorSchema, type PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { PaginationMode, PaginationSchema, RowActionSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { PaginationMode, PaginationSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { AdmissionPolicy, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 import { htmlKit } from "../src/html_kit.js";
@@ -30,8 +31,8 @@ function fixture() {
       { header: "Enabled", fieldPath: "enabled", valueDisplay: { type: ValueType.BOOLEAN } },
       { header: "Owner", fieldPath: "owner.id", link: { targetKind: "member" } },
     ],
-    actions: [
-      { label: "Inspect", rpc: { service: "demo.Builds", method: "Inspect", bindings: [
+    affordances: { items: [
+      { label: "Inspect", refreshOnSuccess: true, invoke: { case: "rpc", value: { service: "demo.Builds", method: "Inspect", bindings: [
         { requestField: "name", source: { case: "rowField", value: "id" } },
         { requestField: "mode", source: { case: "literal", value: "audit" } },
         { requestField: "empty", source: { case: "literal", value: "" } },
@@ -46,16 +47,22 @@ function fixture() {
           { requestField: "missing", source: { case: "rowField", value: "absent.id" } },
           { requestField: "form", source: { case: "formField", value: "id" } },
         ] } } },
-      ] } },
-      { label: "Archive", rpc: { service: "demo.Builds", method: "Archive" },
+      ] } } },
+      { label: "Archive", invoke: { case: "rpc", value: { service: "demo.Builds", method: "Archive" } },
         enabledWhen: { fieldPath: "phase", equals: "Succeeded" }, refreshOnSuccess: true },
-    ],
+    ] },
   } } });
 }
 
 function table(descriptor: PanelDescriptor) {
   if (descriptor.body.case !== "table") throw new Error("Expected a table fixture");
   return descriptor.body.value;
+}
+
+function firstRpc(descriptor: PanelDescriptor) {
+  const intent = table(descriptor).affordances!.items[0].invoke;
+  if (intent.case !== "rpc") throw Error("Expected explicit canonical table RPC");
+  return intent.value;
 }
 
 function deferred() {
@@ -70,7 +77,8 @@ function rows(container: HTMLElement) {
 }
 
 function buttons(container: HTMLElement) {
-  return Array.from(container.querySelectorAll<HTMLButtonElement>('[aria-label="Row actions"] button'));
+  return Array.from(container.querySelectorAll<HTMLButtonElement>('[aria-label="Row actions"] button'))
+    .filter(button => button.textContent !== "Cancel action");
 }
 
 function selected(container: HTMLElement) {
@@ -112,7 +120,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it.each(["__proto__.meridianTableTest", "constructor.prototype.meridianTableTest"])("rejects the whole %s request before dispatch", async path => {
     const descriptor = fixture();
-    table(descriptor).actions[0].rpc!.bindings.push(create(FieldBindingSchema, {
+    firstRpc(descriptor).bindings.push(create(FieldBindingSchema, {
       requestField: path, source: { case: "literal", value: "unsafe" },
     }));
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
@@ -129,13 +137,13 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("selects raw rows by pointer, Enter, and Space and evaluates filters without changing cell displays", async () => {
     const descriptor = fixture();
-    table(descriptor).actions.push(...[
+    table(descriptor).affordances!.items.push(...[
       { label: "False value", enabledWhen: { fieldPath: "enabled", equals: "false" } },
       { label: "Zero value", enabledWhen: { fieldPath: "count", equals: "0" } },
       { label: "Nested value", enabledWhen: { fieldPath: "owner.id", equals: "owner-2" } },
       { label: "Missing value", enabledWhen: { fieldPath: "missing", equals: "" } },
       { label: "Missing RPC" },
-    ].map(action => create(RowActionSchema, { rpc: action.label === "Missing RPC" ? undefined : { service: "demo.Builds", method: "Inspect" }, ...action })));
+    ].map(action => create(AffordanceSchema, { invoke: action.label === "Missing RPC" ? undefined : { case: "rpc", value: { service: "demo.Builds", method: "Inspect" } }, ...action })));
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
     const view = await mount(descriptor, invoke);
     try {
@@ -181,7 +189,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("binds raw values and current scope, suppresses duplicates, retries failure, and clears selection after refresh", async () => {
     const descriptor = fixture();
-    table(descriptor).actions[0].rpc!.bindings.push(
+    firstRpc(descriptor).bindings.push(
       create(FieldBindingSchema, { requestField: "ownerOverride", source: { case: "rowField", value: "owner" } }),
       create(FieldBindingSchema, { requestField: "ownerOverride.id", source: { case: "literal", value: "delegated-owner" } }),
     );
@@ -206,17 +214,17 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}], ["demo.Builds", "Inspect", request]]);
       expect(Object.hasOwn(Object.prototype, "meridianTableTest")).toBe(false);
       expect(rawRows).toEqual(ROWS);
-      expect(buttons(view.container).every(button => button.disabled)).toBe(true);
+      expect(buttons(view.container).every(button => button.disabled || button.getAttribute("aria-disabled") === "true")).toBe(true);
       expect(inspect.getAttribute("aria-busy")).toBe("true");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Running…");
+      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Action is running.");
 
       await act(async () => first.reject(new Error("<b>private backend details</b>")));
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       expect(view.container.textContent).not.toContain("private backend details");
       expect(view.container.querySelector("b")).toBeNull();
       expect(inspect.disabled).toBe(false);
       expect(inspect.hasAttribute("aria-busy")).toBe(false);
-      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action failed. Try again.");
+      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action failed. Try again with the current context.");
       expect(selected(view.container)).toEqual(["false", "true"]);
       expect(reads).toBe(1);
 
@@ -226,7 +234,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(view.container.querySelector('[role="alert"]')).toBeNull();
       expect(invoke).toHaveBeenLastCalledWith("demo.Builds", "Inspect", { ...request, payload: { ...request.payload, scope: "year-2" } });
       await act(async () => retry.resolve({}));
-      expect(reads).toBe(2); // Default refresh_on_success is also honored after wire decoding.
+      expect(reads).toBe(2); // Explicit canonical refresh survives wire decoding.
       expect(view.container.querySelector("table")?.getAttribute("aria-busy")).toBe("true");
       expect(buttons(view.container).every(button => button.disabled)).toBe(true);
       await act(async () => rows(view.container)[0].click());
@@ -234,7 +242,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       await act(async () => refreshed.resolve({ items: [{ ...ROWS[0], name: "Replacement" }] }));
       expect(selected(view.container)).toEqual(["false"]);
       expect(view.container.textContent).toContain("Replacement");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+      expect(view.container.querySelector('[role="status"]')).toBeNull(); // Never attach old-row results to refreshed rows.
       await act(async () => inspect.click());
       expect(invoke.mock.calls.map(([, method]) => method)).toEqual(["List", "Inspect", "Inspect", "List"]);
     } finally { await view.close(); }
@@ -254,8 +262,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}]]);
       expect(onDenied).toHaveBeenCalledTimes(1);
       expect(onDenied).toHaveBeenCalledWith(expect.objectContaining({ tier: "mutation", service: "demo.Builds", method: "Inspect" }));
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("This action is unavailable.");
-      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("This action is unavailable.");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
+      expect(document.getElementById(inspect.getAttribute("aria-describedby")!)?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
       expect(selected(view.container)).toEqual(["true", "false"]);
     } finally { await view.close(); }
   });
@@ -274,7 +282,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
       expect(invoke.mock.calls).toEqual([["demo.Builds", "List", {}], ["demo.Builds", "Archive", {}], ["demo.Builds", "List", {}]]);
       expect(view.container.textContent).toContain("Failed to load table.");
       expect(view.container.textContent).not.toContain("private read failure");
-      expect(view.container.querySelector('[role="status"]')?.textContent).toBe("Completed.");
+      expect(view.container.querySelector('[role="status"]')).toBeNull(); // Failure belongs to the read, not an old-row toast.
       expect(rows(view.container)).toHaveLength(0);
       expect(buttons(view.container).every(button => button.disabled)).toBe(true);
     } finally { await view.close(); }
@@ -340,7 +348,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s table row
 
   it("leaves tables without actions nonselectable", async () => {
     const descriptor = fixture();
-    table(descriptor).actions = [];
+    table(descriptor).affordances!.items = [];
     const invoke = vi.fn<RpcInvoker["invoke"]>(async () => ({ items: ROWS }));
     const view = await mount(descriptor, invoke);
     try {

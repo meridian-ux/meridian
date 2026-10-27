@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
@@ -21,6 +21,11 @@ use crate::invoker::{RpcError, RpcInvoker, StreamInvoker, StreamSession};
 use crate::lro::{LroRun, LroRunId};
 use crate::prompt::{PromptResponse, PromptState};
 use crate::theme::Palette;
+use crate::{
+    NativeAction, NativeInvocationContext, NativeInvocationDispatcher, NativeInvocationHost,
+    NativeInvocationOutcome,
+};
+mod actions;
 
 // Keep an unspecified StreamPanel bounded just like the browser renderer. The
 // schema deliberately leaves the exact default to each surface, but it also
@@ -68,6 +73,13 @@ fn invoke_request<I: RpcInvoker>(
 /// build a `Palette::from_theme(...)` and pass it via `with_palette`; the
 /// default is meridian's neutral dark palette so an un-themed run still reads.
 pub struct PanelView {
+    row_actions: actions::State,
+    invocation_visible: bool,
+    invocation_viewport: Option<bool>,
+    invocations: NativeInvocationDispatcher,
+    form_scope: Option<Arc<Vec<u8>>>,
+    shared_form_scope: Option<Option<Arc<Vec<u8>>>>,
+    form_completed: Option<u64>,
     ambient_record: Option<Arc<serde_json::Value>>,
     inline_prompt: Option<InlinePrompt>,
     cached: Option<CachedTable>,
@@ -129,6 +141,7 @@ struct CachedResourceCards {
 }
 
 struct CachedForm {
+    revision: u64,
     descriptor: Vec<u8>,
     values: serde_json::Value,
     error: Option<String>,
@@ -149,7 +162,10 @@ impl CachedForm {
                     if let Some(value) = values.get(id).and_then(|value| {
                         serde_json::from_str::<serde_json::Value>(&value.as_string()).ok()
                     }) {
-                        self.values[id.as_str()] = value;
+                        if self.values.get(id.as_str()) != Some(&value) {
+                            self.revision = self.revision.saturating_add(1);
+                            self.values[id.as_str()] = value;
+                        }
                         self.validation_error = None;
                     }
                     self.editor = None;
@@ -220,6 +236,13 @@ pub struct LroSubmission {
 impl PanelView {
     pub fn new() -> Self {
         Self {
+            row_actions: actions::State::default(),
+            invocation_visible: false,
+            invocation_viewport: None,
+            invocations: NativeInvocationDispatcher::default(),
+            form_scope: None,
+            shared_form_scope: None,
+            form_completed: None,
             ambient_record: None,
             inline_prompt: None,
             cached: None,
@@ -252,6 +275,13 @@ impl PanelView {
     /// `Palette::from_theme(&theme, mode)`). Use this to skin the renderer.
     pub fn with_palette(palette: Palette) -> Self {
         Self {
+            row_actions: actions::State::default(),
+            invocation_visible: false,
+            invocation_viewport: None,
+            invocations: NativeInvocationDispatcher::default(),
+            form_scope: None,
+            shared_form_scope: None,
+            form_completed: None,
             ambient_record: None,
             inline_prompt: None,
             cached: None,
@@ -472,6 +502,11 @@ impl PanelView {
 
     /// Forces the next render to refetch the table data.
     pub fn invalidate(&mut self) {
+        self.invocation_visible = false;
+        self.row_actions.invalidate();
+        self.invocations.cancel();
+        self.form_scope = None;
+        self.form_completed = None;
         self.cached = None;
         self.cached_chart = None;
         self.cached_stat = None;
@@ -482,6 +517,72 @@ impl PanelView {
         self.cached_lro = None;
         self.lro_run = None;
         self.lro_identity = None;
+    }
+
+    pub fn with_invocation_dispatcher(mut self, dispatcher: NativeInvocationDispatcher) -> Self {
+        self.invocations.cancel();
+        self.invocations = dispatcher;
+        self
+    }
+
+    pub fn invocation_dispatcher(&self) -> NativeInvocationDispatcher {
+        self.invocations.clone()
+    }
+
+    pub(crate) fn withdraw_invocation_controls(&mut self) {
+        if self.invocation_visible {
+            self.invocations.cancel();
+        }
+        self.invocation_visible = false;
+        self.row_actions.withdraw();
+    }
+
+    pub(crate) fn set_invocation_viewport(&mut self, visible: bool) {
+        self.invocation_viewport = Some(visible);
+        if !visible {
+            self.withdraw_invocation_controls();
+        }
+    }
+
+    pub(crate) fn set_form_scope(&mut self, scope: Option<Arc<Vec<u8>>>, is_form: bool) {
+        if self
+            .shared_form_scope
+            .as_ref()
+            .is_some_and(|old| old != &scope)
+            || (is_form
+                && self
+                    .form_scope
+                    .as_ref()
+                    .is_some_and(|old| Some(old) != scope.as_ref()))
+        {
+            self.invocations.cancel();
+            self.cached_form = None;
+            self.form_scope = None;
+            self.form_completed = None;
+        }
+        if is_form {
+            self.form_scope = scope.clone();
+        }
+        self.shared_form_scope = Some(scope);
+    }
+
+    fn current_form_scope(&self, context: &Context) -> Option<Vec<u8>> {
+        // Immutable row identity is already owned and invalidated by set_record.
+        // An unused ambient selection must not shadow that local record.
+        crate::invocation::context_key(
+            NativeInvocationContext::new(context).with_record(
+                self.ambient_record
+                    .as_ref()
+                    .map(|_| &serde_json::Value::Null),
+            ),
+        )
+        .ok()
+    }
+
+    fn form_scope_current(&self, context: &Context) -> bool {
+        self.current_form_scope(context)
+            .as_ref()
+            .is_some_and(|current| self.form_scope.as_deref() == Some(current))
     }
 
     fn prepare_prompt(&mut self, descriptor: &PanelDescriptor) {
@@ -507,6 +608,8 @@ impl PanelView {
     }
 
     pub fn select_next(&mut self) {
+        self.invocations.cancel();
+        self.row_actions.selection_changed();
         if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
@@ -526,6 +629,8 @@ impl PanelView {
     }
 
     pub fn select_prev(&mut self) {
+        self.invocations.cancel();
+        self.row_actions.selection_changed();
         if let Some(cached) = self.current_table() {
             let n = cached.rows.len();
             if n == 0 {
@@ -556,7 +661,7 @@ impl PanelView {
 
     /// The affordance the host should invoke (open the URI / run the command) for
     /// the current selection on a Catalog / Action / ConnectFlow panel — the
-    /// invocation seam the host wires to Enter, like table RowActions. Returns
+    /// invocation seam the host wires to Enter, like table affordances. Returns
     /// None for shapes with no invocable affordance at the cursor.
     pub fn selected_affordance<'d>(
         &self,
@@ -578,7 +683,27 @@ impl PanelView {
         context: &Context,
         invoker: &I,
     ) {
+        if area.width == 0 || area.height == 0 {
+            self.withdraw_invocation_controls();
+            return;
+        }
+        self.invocation_visible = self.invocation_viewport.unwrap_or(true);
         self.prepare_prompt(descriptor);
+        if !actions::begin(self, descriptor, context) {
+            self.render_placeholder(
+                frame,
+                area,
+                area,
+                "Action denied: panel declaration or context limit exceeded.",
+            );
+            return;
+        }
+        if !matches!(descriptor.body, Some(Body::Form(_))) && self.form_scope.is_some() {
+            self.invocations.cancel();
+            self.cached_form = None;
+            self.form_scope = None;
+            self.form_completed = None;
+        }
         let identity = match &descriptor.body {
             Some(Body::Lro(panel)) => Some((
                 descriptor.encode_to_vec(),
@@ -693,6 +818,29 @@ impl PanelView {
                 }
             }
             Some(Body::Form(panel)) => {
+                let scope = self
+                    .shared_form_scope
+                    .clone()
+                    .unwrap_or_else(|| self.current_form_scope(context).map(Arc::new));
+                if scope != self.form_scope {
+                    self.invocations.cancel();
+                    self.cached_form = None;
+                    self.form_completed = None;
+                }
+                self.form_scope = scope;
+                if self.form_scope.is_none()
+                    || panel.fields.len() > 1_000
+                    || panel.encoded_len() > 4 * 1024 * 1024
+                {
+                    self.cached_form = None;
+                    self.render_placeholder(
+                        frame,
+                        chunks[1],
+                        chunks[2],
+                        "Form context or declaration limit exceeded.",
+                    );
+                    return;
+                }
                 self.populate_form_if_needed(panel, context, invoker);
                 let cached = self.cached_form.as_ref().unwrap();
                 if let Some(error) = cached.error.as_deref() {
@@ -744,6 +892,11 @@ impl PanelView {
                 self.populate_resource_cards_if_needed(panel, context, invoker);
                 let cached = self.cached_resource_cards.as_ref().unwrap();
                 self.content_len = cached.rows.len();
+                self.content_selected = if cached.rows.is_empty() {
+                    0
+                } else {
+                    self.content_selected % cached.rows.len()
+                };
                 content::render_resource_cards(
                     frame,
                     content_area,
@@ -776,7 +929,7 @@ impl PanelView {
             }
             Some(Body::ConnectFlow(panel)) => {
                 self.content_len = panel.targets.len();
-                content::render_connect_flow(
+                content::render_connect_flow_at_index(
                     frame,
                     content_area,
                     panel,
@@ -914,6 +1067,7 @@ impl PanelView {
                 "Unsupported or unset panel shape",
             ),
         }
+        actions::finish(self, frame, area, descriptor);
     }
 
     fn populate_if_needed<I: RpcInvoker>(
@@ -1036,12 +1190,13 @@ impl PanelView {
             });
             return;
         };
-        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()) {
-            Ok(response) => {
-                let rows = meridian_uiview::ProtoPaths::rows(&response, &panel.rows_field)
-                    .into_iter()
-                    .cloned()
-                    .collect();
+        match invoke_request(populate, context, invoker, self.ambient_record.as_deref()).and_then(
+            |response| {
+                meridian_uiview::render_resource_cards_bounded(&response, panel)
+                    .map_err(|_| RpcError::Other("Render construction limit exceeded.".into()))
+            },
+        ) {
+            Ok(rows) => {
                 self.cached_resource_cards = Some(CachedResourceCards { rows, error: None });
             }
             Err(error) => {
@@ -1133,10 +1288,15 @@ impl PanelView {
         {
             return;
         }
+        if self.cached_form.is_some() {
+            self.invocations.cancel();
+        }
+        self.form_completed = None;
         let mut values = match crate::prompt::input_defaults(&panel.fields) {
             Ok(values) => values,
             Err(error) => {
                 self.cached_form = Some(CachedForm {
+                    revision: 0,
                     descriptor,
                     values: serde_json::json!({}),
                     error: Some(error),
@@ -1147,17 +1307,38 @@ impl PanelView {
             }
         };
         if let Some(record) = self.ambient_record.as_deref() {
-            merge_form_values(&mut values, record);
+            if merge_form_values(&mut values, record).is_err() {
+                self.cached_form = Some(CachedForm {
+                    revision: 0,
+                    descriptor,
+                    values,
+                    error: Some(REQUEST_ERROR.into()),
+                    validation_error: None,
+                    editor: None,
+                });
+                return;
+            }
         }
         if panel.mode == FormMode::Edit as i32 {
             if let Some(prefill) = panel.prefill.as_ref() {
                 match invoke_request(prefill, context, invoker, self.ambient_record.as_deref()) {
                     Ok(prefill_values) if prefill_values.is_object() => {
-                        merge_form_values(&mut values, &prefill_values);
+                        if merge_form_values(&mut values, &prefill_values).is_err() {
+                            self.cached_form = Some(CachedForm {
+                                revision: 0,
+                                descriptor,
+                                values,
+                                error: Some(REQUEST_ERROR.into()),
+                                validation_error: None,
+                                editor: None,
+                            });
+                            return;
+                        }
                     }
                     Ok(_) => {}
                     Err(error) => {
                         self.cached_form = Some(CachedForm {
+                            revision: 0,
                             descriptor,
                             values,
                             error: Some(format!("Failed to prefill form: {error}")),
@@ -1170,6 +1351,7 @@ impl PanelView {
             }
         }
         self.cached_form = Some(CachedForm {
+            revision: 0,
             descriptor,
             values,
             error: None,
@@ -1187,6 +1369,14 @@ impl PanelView {
         context: &Context,
         key: KeyCode,
     ) -> Option<FormSubmission> {
+        if key == KeyCode::Enter && !self.form_scope_current(context) {
+            self.invocations.cancel();
+            if let Some(cached) = &mut self.cached_form {
+                cached.validation_error =
+                    Some("Form context changed; redraw before retrying.".into());
+            }
+            return None;
+        }
         let cached = self.cached_form.as_mut()?;
         if cached.descriptor != panel.encode_to_vec() {
             return None;
@@ -1216,26 +1406,10 @@ impl PanelView {
                 if !cached.validate(&panel.fields) {
                     return None;
                 }
-                let submit = panel.submit.as_ref()?;
-                let request = match form_request(
-                    submit,
-                    context,
-                    &panel.fields,
-                    &cached.values,
-                    SubmissionKind::Form,
-                    self.ambient_record.as_deref(),
-                ) {
-                    Ok(request) => request,
-                    Err(_) => {
-                        cached.validation_error = Some(REQUEST_ERROR.into());
-                        return None;
-                    }
-                };
-                return Some(FormSubmission {
-                    service: submit.service.clone(),
-                    method: submit.method.clone(),
-                    request,
-                });
+                // Without an explicit invocation host, submission is denied.
+                // The admitted path below owns validation, consent, and effects.
+                cached.validation_error = Some(NativeInvocationOutcome::Denied.message().into());
+                return None;
             }
             code if boolean_edit
                 || !matches!(
@@ -1244,12 +1418,70 @@ impl PanelView {
                 ) =>
             {
                 if let Some(field) = selected_field {
-                    edit_form_field(field, &mut cached.values, code);
+                    if edit_form_field(field, &mut cached.values, code) {
+                        cached.revision = cached.revision.saturating_add(1);
+                        cached.validation_error = None;
+                    }
                 }
             }
             _ => {}
         }
         None
+    }
+
+    /// Native form events validate collected values before admission. Effects use
+    /// the shared dispatcher and real form assembler, never a raw request handoff.
+    pub fn handle_form_key_with_invocation(
+        &mut self,
+        panel: &FormPanel,
+        context: &Context,
+        key: KeyEvent,
+        host: &NativeInvocationHost<'_>,
+    ) -> Option<NativeInvocationOutcome> {
+        if key.kind != KeyEventKind::Press {
+            return None;
+        }
+        if !self.invocation_visible || !self.form_scope_current(context) {
+            self.invocations.cancel();
+            if let Some(cached) = &mut self.cached_form {
+                cached.validation_error =
+                    Some("Form context changed; redraw before retrying.".into());
+            }
+            return None;
+        }
+        if key.code != KeyCode::Enter
+            || self
+                .cached_form
+                .as_ref()
+                .is_some_and(|c| c.editor.is_some())
+        {
+            self.invocations.cancel();
+            self.handle_form_key(panel, context, key.code);
+            return None;
+        }
+        let cached = self.cached_form.as_mut()?;
+        if cached.descriptor != panel.encode_to_vec() || panel.mode != FormMode::Edit as i32 {
+            return None;
+        }
+        if self.form_completed == Some(cached.revision) {
+            return None;
+        }
+        if !cached.validate(&panel.fields) {
+            return None;
+        }
+        let outcome = self.invocations.invoke(
+            NativeAction::Form(panel, &cached.values),
+            NativeInvocationContext::new(context).with_record(self.ambient_record.as_deref()),
+            host,
+        );
+        cached.validation_error = Some(outcome.message().into());
+        if matches!(
+            outcome,
+            NativeInvocationOutcome::Succeeded | NativeInvocationOutcome::RefreshFailed
+        ) {
+            self.form_completed = Some(cached.revision);
+        }
+        Some(outcome)
     }
 
     fn populate_lro_if_needed(&mut self, panel: &LroPanel) {
@@ -1268,6 +1500,7 @@ impl PanelView {
                 Err(error) => (serde_json::json!({}), Some(error)),
             };
             self.cached_lro = Some(CachedForm {
+                revision: 0,
                 descriptor,
                 values,
                 error,
@@ -1600,7 +1833,7 @@ impl PanelView {
     }
 
     /// Convenience: returns the currently-selected row's raw JSON,
-    /// for hosts that want to fire RowActions.
+    /// for hosts that supply current-row context to admitted affordances.
     pub fn selected_row(&self) -> Option<&serde_json::Value> {
         if let Some(cached) = self.current_table() {
             let index = self.table_state.selected()?;
@@ -1633,12 +1866,22 @@ fn stream_line(frame: &StreamFrame, line_field: &str) -> Option<String> {
     }
 }
 
-fn merge_form_values(destination: &mut serde_json::Value, source: &serde_json::Value) {
+fn merge_form_values(
+    destination: &mut serde_json::Value,
+    source: &serde_json::Value,
+) -> Result<(), meridian_uiview::RequestLimitExceeded> {
+    let mut budget = RequestBudget::for_boundary(destination)?;
+    budget.admit_copy(source)?;
+    merge_form_values_admitted(destination, source);
+    Ok(())
+}
+
+fn merge_form_values_admitted(destination: &mut serde_json::Value, source: &serde_json::Value) {
     match (destination, source) {
         (serde_json::Value::Object(dst), serde_json::Value::Object(src)) => {
             for (key, value) in src {
                 match dst.get_mut(key) {
-                    Some(existing) => merge_form_values(existing, value),
+                    Some(existing) => merge_form_values_admitted(existing, value),
                     None => {
                         dst.insert(key.clone(), value.clone());
                     }
@@ -1661,36 +1904,35 @@ fn form_request(
         .map_err(|_| RpcError::Other(REQUEST_ERROR.into()))
 }
 
-fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) {
+fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCode) -> bool {
     let Some(current) = values
         .as_object_mut()
         .and_then(|object| object.get_mut(&field.field_id))
     else {
-        return;
+        return false;
     };
-    match field.kind.as_ref() {
-        Some(Kind::Text(_)) | Some(Kind::Masked(_)) => match key {
-            KeyCode::Char(c) => {
-                if let Some(text) = current.as_str() {
-                    *current = serde_json::Value::String(format!("{text}{c}"));
-                }
-            }
-            KeyCode::Backspace => {
-                if let Some(text) = current.as_str() {
+    let next = match field.kind.as_ref() {
+        Some(Kind::Text(_)) | Some(Kind::Masked(_)) => {
+            let Some(text) = current.as_str() else {
+                return false;
+            };
+            match key {
+                KeyCode::Char(c) => serde_json::Value::String(format!("{text}{c}")),
+                KeyCode::Backspace => {
                     let mut text = text.to_string();
                     text.pop();
-                    *current = serde_json::Value::String(text);
+                    serde_json::Value::String(text)
                 }
+                _ => return false,
             }
-            _ => {}
-        },
+        }
         Some(Kind::Integer(input)) => {
             let step = if input.step == 0 { 1 } else { input.step } as i64;
             let mut number = current.as_i64().unwrap_or(input.default_value as i64);
             match key {
                 KeyCode::Up | KeyCode::Right => number = number.saturating_add(step),
                 KeyCode::Down | KeyCode::Left => number = number.saturating_sub(step),
-                _ => return,
+                _ => return false,
             }
             if input.max != 0 {
                 number = number.min(input.max as i64);
@@ -1698,7 +1940,7 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             if input.min != 0 {
                 number = number.max(input.min as i64);
             }
-            *current = serde_json::Value::from(number);
+            serde_json::Value::from(number)
         }
         Some(Kind::Number(input)) => {
             let step = if input.step == 0.0 { 1.0 } else { input.step };
@@ -1706,7 +1948,7 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             match key {
                 KeyCode::Up | KeyCode::Right => number += step,
                 KeyCode::Down | KeyCode::Left => number -= step,
-                _ => return,
+                _ => return false,
             }
             if input.max != 0.0 {
                 number = number.min(input.max);
@@ -1714,38 +1956,49 @@ fn edit_form_field(field: &FormField, values: &mut serde_json::Value, key: KeyCo
             if input.min != 0.0 {
                 number = number.max(input.min);
             }
-            *current = serde_json::Value::from(number);
+            serde_json::Value::from(number)
         }
         Some(Kind::Boolean(_))
             if matches!(key, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) =>
         {
-            *current = serde_json::Value::Bool(!current.as_bool().unwrap_or(false));
+            serde_json::Value::Bool(!current.as_bool().unwrap_or(false))
         }
         Some(Kind::EnumSelection(input)) => {
-            let options: Vec<String> = if !input.options.is_empty() {
+            let options: Vec<&str> = if !input.options.is_empty() {
                 input
                     .options
                     .iter()
-                    .map(|option| option.value.clone())
+                    .map(|option| option.value.as_str())
                     .collect()
             } else {
-                input.allowed_values.clone()
+                input.allowed_values.iter().map(String::as_str).collect()
             };
             if options.is_empty() {
-                return;
+                return false;
             }
             let current_index = options
                 .iter()
-                .position(|option| Some(option.as_str()) == current.as_str())
+                .position(|option| Some(*option) == current.as_str())
                 .unwrap_or(0);
             let next = match key {
                 KeyCode::Up | KeyCode::Left => (current_index + options.len() - 1) % options.len(),
                 KeyCode::Down | KeyCode::Right => (current_index + 1) % options.len(),
-                _ => return,
+                _ => return false,
             };
-            *current = serde_json::Value::String(options[next].clone());
+            serde_json::Value::String(options[next].to_owned())
         }
-        _ => {}
+        _ => return false,
+    };
+    if *current == next {
+        return false;
+    }
+    *current = next;
+    true
+}
+
+impl Drop for PanelView {
+    fn drop(&mut self) {
+        self.invocations.cancel();
     }
 }
 

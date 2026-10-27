@@ -5,6 +5,8 @@ RootWebArea name="Meridian AX conformance" focusable=true
         StaticText name="form-input-list"
     heading name="list" level=3
       StaticText name="list"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
     heading name="Declared input" level=6
       StaticText name="Declared input"
     LabelText name=""
@@ -31,5 +33,5 @@ RootWebArea name="Meridian AX conformance" focusable=true
       StaticText name="✕"
     button name="ADD" focusable=true invalid="false"
       StaticText name="ADD"
-    button name="SAVE" focusable=true invalid="false"
+    button name="SAVE" description="Saving is not permitted." disabled=true focusable=true invalid="false"
       StaticText name="SAVE"

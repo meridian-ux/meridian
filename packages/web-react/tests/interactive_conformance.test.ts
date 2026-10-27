@@ -33,22 +33,26 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
   it("realizes primary, header, and overflow placements while keeping row actions out of the header", async () => {
     const invoke = vi.fn(async () => ({}));
     const onAction = vi.fn();
-    const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", actions: [
-      { id: "run", label: "Run now", placement: ActionPlacement.PRIMARY,
-        call: { service: "demo.Reports", method: "Run" } },
-      { id: "edit", label: "Edit report", placement: ActionPlacement.HEADER },
+    const navigate = vi.fn(async () => {});
+    const view = create(ViewDescriptorSchema, { id: "placed-actions", subjectKind: "report", affordances: { items: [
+      { id: "run", label: "Run now", placement: ActionPlacement.HEADER, emphasis: 1,
+        invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } } },
+      { id: "edit", label: "Edit report", placement: ActionPlacement.HEADER,
+        invoke: { case: "navigate", value: { route: "/reports/edit" } } },
       { id: "export", label: "Export CSV", placement: ActionPlacement.OVERFLOW,
-        call: { service: "demo.Reports", method: "Export", bindings: [
+        invoke: { case: "rpc", value: { service: "demo.Reports", method: "Export", bindings: [
           { requestField: "format", source: { case: "literal", value: "csv" } },
-        ] } },
+        ] } } },
       { id: "row-delete", label: "Delete row", placement: ActionPlacement.ROW },
-    ] });
+    ] } });
     await mounted(createElement(MeridianProvider, {
       kit, adhoc: {}, invoker: { invoke }, onAction, admission: "unrestricted",
+      invocation: { capabilities: { navigate }, admit: intent => intent.case === "navigate" || intent.case === "rpc" },
     }, createElement(ViewRenderer, { view })), async container => {
       expect(kit.ActionBar).toBeDefined();
       expect(container.querySelector("[data-action-bar]")?.getAttribute("data-action-bar")).toBe(kit.id);
-      const labels = [...container.querySelectorAll("button")].map((button) => button.textContent?.trim());
+      const labels = [...container.querySelectorAll("button")].filter(button => !button.closest("[hidden]"))
+        .map((button) => button.textContent?.trim());
       expect(labels).toEqual(["Run now", "Edit report", "⋮"]);
       expect(container.textContent).not.toContain("Delete row");
 
@@ -57,7 +61,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       await act(async () => button("Run now").click());
       await act(async () => button("Edit report").click());
       expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
-      expect(onAction).toHaveBeenCalledWith("edit", "report");
+      expect(onAction).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ route: "/reports/edit" }), expect.any(Object), expect.any(AbortSignal));
 
       const overflow = container.querySelector<HTMLButtonElement>('[aria-label="More actions"]')!;
       await act(async () => overflow.click());
@@ -67,32 +72,35 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(exportAction.textContent).toBe("Export CSV");
       await act(async () => exportAction.click());
       expect(invoke).toHaveBeenLastCalledWith("demo.Reports", "Export", { format: "csv" });
-      expect(container.querySelector('[role="menu"]')).toBeNull();
+      expect(container.querySelector('[role="menu"]:not([hidden])')).toBeNull();
     });
   });
 
-  it("preserves the canonical ActionPanel's named navigation control without dialing an RPC", async () => {
+  it("activates the canonical ActionPanel only through the host URI capability without dialing an RPC", async () => {
     const source = FIXTURES.find(fixture => fixture.shape === "action")!.descriptor;
     const descriptor = fromBinary(PanelDescriptorSchema, toBinary(PanelDescriptorSchema, source));
     const invoke = vi.fn(async () => ({}));
-    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke } },
+    const uri = vi.fn(async () => {});
+    await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
+      invocation: { capabilities: { uri }, admit: intent => intent.case === "uri" } },
       createElement(PanelRenderer, { descriptor })), async container => {
-      const link = container.querySelector("a")!;
-      expect(link.textContent).toBe("Add to Cursor");
-      expect(link.getAttribute("href")).toBe("cursor://anysphere.cursor-deeplink/mcp/install");
-      // Cancel browser navigation while checking the actual activation path.
-      link.addEventListener("click", event => event.preventDefault());
-      await act(async () => link.click());
+      const button = container.querySelector("button")!;
+      expect(button.textContent).toBe("Add to Cursor");
+      expect(container.querySelector("a")).toBeNull();
+      expect(uri).not.toHaveBeenCalled();
+      await act(async () => button.click());
+      expect(uri).toHaveBeenCalledTimes(1);
+      expect(uri).toHaveBeenCalledWith("cursor://anysphere.cursor-deeplink/mcp/install", expect.any(Object), expect.any(AbortSignal));
       expect(invoke).not.toHaveBeenCalled();
     });
   });
 
   it("invokes an admitted unbound view action exactly once with an empty request", async () => {
     const invoke = vi.fn(async () => ({}));
-    const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "actions", affordances: { items: [{
       id: "run", label: "Run report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Run" },
-    }] });
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: { mutations: ["demo.Reports/Run"] } }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
@@ -108,8 +116,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     const invoke = vi.fn(async () => ({}));
     const selection = { values: { scope: "year-1" }, set: () => {} };
     const record = { owner: { id: "member-7" }, enabled: false, count: 0 };
-    const view = create(ViewDescriptorSchema, { id: "bound", actions: [{
-      id: "run", label: "Run bound report", call: { service: "demo.Reports", method: "Run", bindings: [
+    const view = create(ViewDescriptorSchema, { id: "bound", affordances: { items: [{
+      id: "run", label: "Run bound report", invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run", bindings: [
         { requestField: "mode", source: { case: "literal", value: "audit" } },
         { requestField: "filter", source: { case: "nested", value: { fields: [
           { requestField: "year", source: { case: "selectionKey", value: "scope" } },
@@ -118,8 +126,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
           { requestField: "count", source: { case: "rowField", value: "count" } },
           { requestField: "missing", source: { case: "selectionKey", value: "unset" } },
         ] } } },
-      ] },
-    }] });
+      ] } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
       createElement(MeridianRecordContext.Provider, { value: record }, createElement(ViewRenderer, { view, selection }))), async container => {
       await act(async () => container.querySelector("button")!.click());
@@ -135,7 +143,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     });
   });
 
-  it("preserves the ActionPanel command copy contract without invoking an RPC", async () => {
+  it("denies ActionPanel commands without an explicit host capability and never copies them", async () => {
     const invoke = vi.fn(async () => ({}));
     const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: {
       action: { label: "Copy command", invoke: { case: "command", value: "meridian inspect" } },
@@ -144,15 +152,16 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       createElement(PanelRenderer, { descriptor })), async container => {
       const button = container.querySelector("button")!;
       expect(button.textContent).toBe("Copy command");
-      expect(button.dataset.copy).toBe("meridian inspect");
+      expect(button.dataset.copy).toBeUndefined();
       await act(async () => button.click());
       expect(invoke).not.toHaveBeenCalled();
+      expect(container.querySelector('[role="status"]')!.textContent).toContain("required capability");
     });
   });
 
   it.each([false, true])("omits unavailable sources but rejects an unsafe request as a whole (unsafe=%s)", async unsafe => {
     const invoke = vi.fn(async () => ({}));
-    const view = create(ViewDescriptorSchema, { id: "missing", actions: [{ id: "run", label: "Run", call: {
+    const view = create(ViewDescriptorSchema, { id: "missing", affordances: { items: [{ id: "run", label: "Run", invoke: { case: "rpc", value: {
       service: "demo.Reports", method: "Run", bindings: [
         { requestField: "record", source: { case: "rowField", value: "id" } },
         { requestField: "form", source: { case: "formField", value: "name" } },
@@ -161,13 +170,13 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
         ] } } },
         ...(unsafe ? [{ requestField: "__proto__.meridianTest", source: { case: "literal" as const, value: "unsafe" } }] : []),
       ],
-    } }] });
+    } } }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke }, admission: "unrestricted" },
       createElement(ViewRenderer, { view })), async container => {
       await act(async () => container.querySelector("button")!.click());
       if (unsafe) {
         expect(invoke).not.toHaveBeenCalled();
-        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+        expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       } else expect(invoke).toHaveBeenCalledWith("demo.Reports", "Run", {});
       expect(Object.hasOwn(Object.prototype, "meridianTest")).toBe(false);
     });
@@ -176,12 +185,12 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
   it("blocks a denied mutation before transport and reports the exact denied call to the host", async () => {
     const invoke = vi.fn(async () => ({}));
     const onDenied = vi.fn();
-    const view = create(ViewDescriptorSchema, { id: "actions", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "actions", affordances: { items: [{
       id: "delete", label: "Delete report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Delete", bindings: [
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Delete", bindings: [
         { requestField: "id", source: { case: "literal", value: "protected-report" } },
-      ] },
-    }] });
+      ] } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: { mutations: [], onDenied } }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
@@ -190,7 +199,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
       expect(onDenied).not.toHaveBeenCalled();
       expect(normalizeDom(container)).toMatchSnapshot("denied before activation");
       await act(async () => container.querySelector("button")!.click());
-      expect(container.querySelector('[role="alert"]')?.textContent).toBe("This action is unavailable.");
+      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action denied: the host mutation policy does not allow this RPC.");
       expect(normalizeDom(container)).toMatchSnapshot("denied after activation");
       expect(invoke).not.toHaveBeenCalled();
       expect(onDenied).toHaveBeenCalledTimes(1);
@@ -204,19 +213,19 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s action in
     let reject!: (reason: Error) => void;
     const invoke = vi.fn().mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }))
       .mockResolvedValue({});
-    const view = create(ViewDescriptorSchema, { id: "retry", actions: [{
+    const view = create(ViewDescriptorSchema, { id: "retry", affordances: { items: [{
       id: "run", label: "Run report", placement: ActionPlacement.HEADER,
-      call: { service: "demo.Reports", method: "Run" },
-    }] });
+      invoke: { case: "rpc", value: { service: "demo.Reports", method: "Run" } },
+    }] } });
     await mounted(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
       admission: "unrestricted" }, createElement(ViewRenderer, { view })), async container => {
       const button = container.querySelector("button")!;
       await act(async () => { button.click(); button.click(); });
-      expect(button.disabled).toBe(true);
+      expect(button.getAttribute("aria-disabled")).toBe("true");
       expect(invoke).toHaveBeenCalledTimes(1);
       expect(normalizeDom(container)).toMatchSnapshot("action pending");
       await act(async () => reject(new Error("private backend details")));
-      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again.");
+      expect(container.querySelector('[role="alert"]')?.textContent).toBe("Action failed. Try again with the current context.");
       expect(container.textContent).not.toContain("private backend details");
       expect(button.disabled).toBe(false);
       expect(normalizeDom(container)).toMatchSnapshot("action failed");

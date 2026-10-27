@@ -21,7 +21,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -45,7 +45,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -69,7 +69,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -93,7 +93,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -117,7 +117,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -141,7 +141,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -165,7 +165,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -189,7 +189,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -213,7 +213,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -237,7 +237,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -261,7 +261,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {
@@ -285,7 +285,7 @@ slots {
           description: "Continue in the sponsor list"
           icon: "open"
           uri: "/sponsors"
-          style: AFFORDANCE_STYLE_PRIMARY
+          emphasis: EMPHASIS_PRIMARY
         }
       }
       steps {

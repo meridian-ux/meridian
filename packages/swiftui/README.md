@@ -149,8 +149,11 @@ let host = MeridianHost() // Denies every effect by default.
 let content = MeridianPanel(descriptor, host: host).meridianTheme(theme)
 ```
 
-The host supplies both `admit` and an async `execute` capability. Every actual
-activation reevaluates current host policy. The renderer does not call a shell,
+The host supplies `admit` and explicit `MeridianInvocationCapabilities` for URI,
+command, route navigation, inline panel, view ID, and literal copy. The existing
+`execute` callback remains a compatibility capability only for URI/command and
+legacy runtime copy requests; new typed arms never fall through to it. Every
+actual activation reevaluates current host policy. The renderer does not call a shell,
 open a URL, fetch content, or install a clipboard capability itself. Copy passes
 literal text, including empty text; URI and command payloads remain distinct.
 No policy or effect runs during rendering or selection. Missing/unknown targets
@@ -159,6 +162,25 @@ failures do not echo request payloads or error descriptions into the UI.
 Hosts remain responsible for destination/scheme and command policy, clipboard
 authorization, confirmations, authenticated execution, and cancellation of
 host-owned work when its presentation lifecycle ends.
+
+Canonical RPC activation always uses mutation admission, even for `Get`/`List`.
+Install `MeridianRpcCapability.admitMutation` separately from the existing
+read-tier `admit`; both default deny. Requests are built through the bounded Rust
+core from current `rpcContext`. Capability replacement or context changes during
+mutation admission deny execution rather than invoking an old transport or
+retrying through a different target. Non-RPC callbacks receive the typed payload
+and the current context without string conversion or guessed routes. An empty
+literal copy is valid; a command denial/failure never becomes clipboard copy.
+
+`enabled_when` is reevaluated after host admission against current selected-row
+data using `MeridianCore.matchesRowFilter`. Missing/null values and exact Unicode
+sequence mismatches do not enable an action. The same bounded Rust predicate is
+exported through the browser/WASM seam; it preserves the existing browser scalar
+and array string-comparison behavior without localized formatting or authored
+getter execution. The native C boundary accepts a 64 KiB RowFilter and 1 MiB
+Value, clears its runtime boolean on failure, and performs no admission or IO.
+This is not canonical collection/legacy Action normalization, automatic row
+refresh, or complete cross-surface adoption; those remain roadmap work.
 
 Current controls: native Choice picker, preformatted Snippet with host-gated
 copy, masked/revealable CopyValue with host-gated raw copy, Action, Catalog,

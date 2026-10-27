@@ -123,11 +123,14 @@
       }
     },
     "launchpad": {
-      "oneof": "Command.action",
+      "oneof": "Affordance.invoke",
       "arms": {
         "rpc": { "renderers": { "launchpad": { "status": "renders" } } },
         "open_panel": { "renderers": { "launchpad": { "status": "renders" } } },
-        "open_view_id": { "renderers": { "launchpad": { "status": "renders" } } },
+        "open_view": { "renderers": { "launchpad": { "status": "renders" } } },
+        "uri": { "renderers": { "launchpad": { "status": "renders" } } },
+        "command": { "renderers": { "launchpad": { "status": "renders" } } },
+        "copy": { "renderers": { "launchpad": { "status": "renders" } } },
         "navigate": { "renderers": { "launchpad": { "status": "renders" } } }
       }
     }

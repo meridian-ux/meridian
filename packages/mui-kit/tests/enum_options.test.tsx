@@ -26,7 +26,7 @@ describe("EnumSelection options", () => {
   it("renders authored tones in selected labels and menus while submitting raw tokens", async () => {
     const invoke = vi.fn(async () => ({}));
     const panel = create(PanelDescriptorSchema, { body: { case: "form", value: create(FormPanelSchema, {
-      mode: 2, submit: { service: "demo.Form", method: "Save" },
+      mode: 2, submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "demo.Form", method: "Save" } } },
       fields: [{ fieldId: "state", label: "State", kind: { case: "enumSelection", value: {
         defaultValue: "ready", allowedValues: ["ignored"], options: [
           { value: "ready", label: "Ready", tone: ValueTone.SUCCESS },

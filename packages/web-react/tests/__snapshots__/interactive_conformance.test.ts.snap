@@ -2,70 +2,84 @@
 
 exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action failed 1`] = `
 "h2
-button type="button" aria-describedby="Action failed. Try again."
+button type="button" aria-describedby="Action failed. Try again with the current context."
   "Run report"
 span role="alert"
-  "Action failed. Try again.""
+  "Action failed. Try again with the current context.""
 `;
 
 exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action pending 1`] = `
 "h2
-button type="button" disabled
-  "Run report""
+button aria-disabled="true" type="button" aria-describedby="Action is running."
+  "Run report"
+span role="status"
+  "Action is running."
+button type="button"
+  "Cancel action""
 `;
 
 exports[`HTML action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action retry succeeded 1`] = `
 "h2
-button type="button"
-  "Run report""
+button type="button" aria-describedby="Action completed."
+  "Run report"
+span role="status"
+  "Action completed.""
 `;
 
 exports[`HTML action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied after activation 1`] = `
 "h2
-button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+button aria-disabled="true" type="button" aria-describedby="Action denied: the host mutation policy does not allow this RPC."
   "Delete report"
 span role="alert"
-  "This action is unavailable.""
+  "Action denied: the host mutation policy does not allow this RPC.""
 `;
 
 exports[`HTML action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied before activation 1`] = `
 "h2
 button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
   "Delete report"
-"This action is unavailable.""
+span role="status"
+  "This action is unavailable.""
 `;
 
 exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action failed 1`] = `
 "h2
-button type="button" aria-describedby="Action failed. Try again."
+button type="button" aria-describedby="Action failed. Try again with the current context."
   "Run report"
 span role="alert"
-  "Action failed. Try again.""
+  "Action failed. Try again with the current context.""
 `;
 
 exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action pending 1`] = `
 "h2
-button type="button" disabled
-  "Run report""
+button aria-disabled="true" type="button" aria-describedby="Action is running."
+  "Run report"
+span role="status"
+  "Action is running."
+button type="button"
+  "Cancel action""
 `;
 
 exports[`Shadcn action interaction contract > announces failure and allows retry while suppressing duplicate pending activation > action retry succeeded 1`] = `
 "h2
-button type="button"
-  "Run report""
+button type="button" aria-describedby="Action completed."
+  "Run report"
+span role="status"
+  "Action completed.""
 `;
 
 exports[`Shadcn action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied after activation 1`] = `
 "h2
-button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
+button aria-disabled="true" type="button" aria-describedby="Action denied: the host mutation policy does not allow this RPC."
   "Delete report"
 span role="alert"
-  "This action is unavailable.""
+  "Action denied: the host mutation policy does not allow this RPC.""
 `;
 
 exports[`Shadcn action interaction contract > blocks a denied mutation before transport and reports the exact denied call to the host > denied before activation 1`] = `
 "h2
 button aria-disabled="true" type="button" aria-describedby="This action is unavailable."
   "Delete report"
-"This action is unavailable.""
+span role="status"
+  "This action is unavailable.""
 `;

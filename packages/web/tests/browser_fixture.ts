@@ -7,6 +7,7 @@ import { renderView } from "../src/uiview/view_renderer.js";
 import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { applyTheme } from "../theme/web/theme.js";
 import { toneCases } from "../../../schemas/conformance/tone_cases.js";
+import { withRetiredTrap } from "./retired_wire.js";
 
 // Runtime test controls only. Descriptors remain canonical protobuf messages;
 // the local fake transport uses the renderer's established JSON RPC contract.
@@ -17,6 +18,76 @@ const wasm: UiviewWasm = {
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };
 const root = () => document.getElementById("root")!;
 const controls = {
+  resourceSettle: () => {},
+  resourceInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.resourceCalls = "0"; container.dataset.resourceAborted = "false";
+    controls.resourceSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "resourceCards", value: {
+        populate: { service: "fixture.Resource", method: "List" }, rowsField: "items", template: { titleField: "name", actions: { actions: [
+          { id: "use", label: "Use resource", style: 3, invoke: { service: "fixture.Resource", method: "Get", bindings: [
+            { requestField: "id", source: { case: "rowField", value: "id" } }, { requestField: "flag", source: { case: "rowField", value: "flag" } },
+          ] }, confirm: { title: "Use this resource?", message: "Literal <b>resource</b>", confirmLabel: "Accept resource", destructive: true } },
+          { id: "other", label: "Other resource action", invoke: { service: "fixture.Resource", method: "Get" } },
+        ] } },
+      } } }), invoker: { invoke: async (_service, method) => { if (method !== "List") throw Error("No default mutation fallback"); return { items: [{ id: 0, name: "Resource zero", flag: false }] }; } },
+      admission: { reads: ["fixture.Resource/List"], mutations: mode === "deny" ? [] : ["fixture.Resource/Get"] },
+      invocation: { capabilities: { rpc: { invoke: async (_service, _method, request, signal) => {
+        container.dataset.resourceCalls = String(Number(container.dataset.resourceCalls) + 1); container.dataset.resourceRequest = JSON.stringify(request);
+        signal.addEventListener("abort", () => { container.dataset.resourceAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.resourceSettle = resolve; }); return {};
+      } } } },
+    });
+  },
+  tableSettle: () => {},
+  tableInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.tableCalls = "0"; container.dataset.tableAborted = "false";
+    controls.tableSettle = () => {};
+    const rows = [{ raw: { id: 0, name: "first" }, cells: ["First row"] }, { raw: { id: 2, name: "second" }, cells: ["Second row"] }];
+    return renderPanel({ root: container, wasm: { ...wasm, renderTable: () => rows }, context,
+      descriptor: withRetiredTrap(create(PanelDescriptorSchema, { body: { case: "table", value: {
+        populate: { service: "fixture.Rows", method: "List" }, columns: [{ header: "Name", fieldPath: "name" }],
+        affordances: { items: [{ label: "Use row", invoke: { case: "copy", value: "canonical" } }, { label: "Other row action", invoke: { case: "copy", value: "other" } }] },
+      } } })), invoker: { invoke: async (service) => { if (service !== "fixture.Rows") throw Error("Legacy fallback"); return {}; } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
+        container.dataset.tableCalls = String(Number(container.dataset.tableCalls) + 1); container.dataset.tableRow = String((current.selectedRow as { id: number }).id);
+        signal.addEventListener("abort", () => { container.dataset.tableAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.tableSettle = resolve; });
+      } } },
+    });
+  },
+  formSettle: () => {},
+  formInvocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.formCalls = "0"; container.dataset.formAborted = "false";
+    controls.formSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: withRetiredTrap(create(PanelDescriptorSchema, { body: { case: "form", value: { mode: 2,
+        submitAffordance: { label: "Save current", invoke: { case: "copy", value: "canonical literal" } },
+        fields: [{ fieldId: "name", label: "Name", kind: { case: "text", value: { defaultValue: "initial", minLength: 2 } } }],
+      } } })), invoker: { invoke: async () => { throw Error("No legacy RPC in canonical form"); } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_target, current, signal) => {
+        container.dataset.formCalls = String(Number(container.dataset.formCalls) + 1);
+        container.dataset.formValue = String(current.formValues.name);
+        signal.addEventListener("abort", () => { container.dataset.formAborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.formSettle = resolve; });
+      } } },
+    });
+  },
+  invocationSettle: () => {},
+  invocation: (mode: "allow" | "deny" | "pending") => {
+    const container = root(); container.dataset.calls = "0"; container.dataset.aborted = "false";
+    controls.invocationSettle = () => {};
+    return renderPanel({ root: container, wasm, context,
+      descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
+        label: "Admitted copy", description: "Typed host capability", invoke: { case: "copy", value: "raw/literal" },
+      } } } }), invoker: { invoke: async () => { throw Error("No RPC in this fixture"); } },
+      invocation: { admit: () => mode !== "deny", capabilities: { copy: async (_value, _context, signal) => {
+        container.dataset.calls = String(Number(container.dataset.calls) + 1);
+        signal.addEventListener("abort", () => { container.dataset.aborted = "true"; }, { once: true });
+        if (mode === "pending") await new Promise<void>(resolve => { controls.invocationSettle = resolve; });
+      } } },
+    });
+  },
   viewCalls: [] as string[],
   viewLayout: (mode: "tabbed" | "twoColumn") => {
     controls.viewCalls.length = 0;
@@ -34,13 +105,15 @@ const controls = {
   },
   toneCases,
   affordance: (tone?: number, emphasis?: number, denied = false) => {
+    root().dataset.destination = "";
     applyTheme({ typography: { heading_weight: 700, body_weight: 500 } }, "light", root());
     return renderPanel({ root: root(), wasm, context,
     descriptor: create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-      label: "Presentation action", style: 1, tone, emphasis,
+      label: "Presentation action", tone, emphasis,
       invoke: { case: "uri", value: denied ? "javascript:alert(1)" : "/next" },
     } } } }),
     invoker: { invoke: async () => { throw new Error("Presentation cannot invoke an RPC"); } },
+    invocation: { admit: () => true, capabilities: { uri: async uri => { root().dataset.destination = uri; } } },
     });
   },
   conversationTone: (tone?: number, state: 0 | 1 | 2 = 2) => {

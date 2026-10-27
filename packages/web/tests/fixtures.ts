@@ -180,7 +180,7 @@ export const statFixture: PanelDescriptor = create(PanelDescriptorSchema, {
 });
 
 // A table with everything the shape has always DESCRIBED but the renderer used
-// to drop: RowActions (one unconditional, one gated by `enabled_when`) and a
+// to drop: row affordances (one unconditional, one gated by `enabled_when`) and a
 // ColumnLink whose destination only the host can resolve.
 export const tableWithActionsFixture: PanelDescriptor = create(PanelDescriptorSchema, {
   panelId: "builds",
@@ -195,22 +195,24 @@ export const tableWithActionsFixture: PanelDescriptor = create(PanelDescriptorSc
         { header: "Repo", fieldPath: "repo", link: { targetKind: "acme.Build" } },
         { header: "Phase", fieldPath: "phase" },
       ],
-      actions: [
+      affordances: { items: [
         {
           label: "Targets",
-          rpc: {
+          refreshOnSuccess: true,
+          invoke: { case: "rpc", value: {
             service: "acme.Builds",
             method: "ListBuildTargets",
             bindings: [{ requestField: "name", source: { case: "rowField", value: "name" } }],
-          },
+          } },
         },
         {
           // Only meaningful on a finished build — the `enabled_when` predicate.
           label: "Artifacts",
-          rpc: { service: "acme.Builds", method: "ListBuildArtifacts" },
+          invoke: { case: "rpc", value: { service: "acme.Builds", method: "ListBuildArtifacts" } },
+          refreshOnSuccess: true,
           enabledWhen: { fieldPath: "phase", equals: "Succeeded" },
         },
-      ],
+      ] },
     },
   },
 });

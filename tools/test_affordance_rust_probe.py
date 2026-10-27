@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from affordance_rust_probe import protected_inputs, require_adoption_failure
+from affordance_rust_probe import protected_inputs, require_adoption_failure, world_plan
 
 
 def diagnostic(code="E0004", path="crates/core/rust/uiview/src/static_view.rs"):
@@ -21,6 +21,10 @@ def failed_build(*messages):
 
 
 class RustProposalFailureTests(unittest.TestCase):
+    def test_canonical_phase_requires_complete_candidate_success_not_expected_failure(self):
+        self.assertEqual(world_plan(True), [("candidate", False)])
+        self.assertEqual(world_plan(False), [("old", False), ("relocated", False), ("candidate", True)])
+
     def test_accepts_only_the_known_typed_dispatch_blocker(self):
         errors = require_adoption_failure(101, failed_build(diagnostic()), "could not compile")
         self.assertEqual(len(errors), 1)

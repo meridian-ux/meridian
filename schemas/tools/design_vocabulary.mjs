@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Compile source protos with the workspace-pinned Buf compiler, never infer
 // vocabulary from a regex or a possibly stale committed descriptor snapshot.
+import { isMain } from "./cli_entrypoint.mjs";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -117,7 +118,7 @@ function main(args) {
     console.log("Design vocabulary refreshed");
   } else process.stdout.write(block);
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   try { main(process.argv.slice(2)); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }

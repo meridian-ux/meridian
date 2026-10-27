@@ -69,18 +69,22 @@ impl Text {
         }
         Ok(())
     }
-    fn actions(&mut self, actions: &[proto::Action], depth: usize) -> Result<(), StaticViewError> {
-        for action in actions {
-            self.node(depth)?;
-            self.line(format_args!("Action: {} [{}]", action.label, action.id))?;
-            self.rpc("Destination", action.call.as_ref())?;
+    fn action_source(
+        &mut self,
+        canonical: Option<&proto::AffordanceCollection>,
+        depth: usize,
+    ) -> Result<(), StaticViewError> {
+        if let Some(canonical) = canonical {
+            for action in &canonical.items {
+                self.affordance(action, depth)?;
+            }
         }
         Ok(())
     }
     fn view(&mut self, view: &ViewDescriptor, depth: usize) -> Result<(), StaticViewError> {
         self.node(depth)?;
         self.line(format_args!("View: {} [{}]", view.title, view.id))?;
-        self.actions(&view.actions, depth)?;
+        self.action_source(view.affordances.as_ref(), depth)?;
         if view.slots.len() > self.nodes {
             return Err(StaticViewError);
         }
@@ -168,7 +172,7 @@ impl Text {
             ))?;
             return Ok(());
         }
-        self.actions(&slot.actions, depth)?;
+        self.action_source(slot.affordances.as_ref(), depth)?;
         if let Some(view) = &slot.sub_view {
             if slot.sub_view_populate.is_some() {
                 self.copy("Repeated template only; records require an interactive/data host.")?;
@@ -194,6 +198,20 @@ impl Text {
             Some(proto::affordance::Invoke::Uri(uri)) => self.line(format_args!("URI: {uri}")),
             Some(proto::affordance::Invoke::Command(command)) => {
                 self.line(format_args!("Command: {command}"))
+            }
+            Some(proto::affordance::Invoke::Rpc(call)) => self.rpc("Destination", Some(call)),
+            Some(proto::affordance::Invoke::Navigate(navigate)) => self.line(format_args!(
+                "Route: {} [host required; not executed]",
+                navigate.route
+            )),
+            Some(proto::affordance::Invoke::OpenPanel(_)) => {
+                self.copy("Panel destination [host required; not opened]")
+            }
+            Some(proto::affordance::Invoke::OpenView(view)) => {
+                self.line(format_args!("View: {view} [host required; not opened]"))
+            }
+            Some(proto::affordance::Invoke::Copy(_)) => {
+                self.copy("Copy destination [value hidden; not copied]")
             }
             None => self.copy("Destination requires a host."),
         }
@@ -321,10 +339,10 @@ impl Text {
             self.node(depth)?;
             self.line(format_args!("Column: {}", column.header))?;
         }
-        for action in &table.actions {
-            self.node(depth)?;
-            self.line(format_args!("Row action: {}", action.label))?;
-            self.rpc("Destination", action.rpc.as_ref())?;
+        if let Some(canonical) = &table.affordances {
+            for action in &canonical.items {
+                self.affordance(action, depth)?;
+            }
         }
         self.copy("[rows unavailable without host data]")
     }
@@ -357,7 +375,9 @@ impl Text {
             Some(Body::Form(p)) => {
                 self.rpc("Prefill", p.prefill.as_ref())?;
                 self.fields(&p.fields, true, depth + 1)?;
-                self.rpc("Submit", p.submit.as_ref())?;
+                if let Some(canonical) = &p.submit_affordance {
+                    self.affordance(canonical, depth)?;
+                }
             }
             Some(Body::Prompt(p)) => {
                 self.copy(&p.description)?;
@@ -592,6 +612,209 @@ pub fn static_view_text(view: &ViewDescriptor) -> Result<String, StaticViewError
 mod tests {
     use super::*;
     use crate::proto::*;
+    use prost::Message;
+
+    // Exercise actual retired wire fields, not replacement source-level DTOs.
+    fn retired_wire<M: Message + Default>(value: M, tag: u32, payload: &[u8]) -> M {
+        let mut wire = value.encode_to_vec();
+        prost::encoding::encode_key(tag, prost::encoding::WireType::LengthDelimited, &mut wire);
+        prost::encoding::encode_varint(payload.len() as u64, &mut wire);
+        wire.extend_from_slice(payload);
+        M::decode(wire.as_slice()).unwrap()
+    }
+
+    fn retired_label(tag: u32, label: &str) -> Vec<u8> {
+        let mut wire = Vec::new();
+        prost::encoding::encode_key(tag, prost::encoding::WireType::LengthDelimited, &mut wire);
+        prost::encoding::encode_varint(label.len() as u64, &mut wire);
+        wire.extend_from_slice(label.as_bytes());
+        wire
+    }
+
+    #[test]
+    fn canonical_collections_win_whole_in_passive_composition() {
+        for populated in [false, true] {
+            let source = || {
+                Some(AffordanceCollection {
+                    items: if populated {
+                        vec![Affordance {
+                            label: "Canonical inert action".into(),
+                            invoke: Some(affordance::Invoke::Copy("hidden-copy-payload".into())),
+                            ..Default::default()
+                        }]
+                    } else {
+                        vec![]
+                    },
+                })
+            };
+            let view = retired_wire(
+                ViewDescriptor {
+                    title: "Canonical projection".into(),
+                    affordances: source(),
+                    slots: vec![retired_wire(
+                        Slot {
+                            title: "Slot".into(),
+                            affordances: source(),
+                            panel: Some(PanelDescriptor {
+                                body: Some(Body::Table(retired_wire(
+                                    TablePanel {
+                                        affordances: source(),
+                                        ..Default::default()
+                                    },
+                                    6,
+                                    &retired_label(1, "Legacy row trap"),
+                                ))),
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                        7,
+                        &retired_label(2, "Legacy slot trap"),
+                    )],
+                    ..Default::default()
+                },
+                8,
+                &retired_label(2, "Legacy header trap"),
+            );
+            let text = static_view_text(&view).unwrap();
+            assert!(!text.contains("Legacy"), "{text}");
+            assert_eq!(
+                text.matches("Canonical inert action").count(),
+                if populated { 3 } else { 0 }
+            );
+            assert!(!text.contains("hidden-copy-payload"));
+            assert!(text.contains("[rows unavailable without host data]"));
+        }
+    }
+
+    #[test]
+    fn canonical_submit_never_revives_legacy_rpc_even_without_intent() {
+        for target in [
+            None,
+            Some(affordance::Invoke::Rpc(RpcCall {
+                service: "Canonical".into(),
+                method: "Get".into(),
+                ..Default::default()
+            })),
+        ] {
+            let view = ViewDescriptor {
+                slots: vec![Slot {
+                    panel: Some(PanelDescriptor {
+                        body: Some(Body::Form(Box::new(retired_wire(
+                            FormPanel {
+                                submit_affordance: Some(Box::new(Affordance {
+                                    label: "Canonical submit".into(),
+                                    invoke: target,
+                                    ..Default::default()
+                                })),
+                                ..Default::default()
+                            },
+                            3,
+                            &RpcCall {
+                                service: "Legacy".into(),
+                                method: "Trap".into(),
+                                ..Default::default()
+                            }
+                            .encode_to_vec(),
+                        )))),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+            let text = static_view_text(&view).unwrap();
+            assert!(text.contains("Canonical submit [not executed]"), "{text}");
+            assert!(!text.contains("Legacy/Trap"));
+        }
+    }
+
+    #[test]
+    fn canonical_action_collections_retain_static_work_limits() {
+        let mut view = ViewDescriptor {
+            affordances: Some(AffordanceCollection {
+                items: vec![Affordance::default(); 1001],
+            }),
+            ..Default::default()
+        };
+        assert!(static_view_text(&view).is_err());
+        view.affordances.as_mut().unwrap().items = vec![Affordance {
+            label: "x".repeat(1024 * 1024),
+            ..Default::default()
+        }];
+        assert!(static_view_text(&view).is_err());
+    }
+
+    #[test]
+    fn typed_destinations_are_passive_and_do_not_disclose_copy_values() {
+        use affordance::Invoke;
+        let cases = [
+            (Invoke::Uri("/uri".into()), "URI: /uri"),
+            (Invoke::Command("command".into()), "Command: command"),
+            (
+                Invoke::Rpc(RpcCall {
+                    service: "fixture.Service".into(),
+                    method: "Delete".into(),
+                    ..Default::default()
+                }),
+                "fixture.Service/Delete [host required; not executed]",
+            ),
+            (
+                Invoke::Navigate(Navigate {
+                    route: "/route".into(),
+                }),
+                "Route: /route",
+            ),
+            (
+                Invoke::OpenPanel(Box::new(PanelDescriptor {
+                    title: "nested-content-must-not-mount".into(),
+                    ..Default::default()
+                })),
+                "Panel destination [host required; not opened]",
+            ),
+            (Invoke::OpenView("view-id".into()), "View: view-id"),
+            (
+                Invoke::Copy("clipboard-secret".into()),
+                "Copy destination [value hidden; not copied]",
+            ),
+        ];
+        for (invoke, expected) in cases {
+            let view = ViewDescriptor {
+                affordances: Some(AffordanceCollection {
+                    items: vec![Affordance {
+                        label: "Activate".into(),
+                        invoke: Some(invoke.clone()),
+                        ..Default::default()
+                    }],
+                }),
+                ..Default::default()
+            };
+            let projected = static_view_text(&view).unwrap();
+            assert!(projected.contains("Activate [not executed]"));
+            assert!(projected.contains(expected), "{projected}");
+            assert!(!projected.contains("clipboard-secret"));
+            assert!(!projected.contains("nested-content-must-not-mount"));
+            let mut text = Text {
+                value: String::new(),
+                remaining: 4096,
+                nodes: 10,
+                lines: 20,
+            };
+            text.affordance(
+                &Affordance {
+                    label: "Activate".into(),
+                    invoke: Some(invoke),
+                    ..Default::default()
+                },
+                0,
+            )
+            .unwrap();
+            assert!(text.value.contains("Activate [not executed]"));
+            assert!(text.value.contains(expected), "{}", text.value);
+            assert!(!text.value.contains("clipboard-secret"));
+            assert!(!text.value.contains("nested-content-must-not-mount"));
+        }
+    }
 
     fn slot(id: &str, position: i32) -> Slot {
         Slot {
@@ -682,6 +905,7 @@ mod tests {
         assert!(text.contains("Section: side"));
     }
     #[test]
+    #[allow(deprecated)] // Prove old submit destinations also remain passive.
     fn marked_secrets_stay_hidden_while_raw_defaults_and_destinations_remain_inert() {
         let fields = vec![
             FormField {
@@ -715,15 +939,18 @@ mod tests {
             slots: vec![
                 Slot {
                     panel: Some(PanelDescriptor {
-                        body: Some(Body::Form(FormPanel {
+                        body: Some(Body::Form(Box::new(FormPanel {
                             fields,
-                            submit: Some(RpcCall {
-                                service: "fixture".into(),
-                                method: "Delete".into(),
+                            submit_affordance: Some(Box::new(Affordance {
+                                invoke: Some(affordance::Invoke::Rpc(RpcCall {
+                                    service: "fixture".into(),
+                                    method: "Delete".into(),
+                                    ..Default::default()
+                                })),
                                 ..Default::default()
-                            }),
+                            })),
                             ..Default::default()
-                        })),
+                        }))),
                         ..Default::default()
                     }),
                     ..Default::default()

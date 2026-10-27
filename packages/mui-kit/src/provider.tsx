@@ -34,6 +34,7 @@ export interface MeridianMuiProviderProps {
   streamSnapshots?: MeridianContextValue["streamSnapshots"];
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
+  invocation?: MeridianContextValue["invocation"];
   /** The meridian skin. Optional — falls back to neutral MUI defaults. */
   theme?: Theme;
   /** light | dark selection into the Theme's palettes. */
@@ -41,9 +42,9 @@ export interface MeridianMuiProviderProps {
   /** Host adhoc-panel handlers, keyed by AdhocPanel.handler_id. */
   adhoc?: Record<string, ReactAdhocFactory>;
   /**
-   * Host handler for no-call actions (view_details / edit / create … — the
-   * host-resolved keys that host projects without an RpcCall). Absent ⇒ those
-   * buttons render but no-op; RpcCall actions always route through the invoker.
+   * Legacy host callback retained for source compatibility, not an action grant.
+   * Authored controls require concrete canonical intent. Entity destinations
+   * use resolveHref plus invocation admission, never this callback.
    */
   onAction?: MeridianActionHandler;
   /** Host glyph resolver for the content shapes' `icon` keys (renderer draws,
@@ -65,6 +66,7 @@ export function MeridianMuiProvider({
   invoker,
   streamSnapshots,
   admission,
+  invocation,
   theme,
   mode = "light",
   adhoc = {},
@@ -83,6 +85,7 @@ export function MeridianMuiProvider({
           invoker={invoker}
           streamSnapshots={streamSnapshots}
           admission={admission}
+          invocation={invocation}
           kit={muiKit}
           adhoc={adhoc}
           onAction={onAction}

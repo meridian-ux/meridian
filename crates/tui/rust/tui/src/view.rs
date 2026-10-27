@@ -6,7 +6,9 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::{
-    proto::{layout, panel_descriptor::Body, Action, PanelDescriptor, Slot, ViewDescriptor},
+    proto::{
+        layout, panel_descriptor::Body, AffordanceCollection, PanelDescriptor, Slot, ViewDescriptor,
+    },
     Context, ProtoPaths, RequestBudget, RequestBuilder, RequestOverrides,
 };
 use prost::Message;
@@ -20,8 +22,9 @@ use ratatui::{
 use serde_json::Value;
 
 use crate::{
-    FormSubmission, LroRunId, LroSubmission, Palette, PanelPromptResponse, PanelView, RpcError,
-    RpcInvoker, StreamInvoker,
+    FormSubmission, LroRunId, LroSubmission, NativeAction, NativeInvocationContext,
+    NativeInvocationDispatcher, NativeInvocationHost, Palette, PanelPromptResponse, PanelView,
+    RpcError, RpcInvoker, StreamInvoker,
 };
 
 const MAX_NODES: usize = 1000;
@@ -63,6 +66,7 @@ struct Entry<'a> {
 }
 
 struct Repeat {
+    source: Path,
     request: Value,
     record: Option<Arc<Value>>,
     rows: Result<Vec<Arc<Value>>, String>,
@@ -80,11 +84,15 @@ pub struct ViewHost {
     repeats: BTreeMap<Path, Repeat>,
     tabs: BTreeMap<Path, usize>,
     targets: Vec<Target>,
+    visible_targets: BTreeSet<usize>,
     focus: usize,
     scroll: usize,
     reveal_focus: bool,
     viewport: usize,
     error: Option<String>,
+    invocations: NativeInvocationDispatcher,
+    action_context: Option<Arc<Vec<u8>>>,
+    record_context: Option<Arc<Vec<u8>>>,
 }
 
 impl ViewHost {
@@ -101,11 +109,15 @@ impl ViewHost {
             repeats: BTreeMap::new(),
             tabs: BTreeMap::new(),
             targets: vec![],
+            visible_targets: BTreeSet::new(),
             focus: 0,
             scroll: 0,
             reveal_focus: true,
             viewport: 1,
             error: None,
+            invocations: NativeInvocationDispatcher::default(),
+            action_context: None,
+            record_context: None,
         })
     }
 
@@ -126,9 +138,13 @@ impl ViewHost {
     /// values used by those reads. Gates and repeated-populate request changes
     /// are also reconciled on every render.
     pub fn invalidate(&mut self) {
+        self.invocations.cancel();
+        self.action_context = None;
+        self.record_context = None;
         self.panels.clear();
         self.repeats.clear();
         self.targets.clear();
+        self.visible_targets.clear();
         self.reveal_focus = true;
     }
 
@@ -189,6 +205,7 @@ impl ViewHost {
         invoker: &I,
     ) {
         if area.width == 0 || area.height == 0 {
+            self.withdraw_controls();
             return;
         }
         let mut planner = Planner {
@@ -219,10 +236,53 @@ impl ViewHost {
             });
         }
         let old_focus = self.targets.get(self.focus).cloned();
-        self.targets = entries
+        let next_targets: Vec<_> = entries
             .iter()
             .filter_map(|entry| entry.target.clone())
             .collect();
+        if self.targets.len() != next_targets.len()
+            || self.targets.iter().zip(&next_targets).any(|(old, new)| {
+                old.path != new.path
+                    || old.source != new.source
+                    || old.kind != new.kind
+                    || !same_record(&old.record, &new.record)
+            })
+        {
+            self.invocations.cancel();
+        }
+        self.targets = next_targets;
+        let next_context =
+            if self.targets.iter().any(|target| {
+                invocation_target(&self.descriptor, target) && target.record.is_none()
+            }) {
+                crate::invocation::context_key(NativeInvocationContext::new(context))
+                    .ok()
+                    .map(Arc::new)
+            } else {
+                None
+            };
+        if self.action_context != next_context {
+            self.invocations.cancel();
+        }
+        self.action_context = next_context;
+        let next_record =
+            if self.targets.iter().any(|target| {
+                invocation_target(&self.descriptor, target) && target.record.is_some()
+            }) {
+                // Derived records are immutable Arcs already owned/bounded by the
+                // repeat cache. Do not copy an irrelevant ambient selected row.
+                crate::invocation::context_key(
+                    NativeInvocationContext::new(context).with_record(Some(&Value::Null)),
+                )
+                .ok()
+                .map(Arc::new)
+            } else {
+                None
+            };
+        if self.record_context != next_record {
+            self.invocations.cancel();
+        }
+        self.record_context = next_record;
         self.focus = self.focus.min(self.targets.len().saturating_sub(1));
         if let Some(old) = old_focus {
             if let Some(index) = self
@@ -246,13 +306,25 @@ impl ViewHost {
             .iter()
             .filter(|t| matches!(t.kind, TargetKind::Panel))
         {
-            let widget = self
-                .panels
-                .entry(target.path.clone())
-                .or_insert_with(|| PanelView::with_palette(self.palette));
+            let widget = self.panels.entry(target.path.clone()).or_insert_with(|| {
+                PanelView::with_palette(self.palette)
+                    .with_invocation_dispatcher(self.invocations.clone())
+            });
             // Reset changed records even before their section enters the viewport.
             if let Err(error) = widget.set_record(target.record.clone()) {
                 self.error = Some(error.to_string());
+            }
+            if invocation_target(&self.descriptor, target) {
+                widget.set_form_scope(
+                    if target.record.is_some() {
+                        self.record_context.clone()
+                    } else {
+                        self.action_context.clone()
+                    },
+                    slot_at(&self.descriptor, &target.source)
+                        .and_then(|slot| slot.panel.as_ref())
+                        .is_some_and(|panel| matches!(panel.body, Some(Body::Form(_)))),
+                );
             }
         }
         self.viewport = area.height.saturating_sub(1).max(1) as usize;
@@ -288,9 +360,15 @@ impl ViewHost {
         self.scroll = self.scroll.min(total.saturating_sub(self.viewport));
         y = 0;
         target_index = 0;
+        self.visible_targets.clear();
+        let mut visible_panels = BTreeSet::new();
         for (entry, height) in entries.iter().zip(heights) {
             let focused = entry.target.is_some() && target_index == self.focus;
+            let fully_visible = y >= self.scroll && y + height <= self.scroll + self.viewport;
             if entry.target.is_some() {
+                if fully_visible {
+                    self.visible_targets.insert(target_index);
+                }
                 target_index += 1;
             }
             if y + height > self.scroll && y < self.scroll + self.viewport {
@@ -302,10 +380,15 @@ impl ViewHost {
                     .draw(|section| {
                         let section_area = section.area();
                         if let (Some(panel), Some(target)) = (entry.panel, entry.target.as_ref()) {
-                            let widget = self
-                                .panels
-                                .entry(target.path.clone())
-                                .or_insert_with(|| PanelView::with_palette(self.palette));
+                            let widget =
+                                self.panels.entry(target.path.clone()).or_insert_with(|| {
+                                    PanelView::with_palette(self.palette)
+                                        .with_invocation_dispatcher(self.invocations.clone())
+                                });
+                            widget.set_invocation_viewport(fully_visible);
+                            if fully_visible {
+                                visible_panels.insert(target.path.clone());
+                            }
                             if let Err(error) = widget.set_record(target.record.clone()) {
                                 section
                                     .render_widget(Paragraph::new(error.to_string()), section_area);
@@ -356,6 +439,11 @@ impl ViewHost {
             }
             y += height;
         }
+        for (path, widget) in &mut self.panels {
+            if !visible_panels.contains(path) {
+                widget.set_invocation_viewport(false);
+            }
+        }
         let status = self.error.as_deref().unwrap_or(
             "F6/Shift+F6 section · Ctrl+PgUp/PgDn scroll · Enter activate · panel keys edit",
         );
@@ -369,6 +457,38 @@ impl ViewHost {
         &mut self,
         key: KeyEvent,
         context: &Context,
+    ) -> Result<Option<ViewResponse>, RpcError> {
+        self.handle_key_inner(key, context, None)
+    }
+
+    /// Synchronous explicit host execution. Legacy response handoff is never
+    /// used as a fallback after denial. Long operations keep their LRO protocol.
+    pub fn handle_key_with_invocation(
+        &mut self,
+        key: KeyEvent,
+        context: &Context,
+        host: &NativeInvocationHost<'_>,
+    ) -> Result<Option<ViewResponse>, RpcError> {
+        self.handle_key_inner(key, context, Some(host))
+    }
+
+    pub fn invocation_dispatcher(&self) -> NativeInvocationDispatcher {
+        self.invocations.clone()
+    }
+
+    fn withdraw_controls(&mut self) {
+        self.invocations.cancel();
+        self.visible_targets.clear();
+        for widget in self.panels.values_mut() {
+            widget.withdraw_invocation_controls();
+        }
+    }
+
+    fn handle_key_inner(
+        &mut self,
+        key: KeyEvent,
+        context: &Context,
+        host: Option<&NativeInvocationHost<'_>>,
     ) -> Result<Option<ViewResponse>, RpcError> {
         self.error = None;
         let prompt_paging = self.targets.get(self.focus).is_some_and(|target| {
@@ -392,10 +512,12 @@ impl ViewHost {
                 return Ok(None);
             }
             KeyCode::PageDown if !prompt_paging => {
+                self.withdraw_controls();
                 self.scroll = self.scroll.saturating_add(self.viewport);
                 return Ok(None);
             }
             KeyCode::PageUp if !prompt_paging => {
+                self.withdraw_controls();
                 self.scroll = self.scroll.saturating_sub(self.viewport);
                 return Ok(None);
             }
@@ -406,6 +528,24 @@ impl ViewHost {
         };
         if !gates_open(&self.descriptor, &target.source, context) {
             self.invalidate();
+            return Ok(None);
+        }
+        let live_control = host.is_some()
+            || matches!(target.kind, TargetKind::Action { .. })
+            || (matches!(target.kind, TargetKind::Panel)
+                && slot_at(&self.descriptor, &target.source)
+                    .and_then(|slot| slot.panel.as_ref())
+                    .is_some_and(|panel| match &panel.body {
+                        Some(Body::Form(form)) => form.submit_affordance.is_some(),
+                        _ if PanelView::has_action_controls(panel) => true,
+                        _ => false,
+                    }));
+        // Legacy responses are inert compatibility projections, not grants.
+        // Actual host execution requires a control from the current viewport.
+        if live_control && !self.visible_targets.contains(&self.focus) {
+            self.invocations.cancel();
+            self.error = Some("Bring the panel or control fully into view before retrying.".into());
+            self.reveal_focus = true;
             return Ok(None);
         }
         match target.kind {
@@ -431,6 +571,7 @@ impl ViewHost {
                     self.panels.retain(|path, _| !hidden(path));
                     self.repeats.retain(|path, _| !hidden(path));
                     self.targets.retain(|t| !hidden(&t.path));
+                    self.visible_targets.clear();
                     self.focus = self.focus.min(self.targets.len().saturating_sub(1));
                     self.reveal_focus = true;
                 } else if matches!(
@@ -451,45 +592,94 @@ impl ViewHost {
             TargetKind::Retry if key.code == KeyCode::Enter => {
                 self.repeats.remove(&target.path);
             }
-            TargetKind::Action { index, slot } if key.code == KeyCode::Enter => {
-                let actions = if slot {
-                    &slot_at(&self.descriptor, &target.source)
-                        .expect("mounted slot")
-                        .actions
+            TargetKind::Action { index, slot }
+                if key.code == KeyCode::Enter || key.code == KeyCode::Char(' ') =>
+            {
+                let no_ambient_row = Value::Null;
+                let current = crate::invocation::context_key(
+                    NativeInvocationContext::new(context)
+                        .with_record(target.record.as_ref().map(|_| &no_ambient_row)),
+                )
+                .ok();
+                let captured = if target.record.is_some() {
+                    &self.record_context
                 } else {
-                    &view_at(&self.descriptor, &target.source)
-                        .expect("mounted view")
-                        .actions
+                    &self.action_context
                 };
-                if let Some(call) = actions[index].call.as_ref() {
-                    let request = RequestBuilder::build_for_boundary_with(
-                        call,
-                        context,
-                        RequestOverrides {
-                            selected_row: target.record.as_deref(),
-                            ..Default::default()
-                        },
-                    )
-                    .map_err(|_| limit())?;
-                    return Ok(Some(ViewResponse::Action {
-                        service: call.service.clone(),
-                        method: call.method.clone(),
-                        request,
-                    }));
+                if current.is_none()
+                    || current.as_ref() != captured.as_deref()
+                    || !self.repeat_scopes_current(&target.path, context)
+                {
+                    self.invalidate();
+                    self.error = Some("Action stopped because its context changed or is invalid; redraw before retrying.".into());
+                    return Ok(None);
                 }
+                let canonical_actions = if slot {
+                    let source = slot_at(&self.descriptor, &target.source).expect("mounted slot");
+                    source.affordances.as_ref()
+                } else {
+                    let source = view_at(&self.descriptor, &target.source).expect("mounted view");
+                    source.affordances.as_ref()
+                };
+                let action = NativeAction::Canonical(
+                    &canonical_actions
+                        .expect("mounted canonical collection")
+                        .items[index],
+                );
+                let default_host = NativeInvocationHost::default();
+                let outcome = self.invocations.invoke(
+                    action,
+                    NativeInvocationContext::new(context).with_record(target.record.as_deref()),
+                    host.unwrap_or(&default_host),
+                );
+                self.error = Some(outcome.message().into());
+                return Ok(None);
             }
             TargetKind::Panel => {
                 let panel = slot_at(&self.descriptor, &target.source)
                     .and_then(|s| s.panel.as_ref())
                     .expect("mounted panel");
+                if ((matches!(panel.body, Some(Body::Form(_))) && key.code == KeyCode::Enter)
+                    || (PanelView::has_action_controls(panel)
+                        && matches!(
+                            key.code,
+                            KeyCode::Enter | KeyCode::Char(' ' | 'c' | '1'..='9')
+                        )))
+                    && !self.repeat_scopes_current(&target.path, context)
+                {
+                    self.invalidate();
+                    self.error =
+                        Some("Panel parent context changed; redraw before retrying.".into());
+                    return Ok(None);
+                }
                 let Some(widget) = self.panels.get_mut(&target.path) else {
                     return Ok(None);
                 };
                 match &panel.body {
+                    Some(_) if PanelView::has_action_controls(panel) => {
+                        let denied = NativeInvocationHost::default();
+                        widget.handle_action_key_with_invocation(
+                            panel,
+                            context,
+                            key,
+                            host.unwrap_or(&denied),
+                        );
+                        return Ok(None);
+                    }
                     Some(Body::Form(form)) => {
+                        if host.is_some() || form.submit_affordance.is_some() {
+                            let denied = NativeInvocationHost::default();
+                            widget.handle_form_key_with_invocation(
+                                form,
+                                context,
+                                key,
+                                host.unwrap_or(&denied),
+                            );
+                            return Ok(None);
+                        }
                         return Ok(widget
                             .handle_form_key(form, context, key.code)
-                            .map(ViewResponse::Form))
+                            .map(ViewResponse::Form));
                     }
                     Some(Body::Lro(lro)) => {
                         return Ok(widget
@@ -518,6 +708,34 @@ impl ViewHost {
         }
         Ok(None)
     }
+
+    fn repeat_scopes_current(&self, target: &[usize], context: &Context) -> bool {
+        self.repeats
+            .iter()
+            .filter(|(path, _)| target.starts_with(path))
+            .all(|(_, repeat)| {
+                let Some(call) = slot_at(&self.descriptor, &repeat.source)
+                    .and_then(|slot| slot.sub_view_populate.as_ref())
+                else {
+                    return false;
+                };
+                RequestBuilder::build_for_boundary_with(
+                    call,
+                    context,
+                    RequestOverrides {
+                        selected_row: repeat.record.as_deref(),
+                        ..Default::default()
+                    },
+                )
+                .is_ok_and(|request| request == repeat.request)
+            })
+    }
+}
+
+impl Drop for ViewHost {
+    fn drop(&mut self) {
+        self.invocations.cancel();
+    }
 }
 
 fn limit() -> RpcError {
@@ -532,14 +750,30 @@ fn same_record(old: &Option<Arc<Value>>, new: &Option<Arc<Value>>) -> bool {
     }
 }
 
+fn invocation_target(view: &ViewDescriptor, target: &Target) -> bool {
+    matches!(target.kind, TargetKind::Action { .. })
+        || (matches!(target.kind, TargetKind::Panel)
+            && slot_at(view, &target.source)
+                .and_then(|slot| slot.panel.as_ref())
+                .is_some_and(|panel| {
+                    matches!(panel.body, Some(Body::Form(_)))
+                        || PanelView::has_action_controls(panel)
+                }))
+}
+
 fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcError> {
     if depth > 64 || view.slots.len() >= MAX_NODES {
         return Err(limit());
     }
     let mut cost = local_cost(view);
+    if cost > MAX_NODES {
+        return Err(limit());
+    }
     let mut labels = vec![view.title.as_str(), view.id.as_str()];
-    for action in &view.actions {
-        labels.extend([action.id.as_str(), action.label.as_str()]);
+    if let Some(actions) = &view.affordances {
+        for action in &actions.items {
+            labels.extend([action.id.as_str(), action.label.as_str()]);
+        }
     }
     for slot in &view.slots {
         labels.extend([
@@ -553,8 +787,10 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
         if let Some(p) = &slot.panel {
             labels.push(&p.title);
         }
-        for action in &slot.actions {
-            labels.extend([action.id.as_str(), action.label.as_str()]);
+        if let Some(actions) = &slot.affordances {
+            for action in &actions.items {
+                labels.extend([action.id.as_str(), action.label.as_str()]);
+            }
         }
         if let Some(child) = &slot.sub_view {
             cost += descriptor_cost(child, depth + 1)?;
@@ -570,11 +806,11 @@ fn descriptor_cost(view: &ViewDescriptor, depth: usize) -> Result<usize, RpcErro
 }
 
 fn local_cost(view: &ViewDescriptor) -> usize {
-    1 + view.actions.len()
+    1 + view.affordances.as_ref().map_or(0, |a| a.items.len())
         + view
             .slots
             .iter()
-            .map(|s| 1 + s.actions.len())
+            .map(|s| 1 + s.affordances.as_ref().map_or(0, |a| a.items.len()))
             .sum::<usize>()
 }
 
@@ -667,15 +903,24 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
 
     fn actions(
         &mut self,
-        actions: &'a [Action],
+        canonical: Option<&'a AffordanceCollection>,
         path: &[usize],
         source: &[usize],
         record: &Option<Arc<Value>>,
         slot: bool,
     ) {
-        for (index, action) in actions.iter().enumerate() {
+        let canonical_labels = canonical
+            .into_iter()
+            .flat_map(|a| &a.items)
+            .map(|a| (a.label.as_str(), a.id.as_str()));
+        for (index, (label, id)) in canonical_labels.enumerate() {
             self.entries.push(Entry {
-                label: format!("Action: {} [{}]", action.label, action.id),
+                label: format!(
+                    "Action: {} [{}]{}",
+                    if label.is_empty() { "Action" } else { label },
+                    id,
+                    " [host admission required]"
+                ),
                 panel: None,
                 target: Some(Target {
                     path: path.to_vec(),
@@ -700,7 +945,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             return Err(limit());
         }
         self.text(format!("View: {} [{}]", view.title, view.id));
-        self.actions(&view.actions, path, source, &record, false);
+        self.actions(view.affordances.as_ref(), path, source, &record, false);
         let mut ordered: Vec<_> = (0..view.slots.len()).collect();
         ordered.sort_by_key(|i| view.slots[*i].position);
         for i in ordered.iter().copied().filter(|i| {
@@ -836,7 +1081,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
             });
             return Ok(());
         }
-        self.actions(&slot.actions, &path, &source, &record, true);
+        self.actions(slot.affordances.as_ref(), &path, &source, &record, true);
         if let Some(child) = &slot.sub_view {
             if let Some(call) = &slot.sub_view_populate {
                 self.seen_repeats.insert(path.clone());
@@ -885,6 +1130,7 @@ impl<'a, I: RpcInvoker> Planner<'a, I> {
                     self.repeats.insert(
                         path.clone(),
                         Repeat {
+                            source: source.clone(),
                             request,
                             record: record.clone(),
                             rows,

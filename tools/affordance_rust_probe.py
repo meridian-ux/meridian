@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Proposal-only Rust verification using retained migration descriptors.
+"""Isolated Rust verification using retained migration descriptors.
 
-Pure relocation must pass the real workspace tests. The expanded candidate must
-still fail at the core's exhaustive invoke dispatch: that is an adoption blocker,
-not successful migration or permission to weaken the production FILE gate.
+The historical proposal phase requires pure relocation workspace success and
+the original expanded-candidate exhaustive-dispatch failure. That failure was
+an adoption blocker, not permission to weaken the production FILE gate.
+The explicit --canonical phase instead requires the adopted source workspace to
+pass its complete tests against the actual candidate image. This is not cutover.
 """
 import argparse
 import hashlib
@@ -87,13 +89,25 @@ def run_world(root, descriptor, target, *, candidate=False):
                 print(line)
 
 
+def world_plan(canonical=False):
+    # Adopted source intentionally names new fields/variants, so compiling that
+    # source against pre-adoption bindings is no longer a valid consumer test.
+    # Frozen old-reader wire/source/bytecode checks remain in the Node/Java probe.
+    return [("candidate", False)] if canonical else [
+        ("old", False), ("relocated", False), ("candidate", True),
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scratch", type=Path, required=True,
                         help="Retained affordance_migration_probe.mjs --keep directory")
+    parser.add_argument("--canonical", action="store_true",
+                        help="Require complete workspace success against the actual canonical candidate")
     args = parser.parse_args()
     scratch = args.scratch.resolve()
-    images = {name: scratch / f"{name}.binpb" for name in ["old", "relocated", "candidate"]}
+    plan = world_plan(args.canonical)
+    images = {name: scratch / f"{name}.binpb" for name, _ in plan}
     for image in images.values():
         if not image.is_file() or not image.stat().st_size:
             raise RuntimeError(f"Missing retained descriptor: {image}")
@@ -101,14 +115,14 @@ def main():
     try:
         with tempfile.TemporaryDirectory(prefix="meridian-affordance-rust-") as temporary:
             work = Path(temporary)
-            for name, image in images.items():
+            for name, expected_failure in plan:
                 # Separate targets prevent one descriptor world's generated Rust
                 # or temporary registry artifacts from contaminating another.
-                run_world(ROOT, image, work / name, candidate=name == "candidate")
+                run_world(ROOT, images[name], work / name, candidate=expected_failure)
     finally:
         if protected_inputs(ROOT) != before:
             raise RuntimeError("Proposal probe changed canonical schemas, descriptors, policy, or Cargo inputs")
-    print("Rust proposal verification finished; no production cutover or v1 acceptance is implied")
+    print("Rust migration verification finished; no production cutover or v1 acceptance is implied")
 
 
 if __name__ == "__main__":

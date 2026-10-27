@@ -41,10 +41,12 @@ objects, preserving raw data keys rather than invoking prototype setters.
 Rejection is an error, not a truncated/partial result; failed table refreshes
 clear old rows and disable their actions. This does not bound all JavaScript
 DOM projections or establish full renderer robustness.
-Form saves and LRO starts require the initialized core's `buildSubmissionRequest`
-capability: it assembles explicit bindings and automatic fields together under
-one budget. An older core without that capability rejects submissions visibly;
-there is no unbounded JavaScript fallback. Form values use literal field IDs
+Ordinary FormPanel saves use the SDK's shared Rust `buildSubmissionRequest`
+through canonical invocation admission, not the host's legacy request builder.
+LRO starts retain the initialized host core's required submission capability;
+an older host core without it rejects those starts visibly. Both assemble
+explicit bindings and automatic fields under one budget with no JavaScript
+fallback. Form values use literal field IDs
 (explicit bindings win), while LRO inputs use declared request paths (inputs
 win). Nested LRO paths compose at every level; repeated values and maps stay raw.
 
@@ -82,6 +84,59 @@ through `@savvifi/meridian-schemas` and `@savvifi/meridian-proto-ts`, linked fro
 the same monorepo during development and pinned together in npm artifacts.
 
 ## Composed views
+
+### Authored invocation controls
+
+`renderPanel`, `renderView`, and `webComponentsRenderer.mount` accept the same
+explicit `invocation` capabilities/policy seam. ActionPanel and nested canonical
+affordances, plus normalized view-header and slot controls, use the shared
+seven-target dispatcher and actual Rust binding builder. A present canonical
+collection wins whole, including empty; legacy no-call semantic actions require
+a pure resolver. No URI anchor, command-to-clipboard, or old callback fallback
+grants permission. Register URI/command/navigation/panel/view/copy capabilities
+and an explicit target policy; RPC still requires mutation admission.
+
+Native buttons retain description/icon/tone/emphasis, linked sanitized feedback,
+pending/cancel behavior and focus return. Current owned context/policy/targets
+are rechecked at activation and around asynchronous confirmation/effects;
+replacement, inactive-tab disposal, and unmount suppress obsolete completion.
+Cancellation is best effort, not rollback, and duplicate activation stays guarded
+until the current host effect settles. Refresh failure is distinct from effect
+failure and never automatically replays a successful action. Rerender/update
+the mount to repaint changed host/descriptor inputs.
+
+These controls accept bounded own-data JSON context, reject getters/cycles and
+oversized snapshots before host work, and include header/slot actions in the
+existing composition ceiling. Ordinary forms, table rows and resource-card RPCs
+also use this dispatcher as described below. Other modality adoption and complete
+renderer-wide acceptance remain separate.
+
+### Ordinary form submission
+
+FormPanel selects a present canonical submit affordance whole, including empty
+intent or label; otherwise it normalizes the legacy submit call. All seven
+targets use validated current declared values and explicit invocation admission.
+The ambient host form bag is never imported, and DOM inputs are collected only
+on activation/currentness checks, never during construction or focus. Read-only
+forms neither prefill nor submit; no authored submit intent means no invented
+save action. Prompt and complete LRO operation workflows remain separate.
+
+Declared prefill settles before saving becomes available. Prefill is bounded and
+projected through own declared fields, including repeated object children;
+malformed/failed prefill keeps defaults with a generic persistent warning. Late
+responses after replacement/disposal cannot seed the new form. Dynamic enum
+option sources are authoritative read-tier calls: fields remain disabled until
+they resolve; failure has sanitized retry feedback and never enables static or
+forged options. Remote choices share one 1,000-option expansion ceiling, and
+prefill (including omitted nested defaults) is bounded before repeated DOM
+expansion, and current values are bounded before submission.
+
+Pending fields are disabled while Save and Cancel retain appropriate keyboard
+reachability. Cancellation guards duplicate submits through actual settlement;
+replacement, current-input changes and disposal suppress obsolete completion
+and refresh. Failures and refresh failures preserve typed input, without raw
+host diagnostics or automatic effect replay. Successful saves preserve edited
+values, including loaded records.
 
 `renderView` partitions `header_row` slots into the view header in every layout.
 Body slots retain stable `position` order. In tabbed layouts, only nonempty
@@ -135,6 +190,48 @@ released on descendant disposal; repeated expansion is checked against the
 remaining budget before rows mount. These bound composition, not arbitrary host
 allocation, every panel's DOM, or a hard execution-time sandbox. They do not
 establish native composition, all per-renderer layout evidence, or full v1 parity.
+
+## Table row actions
+
+Table row actions use the shared invocation dispatcher and Rust request builder.
+An explicitly present canonical `affordances` collection wins whole, including
+an empty collection; absent canonical data retains legacy `actions`. A current
+row selection and matching `enabled_when` are required. Selection overrides any
+ambient host row, preserves raw false/zero values, and is revalidated after host
+admission. Canonical false suppresses refresh; legacy row RPCs keep their existing
+always-refresh behavior and empty unbound request (no invented ID binding).
+
+One panel-wide pending guard blocks other row actions through noncooperative
+settlement. The originating action and Cancel remain keyboard reachable. A row
+change invalidates pending consent; replacement/disposal suppresses late effects,
+feedback and refresh updates. Refresh failure retains the selected table and is
+reported separately from effect failure, without replaying the effect. Resource
+card confirmations use the consent path described below.
+
+## Resource-card actions
+
+Resource RPCs use the same mutation-only admission and Rust request builder,
+with the card's own row overriding ambient host selection. Existing visibility
+predicates and primary/danger styling remain. Unbound calls stay empty; no ID
+binding or refresh behavior is invented.
+
+Authored confirmation is consent, never authorization. Denied or missing targets
+do not open a prompt. Confirmation text stays literal and linked to its named
+alert dialog; the safe Cancel choice receives initial focus. Tab/Shift+Tab cycle
+within the prompt, Escape declines, and accepting/declining returns focus only
+when it still belongs there. Changed row/context/policy/target/confirmation data
+invalidates consent before the effect. Changes to the resource declaration
+withdraw its mounted projection until the host remounts the updated descriptor;
+this includes replacing/removing the target or confirmation object. A card that
+no longer matches its visibility predicate cannot dispatch through an old button.
+Replacement/disposal aborts observation
+and removes the prompt without stealing focus.
+
+One per-card guard covers confirmation, effect and cancellation through
+noncooperative settlement. The originating control and action cancellation stay
+reachable, failures are sanitized, and retry requires fresh consent with current
+bindings. Late populate/effect results cannot alter a replacement card. These
+prompts do not claim to make the entire host application modal.
 
 ## Build & test
 

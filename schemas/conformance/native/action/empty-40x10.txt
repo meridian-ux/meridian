@@ -8,5 +8,5 @@ action · empty
 │                                      │
 │                                      │
 │                                      │
-└──────────────────────────────────────┘
+[1/1]  ↵ Add to Cursor  cursor://anysphe
 end viewport

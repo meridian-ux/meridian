@@ -1,7 +1,7 @@
 //! Guards the committed descriptor set that the cargo build generates from.
 //!
 //! `proto/gen/meridian_ui_v1.binpb` is a checked-in copy of what
-//! `@meridian_schemas//proto:uiview_proto` produces. A copy can rot, and when it
+//! `//schemas/proto:uiview_proto` produces. A copy can rot, and when it
 //! does the symptom is not a build failure — it is cargo and Bazel silently
 //! generating *different* Rust types from the same crate. That is the same class
 //! of bug as meridian-k8s's vendored proto tree, which drifted from 0.5.0 while
@@ -11,22 +11,21 @@
 //!   * ✅ the set decodes, is self-contained, and carries every file the
 //!     `uiview_proto` proto_library declares;
 //!   * ✅ the fields this crate's code actually reads are present;
-//!   * ❌ byte-freshness against meridian-schemas HEAD. That comparison needs the
-//!     source protos, which live in another repository — so it belongs in a Bazel
-//!     test against `@meridian_schemas//proto:uiview_proto`, the way
-//!     meridian-proto's `//proto/gen:descriptor_freshness_test` does it. Owed;
-//!     see tools/regen_descriptors.sh.
+//!   * ❌ byte-freshness against the current sources. Regenerate using
+//!     `crates/core/tools/regen_descriptors.sh` and compare the committed output
+//!     separately; these structural tests alone cannot establish freshness.
 
 use prost::Message as _;
 use prost_types::FileDescriptorSet;
 
 const FDS: &[u8] = include_bytes!("../proto/gen/meridian_ui_v1.binpb");
 
-/// The 27 files of `//proto:uiview_proto`. Listed so that adding a proto upstream
+/// The 30 files of `//schemas/proto:uiview_proto`. Listed so that adding a proto upstream
 /// without regenerating fails here rather than at some renderer months later.
 const EXPECTED: &[&str] = &[
     "affordance",
     "catalog",
+    "chart",
     "choice",
     "command_palette",
     "connect_flow",
@@ -35,6 +34,7 @@ const EXPECTED: &[&str] = &[
     "form",
     "gallery",
     "grammar",
+    "interaction",
     "layout_service",
     "llm_prompt",
     "lro",
@@ -43,6 +43,7 @@ const EXPECTED: &[&str] = &[
     "panel",
     "prompt",
     "rpc",
+    "resource_card",
     "shell",
     "snippet",
     "stat",
@@ -71,7 +72,7 @@ fn carries_every_file_the_proto_library_declares() {
     }
     assert_eq!(
         EXPECTED.len(),
-        27,
+        30,
         "the uiview_proto file list changed; update EXPECTED and regenerate"
     );
 }

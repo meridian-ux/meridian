@@ -20,7 +20,11 @@ class RoadmapMatrixTests(unittest.TestCase):
         self.assertIn("| `markdown` | ● | ● |", projection)
         self.assertIn("### Launchpad modality", projection)
         self.assertIn("| `open_panel` | ● |", projection)
-        self.assertIn("4 arms × 1 renderer = 4 cells", projection)
+        self.assertIn("7 arms × 1 renderer = 7 cells", projection)
+        launchpad = projection.split("### Launchpad modality", 1)[1]
+        for arm in ["uri", "command", "rpc", "navigate", "open_panel", "open_view", "copy"]:
+            self.assertIn(f"| `{arm}` |", launchpad)
+        self.assertNotIn("open_view_id", launchpad)
 
     def test_rejects_inconsistent_renderer_sets_within_a_modality(self):
         with patch.object(roadmap_matrix, "ROOT", Path(__file__).parent.parent):

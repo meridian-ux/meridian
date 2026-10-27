@@ -40,11 +40,14 @@ claim about every arbitrary host integration, skin, or possible descriptor.
 The remaining roadmap issues are Affordance unification/adoption (#11, #47,
 #48), its remaining untrusted-invocation acceptance (#17), and final distribution
 readiness (#16, #63). Both-repository Project auto-add is still required; the
-private-repository rule needs an approved organization automation setup. Rust
-archives and the web-components npm artifact have preparation checks, not a v1
-publication. Production Affordance/FILE-baseline cutover, final versioning, and
-release approval are separate outstanding steps. SwiftUI remains the approved
-preview; full native parity is not a v1 gate and its unverified coverage remains
+scoped App setup and read-only dry runs are prepared, while live both-repository
+activation remains separately gated. All three Rust archives and seven npm
+packages have final-version candidate checks, not a v1 publication. The major-1
+source line preserves the owner-gated automation and uses literal 1.0.0 metadata.
+Required node CI selects the reviewed FILE reference explicitly. Final integrated
+artifact verification, supported-consumer delivery and release approval remain
+outstanding; source selection does not authorize publication or deployment.
+SwiftUI remains the approved preview; full native parity is not a v1 gate and its unverified coverage remains
 explicit. Issues remain authoritative as work advances beyond this checkpoint.
 
 ## Track A — Renderer parity
@@ -124,10 +127,13 @@ The table below is **generated** from the coverage manifest by
 |---|---|
 | `rpc` | ● |
 | `open_panel` | ● |
-| `open_view_id` | ● |
+| `open_view` | ● |
+| `uri` | ● |
+| `command` | ● |
+| `copy` | ● |
 | `navigate` | ● |
 
-**4 arms × 1 renderer = 4 cells; 4 render, 0 do not.**
+**7 arms × 1 renderer = 7 cells; 7 render, 0 do not.**
 <!-- matrix:end -->
 
 Legend: ● renders · ◐ placeholder · ◑ separate entrypoint · ○ missing · ✕ structural gap · ? unverified · – not applicable.
@@ -283,7 +289,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 | concept | today it is spelled | distilled to |
 |---|---|---|
 | **Tone** — how serious, how it looks | shared `Tone` (6 roles), presence-aware conversation/action adoption, and descriptor-driven stable-renderer theme proofs; compatible legacy APIs remain | integrated additive presentation contract — [#10](../../issues/10); preview SwiftUI remains explicitly outside full native parity |
-| **Affordance** — what can I do here | `Affordance.invoke {uri, command}` · `Command.action {rpc, open_panel, open_view_id, navigate}` · `RowAction` · `ActionPanel` · kit `ActionBar` · `ActionPlacement` | one `Affordance {label, tone, emphasis, placement, invoke}` through one admission seam — [#11](../../issues/11) |
+| **Affordance** — what can I do here | Original migration baseline: `Affordance.invoke {uri, command}`, `Command.action`, `RowAction`, `ActionPanel`, kit `ActionBar`, and `ActionPlacement` | Canonical-only seven-target `Affordance` through one admission seam — [#11](../../issues/11); [major-1 boundary](schemas/migration/REMOVAL.md) has explicit FILE selection; delivery and release remain gated |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` defines radius/unit plus bounded spacing/density/stroke, with shared web bindings and explicit terminal degradation ([contract](schemas/METRICS.md)); four layout modes have per-modality realization rules; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | integrated stable-renderer Metrics/Typography bindings, layout degradation rules, nine-kind form validation, and complete glossary — [#13](../../issues/13); SwiftUI retains preview scope |
 

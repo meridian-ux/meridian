@@ -33,6 +33,8 @@ export function reactWebRenderer(
             theme={opts.theme}
             invoker={opts.invoker}
             admission={opts.admission}
+            invocation={opts.invocation ? { ...opts.invocation, context: opts.context ?? opts.invocation.context }
+              : opts.context ? { context: opts.context } : undefined}
             onPromptResponse={opts.onPromptResponse}
             kit={kit}
             adhoc={opts.adhoc ?? {}}

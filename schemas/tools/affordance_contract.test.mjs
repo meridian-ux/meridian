@@ -3,20 +3,62 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { clone, createFileRegistry, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { LEGACY_DEPRECATIONS, LEGACY_MESSAGE_DEPRECATIONS } from "./affordance_migration_probe.mjs";
+import { loadRemovalReference, RETIRED_FIELDS, RETIRED_MESSAGES, RETIRED_ENUMS } from "./affordance_removal.mjs";
 
-const descriptors = fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
-  "../../crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb", import.meta.url,
-)));
+// The additive contract belongs to its immutable pre-removal release image.
+// Current removal bindings are tested independently below, never substituted
+// for this old reader or allowed to silently retain old exports.
+const descriptors = loadRemovalReference();
 const registry = createFileRegistry(descriptors);
 const schema = registry.getMessage("meridian.ui.v1.Affordance");
 
-test("Affordance preserves existing type, file, invoke tags, and deprecated legacy enum", () => {
-  assert.equal(schema.file.proto.name, "proto/affordance.proto");
+test("current committed runtime descriptor removes retired APIs and reserves every field", () => {
+  const current = createFileRegistry(fromBinary(FileDescriptorSetSchema, readFileSync(new URL(
+    "../../crates/core/rust/uiview/proto/gen/meridian_ui_v1.binpb", import.meta.url,
+  ))));
+  for (const [name, fields] of Object.entries(RETIRED_FIELDS)) {
+    const message = current.getMessage(`meridian.ui.v1.${name}`);
+    assert(message);
+    for (const [field, tag] of Object.entries(fields)) {
+      assert(!message.fields.some(value => value.name === field || value.number === tag));
+      assert(message.proto.reservedName.includes(field));
+      assert(message.proto.reservedRange.some(range => range.start === tag && range.end === tag + 1));
+    }
+  }
+  for (const name of RETIRED_MESSAGES) assert.equal(current.getMessage(`meridian.ui.v1.${name}`), undefined);
+  for (const name of RETIRED_ENUMS) assert.equal(current.getEnum(`meridian.ui.v1.${name}`), undefined);
+});
+
+test("obsolete compatibility message types are deprecated, retained, and never confused with canonical panels", () => {
+  for (const name of LEGACY_MESSAGE_DEPRECATIONS) {
+    const message = registry.getMessage(`meridian.ui.v1.${name}`);
+    assert(message, `obsolete type removed before approved cutover: ${name}`);
+    assert.equal(message.proto.options?.deprecated, true, name);
+    assert(message.fields.length > 0, `${name} fields were removed`);
+  }
+  for (const name of ["Affordance", "ActionPanel", "Command", "FormPanel", "PanelDescriptor"]) {
+    assert.notEqual(registry.getMessage(`meridian.ui.v1.${name}`).proto.options?.deprecated, true, name);
+  }
+});
+
+test("every retained legacy invocation field is explicitly deprecated without removal", () => {
+  for (const [name, fields] of Object.entries(LEGACY_DEPRECATIONS)) for (const fieldName of fields) {
+    const message = registry.getMessage(`meridian.ui.v1.${name}`);
+    const field = message.fields.find(field => field.name === fieldName);
+    assert(field, `legacy field removed before the approved cutover: ${name}.${fieldName}`);
+    assert.equal(field.proto.options?.deprecated, true, `${name}.${fieldName}`);
+  }
+});
+
+test("candidate Affordance preserves existing types and tags with explicit relocated ownership", () => {
+  assert.equal(schema.file.proto.name, "proto/interaction.proto");
   const legacy = schema.fields.find(field => field.name === "style");
   assert.equal(legacy.number, 7);
   assert.equal(legacy.enum.typeName, "meridian.ui.v1.AffordanceStyle");
-  assert.deepEqual(schema.oneofs.find(oneof => oneof.name === "invoke").fields.map(field => [field.name, field.number]), [["uri", 5], ["command", 6]]);
-  const file = descriptors.file.find(file => file.name === "proto/affordance.proto");
+  assert.deepEqual(schema.oneofs.find(oneof => oneof.name === "invoke").fields.map(field => [field.name, field.number]),
+    [["uri", 5], ["command", 6], ["rpc", 10], ["navigate", 11], ["open_panel", 12], ["open_view", 13], ["copy", 14]]);
+  const file = descriptors.file.find(file => file.name === "proto/interaction.proto");
   const style = file.enumType.find(enumeration => enumeration.name === "AffordanceStyle");
   assert.equal(style.options.deprecated, true);
   assert.deepEqual(style.value.map(value => [value.name, value.number]), [["AFFORDANCE_STYLE_UNSPECIFIED", 0], ["AFFORDANCE_STYLE_PRIMARY", 1], ["AFFORDANCE_STYLE_SECONDARY", 2]]);
@@ -31,7 +73,7 @@ test("Affordance preserves existing type, file, invoke tags, and deprecated lega
 
 test("optional presentation is wire/JSON-additive and old readers preserve explicit zero/future values", () => {
   const old = clone(FileDescriptorSetSchema, descriptors);
-  const file = old.file.find(file => file.name === "proto/affordance.proto");
+  const file = old.file.find(file => file.name === "proto/interaction.proto");
   file.enumType = file.enumType.filter(enumeration => enumeration.name !== "Emphasis");
   file.enumType.find(enumeration => enumeration.name === "AffordanceStyle").options.deprecated = false;
   const message = file.messageType.find(message => message.name === "Affordance");
@@ -54,5 +96,23 @@ test("optional presentation is wire/JSON-additive and old readers preserve expli
       assert.equal(decoded.emphasis, emphasis);
       assert.deepEqual(decoded.invoke, current.invoke);
     }
+  }
+});
+
+test("real frozen pre-v1 readers retain typed invocation bytes without inventing a legacy destination", () => {
+  const previous = fromBinary(FileDescriptorSetSchema, readFileSync(new URL("../compat/pre-v1.binpb", import.meta.url)));
+  const oldSchema = createFileRegistry(previous).getMessage(schema.typeName);
+  for (const invocation of [
+    { rpc: { service: "fixture.Service", method: "Delete" } },
+    { navigate: { route: "/next" } },
+    { openPanel: { panelId: "next" } },
+    { openView: "next" },
+    { copy: "" },
+  ]) {
+    const current = fromJson(schema, { id: "action", label: "Action", ...invocation });
+    const oldRead = fromBinary(oldSchema, toBinary(schema, current));
+    assert.equal(oldRead.invoke.case, undefined);
+    const decoded = fromBinary(schema, toBinary(oldSchema, oldRead));
+    assert.deepEqual(decoded.invoke, current.invoke);
   }
 });

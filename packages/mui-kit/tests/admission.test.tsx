@@ -20,38 +20,38 @@ const view = create(ViewDescriptorSchema, {
   id: "mui-admission-view",
   kind: ViewKind.LIST,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: [{
+  affordances: { items: [{
     id: "delete",
     label: "Delete",
     placement: ActionPlacement.HEADER,
-    call: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }),
-  }],
+    invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }) },
+  }] },
 });
 
 const overflowView = create(ViewDescriptorSchema, {
   id: "mui-admission-overflow-view",
   kind: ViewKind.LIST,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: [{
+  affordances: { items: [{
     id: "delete",
     label: "Delete",
     placement: ActionPlacement.OVERFLOW,
-    call: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }),
-  }],
+    invoke: { case: "rpc", value: create(RpcCallSchema, { service: "demo.Orders", method: "DeleteOrder" }) },
+  }] },
 });
 
 describe("MUI admission boundary", () => {
   for (const overflow of [false, true]) {
     it(`resolves ${overflow ? "overflow" : "header"} bindings from real record and selection context`, async () => {
-      const requestView = create(ViewDescriptorSchema, { id: "bound-actions", kind: ViewKind.LIST, actions: [{
+      const requestView = create(ViewDescriptorSchema, { id: "bound-actions", kind: ViewKind.LIST, affordances: { items: [{
         id: "run", label: "Run", placement: overflow ? ActionPlacement.OVERFLOW : ActionPlacement.HEADER,
-        call: { service: "demo.Actions", method: "Run", bindings: [{ requestField: "payload", source: { case: "nested", value: { fields: [
+        invoke: { case: "rpc", value: { service: "demo.Actions", method: "Run", bindings: [{ requestField: "payload", source: { case: "nested", value: { fields: [
           { requestField: "zero", source: { case: "rowField", value: "zero" } },
           { requestField: "no", source: { case: "rowField", value: "no" } },
           { requestField: "tenant", source: { case: "selectionKey", value: "tenant" } },
           { requestField: "empty", source: { case: "literal", value: "" } },
-        ] } } }] },
-      }] });
+        ] } } }] } },
+      }] } });
       const requests: object[] = [];
       render(<MeridianMuiProvider admission={{ mutations: ["demo.Actions/Run"] }} invoker={{ invoke: async (_s, _m, request) => { requests.push(request); return {}; } }}>
         <MeridianRecordContext.Provider value={{ zero: 0, no: false }}>
@@ -65,20 +65,20 @@ describe("MUI admission boundary", () => {
 
     it.each(["unsafe", "large", "cycle"])(`rejects %s ${overflow ? "overflow" : "header"} bindings before dispatch`, async mode => {
       const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
-      const requestView = create(ViewDescriptorSchema, { id: "invalid-actions", kind: ViewKind.LIST, actions: [{
+      const requestView = create(ViewDescriptorSchema, { id: "invalid-actions", kind: ViewKind.LIST, affordances: { items: [{
         id: "run", label: "Run", placement: overflow ? ActionPlacement.OVERFLOW : ActionPlacement.HEADER,
-        call: { service: "demo.Actions", method: "Run", bindings: [
+        invoke: { case: "rpc", value: { service: "demo.Actions", method: "Run", bindings: [
           { requestField: "safe", source: { case: "literal", value: "not sent alone" } },
           { requestField: mode === "unsafe" ? "__proto__.scope" : "payload", source: { case: "rowField", value: "payload" } },
-        ] },
-      }] });
+        ] } },
+      }] } });
       const requests: object[] = [];
       render(<MeridianMuiProvider admission={{ mutations: ["demo.Actions/Run"] }} invoker={{ invoke: async (_s, _m, request) => { requests.push(request); return {}; } }}>
         <MeridianRecordContext.Provider value={{ payload: mode === "cycle" ? cyclic : "x".repeat(800_000) }}><ViewRenderer view={requestView} /></MeridianRecordContext.Provider>
       </MeridianMuiProvider>);
       if (overflow) fireEvent.click(screen.getByRole("button", { name: "more actions" }));
       fireEvent.click(screen.getByRole(overflow ? "menuitem" : "button", { name: "Run" }));
-      expect((await screen.findByRole("alert")).textContent).toContain("Request construction rejected");
+      expect((await screen.findByRole("alert")).textContent).toContain("invalid or exceeds supported limits");
       expect(requests).toEqual([]);
     });
   }
@@ -122,7 +122,7 @@ describe("MUI admission boundary", () => {
     expect(screen.queryByText("Replacement loading")).toBeNull();
     await act(async () => finish({}));
     expect((screen.getByRole("button", { name: "Delete" }) as HTMLButtonElement).disabled).toBe(false);
-    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("Action completed.");
   });
 
   it("blocks a header mutation before the invoker", async () => {
@@ -142,8 +142,8 @@ describe("MUI admission boundary", () => {
 
     const button = screen.getByRole("button", { name: "Delete" });
     expect(button.getAttribute("aria-disabled")).toBe("true");
-    expect(button.title).toContain("not permitted");
-    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
+    expect(screen.getByRole("status").textContent).toBe("This action is unavailable.");
+    expect(button.getAttribute("aria-describedby")).toBe(screen.getByRole("status").id);
     await act(async () => fireEvent.click(button));
 
     expect(calls).toEqual([]);
@@ -167,7 +167,8 @@ describe("MUI admission boundary", () => {
     fireEvent.click(screen.getByRole("button", { name: "more actions" }));
     const action = screen.getByRole("menuitem", { name: /Delete/ });
     expect(action.getAttribute("aria-disabled")).toBe("true");
-    expect(screen.getByRole("note").textContent).toBe("Unavailable: this action is not permitted.");
+    expect(screen.getByRole("status").textContent).toBe("This action is unavailable.");
+    expect(action.getAttribute("aria-describedby")).toBe(screen.getByRole("status").id);
     await act(async () => fireEvent.click(action));
 
     expect(calls).toEqual([]);
@@ -186,14 +187,15 @@ describe("MUI admission boundary", () => {
     const button = screen.getByRole("button", { name: "Delete" });
     fireEvent.click(button);
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toContain("<b>Unavailable</b>");
+    expect(alert.textContent).toBe("Action failed. Try again with the current context.");
+    expect(alert.textContent).not.toContain("Unavailable");
     expect(alert.querySelector("b")).toBeNull();
     fireEvent.click(button);
     fireEvent.click(button);
     expect(calls).toEqual(Array(2).fill(["demo.Orders", "DeleteOrder", {}]));
-    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(button.getAttribute("aria-disabled")).toBe("true");
     finish!();
-    await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
+    await waitFor(() => expect(button.hasAttribute("aria-busy")).toBe(false));
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });

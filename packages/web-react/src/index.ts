@@ -57,6 +57,7 @@ export { StreamContent } from "./stream.js";
 export {
   ViewRenderer,
   MeridianRowActionsContext,
+  MeridianNormalizedRowActionsContext,
   MeridianViewContext,
 } from "./view_renderer.js";
 export {
@@ -86,6 +87,8 @@ export {
 export { reactWebRenderer } from "./react_web_renderer.js";
 export { useDisplayNow } from "./display_now.js";
 export { useStatData } from "./stat_data.js";
+export { useAffordanceInvocation, useActionInvocation, type ActionInvocationOptions } from "./affordance_invocation.js";
+export { ActionGroup, useActionGroup } from "./action_group.js";
 export { buildSubmissionRequest } from "./action_request.js";
 export { useLroLifecycle, LroResult } from "./lro_lifecycle.js";
 export { usePromptResponse } from "./prompt.js";

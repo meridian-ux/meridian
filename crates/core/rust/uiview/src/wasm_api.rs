@@ -33,6 +33,18 @@ pub fn static_view_text(bytes: &[u8]) -> Result<String, JsError> {
     crate::static_view_text(&view).map_err(|_| JsError::new("static view construction rejected"))
 }
 
+/// Pure selected-row predicate, not host admission or an execution capability.
+#[wasm_bindgen(js_name = "matchesRowFilter")]
+pub fn matches_row_filter(bytes: &[u8], row: JsValue) -> Result<bool, JsError> {
+    if bytes.len() > 64 * 1024 {
+        return Err(JsError::new("predicate declaration rejected"));
+    }
+    let filter = crate::proto::RowFilter::decode(bytes)
+        .map_err(|_| JsError::new("predicate declaration rejected"))?;
+    crate::row_filter_matches(&filter, &value_input(row)?)
+        .map_err(|_| JsError::new("predicate input rejected"))
+}
+
 /// Pattern and input are runtime strings, never a JavaScript regex or callback.
 /// Invalid/unsupported patterns fail closed without exposing submitted values.
 #[wasm_bindgen(js_name = "matchesFormPattern")]
@@ -278,8 +290,17 @@ pub fn build_submission_request(
     let panel = PanelDescriptor::decode(descriptor)
         .map_err(|_| JsError::new("invalid submission descriptor"))?;
     let (call, fields, kind) = match panel.body {
-        Some(crate::proto::panel_descriptor::Body::Form(panel)) => {
-            (panel.submit, panel.fields, crate::SubmissionKind::Form)
+        Some(crate::proto::panel_descriptor::Body::Form(mut panel)) => {
+            // Presence is authoritative, including an empty/non-RPC intent.
+            // This builder assembles requests; it neither admits nor invokes.
+            let call = match panel.submit_affordance.take() {
+                Some(action) => match action.invoke {
+                    Some(crate::proto::affordance::Invoke::Rpc(call)) => Some(call),
+                    _ => None,
+                },
+                None => None,
+            };
+            (call, panel.fields, crate::SubmissionKind::Form)
         }
         Some(crate::proto::panel_descriptor::Body::Lro(panel)) => {
             (panel.start, panel.inputs, crate::SubmissionKind::Lro)

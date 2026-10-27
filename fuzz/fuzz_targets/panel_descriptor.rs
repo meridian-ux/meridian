@@ -104,6 +104,30 @@ fuzz_target!(|bytes: &[u8]| {
             assert_eq!(length, 0);
         }
     }
+    let valid_filter = meridian_uiview::proto::RowFilter {
+        field_path: "value".into(),
+        equals: "true".into(),
+    }
+    .encode_to_vec();
+    for (filter, row) in [(bytes, &[][..]), (valid_filter.as_slice(), bytes)] {
+        let mut matched = 99;
+        // SAFETY: live borrowed protobuf slices and a separate writable byte.
+        let status = unsafe {
+            meridian_uiview::native_api::meridian_core_matches_row_filter(
+                filter.as_ptr(),
+                filter.len(),
+                row.as_ptr(),
+                row.len(),
+                &mut matched,
+            )
+        };
+        if status == 0 {
+            assert!(matched <= 1);
+        } else {
+            assert!((1..=3).contains(&status), "unexpected predicate status");
+            assert_eq!(matched, 0);
+        }
+    }
     let mut matched = 99;
     // SAFETY: live slice regions, separate writable output byte.
     let status = unsafe {
@@ -133,9 +157,13 @@ fuzz_target!(|bytes: &[u8]| {
                 let _ = render_gallery(&response, &gallery);
             }
             Some(Body::Form(form)) => {
-                if let Some(call) = form.submit {
+                if let Some(meridian_uiview::proto::affordance::Invoke::Rpc(call)) = form
+                    .submit_affordance
+                    .as_ref()
+                    .and_then(|action| action.invoke.as_ref())
+                {
                     let _ = RequestBuilder::build_submission(
-                        &call,
+                        call,
                         &Context::default(),
                         &form.fields,
                         &serde_json::json!({}),

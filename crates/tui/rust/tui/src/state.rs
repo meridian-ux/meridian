@@ -42,7 +42,7 @@ impl<I: RpcInvoker> PanelAppState<I> {
     }
 
     /// Forwards to the host's RpcInvoker. The renderer uses this to
-    /// populate TablePanels and to fire RowActions.
+    /// populate TablePanels and execute admitted canonical RPC affordances.
     pub fn invoke(
         &self,
         service: &str,

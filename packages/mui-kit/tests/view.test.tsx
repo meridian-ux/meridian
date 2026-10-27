@@ -10,7 +10,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
 import {
@@ -31,7 +31,7 @@ import {
   ViewKind,
 } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import { ViewRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { InvocationHost, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 
@@ -76,7 +76,7 @@ const PRODUCT_ACTIONS = ["edit", "clone", "delete", "export_yaml"].map((id) => (
   id,
   label: id === "export_yaml" ? "Export YAML" : id[0].toUpperCase() + id.slice(1),
   placement: ActionPlacement.HEADER,
-  call: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }),
+  invoke: { case: "rpc" as const, value: create(RpcCallSchema, { service: "demo.catalog.v1.Product", method: id }) },
 }));
 
 // products/views/list-view → ListLayout + one TablePanel content slot.
@@ -87,7 +87,7 @@ const productsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.LIST,
   layout: { mode: { case: "list", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "content",
@@ -126,7 +126,7 @@ const productsDetailView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "products",
   kind: ViewKind.DETAIL,
   layout: { mode: { case: "stacked", value: {} } },
-  actions: PRODUCT_ACTIONS,
+  affordances: { items: PRODUCT_ACTIONS },
   slots: [
     {
       id: "header",
@@ -333,12 +333,13 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   subjectKind: "organizations",
   kind: ViewKind.LIST,
   layout: { mode: { case: "list", value: {} } },
-  actions: [
-    // no-call HEADER action (host-resolved key → a route)
-    { id: "create", label: "New Organization", placement: ActionPlacement.HEADER },
-    // no-call ROW action → per-row button, bound to the row id
-    { id: "view_details", label: "View Details", placement: ActionPlacement.ROW },
-  ],
+  affordances: { items: [
+    { id: "create", label: "New Organization", placement: ActionPlacement.HEADER,
+      invoke: { case: "navigate", value: { route: "/organizations/new" } } },
+    // A concrete read-view target; the admitted host binds the current record.
+    { id: "view_details", label: "View Details", placement: ActionPlacement.ROW,
+      invoke: { case: "openView", value: "organizations.detail" } },
+  ] },
   slots: [
     {
       id: "content",
@@ -361,28 +362,48 @@ const orgsListView: ViewDescriptor = create(ViewDescriptorSchema, {
   ],
 });
 
-describe("muiKit host action/nav seam (no-call actions → onAction)", () => {
-  it("fires onAction with (actionId, subjectKind) for a no-call HEADER action", async () => {
+function canonicalHost(activated: Array<[string, unknown]>, routes: string[]): InvocationHost {
+  return { admit: intent => intent.case === "navigate" && intent.value.route === "/organizations/new"
+      || intent.case === "openView" && intent.value === "organizations.detail",
+    capabilities: {
+      navigate: async target => { activated.push(["navigate", target.route]); routes.push(target.route); },
+      openView: async (view, context) => {
+        const row = context.selectedRow as { id?: unknown } | null;
+        if (view !== "organizations.detail" || typeof row?.id !== "string") throw Error("Unsupported read-view context");
+        activated.push([view, row.id]); routes.push(`/organizations/${encodeURIComponent(row.id)}`);
+      },
+    },
+  };
+}
+
+describe("muiKit canonical host navigation", () => {
+  it("admits an explicit HEADER navigation target without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    const activated: Array<[string, unknown]> = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+        invocation={canonicalHost(activated, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
     );
     const createBtn = await screen.findByRole("button", { name: "New Organization" });
     fireEvent.click(createBtn);
-    expect(calls).toContainEqual(["create", "organizations", undefined]);
+    await waitFor(() => expect(routes).toEqual(["/organizations/new"]));
+    expect(activated).toEqual([["navigate", "/organizations/new"]]);
+    expect(calls).toEqual([]);
   });
 
-  it("fires onAction with the bound row id for a per-row no-call action", async () => {
+  it("opens the explicit read-view target with the current row ID without executing the old callback", async () => {
     const calls: Array<[string, string | undefined, (string | number) | undefined]> = [];
+    const activated: Array<[string, unknown]> = [], routes: string[] = [];
     render(
       <MeridianMuiProvider
         invoker={actionRowsInvoker}
         onAction={(id, entityType, entityId) => calls.push([id, entityType, entityId])}
+        invocation={canonicalHost(activated, routes)}
       >
         <ViewRenderer view={orgsListView} />
       </MeridianMuiProvider>,
@@ -393,6 +414,8 @@ describe("muiKit host action/nav seam (no-call actions → onAction)", () => {
     fireEvent.click(kebabs[0]);
     const viewDetails = await screen.findByRole("menuitem", { name: "View Details" });
     fireEvent.click(viewDetails);
-    expect(calls).toContainEqual(["view_details", "organizations", "org-1"]);
+    await waitFor(() => expect(routes).toEqual(["/organizations/org-1"]));
+    expect(activated).toEqual([["organizations.detail", "org-1"]]);
+    expect(calls).toEqual([]);
   });
 });

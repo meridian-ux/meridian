@@ -14,6 +14,7 @@ import {
   type AdmissionGate,
   type AdmissionPolicy,
   type RpcInvoker,
+  type InvocationHost,
 } from "@savvifi/meridian-schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
@@ -22,12 +23,10 @@ import type { ComponentKit } from "./component_kit.js";
 export type ReactAdhocFactory = ComponentType<{ descriptor: PanelDescriptor }>;
 
 /**
- * Host handler for actions that carry no RpcCall. a graph-backed host's `actions`/`action-set-key`
- * (view_details / edit / create …) project as host-resolved *keys* — the renderer
- * draws the affordance, but the meaning (usually a route) is the host's. When such
- * an action fires, the renderer calls this with the action's id + the view's
- * subject (entity type) + the bound row id (ROW actions). Actions that DO carry an
- * RpcCall still go through the invoker; this covers only the no-call remainder.
+ * Legacy host handler retained for source compatibility, never invoked as an
+ * Affordance fallback. Authored controls require concrete canonical intent.
+ * MUI entity navigation uses resolveHref plus canonical invocation admission.
+ * Do not execute a callback from a pure destination resolver.
  */
 export type MeridianActionHandler = (
   actionId: string,
@@ -80,9 +79,11 @@ export interface MeridianContextValue {
   invoker: RpcInvoker;
   /** Host policy for descriptor-originated RPCs. Reads default open; mutations default closed. */
   admission?: AdmissionPolicy;
+  /** Typed Affordance capabilities/policy. No implicit navigation or copy. */
+  invocation?: InvocationHost;
   kit: ComponentKit;
   adhoc: Record<string, ReactAdhocFactory>;
-  /** Optional host handler for no-call actions (nav/custom). Absent ⇒ no-op. */
+  /** Compatibility hook, not an action grant or a canonical fallback. */
   onAction?: MeridianActionHandler;
   /** Optional host glyph resolver for `icon` keys. Absent ⇒ no glyph drawn. */
   renderIcon?: MeridianIconResolver;
@@ -95,6 +96,8 @@ export interface MeridianContextValue {
 
 interface MeridianContextState extends MeridianContextValue {
   mutationInvoker: RpcInvoker;
+  /** Original host transport; the shared dispatcher performs mutation admission. */
+  actionInvoker: RpcInvoker;
 }
 
 const MeridianContext = createContext<MeridianContextState | null>(null);
@@ -175,12 +178,13 @@ export function MeridianProvider({
     [value.invoker, gate],
   );
   const contextValue = useMemo<MeridianContextState>(
-    () => ({ ...value, invoker: readInvoker, mutationInvoker }),
+    () => ({ ...value, invoker: readInvoker, mutationInvoker, actionInvoker: value.invoker }),
     [
       value.theme,
       value.streamSnapshots,
       value.invoker,
       value.admission,
+      value.invocation,
       value.kit,
       value.adhoc,
       value.onAction,

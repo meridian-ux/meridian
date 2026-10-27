@@ -4,6 +4,53 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files(["Cargo.toml"])
 
+rust_test(
+    name = "native_content_test",
+    srcs = ["tests/native_content.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+    ],
+)
+
+rust_test(
+    name = "native_rows_test",
+    srcs = ["tests/native_rows.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "//crates/core/rust:serde_json",
+    ],
+)
+
+rust_test(
+    name = "native_form_test",
+    srcs = ["tests/native_form.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "@meridian_crates//:prost",
+        "//crates/core/rust:serde_json",
+    ],
+)
+
+# Drive the exported admitted palette API as a real external host without a TTY.
+rust_test(
+    name = "native_launchpad_test",
+    srcs = ["tests/native_launchpad.rs"],
+    edition = "2021",
+    deps = [
+        ":tui",
+        "//crates/core/rust/uiview",
+        "@meridian_crates//:prost",
+        "//crates/core/rust:serde_json",
+    ],
+)
+
 rust_library(
     name = "tui",
     srcs = [
@@ -11,6 +58,7 @@ rust_library(
         "src/enum_options.rs",
         "src/conversation.rs",
         "src/invoker.rs",
+        "src/invocation.rs",
         "src/inline_prompt.rs",
         "src/launchpad.rs",
         "src/lib.rs",
@@ -21,6 +69,7 @@ rust_library(
         "src/theme.rs",
         "src/view.rs",
         "src/widget.rs",
+        "src/widget/actions.rs",
     ],
     crate_name = "meridian_tui",
     compile_data = [
@@ -86,7 +135,8 @@ rust_binary(
 # tests only, so an integration test needs its own target or it never runs.
 rust_test(
     name = "render_descriptor_test",
-    srcs = ["tests/render_descriptor.rs"],
+    srcs = ["tests/render_descriptor.rs", "tests/support/mod.rs"],
+    crate_root = "tests/render_descriptor.rs",
     data = ["//schemas:conformance_binpb"],
     edition = "2021",
     deps = [
@@ -105,7 +155,8 @@ rust_test(
 # through the real native dispatch, not Rust-authored copies or canned rows.
 rust_test(
     name = "stateful_conformance_test",
-    srcs = ["tests/stateful_conformance.rs"],
+    srcs = ["tests/stateful_conformance.rs", "tests/support/mod.rs"],
+    crate_root = "tests/stateful_conformance.rs",
     data = ["//schemas:stateful_conformance_data"],
     edition = "2021",
     deps = [

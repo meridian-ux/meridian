@@ -11,29 +11,31 @@ import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
+import { MeridianRecordContext } from "../src/pagination.js";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form transport", (_, kit) => {
-  const panel = () => create(FormPanelSchema, { mode: 2, itemNoun: "record", submit: {
+  const panel = () => create(FormPanelSchema, { mode: 2, itemNoun: "record", submitAffordance: { label: "Save record", invoke: { case: "rpc", value: {
     service: "demo.Records", method: "Update", bindings: [{ requestField: "scope", source: { case: "literal", value: "scope-1" } }],
-  }, fields: [
+  } } }, fields: [
     { fieldId: "name", requestField: "legacy.name", label: "Name", kind: { case: "text", value: { defaultValue: "Ada", minLength: 2 } } },
     { fieldId: "count", label: "Count", kind: { case: "integer", value: { defaultValue: 2 } } },
     { fieldId: "enabled", label: "Enabled", kind: { case: "boolean", value: { defaultValue: true } } },
   ] });
-  async function mount(p: ReturnType<typeof panel>, invoke: (...args: any[]) => Promise<any>, allowed = true) {
+  async function mount(p: ReturnType<typeof panel>, invoke: (...args: any[]) => Promise<any>, allowed = true, record?: object) {
     const container = document.createElement("div");
     document.body.append(container);
     const root = createRoot(container);
     await act(async () => root.render(createElement(MeridianProvider, { kit, adhoc: {}, invoker: { invoke },
-      admission: { mutations: allowed ? ["demo.Records/Update"] : [] }, children: createElement(kit.Form, {
-        descriptor: create(PanelDescriptorSchema, { body: { case: "form", value: p } }), panel: p, invoker: { invoke } }) })));
+      admission: { mutations: allowed ? ["demo.Records/Update"] : [] }, children: createElement(MeridianRecordContext.Provider, { value: record }, createElement(kit.Form, {
+        descriptor: create(PanelDescriptorSchema, { body: { case: "form", value: p } }), panel: p, invoker: { invoke } })) })));
     return { container, close: async () => { await act(async () => root.unmount()); container.remove(); } };
   }
   const submit = (container: HTMLElement) => container.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-  it("shares the submit budget across bindings and typed values, retaining input for a smaller retry", async () => {
+  it("rejects oversized RPC declarations without losing entered values, even on smaller-input retry", async () => {
     const p = panel();
-    p.submit!.bindings[0].source = { case: "literal", value: "s".repeat(400_000) };
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings[0].source = { case: "literal", value: "s".repeat(400_000) };
     const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
     const view = await mount(p, invoke);
     try {
@@ -41,19 +43,46 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       input.value = "v".repeat(400_000);
       await act(async () => { submit(view.container); });
       expect(invoke).not.toHaveBeenCalled();
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Request construction rejected");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Action failed");
       expect(input.value).toHaveLength(400_000);
+      input.value = "smaller";
+      await act(async () => { submit(view.container); });
+      expect(invoke).not.toHaveBeenCalled();
+      expect(input.value).toBe("smaller");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Action failed");
+    } finally { await view.close(); }
+  });
+
+  it("shares the Rust submit budget across runtime bindings and typed inputs, retaining a smaller retry", async () => {
+    const p = panel();
+    // Keep the call below the unchanged 64 KiB declaration boundary. Repeated
+    // borrowed copies still consume work even though they overwrite one key.
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings = Array.from({ length: 10 }, () => create(FieldBindingSchema, {
+      requestField: "scope", source: { case: "rowField", value: "payload" },
+    }));
+    const invoke = vi.fn(async (_s: string, _m: string, _request: object) => ({}));
+    const view = await mount(p, invoke, true, { payload: "s".repeat(400_000) });
+    try {
+      const input = view.container.querySelector<HTMLInputElement>('input[name="legacy.name"]')!;
+      input.value = "v".repeat(200_000);
+      await act(async () => { submit(view.container); });
+      expect(invoke).not.toHaveBeenCalled();
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Action failed");
+      expect(input.value).toHaveLength(200_000);
       input.value = "smaller";
       await act(async () => { submit(view.container); });
       expect(invoke).toHaveBeenCalledOnce();
       expect(invoke.mock.calls[0][2]).toMatchObject({ name: "smaller", count: 2, enabled: true });
+      expect((invoke.mock.calls[0][2] as { scope: string }).scope).toHaveLength(400_000);
       expect(view.container.querySelector('[role="alert"]')).toBeNull();
     } finally { await view.close(); }
   });
 
   it("uses explicit binding precedence and declared formField sources without changing the entered value", async () => {
     const p = panel();
-    p.submit!.bindings.push(...[
+    if (p.submitAffordance?.invoke.case !== "rpc") throw Error("Expected RPC");
+    p.submitAffordance.invoke.value.bindings.push(...[
       { requestField: "name", source: { case: "literal" as const, value: "bound" } },
       { requestField: "copy", source: { case: "formField" as const, value: "name" } },
       { requestField: "hidden", source: { case: "formField" as const, value: "secret" } },
@@ -196,7 +225,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     } finally { await view.close(); }
   });
   const enumPanel = () => create(FormPanelSchema, { mode: 2,
-    submit: { service: "demo.Records", method: "Update" }, fields: [
+    submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "demo.Records", method: "Update" } } }, fields: [
       { fieldId: "region", label: "Region", kind: { case: "enumSelection", value: {
         defaultValue: "west", optionsSource: { service: "demo.Options", method: "List", optionsField: "outer.items", valueField: "id", labelField: "display.label" },
       } } },
@@ -335,7 +364,9 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     try {
       await act(async () => { submit(view.container); submit(view.container); });
       expect(invoke.mock.calls).toEqual([["demo.Records", "Update", { scope: "scope-1", name: "Ada", count: 2, enabled: true }]]);
-      expect(view.container.querySelector<HTMLButtonElement>("button[type=submit]")!.disabled).toBe(true);
+      expect(view.container.querySelector<HTMLButtonElement>("button[type=submit]")!.getAttribute("aria-disabled")).toBe("true");
+      expect(view.container.querySelector<HTMLButtonElement>("button[type=submit]")!.disabled).toBe(false);
+      expect(view.container.textContent).toContain("Cancel action");
       expect(normalizeDom(view.container)).toMatchSnapshot("form saving");
       await act(async () => finish({}));
       expect(view.container.textContent).toContain("Saved.");
@@ -353,8 +384,11 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
     } finally { await view.close(); }
     const denied = await mount(panel(), invoke, false);
     try {
-      expect(denied.container.querySelector<HTMLButtonElement>("button")!.disabled).toBe(true);
+      // Canonical controls retain a reachable denial explanation; enabled UI
+      // is not permission to dispatch the mutation.
+      expect(denied.container.querySelector<HTMLButtonElement>("button")!.disabled).toBe(false);
       await act(async () => { submit(denied.container); });
+      expect(denied.container.querySelector('[role="alert"]')?.textContent).toContain("mutation policy");
       expect(invoke).not.toHaveBeenCalled();
     } finally { await denied.close(); }
   });
@@ -371,7 +405,8 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
       expect(view.container.querySelector<HTMLInputElement>("input")!.value).toBe("<b>Ada</b>");
       await act(async () => { submit(view.container); });
       expect(invoke.mock.calls[1]).toEqual(["demo.Records", "Update", { scope: "scope-1", name: "<b>Ada</b>", count: 7, enabled: false }]);
-      expect(view.container.querySelector('[role="alert"]')?.textContent).toBe("<img src=x> failed");
+      expect(view.container.querySelector('[role="alert"]')?.textContent).toContain("Action failed");
+      expect(view.container.textContent).not.toContain("<img src=x> failed");
       expect(view.container.querySelector("img")).toBeNull();
       expect(normalizeDom(view.container)).toMatchSnapshot("form submit failed with prefilled values");
       await act(async () => { submit(view.container); });
@@ -381,7 +416,7 @@ describe.each([["HTML", htmlKit], ["Shadcn", shadcnKit]] as const)("%s form tran
   });
   it("prefills and submits nested objects, repeated scalars, and string maps", async () => {
     const p = create(FormPanelSchema, { mode: 2, prefill: { service: "demo.Records", method: "Get" },
-      submit: { service: "demo.Records", method: "Update" }, fields: [
+      submitAffordance: { label: "Save", invoke: { case: "rpc", value: { service: "demo.Records", method: "Update" } } }, fields: [
         { fieldId: "profile", kind: { case: "nested", value: { fields: [
           { fieldId: "name", label: "Name", kind: { case: "text", value: {} } },
         ] } } },

@@ -7,7 +7,7 @@
   },
   "modalities": {
     "panel": {
-      "schema": "schemas/proto/panel.proto",
+      "schema": "schemas/proto/interaction.proto",
       "coverage": "schemas/conformance/coverage.json"
     },
     "conversation": {
@@ -16,8 +16,8 @@
       "coverage": "schemas/conformance/coverage.json"
     },
     "launchpad": {
-      "schema": "schemas/proto/command_palette.proto",
-      "oneof": "Command.action",
+      "schema": "schemas/proto/interaction.proto",
+      "oneof": "Affordance.invoke",
       "coverage": "schemas/conformance/coverage.json"
     }
   },

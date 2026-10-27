@@ -1,12 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { clone, create, toBinary } from "@bufbuild/protobuf";
-import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { DescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkLine, loadImage, ownershipChanges, REFERENCES, verifyOwnership } from "./compatibility_line.mjs";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership, verifyRemovalCandidateReference, verifyMaintenanceVersion } from "./compatibility_line.mjs";
+import { RETIRED_FIELDS, verifyRetirement } from "./affordance_removal.mjs";
 import { completeCandidate } from "./prepare_compatibility_candidate.mjs";
 
 test("snapshot preparation retains every unchanged file omitted by the narrow probe", () => {
@@ -44,11 +47,25 @@ test("the maintained line passes its frozen image and rejects the planned reloca
 
 test("candidate verification retains old FILE rejection and passes the explicit candidate baseline", () => {
   const result = checkLine("v1-candidate", REFERENCES["v1-candidate"]);
-  assert.notEqual(result.legacy.status, 0);
+  assert.equal(result.legacy.status, 100);
   assert.match(result.legacy.report, /previously present|deleted/i);
   assert.equal(result.selected.status, 0);
   assert(result.ownership.length > 0);
   assert(result.ownership.every(change => change.endsWith(" -> proto/interaction.proto")));
+});
+
+test("expected migration rejection cannot hide tool failure behind partial FILE output", () => {
+  const report = 'Previously present field "label" was deleted.';
+  requireCompatibilityRejection({ status: 100, report });
+  for (const status of [0, 1, 2, 126, 127, 137, null]) {
+    assert.throws(() => requireCompatibilityRejection({ status, report }),
+      /expected FILE compatibility rejection \(exit 100\)/);
+  }
+});
+
+test("compatibility exit alone does not replace the required ownership rejection report", () => {
+  assert.throws(() => requireCompatibilityRejection({ status: 100, report: "remote service unavailable" }),
+    /expected ownership rejection was not observed/);
 });
 
 test("ownership changes beyond the frozen transition fail before any baseline reset", () => {
@@ -68,4 +85,156 @@ test("candidate FILE still rejects an incompatible field change despite matching
     writeFileSync(path, toBinary(FileDescriptorSetSchema, modified));
     assert.throws(() => checkLine("v1-candidate", path), /v1-candidate FILE rejected/);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("the removal reference is digest-pinned and remains the exact complete transformation", () => {
+  const bytes = readFileSync(REFERENCES["v1-removal-candidate"]);
+  const reference = verifyRemovalCandidateReference(bytes);
+  assert(reference.file.some(file => file.name.startsWith("conformance/")));
+  const altered = Buffer.from(bytes); altered[altered.length - 1] ^= 1;
+  assert.throws(() => verifyRemovalCandidateReference(altered), /reference changed; exact review required/);
+  assert.throws(() => verifyRemovalCandidateReference(readFileSync(REFERENCES["v1-candidate"])),
+    /reference changed; exact review required/);
+});
+
+test("explicit removal preparation preserves both FILE rejections and inventories only surviving moves", () => {
+  const result = checkLine("v1-removal-candidate", REFERENCES["v1-removal-candidate"]);
+  assert.equal(result.legacy.status, 100);
+  assert.equal(result.additive.status, 100);
+  assert.equal(result.selected.status, 0);
+  assert.equal(result.ownership.length, 41);
+  assert(result.ownership.every(change => change.endsWith(" -> proto/interaction.proto")));
+  assert(result.ownership.every(change => !/meridian\.ui\.v1\.(Action|RowAction|OpenPanel|AffordanceStyle):/.test(change)));
+});
+
+test("removal preparation neither changes the old lines nor adds a production alias", () => {
+  assert.throws(() => checkLine("maintained-0x", REFERENCES["v1-removal-candidate"]), /FILE rejected/);
+  assert.throws(() => checkLine("v1-candidate", REFERENCES["v1-removal-candidate"]), /declaration removed/);
+  assert.throws(() => checkLine("v1-removal-candidate", REFERENCES["v1-candidate"]), /exact reviewed removal/);
+  for (const line of ["v1", "v1-removal", "production", "default"]) {
+    assert.throws(() => checkLine(line, REFERENCES["v1-removal-candidate"]), /unknown release line/);
+  }
+});
+
+test("initial removal rehearsal rejects unrelated additions, incompatible changes and incomplete images", () => {
+  const root = mkdtempSync(join(tmpdir(), "meridian-removal-line-test-"));
+  try {
+    for (const mutate of [
+      image => image.file.find(file => file.name === "proto/interaction.proto").messageType
+        .find(message => message.name === "Affordance").field.find(field => field.name === "label").number = 99,
+      image => image.file.find(file => file.name === "proto/interaction.proto").messageType
+        .push(create(DescriptorProtoSchema, { name: "UnreviewedAddition" })),
+      image => image.file.splice(image.file.findIndex(file => file.name.startsWith("conformance/")), 1),
+    ]) {
+      const modified = loadImage(REFERENCES["v1-removal-candidate"]);
+      mutate(modified);
+      const path = join(root, "unreviewed.binpb");
+      writeFileSync(path, toBinary(FileDescriptorSetSchema, modified));
+      assert.throws(() => checkLine("v1-removal-candidate", path), /exact reviewed removal/);
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("the removal CLI prints both complete old-line reports and cannot approve activation", () => {
+  const script = fileURLToPath(new URL("./compatibility_line.mjs", import.meta.url));
+  const args = [script, "--line", "v1-removal-candidate", "--image", REFERENCES["v1-removal-candidate"]];
+  const result = spawnSync(process.execPath, args, { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Maintained 0.x FILE: REJECTED \(exit 100\); full report follows/);
+  assert.match(result.stdout, /Pre-removal additive FILE: REJECTED \(exit 100\); full report follows/);
+  assert.match(result.stdout, /Frozen transition ownership \(41 declarations\)/);
+  assert.match(result.stdout, /v1-removal-candidate FILE: passed/);
+  assert.match(result.stdout, /PREPARATION ONLY: no production baseline activation/);
+  const expected = checkLine("v1-removal-candidate", REFERENCES["v1-removal-candidate"]);
+  assert(result.stdout.includes(expected.legacy.report), "complete maintained FILE report must remain visible");
+  assert(result.stdout.includes(expected.additive.report), "complete additive FILE report must remain visible");
+  const approval = spawnSync(process.execPath, [...args, "--approve"], { encoding: "utf8" });
+  assert.notEqual(approval.status, 0);
+  assert.match(approval.stderr, /usage:/);
+});
+
+test("maintenance proposal permits FILE-compatible additions while the exact initial rehearsal still rejects them", () => {
+  const work = mkdtempSync(join(tmpdir(), "meridian-maintenance-proposal-"));
+  try {
+    const image = loadImage(REFERENCES["v1-removal-candidate"]);
+    image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .push(create(DescriptorProtoSchema, { name: "FutureAddition" }));
+    const path = join(work, "addition.binpb");
+    writeFileSync(path, toBinary(FileDescriptorSetSchema, image));
+    const result = checkLine("v1-maintenance-proposal", path);
+    assert.equal(result.selected.status, 0);
+    assert.equal(result.legacy.status, 100);
+    assert.equal(result.additive.status, 100);
+    assert.equal(result.ownership.length, 41);
+    assert.throws(() => checkLine("v1-removal-candidate", path), /exact reviewed removal/);
+    const label = image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .find(message => message.name === "Affordance").field.find(field => field.name === "label");
+    label.number = 99;
+    writeFileSync(path, toBinary(FileDescriptorSetSchema, image));
+    assert.throws(() => checkLine("v1-maintenance-proposal", path), /FILE rejected/);
+  } finally { rmSync(work, { recursive: true, force: true }); }
+});
+
+test("maintenance proposal keeps all nine retired fields and reservations retired", () => {
+  for (const [owner, fields] of Object.entries(RETIRED_FIELDS)) {
+    for (const [name, number] of Object.entries(fields)) {
+      for (const kind of ["name", "range", "field"]) {
+        const image = loadImage(REFERENCES["v1-removal-candidate"]);
+        const message = image.file.flatMap(file => file.messageType).find(item => item.name === owner);
+        if (kind === "name") message.reservedName = message.reservedName.filter(value => value !== name);
+        if (kind === "range") message.reservedRange = message.reservedRange.filter(range => !(range.start <= number && number < range.end));
+        if (kind === "field") message.field.push({ ...message.field[0], name: "resurrected", number });
+        assert.throws(() => verifyRetirement(image), /retirement reservation missing|retired field resurrected/);
+      }
+    }
+  }
+});
+
+test("maintenance proposal rejects retired full names even with a new declaration kind", () => {
+  for (const name of ["Action", "RowAction", "OpenPanel", "AffordanceStyle"]) {
+    const image = loadImage(REFERENCES["v1-removal-candidate"]);
+    image.file.find(file => file.name === "proto/interaction.proto").messageType
+      .push(create(DescriptorProtoSchema, { name }));
+    assert.throws(() => verifyRetirement(image), /retired full name resurrected/);
+  }
+  const image = loadImage(REFERENCES["v1-removal-candidate"]);
+  image.file.flatMap(file => file.messageType).find(item => item.name === "Command")
+    .oneofDecl.push({ $typeName: "google.protobuf.OneofDescriptorProto", name: "action" });
+  assert.throws(() => verifyRetirement(image), /retired Command.action oneof resurrected/);
+});
+
+test("maintenance proposal is major-1-only and does not create production aliases", () => {
+  for (const version of ["1.0.0-alpha.1", "1.0.0", "1.12.3+build.7"]) verifyMaintenanceVersion(version);
+  for (const version of ["0.25.1", "2.0.0", "latest", "v1.0.0", "1", "1.00.0"]) {
+    assert.throws(() => verifyMaintenanceVersion(version), /major-1/);
+  }
+  const result = checkLine("v1-maintenance-proposal", REFERENCES["v1-removal-candidate"]);
+  assert.equal(result.selected.status, 0);
+  for (const line of ["v1", "production", "default"]) assert.throws(() => checkLine(line, REFERENCES["v1-removal-candidate"]), /unknown release line/);
+});
+
+test("an aliased absolute CLI path cannot skip release-line validation", () => {
+  const work = mkdtempSync(join(tmpdir(), "meridian-cli-alias-"));
+  try {
+    const source = fileURLToPath(new URL("../../", import.meta.url));
+    const alias = join(work, "source");
+    symlinkSync(source, alias, "dir");
+    const result = spawnSync(process.execPath, [join(alias, "schemas/tools/compatibility_line.mjs"),
+      "--line", "definitely-unknown", "--image", join(work, "missing.binpb")], { encoding: "utf8" });
+    assert.notEqual(result.status, 0, "invalid release-line input must not silently succeed through a path alias");
+    assert.match(result.stderr, /unknown release line/);
+  } finally { rmSync(work, { recursive: true, force: true }); }
+});
+
+
+test("selected maintenance evaluator reports no operational approval and retains explicit old-line rejections", () => {
+  const script = fileURLToPath(new URL("./compatibility_line.mjs", import.meta.url));
+  const args = [script, "--line", "v1-maintenance-proposal", "--image", REFERENCES["v1-removal-candidate"]];
+  const result = spawnSync(process.execPath, args, { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /FILE evaluation only: no merge, publication, deployment, or live automation approval/);
+  assert.match(result.stdout, /Maintained 0.x FILE: REJECTED/);
+  assert.match(result.stdout, /Pre-removal additive FILE: REJECTED/);
+  assert(!result.stdout.includes("PREPARATION ONLY"));
+  assert.notEqual(spawnSync(process.execPath, [...args, "--approve"], { encoding: "utf8" }).status, 0);
 });

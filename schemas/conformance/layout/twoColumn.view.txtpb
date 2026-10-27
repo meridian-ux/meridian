@@ -46,12 +46,14 @@ slots {
       title: "Content tie-a"
     }
   }
-  actions {
-    id: "inspect"
-    label: "Inspect section"
-    call {
-      service: "fixture.Layout"
-      method: "Inspect"
+  affordances {
+    items {
+      id: "inspect"
+      label: "Inspect section"
+      rpc {
+        service: "fixture.Layout"
+        method: "Inspect"
+      }
     }
   }
 }
@@ -83,11 +85,13 @@ slots {
     }
   }
 }
-actions {
-  id: "export"
-  label: "Export layout"
-  call {
-    service: "fixture.Layout"
-    method: "Export"
+affordances {
+  items {
+    id: "export"
+    label: "Export layout"
+    rpc {
+      service: "fixture.Layout"
+      method: "Export"
+    }
   }
 }

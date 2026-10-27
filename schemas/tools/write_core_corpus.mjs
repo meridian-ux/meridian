@@ -256,6 +256,16 @@ const corpus = {
       { requestField: "absent", formField: "nil" }, { requestField: "text", formField: "text" },
       { requestField: "values", formField: "values" }, { requestField: "scope", selectionKey: "scope" },
     ], { formValues: { nil: null, text: "", values: [] }, selections: { scope: false } }, { text: "", values: [], scope: false }),
+    request("unset-selection-omits-only-synthesized-envelopes", [
+      { requestField: "outer", nested: { fields: [{ requestField: "inner", nested: { fields: [
+        { requestField: "unset", selectionKey: "unset" },
+      ] } }] } },
+      { requestField: "raw", rowField: "empty" }, { requestField: "literal", literal: "" },
+    ], { selectedRow: { empty: {} }, selections: { unset: "" } }, { raw: {}, literal: "" }),
+    request("selection-preserves-zero-false-and-whitespace", [
+      { requestField: "zero", selectionKey: "zero" }, { requestField: "no", selectionKey: "no" },
+      { requestField: "space", selectionKey: "space" },
+    ], { selections: { zero: 0, no: false, space: "  " } }, { zero: 0, no: false, space: "  " }),
     request("ordered-path-overwrite", [
       { requestField: "a", literal: "old" }, { requestField: "a.b", literal: "new" },
       { requestField: "a.b", literal: "last" },

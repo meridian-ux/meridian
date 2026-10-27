@@ -8,5 +8,5 @@ Typed value: 12.50   [c] copy
 │                  ││                  │
 │                  ││                  │
 │                  ││                  │
-└──────────────────┘└──────────────────┘
+[1/1] Copy literal [value hidden] · ←/→
 end viewport

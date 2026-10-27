@@ -73,6 +73,226 @@ This is also the record handoff used by the composed `ViewHost` below.
 
 ## Composed native views
 
+### Explicit native invocation host
+
+Canonical header and slot `affordances` now take precedence as a whole, including
+empty collections. Enter/Space passes the selected declaration through
+`ViewHost::handle_key_with_invocation` and a `NativeInvocationHost`. Calling the
+ordinary `handle_key` without that host visibly denies canonical actions.
+Rendering, focus movement and descriptor metadata never execute capabilities.
+
+The host supplies separate optional RPC, URI, command, navigation, panel, view
+and copy callbacks. RPC always requires the pure `mutations` policy, even for
+Get/List; a stricter optional `admit` may also deny it. Non-RPC targets require
+both their explicit capability and `admit`. There is no implicit opener, shell,
+clipboard, panel/view mount, or fallback transport. Unsafe active/document-local
+URI schemes and controls are refused; the host must validate its own destination
+semantics. Commands are not copies, and an empty literal copy remains valid.
+
+Callbacks borrow immutable protobuf intent and runtime context. Construct scope
+with `NativeInvocationContext::new(context).with_record(record)` and use its
+effective `selected_row()` accessor for policy and effects; the raw ambient
+selection is not exposed. Repeated records override ambient selection, preserving
+raw zero, false and Unicode. RPC assembly
+uses the existing bounded Rust request builder, with no invented ID binding.
+Retired Action IDs do not resolve to destinations, and the generic
+`resolve_semantic` API is removed. Author canonical intent instead. Permission
+and separate ResourceAction resolver callbacks must be
+pure; policy is rechecked after optional consent and request construction.
+Confirmation is not authorization. Failures have fixed messages without raw
+transport errors or bound values. A failed refresh is a completed effect, not a
+reason to repeat it; explicit false suppresses refresh.
+
+This API is synchronous, matching the existing native `RpcInvoker`. A capability
+must return only after its effect settles. The renderer adds no async runtime or
+background transport and does not replace LRO start/poll/finalize with an
+acknowledged action. Hosts may own workers and use the cloned
+`invocation_dispatcher()` cancellation handle; view invalidation/drop cancels
+observation. The single-flight guard stays held through noncooperative settlement,
+including reentrant callbacks. Cancellation cannot roll back an already-sent effect.
+
+A bounded exact context key (not a hash) rejects obsolete key activation until
+redraw. Ordinary and row-override context domains retain at most one key each;
+derived immutable records never copy an irrelevant ambient row. Captured parent
+read requests are revalidated before activation, and target/record identity
+changes cancel retained workers even when replacement rows have equal values.
+Each context capture shares a 4 MiB cumulative native copy budget, a separate
+4 MiB serialized-key cap, and the existing 64-level value-depth bound. These keys
+remain private in-process state, never an interchange/audit DTO. Protobuf control
+counts include canonical collections in the existing 1,000-node composition
+ceiling and retain the 16 KiB label and 4 MiB descriptor caps.
+
+Compatibility boundary: the `ViewResponse::Action` variant and
+`PanelAppState::invoke` helper remain in-process host API shapes, not permission
+grants or revived legacy descriptor sources. Canonical header/slot controls use
+the explicit admitted host path; denial never returns a raw mutation handoff. Final
+producer migration/deprecation/cutover remains separate work. The standalone
+executable stays offline and never gains mutation transport.
+
+### Admitted native palette
+
+Use `LaunchpadState::draw_with_invocation(..., context, palette)` and
+`on_key_with_invocation(key, descriptor, context, host)` together. Drawing and
+shared-core filtering execute no host callbacks. Enter uses the shared typed
+native dispatcher reads only `Command.affordance`, including when intent is
+missing. All seven canonical targets require admission. Historical command
+fields, semantic command IDs, and deep links never recover a destination.
+
+`NativeLaunchpadResponse::Executed` means the effect already ran; dismiss the
+palette and do not execute the command again. Only success returns that response.
+Denial, failure, cancellation, or refresh failure stays open with fixed feedback.
+A completed effect with failed refresh cannot run again from the same mounted
+frame. Escape/Ctrl-C returns `Cancelled`; `close()` ends the open generation.
+The synchronous host contract and separate LRO workflow remain unchanged.
+
+The admitted path captures exact bounded descriptor, query, cursor, agent, and
+context keys. Changes withdraw old key activation until redraw and cancel
+retained workers without releasing their single-flight guard before settlement.
+Query/cursor edits and agent replacement also withdraw the frame; closing or
+dropping the owner cancels observation. Cloning creates an independent owner,
+without inherited invocation state or query tokens. No transport is installed.
+
+For asynchronous agent resolution, retain `query_token()` and return results
+through `set_agent_commands_for_query(&token, commands)`. Stale query generations
+(including A→B→A), closed/successfully dismissed palettes, and other owners reject
+that token. Query changes clear old agent results. `set_agent_commands` is only a
+synchronous current-query compatibility setter. The admitted path rejects the
+whole input above 1,000 aggregate groups/commands/keywords/default references or
+4 MiB encoded declarations; query and agent heading are capped at 16 KiB. Context
+keys use the existing cumulative native copy/key/depth limits. No limits increase.
+
+The old `on_key` visibly denies present canonical commands without the explicit
+host. It may still return a metadata-only envelope, but `command_outcome` returns
+`LaunchpadOutcome::None` without canonical intent, not a legacy execution target.
+Present intent returns `LaunchpadOutcome::Canonical`; exhaustive host matches
+must handle that variant. Neither decoding nor a compatibility response grants admission.
+
+### Validated native form submission
+
+After `PanelView::render`, use `handle_form_key_with_invocation(form, context,
+key_event, host)`. Composed `ViewHost::handle_key_with_invocation` uses this path
+automatically. It returns an invocation outcome, not a raw `FormSubmission` to
+execute again. Only canonical `submit_affordance` supplies submission intent;
+historical submit RPC wire fields are inert and cannot recover a call.
+The ordinary form key handler visibly denies canonical submission without a host.
+Canonical label, description, icon, tone, and emphasis use the existing native
+affordance presentation; literal copy payloads stay hidden and panel targets
+remain inert metadata during rendering.
+
+Validate current collected values before policy, confirmation, or effects. All
+seven targets use the shared dispatcher; RPC uses the actual core form assembler,
+including automatic declared field IDs and explicit-binding precedence. Native
+policy/effect callbacks use `form_value(id)` or the `form_values()` iterator for
+effective collected fields, not ambient host shadows or undeclared prefill IDs.
+Values remain typed/raw, including zero, false, nested objects, arrays, maps, and
+Unicode. This iterator replaces the provisional ambient-map getter in the
+unmerged native-host migration API.
+
+Hosts must read-admit/resolve remote enum choices before supplying the native
+descriptor and clear `options_source` on those resolved fields. An unresolved
+source denies submission even with legacy static options present. No implicit
+options transport or new read permission is installed. Compound-editor Enter
+commits the local value; a separate form Enter validates and submits. Readonly
+forms and the separate LRO/Prompt token workflows never become ordinary actions.
+
+Form context changes withdraw old activation until redraw, then reload defaults
+and prefill. Repeated-parent read requests are checked before activation. Local
+immutable records override ambient selection. A composed view shares its two
+bounded context captures and single-flight group across headers and forms, rather
+than allocating a context key per form. Invalidation, edits, record replacement,
+and drop cancel observation without releasing noncooperative work early. The API
+remains synchronous; host-owned workers retain the existing cancellation contract.
+
+Prefill/record overlays charge defaults plus copied source cumulatively against
+the existing 4 MiB/depth budget before merging. Form declarations retain existing
+1,000-field/default-expansion and 4 MiB descriptor bounds; request construction
+still enforces its stricter declaration and copy limits. Failure preserves edits
+with sanitized feedback. A successful save or completed-effect refresh failure
+cannot replay merely through repeated Enter or focus movement; an actual value
+edit, source reload, or explicit invalidation starts a new submission revision.
+
+### Admitted table and resource actions
+
+After `PanelView::render`, use `handle_action_key_with_invocation(panel, context,
+key_event, host)` for tables and resource cards. Composed views route these
+controls through the same host automatically. Up/Down selects a raw record;
+Left/Right selects an action; Enter/Space activates it. Resource cards also accept
+their displayed 1–9 shortcuts. Tables do not have numeric action shortcuts.
+The selected resource card starts the visible card window. Action captions stay
+visible separately from fixed outcome feedback; danger uses the existing palette
+role, not a new token.
+
+In the unmerged removal candidate, tables read only canonical `affordances`,
+including an empty collection; historical RowAction wire is inert. Canonical
+`enabled_when` and resource visibility predicates are checked against the actual selected record. No selected
+record means no effect, even for a literal copy; ambient selection is never a
+fallback. RPC request assembly retains typed zero/false/Unicode values without
+invented ID bindings. All seven canonical targets use the shared admission host.
+Table refresh uses the authored canonical setting, including explicit
+`refresh_on_success=false`. ResourceAction retains its separate existing refresh
+contract and resolver; it is not one of the retired Action/RowAction DTOs.
+
+A resource action with no `invoke` requires the pure typed `resolve_resource`
+callback. Its ID is never a route, synthetic action, or RPC fallback. A present
+`ConfirmSpec` always requires `confirm_resource`, even after semantic resolution.
+The callback receives the original literal spec, resolved target, and current
+record; do not interpolate untrusted spec text. Optional generic confirmation
+does not substitute for required resource consent. Neither consent grants
+permission: policy is checked again before execution.
+
+Source/context changes and navigation withdraw activation until the current
+control is drawn. Zero geometry and virtualized or partially visible controls
+withdraw execution ownership without discarding cached data or form edits.
+Repeated-parent read scopes are revalidated. Inert legacy request projections
+remain available for 0.x compatibility, but are not admission grants. Host work
+retains the shared cancellation/single-flight contract through settlement.
+Completed-effect refresh failures cannot replay merely by navigating away/back;
+bounded per-source history fails closed instead of evicting completed entries.
+
+Resource rendering preflights all raw rows and repeated title/subtitle/status,
+metadata, and action labels before cloning or formatting, including hidden
+actions. It uses the existing cumulative 4 MiB work and depth budgets; this is
+not an exact heap-memory bound. Malformed resource records fail the whole input.
+Declarations retain the existing aggregate control/label/descriptor caps. No
+schema, compatibility baseline, budget, or transport authority changes here.
+
+### Admitted content actions and literal copy
+
+The same `handle_action_key_with_invocation` path now handles Action, Catalog,
+ConnectFlow, Steps, Snippet, and CopyValue panels. `has_action_controls` only
+reports supported shape; it grants nothing. All seven canonical targets use the
+same explicit host, current context, predicates, consent/recheck, sanitized
+outcomes, and cancellation/single-flight contract as row controls. No selected
+affordance projection is an authorization grant. Present-but-missing intent
+denies; there is no route, RPC, command-to-copy, or transport fallback.
+
+Up/Down selects an item, target, or step. Left/Right selects every action within
+the current target, followed by its config snippets and then the shared endpoint.
+Enter/Space activates the selected control; `c` activates it only when it is a
+literal-copy control. Snippet and CopyValue preserve original bytes, including
+empty strings, whitespace, Unicode, and masked plaintext; formatted visible
+values are never the copy source. Copy requires both the explicit callback and
+admission, even for a hidden secret. Reveal is local presentation, not permission.
+Rendering never emits OSC52 or touches the clipboard.
+
+ConnectFlow applies its declared default target once per source generation;
+subsequent navigation can reach every actual target, including index zero.
+Selection changes, including wraparound to the same effective target, withdraw
+activation until redraw. Mounted action captions remain visible separately from
+outcome status, including for long content. Repeated-parent request scopes and
+immutable local records remain authoritative; offscreen/partial/zero-size controls
+cannot execute. Aggregate item/step/target/action/config declarations share the
+existing 1,000-control ceiling and label/descriptor bounds; no limit increases.
+
+The offline executable routes standalone content/forms and composed controls
+through the default-denied host so attempts report denial rather than silently
+ignoring activation. It installs no capability, mutation policy, clipboard,
+shell, opener, or transport. Local prompts and LRO workflows retain their
+separate protocols. Old raw response/selected-affordance/PanelAppState seams
+remain 0.x compatibility data pending coordinated producer cutover.
+
+### Composition and input lifecycle
+
 `ViewHost::new(descriptor)` owns a canonical `ViewDescriptor`. Render it into the
 host's frame with `render`, passing the same `Context` and host-owned `RpcInvoker`
 used for panels. The standalone offline viewer accepts `meridian-tui view.binpb
@@ -200,7 +420,8 @@ Hosts can call `PanelView::selected_row_request(&call, &context, legacy_id_fallb
 to resolve an action's declared bindings against the selected raw table or resource
 row. The helper uses the core request builder, preserves host context, and returns
 `None` without a selection. Unbound calls produce `{}` unless the caller opts into
-the legacy non-null row `id` fallback. Hosts still decide whether an action is
+the explicit runtime-only non-null row `id` fallback. Canonical renderer invocation
+does not opt into that helper fallback or invent bindings. Hosts still decide whether an action is
 eligible, authorize it, invoke the RPC, and refresh the panel after success.
 
 ```bash

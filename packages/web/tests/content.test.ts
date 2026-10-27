@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
 import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
 import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { InvocationHost } from "@savvifi/meridian-schemas/uiview";
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import {
@@ -38,7 +39,7 @@ const CTX = { currentResourcePath: null, uiIdentity: null, selectedRow: null, fo
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 const invoker = { invoke: async () => ({}) };
 
-async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"], withIcons = false) {
+async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"], withIcons = false, invocation?: InvocationHost) {
   const root = document.createElement("div");
   await renderPanel({
     wasm: noWasm,
@@ -46,6 +47,7 @@ async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"],
     descriptor,
     invoker,
     context: CTX,
+    invocation,
     renderIcon: withIcons
       ? (key: string) => {
           const i = document.createElement("i");
@@ -57,19 +59,20 @@ async function draw(descriptor: Parameters<typeof renderPanel>[0]["descriptor"],
   return root;
 }
 
-it.each([undefined, 0, 1, 2, 999])("action emphasis %s and Tone never bypass safe destinations or change copy payloads", async emphasis => {
+it.each([undefined, 0, 1, 2, 999])("action emphasis %s and Tone never bypass admission or change typed target payloads", async emphasis => {
   for (const tone of [undefined, 0, 1, 2, 3, 4, 5, 6, 999]) {
     const writeText = vi.fn(async () => {});
+    const admittedTarget = vi.fn(async (_target: string) => {});
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     for (const target of ["/next", "javascript:alert(1)", "echo raw command"]) {
       const command = target.startsWith("echo");
       const descriptor = create(PanelDescriptorSchema, { body: { case: "action", value: { action: {
-        label: "Action", description: "Explain", style: 1, tone, emphasis,
+        label: "Action", description: "Explain", tone, emphasis,
         invoke: command ? { case: "command", value: target } : { case: "uri", value: target },
       } } } });
-      const root = await draw(descriptor);
+      const root = await draw(descriptor, false, { admit: () => true, capabilities: { uri: admittedTarget, command: admittedTarget } });
       const control = root.querySelector(".mer-affordance") as HTMLElement;
-      const primary = emphasis === undefined || emphasis === 1;
+      const primary = emphasis === 1;
       expect(control.classList.contains("mer-affordance-primary")).toBe(primary);
       expect(control.dataset.merTone).toBe(tone === undefined ? undefined : ["neutral", "neutral", "info", "success", "warning", "danger", "accent"][tone] ?? "neutral");
       if (emphasis !== undefined) expect(control.style.borderWidth).toBe(primary ? "2px" : "1px");
@@ -77,11 +80,16 @@ it.each([undefined, 0, 1, 2, 999])("action emphasis %s and Tone never bypass saf
         expect((control as HTMLButtonElement).disabled).toBe(true);
         control.click();
         expect(writeText).not.toHaveBeenCalled();
+        expect(admittedTarget).not.toHaveBeenCalledWith(target, expect.anything(), expect.anything());
       } else if (command) {
         expect(writeText).not.toHaveBeenCalled();
         control.click();
-        await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(target));
-      } else expect(control.getAttribute("href")).toBe("/next");
+        await vi.waitFor(() => expect(admittedTarget).toHaveBeenCalledWith(target, CTX, expect.any(AbortSignal)));
+        expect(writeText).not.toHaveBeenCalled();
+      } else {
+        expect(control.getAttribute("href")).toBeNull(); control.click();
+        await vi.waitFor(() => expect(admittedTarget).toHaveBeenCalledWith("/next", CTX, expect.any(AbortSignal)));
+      }
     }
   }
 });
@@ -118,10 +126,12 @@ describe("web-components content shapes (field-complete)", () => {
     expect(root.textContent).toContain("(json)");
   });
 
-  it("Action renders the affordance (uri → link) + description", async () => {
-    const root = await draw(actionFixture);
-    const link = root.querySelector("a.mer-affordance") as HTMLAnchorElement;
-    expect(link?.getAttribute("href")).toBe("cursor://install");
+  it("Action renders an admitted URI button without a context-menu bypass", async () => {
+    const uri = vi.fn(async (_uri: string) => {});
+    const root = await draw(actionFixture, false, { admit: () => true, capabilities: { uri } });
+    expect(root.querySelector("a.mer-affordance")).toBeNull();
+    root.querySelector<HTMLButtonElement>("button.mer-affordance")!.click();
+    await vi.waitFor(() => expect(uri).toHaveBeenCalledWith("cursor://install", CTX, expect.any(AbortSignal)));
   });
 
   it.each(["javascript:alert(1)", "data:text/html,unsafe", "file:///etc/passwd", "java\nscript:alert(1)"])(

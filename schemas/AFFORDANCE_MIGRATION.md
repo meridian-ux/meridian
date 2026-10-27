@@ -1,5 +1,16 @@
 # Proposal: versioned Affordance declaration migration
 
+## Authorized draft removal follow-up
+
+The owner has authorized preparing the combined removal implementation,
+including AffordanceStyle retirement, at the proposed single alpha boundary.
+See [REMOVAL.md](migration/REMOVAL.md) for the exact transition checker and honest
+current verification limits. The draft source is now canonical-only; older
+additive proof descriptions below are historical context, not a claim that all
+removal consumers compile or that the new major boundary is integrated.
+Production FILE selection, merging, live activation, and publication remain
+separately gated. No existing frozen reference or production FILE rule changed.
+
 Status: migration implementation PRs authorized; **not approved for production cutover**.
 Companion to [AFFORDANCE_RFC.md](AFFORDANCE_RFC.md), roadmap #47/#48.
 The user has now authorized coordinated implementation PRs, explicit versioned
@@ -7,37 +18,95 @@ FILE-transition preparation, and public/private consumer upgrades. Final product
 cutover remains separately approval-gated. No main-branch declaration move,
 baseline activation, release publication, or FILE relaxation is authorized here.
 
+## Historical additive implementation candidate (unmerged)
+
+Before the removal follow-up above, the additive candidate explicitly marked nine retained invocation/presentation fields
+and the three obsolete message types deprecated; the [migration guide](migration/DEPRECATION.md) lists
+exact tags, replacements, warning implications, and mandatory 1.0 removal
+prerequisites. This narrowly tested metadata addition is not removal or production
+activation. All other old declaration options stay exact. Older proposal-only
+measurements below describe their original proof boundary, not completion of
+today's producer/host/removal work.
+
+The candidate relocates the nine compilation units into `proto/interaction.proto`,
+retains public-import facades and generated TypeScript module exports, and adds
+the typed invocation/presence fields below. Cargo's committed image is regenerated
+from actual Bazel dependency outputs, validated for conflicts/missing dependencies,
+and ordered dependency-first. Native passive projections handle all seven invoke
+arms without executing them or displaying clipboard payloads. These checks do
+not establish canonical activation-policy adoption by every renderer.
+
+The production FILE policy remains unchanged. The actual full-module candidate
+passes the explicit frozen `v1-candidate` comparison while maintained 0.x rejects
+the 45 ownership moves. The explicit `--canonical` harness now compiles the real
+source image and compares it with the frozen full-module old reader. It retains
+all fixture, typed invocation, policy/envelope presence, both generator modes,
+and FILE-rejection assertions. The canonical Rust phase requires full workspace
+success, not an expected compiler error. The coordinated Swift preview candidate
+now explicitly dispatches all seven arms through installed host capabilities,
+separates read/mutation RPC admission, and uses shared bounded Rust predicates.
+Its canonical phase requires successful package tests, not the historical
+exhaustive-switch failure. This does not promote SwiftUI coverage or prove
+canonical collection normalization/refresh and every cross-surface lifecycle.
+Other renderer dispatch, producer upgrades, and
+final production cutover remain outstanding. Keep this candidate unmerged until
+those requirements and separate cutover approval are satisfied.
+
 The first implementation foundation shares `tools/proto_facades.mjs` between
 `pnpm codegen` and the Bazel protobuf-es action. Its frozen pre-v1 descriptor is
 documented in [compat/README.md](compat/README.md). The real nine-file probe now
 uses this compiler-backed transform in both generator modes, rather than a
-probe-local export rewrite. The current canonical schema still has no relocated
-declarations, so ordinary development/Bazel generation is a byte-identical
-zero-facade path. Actual relocated Bazel/package/native adoption and release-line
-FILE-baseline transition checks remain separate implementation work.
+probe-local export rewrite. On maintained main, generation remains a byte-identical
+zero-facade path. The unmerged candidate exercises relocated Bazel/package/native
+paths; this foundation does not activate its release line.
 
 ## Reproduce the experiment
 
+The adopted SDK now names canonical fields that do not exist in old bindings.
+The consumer probe therefore compiles current first-party source against the
+actual candidate, and separately compiles the immutable pre-canonical
+`migration/LegacyAffordanceConsumer.ts` unchanged against both frozen and actual
+bindings in both generator modes. A digest guard rejects silent fixture edits
+or replacement with a smaller smoke test. Its legacy Action/RowAction/Command,
+view/slot/table/form, URI/command and optional presentation fields remain typed;
+negative assignments reject any-erased facades. The 180 export checks, binary
+and JSON fixtures, exact declaration guards and nonzero maintained FILE reports
+remain required. This is a bounded frozen old-source sample, not proof that every
+external client has migrated or that new SDK source compiles against missing APIs.
+
+The shared normalization candidate selects present canonical messages as whole
+units, including explicit-empty collections/intents. It never invents a URI,
+view ID or command from a no-call Action ID; the original Action remains an
+in-process semantic-resolution candidate for activation, not execution during
+rendering. Legacy RowActions preserve predicates, placement and the browser
+renderers' observed always-refresh behavior, even when the old non-presence bool
+is false. Canonical refresh false stays false. Palette metadata stays on the
+original Command envelope. These pure projections are not yet renderer wiring,
+semantic resolution/confirmation, permission checks, or refresh execution.
+
 ```sh
 pnpm install --frozen-lockfile
-node schemas/tools/affordance_migration_probe.mjs
+node schemas/tools/affordance_migration_probe.mjs --canonical
 # Includes the complete probe above, then baseline/candidate compilation of six
 # real public TS projects. Preserves their checking options; never emits files.
 node schemas/tools/affordance_consumer_probe.mjs
 # Optional local/private context only; keep private diagnostics out of public CI.
 node schemas/tools/affordance_consumer_probe.mjs --config=/path/to/private/tsconfig.json
 # Optional: retain generated sources/descriptors for native consumer experiments.
-node schemas/tools/affordance_migration_probe.mjs --keep
+node schemas/tools/affordance_migration_probe.mjs --canonical --keep
 # With the retained directory, pinned protoc 33.4, JDK 21 and protobuf-java
 # 4.33.4, run tools/affordance_java_probe.py --help for compiled Java checks.
-# With that same retained directory, compare the actual Rust workspace worlds:
-python3 -u tools/affordance_rust_probe.py --scratch /path/from/probe/work
+# With that directory, require complete tests of the actual Rust candidate:
+python3 -u tools/affordance_rust_probe.py --canonical --scratch /path/from/probe/work
 ```
 
-The probe builds temporary copies of the **current real schemas**, not just
-two synthetic messages. It does not alter canonical protos, checked-in Rust
+The canonical phase builds the **current real full-module schemas**, not just
+two synthetic messages, and compares them with the frozen pre-v1 reference.
+The original hypothetical-relocation experiment remains available on the
+maintained source layout without `--canonical`; it is historical, not the
+implementation candidate's acceptance command. Neither phase alters canonical protos, checked-in Rust
 descriptors, production codegen, or published packages. Its scratch directory
-is removed unless explicitly retained. CI runs it as a proposal self-test.
+is removed unless explicitly retained. CI selects the canonical phase explicitly.
 Expected compatibility rejection is tested as rejection, not relabeled as a
 successful production migration.
 
@@ -67,7 +136,9 @@ list inferred from this document.
 
 All original .proto paths remain public-import facades. Package/full names,
 existing tags, types, oneof membership, enum numbers, presence, reserved ranges,
-and declaration options remain unchanged. File ownership and file-level
+and declaration options remain unchanged under pure relocation. The later
+deprecation candidate changes only the nine field and three message option bits; all
+other declaration options remain exact. File ownership and file-level
 descriptor identity **do change**. No facade can promise that a declaration's
 descriptor still identifies its original file while also moving that declaration.
 
@@ -101,7 +172,9 @@ The isolated candidate additionally proposes:
 (legacy adaptation) from explicitly empty (no legacy revival). Direct repeated
 siblings cannot express that distinction. This is a proposal for review, not an
 approved producer/host contract. Existing Action/RowAction/Command fields remain
-untouched; source deprecation, removal, and actual adapter adoption are outstanding.
+present with their original names, tags, and types; the documented field and
+obsolete message options add explicit deprecation. Final removal, semantic-header mappings, and
+integrated release-line adoption remain outstanding.
 
 The probe rejects occupied/reserved names and tags against current descriptors,
 checks exact added types/labels/oneofs and optional presence, and verifies all
@@ -110,7 +183,17 @@ The SCC remains nine files. No production reservation or field is introduced.
 Do not claim the candidate implements normalization, precedence enforcement,
 dispatch, host admission, or renderer adoption.
 
-## Evidence and limits
+## Historical proposal evidence and limits
+
+Current canonical-phase measurement: **228 frozen declarations / 229 candidate
+declarations**, including conformance DTOs in the full module, 24 panel fixtures,
+seven invocation arms, 84 policy cases, 18 envelope cases, and 180 generated
+export checks. All six public source projects compile against frozen and actual
+candidate facades. The isolated canonical Rust workspace passes 308 tests with
+one preexisting ignored doctest. These checks do not establish host-dispatch
+adoption or approve production cutover. The narrower proposal measurements and
+expected native failures below are retained as historical evidence, not current
+canonical acceptance results.
 
 The reproducible probe verifies:
 

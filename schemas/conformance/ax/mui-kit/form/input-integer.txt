@@ -5,10 +5,12 @@ RootWebArea name="Meridian AX conformance" focusable=true
         StaticText name="form-input-integer"
     heading name="integer" level=3
       StaticText name="integer"
+    status name="" atomic=true live="polite"
+      StaticText name="Saving is not permitted."
     LabelText name=""
       StaticText name="Declared input"
     spinbutton name="Declared input" value=-42 editable="plaintext" focusable=true invalid="false" required=false valuemax=100 valuemin=-100 valuetext="-42"
       generic name="" editable="plaintext"
         StaticText name="-42" editable="plaintext"
-    button name="SAVE" focusable=true invalid="false"
+    button name="SAVE" description="Saving is not permitted." disabled=true focusable=true invalid="false"
       StaticText name="SAVE"

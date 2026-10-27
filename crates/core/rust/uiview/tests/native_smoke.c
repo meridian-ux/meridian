@@ -30,6 +30,11 @@ int main(void) {
   assert(meridian_core_format_value(NULL, 0, NULL, 0, 0, 0, NULL, &length) == MERIDIAN_CORE_INVALID_ARGUMENT);
   assert(length == 0);
   uint8_t matched = 99;
+  assert(meridian_core_matches_row_filter(NULL, 0, NULL, 0, &matched) == MERIDIAN_CORE_OK);
+  assert(matched == 0);
+  matched = 99;
+  assert(meridian_core_matches_row_filter(malformed, 1, NULL, 0, &matched) == MERIDIAN_CORE_INVALID_PAYLOAD);
+  assert(matched == 0);
   const uint8_t pattern[] = "^\\d+$";
   const uint8_t input[] = "١٢";
   assert(meridian_core_matches_form_pattern(pattern, sizeof(pattern) - 1, input, sizeof(input) - 1, &matched) == MERIDIAN_CORE_OK);

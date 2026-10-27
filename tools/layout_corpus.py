@@ -41,8 +41,8 @@ def cases():
             order = ["header", "tie-a", "tie-b", "last"]
             tabs = [slots[0]["placement"]["tabLabel"], slots[1]["placement"]["tabLabel"]]
         view = {"id": mode, "title": f"Shared layout {mode}", "slots": slots}
-        view["actions"] = [{"id": "export", "label": "Export layout", "call": {"service": "fixture.Layout", "method": "Export"}}]
-        slots[2]["actions"] = [{"id": "inspect", "label": "Inspect section", "call": {"service": "fixture.Layout", "method": "Inspect"}}]
+        view["affordances"] = {"items": [{"id": "export", "label": "Export layout", "rpc": {"service": "fixture.Layout", "method": "Export"}}]}
+        slots[2]["affordances"] = {"items": [{"id": "inspect", "label": "Inspect section", "rpc": {"service": "fixture.Layout", "method": "Inspect"}}]}
         if mode not in ("unset", "unknown"):
             view["layout"] = {mode: {}}
         result.append({"name": mode, "view": view, "context": {}, "responses": {}, "order": order, "tabs": tabs,

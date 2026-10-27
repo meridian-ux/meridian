@@ -9,14 +9,16 @@
 // from a graph-backed host's a host's internal MUI component library patterns) — no a host's internal MUI component library dependency — so the MUI table +
 // form patterns are reusable by any meridian host, not just a studio console.
 
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useActionFeedback } from "./action_feedback.js";
+import { useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { create } from "@bufbuild/protobuf";
+import { MuiActionControl, NormalizedRowActionsMenu } from "./action_control.js";
+import { AdmittedNavigationRow } from "./row_navigation.js";
 import { MuiMountThemeBoundary } from "./theme_provider.js";
 import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Alert, Box, Button, Chip, IconButton, Link, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { Alert, Box, Button, Chip, IconButton, Link, Menu, Stack, Typography } from "@mui/material";
+import { affordancePresentation, normalizeFormSubmit, type NormalizedAction, normalizeAffordance, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
 
 import type {
   ActionBarProps,
@@ -28,20 +30,20 @@ import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
 import {
-  buildSubmissionRequest,
+  ActionGroup,
+  useActionInvocation,
+  useIcon,
   useLroLifecycle,
   LroResult,
   bindingRequestJson,
-  buildActionBindingRequest,
+  boundedDescriptorJson,
   MeridianRowActionsContext,
-  MeridianRecordContext,
+  MeridianNormalizedRowActionsContext,
   MeridianViewContext,
   PaginationMode,
-  useActionHandler,
   usePromptResponse,
   useRpcInvoker,
   useHrefResolver,
-  useMutationRpcInvoker,
   useMeridianSelection,
   usePagedRows,
 } from "@savvifi/meridian-web-react";
@@ -53,6 +55,7 @@ import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt
 import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
 import {
   FormMode,
+  FormPanelSchema,
   type DetailHeaderPanel,
   type FormPanel,
   type PanelDescriptor,
@@ -66,7 +69,7 @@ import {
   type TablePanel,
 } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
 import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { ActionPlacement, type Action } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
 import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
 import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
 import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
@@ -92,7 +95,7 @@ import {
   MediaView,
 } from "./components/content.js";
 import { MeridianForm, type MeridianFormField } from "./components/form.js";
-import { MeridianTable, type MeridianColumn, type MeridianRowAction } from "./components/table.js";
+import { MeridianTable, type MeridianColumn } from "./components/table.js";
 import { MeridianDetailHeader } from "./components/detail_header.js";
 import { MeridianGallery } from "./components/gallery.js";
 import { MeridianRecordCard } from "./components/record_card.js";
@@ -111,14 +114,6 @@ function getNested(source: unknown, path: string): unknown {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key];
     return undefined;
   }, source);
-}
-
-/** Evaluate the bounded equality predicate carried by a table row action. */
-function rowActionEnabled(action: TablePanel["actions"][number], row: Row): boolean {
-  const filter = action.enabledWhen;
-  if (!filter) return true;
-  const actual = getNested(row, filter.fieldPath);
-  return actual != null && String(actual) === filter.equals;
 }
 
 /**
@@ -195,7 +190,6 @@ function compareCellValues(a: unknown, b: unknown): number {
 }
 
 function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker }): ReactNode {
-  const mutationInvoker = useMutationRpcInvoker();
   // usePagedRows (meridian-web-react) is the kit-agnostic pagination brain:
   // CLIENT returns all fetched rows (we slice locally); OFFSET / CURSOR fetch one
   // page at a time via the invoker. MeridianTable just displays a page + a pager.
@@ -217,7 +211,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
   // and both sides of hydration agree — see use_display_now.ts.
   const nowMs = useDisplayNow();
   const { subjectKind } = useContext(MeridianViewContext);
-  const onAction = useActionHandler();
 
   const columns = useMemo<MeridianColumn<Row>[]>(
     () =>
@@ -311,16 +304,6 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
     onPageChange = (target) => (target > paged.page ? paged.goNext() : paged.goPrev());
   }
 
-  // Clicking a row opens the entity — the host resolves `(actionId, subject, id)`
-  // to the detail route (graph-backed rows carry `id`). Only when a subject + handler exist.
-  const onRowClick =
-    onAction && subjectKind
-      ? (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (id != null) onAction("open", subjectKind, id as string | number);
-        }
-      : undefined;
-
   // "Showing X of Y" only when Y is a real total (CLIENT counts the fetched set;
   // OFFSET and CURSOR read the op's totalCount). Without a total, show just the
   // current count — never a synthesized "of Y" (which would read as a real total).
@@ -332,69 +315,13 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
         ? `Showing ${rows.length} of ${paged.total} ${noun}`
         : `Showing ${rows.length} ${noun}`;
 
-  // Row actions render INSIDE each row as a ⋮ overflow menu (matching the old
-  // studio TableActionsView — not a bar above the table). Two sources merge:
-  //  - TablePanel.actions resolve declared bindings against the clicked row and
-  //    current selection; unbound calls retain the legacy { id: row.id } request.
-  //  - View-level ROW-placement actions (MeridianRowActionsContext): an op action
-  //    (with a `call`) invokes against the row; a host-resolved action (no call —
-  //    edit/view_details → a route) routes to the host's onAction with the row id.
   const viewRowActions = useContext(MeridianRowActionsContext);
-  const selection = useMeridianSelection();
-  const actionScope = useMemo(() => ({ panel, mutationInvoker, values: selection.values, viewRowActions }), [panel, mutationInvoker, selection.values, viewRowActions]);
-  const feedback = useActionFeedback(actionScope);
-  const perRowActions = useMemo<MeridianRowAction<Row>[]>(() => {
-    const result: MeridianRowAction<Row>[] = [];
-    (panel.actions ?? []).forEach((action, index) => {
-      const feedbackProps = feedback.props(action.rpc);
-      result.push({
-        id: `panel-action-${index}`,
-        ...feedbackProps,
-        label: action.label,
-        disabledForRow: (row: Row) =>
-          !action.rpc?.service || !action.rpc.method || !rowActionEnabled(action, row),
-        disabledTitle: "Unavailable for this row.",
-        onClick: (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (action.rpc?.service && action.rpc.method && rowActionEnabled(action, row)) {
-            void feedback.run(async () => {
-              const call = action.rpc!;
-              await mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
-                !call.bindings.length && id != null ? { id } : undefined));
-              // proto3 cannot distinguish an omitted bool from authored false,
-              // while RowAction documents refresh_on_success as default true.
-              // Match the browser reference renderers and always refresh.
-              paged.refresh();
-            });
-          }
-        },
-      });
-    });
-    for (const action of viewRowActions) {
-      result.push({
-        id: action.id,
-        ...feedback.props(action.call),
-        label: action.label,
-        onClick: (row: Row) => {
-          const id = (row as { id?: unknown }).id;
-          if (action.call) {
-            void feedback.run(() => {
-              const call = action.call!;
-              return mutationInvoker.invoke(call.service, call.method, buildActionBindingRequest(call, selection.values, row,
-                !call.bindings.length && id != null ? { id } : undefined));
-            });
-            return;
-          }
-          onAction?.(action.id, subjectKind, id as string | number | undefined);
-        },
-      });
-    }
-    return result;
-  }, [panel.actions, viewRowActions, mutationInvoker, onAction, subjectKind, feedback, selection.values, paged.refresh]);
+  const normalizedViewActions = useContext(MeridianNormalizedRowActionsContext);
+  const perRowActions = [...normalizeTableActions(panel), ...(normalizedViewActions ?? viewRowActions.map(normalizeAffordance))];
+  const refresh = useCallback(async () => { paged.refresh(); }, [paged.refresh]);
 
   return (
-    <Box>
-      {feedback.feedback}
+    <ActionGroup><Box>
       {paged.error ? (
         <Alert severity="error" className="mer-table-error">
           Failed to load {panel.itemNoun || "items"}.
@@ -419,14 +346,16 @@ function TableShape({ panel, invoker }: { panel: TablePanel; invoker: RpcInvoker
               setClientPage(0);
             },
           }}
-          rowActions={perRowActions.length > 0 ? perRowActions : undefined}
-          onRowClick={onRowClick}
+          renderRowActions={perRowActions.length > 0 ? row => <NormalizedRowActionsMenu actions={perRowActions}
+            row={row} subjectKind={subjectKind} refresh={refresh} /> : undefined}
+          rowHeader="Navigation"
+          renderRow={subjectKind ? (row, cells, key) => <AdmittedNavigationRow key={key} row={row} subjectKind={subjectKind}>{cells}</AdmittedNavigationRow> : undefined}
           sort={{ columnId: sort.columnId, direction: sort.direction, onToggle: toggleSort }}
           footer={footer}
           size="medium"
         />
       )}
-    </Box>
+    </Box></ActionGroup>
   );
 }
 
@@ -493,13 +422,51 @@ function mergeFormValues(fields: FormField[], prefill: FormObject | undefined): 
     ) {
       const merged: FormObject = { ...(base as FormObject) };
       for (const [key, value] of Object.entries(override as FormObject)) {
-        if (key in merged) merged[key] = merge(merged[key], value);
+        if (Object.hasOwn(merged, key)) merged[key] = merge(merged[key], value);
       }
       return merged;
     }
     return override;
   };
   return merge(defaults, prefill) as FormObject;
+}
+
+/** Project bounded own data through declarations before retaining prefill or
+ * capturing controlled input. Repeated objects must not carry hidden server
+ * properties simply because the default array has no element to merge with. */
+function declaredFormValues(fields: FormField[], source: FormObject): FormObject {
+  let remaining = 1000;
+  const visit = (depth: number) => { if (depth > 64 || --remaining < 0) throw new Error("Form values exceed supported limits."); };
+  const own = (object: object, key: string): FormValue => {
+    const entry = Object.getOwnPropertyDescriptor(object, key);
+    if (!entry || !("value" in entry) || entry.value === undefined || entry.value === null) throw new Error("Invalid form values.");
+    return entry.value as FormValue;
+  };
+  const group = (declared: FormField[], value: FormObject, depth: number): FormObject => Object.fromEntries(declared
+    .filter(field => Object.hasOwn(value, field.fieldId))
+    .map(field => [field.fieldId, copy(field, own(value, field.fieldId), depth)]));
+  const copy = (field: FormField, value: FormValue, depth: number): FormValue => {
+    visit(depth);
+    if (field.kind.case === "nested" && value && typeof value === "object" && !Array.isArray(value)) return group(field.kind.value.fields, value as FormObject, depth + 1);
+    if (field.kind.case === "repeated" && Array.isArray(value)) {
+      if (value.length > remaining) throw new Error("Form values exceed supported limits.");
+      const element = field.kind.value.element;
+      return Array.from({ length: value.length }, (_, index) => {
+        const item = own(value, String(index));
+        if (element.case === "scalar") return copy(element.value, item, depth + 1);
+        visit(depth + 1);
+        return element.case === "object" && item && typeof item === "object" && !Array.isArray(item)
+          ? group(element.value.fields, item as FormObject, depth + 1) : item;
+      });
+    }
+    if (field.kind.case === "keyValueMap" && value && typeof value === "object" && !Array.isArray(value)) {
+      const keys = Object.keys(value);
+      if (keys.length > remaining) throw new Error("Form values exceed supported limits.");
+      return Object.fromEntries(keys.map(key => { visit(depth + 1); return [key, own(value, key)]; }));
+    }
+    return value;
+  };
+  return group(fields, source, 0);
 }
 
 /** Read the value at a path (string keys index objects, number keys index arrays). */
@@ -774,6 +741,7 @@ function FieldForm({
   resetOnSubmit,
   enumInvoker,
   multilineRows,
+  submitAction,
 }: {
   fields: FormField[];
   disabled: boolean;
@@ -790,6 +758,7 @@ function FieldForm({
   resetOnSubmit?: boolean;
   enumInvoker?: RpcInvoker;
   multilineRows?: ReadonlyMap<string, number>;
+  submitAction?: NormalizedAction;
 }): ReactNode {
   const options = useFormOptions(fields, enumInvoker);
   const [optionError, setOptionError] = useState<string>();
@@ -797,6 +766,27 @@ function FieldForm({
   const [values, setValues] = useState<FormObject>(seed);
   const scope = useMemo(() => ({ fields, initialValues, onSubmit }), [fields, initialValues, onSubmit]);
   const submission = useSubmissionState(scope);
+  const currentInputs = useRef({ values, fields: options.fields, pending: options.pending, error: options.error });
+  useLayoutEffect(() => {
+    currentInputs.current = { values, fields: options.fields, pending: options.pending, error: options.error };
+  }, [values, options.fields, options.pending, options.error]);
+  const readValues = useCallback(() => {
+    const current = currentInputs.current;
+    if (current.pending || current.error) throw new Error("Form options unavailable.");
+    const values = declaredFormValues(current.fields, current.values);
+    const error = validateFormOptions(current.fields, values) || validateFormValues(current.fields, values);
+    if (error) throw new Error(error);
+    return values as Row;
+  }, []);
+  const invocation = useActionInvocation(submitAction ?? EMPTY_FORM_ACTION, {
+    enabled: !!submitAction && !disabled && !submitDisabled && !options.pending && !options.error,
+    submission: { fields, kind: "form" }, readFormValues: readValues,
+  });
+  const descriptionId = useId();
+  const presentation = affordancePresentation((submitAction ?? EMPTY_FORM_ACTION).affordance);
+  const icon = useIcon(submitAction?.affordance.icon);
+  const actionMessage = invocation.predicateDenied ? "Action denied: the current record does not meet its conditions."
+    : invocation.feedback ?? (!disabled && !submitDisabled && invocation.policyDenied ? "Saving is not permitted." : undefined);
   useEffect(() => {
     if (initialValues) setValues(seed);
   }, [initialValues, seed]);
@@ -805,12 +795,21 @@ function FieldForm({
   // Reset only on RESOLVE, never optimistically: clearing first and failing after
   // destroys what the user wrote, and the write is the thing we cannot redo for
   // them. A rejected submit keeps the text so it can be retried.
-  const handleSubmit = () => {
-    if (disabled || submitDisabled || !onSubmit || options.pending || options.error || submission.pending) return;
-    const error = (enumInvoker ? validateFormOptions(options.fields, values) : undefined) || validateFormValues(options.fields, values);
+  const handleSubmit = (submitter?: HTMLElement) => {
+    if (disabled || submitDisabled || (!submitAction && !onSubmit) || options.pending || options.error || submission.pending || invocation.pending) return;
+    let error: string | undefined;
+    try {
+      if (submitAction) readValues();
+      else error = (enumInvoker ? validateFormOptions(options.fields, values) : undefined) || validateFormValues(options.fields, values);
+    } catch (reason) { error = reason instanceof Error ? reason.message : "Invalid form values."; }
     setOptionError(error);
     if (error) return;
-    void submission.run(() => onSubmit(values), resetOnSubmit ? () => setValues(seed) : undefined);
+    if (submitAction) {
+      const trigger = submitter ?? (document.activeElement instanceof HTMLElement ? document.activeElement : undefined);
+      void invocation.activate(trigger).then(result => {
+        if (result?.status === "succeeded" && result.refresh !== "failed" && resetOnSubmit) setValues(seed);
+      });
+    } else void submission.run(() => onSubmit!(values), resetOnSubmit ? () => setValues(seed) : undefined);
   };
   return (
     <>
@@ -818,16 +817,33 @@ function FieldForm({
     {(options.error || optionError) && <Alert severity="error">{options.error || optionError}</Alert>}
     {submission.error && <Alert severity="error">{submission.error}</Alert>}
     {submission.pending && <Typography role="status">Submitting…</Typography>}
+    {submitAction && actionMessage && <Typography id={invocation.feedbackId}
+      role={invocation.unavailable || invocation.predicateDenied || invocation.outcome?.status === "failed" || invocation.outcome?.status === "denied" ? "alert" : "status"}>{actionMessage}</Typography>}
+    {submitAction && invocation.pending && <Button type="button" onClick={event => invocation.cancel(event.currentTarget)}>Cancel action</Button>}
     {options.error && <Button onClick={options.retry}>Retry options</Button>}
     <MeridianForm
-      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled || submission.pending).map(field =>
+      fields={options.pending || options.error ? [] : buildFields(options.fields, values, setAt, disabled || submission.pending || invocation.pending).map(field =>
         field.type === "text" && multilineRows?.has(field.key) ? { ...field, multilineRows: multilineRows.get(field.key) } : field)}
       description={description || undefined}
-      submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error) || submission.pending, onSubmit: handleSubmit }}
+      submit={{ label: submitLabel, disabled: submitDisabled || options.pending || Boolean(options.error) || submission.pending, onSubmit: handleSubmit,
+        control: submitAction ? <>
+          <Button type="submit" variant={presentation.primary ? "contained" : "outlined"}
+            disabled={disabled || submitDisabled || options.pending || !!options.error || invocation.unavailable || invocation.predicateDenied}
+            aria-disabled={invocation.pending || invocation.policyDenied || undefined} aria-busy={invocation.pending || undefined}
+            aria-describedby={[submitAction.affordance.description && descriptionId, actionMessage && invocation.feedbackId].filter(Boolean).join(" ") || undefined}
+            startIcon={icon} data-icon={submitAction.affordance.icon || undefined} style={presentation.style}
+            data-mer-tone={presentation.tone} data-mer-emphasis={submitAction.affordance.emphasis === undefined ? undefined : presentation.primary ? "primary" : "secondary"}>
+            {submitAction.affordance.label || "Submit"}
+          </Button>
+          {submitAction.affordance.description && <Typography id={descriptionId} variant="caption">{submitAction.affordance.description}</Typography>}
+        </> : undefined,
+      }}
     />
     </>
   );
 }
+
+const EMPTY_FORM_ACTION = normalizeFormSubmit(create(FormPanelSchema), "");
 
 /** True when every leaf of a form's INITIAL values is empty. */
 function startsBlank(value: unknown): boolean {
@@ -844,8 +860,15 @@ function BoundedDefaults({ fields, children }: { fields: readonly FormField[]; c
 }
 
 function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
-  const mutationInvoker = useMutationRpcInvoker();
-  const record = useContext(MeridianRecordContext);
+  const selection = useMeridianSelection();
+  let descriptor: string | undefined;
+  try { descriptor = boundedDescriptorJson(panel); } catch { /* Fail visibly before mounting fields or reading. */ }
+  const request = bindingRequestJson(panel.prefill, selection.values);
+  if (descriptor === undefined || panel.mode === FormMode.EDIT && request === undefined) return <Alert severity="error">Form request rejected.</Alert>;
+  return <AdmittedFormSession key={JSON.stringify([descriptor, request])} panel={panel} invoker={invoker} />;
+}
+
+function AdmittedFormSession({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }): ReactNode {
   const edit = panel.mode === FormMode.EDIT;
   // Does this form CREATE something, or edit something that already exists? The
   // descriptor doesn't say, so read it off the fields: a form that opens blank is
@@ -855,29 +878,32 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   // FormPanel(EDIT) the projection emits today is a create surface (an existing
   // record renders as a RecordCardPanel), and this keeps holding when that stops
   // being true.
-  const createLike = edit && startsBlank(initValues(panel.fields));
+  const needsPrefill = Boolean(edit && panel.prefill?.service && panel.prefill.method);
+  const createLike = edit && !needsPrefill && startsBlank(initValues(panel.fields));
   const selection = useMeridianSelection();
-  const [prefillValues, setPrefillValues] = useState<FormObject | undefined>();
   const prefillJson = bindingRequestJson(panel.prefill, selection.values);
   const prefillRequest = useMemo(() => prefillJson === undefined ? undefined : JSON.parse(prefillJson) as Row, [prefillJson]);
+  const source = useMemo(() => ({ invoker, call: panel.prefill, request: prefillRequest }), [invoker, panel.prefill, prefillRequest]);
+  const [loaded, setLoaded] = useState<{ source: object; values?: FormObject; failed?: boolean }>();
   useEffect(() => {
-    setPrefillValues(undefined);
-    if (!edit || !prefillRequest || !panel.prefill?.service || !panel.prefill.method) return;
+    if (!needsPrefill || !prefillRequest || !panel.prefill) return;
     let active = true;
     void Promise.resolve()
       .then(() => active ? invoke(invoker, panel.prefill, prefillRequest) : undefined)
       .then((response) => {
-        if (active && response && typeof response === "object" && !Array.isArray(response)) {
-          setPrefillValues(response as FormObject);
-        }
+        if (!active) return;
+        const owned = boundedDescriptorJson(response);
+        if (!response || typeof response !== "object" || Array.isArray(response) || owned === undefined) throw new Error("Invalid prefill response.");
+        setLoaded({ source, values: declaredFormValues(panel.fields, JSON.parse(owned) as FormObject) });
       })
       .catch(() => {
         // A failed prefill is non-fatal: retain the descriptor defaults.
+        if (active) setLoaded({ source, failed: true });
       });
     return () => {
       active = false;
     };
-  }, [edit, invoker, panel.prefill, prefillRequest]);
+  }, [needsPrefill, invoker, panel.prefill, prefillRequest, source]);
   // Submit honours the call's BINDINGS, exactly as `populate` does. A submit
   // request is not only what the user typed: an op scoped to the record it hangs
   // off (post a comment on THIS task → `resourceId`) gets that field from a
@@ -889,26 +915,21 @@ function FormShape({ panel, invoker }: { panel: FormPanel; invoker: RpcInvoker }
   // Match the shared core: explicit bindings win over automatic field-ID values.
   // An authored scope must not be replaced by an editable field on collision.
   if (edit && !prefillRequest) return <Alert severity="error">Form request rejected.</Alert>;
+  if (needsPrefill && loaded?.source !== source) return <Typography role="status">Loading initial values…</Typography>;
   return (
+    <>
+    {loaded?.source === source && loaded.failed && <Alert severity="warning">Initial values unavailable; showing descriptor defaults.</Alert>}
     <FieldForm
       fields={panel.fields}
       enumInvoker={invoker}
       disabled={!edit}
-      initialValues={prefillValues}
+      initialValues={loaded?.source === source ? loaded.values : undefined}
       submitLabel={edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save"}
       submitDisabled={!edit}
-      onSubmit={
-        edit
-          ? (values) =>
-              {
-                if (!panel.submit) throw new Error("Missing submit call.");
-                return invoke(mutationInvoker, panel.submit,
-                  buildSubmissionRequest(panel.submit, panel.fields, values as Row, selection.values, "form", record));
-              }
-          : undefined
-      }
+      submitAction={normalizeFormSubmit(panel, edit ? `Save ${panel.itemNoun || ""}`.trim() : "Save")}
       resetOnSubmit={createLike}
     />
+    </>
   );
 }
 
@@ -1053,50 +1074,24 @@ function Fallback({ descriptor }: { descriptor: PanelDescriptor }): ReactNode {
   );
 }
 
-function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
-  const selection = useMeridianSelection();
-  const record = useContext(MeridianRecordContext);
-  const scope = useMemo(() => ({ actions, invoker, values: selection.values, record }), [actions, invoker, selection.values, record]);
-  const feedback = useActionFeedback(scope);
+function ActionBar({ actions, normalizedActions }: ActionBarProps): ReactNode {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const { subjectKind } = useContext(MeridianViewContext);
-  const onAction = useActionHandler();
-  // Fire a header/overflow action: RpcCall actions go through the invoker; no-call
-  // actions (host-resolved keys — nav/custom) route to the host's onAction with
-  // the view subject (no row id at the header level).
-  const fire = (action: Action): void => {
-    if (action.call) {
-      void feedback.run(() => invoke(invoker, action.call, buildActionBindingRequest(action.call, selection.values, record)));
-      return;
-    }
-    onAction?.(action.id, subjectKind);
-  };
-  if (!actions || actions.length === 0) return null;
-  // OVERFLOW actions collapse into a kebab (⋮) menu; the rest render inline
-  // (PRIMARY = contained, others = outlined). Honors the projected placement.
-  const inline = actions.filter((a: Action) => a.placement !== ActionPlacement.OVERFLOW);
-  const overflow = actions.filter((a: Action) => a.placement === ActionPlacement.OVERFLOW);
+  const { subjectKind, subjectId } = useContext(MeridianViewContext);
+  const visible = (normalizedActions ?? actions.map(normalizeAffordance)).filter(a => a.affordance.placement !== ActionPlacement.ROW);
+  if (!visible.length) return null;
+  const inline = visible.filter(a => a.affordance.placement !== ActionPlacement.OVERFLOW);
+  const overflow = visible.filter(a => a.affordance.placement === ActionPlacement.OVERFLOW);
+  const subject = { entityType: subjectKind, entityId: subjectId || undefined };
   return (
-    <Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
-      {feedback.feedback}
-      {inline.map((action: Action) => (
-        <Box key={action.id} display="inline-flex" alignItems="center" gap={1}>
-          <Button
-            {...feedback.props(action.call)}
-            size="small"
-            variant={action.placement === ActionPlacement.PRIMARY ? "contained" : "outlined"}
-            onClick={() => fire(action)}
-          >
-            {action.label}
-          </Button>
-          {feedback.denial(action.call)}
-        </Box>
-      ))}
+    <ActionGroup><Stack direction="row" spacing={1} alignItems="center" className="mer-actions">
+      {inline.map((action, index) => <MuiActionControl key={action.affordance.id || index} action={action} options={{ subject }} />)}
       {overflow.length > 0 && (
         <>
           <IconButton
             size="small"
             aria-label="more actions"
+            aria-haspopup="menu"
+            aria-expanded={!!anchor}
             className="mer-actions-overflow"
             onClick={(event) => setAnchor(event.currentTarget)}
           >
@@ -1104,26 +1099,13 @@ function ActionBar({ actions, invoker }: ActionBarProps): ReactNode {
               &#8942;
             </Box>
           </IconButton>
-          <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
-            {overflow.map((action: Action) => (
-              <MenuItem
-                key={action.id}
-                {...feedback.props(action.call)}
-                onClick={() => {
-                  setAnchor(null);
-                  fire(action);
-                }}
-              >
-                <Box display="inline-flex" alignItems="center" gap={1}>
-                  <span>{action.label}</span>
-                  {feedback.denial(action.call)}
-                </Box>
-              </MenuItem>
-            ))}
+          <Menu keepMounted anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+            {overflow.map((action, index) => <MuiActionControl key={action.affordance.id || index} action={action} menuItem
+              options={{ subject, enabled: !!anchor }} onSuccess={() => setAnchor(null)} />)}
           </Menu>
         </>
       )}
-    </Stack>
+    </Stack></ActionGroup>
   );
 }
 

@@ -12,7 +12,5 @@ RootWebArea name="Meridian AX conformance" focusable=true
       textbox name="Declared input" value="Ada <ada@example.com>" editable="plaintext" focusable=true invalid="false" multiline=false readonly=false required=false
         generic name="" editable="plaintext"
           StaticText name="Ada <ada@example.com>" editable="plaintext"
-    button name="Save" disabled=true invalid="false"
+    button name="Save" disabled=true focusable=true invalid="false"
       StaticText name="Save"
-    status name="" atomic=true live="polite"
-      StaticText name="Saving is not permitted."
