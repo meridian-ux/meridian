@@ -136,13 +136,24 @@ from exact public runtime revision `df899525684ea7809ac0e9332bb05524f59b3a39`;
 its renderer/app/producer tests and real loopback HTTP/SSE browser integration
 pass. Published-profile evidence remains separate from candidate evidence.
 
-Full removal validation is **not green yet**. Complete remote CI, the external
-Studio producer migration, remaining consumer/notice inventory, and integrated
-release-line verification are still required. The Studio catalog rejects the
-producer's retired `actions` JSON key; do not bypass that strict decoder or
-restore a compatibility shim. No targeted local success proves complete release
-acceptance. Existing frozen compatibility inputs and FILE rejection checks stay
-unchanged; the migration references above are audit inputs, not active baselines.
+The complete public candidate at
+`8727ba091a1a6fc89db9bbb086e93cee355b64f5` passes all eleven remote checks,
+including all 165 top-level Bazel build targets, all 49 test targets, detached
+npm artifact verification, and catalog generation. The former Studio catalog
+failure is resolved through the actual installed-module producer path, not
+conversion of old JSON or a relaxed decoder. The maintained 22-entry inventory
+strictly decodes and renders; exact provenance, zero-dialog coverage, placeholders
+and intentionally unavailable operations are recorded in the
+[catalog provenance](../../packages/mui-kit/harness/STUDIO-CATALOG.md).
+
+This is **not complete release acceptance**. Final exact-reference downstream
+checks, remaining consumer/notice inventory, versioned artifact/delivery
+selection, and integrated release-line verification are still required. Earlier
+failed runs remain failures; the local full-suite disk-exhaustion attempt is not
+counted as a pass. Existing frozen compatibility inputs and FILE rejection checks
+stay unchanged; the migration references above are audit inputs, not active
+baselines. New source revisions require their own checks rather than inheriting
+8727ba0's CI result.
 
 No final v1 baseline/version or release artifact is activated by these changes.
 Keep the candidate draft/unmerged and preserve final exact-artifact cutover,
