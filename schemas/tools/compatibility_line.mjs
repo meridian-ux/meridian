@@ -55,6 +55,15 @@ function fileCheck(image, baseline) {
   return { status: result.status, report: result.stdout + result.stderr };
 }
 
+export function requireCompatibilityRejection(checked) {
+  // A crash/tool failure may retain partial output from an earlier FILE finding.
+  // That output must not turn an operational failure into migration evidence.
+  assert.equal(checked.status, 100,
+    `expected FILE compatibility rejection (exit 100), got ${checked.status}:\n${checked.report}`);
+  assert.match(checked.report, /previously present|deleted/i,
+    `expected ownership rejection was not observed:\n${checked.report}`);
+}
+
 export function checkLine(line, image) {
   assert(Object.hasOwn(REFERENCES, line), `unknown release line: ${line}`);
   const candidate = loadImage(image);
@@ -67,8 +76,7 @@ export function checkLine(line, image) {
   // Retain and surface the old FILE failure. A candidate-line success is not
   // a claim that relocation passed the maintained 0.x policy.
   const legacy = fileCheck(image, REFERENCES["maintained-0x"]);
-  assert(legacy.status !== 0 && /previously present|deleted/i.test(legacy.report),
-    `expected ownership rejection was not observed:\n${legacy.report}`);
+  requireCompatibilityRejection(legacy);
   const selected = fileCheck(image, REFERENCES[line]);
   assert.equal(selected.status, 0, `v1-candidate FILE rejected this image:\n${selected.report}`);
   return { line, ownership, legacy, selected };

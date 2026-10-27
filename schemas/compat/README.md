@@ -43,8 +43,11 @@ node schemas/tools/compatibility_line.mjs --line v1-candidate --image schemas/co
 
 The first command must fail. The second may pass only as candidate preparation;
 its output explicitly reports the legacy rejection and pending production
-approval. Tests reject extra ownership moves, missing declarations, unknown
-release lines, and incompatible field changes under the candidate FILE baseline.
+approval. Expected legacy rejection requires Buf's exact compatibility exit
+code 100 as well as the ownership report; partial deletion output followed by
+a tool failure is not compatibility evidence. Tests reject extra ownership moves,
+missing declarations, unknown release lines, and incompatible field changes under
+the candidate FILE baseline.
 There is no `--approve`, automatic fallback, broad ignore, WIRE downgrade, or
 workflow selector change. The existing `buf.yaml` remains FILE-based and intact.
 

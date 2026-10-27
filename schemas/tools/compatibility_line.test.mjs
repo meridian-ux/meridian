@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkLine, loadImage, ownershipChanges, REFERENCES, verifyOwnership } from "./compatibility_line.mjs";
+import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership } from "./compatibility_line.mjs";
 import { completeCandidate } from "./prepare_compatibility_candidate.mjs";
 
 test("snapshot preparation retains every unchanged file omitted by the narrow probe", () => {
@@ -44,11 +44,25 @@ test("the maintained line passes its frozen image and rejects the planned reloca
 
 test("candidate verification retains old FILE rejection and passes the explicit candidate baseline", () => {
   const result = checkLine("v1-candidate", REFERENCES["v1-candidate"]);
-  assert.notEqual(result.legacy.status, 0);
+  assert.equal(result.legacy.status, 100);
   assert.match(result.legacy.report, /previously present|deleted/i);
   assert.equal(result.selected.status, 0);
   assert(result.ownership.length > 0);
   assert(result.ownership.every(change => change.endsWith(" -> proto/interaction.proto")));
+});
+
+test("expected migration rejection cannot hide tool failure behind partial FILE output", () => {
+  const report = 'Previously present field "label" was deleted.';
+  requireCompatibilityRejection({ status: 100, report });
+  for (const status of [0, 1, 2, 126, 127, 137, null]) {
+    assert.throws(() => requireCompatibilityRejection({ status, report }),
+      /expected FILE compatibility rejection \(exit 100\)/);
+  }
+});
+
+test("compatibility exit alone does not replace the required ownership rejection report", () => {
+  assert.throws(() => requireCompatibilityRejection({ status: 100, report: "remote service unavailable" }),
+    /expected ownership rejection was not observed/);
 });
 
 test("ownership changes beyond the frozen transition fail before any baseline reset", () => {
