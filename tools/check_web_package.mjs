@@ -2,9 +2,9 @@
 // This is a local install/pack check, not npm publish or registry configuration.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
 const repo = resolve(import.meta.dirname, "..");
@@ -233,4 +233,18 @@ try {
   throw error;
 }
 assert(existsSync(join(staging, "node_modules/@savvifi/meridian-web/package.json")));
+// Retain only the exact tarballs that passed this detached consumer. The scratch
+// app, installed dependencies and historical probe inputs are not release files.
+const artifactDirectory = process.env.MERIDIAN_WEB_PACKAGE_ARTIFACTS;
+if (artifactDirectory) {
+  // Require a fresh directory so an earlier version's files cannot leak into
+  // the evidence upload. Leave any existing directory untouched.
+  mkdirSync(artifactDirectory);
+  const checksums = archives.map(archive => {
+    const name = basename(archive);
+    copyFileSync(archive, join(artifactDirectory, name));
+    return `${createHash("sha256").update(readFileSync(archive)).digest("hex")}  ${name}\n`;
+  });
+  writeFileSync(join(artifactDirectory, "SHA256SUMS"), checksums.join(""));
+}
 console.log(`Detached npm tarball types/runtime smoke passed; artifacts retained at ${staging}`);

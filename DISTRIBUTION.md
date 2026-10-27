@@ -48,6 +48,12 @@ archives, with no consumer-side protoc requirement. This build
 verification does not replace the repository's full Cargo/Bazel conformance tests;
 some of those tests depend on the shared repository fixture corpus.
 
+After successful verification, CI retains the three `.crate` files and
+`SHA256SUMS` in `rust-packages-<source-commit>` for 30 days. These are review
+artifacts, not registry uploads. Download and preserve the approved bytes and
+their hashes before their CI retention expires; rebuilding is a new verification
+input, not proof of the earlier files' identity.
+
 After a separately approved release, the dependency order is core and theme,
 then TUI. Registry-name availability/ownership and publishing credentials still
 need a release-time check. No Cargo publication workflow is enabled here.
@@ -101,6 +107,14 @@ This tests the removal candidate; the frozen additive compatibility probes
 remain separate. The detached check does not resolve
 first-party dependencies from workspace symlinks or publish to npm. CI also
 retains all existing renderer, compatibility, and conformance gates.
+
+CI sets `MERIDIAN_WEB_PACKAGE_ARTIFACTS` to retain the exact three tarballs that
+passed this consumer (proto-ts, schemas and web) plus `SHA256SUMS`, in
+`web-packages-<source-commit>` for 30 days. A local run may set the same variable
+to a new output directory whose parent already exists. An existing directory
+fails without being cleared. Only successful checks copy these archives; the detached
+app and its installed dependencies are excluded. This evidence covers this
+three-package consumer, not all seven npm packages or an approved release.
 
 The existing release workflow still publishes only its previous six packages.
 Adding this package to an actual release requires an approved release change,
