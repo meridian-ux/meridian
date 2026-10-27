@@ -58,6 +58,12 @@ PACKAGES = [
     ("packages/web/package.json", "packages/web/web.package.json"),
 ]
 
+# Derive the lockstep package identities from their owning development
+# manifests, not a prefix that could accidentally capture an external kit.
+FIRST_PARTY_NAMES = frozenset(
+    json.loads((ROOT / dev_path).read_text())["name"] for dev_path, _ in PACKAGES
+)
+
 # Fields that are development-only and must not ship. `devDependencies` in
 # particular: a consumer installing the package would otherwise be told it needs
 # vitest.
@@ -82,17 +88,19 @@ def published(dev: dict, version: str) -> dict:
             continue
         resolved = {}
         for name, spec in deps.items():
-            if spec == "workspace:*":
+            if spec.startswith("workspace:") and spec != "workspace:*":
+                raise SystemExit(
+                    f"{field}.{name} uses {spec!r}; only 'workspace:*' is handled here"
+                )
+            if spec == "workspace:*" or name in FIRST_PARTY_NAMES:
                 # An EXACT pin, not a caret. These packages use one version, so a
                 # range would only ever widen to versions that were never tested
                 # together — and at 0.x a caret does not widen anyway
                 # (^0.25.0 is >=0.25.0 <0.26.0), so the range buys nothing while
                 # costing the guarantee.
+                # Explicit old peer ranges must move too: ^0.25.0 cannot accept
+                # the 1.0.0-alpha.1 contract and would force an old SDK graph.
                 resolved[name] = version
-            elif spec.startswith("workspace:"):
-                raise SystemExit(
-                    f"{field}.{name} uses {spec!r}; only 'workspace:*' is handled here"
-                )
             else:
                 resolved[name] = spec
         out[field] = resolved

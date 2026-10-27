@@ -1,10 +1,12 @@
 # Change summary
 
-## Unreleased — v1 contract preparation
+## Unreleased — 1.0.0-alpha.1 candidate
 
 This records the unmerged removal candidate, not a published release or an
-activated compatibility policy. Package versions remain 0.25.1. The proposed
-combined `1.0.0-alpha.1` boundary is preparation only, not an assigned release.
+activated compatibility policy. This separate distribution draft prepares the
+combined `1.0.0-alpha.1` boundary in package metadata, not a tag or registry release.
+The maintained 0.x line is unchanged; neither a final 1.0.0 release nor its
+schema/FILE activation is approved by this version preparation.
 The roadmap's completed work and remaining issue criteria remain authoritative
 in [ROADMAP.md](ROADMAP.md).
 
