@@ -132,7 +132,7 @@ not stale imports of removed Action APIs. It verifies strict public declarations
 retired API rejection, frozen historical wire, canonical admission/consent, raw
 bindings, isolated browser imports, and runtime denial without legacy revival.
 The coordinated private draft separately installs all five coupled SDK archives
-from exact public runtime revision `df899525684ea7809ac0e9332bb05524f59b3a39`;
+from exact public runtime revision `082e942a034319f38cc2ecb89181dd02c84481c1`;
 its renderer/app/producer tests and real loopback HTTP/SSE browser integration
 pass. Published-profile evidence remains separate from candidate evidence.
 
@@ -155,7 +155,12 @@ stay unchanged; the migration references above are audit inputs, not active
 baselines. New source revisions require their own checks rather than inheriting
 8727ba0's CI result.
 
-No final v1 baseline/version or release artifact is activated by these changes.
+Literal 1.0.0 metadata now covers the module, three Rust crates and all seven
+generated npm manifests. Final-version Rust archives and all seven installed
+npm packages have candidate verification; this does not publish them or verify
+a later integration revision. Existing main's scoped, owner-gated automation is
+preserved in the draft integration branch. No final v1 baseline or release
+artifact is activated by these changes.
 Keep the candidate draft/unmerged and preserve final exact-artifact cutover,
 live automation, and publication as separate owner approvals.
 

@@ -40,10 +40,12 @@ claim about every arbitrary host integration, skin, or possible descriptor.
 The remaining roadmap issues are Affordance unification/adoption (#11, #47,
 #48), its remaining untrusted-invocation acceptance (#17), and final distribution
 readiness (#16, #63). Both-repository Project auto-add is still required; the
-private-repository rule needs an approved organization automation setup. Rust
-archives and the web-components npm artifact have preparation checks, not a v1
-publication. Production Affordance/FILE-baseline cutover, final versioning, and
-release approval are separate outstanding steps. SwiftUI remains the approved
+scoped App setup and read-only dry runs are prepared, while live both-repository
+activation remains separately gated. All three Rust archives and seven npm
+packages have final-version candidate checks, not a v1 publication. The draft
+integration branch preserves main's owner-gated automation and prepares literal
+1.0.0 metadata. Production Affordance/FILE-baseline cutover, integration, and
+release approval remain separate outstanding steps. SwiftUI remains the approved
 preview; full native parity is not a v1 gate and its unverified coverage remains
 explicit. Issues remain authoritative as work advances beyond this checkpoint.
 

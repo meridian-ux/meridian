@@ -6,7 +6,8 @@ This records the unmerged removal candidate, not a published release or an
 activated compatibility policy. This separate distribution draft prepares
 `1.0.0` package metadata, not a tag or registry release. The prior unmerged
 `1.0.0-alpha.1` candidate supplied validation evidence; no alpha publication is claimed.
-The final-version archives and consumers still require their own verification.
+Final-version archives have detached-consumer verification; the integrated
+release revision and its exact release artifacts still require verification.
 The maintained 0.x line is unchanged; neither a final 1.0.0 release nor its
 schema/FILE activation is approved by this version preparation.
 The roadmap's completed work and remaining issue criteria remain authoritative
@@ -64,8 +65,10 @@ artifact, alongside existing package/build surfaces. See
 No npm/crates.io upload, registry change, image/chart publication, tag or
 deployment is announced by this summary.
 
-Before a versioned release, finish exact-artifact downstream delivery and
-consumer notices, review the explicit FILE-baseline transition, align versions,
-locks and generated manifests through their producers, verify extracted
-artifacts, and test the integrated release line. Merging/schema activation,
+Version producers, locks and generated manifests agree on 1.0.0. Before a
+versioned release, finish supported-consumer delivery selection and migration
+notices, approve the explicit FILE-baseline transition, verify extracted
+artifacts from the integrated release revision, and test that release line.
+External application rollout, including Aion, does not gate Meridian's release.
+Merging/schema activation,
 live roadmap automation and publication remain separately approval-gated.
