@@ -364,6 +364,22 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      # Preserve the archives that Cargo extracted and compiled above, together
+      # with their standard checksums. This is CI evidence, not cargo publish.
+      - name: Checksums for verified Rust archives
+        working-directory: ${{ runner.temp }}/meridian-crate-packages/package
+        run: sha256sum -- *.crate > SHA256SUMS
+
+      - name: Retain verified Rust archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-packages-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/meridian-crate-packages/package/*.crate
+            ${{ runner.temp }}/meridian-crate-packages/package/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
   native-fuzz:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -476,9 +492,21 @@ jobs:
         run: bazel test --announce_rc=false //packages/mui-kit:layout_browser_test //packages/mui-kit:conversation_browser_test //packages/mui-kit:stateful_geometry_test //crates/tui/rust/tui:view_composition_test --test_output=errors
 
       - name: Detached web-components npm consumer
+        env:
+          MERIDIAN_WEB_PACKAGE_ARTIFACTS: ${{ runner.temp }}/meridian-web-packages
         run: |
           bazel build --announce_rc=false //packages/web:pkg //schemas:schemas_pkg //schemas/proto:proto_ts_pkg
           node tools/check_web_package.mjs
+
+      - name: Retain verified web-components consumer archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-packages-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/meridian-web-packages/*.tgz
+            ${{ runner.temp }}/meridian-web-packages/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
 
   registry-admission:
     runs-on: ubuntu-latest
