@@ -42,11 +42,12 @@ The remaining roadmap issues are Affordance unification/adoption (#11, #47,
 readiness (#16, #63). Both-repository Project auto-add is still required; the
 scoped App setup and read-only dry runs are prepared, while live both-repository
 activation remains separately gated. All three Rust archives and seven npm
-packages have final-version candidate checks, not a v1 publication. The draft
-integration branch preserves main's owner-gated automation and prepares literal
-1.0.0 metadata. Production Affordance/FILE-baseline cutover, integration, and
-release approval remain separate outstanding steps. SwiftUI remains the approved
-preview; full native parity is not a v1 gate and its unverified coverage remains
+packages have final-version candidate checks, not a v1 publication. The major-1
+source line preserves the owner-gated automation and uses literal 1.0.0 metadata.
+Required node CI selects the reviewed FILE reference explicitly. Final integrated
+artifact verification, supported-consumer delivery and release approval remain
+outstanding; source selection does not authorize publication or deployment.
+SwiftUI remains the approved preview; full native parity is not a v1 gate and its unverified coverage remains
 explicit. Issues remain authoritative as work advances beyond this checkpoint.
 
 ## Track A — Renderer parity
@@ -288,7 +289,7 @@ The protos already carry a semantic vocabulary. The work is to say each concept 
 | concept | today it is spelled | distilled to |
 |---|---|---|
 | **Tone** — how serious, how it looks | shared `Tone` (6 roles), presence-aware conversation/action adoption, and descriptor-driven stable-renderer theme proofs; compatible legacy APIs remain | integrated additive presentation contract — [#10](../../issues/10); preview SwiftUI remains explicitly outside full native parity |
-| **Affordance** — what can I do here | Original migration baseline: `Affordance.invoke {uri, command}`, `Command.action`, `RowAction`, `ActionPanel`, kit `ActionBar`, and `ActionPlacement` | Draft canonical-only seven-target `Affordance` through one admission seam — [#11](../../issues/11); [removal candidate](schemas/migration/REMOVAL.md) remains unmerged and cutover-gated |
+| **Affordance** — what can I do here | Original migration baseline: `Affordance.invoke {uri, command}`, `Command.action`, `RowAction`, `ActionPanel`, kit `ActionBar`, and `ActionPlacement` | Canonical-only seven-target `Affordance` through one admission seam — [#11](../../issues/11); [major-1 boundary](schemas/migration/REMOVAL.md) has explicit FILE selection; delivery and release remain gated |
 | **Value** — what is this, how does it read | `ValueDisplay` (18 `ValueType`s) on `DescriptorRow`, `FormField`, `TableColumn`, `StatPanel`, `CopyValue`, `MetaField`, `ResourceCardTemplate` slots, gallery `CardSpec` slots, `Conversation.Block.Field`, and `Conversation.Block.Table` cells | `display` on every value-bearing message, one formatter in `uiview-core` — [#12](../../issues/12) |
 | **Rhythm & layout** | `Metrics` defines radius/unit plus bounded spacing/density/stroke, with shared web bindings and explicit terminal degradation ([contract](schemas/METRICS.md)); four layout modes have per-modality realization rules; `RepeatedField.element` has scalar/object arms and `NestedForm` has fields | integrated stable-renderer Metrics/Typography bindings, layout degradation rules, nine-kind form validation, and complete glossary — [#13](../../issues/13); SwiftUI retains preview scope |
 

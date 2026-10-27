@@ -151,18 +151,19 @@ checks, remaining consumer/notice inventory, versioned artifact/delivery
 selection, and integrated release-line verification are still required. Earlier
 failed runs remain failures; the local full-suite disk-exhaustion attempt is not
 counted as a pass. Existing frozen compatibility inputs and FILE rejection checks
-stay unchanged; the migration references above are audit inputs, not active
-baselines. New source revisions require their own checks rather than inheriting
+stay unchanged. Required node CI explicitly selects the reviewed removal
+reference for major-1 FILE evaluation; historical references remain audit inputs.
+New source revisions require their own checks rather than inheriting
 8727ba0's CI result.
 
 Literal 1.0.0 metadata now covers the module, three Rust crates and all seven
 generated npm manifests. Final-version Rust archives and all seven installed
 npm packages have candidate verification; this does not publish them or verify
 a later integration revision. Existing main's scoped, owner-gated automation is
-preserved in the draft integration branch. No final v1 baseline or release
-artifact is activated by these changes.
-Keep the candidate draft/unmerged and preserve final exact-artifact cutover,
-live automation, and publication as separate owner approvals.
+preserved. Major-1 source FILE selection is explicit in required node CI, not
+inferred from running a rehearsal. This does not activate production consumers,
+live automation or a registry artifact. Exact-artifact delivery, publication,
+private image/chart effects and deployment remain separate owner decisions.
 
 ## Inactive FILE rehearsal for cutover review
 
@@ -174,4 +175,6 @@ It preserves both complete old-line reports and prints `PREPARATION ONLY`.
 See the [reference and command](../compat/README.md#exact-removal-candidate-rehearsal).
 This is not a production selector or a general post-cutover maintenance gate;
 unrelated additions fail the exact initial-cutover check too. Existing reference
-files, the root FILE policy, workflow selection and package versions stay intact.
+files and the root FILE rule set stay intact. Required node CI separately
+selects the major-1 maintenance evaluator described in the compatibility guide;
+this initial rehearsal remains stricter and continues to report preparation only.

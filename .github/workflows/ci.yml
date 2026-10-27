@@ -242,6 +242,14 @@ jobs:
       - name: Mirror conformance self-test
         run: node --test "schemas/tools/*.test.mjs"
 
+      - name: Major-1 FILE compatibility
+        run: |
+          set -euo pipefail
+          pnpm exec buf build schemas --as-file-descriptor-set --exclude-source-info \
+            -o "$RUNNER_TEMP/meridian-v1-policy.binpb"
+          node schemas/tools/compatibility_line.mjs --line v1-maintenance-proposal \
+            --image "$RUNNER_TEMP/meridian-v1-policy.binpb"
+
       - name: Exact Affordance removal, frozen additive contracts, and real TS consumers
         run: node schemas/tools/affordance_consumer_probe.mjs
 

@@ -137,6 +137,7 @@ function main(args) {
     process.stdout.write(`Frozen transition ownership (${result.ownership.length} declarations):\n${result.ownership.join("\n")}\n`);
   }
   console.log(`${result.line} FILE: passed against its explicit frozen baseline`);
-  if (result.line !== "maintained-0x") console.log("PREPARATION ONLY: no production baseline activation, cutover, release, or publication approval");
+  if (result.line === "v1-maintenance-proposal") console.log("FILE evaluation only: no merge, publication, deployment, or live automation approval");
+  else if (result.line !== "maintained-0x") console.log("PREPARATION ONLY: no production baseline activation, cutover, release, or publication approval");
 }
 if (isMain(import.meta.url)) main(process.argv.slice(2));

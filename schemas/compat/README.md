@@ -65,8 +65,9 @@ update. Preparation never overwrites a frozen reference implicitly.
 
 ## Exact removal-candidate rehearsal
 
-`v1-removal-candidate.binpb` is a new **inactive audit reference**, not a
-replacement for any existing reference. It is the source-info-free full-module
+`v1-removal-candidate.binpb` is the digest-guarded audit reference selected
+explicitly for major-1 CI below. Neither frozen old-line reference is replaced.
+It is the source-info-free full-module
 image built with Buf 1.72.0 from public candidate
 `e7975a6ecec98217f2a9c76b7f9a2a59a4bf3dea`. SHA-256:
 `022c995b582690be2aea4f9c63126cfc93652a168c38d1f3e54c337aa824d55c`.
@@ -101,22 +102,24 @@ and continue rejecting removal. The root `buf.yaml` remains unchanged.
 Before any activation, an explicit cutover review must approve final 0.x/v1
 source revisions, immutable descriptor digests, the complete ownership report,
 generated-language/boxing breaks, all upgraded public/private consumers, old-host
-precedence/version gating, and the release boundary. A later PR must wire the
-approved release-line policy into required CI without converting an old-line
-failure to success. Package publication and deployments remain separate approvals.
+precedence/version gating, and the release boundary. Major-1 CI selects the
+explicit policy below without converting an old-line failure to success. Future
+selection changes require review. Package publication and deployments remain
+separate approvals.
 
-## Inactive maintenance-policy proposal
+## Explicit major-1 FILE maintenance policy
 
-The explicit `v1-maintenance-proposal` mode models the policy for a future
-approved major-1 maintenance line. It is an opt-in proposal; required CI and
-the default FILE policy do not select it. The exact initial-cutover rehearsal
-above retains its stricter whole-image check.
+The node CI job explicitly selects `v1-maintenance-proposal` for the major-1
+line; the technical mode name is retained for audit continuity. Selection is
+recorded in the workflow, not inferred from running the evaluator. The root
+FILE rule set and both historical references remain unchanged. The exact
+initial-cutover rehearsal above retains its stricter whole-image check.
 
 ```sh
 node schemas/tools/compatibility_line.mjs --line v1-maintenance-proposal --image <full-module-image>.binpb
 ```
 
-This proposal requires a major-1 version from the real `MODULE.bazel` module
+This policy requires a major-1 version from the real `MODULE.bazel` module
 block, verifies the unchanged removal-reference digest and transformation,
 retains all nine retired field names/tags as reservations, forbids resurrection
 of the four retired full names under any declaration kind, and keeps the
@@ -129,10 +132,13 @@ compatible addition to FILE.
 Both maintained-0x and pre-removal additive FILE comparisons must still reject
 with exit 100 and retain their complete reports. No old-line failure is relabeled
 as a compatibility success. Unknown/production/default aliases remain errors;
-there is no approval flag. Output continues to say PREPARATION ONLY.
+there is no approval flag. The maintenance evaluator reports that evaluation
+grants no merge, publication, deployment or live automation approval. The exact
+initial-cutover rehearsal continues to print PREPARATION ONLY.
 
-Before production selection, review the exact policy implementation and tests,
-final source/image identities, supported version boundary, first-party consumers
-and integration checks. A separately approved CI change must explicitly select
-the policy. This draft does not select it, change a frozen reference, activate
-a schema, merge a PR or publish an artifact.
+Policy selection requires review of the implementation, tests, final source/image
+identities, supported version boundary, first-party consumers and integration
+checks. The initial release retains its exact-cutover consumer probes unchanged;
+this policy does not relax those checks. Future compatible schema evolution also
+requires review of that migration-probe phase. Evaluating FILE compatibility does
+not merge a PR, publish an artifact, deploy a service or activate automation.

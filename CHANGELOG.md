@@ -2,18 +2,18 @@
 
 ## Unreleased — 1.0.0 candidate
 
-This records the unmerged removal candidate, not a published release or an
-activated compatibility policy. This separate distribution draft prepares
-`1.0.0` package metadata, not a tag or registry release. The prior unmerged
-`1.0.0-alpha.1` candidate supplied validation evidence; no alpha publication is claimed.
-Final-version archives have detached-consumer verification; the integrated
-release revision and its exact release artifacts still require verification.
-The maintained 0.x line is unchanged; neither a final 1.0.0 release nor its
-schema/FILE activation is approved by this version preparation.
+This unreleased major-1 source line uses `1.0.0` metadata and the canonical
+Affordance removal contract. Required node CI explicitly selects the reviewed
+major-1 FILE reference; both old-line FILE rejections remain required evidence.
+This is not a tag, registry publication or deployment announcement. The prior
+`1.0.0-alpha.1` preparation supplied validation evidence without an alpha release.
+Candidate archives have detached-consumer verification; the integrated release
+revision and its exact release artifacts still require verification before an
+approved publication. Published 0.x artifacts remain distinct from this line.
 The roadmap's completed work and remaining issue criteria remain authoritative
 in [ROADMAP.md](ROADMAP.md).
 
-### Intentional breaking changes in the removal draft
+### Intentional breaking changes at the major-1 boundary
 
 - Use one canonical `Affordance.invoke` vocabulary across rows, headers,
   palette commands, chat and forms: RPC, navigation, inline panel, view, URI,
@@ -45,10 +45,10 @@ in [ROADMAP.md](ROADMAP.md).
 - Frozen old-reader compatibility checks and actual-removal generated-language
   checks remain separate. Both existing FILE references intentionally reject
   the breaking candidate; neither is silently replaced or downgraded to WIRE.
-- An explicit inactive removal-line rehearsal checks the complete audited image,
+- The explicit initial removal-line rehearsal checks the complete audited image,
   exact initial cutover, surviving ownership moves and both old-line rejection
-  reports before FILE-checking the candidate reference. It cannot activate a
-  production baseline or approve release execution.
+  reports before FILE-checking the candidate reference. Running the rehearsal
+  grants no release, publication or deployment authority.
 - The Studio catalog is regenerated through real installed module compositions
   with strict decoding and the maintained inventory. Its
   [provenance and verification limits](packages/mui-kit/harness/STUDIO-CATALOG.md)
@@ -67,8 +67,8 @@ deployment is announced by this summary.
 
 Version producers, locks and generated manifests agree on 1.0.0. Before a
 versioned release, finish supported-consumer delivery selection and migration
-notices, approve the explicit FILE-baseline transition, verify extracted
-artifacts from the integrated release revision, and test that release line.
+notices, verify the explicitly selected FILE policy and extracted artifacts on
+the integrated release revision, and test that release line.
 External application rollout, including Aion, does not gate Meridian's release.
-Merging/schema activation,
-live roadmap automation and publication remain separately approval-gated.
+Live roadmap automation, production consumer cutover, publication and deployment
+remain separately approval-gated.

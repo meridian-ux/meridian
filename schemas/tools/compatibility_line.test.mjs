@@ -225,3 +225,16 @@ test("an aliased absolute CLI path cannot skip release-line validation", () => {
     assert.match(result.stderr, /unknown release line/);
   } finally { rmSync(work, { recursive: true, force: true }); }
 });
+
+
+test("selected maintenance evaluator reports no operational approval and retains explicit old-line rejections", () => {
+  const script = fileURLToPath(new URL("./compatibility_line.mjs", import.meta.url));
+  const args = [script, "--line", "v1-maintenance-proposal", "--image", REFERENCES["v1-removal-candidate"]];
+  const result = spawnSync(process.execPath, args, { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /FILE evaluation only: no merge, publication, deployment, or live automation approval/);
+  assert.match(result.stdout, /Maintained 0.x FILE: REJECTED/);
+  assert.match(result.stdout, /Pre-removal additive FILE: REJECTED/);
+  assert(!result.stdout.includes("PREPARATION ONLY"));
+  assert.notEqual(spawnSync(process.execPath, [...args, "--approve"], { encoding: "utf8" }).status, 0);
+});

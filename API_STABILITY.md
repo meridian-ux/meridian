@@ -96,7 +96,7 @@ opening resets the transient query. Escape/backdrop request closing. Successful
 settlement closes; open-panel targets require explicit host capabilities rather
 than mounting descriptor content implicitly inside the palette.
 
-In the unmerged [removal candidate](schemas/migration/REMOVAL.md), only
+At the [major-1 removal boundary](schemas/migration/REMOVAL.md), only
 `Command.affordance` supplies invocation intent. Retired command fields and
 `deep_link` metadata never supply a target; absent or empty intent stays inert.
 Navigate and open-view actions require explicit provider invocation capabilities
