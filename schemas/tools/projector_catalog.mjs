@@ -1,5 +1,6 @@
 // Refresh the public structure catalog from an immutable, tested producer export.
 // This is an authoring/build tool, never a legacy runtime adapter.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -77,7 +78,7 @@ export function refresh(source, revision, write = false) {
   console.log(`Projector catalog ${write ? "written" : "verified"}: ${JSON.parse(result).entries.length} strict canonical views`);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   const args = process.argv.slice(2);
   assert(args.length === 4 || args.length === 5 && args[4] === "--write",
     "usage: projector_catalog.mjs --source <producer-checkout> --revision <40-character-commit> [--write]");

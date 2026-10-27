@@ -1,6 +1,7 @@
 // Install only the two generated default-core files, never write through Bazel
 // output symlinks. Call after building //schemas:core_runtime, or downloading
 // that exact target's two artifacts in CI.
+import { isMain } from "./cli_entrypoint.mjs";
 import { copyFileSync, mkdirSync, mkdtempSync, renameSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,4 +19,4 @@ export function prepareCore(
   } finally { rmSync(staging, { recursive: true, force: true }); }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) prepareCore(process.argv[2]);
+if (isMain(import.meta.url)) prepareCore(process.argv[2]);

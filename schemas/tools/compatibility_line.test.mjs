@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { clone, create, toBinary } from "@bufbuild/protobuf";
 import { DescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -211,4 +211,17 @@ test("maintenance proposal is major-1-only and does not create production aliase
   const result = checkLine("v1-maintenance-proposal", REFERENCES["v1-removal-candidate"]);
   assert.equal(result.selected.status, 0);
   for (const line of ["v1", "production", "default"]) assert.throws(() => checkLine(line, REFERENCES["v1-removal-candidate"]), /unknown release line/);
+});
+
+test("an aliased absolute CLI path cannot skip release-line validation", () => {
+  const work = mkdtempSync(join(tmpdir(), "meridian-cli-alias-"));
+  try {
+    const source = fileURLToPath(new URL("../../", import.meta.url));
+    const alias = join(work, "source");
+    symlinkSync(source, alias, "dir");
+    const result = spawnSync(process.execPath, [join(alias, "schemas/tools/compatibility_line.mjs"),
+      "--line", "definitely-unknown", "--image", join(work, "missing.binpb")], { encoding: "utf8" });
+    assert.notEqual(result.status, 0, "invalid release-line input must not silently succeed through a path alias");
+    assert.match(result.stderr, /unknown release line/);
+  } finally { rmSync(work, { recursive: true, force: true }); }
 });

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Explicit removal implementation evidence, never baseline activation. Keep the
 // frozen additive checks intact and prove current consumers against real source.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -99,7 +100,7 @@ export async function probeRemoval() {
   } finally { rmSync(historical.work, { recursive: true, force: true }); }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   const args = process.argv.slice(2);
   assert(args.length === 0 || args.length === 1 && args[0] === "--keep", "usage: affordance_removal_probe.mjs [--keep]");
   const result = await probeRemoval();

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Compile real source projects against isolated generated facades. No production
 // codegen, source rewriting, dependency installation, or emission is performed.
+import { isMain } from "./cli_entrypoint.mjs";
 import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -63,4 +64,4 @@ async function main() {
   });
   console.log(JSON.stringify(await probeConsumers([...PUBLIC_PROJECTS.map(path => join(ROOT, path)), ...extras]), null, 2));
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+if (isMain(import.meta.url)) await main();

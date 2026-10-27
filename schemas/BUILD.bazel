@@ -74,12 +74,13 @@ done
 js_binary(
     name = "embed_core_wasm",
     entry_point = "tools/embed_core_wasm.mjs",
+    data = ["tools/cli_entrypoint.mjs"],
 )
 
 js_binary(
     name = "proto_facades",
     entry_point = "tools/proto_facades.mjs",
-    data = [":node_modules/@bufbuild/protobuf"],
+    data = [":node_modules/@bufbuild/protobuf", "tools/cli_entrypoint.mjs"],
 )
 
 alias(
@@ -184,6 +185,7 @@ exports_files([
     "package.json",
     "tsconfig.json",
     "tools/conformance_snapshots.mjs",
+    "tools/cli_entrypoint.mjs",
     "compat/pre-v1.binpb",
     "compat/v1-surviving-imports.binpb",
     "compat/v1-additive-pre-removal.binpb",
