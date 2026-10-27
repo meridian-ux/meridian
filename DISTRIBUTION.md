@@ -59,9 +59,10 @@ artifacts, not registry uploads. Download and preserve the approved bytes and
 their hashes before their CI retention expires; rebuilding is a new verification
 input, not proof of the earlier files' identity.
 
-After a separately approved release, the dependency order is core and theme,
-then TUI. Registry-name availability/ownership and publishing credentials still
-need a release-time check. No Cargo publication workflow is enabled here.
+The release rehearsal also runs `cargo publish --workspace --dry-run --locked`,
+which verifies all three packages without uploading. Cargo handles workspace
+dependency order: core and theme before TUI. Registry-name ownership and trusted
+publisher setup require separate owner approval before any actual publication.
 
 ## Web-components npm artifact
 
@@ -121,7 +122,88 @@ fails without being cleared. Only successful checks copy these archives; the det
 app and its installed dependencies are excluded. This evidence covers this
 three-package consumer, not all seven npm packages or an approved release.
 
-The existing release workflow still publishes only its previous six packages.
-Adding this package to an actual release requires an approved release change,
-npm ownership/trusted-publisher setup, and verification that the full v1 contract
-is ready. Neither tag creation nor publication is authorized by this preparation.
+## Complete release rehearsal
+
+`publish.yml` keeps its existing filename for npm trusted-publisher identity.
+Its preparation job runs on relevant PRs, version tags, and manual dispatches.
+Those events prepare and test artifacts with **contents read only**. Preparation
+does not request OIDC credentials or run registry uploads. A tag by itself no
+longer publishes; manual dispatch defaults to `publish: false`.
+
+The job retains `release-packages-<checkout-commit>` for 30 days, containing
+exactly seven npm tarballs, three crate archives and their existing standard
+`SHA256SUMS` file. Package identities, versions and every first-party registry
+dependency must agree with `MODULE.bazel`; missing, additional, modified,
+private or locally linked packages fail verification. No custom parallel release
+manifest is introduced. Preserve the verified files before retention expires.
+
+Reproduce locally after the frozen workspace installation, `pnpm codegen` and
+`pnpm core:prepare`:
+
+```sh
+bazel build --noannounce_rc --lockfile_mode=error \
+  //schemas/proto:proto_ts_pkg //schemas:schemas_pkg \
+  //packages/web:pkg //packages/web-react:pkg \
+  //packages/chat:pkg //packages/launchpad:pkg
+python3 tools/release.py prepare --artifacts /tmp/meridian-release-packages
+python3 tools/release.py verify --artifacts /tmp/meridian-release-packages
+```
+
+The output directory must be new and its parent must exist. Failures preserve
+the detached rehearsal directory for inspection; existing outputs are never
+cleared. The real MUI producer builds its declarations into detached staging.
+All seven actual tarballs install together without lifecycle scripts, pass
+`npm ls`, strict TypeScript 5.7.3 with ESNext/Bundler resolution, a browser bundle,
+DOM namespace imports, and a one-proto-ts-root check. This does not claim all-seven
+NodeNext support. The existing three-package web check continues to verify
+installed invocation behavior and frozen historical-wire traps independently.
+Cargo's dry run compiles its actual extracted packages, including unpublished
+first-party dependencies. Only a complete passing set reaches the output folder.
+
+## Separately gated publication
+
+No environment, enable flag, registry trust, credential or tag is configured by
+this implementation. Before an authorized release, the owner must:
+
+1. Confirm ownership/bootstrap for all seven npm names and three crate names.
+   Name availability or a successful local rehearsal does not establish access.
+2. Configure each npm trusted publisher for this repository, `publish.yml`, the
+   `meridian-release` environment and **direct npm publish** permission. Newer
+   npm configurations can be stage-only, which is insufficient for this lane.
+   Verify each package's repository identity. Configure crates.io trust for the
+   same repository/workflow/environment on all three crates. First publication
+   of a new name may require a separately approved owner bootstrap.
+3. Create and review the protected `meridian-release` GitHub environment with
+   required reviewers and appropriate tag restrictions. The YAML environment
+   name alone does not configure those protections. Only then, under separate
+   approval, set repository variable `MERIDIAN_RELEASE_PUBLISH_ENABLED=true`.
+4. Confirm successful main CI on the selected integrated source, approve a
+   version tag matching the module and manually dispatch that tag with
+   `publish: true`. Branch dispatches, tag pushes, PRs and an absent enable flag
+   cannot run the credential/upload job. The protected environment still needs
+   its own approval. Neither setting the flag nor this document authorizes a run.
+
+The upload job downloads only its own workflow run's complete artifact set,
+checks hashes/identities, verifies its source SHA, main ancestry and matching tag, then rehearses
+Rust again and compares the regenerated crate hashes with the retained files.
+The pinned official crates.io action obtains a short-lived credential and revokes
+it in its post step; no long-lived registry-token fallback is added. npm uses
+OIDC with pinned npm 11.21.1 on Node 22. Registry setup and live authentication
+have not been validated by the no-upload tests.
+
+Cargo's actual upload command repackages and verifies the workspace; the tool
+also compares resulting archives after it completes. It does not claim Cargo
+accepts a prebuilt tarball upload argument. npm publishes the exact verified
+tarballs, without lifecycle scripts, in dependency order. Stable versions use
+`latest`; prereleases use `next`. There is no atomic transaction across registries.
+After any ambiguous/partial upload failure, stop and inspect registry state
+before an owner-approved retry. Do not delete tags, unpublish or blindly replay
+uploads. Verify all ten registry versions, checksums, imports and Rust consumers
+after the separately authorized release before announcing completion.
+
+Protocol activation, private integration, live roadmap automation, image/chart
+publication and deployment remain separate gates.
+
+References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/),
+[Cargo publish](https://doc.rust-lang.org/cargo/commands/cargo-publish.html), and
+[official crates.io authentication action](https://github.com/rust-lang/crates-io-auth-action).
