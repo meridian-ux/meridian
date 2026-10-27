@@ -1,10 +1,12 @@
 # Change summary
 
-## Unreleased — 1.0.0-alpha.1 candidate
+## Unreleased — 1.0.0 candidate
 
 This records the unmerged removal candidate, not a published release or an
-activated compatibility policy. This separate distribution draft prepares the
-combined `1.0.0-alpha.1` boundary in package metadata, not a tag or registry release.
+activated compatibility policy. This separate distribution draft prepares
+`1.0.0` package metadata, not a tag or registry release. The prior unmerged
+`1.0.0-alpha.1` candidate supplied validation evidence; no alpha publication is claimed.
+The final-version archives and consumers still require their own verification.
 The maintained 0.x line is unchanged; neither a final 1.0.0 release nor its
 schema/FILE activation is approved by this version preparation.
 The roadmap's completed work and remaining issue criteria remain authoritative

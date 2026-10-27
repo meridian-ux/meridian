@@ -7,9 +7,11 @@ announce a release, reserve registry names, configure credentials, publish
 packages, or authorize a deployment.
 
 All artifacts follow `MODULE.bazel` and the Cargo workspace version. This
-unmerged distribution draft prepares **1.0.0-alpha.1** for the combined removal
-candidate. It does not announce a published prerelease, change the maintained
-0.x line, activate a schema/FILE baseline, or approve a final 1.0.0 release.
+unmerged distribution draft prepares **1.0.0** for the combined removal
+candidate. The earlier unmerged 1.0.0-alpha.1 candidate supplied verification
+evidence; no alpha publication is claimed. This metadata preparation does not
+change the maintained 0.x line, activate a schema/FILE baseline, or approve a
+1.0.0 release. The final-version artifacts require their own exact-source checks.
 Exact-head packaging and detached-consumer checks must pass before integration;
 merging, baseline activation, tags, uploads and deployment remain separately gated.
 
