@@ -32,15 +32,15 @@ members = [
 # crates/core published Bazel module 0.6.0 from crates pinned at 0.1.0 — because
 # only meridian-schemas ever gated the three version axes against each other.
 [workspace.package]
-version = "0.25.1"
+version = "1.0.0-alpha.1"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/meridian-ux/meridian"
 
 [workspace.dependencies]
 # ── first-party, by path. The whole reason this workspace exists. ─────────────
-meridian-uiview = { path = "crates/core/rust/uiview", version = "=0.25.1" }
-theme-proto = { path = "crates/core/rust/theme-proto", version = "=0.25.1" }
+meridian-uiview = { path = "crates/core/rust/uiview", version = "=1.0.0-alpha.1" }
+theme-proto = { path = "crates/core/rust/theme-proto", version = "=1.0.0-alpha.1" }
 
 # ── shared third-party ────────────────────────────────────────────────────────
 # The two absorbed workspaces already agreed on everything here. The three splits

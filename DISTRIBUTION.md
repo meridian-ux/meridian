@@ -6,9 +6,19 @@ browser ESM bundle remain supported build surfaces. This document does not
 announce a release, reserve registry names, configure credentials, publish
 packages, or authorize a deployment.
 
-All artifacts follow `MODULE.bazel` and the Cargo workspace version. The current
-preparation uses 0.25.1; v1 versions must not be assigned until its remaining
-contract and conformance requirements are satisfied.
+All artifacts follow `MODULE.bazel` and the Cargo workspace version. This
+unmerged distribution draft prepares **1.0.0-alpha.1** for the combined removal
+candidate. It does not announce a published prerelease, change the maintained
+0.x line, activate a schema/FILE baseline, or approve a final 1.0.0 release.
+Exact-head packaging and detached-consumer checks must pass before integration;
+merging, baseline activation, tags, uploads and deployment remain separately gated.
+
+Aion is a downstream consumer, not a Meridian build or runtime dependency.
+Its application/installer rollout and whole-repository CI do not gate Meridian's
+release. The checked-in Studio catalog remains a renderer fixture; rendering
+and testing that fixture does not build or contact Aion. Regenerating it from
+its original producer is a separate downstream export. Meridian still owns its declared
+SDK contracts, migration notices and first-party consumer checks.
 
 ## Rust archives
 
@@ -17,6 +27,10 @@ packages. Their manifests inherit the public monorepo repository metadata.
 First-party dependencies carry both local paths and exact registry versions;
 Cargo removes workspace paths when normalizing the distributed manifests.
 Release version changes must update those pins with the workspace version.
+Generated npm manifests likewise pin all declared first-party dependency and
+peer edges to that exact version, including explicit old development peer ranges.
+Third-party ranges are preserved; similar package-name prefixes are not proof
+that a package belongs to this repository's lockstep set.
 
 Verify without publication:
 
