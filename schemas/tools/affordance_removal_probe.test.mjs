@@ -9,7 +9,7 @@ import { probeRemoval } from "./affordance_removal_probe.mjs";
 
 test("real removal probe preserves historical contracts, rejects both FILE lines, and compiles current readers", async t => {
   const protectedPaths = ["../compat/pre-v1.binpb", "../compat/v1-affordance-candidate.binpb",
-    "../compat/v1-additive-pre-removal.binpb", "../compat/v1-surviving-imports.binpb",
+    "../compat/v1-additive-pre-removal.binpb", "../compat/v1-surviving-imports.binpb", "../compat/v1-removal-candidate.binpb",
     "../../buf.yaml", "./compatibility_line.mjs"];
   const hashes = () => protectedPaths.map(path => createHash("sha256")
     .update(readFileSync(new URL(path, import.meta.url))).digest("hex"));

@@ -158,3 +158,15 @@ baselines. New source revisions require their own checks rather than inheriting
 No final v1 baseline/version or release artifact is activated by these changes.
 Keep the candidate draft/unmerged and preserve final exact-artifact cutover,
 live automation, and publication as separate owner approvals.
+
+## Inactive FILE rehearsal for cutover review
+
+The explicit `v1-removal-candidate` mode in
+`schemas/tools/compatibility_line.mjs` checks the digest-guarded full-module
+audit image, exact initial removal, 41 surviving ownership moves, both original
+FILE rejections (exit 100), and FILE against the removal-candidate reference.
+It preserves both complete old-line reports and prints `PREPARATION ONLY`.
+See the [reference and command](../compat/README.md#exact-removal-candidate-rehearsal).
+This is not a production selector or a general post-cutover maintenance gate;
+unrelated additions fail the exact initial-cutover check too. Existing reference
+files, the root FILE policy, workflow selection and package versions stay intact.

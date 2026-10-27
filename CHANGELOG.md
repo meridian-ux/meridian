@@ -40,6 +40,10 @@ in [ROADMAP.md](ROADMAP.md).
 - Frozen old-reader compatibility checks and actual-removal generated-language
   checks remain separate. Both existing FILE references intentionally reject
   the breaking candidate; neither is silently replaced or downgraded to WIRE.
+- An explicit inactive removal-line rehearsal checks the complete audited image,
+  exact initial cutover, surviving ownership moves and both old-line rejection
+  reports before FILE-checking the candidate reference. It cannot activate a
+  production baseline or approve release execution.
 - The Studio catalog is regenerated through real installed module compositions
   with strict decoding and the maintained inventory. Its
   [provenance and verification limits](packages/mui-kit/harness/STUDIO-CATALOG.md)

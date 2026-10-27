@@ -1,6 +1,7 @@
 // Release-line preparation, not a production cutover selector. The repository's
 // default FILE policy is unchanged; an explicit candidate check cannot activate it.
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,13 +9,24 @@ import { spawnSync } from "node:child_process";
 import { fromBinary } from "@bufbuild/protobuf";
 import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { descriptorFiles } from "./proto_facades.mjs";
+import { loadRemovalReference, survivingImportReference, verifyRemoval } from "./affordance_removal.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const REFERENCES = Object.freeze({
   "maintained-0x": join(root, "schemas/compat/pre-v1.binpb"),
   "v1-candidate": join(root, "schemas/compat/v1-affordance-candidate.binpb"),
+  "v1-removal-candidate": join(root, "schemas/compat/v1-removal-candidate.binpb"),
 });
 export const loadImage = path => fromBinary(FileDescriptorSetSchema, readFileSync(path));
+export const REMOVAL_CANDIDATE_SHA256 = "022c995b582690be2aea4f9c63126cfc93652a168c38d1f3e54c337aa824d55c";
+
+export function verifyRemovalCandidateReference(bytes) {
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), REMOVAL_CANDIDATE_SHA256,
+    "removal candidate reference changed; exact review required");
+  const reference = fromBinary(FileDescriptorSetSchema, bytes);
+  verifyRemoval(loadRemovalReference(), reference);
+  return reference;
+}
 
 function owners(image) {
   const result = new Map();
@@ -72,6 +84,21 @@ export function checkLine(line, image) {
     assert.equal(checked.status, 0, `maintained-0x FILE rejected this image:\n${checked.report}`);
     return { line, ownership: [], legacy: checked, selected: checked };
   }
+  if (line === "v1-removal-candidate") {
+    // An opt-in initial-cutover rehearsal, not the future production v1 policy.
+    // Freeze the audited removal image, and reject even compatible unrelated
+    // additions here: they need their own review before this exact cutover.
+    verifyRemovalCandidateReference(readFileSync(REFERENCES[line]));
+    verifyRemoval(loadRemovalReference(), candidate);
+    const ownership = ownershipChanges(survivingImportReference(), candidate);
+    const legacy = fileCheck(image, REFERENCES["maintained-0x"]);
+    requireCompatibilityRejection(legacy);
+    const additive = fileCheck(image, join(root, "schemas/compat/v1-additive-pre-removal.binpb"));
+    requireCompatibilityRejection(additive);
+    const selected = fileCheck(image, REFERENCES[line]);
+    assert.equal(selected.status, 0, `${line} FILE rejected this image:\n${selected.report}`);
+    return { line, ownership, legacy, additive, selected };
+  }
   const ownership = verifyOwnership(loadImage(REFERENCES["maintained-0x"]), loadImage(REFERENCES[line]), candidate);
   // Retain and surface the old FILE failure. A candidate-line success is not
   // a claim that relocation passed the maintained 0.x policy.
@@ -84,13 +111,14 @@ export function checkLine(line, image) {
 
 function main(args) {
   assert(args.length === 4 && args[0] === "--line" && args[2] === "--image",
-    "usage: compatibility_line.mjs --line maintained-0x|v1-candidate --image descriptor.binpb");
+    "usage: compatibility_line.mjs --line maintained-0x|v1-candidate|v1-removal-candidate --image descriptor.binpb");
   const result = checkLine(args[1], args[3]);
-  if (result.line === "v1-candidate") {
+  if (result.line !== "maintained-0x") {
     process.stdout.write(`Maintained 0.x FILE: REJECTED (exit ${result.legacy.status}); full report follows\n${result.legacy.report}\n`);
+    if (result.additive) process.stdout.write(`Pre-removal additive FILE: REJECTED (exit ${result.additive.status}); full report follows\n${result.additive.report}\n`);
     process.stdout.write(`Frozen transition ownership (${result.ownership.length} declarations):\n${result.ownership.join("\n")}\n`);
   }
   console.log(`${result.line} FILE: passed against its explicit frozen baseline`);
-  if (result.line === "v1-candidate") console.log("PREPARATION ONLY: no production baseline activation, cutover, release, or publication approval");
+  if (result.line !== "maintained-0x") console.log("PREPARATION ONLY: no production baseline activation, cutover, release, or publication approval");
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));

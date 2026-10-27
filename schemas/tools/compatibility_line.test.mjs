@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { clone, create, toBinary } from "@bufbuild/protobuf";
-import { FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
+import { DescriptorProtoSchema, FileDescriptorSetSchema } from "@bufbuild/protobuf/wkt";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership } from "./compatibility_line.mjs";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { checkLine, loadImage, ownershipChanges, REFERENCES, requireCompatibilityRejection, verifyOwnership, verifyRemovalCandidateReference } from "./compatibility_line.mjs";
 import { completeCandidate } from "./prepare_compatibility_candidate.mjs";
 
 test("snapshot preparation retains every unchanged file omitted by the narrow probe", () => {
@@ -82,4 +84,70 @@ test("candidate FILE still rejects an incompatible field change despite matching
     writeFileSync(path, toBinary(FileDescriptorSetSchema, modified));
     assert.throws(() => checkLine("v1-candidate", path), /v1-candidate FILE rejected/);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("the removal reference is digest-pinned and remains the exact complete transformation", () => {
+  const bytes = readFileSync(REFERENCES["v1-removal-candidate"]);
+  const reference = verifyRemovalCandidateReference(bytes);
+  assert(reference.file.some(file => file.name.startsWith("conformance/")));
+  const altered = Buffer.from(bytes); altered[altered.length - 1] ^= 1;
+  assert.throws(() => verifyRemovalCandidateReference(altered), /reference changed; exact review required/);
+  assert.throws(() => verifyRemovalCandidateReference(readFileSync(REFERENCES["v1-candidate"])),
+    /reference changed; exact review required/);
+});
+
+test("explicit removal preparation preserves both FILE rejections and inventories only surviving moves", () => {
+  const result = checkLine("v1-removal-candidate", REFERENCES["v1-removal-candidate"]);
+  assert.equal(result.legacy.status, 100);
+  assert.equal(result.additive.status, 100);
+  assert.equal(result.selected.status, 0);
+  assert.equal(result.ownership.length, 41);
+  assert(result.ownership.every(change => change.endsWith(" -> proto/interaction.proto")));
+  assert(result.ownership.every(change => !/meridian\.ui\.v1\.(Action|RowAction|OpenPanel|AffordanceStyle):/.test(change)));
+});
+
+test("removal preparation neither changes the old lines nor adds a production alias", () => {
+  assert.throws(() => checkLine("maintained-0x", REFERENCES["v1-removal-candidate"]), /FILE rejected/);
+  assert.throws(() => checkLine("v1-candidate", REFERENCES["v1-removal-candidate"]), /declaration removed/);
+  assert.throws(() => checkLine("v1-removal-candidate", REFERENCES["v1-candidate"]), /exact reviewed removal/);
+  for (const line of ["v1", "v1-removal", "production", "default"]) {
+    assert.throws(() => checkLine(line, REFERENCES["v1-removal-candidate"]), /unknown release line/);
+  }
+});
+
+test("initial removal rehearsal rejects unrelated additions, incompatible changes and incomplete images", () => {
+  const root = mkdtempSync(join(tmpdir(), "meridian-removal-line-test-"));
+  try {
+    for (const mutate of [
+      image => image.file.find(file => file.name === "proto/interaction.proto").messageType
+        .find(message => message.name === "Affordance").field.find(field => field.name === "label").number = 99,
+      image => image.file.find(file => file.name === "proto/interaction.proto").messageType
+        .push(create(DescriptorProtoSchema, { name: "UnreviewedAddition" })),
+      image => image.file.splice(image.file.findIndex(file => file.name.startsWith("conformance/")), 1),
+    ]) {
+      const modified = loadImage(REFERENCES["v1-removal-candidate"]);
+      mutate(modified);
+      const path = join(root, "unreviewed.binpb");
+      writeFileSync(path, toBinary(FileDescriptorSetSchema, modified));
+      assert.throws(() => checkLine("v1-removal-candidate", path), /exact reviewed removal/);
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("the removal CLI prints both complete old-line reports and cannot approve activation", () => {
+  const script = fileURLToPath(new URL("./compatibility_line.mjs", import.meta.url));
+  const args = [script, "--line", "v1-removal-candidate", "--image", REFERENCES["v1-removal-candidate"]];
+  const result = spawnSync(process.execPath, args, { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Maintained 0.x FILE: REJECTED \(exit 100\); full report follows/);
+  assert.match(result.stdout, /Pre-removal additive FILE: REJECTED \(exit 100\); full report follows/);
+  assert.match(result.stdout, /Frozen transition ownership \(41 declarations\)/);
+  assert.match(result.stdout, /v1-removal-candidate FILE: passed/);
+  assert.match(result.stdout, /PREPARATION ONLY: no production baseline activation/);
+  const expected = checkLine("v1-removal-candidate", REFERENCES["v1-removal-candidate"]);
+  assert(result.stdout.includes(expected.legacy.report), "complete maintained FILE report must remain visible");
+  assert(result.stdout.includes(expected.additive.report), "complete additive FILE report must remain visible");
+  const approval = spawnSync(process.execPath, [...args, "--approve"], { encoding: "utf8" });
+  assert.notEqual(approval.status, 0);
+  assert.match(approval.stderr, /usage:/);
 });
