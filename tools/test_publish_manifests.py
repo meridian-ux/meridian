@@ -31,13 +31,17 @@ class PublishedManifestTests(unittest.TestCase):
             self.assertTrue((ROOT / dep["path"] / "Cargo.toml").is_file())
 
     def test_workspace_crate_lock_versions_follow_the_module_version(self):
-        lock = tomllib.loads((ROOT / "Cargo.lock").read_text())
-        names = {"meridian-uiview", "meridian-tui", "theme-proto"}
-        packages = [package for package in lock["package"] if package["name"] in names]
-        self.assertEqual({package["name"] for package in packages}, names)
-        self.assertEqual(len(packages), len(names))
-        for package in packages:
-            self.assertEqual(package["version"], module_version())
+        for path, names in (
+            ("Cargo.lock", {"meridian-uiview", "meridian-tui", "theme-proto"}),
+            ("fuzz/Cargo.lock", {"meridian-uiview"}),
+        ):
+            with self.subTest(lockfile=path):
+                lock = tomllib.loads((ROOT / path).read_text())
+                packages = [package for package in lock["package"] if package["name"] in names]
+                self.assertEqual({package["name"] for package in packages}, names)
+                self.assertEqual(len(packages), len(names))
+                for package in packages:
+                    self.assertEqual(package["version"], module_version())
 
     def test_prerelease_workspace_pins_remain_exact_in_every_dependency_kind(self):
         version = "1.0.0-alpha.1"
