@@ -15,8 +15,9 @@ merging, baseline activation, tags, uploads and deployment remain separately gat
 
 Aion is a downstream consumer, not a Meridian build or runtime dependency.
 Its application/installer rollout and whole-repository CI do not gate Meridian's
-release. The checked-in Studio catalog remains a renderer fixture; rebuilding
-the catalog does not build or contact Aion. Meridian still owns its declared
+release. The checked-in Studio catalog remains a renderer fixture; rendering
+and testing that fixture does not build or contact Aion. Regenerating it from
+its original producer is a separate downstream export. Meridian still owns its declared
 SDK contracts, migration notices and first-party consumer checks.
 
 ## Rust archives
