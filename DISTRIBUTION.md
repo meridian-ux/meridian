@@ -129,6 +129,8 @@ Its preparation job runs on relevant PRs, version tags, and manual dispatches.
 Those events prepare and test artifacts with **contents read only**. Preparation
 does not request OIDC credentials or run registry uploads. A tag by itself no
 longer publishes; manual dispatch defaults to `publish: false`.
+The separate `bootstrap` input also defaults to false. Setting both inputs true
+rejects both upload jobs rather than selecting a mode implicitly.
 
 The job retains `release-packages-<checkout-commit>` for 30 days, containing
 exactly seven npm tarballs, three crate archives and their existing standard
@@ -186,8 +188,9 @@ this implementation. Before an authorized release, the owner must:
 The upload job downloads only its own workflow run's complete artifact set,
 checks hashes/identities, verifies its source SHA, main ancestry and matching tag, then rehearses
 Rust again and compares the regenerated crate hashes with the retained files.
-The pinned official crates.io action obtains a short-lived credential and revokes
-it in its post step; no long-lived registry-token fallback is added. npm uses
+The pinned official crates.io action obtains a short-lived credential only when
+crate versions are missing, and revokes it in its post step. No registry-token
+fallback is added to the normal publication lane. npm uses
 OIDC with pinned npm 11.21.1 on Node 22. Registry setup and live authentication
 have not been validated by the no-upload tests.
 
@@ -201,9 +204,96 @@ before an owner-approved retry. Do not delete tags, unpublish or blindly replay
 uploads. Verify all ten registry versions, checksums, imports and Rust consumers
 after the separately authorized release before announcing completion.
 
+## Initial-name bootstrap and explicit resume
+
+Both registries' documented trusted-publisher setup requires an existing package.
+The initial new-name scope is exactly **`@savvifi/meridian-web`,
+`meridian-uiview`, `theme-proto`, and `meridian-tui` at 1.0.0**. Bootstrap is a
+distinct, initially disabled token-authenticated path, not a fallback when OIDC
+fails. It cannot publish the six existing npm packages or any other version.
+Preparing or merging this implementation does not authorize its execution.
+
+The read-only command uses the verified complete artifact set:
+
+```sh
+python3 tools/release.py registry-plan --artifacts /path/to/release-packages
+```
+
+It sends unauthenticated HTTPS GETs only to npm, crates.io, and the canonical
+crates.io static archive host. HTTP 404 means missing; authentication/rate-limit/
+server errors, redirects, malformed metadata, timeouts and checksum differences
+stop execution. Existing versions must have the exact package identity, registry
+checksum and downloaded bytes of the approved archive. npm must also retain the
+expected `latest` (stable) or `next` (prerelease) tag; deprecated npm versions and
+yanked crates reject. A matching name/version alone is insufficient. Local hashes
+and the full seven-plus-three package inventory remain mandatory.
+
+For a future owner-approved first publication, all of these are prerequisites:
+
+1. Verify npm scope creation authority, the exact crates.io owner, availability of
+   all four names, and the reviewed 1.0.0 source/tag and same-run artifact set.
+   A bootstrap name that already exists without the exact approved version is a
+   conflict requiring owner review, not permission to publish to it.
+2. Configure the protected `meridian-release` environment with required reviewers,
+   tag restrictions, self-review prevention and bypass policy before enabling
+   either lane. Each attempt needs its own explicit authority and job approval.
+3. Separately approve credential creation and placement. The bootstrap job refers
+   to environment secrets `MERIDIAN_BOOTSTRAP_CRATES_TOKEN` and
+   `MERIDIAN_BOOTSTRAP_NPM_TOKEN`; this change creates neither secret. Confirm the
+   minimum registry-supported new-name scopes and shortest practical expiration.
+   If a registry cannot constrain initial creation to these exact names, broader
+   credential authority needs explicit review before provisioning. Do not reuse
+   the roadmap App key or any unrelated credential.
+4. Separately approve `MERIDIAN_RELEASE_BOOTSTRAP_ENABLED=true` and a manual
+   matching `v1.0.0` tag dispatch with only `bootstrap: true`. Bootstrap checks its
+   own enable/request flags, official repository, manual event, tag, clean exact
+   source SHA and main ancestry. Normal publication's enable flag does not enable
+   bootstrap, and bootstrap's flag does not enable normal publication.
+
+The bootstrap job has `contents: read`, no OIDC permission, and shares the normal
+publication concurrency group. Only its final step receives bootstrap secrets.
+Before any upload, the executor scans all ten versions and checks that every
+needed credential exists. It passes the crate credential only to Cargo and the
+npm credential only to npm, using environment variables rather than arguments or
+generated token files. The selected Cargo subset is dry-run verified without
+either credential and compared to retained bytes before uploading; Cargo's
+verification stays enabled. The existing full-workspace rehearsal still runs.
+
+Bootstrap uploads only missing approved new names: core/theme before TUI, then
+the web package. Successful commands require public registry readback of the
+same bytes before proceeding. The six existing npm package names remain untouched.
+This is an intentionally partial release: web 1.0.0 depends on proto-ts/schemas
+1.0.0, so it may not install until the separately approved normal publication
+completes. That temporary availability impact belongs in publication approval;
+bootstrap success is not release completion or permission to announce v1.
+
+After authorized bootstrap, an owner can configure the four new publisher
+records. Then a separately approved normal `publish: true` run uses npm OIDC and,
+only if crates are still missing, the pinned crates.io OIDC action. Its preflight
+rejects any still-uncreated registry name before requesting that credential.
+Both executors re-read all ten versions, skip only verified exact matches, and
+upload only their missing authorized subset. Cargo receives explicit package
+selection rather than an indiscriminate workspace upload; npm receives the exact
+remaining tarballs in dependency order. If everything is already published and
+matches, verification completes without upload commands.
+
+A partial/ambiguous upload exception ends the attempt immediately. There is no
+automatic retry, sleep, unpublish, tag change or name transfer. An owner must
+inspect registry state before authorizing another attempt at the same source and
+approved bytes. A new attempt rechecks hashes and actual registry archives; it
+does not trust a cached plan or a mutable uploaded-status ledger. A changed
+artifact, yanked/deprecated version, moved dist-tag or unknown response stops it.
+Rebuilt artifacts must prove equality; never substitute new bytes under an
+already-approved version. Restrict/remove the bootstrap flag and credentials
+after an owner-approved completion; cleanup itself requires owner authority.
+Live authentication, initial-name ownership, and actual uploads remain untested
+by the offline fixtures and read-only inventory.
+
 Protocol activation, private integration, live roadmap automation, image/chart
 publication and deployment remain separate gates.
 
 References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/),
+[npm trust prerequisites](https://docs.npmjs.com/cli/v11/commands/npm-trust/#prerequisites),
+[crates.io trusted publishing](https://crates.io/docs/trusted-publishing),
 [Cargo publish](https://doc.rust-lang.org/cargo/commands/cargo-publish.html), and
 [official crates.io authentication action](https://github.com/rust-lang/crates-io-auth-action).

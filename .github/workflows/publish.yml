@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/publish.yml
       - tools/release.py
+      - tools/release_registry.py
       - tools/test_release.py
       - DISTRIBUTION.md
   push:
@@ -16,6 +17,10 @@ on:
     inputs:
       publish:
         description: "Upload the verified set (requires owner enable flag and protected environment approval)"
+        type: boolean
+        default: false
+      bootstrap:
+        description: "Bootstrap only the four new 1.0.0 names (separate owner enable flag and approval required)"
         type: boolean
         default: false
 
@@ -85,6 +90,8 @@ jobs:
             //packages/chat:pkg //packages/launchpad:pkg
       - name: Rehearse all seven npm packages and three Rust crates
         run: python3 tools/release.py prepare --artifacts "$RUNNER_TEMP/release-packages"
+      - name: Read-only registry inventory and exact-byte comparison
+        run: python3 tools/release.py registry-plan --artifacts "$RUNNER_TEMP/release-packages"
       - name: Retain the complete verified set
         uses: actions/upload-artifact@v4
         with:
@@ -96,7 +103,7 @@ jobs:
   publish:
     needs: prepare
     if: >-
-      github.event_name == 'workflow_dispatch' && inputs.publish == true &&
+      github.event_name == 'workflow_dispatch' && inputs.publish == true && inputs.bootstrap != true &&
       github.ref_type == 'tag' && github.repository == 'meridian-ux/meridian' &&
       vars.MERIDIAN_RELEASE_PUBLISH_ENABLED == 'true'
     environment: meridian-release
@@ -110,6 +117,7 @@ jobs:
     env:
       MERIDIAN_RELEASE_PUBLISH_ENABLED: ${{ vars.MERIDIAN_RELEASE_PUBLISH_ENABLED }}
       MERIDIAN_RELEASE_PUBLISH_REQUESTED: ${{ inputs.publish }}
+      MERIDIAN_RELEASE_BOOTSTRAP_REQUESTED: ${{ inputs.bootstrap }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,16 +133,19 @@ jobs:
           name: release-packages-${{ github.sha }}
           path: ${{ runner.temp }}/release-packages
       - name: Verify the complete set and explicit execution authority
+        id: preflight
         run: |
           set -euo pipefail
           npm install -g npm@11.21.1
-          python3 tools/release.py authorize --artifacts "$RUNNER_TEMP/release-packages"
+          python3 tools/release.py preflight-publish --artifacts "$RUNNER_TEMP/release-packages"
       - name: Rehearse Rust packages and compare the retained bytes
         run: >-
           python3 tools/release.py rehearse-rust
           --artifacts "$RUNNER_TEMP/release-packages"
           --rust-target "$RUNNER_TEMP/release-crates"
+
       - name: Obtain short-lived crates.io credential
+        if: steps.preflight.outputs.crates_missing == 'true'
         id: crates
         uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6; revoked by post step
       - name: Publish the verified lockstep set
@@ -142,5 +153,55 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.crates.outputs.token }}
         run: >-
           python3 tools/release.py publish
+          --artifacts "$RUNNER_TEMP/release-packages"
+          --rust-target "$RUNNER_TEMP/release-crates"
+
+  bootstrap:
+    needs: prepare
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.bootstrap == true && inputs.publish != true &&
+      github.ref_type == 'tag' && github.repository == 'meridian-ux/meridian' &&
+      vars.MERIDIAN_RELEASE_BOOTSTRAP_ENABLED == 'true'
+    environment: meridian-release
+    concurrency:
+      group: meridian-registry-publication
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    env:
+      MERIDIAN_RELEASE_BOOTSTRAP_ENABLED: ${{ vars.MERIDIAN_RELEASE_BOOTSTRAP_ENABLED }}
+      MERIDIAN_RELEASE_BOOTSTRAP_REQUESTED: ${{ inputs.bootstrap }}
+      MERIDIAN_RELEASE_PUBLISH_REQUESTED: ${{ inputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-packages-${{ github.sha }}
+          path: ${{ runner.temp }}/release-packages
+      - name: Verify explicit bootstrap authority and complete registry state
+        run: |
+          set -euo pipefail
+          npm install -g npm@11.21.1
+          python3 tools/release.py preflight-bootstrap --artifacts "$RUNNER_TEMP/release-packages"
+      - name: Rehearse Rust packages and compare the retained bytes
+        run: >-
+          python3 tools/release.py rehearse-rust
+          --artifacts "$RUNNER_TEMP/release-packages"
+          --rust-target "$RUNNER_TEMP/release-crates"
+      - name: Bootstrap only the four reviewed new names
+        env:
+          MERIDIAN_BOOTSTRAP_CRATES_TOKEN: ${{ secrets.MERIDIAN_BOOTSTRAP_CRATES_TOKEN }}
+          MERIDIAN_BOOTSTRAP_NPM_TOKEN: ${{ secrets.MERIDIAN_BOOTSTRAP_NPM_TOKEN }}
+        run: >-
+          python3 tools/release.py bootstrap
           --artifacts "$RUNNER_TEMP/release-packages"
           --rust-target "$RUNNER_TEMP/release-crates"
