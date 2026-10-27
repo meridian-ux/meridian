@@ -104,3 +104,35 @@ generated-language/boxing breaks, all upgraded public/private consumers, old-hos
 precedence/version gating, and the release boundary. A later PR must wire the
 approved release-line policy into required CI without converting an old-line
 failure to success. Package publication and deployments remain separate approvals.
+
+## Inactive maintenance-policy proposal
+
+The explicit `v1-maintenance-proposal` mode models the policy for a future
+approved major-1 maintenance line. It is an opt-in proposal; required CI and
+the default FILE policy do not select it. The exact initial-cutover rehearsal
+above retains its stricter whole-image check.
+
+```sh
+node schemas/tools/compatibility_line.mjs --line v1-maintenance-proposal --image <full-module-image>.binpb
+```
+
+This proposal requires a major-1 version from the real `MODULE.bazel` module
+block, verifies the unchanged removal-reference digest and transformation,
+retains all nine retired field names/tags as reservations, forbids resurrection
+of the four retired full names under any declaration kind, and keeps the
+retired Command.action oneof absent. It then requires FILE compatibility with
+the frozen removal reference. FILE-compatible additions may pass; changing or
+deleting the surviving contract still fails. Retirement checks are necessary
+because adding a previously retired type can otherwise look like an ordinary
+compatible addition to FILE.
+
+Both maintained-0x and pre-removal additive FILE comparisons must still reject
+with exit 100 and retain their complete reports. No old-line failure is relabeled
+as a compatibility success. Unknown/production/default aliases remain errors;
+there is no approval flag. Output continues to say PREPARATION ONLY.
+
+Before production selection, review the exact policy implementation and tests,
+final source/image identities, supported version boundary, first-party consumers
+and integration checks. A separately approved CI change must explicitly select
+the policy. This draft does not select it, change a frozen reference, activate
+a schema, merge a PR or publish an artifact.
