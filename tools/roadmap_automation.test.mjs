@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { AutomationError, githubClient, main, REPOSITORIES, runAutomation } from "./roadmap_automation.mjs";
 
@@ -229,6 +233,22 @@ test("CLI is inactive by default and cannot execute a PR/event-supplied ref", as
   for (const env of [{}, { GITHUB_REF: "refs/pull/1/head", MERIDIAN_ROADMAP_AUTO_ADD_ENABLED: "true", MERIDIAN_ROADMAP_APPLY: "true" }]) {
     await assert.rejects(main(env), error => error.code === "inactive-or-untrusted-ref");
   }
+});
+test("aliased CLI executes its inactive guard instead of reporting a silent success", () => {
+  const work = mkdtempSync(join(tmpdir(), "meridian-roadmap-entry-"));
+  try {
+    const source = fileURLToPath(new URL("./roadmap_automation.mjs", import.meta.url));
+    const alias = join(work, "roadmap.mjs");
+    symlinkSync(source, alias);
+    for (const entry of [source, alias]) {
+      // No token or inherited runner environment: execution must stop before
+      // reading an event or constructing an API client.
+      const result = spawnSync(process.execPath, [entry], { env: {}, encoding: "utf8" });
+      assert.equal(result.status, 1, `${entry}: ${result.stderr}`);
+      assert.match(result.stderr, /inactive-or-untrusted-ref/);
+      assert.equal(result.stdout, "");
+    }
+  } finally { rmSync(work, { recursive: true, force: true }); }
 });
 test("runtime workflow keeps credentials/activation gated and has no PR execution path", () => {
   const source = readFileSync(new URL("../.github/workflows/roadmap-auto-add.yml", import.meta.url), "utf8");
