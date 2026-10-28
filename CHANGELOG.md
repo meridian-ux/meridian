@@ -7,8 +7,9 @@ Affordance removal contract. Required node CI explicitly selects the reviewed
 major-1 FILE reference; both old-line FILE rejections remain required evidence.
 This is not a tag, registry publication or deployment announcement. The prior
 `1.0.0-alpha.1` preparation supplied validation evidence without an alpha release.
-Candidate archives have detached-consumer verification; the integrated release
-revision and its exact release artifacts still require verification before an
+The integrated public source and complete seven-npm/three-crate rehearsal set
+have detached-consumer and extracted-archive verification. The actual tagged
+release must still produce and verify its own artifacts before a separately
 approved publication. Published 0.x artifacts remain distinct from this line.
 The roadmap's completed work and remaining issue criteria remain authoritative
 in [ROADMAP.md](ROADMAP.md).
@@ -58,17 +59,21 @@ in [ROADMAP.md](ROADMAP.md).
 
 ### Distribution and remaining release gates
 
-Preparation supports three Rust crate archives and the web-components npm
-artifact, alongside existing package/build surfaces. See
+Preparation supports all seven npm packages, including web-components, and three
+Rust crate archives. Separately gated bootstrap covers the four new registry
+names; resume skips only registry versions whose actual bytes match the verified
+artifacts. No live authentication or upload is implied by a passing rehearsal. See
 [DISTRIBUTION.md](DISTRIBUTION.md) for detached verification and
 [API_STABILITY.md](API_STABILITY.md) for chat/launchpad API boundaries.
 No npm/crates.io upload, registry change, image/chart publication, tag or
 deployment is announced by this summary.
 
 Version producers, locks and generated manifests agree on 1.0.0. Before a
-versioned release, finish supported-consumer delivery selection and migration
-notices, verify the explicitly selected FILE policy and extracted artifacts on
-the integrated release revision, and test that release line.
+versioned release, verify registry ownership and trust, configure the approved
+release protections, resolve supported-consumer delivery and private integration
+approval, and verify the selected FILE policy and exact artifacts on the tagged
+release line. Public canonical-contract integration and its rehearsal do not
+authorize these remaining steps.
 External application rollout, including Aion, does not gate Meridian's release.
 Live roadmap automation, production consumer cutover, publication and deployment
 remain separately approval-gated.
