@@ -18,14 +18,50 @@ The roadmap exists to make three things true:
 |---|---|---|
 | **M1 · Seam & truth** | 2026‑10‑31 | ~~[#4](../../issues/4) ComponentKit seam~~ · ~~[#5](../../issues/5) manifest completeness~~ · ~~[#14](../../issues/14) test floor~~ · ~~[#15](../../issues/15) release engineering~~ · ~~internal [#9](https://github.com/meridian-ux/meridian-internal/issues/9) orphaned tests~~ |
 | **M2 · Parity closure** | 2026‑12‑31 | ~~[#6](../../issues/6) TUI~~ · ~~[#7](../../issues/7) web-components~~ · ~~[#8](../../issues/8) kits~~ · ~~[#9](../../issues/9) conformance corpus~~ · ~~internal [#11](https://github.com/meridian-ux/meridian-internal/issues/11) playground harness~~ |
-| **M3 · One language** | 2027‑02‑28 | ~~[#10](../../issues/10) Tone~~ · [#11](../../issues/11) Affordance · ~~[#12](../../issues/12) ValueDisplay~~ · ~~[#13](../../issues/13) theme + glossary~~ |
-| **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · [#17](../../issues/17) untrusted producers · ~~internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts~~ |
+| **M3 · One language** | 2027‑02‑28 | ~~[#10](../../issues/10) Tone~~ · ~~[#11](../../issues/11) Affordance~~ · ~~[#12](../../issues/12) ValueDisplay~~ · ~~[#13](../../issues/13) theme + glossary~~ |
+| **M4 · Hardened 1.0** | 2027‑04‑30 | [#16](../../issues/16) publish surface · ~~[#17](../../issues/17) untrusted producers~~ · ~~internal [#10](https://github.com/meridian-ux/meridian-internal/issues/10) service contracts~~ |
 
 M1 is ordered first because everything after it is cheaper once it lands: the seam
 unblocks eight cells at once, the manifest becomes something CI can enforce rather
 than a document, and the test floor means parity work lands with proof.
 
-### Integrated acceptance checkpoint — October 17, 2026
+### Integrated release checkpoint — October 27, 2026
+
+[PR #226](https://github.com/meridian-ux/meridian/pull/226) integrated the canonical
+Affordance removal contract and explicit major-1 FILE policy after its checks
+passed. Public acceptance issues [#11](../../issues/11), [#47](../../issues/47),
+[#48](../../issues/48) and [#17](../../issues/17) are closed. The schema compatibility
+checks retain both frozen old-line rejection proofs; source integration does not
+authorize production consumer cutover.
+
+[PR #227](https://github.com/meridian-ux/meridian/pull/227) added the complete
+seven-package npm and three-crate release rehearsal;
+[PR #228](https://github.com/meridian-ux/meridian/pull/228) added separately gated
+four-name bootstrap and exact-byte resume. The latter's
+[release rehearsal](https://github.com/meridian-ux/meridian/actions/runs/40537935994)
+passed actual detached-consumer and extracted-crate checks, including explicit
+Cargo package selection and archive hash comparison. Its 41 release/manifest
+tests passed, and both upload jobs were skipped with zero steps. All ten jobs in
+[main CI](https://github.com/meridian-ux/meridian/actions/runs/40541477763) passed on
+`bcf2745c70473056bf7936f8abba2f2e093bc140`; its tree equals the tested PR source.
+These are preparation proofs, not a tagged release or live authentication test.
+
+Only public roadmap issues [#16](../../issues/16) and [#63](../../issues/63) remain
+open. Registry owner access and current trust settings still need verification;
+the new web package and three crate names have no public registry records.
+The release environment and both enable flags remain unconfigured. See
+[DISTRIBUTION.md](DISTRIBUTION.md) for exact identity, bootstrap, protection,
+resume and publication prerequisites. A future approved version tag must produce
+and verify its own release artifacts; a PR rehearsal is not a published version.
+
+The private canonical integration candidate remains an unmerged draft, and
+both-repository live Project auto-add remains required. The scoped App remains
+in read-only dry-run mode. Private integration, registry configuration, live
+automation, publication and deployment require their separate approvals.
+SwiftUI remains the approved preview with explicit unverified coverage; full
+native parity is not a v1 gate. The generated matrix below retains those limits.
+
+### Historical acceptance checkpoint — October 17, 2026
 
 The conformance corpus (#9) and theme/design-language contract (#13, including
 #52–#55) passed integrated-source acceptance. The latter includes the complete
@@ -37,7 +73,7 @@ tested head. Representative native/browser, composed-view, conversation, and
 stateful proofs retain the scope and limits described below. This is not a
 claim about every arbitrary host integration, skin, or possible descriptor.
 
-The remaining roadmap issues are Affordance unification/adoption (#11, #47,
+At that checkpoint, the remaining roadmap issues were Affordance unification/adoption (#11, #47,
 #48), its remaining untrusted-invocation acceptance (#17), and final distribution
 readiness (#16, #63). Both-repository Project auto-add is still required; the
 scoped App setup and read-only dry runs are prepared, while live both-repository
@@ -445,9 +481,11 @@ WASM request exports now convert host values under a separate depth/node/work
 budget before copying into Rust; submission context and fields share it.
 Cycles/accessors/opaque values fail closed, and JSON request output preserves
 literal prototype-looking data keys instead of invoking JavaScript setters.
-This is not completion of [#17](../../issues/17): the separate React action
-builder, host JavaScript allocation, and remaining DOM/native projections
-still require their own boundary audit. The trusted Rust
+Those initial guards did not by themselves complete [#17](../../issues/17).
+The subsequent canonical-boundary work satisfied its public acceptance criteria
+and landed in PR #226, as recorded in the current checkpoint above. These scoped
+proofs do not establish arbitrary host allocation behavior or full SwiftUI parity.
+The trusted Rust
 `RequestBuilder::build` API remains compatible and is not the untrusted seam.
 
 All dynamic JSON WASM input exports now share the bounded converter. Table and
@@ -456,8 +494,8 @@ repeated cells/slots, then a capped JSON writer that retains inert data keys.
 The TUI adopts the same table/gallery preflight and rejects over-budget populate
 responses before caching them; the native formatter bridge preflights value
 work too. Trusted render APIs remain available for compatible in-process use.
-These scoped guards do not establish every remaining DOM/TUI projection,
-React builder, or full native stateful/value/modality parity requirement.
+These are scoped renderer proofs; they do not establish arbitrary host
+allocation behavior or full native stateful/value/modality parity.
 
 Baseline, 2026‑09‑11:
 
