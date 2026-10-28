@@ -126,8 +126,10 @@ three-package consumer, not all seven npm packages or an approved release.
 
 `publish.yml` keeps its existing filename for npm trusted-publisher identity.
 Its preparation job runs on relevant PRs, version tags, and manual dispatches.
-Those events prepare and test artifacts with **contents read only**. Preparation
-does not request OIDC credentials or run registry uploads. A tag by itself no
+Those events prepare and test artifacts with **contents read**. Preparation also
+has **Actions read** for a manually selected retained artifact; that read access
+does not configure a registry or expose registry secrets. Preparation does not
+request OIDC credentials or run registry uploads. A tag by itself no
 longer publishes; manual dispatch defaults to `publish: false`.
 The separate `bootstrap` input also defaults to false. Setting both inputs true
 rejects both upload jobs rather than selecting a mode implicitly.
@@ -288,6 +290,61 @@ already-approved version. Restrict/remove the bootstrap flag and credentials
 after an owner-approved completion; cleanup itself requires owner authority.
 Live authentication, initial-name ownership, and actual uploads remain untested
 by the offline fixtures and read-only inventory.
+
+## Preserve the approved bytes across retries
+
+An integrated-source comparison found the schemas npm archive's embedded WASM
+varied between successful builds with unchanged SDK inputs. Rebuilding is not
+proof that an already-published tarball can be skipped. Registry byte equality
+remains mandatory; do not strip binary sections, compare only extracted source,
+or relax checksum verification to make a retry pass.
+
+A separately authorized retry can set both manual-dispatch inputs
+`retained_artifact_id` and `retained_artifact_digest` to the **original complete
+GitHub artifact ID** and its **approved `sha256:` ZIP digest**. Both default to
+empty; a partial pair or malformed value rejects before build work. Leaving both
+upload inputs false performs only restoration and verification. These selectors
+do not authorize bootstrap, publication, credential setup or any rollout.
+
+The origin must be in this public repository, at the exact current source SHA,
+from a completed push/manual run of the same official `publish.yml` workflow.
+The artifact must have the expected complete-set name, immutable ID, approved
+digest and repository IDs, and be unexpired. A successful `prepare` job at that
+SHA must cover the artifact's creation time. The whole source run may have
+failed later during publication: rejecting that case would make a partial
+release impossible to resume. PR/fork, different-SHA, different-workflow,
+live-run and failed-preparation origins reject. An incomplete job inventory also
+rejects instead of guessing which attempt produced the artifact.
+
+The restore step downloads the original ZIP through GitHub CLI, independently
+checks its bytes against the approved digest, and accepts only the exact flat
+seven-tarball/three-crate/SHA256SUMS inventory. Duplicate, traversal, symlink,
+encrypted and oversized entries reject. Existing output directories are never
+cleared. It then verifies all normal package/version/dependency/checksum rules
+and the three clean Cargo VCS records against the exact source SHA.
+
+Restored npm tarballs go through the real joint detached consumer without
+repacking. Rust's actual full rehearsal must still reproduce the original crate
+hashes. Contract gates still run. Only a complete passing set is retained in the
+current run, with the original archive bytes and SHA256SUMS unchanged. Both
+protected upload jobs continue to download **only their own run's revalidated
+artifact**; neither accepts an arbitrary cross-run payload at credential time.
+The preparation step alone uses the read-only GitHub token for retrieval.
+
+Select an origin generated at the same commit that will execute the retry. An
+older candidate's archives cannot be relabeled as a newer source revision, even
+if the implementation files look equivalent. Record the original ID/digest
+before upload and preserve the reviewed bytes before retention expires. Missing
+or expired provenance is a stop condition, not permission to substitute a fresh
+build. Recovery from an offline backup would need a separate reviewed import
+mechanism; no such bypass is implemented here.
+
+After an ambiguous upload failure, inspect registry state before authorizing a
+new attempt. Restore the same approved set; then the existing bootstrap/publish
+planner skips only versions whose actual registry bytes match it. All enable,
+manual-input, tag/source/main-ancestry, protected-environment, credential and
+concurrency gates remain unchanged. Live restoration and publication require
+their own evidence; fixture tests alone do not establish registry access.
 
 Protocol activation, private integration, live roadmap automation, image/chart
 publication and deployment remain separate gates.

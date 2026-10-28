@@ -9,7 +9,9 @@ on:
       - .github/workflows/publish.yml
       - tools/release.py
       - tools/release_registry.py
+      - tools/release_artifacts.py
       - tools/test_release.py
+      - tools/test_release_artifacts.py
       - DISTRIBUTION.md
   push:
     tags: ["v*"]
@@ -23,6 +25,14 @@ on:
         description: "Bootstrap only the four new 1.0.0 names (separate owner enable flag and approval required)"
         type: boolean
         default: false
+      retained_artifact_id:
+        description: "Optional original complete artifact ID for an explicitly approved same-source retry"
+        type: string
+        default: ""
+      retained_artifact_digest:
+        description: "Original approved sha256 ZIP digest (required with retained_artifact_id)"
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -33,6 +43,9 @@ defaults:
 
 jobs:
   prepare:
+    permissions:
+      contents: read
+      actions: read # Read the explicitly selected public artifact on a manual retry.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,8 +64,12 @@ jobs:
           disk-cache: true
           repository-cache: true
       - name: Publication manifests, versions and tag agree
+        env:
+          RETAINED_ARTIFACT_ID: ${{ inputs.retained_artifact_id }}
+          RETAINED_ARTIFACT_DIGEST: ${{ inputs.retained_artifact_digest }}
         run: |
           set -euo pipefail
+          python3 -c 'import os,sys; sys.path.insert(0,"tools"); from release_artifacts import validate_inputs; validate_inputs(os.environ["RETAINED_ARTIFACT_ID"],os.environ["RETAINED_ARTIFACT_DIGEST"])'
           python3 tools/publish_manifests.py --check
           VERSION=$(python3 -c 'import sys; sys.path.insert(0,"tools"); from release import release_version; print(release_version())')
           if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
@@ -73,7 +90,7 @@ jobs:
           node schemas/tools/check_renderer_catalog.mjs
           node schemas/tools/check_test_floor.mjs
           python3 tools/roadmap_matrix.py --check
-          python3 -m unittest tools/test_publish_manifests.py tools/test_release.py
+          python3 -m unittest tools/test_publish_manifests.py tools/test_release.py tools/test_release_artifacts.py
           node --test 'schemas/tools/*.test.mjs' tools/roadmap_automation.test.mjs
           pnpm exec buf build schemas --as-file-descriptor-set --exclude-source-info -o "$RUNNER_TEMP/release.binpb"
           node schemas/tools/compatibility_line.mjs --line v1-maintenance-proposal --image "$RUNNER_TEMP/release.binpb"
@@ -83,13 +100,25 @@ jobs:
           cargo clippy --workspace --all-targets -- -D warnings
           cargo fmt --all -- --check
       - name: Build all npm package inputs
+        if: ${{ !inputs.retained_artifact_id }}
         run: |
           bazel build --noannounce_rc --lockfile_mode=error \
             //schemas/proto:proto_ts_pkg //schemas:schemas_pkg \
             //packages/web:pkg //packages/web-react:pkg \
             //packages/chat:pkg //packages/launchpad:pkg
       - name: Rehearse all seven npm packages and three Rust crates
+        if: ${{ !inputs.retained_artifact_id }}
         run: python3 tools/release.py prepare --artifacts "$RUNNER_TEMP/release-packages"
+      - name: Restore and revalidate the approved original ten archives
+        if: ${{ inputs.retained_artifact_id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RETAINED_ARTIFACT_ID: ${{ inputs.retained_artifact_id }}
+          RETAINED_ARTIFACT_DIGEST: ${{ inputs.retained_artifact_digest }}
+        run: |
+          python3 tools/release.py restore --artifacts "$RUNNER_TEMP/release-packages" \
+            --source-artifact-id "$RETAINED_ARTIFACT_ID" \
+            --source-artifact-digest "$RETAINED_ARTIFACT_DIGEST"
       - name: Read-only registry inventory and exact-byte comparison
         run: python3 tools/release.py registry-plan --artifacts "$RUNNER_TEMP/release-packages"
       - name: Retain the complete verified set
