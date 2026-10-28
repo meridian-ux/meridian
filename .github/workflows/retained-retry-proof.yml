@@ -1,0 +1,51 @@
+name: Publication-free same-run artifact retry proof
+
+# Experimental branch only. No registry operations, credentials, environments,
+# deployment, scheduled automation, or release inputs exist in this workflow.
+on:
+  push:
+    branches: [codex/v1-retry-behavior-proof]
+
+permissions:
+  contents: read
+
+jobs:
+  seed-original:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Preserve a real source file and standard checksum manifest
+        shell: bash
+        run: |
+          mkdir "$RUNNER_TEMP/retry-proof"
+          cp README.md "$RUNNER_TEMP/retry-proof/"
+          cd "$RUNNER_TEMP/retry-proof"
+          sha256sum README.md > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retry-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/retry-proof/
+          retention-days: 1
+
+  verify-original:
+    needs: seed-original
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: retry-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/retry-proof
+      - name: Verify the original bytes before the simulated failure
+        shell: bash
+        env:
+          PROOF_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          cd "$RUNNER_TEMP/retry-proof"
+          sha256sum -c SHA256SUMS
+          if [ "$PROOF_ATTEMPT" = 1 ]; then
+            echo 'Intentional first-attempt failure: exercise failed-job-only rerun.'
+            exit 1
+          fi
+          echo 'The original retained artifact was available on the later attempt.'
