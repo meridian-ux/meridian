@@ -289,6 +289,33 @@ after an owner-approved completion; cleanup itself requires owner authority.
 Live authentication, initial-name ownership, and actual uploads remain untested
 by the offline fixtures and read-only inventory.
 
+### Preserve original artifacts when retrying a failed upload job
+
+After inspecting registry state and obtaining separate retry approval, rerun
+only the failed upload job in its **original workflow run**. The preparation job
+must already have succeeded, and its complete artifact must still exist and
+match the approved artifact ID, ZIP digest and archive checksums. For example:
+
+```sh
+gh run view <original-run-id> --repo meridian-ux/meridian
+gh run rerun <original-run-id> --repo meridian-ux/meridian --failed
+```
+
+Use this command only when the failed jobs are the approved upload lane. It
+reuses the original event, source and inputs; it cannot switch bootstrap into
+normal publication or authorize another lane. Required environment approval and
+the existing execution guards still apply. Inspect the resulting attempt and
+verify all ten registry artifacts before declaring success.
+
+Do not rerun the complete workflow, rerun successful preparation, or dispatch a
+fresh workflow as a substitute for this recovery procedure. Fresh builds at the
+same commit have produced different schemas tarball bytes. If preparation did
+not succeed, artifacts expired, or the original approved set cannot be verified,
+stop for a reviewed recovery plan; never replace bytes for an existing version.
+The publication-free [retry experiment](https://github.com/meridian-ux/meridian/actions/runs/40617273020)
+verified that a failed-job-only second attempt reused the original artifact ID
+and digest. It did not exercise registry credentials or an actual upload.
+
 Protocol activation, private integration, live roadmap automation, image/chart
 publication and deployment remain separate gates.
 
