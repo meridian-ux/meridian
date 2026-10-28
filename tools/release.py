@@ -18,6 +18,7 @@ import tomllib
 
 from publish_manifests import FIRST_PARTY_NAMES, module_version
 from release_registry import Registry
+import release_artifacts
 
 ROOT = Path(__file__).resolve().parent.parent
 NPM = (
@@ -115,20 +116,20 @@ def verify(directory, version):
     return directory
 
 
-def consumer(archives, work):
+def consumer(archives, work, env=None):
     """Install real archives, check their dependency graph, types and browser imports."""
     work.mkdir()
     (work / "package.json").write_text('{"private":true,"type":"module"}\n')
     run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund", *map(str, archives),
          "typescript@5.7.3", "esbuild@0.21.5", "jsdom@25.0.1", "react@19.2.7", "react-dom@19.2.7",
-         "@types/react@19.2.17", "@types/react-dom@19.2.3"], work)
-    run(["npm", "ls", "--all"], work)
+         "@types/react@19.2.17", "@types/react-dom@19.2.3"], work, env=env)
+    run(["npm", "ls", "--all"], work, env=env)
     imports = "\n".join(f"import * as p{i} from '@savvifi/meridian-{name}';" for i, (name, _) in enumerate(NPM))
     (work / "consumer.ts").write_text(imports + "\nexport const packages = [" + ",".join(f"p{i}" for i in range(7)) + "];\n")
     run(["node", "node_modules/typescript/bin/tsc", "--noEmit", "--strict", "--module", "ESNext",
-         "--moduleResolution", "Bundler", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], work)
+         "--moduleResolution", "Bundler", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], work, env=env)
     run(["node", "node_modules/esbuild/bin/esbuild", "consumer.ts", "--bundle", "--platform=browser",
-         "--format=esm", "--target=es2022", "--outfile=consumer.mjs", "--metafile=inputs.json"], work)
+         "--format=esm", "--target=es2022", "--outfile=consumer.mjs", "--metafile=inputs.json"], work, env=env)
     (work / "smoke.mjs").write_text("""
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -144,15 +145,15 @@ const proto=Object.keys(JSON.parse(readFileSync('inputs.json','utf8')).inputs).f
 assert(proto.length>0 && proto.every(p=>p.startsWith('node_modules/@savvifi/meridian-proto-ts/')));
 console.log('Seven installed browser packages share one proto-ts root.');
 """)
-    run(["node", "smoke.mjs"], work)
+    run(["node", "smoke.mjs"], work, env=env)
 
 
-def rust_rehearsal(target):
+def rust_rehearsal(target, env=None):
     # Cargo's multi-package dry run builds extracted packages using its temporary
     # registry for unpublished first-party dependencies. No upload or token needed.
-    workspace_identity(release_version(), runner=run)
+    workspace_identity(release_version(), runner=lambda args, **kwargs: run(args, env=env, **kwargs))
     run(["cargo", "publish", "--workspace", "--locked", "--registry", "crates-io",
-         "--dry-run", "--target-dir", str(target)])
+         "--dry-run", "--target-dir", str(target)], env=env)
 
 
 def workspace_identity(version, runner=run):
@@ -207,6 +208,37 @@ def prepare(output):
     # Only a complete, tested set reaches the output directory.
     shutil.copytree(stage, output)
     print(f"Verified seven npm packages and three crates at {version}: {output}", flush=True)
+
+
+def restore(output, artifact_id, expected_digest, env=None, reader=release_artifacts.api,
+            downloader=release_artifacts.download):
+    """Revalidate the original bytes rather than assume a WASM rebuild is identical."""
+    env = os.environ if env is None else env
+    output = Path(output).resolve()
+    require(not output.exists() and output.parent.is_dir(), "output must be new with an existing parent")
+    version = release_version()
+    release_artifacts.origin(artifact_id, expected_digest, env, reader)
+    work = Path(tempfile.mkdtemp(prefix="meridian-release-restore-"))
+    print(f"Retained release revalidation at {work}", flush=True)
+    archive = work / "approved.zip"
+    downloader(artifact_id, archive)
+    stage = work / "artifacts"
+    release_artifacts.unpack(archive, stage, filenames(version) + ["SHA256SUMS"], expected_digest)
+    verify(stage, version)
+    for name in CRATES:
+        info = json.loads(metadata(stage / f"{name}-{version}.crate", f"{name}-{version}/.cargo_vcs_info.json"))
+        require(info.get("git", {}).get("sha1") == env["GITHUB_SHA"]
+                and info["git"].get("dirty", False) is False, "retained crate source differs from current source")
+    verification_env = upload_environment(os.environ)
+    for key in ("GH_TOKEN", "GITHUB_TOKEN"):
+        verification_env.pop(key, None)
+    consumer([stage / name for name in filenames(version) if name.endswith(".tgz")], work / "consumer", env=verification_env)
+    rust_rehearsal(work / "rust", env=verification_env)
+    compare_crates(stage, work / "rust", version)
+    # The upload jobs still accept only their own run's newly retained set.
+    # Restoration adds no status ledger, repack, or registry authentication.
+    shutil.copytree(stage, output)
+    print(f"Revalidated all ten original archives at {version}: {output}", flush=True)
 
 
 def authorize(env, version, bootstrap=False):
@@ -323,13 +355,20 @@ def publish(directory, target, env=None, runner=run, registry=None, bootstrap=Fa
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "verify", "authorize", "authorize-bootstrap", "registry-plan",
+    parser.add_argument("command", choices=("prepare", "restore", "verify", "authorize", "authorize-bootstrap", "registry-plan",
                                            "preflight-publish", "preflight-bootstrap", "rehearse-rust", "publish", "bootstrap"))
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--rust-target", type=Path)
+    parser.add_argument("--source-artifact-id")
+    parser.add_argument("--source-artifact-digest")
     args = parser.parse_args()
     if args.command == "prepare":
         prepare(args.artifacts)
+        return
+    if args.command == "restore":
+        require(bool(args.source_artifact_id) and bool(args.source_artifact_digest),
+                "restore requires the original artifact ID and approved ZIP digest")
+        restore(args.artifacts, args.source_artifact_id, args.source_artifact_digest)
         return
     version = release_version()
     verify(args.artifacts, version)
