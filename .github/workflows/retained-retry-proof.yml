@@ -20,9 +20,9 @@ jobs:
         shell: bash
         run: |
           mkdir "$RUNNER_TEMP/retry-proof"
-          cp README.md "$RUNNER_TEMP/retry-proof/"
+          cp ROADMAP.md "$RUNNER_TEMP/retry-proof/"
           cd "$RUNNER_TEMP/retry-proof"
-          sha256sum README.md > SHA256SUMS
+          sha256sum ROADMAP.md > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: retry-proof-${{ github.sha }}
