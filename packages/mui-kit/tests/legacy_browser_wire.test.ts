@@ -1,5 +1,5 @@
 import { toBinary } from "@bufbuild/protobuf";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import { expect, it } from "vitest";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import legacyViewBytes from "../harness/legacy-view.bin.json";

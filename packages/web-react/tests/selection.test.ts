@@ -9,14 +9,14 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { FieldBindingSchema, RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   type ViewDescriptor,
   ViewDescriptorSchema,
   ViewKind,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { MeridianProvider } from "../src/provider.js";

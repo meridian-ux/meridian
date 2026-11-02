@@ -9,8 +9,8 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { createElement } from "react";
 
 import { create } from "@bufbuild/protobuf";
-import { CommandSchema, type Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+import { CommandSchema, type Command } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 
 import { Launchpad, type LaunchpadProps } from "../src/index.js";
 import { demoLaunchpad } from "./fixtures.js";

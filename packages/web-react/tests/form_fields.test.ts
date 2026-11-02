@@ -21,13 +21,13 @@ import {
   IntegerSpinnerSchema,
   EnumSelectionSchema,
   KeyValueMapFieldSchema,
-} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+} from "@meridian-ux/proto-ts/proto/form_pb.js";
 import {
   FormMode,
   FormPanelSchema,
   PanelDescriptorSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";

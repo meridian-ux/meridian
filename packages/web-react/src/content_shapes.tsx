@@ -19,22 +19,22 @@
 
 import type { ReactNode } from "react";
 
-import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { CatalogPanel, CatalogItem } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import type { ChoicePanel, ChoiceOption } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import type { ConnectFlowPanel, ConnectTarget } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel, CatalogItem } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel, ChoiceOption } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel, ConnectTarget } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import type { CopyValue } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { GrammarPanel } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import type { Snippet } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
 import {
   computeStat,
   affordancePresentation,
   formatByDisplay,
   statSparklinePoints,
   trendArrow,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 import { useGrammarResolver, useIcon } from "./provider.js";
 import { useStatData } from "./stat_data.js";
@@ -561,7 +561,7 @@ function inlineMarkdown(text: string): ReactNode {
 
 // ── StatPanel (KPI tile) — full-parity content shape ─────────────────────────
 // Delta / trend / formatting come from the SHARED computeStat
-// (@savvifi/meridian-schemas/uiview), identical to the mui / web-components /
+// (@meridian-ux/schemas/uiview), identical to the mui / web-components /
 // tui renderers — the delta/trend is COMPUTED, never author-marked. Semantic
 // color only when higher_is_better is set (via data-semantics).
 

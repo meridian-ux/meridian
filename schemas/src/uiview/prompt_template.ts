@@ -1,4 +1,4 @@
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
 
 /** Aggregates containing masked children are concealed as a whole by default. */
 export function hasMaskedField(field: FormField | undefined): boolean {

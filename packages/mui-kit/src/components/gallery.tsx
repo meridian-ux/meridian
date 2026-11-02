@@ -13,9 +13,9 @@ import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from
 
 import { Box, Button, Chip, CircularProgress, Link, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useMeridian, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { safeAssetSrc, safeNavigationHref, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { MeridianViewContext, useMeridian, useRecord, resolvePath } from "@meridian-ux/web-react";
+import type { GalleryPanel } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import { safeAssetSrc, safeNavigationHref, type RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianAssetContext } from "../asset_context.js";
 import { formatByDisplay } from "../display_format.js";

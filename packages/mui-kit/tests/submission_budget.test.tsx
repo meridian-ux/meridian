@@ -2,9 +2,9 @@ import { create } from "@bufbuild/protobuf";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { act, startTransition, Suspense, useState } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PanelRenderer } from "@meridian-ux/web-react";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);

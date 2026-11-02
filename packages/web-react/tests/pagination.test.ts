@@ -9,11 +9,11 @@ import {
   PaginationMode,
   PaginationSchema,
   TablePanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+} from "@meridian-ux/proto-ts/proto/table_pb.js";
 
 import { buildPageRequest, readPage, resolvePagination } from "../src/pagination.js";
 import { boundedPopulateRequest } from "../src/action_request.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 
 describe("resolvePagination", () => {
   it("defaults to CLIENT + page size 20 when unset", () => {

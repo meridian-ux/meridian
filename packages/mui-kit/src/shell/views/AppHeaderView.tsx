@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import * as React from "react";
 
-import type { NavNode } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
+import type { NavNode } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
 
 import { displayKeys, SHELL_HOTKEYS } from "../chrome.js";
 import { brandOf } from "../config.js";

@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { affordancePresentation, assertFormDefaultBudget, createAdmissionGate, normalizeFormSubmit, validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import type { FormPanel } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { affordancePresentation, assertFormDefaultBudget, createAdmissionGate, normalizeFormSubmit, validateFormValues } from "@meridian-ux/schemas/uiview";
 import { useIcon, useMeridian } from "./provider.js";
 import { bindingRequestJson, boundedDescriptorJson, MeridianRecordContext, useMeridianSelection } from "./pagination.js";
 import { buildSubmissionRequest } from "./action_request.js";

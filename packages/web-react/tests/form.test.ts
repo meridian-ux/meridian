@@ -3,10 +3,10 @@ import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbui
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
-import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { EnumSelectionSchema, FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { ValueType, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { EnumSelectionSchema, FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { FieldBindingSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { ValueType, ValueTone } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";

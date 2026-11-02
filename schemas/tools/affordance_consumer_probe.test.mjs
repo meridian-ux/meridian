@@ -11,7 +11,7 @@ test("real compiler checking follows isolated aliases and retains strict source 
     const config = join(work, "tsconfig.json"), bindings = join(work, "bindings");
     mkdirSync(join(bindings, "proto"), { recursive: true });
     writeFileSync(config, JSON.stringify({ compilerOptions: { strict: true, skipLibCheck: true, types: [], moduleResolution: "bundler", module: "es2022" }, include: ["consumer.ts"] }));
-    writeFileSync(join(work, "consumer.ts"), 'import type { Action } from "@savvifi/meridian-proto-ts/proto/action_pb.js"; declare const value: Action; const label: string = value.label;');
+    writeFileSync(join(work, "consumer.ts"), 'import type { Action } from "@meridian-ux/proto-ts/proto/action_pb.js"; declare const value: Action; const label: string = value.label;');
     const declaration = join(bindings, "proto/action_pb.d.ts");
     writeFileSync(declaration, 'export interface Action { label: string }');
     const valid = compileProject(config, bindings);

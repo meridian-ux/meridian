@@ -6,11 +6,11 @@ import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { ChartMark, ChartPanelSchema, EncodingType } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { FieldBindingSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { ChartMark, ChartPanelSchema, EncodingType } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { StepsPanelSchema } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { FieldBindingSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";

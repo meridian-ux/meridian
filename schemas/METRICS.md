@@ -39,7 +39,7 @@ must remain perceptible even when decorative stroke is explicitly zero.
 
 ## Realization and verification status
 
-The style-only `@savvifi/meridian-schemas/theme` entrypoint validates the three
+The style-only `@meridian-ux/schemas/theme` entrypoint validates the three
 additions without importing a renderer or the WASM core. Its `resolveMetrics`
 accepts a projection of generated `Metrics` fields and a renderer's legacy unit.
 The returned `spacing(factor)` handles interpolation, clamping, and density;

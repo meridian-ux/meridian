@@ -1,5 +1,5 @@
 {
-  "name": "@savvifi/meridian-chat",
+  "name": "@meridian-ux/chat",
   "version": "0.25.0",
   "type": "module",
   "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream over SSE + POST. Ships the vanilla <m-assistant-panel> web component and a React <Conversation>, with shared schema value formatting.",
@@ -48,8 +48,8 @@
     }
   },
   "dependencies": {
-    "@savvifi/meridian-schemas": "workspace:*",
-    "@savvifi/meridian-proto-ts": "workspace:*",
+    "@meridian-ux/schemas": "workspace:*",
+    "@meridian-ux/proto-ts": "workspace:*",
     "@bufbuild/protobuf": "2.12.1"
   },
   "devDependencies": {

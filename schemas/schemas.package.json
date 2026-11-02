@@ -1,5 +1,5 @@
 {
-  "name": "@savvifi/meridian-schemas",
+  "name": "@meridian-ux/schemas",
   "version": "1.0.0",
   "type": "module",
   "description": "The framework- and brand-neutral root of the meridian design language: the WebRenderer seam (mount/update/unmount + transport contracts) over the canonical meridian.ui.v1 PanelDescriptor + meridian.theme.v1 Theme. Renderers implement the seam; emitters produce descriptors.",
@@ -33,7 +33,7 @@
     "src/theme/index.d.ts"
   ],
   "dependencies": {
-    "@savvifi/meridian-proto-ts": "1.0.0",
+    "@meridian-ux/proto-ts": "1.0.0",
     "@bufbuild/protobuf": "2.12.1"
   }
 }

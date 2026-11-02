@@ -497,5 +497,5 @@ pub fn format_lro_metadata(metadata: JsValue) -> Result<String, JsError> {
 // it uses protobuf-es `fromBinary(PanelBundleSchema, bytes)` to split a
 // PanelBundle into its PanelDescriptors, then re-encodes each with `toBinary`
 // and feeds them to the render functions above. Keeping (de)serialization in TS
-// (which already has @savvifi/meridian-proto-ts) lets the prost types stay
+// (which already has @meridian-ux/proto-ts) lets the prost types stay
 // serde-free and the wasm own only the render/request logic.

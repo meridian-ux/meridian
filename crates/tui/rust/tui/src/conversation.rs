@@ -1,6 +1,6 @@
 // Terminal renderer for `meridian.ui.v1` conversations — the agent chat.
 //
-// The TUI peer of @savvifi/meridian-chat's `<m-assistant-panel>` / `<Conversation>`:
+// The TUI peer of @meridian-ux/chat's `<m-assistant-panel>` / `<Conversation>`:
 // the SAME ConversationEvent stream, folded by the SAME model
 // (meridian_uiview::ConversationModel — the shared core, not a second
 // implementation), painted with ratatui instead of the DOM. A tool block that
@@ -60,7 +60,7 @@ fn conversation_tone_style(palette: &Palette, tone: Option<i32>, legacy: Style) 
     legacy.patch(palette.tone_style(tone))
 }
 
-/// Inline markdown → styled spans. Mirrors the two markers @savvifi/meridian-chat's
+/// Inline markdown → styled spans. Mirrors the two markers @meridian-ux/chat's
 /// `mdInline` (dom.ts) honors — `**bold**` and `` `code` `` — with newlines splitting
 /// lines. Everything else is literal text, in both tiers. Earliest marker wins, so a
 /// marker nested inside another renders literally rather than recursing.

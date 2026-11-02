@@ -5,9 +5,9 @@ import type {
   ActionStyle,
   ResourceAction,
   ResourceCardPanel,
-} from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "@meridian-ux/schemas/uiview";
 
 import { buildActionBindingRequest, buildBindingRequest, resolvePath, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { useHrefResolver, useMutationRpcInvoker } from "./provider.js";

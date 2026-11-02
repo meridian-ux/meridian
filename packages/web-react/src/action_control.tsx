@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { affordancePresentation, type NormalizedAction } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, type NormalizedAction } from "@meridian-ux/schemas/uiview";
 import { useActionInvocation, type ActionInvocationOptions } from "./affordance_invocation.js";
 import { useActionGroup } from "./action_group.js";
 

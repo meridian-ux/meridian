@@ -20,12 +20,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { ValueTone, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { ValueDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { ValueTone, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 
 import { formatByDisplay } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
-import { MaskedMultiline } from "@savvifi/meridian-web-react";
+import { MaskedMultiline } from "@meridian-ux/web-react";
 
 interface BaseField {
   key: string;

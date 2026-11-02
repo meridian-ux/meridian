@@ -4,9 +4,9 @@
 
 import { useContext, type ReactNode } from "react";
 
-import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { formatByDisplay, safeAssetSrc, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import type { GalleryPanel } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { formatByDisplay, safeAssetSrc, safeNavigationHref } from "@meridian-ux/schemas/uiview";
 
 import { useDisplayNow } from "./display_now.js";
 import { resolvePath, useRecord } from "./pagination.js";

@@ -2,7 +2,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { renderPanel } from "../src/uiview/renderer.js";
 
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: {} };

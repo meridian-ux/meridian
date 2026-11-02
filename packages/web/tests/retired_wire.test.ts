@@ -1,6 +1,6 @@
 import { create, toBinary, toJson } from "@bufbuild/protobuf";
-import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { expect, it } from "vitest";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { RETIRED_FORM, RETIRED_TABLE, withRetiredTrap } from "./retired_wire.js";

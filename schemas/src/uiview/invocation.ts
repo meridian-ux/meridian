@@ -1,8 +1,8 @@
 import { create, toBinary } from "@bufbuild/protobuf";
-import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import type { NormalizedAction } from "./action_normalization.js";
 import { createAdmissionGate, type AdmissionPolicy } from "./admission.js";
 import { matchesRowFilter } from "./affordance_predicate.js";

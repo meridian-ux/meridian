@@ -4,10 +4,10 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType, PrincipalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { MeridianSelectionContext, PanelRenderer } from "@savvifi/meridian-web-react";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { ValueType, PrincipalDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { MeridianSelectionContext, PanelRenderer } from "@meridian-ux/web-react";
 
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";

@@ -2,9 +2,9 @@
 // JavaScript owns protobuf adaptation, routing, and renderer decoration only.
 import {
   FormattedValueSchema, PrincipalDisplay, ValueType, ValueDisplaySchema,
-} from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { ColumnFormat } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+} from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { ValueDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { ColumnFormat } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { coreFormatting } from "./core_runtime.js";
 

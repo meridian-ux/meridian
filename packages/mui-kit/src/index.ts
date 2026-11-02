@@ -1,7 +1,7 @@
-// @savvifi/meridian-mui-kit — the MUI ComponentKit for the meridian React
+// @meridian-ux/mui-kit — the MUI ComponentKit for the meridian React
 // renderer. Paints meridian.ui.v1 PanelDescriptors / ViewDescriptors with MUI
 // (its own table + form components, with CLIENT/OFFSET/CURSOR pagination), over
-// the @savvifi/meridian-web-react seam. No a host's internal MUI component library dependency.
+// the @meridian-ux/web-react seam. No a host's internal MUI component library dependency.
 
 export { muiKit } from "./mui_kit.js";
 export {

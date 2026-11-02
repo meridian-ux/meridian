@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { create, toJson } from "@bufbuild/protobuf";
-import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Conversation, ConversationModel } from "../src/index.js";
 import { MAssistantPanel, registerAssistantPanel } from "../src/web.js";

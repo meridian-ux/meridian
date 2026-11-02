@@ -18,10 +18,10 @@ import { create, fromJson } from "@bufbuild/protobuf";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { PaletteSchema, ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
+import { PaletteSchema, ThemeSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { ViewRenderer } from "@meridian-ux/web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import protoBundle from "./proto-viewdescriptors.json";

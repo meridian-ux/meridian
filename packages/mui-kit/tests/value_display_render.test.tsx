@@ -9,27 +9,27 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import {
   DetailHeaderPanelSchema,
   PanelDescriptorSchema,
   RecordCardPanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ColumnFormat, TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { ColumnFormat, TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   PrincipalDisplay,
   TemporalDisplay,
   ValueDisplaySchema,
   ValueType,
-} from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+} from "@meridian-ux/proto-ts/proto/value_pb.js";
 import {
   type ViewDescriptor,
   ViewDescriptorSchema,
   ViewKind,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { PanelRenderer, ViewRenderer } from "@meridian-ux/web-react";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 

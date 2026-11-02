@@ -5,7 +5,7 @@
 import { escHtml as esc, mdInline } from "./dom.js";
 import type { Block } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
-import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
+import { conversationToneRole, conversationToolState } from "@meridian-ux/schemas/uiview";
 import { viewText } from "./view_text.js";
 
 export function renderBlockInner(b: Block): string {

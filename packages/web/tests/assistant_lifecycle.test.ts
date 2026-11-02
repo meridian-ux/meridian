@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { create, toJson } from "@bufbuild/protobuf";
-import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { MAssistantPanel, registerAssistantPanel } from "../src/assistant_panel.js";
 

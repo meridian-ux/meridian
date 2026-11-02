@@ -26,7 +26,7 @@
 //   --field-border      composer input outline
 //   --field-bg          composer input fill
 //   --code-bg           inline `code` fill
-import { CONVERSATION_TONE_CSS } from "@savvifi/meridian-schemas/uiview";
+import { CONVERSATION_TONE_CSS } from "@meridian-ux/schemas/uiview";
 export const ASSISTANT_PANEL_CSS = `
   m-assistant-panel { display: flex; flex-direction: column; height: 100%; min-height: 0;
     color: var(--text, #e5e7eb); font: 13px/1.5 system-ui, sans-serif; }

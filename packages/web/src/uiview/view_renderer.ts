@@ -6,15 +6,15 @@
 // layout is renderer-owned; the panels come from renderPanel.
 
 import { toBinary } from "@bufbuild/protobuf";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import type {
   Slot,
   ViewDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
 import {
   createAdmissionGate,
   normalizeViewActions,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 import { disposePanel, plainValue, renderPanel } from "./renderer.js";
 import { buildInvocationControl } from "./invocation_control.js";

@@ -2,10 +2,10 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { StreamFrameSchema, StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import { MeridianProvider, PanelRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { StreamFrameSchema, StreamPanelSchema } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import { MeridianProvider, PanelRenderer } from "@meridian-ux/web-react";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { muiKit } from "../src/mui_kit.js";
 import { MeridianStream } from "../src/components/stream.js";

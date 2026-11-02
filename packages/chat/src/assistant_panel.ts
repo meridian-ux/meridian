@@ -15,7 +15,7 @@ import { escHtml as esc } from "./dom.js";
 import { renderBlockInner } from "./render_html.js";
 import { ASSISTANT_PANEL_CSS } from "./styles.js";
 import type { Block, ConversationEvent } from "./wire.js";
-import { conversationSequenceKey, conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
+import { conversationSequenceKey, conversationToneRole, conversationStatusState } from "@meridian-ux/schemas/uiview";
 
 export { ASSISTANT_PANEL_CSS };
 

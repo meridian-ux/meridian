@@ -11,7 +11,7 @@
 # `schemas` is the module root rather than `schemas/proto`, because the protos
 # import each other as "proto/value.proto" — the import path has to resolve from
 # the directory ABOVE proto/, and it is also what makes the generated files land
-# at proto/*_pb.js, which is the layout @savvifi/meridian-proto-ts publishes and
+# at proto/*_pb.js, which is the layout @meridian-ux/proto-ts publishes and
 # every consumer's import specifier already assumes.
 version: v2
 

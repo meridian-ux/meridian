@@ -1,6 +1,6 @@
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { createPromptResponder, promptValues } from "./prompt_response.js";
 import { assertFormDefaultBudget, defaultFormValue, defaultFormValues, validateFormValues } from "./form_values.js";

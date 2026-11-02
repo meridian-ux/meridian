@@ -5,13 +5,13 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   ActionPlacement,
   ViewDescriptorSchema,
   ViewKind,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { AdmissionDenial, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { AdmissionDenial, RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { MeridianProvider } from "../src/provider.js";

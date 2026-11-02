@@ -16,11 +16,11 @@ import { describe, expect, it } from "vitest";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { computeStat, formatStatNumber } from "@savvifi/meridian-schemas/uiview";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { StatPanelSchema } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { computeStat, formatStatNumber } from "@meridian-ux/schemas/uiview";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import type { ComponentKit } from "../src/component_kit.js";
 import { htmlKit } from "../src/html_kit.js";

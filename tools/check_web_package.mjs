@@ -46,22 +46,22 @@ writeFileSync(join(staging, "package.json"), JSON.stringify({ private: true, typ
 // protobuf-es 2.12.1 declarations use generic typed arrays (TypeScript 5.7+).
 // The workspace's 5.6 compiler skips library checking; the consumer must not.
 run("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...archives, "jsdom@25.0.1", "typescript@5.7.3", "esbuild@0.21.5"], staging);
-const coreDeclarations = readFileSync(join(staging, "node_modules/@savvifi/meridian-schemas/src/uiview/core_runtime.d.ts"), "utf8");
+const coreDeclarations = readFileSync(join(staging, "node_modules/@meridian-ux/schemas/src/uiview/core_runtime.d.ts"), "utf8");
 assert(!coreDeclarations.includes("generated/meridian_uiview"), "public core signatures must not expose private wasm-bindgen declaration types");
 
 writeFileSync(join(staging, "consumer.ts"), `
-import { webComponentsRenderer, renderPanel, decodeBundle, type UiviewWasm } from '@savvifi/meridian-web';
-import { registerChatPanel } from '@savvifi/meridian-web/toolkit';
-import { applyTheme } from '@savvifi/meridian-web/theme';
-import { formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
-import { resolveMetrics } from '@savvifi/meridian-schemas/theme';
+import { webComponentsRenderer, renderPanel, decodeBundle, type UiviewWasm } from '@meridian-ux/web';
+import { registerChatPanel } from '@meridian-ux/web/toolkit';
+import { applyTheme } from '@meridian-ux/web/theme';
+import { formatLroMetadata, staticViewText } from '@meridian-ux/schemas/uiview';
+import { resolveMetrics } from '@meridian-ux/schemas/theme';
 import { create } from '@bufbuild/protobuf';
-import { AffordanceSchema } from '@savvifi/meridian-proto-ts/proto/affordance_pb.js';
-import { ViewDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/view_pb.js';
+import { AffordanceSchema } from '@meridian-ux/proto-ts/proto/affordance_pb.js';
+import { ViewDescriptorSchema } from '@meridian-ux/proto-ts/proto/view_pb.js';
 // @ts-expect-error Removed DTOs must not reappear through a surviving facade.
-import { ActionSchema } from '@savvifi/meridian-proto-ts/proto/view_pb.js';
-import { AffordanceCollectionSchema } from '@savvifi/meridian-proto-ts/proto/interaction_pb.js';
-import { normalizeViewActions, type InvocationHost } from '@savvifi/meridian-schemas/uiview';
+import { ActionSchema } from '@meridian-ux/proto-ts/proto/view_pb.js';
+import { AffordanceCollectionSchema } from '@meridian-ux/proto-ts/proto/interaction_pb.js';
+import { normalizeViewActions, type InvocationHost } from '@meridian-ux/schemas/uiview';
 export { webComponentsRenderer, renderPanel, decodeBundle, registerChatPanel, applyTheme };
 export type { UiviewWasm };
 const metadata: string = formatLroMetadata({state: 'DONE'});
@@ -94,10 +94,10 @@ export { actions, host, invalidResolver, invalidLabel, invalidCanonicalCopy };
 `);
 run(process.execPath, [join(staging, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], staging);
 // Style-only consumers must not pull the synchronous WASM core or a renderer.
-writeFileSync(join(staging, "theme-only.mjs"), `export { resolveMetrics } from '@savvifi/meridian-schemas/theme';`);
+writeFileSync(join(staging, "theme-only.mjs"), `export { resolveMetrics } from '@meridian-ux/schemas/theme';`);
 run(process.execPath, [join(staging, "node_modules/esbuild/bin/esbuild"), "theme-only.mjs", "--bundle", "--platform=browser", "--format=esm", "--outfile=theme-only-bundle.mjs", "--metafile=theme-only-meta.json"], staging);
 const themeInputs = Object.keys(JSON.parse(readFileSync(join(staging, "theme-only-meta.json"), "utf8")).inputs);
-assert(themeInputs.length > 0 && themeInputs.every(input => input === "theme-only.mjs" || input.endsWith("/meridian-schemas/src/theme/index.js")),
+assert(themeInputs.length > 0 && themeInputs.every(input => input === "theme-only.mjs" || input.endsWith("/@meridian-ux/schemas/src/theme/index.js")),
   `style-only entrypoint must not import runtime dependencies: ${themeInputs}`);
 const { resolveMetrics } = await import(join(staging, "theme-only-bundle.mjs"));
 assert.equal(resolveMetrics({ spacingScalePx: [0, 2, 6], densityScale: 0.75, strokePx: 0 }, 4).spacing(1.5), 3);
@@ -105,16 +105,16 @@ assert.equal(resolveMetrics({ strokePx: 0 }, 4).strokePx, 0);
 // Browser consumers resolve xterm's `module` entry, unlike Node's CJS loader.
 // Bundle from installed tarballs with the same pinned esbuild version as pnpm.
 writeFileSync(join(staging, "browser-entry.mjs"), `
-export * as web from '@savvifi/meridian-web';
-export * as toolkit from '@savvifi/meridian-web/toolkit';
-export * as theme from '@savvifi/meridian-web/theme';
+export * as web from '@meridian-ux/web';
+export * as toolkit from '@meridian-ux/web/toolkit';
+export * as theme from '@meridian-ux/web/theme';
 export { create } from '@bufbuild/protobuf';
-export { PanelDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/panel_pb.js';
-export { FormFieldSchema } from '@savvifi/meridian-proto-ts/proto/form_pb.js';
-export { AffordanceSchema } from '@savvifi/meridian-proto-ts/proto/affordance_pb.js';
-export { ViewDescriptorSchema } from '@savvifi/meridian-proto-ts/proto/view_pb.js';
-export { AffordanceCollectionSchema } from '@savvifi/meridian-proto-ts/proto/interaction_pb.js';
-export { validateFormValues, formatLroMetadata, staticViewText } from '@savvifi/meridian-schemas/uiview';
+export { PanelDescriptorSchema } from '@meridian-ux/proto-ts/proto/panel_pb.js';
+export { FormFieldSchema } from '@meridian-ux/proto-ts/proto/form_pb.js';
+export { AffordanceSchema } from '@meridian-ux/proto-ts/proto/affordance_pb.js';
+export { ViewDescriptorSchema } from '@meridian-ux/proto-ts/proto/view_pb.js';
+export { AffordanceCollectionSchema } from '@meridian-ux/proto-ts/proto/interaction_pb.js';
+export { validateFormValues, formatLroMetadata, staticViewText } from '@meridian-ux/schemas/uiview';
 `);
 run(process.execPath, [join(staging, "node_modules/esbuild/bin/esbuild"), "browser-entry.mjs", "--bundle", "--platform=browser", "--format=esm", "--target=es2022", "--outfile=browser-bundle.mjs"], staging);
 writeFileSync(join(staging, "consumer.mjs"), `
@@ -122,8 +122,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createFileRegistry, fromBinary, fromJson, toBinary } from '@bufbuild/protobuf';
 import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
-import * as viewApi from '@savvifi/meridian-proto-ts/proto/view_pb.js';
-import * as invocationApi from '@savvifi/meridian-schemas/uiview';
+import * as viewApi from '@meridian-ux/proto-ts/proto/view_pb.js';
+import * as invocationApi from '@meridian-ux/schemas/uiview';
 import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><body></body>');
 for (const key of ['window', 'document', 'HTMLElement', 'customElements', 'HTMLCanvasElement', 'MutationObserver', 'CustomEvent']) globalThis[key] = dom.window[key];
@@ -232,7 +232,7 @@ try {
   process.stderr.write(error.stderr ?? String(error));
   throw error;
 }
-assert(existsSync(join(staging, "node_modules/@savvifi/meridian-web/package.json")));
+assert(existsSync(join(staging, "node_modules/@meridian-ux/web/package.json")));
 // Retain only the exact tarballs that passed this detached consumer. The scratch
 // app, installed dependencies and historical probe inputs are not release files.
 const artifactDirectory = process.env.MERIDIAN_WEB_PACKAGE_ARTIFACTS;

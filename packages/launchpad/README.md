@@ -1,4 +1,4 @@
-# @savvifi/meridian-launchpad
+# @meridian-ux/launchpad
 
 The **command-palette / launchpad** renderer of the [meridian](https://github.com/meridian-ux)
 renderer family. It renders a modality-neutral `meridian.ui.v1.Launchpad`
@@ -36,8 +36,8 @@ Unsafe schemes remain rejected even with a permissive host policy.
 ## Usage
 
 ```tsx
-import { Launchpad } from "@savvifi/meridian-launchpad";
-import { MeridianProvider } from "@savvifi/meridian-web-react";
+import { Launchpad } from "@meridian-ux/launchpad";
+import { MeridianProvider } from "@meridian-ux/web-react";
 
 // `descriptor` is a meridian.ui.v1.Launchpad (authored, or projected from an app
 // model — see @savvifi/meridian-aion-projection projectLaunchpad()).

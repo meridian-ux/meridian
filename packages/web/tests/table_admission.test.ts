@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { afterEach, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel, type RenderPanelOptions } from "../src/uiview/renderer.js";
 import { withRetiredTrap } from "./retired_wire.js";

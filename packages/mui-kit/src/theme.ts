@@ -8,9 +8,9 @@ import type { CSSProperties } from "react";
 
 import { createTheme, type Theme as MuiTheme } from "@mui/material/styles";
 
-import type { Metrics, Palette, Theme, Typography } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { resolveMetrics } from "@savvifi/meridian-schemas/theme";
-import { safeFontSrc } from "@savvifi/meridian-schemas/uiview";
+import type { Metrics, Palette, Theme, Typography } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { resolveMetrics } from "@meridian-ux/schemas/theme";
+import { safeFontSrc } from "@meridian-ux/schemas/uiview";
 
 export interface ThemeConfig {
   mode: "light" | "dark";
@@ -83,7 +83,7 @@ export interface FontSourceView {
 }
 
 /**
- * Typography fields that post-date this kit's pinned @savvifi/meridian-proto-ts.
+ * Typography fields that post-date this kit's pinned @meridian-ux/proto-ts.
  * Read through ONE cast, here, rather than scattering `as unknown as` at each
  * use: when the pinned package catches up, this shim is the only thing to
  * delete. Both fields are absent-safe — see the fallbacks in `readTypography`.

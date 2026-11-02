@@ -1,11 +1,11 @@
 import { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { create } from "@bufbuild/protobuf";
-import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { AffordanceCollectionSchema } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
-import { AdmissionDeniedError, formatLroMetadata } from "@savvifi/meridian-schemas/uiview";
+import type { LroPanel } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { AffordanceCollectionSchema } from "@meridian-ux/proto-ts/proto/interaction_pb.js";
+import { AdmissionDeniedError, formatLroMetadata } from "@meridian-ux/schemas/uiview";
 import { boundedJson, boundedResponse, buildLroFinalizeRequest, buildSubmissionRequest } from "./action_request.js";
 import { MeridianRecordContext, selectionDeps, useMeridianSelection } from "./pagination.js";
 import { useMeridian } from "./provider.js";

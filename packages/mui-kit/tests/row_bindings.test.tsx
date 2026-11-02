@@ -1,14 +1,14 @@
 import { create, type MessageInitShape } from "@bufbuild/protobuf";
 import { afterEach, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import {
   MeridianRowActionsContext,
   MeridianSelectionContext,
   PanelRenderer,
-} from "@savvifi/meridian-web-react";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+} from "@meridian-ux/web-react";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);

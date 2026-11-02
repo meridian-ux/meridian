@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { createElement } from "react";
 import { create } from "@bufbuild/protobuf";
-import { CommandSchema, LaunchpadSchema, type Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+import { CommandSchema, LaunchpadSchema, type Command } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { safeNavigationHref, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { safeNavigationHref, type InvocationHost } from "@meridian-ux/schemas/uiview";
 import { afterEach, expect, it, vi } from "vitest";
 import * as api from "../src/index.js";
 import devManifest from "../package.json";
@@ -22,7 +22,7 @@ it("publishes the reviewed root ESM entrypoint and compatible schema/renderer pe
     expect(manifest.exports).toEqual({
       ".": { types: "./src/index.d.ts", import: "./src/index.js" },
     });
-    for (const peer of ["react", "react-dom", "@savvifi/meridian-web-react", "@savvifi/meridian-proto-ts"] as const) {
+    for (const peer of ["react", "react-dom", "@meridian-ux/web-react", "@meridian-ux/proto-ts"] as const) {
       expect(manifest.peerDependencies[peer]).toBeTruthy();
     }
   }

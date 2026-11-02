@@ -238,8 +238,11 @@ export function checkWorkspaceRendererCoverage(catalog, { repoRoot = REPO_ROOT }
       }
     }
   };
+  // A stale package name cannot make a descriptor-consuming renderer invisible
+  // during migration. Publication separately rejects legacy SDK dependencies.
+  const protoPackages = ["@meridian-ux/proto-ts", "@savvifi/meridian-proto-ts"];
   const dependsOnProtoTs = (pkg) => [pkg.dependencies, pkg.devDependencies, pkg.peerDependencies]
-    .some((deps) => Object.hasOwn(deps ?? {}, "@savvifi/meridian-proto-ts"));
+    .some((deps) => protoPackages.some(name => Object.hasOwn(deps ?? {}, name)));
 
   // SwiftPM has no custom package metadata table. Keep a JSON array in a
   // declarative comment instead of executing an arbitrary Swift manifest.
@@ -274,7 +277,7 @@ export function checkWorkspaceRendererCoverage(catalog, { repoRoot = REPO_ROOT }
     if (!dependsOnProtoTs(pkg)) continue;
     const ids = pkg.meridian?.rendererIds;
     if (!Array.isArray(ids)) {
-      errors.push(`${directory.name}: package depends on @savvifi/meridian-proto-ts but has no meridian.rendererIds array`);
+      errors.push(`${directory.name}: package depends on proto-ts but has no meridian.rendererIds array`);
       continue;
     }
     for (const id of ids) add(id, directory.name);

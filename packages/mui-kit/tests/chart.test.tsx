@@ -2,11 +2,11 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 
-import { ChartPanelSchema } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { PanelRenderer, MeridianProvider } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { ChartPanelSchema } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { PanelRenderer, MeridianProvider } from "@meridian-ux/web-react";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { muiKit } from "../src/mui_kit.js";
 

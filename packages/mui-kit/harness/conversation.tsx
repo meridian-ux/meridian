@@ -2,14 +2,14 @@
 // -> shared ViewRenderer. The chat package remains independent of panel kits.
 import { create, fromBinary, fromJson, toBinary, toJson, type JsonValue, type JsonObject } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { InvocationHost, RenderContext } from "@savvifi/meridian-schemas/uiview";
+import { ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { InvocationHost, RenderContext } from "@meridian-ux/schemas/uiview";
 import { createElement, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
+import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer } from "@meridian-ux/web-react";
 import { Conversation } from "../../chat/src/conversation.js";
 import { CONVERSATION_CSS } from "../../chat/src/styles.js";
 import type { ViewBlock } from "../../chat/src/wire.js";

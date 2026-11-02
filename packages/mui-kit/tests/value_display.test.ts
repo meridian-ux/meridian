@@ -8,7 +8,7 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 import fixture from "../../../schemas/conformance/value_types.json";
 import coreCorpus from "../../../schemas/conformance/core.json";
-import { ColumnFormat, TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { ColumnFormat, TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
 
 import {
   FormattedValueSchema,
@@ -17,8 +17,8 @@ import {
   TemporalPrecision,
   ValueDisplaySchema,
   ValueType,
-} from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { formatByCore, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { formatByCore, formatLegacyNumber } from "@meridian-ux/schemas/uiview";
 
 import {
   EMPTY_DISPLAY,

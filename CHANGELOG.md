@@ -7,8 +7,10 @@ Affordance removal contract. Required node CI explicitly selects the reviewed
 major-1 FILE reference; both old-line FILE rejections remain required evidence.
 This is not a tag, registry publication or deployment announcement. The prior
 `1.0.0-alpha.1` preparation supplied validation evidence without an alpha release.
-The integrated public source and complete seven-npm/three-crate rehearsal set
-have detached-consumer and extracted-archive verification. The actual tagged
+The preceding public source and seven-npm/three-crate rehearsal set had
+detached-consumer and extracted-archive verification under the historical npm
+names. The `@meridian-ux` namespace candidate requires fresh artifacts and
+consumer verification; prior archive checksums do not transfer. The actual tagged
 release must still produce and verify its own artifacts before a separately
 approved publication. Published 0.x artifacts remain distinct from this line.
 The roadmap's completed work and remaining issue criteria remain authoritative
@@ -16,6 +18,13 @@ in [ROADMAP.md](ROADMAP.md).
 
 ### Intentional breaking changes at the major-1 boundary
 
+- Move the seven first-party npm packages from `@savvifi/meridian-*` to
+  `@meridian-ux/{proto-ts,schemas,web-react,mui-kit,chat,launchpad,web}`.
+  Update dependency keys and import specifiers together. Historical packages
+  remain available under their existing contracts; no aliases, deprecations or
+  publications are performed by this source change. All seven new npm names
+  and the three crates need separately approved initial publication. See the
+  [namespace migration](DISTRIBUTION.md#npm-namespace-migration-for-v1).
 - Use one canonical `Affordance.invoke` vocabulary across rows, headers,
   palette commands, chat and forms: RPC, navigation, inline panel, view, URI,
   command and copy. Placement, tone and emphasis remain independent of intent

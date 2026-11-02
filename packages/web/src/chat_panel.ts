@@ -28,8 +28,8 @@
 // the projection is determined by the trace.
 
 import { create } from "@bufbuild/protobuf";
-import { TemporalPrecision, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { TemporalPrecision, ValueDisplaySchema, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { formatByDisplay } from "@meridian-ux/schemas/uiview";
 
 const BID_DISPLAY = create(ValueDisplaySchema, { type: ValueType.DECIMAL,
   options: { case: "number", value: { fractionDigits: 4, omitGroupSeparators: true } } });

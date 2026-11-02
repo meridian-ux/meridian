@@ -1,10 +1,10 @@
 import { clone } from "@bufbuild/protobuf";
-import { AffordanceSchema, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { AffordanceSchema, type Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { useContext, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, normalizeAffordance, safeNavigationHref,
   type InvocationOutcome, type InvocationSnapshot, type InvocationHost, type AdmissionPolicy, type RpcInvoker, type RenderContext,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 import { boundedJson } from "./action_request.js";
 import { EMPTY_SELECTION, MeridianRecordContext, useMeridianSelection, type MeridianSelection } from "./pagination.js";
 import { useMeridian } from "./provider.js";

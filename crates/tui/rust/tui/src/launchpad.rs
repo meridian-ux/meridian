@@ -1,6 +1,6 @@
 // Terminal renderer for `meridian.ui.v1.Launchpad` — the command palette.
 //
-// The TUI peer of @savvifi/meridian-launchpad's React `<Launchpad>`: the SAME
+// The TUI peer of @meridian-ux/launchpad's React `<Launchpad>`: the SAME
 // descriptor, filtered by the SAME ranking (meridian_uiview::filter_launchpad —
 // the shared core, not a second implementation), painted with ratatui instead of
 // the DOM. This is what "modality-neutral" has to cash out to: a Launchpad

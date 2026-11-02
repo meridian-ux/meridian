@@ -1,17 +1,17 @@
 // @vitest-environment jsdom
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
-import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { GalleryPanelSchema } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { PrincipalDisplay, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { describe, expect, it } from "vitest";
 
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { formatByDisplay } from "@meridian-ux/schemas/uiview";
 
 const wasm: UiviewWasm = {
   renderTable: () => [] as RenderedRow[],

@@ -3,7 +3,7 @@ import {
   MeridianDeclarativeContract,
   MeridianEffect,
 } from './types/global.js';
-import { safeFetchUrl } from '@savvifi/meridian-schemas/uiview';
+import { safeFetchUrl } from '@meridian-ux/schemas/uiview';
 
 export function defineDeclarativeMeridianWorker(contract: MeridianDeclarativeContract) {
   let state = contract.initialState ? { ...contract.initialState } : {};

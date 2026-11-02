@@ -1,4 +1,4 @@
-import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
+import { MediaKind } from "@meridian-ux/proto-ts/proto/media_pb.js";
 import { safeAssetSrc } from "./navigation.js";
 
 /** Resolve only the declared medium or a recognized source extension. Unknown

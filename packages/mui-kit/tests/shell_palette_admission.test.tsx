@@ -1,12 +1,12 @@
 import { create, type JsonObject } from "@bufbuild/protobuf";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
-import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { AppShellSchema } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
+import { CommandSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { AppShellSchema } from "@meridian-ux/proto-ts/proto/shell_pb.js";
 import { act } from "react";
 import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import type { InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import type { InvocationHost } from "@meridian-ux/schemas/uiview";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { AppShellView } from "../src/shell/index.js";
 

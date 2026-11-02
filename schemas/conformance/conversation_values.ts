@@ -1,8 +1,8 @@
 // Runtime test scenarios over the existing string-value corpus. Serialized
 // inputs remain canonical Block protobufs, not a parallel conversation DTO.
 import { fromBinary, fromJson, toJson } from "@bufbuild/protobuf";
-import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
-import { FormattedValueSchema, ValueDisplaySchema, type ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { BlockSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
+import { FormattedValueSchema, ValueDisplaySchema, type ValueDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import corpus from "./constrained_value_types.json";
 import options from "./core.json";
 

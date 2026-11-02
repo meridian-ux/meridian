@@ -1,10 +1,10 @@
 import { create, toJson } from "@bufbuild/protobuf";
-import { ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
 import { registerAssistantPanel, ASSISTANT_PANEL_CSS } from "../src/assistant_panel.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { renderPanel, type UiviewWasm } from "../src/uiview/renderer.js";
 import { renderView } from "../src/uiview/view_renderer.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import { applyTheme } from "../theme/web/theme.js";
 import { toneCases } from "../../../schemas/conformance/tone_cases.js";
 import { withRetiredTrap } from "./retired_wire.js";

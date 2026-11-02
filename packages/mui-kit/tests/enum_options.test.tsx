@@ -11,12 +11,12 @@
 import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
+import { ValueTone } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PanelRenderer } from "@meridian-ux/web-react";
 import { MeridianMuiProvider } from "../src/provider.js";
 
-import { EnumSelectionSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { EnumSelectionSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 
 import { enumOptions } from "../src/mui_kit.js";
 

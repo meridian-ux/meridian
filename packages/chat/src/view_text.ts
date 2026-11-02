@@ -1,8 +1,8 @@
 // Proto3-JSON is the established SSE wire. Admit inert bounded own data before
 // protobuf decoding; never invoke an accessor or a user-defined toJSON method.
 import { fromJson, toBinary, type JsonValue } from "@bufbuild/protobuf";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { staticViewText } from "@savvifi/meridian-schemas/uiview";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { staticViewText } from "@meridian-ux/schemas/uiview";
 
 export function viewText(input: unknown): string {
   try {

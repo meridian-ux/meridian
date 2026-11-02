@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fromJson } from "@bufbuild/protobuf";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 
 const OUTPUT = fileURLToPath(new URL("../../packages/mui-kit/harness/proto-viewdescriptors.json", import.meta.url));
 export const SOURCE_PATH = "crates/projector/testdata/golden/render-bundle.json";

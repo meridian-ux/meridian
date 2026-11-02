@@ -13,7 +13,7 @@ package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
 
-# @savvifi/meridian-chat — the conversation renderer. Compiles the shared core
+# @meridian-ux/chat — the conversation renderer. Compiles the shared core
 # (wire + model + render_html), the vanilla <m-assistant-panel>, and the React
 # <Conversation>. The wire types are structural; field displays use the shared
 # schema formatter and protobuf JSON decoding. React is
@@ -29,8 +29,8 @@ ts_project(
     tsconfig = "tsconfig.json",
     deps = [
         ":node_modules/@bufbuild/protobuf",
-        ":node_modules/@savvifi/meridian-proto-ts",
-        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@meridian-ux/proto-ts",
+        ":node_modules/@meridian-ux/schemas",
         ":node_modules/@types/react",
         ":node_modules/@types/react-dom",
         ":node_modules/react",
@@ -48,7 +48,7 @@ js_library(
     srcs = ["package.json", "chat.package.json"],
 )
 
-# The publishable @savvifi/meridian-chat npm package.
+# The publishable @meridian-ux/chat npm package.
 npm_package(
     name = "pkg",
     srcs = [
@@ -60,7 +60,7 @@ npm_package(
         ":chat",
     ],
     replace_prefixes = {"chat.package.json": "package.json"},
-    package = "@savvifi/meridian-chat",
+    package = "@meridian-ux/chat",
     visibility = ["//visibility:public"],
 )
 

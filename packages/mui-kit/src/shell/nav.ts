@@ -4,8 +4,8 @@
 // active-item rule in particular is the sort of thing that looks obvious and is not (see
 // `isActive`), and it is far easier to pin with a table of paths than by mounting a drawer.
 
-import type { NavNode, NavTree } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
-import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import type { NavNode, NavTree } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
+import { safeNavigationHref } from "@meridian-ux/schemas/uiview";
 
 import type { AppShellSeams, NavNodeLike } from "./config.js";
 

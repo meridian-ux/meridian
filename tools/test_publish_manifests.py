@@ -14,11 +14,11 @@ class PublishedManifestTests(unittest.TestCase):
         dev = json.loads((ROOT / "packages/web/package.json").read_text())
         self.assertTrue(dev["private"])
         out = published(dev, module_version())
-        self.assertEqual(out["name"], "@savvifi/meridian-web")
+        self.assertEqual(out["name"], "@meridian-ux/web")
         self.assertNotIn("private", out)
         self.assertEqual(out["exports"]["."]["import"], "./src/browser.js")
         self.assertEqual(out["exports"]["."]["types"], "./src/browser.d.ts")
-        for name in ("@savvifi/meridian-proto-ts", "@savvifi/meridian-schemas"):
+        for name in ("@meridian-ux/proto-ts", "@meridian-ux/schemas"):
             self.assertEqual(out["dependencies"][name], module_version())
 
     def test_crate_registry_dependencies_follow_the_module_version(self):
@@ -61,13 +61,13 @@ class PublishedManifestTests(unittest.TestCase):
         version = "1.0.0-alpha.1"
         out = published({
             "name": "@example/widget",
-            "dependencies": {"@savvifi/meridian-schemas": "^0.25.0"},
-            "peerDependencies": {"@savvifi/meridian-proto-ts": "^0.25.0", "react": "^19.0.0"},
-            "optionalDependencies": {"@savvifi/meridian-web-react": "^0.25.0", "@savvifi/meridian-external-kit": "^0.4.0"},
+            "dependencies": {"@meridian-ux/schemas": "^0.25.0"},
+            "peerDependencies": {"@meridian-ux/proto-ts": "^0.25.0", "react": "^19.0.0"},
+            "optionalDependencies": {"@meridian-ux/web-react": "^0.25.0", "@meridian-ux/external-kit": "^0.4.0", "@savvifi/meridian-external-kit": "^0.4.0"},
         }, version)
-        self.assertEqual(out["dependencies"], {"@savvifi/meridian-schemas": version})
-        self.assertEqual(out["peerDependencies"], {"@savvifi/meridian-proto-ts": version, "react": "^19.0.0"})
-        self.assertEqual(out["optionalDependencies"], {"@savvifi/meridian-web-react": version, "@savvifi/meridian-external-kit": "^0.4.0"})
+        self.assertEqual(out["dependencies"], {"@meridian-ux/schemas": version})
+        self.assertEqual(out["peerDependencies"], {"@meridian-ux/proto-ts": version, "react": "^19.0.0"})
+        self.assertEqual(out["optionalDependencies"], {"@meridian-ux/web-react": version, "@meridian-ux/external-kit": "^0.4.0", "@savvifi/meridian-external-kit": "^0.4.0"})
 
     def test_every_shipped_first_party_edge_is_exactly_the_module_version(self):
         names = {json.loads((ROOT / dev).read_text())["name"] for dev, _ in PACKAGES}

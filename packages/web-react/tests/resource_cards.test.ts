@@ -6,9 +6,9 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType, PrincipalDisplay, TemporalDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { ValueType, PrincipalDisplay, TemporalDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { POPULATED_RESPONSES } from "../../../schemas/conformance/populated.js";

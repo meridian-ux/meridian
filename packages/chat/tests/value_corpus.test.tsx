@@ -2,8 +2,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
-import { BlockSchema, ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { BlockSchema, ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { CONVERSATION_VALUES, conversationValueBlocks } from "../../../schemas/conformance/conversation_values.js";
 import { renderBlockInner } from "../src/render_html.js";

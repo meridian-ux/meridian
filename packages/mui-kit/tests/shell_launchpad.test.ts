@@ -8,7 +8,7 @@ import {
   CommandGroupSchema,
   CommandSchema,
   LaunchpadSchema,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 
 import { defaultCommands, flatten, matchCommands, moveIndex } from "../src/shell/launchpad.js";
 

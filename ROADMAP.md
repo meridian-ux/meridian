@@ -25,7 +25,23 @@ M1 is ordered first because everything after it is cheaper once it lands: the se
 unblocks eight cells at once, the manifest becomes something CI can enforce rather
 than a document, and the test floor means parity work lands with proof.
 
-### Integrated release checkpoint — October 27, 2026
+### Namespace migration preparation — November 2, 2026
+
+The next v1 candidate moves all seven npm packages to the project-owned
+`@meridian-ux` scope with concise names. The complete mapping and consumer
+migration are in [DISTRIBUTION.md](DISTRIBUTION.md). All seven npm names and
+three crates require initial publication, superseding the earlier four-name
+bootstrap scope. Historical artifacts and checksums do not apply to renamed
+packages; new preparation and detached consumer evidence are required.
+
+Browser verification found npm owner `marshsavvi` with 2FA enabled in the new
+organization and crates.io account `mattmarshall` with a verified email. The npm
+organization has no packages yet. This resolves the account identity questions;
+registry configuration, credentials, private integration, live automation,
+publication and deployment remain separately gated. Preparing this source
+migration does not activate any of them. Issues #16 and #63 remain open.
+
+### Historical integrated release checkpoint — October 27, 2026
 
 [PR #226](https://github.com/meridian-ux/meridian/pull/226) integrated the canonical
 Affordance removal contract and explicit major-1 FILE policy after its checks
@@ -501,12 +517,12 @@ Baseline, 2026‑09‑11:
 
 | package | tests | shipped as |
 |---|---|---|
-| `packages/mui-kit` | 124 | `@savvifi/meridian-mui-kit` 0.25.1 |
+| `packages/mui-kit` | 124 | `@meridian-ux/mui-kit` 0.25.1 |
 | `packages/web` | 82 | **private workspace** — CDN bundle only |
-| `packages/web-react` | 72 | `@savvifi/meridian-web-react` 0.25.1 |
-| `packages/chat` | 14 | `@savvifi/meridian-chat` 0.25.1 (5 versions) |
-| `packages/launchpad` | 12 | `@savvifi/meridian-launchpad` 0.25.1 (5 versions) |
-| `schemas` | 14 | `@savvifi/meridian-schemas` 0.25.1 |
+| `packages/web-react` | 72 | `@meridian-ux/web-react` 0.25.1 |
+| `packages/chat` | 14 | `@meridian-ux/chat` 0.25.1 (5 versions) |
+| `packages/launchpad` | 12 | `@meridian-ux/launchpad` 0.25.1 (5 versions) |
+| `schemas` | 14 | `@meridian-ux/schemas` 0.25.1 |
 | `crates/*` (cargo) | 79 | **no crate on crates.io** — Bazel registry / git only |
 
 [#14](../../issues/14) sets a per-package floor that only rises; the current floor is
@@ -613,7 +629,7 @@ error transition without reaching `fetch`.
 ## What is deliberately not here
 
 The selected distribution direction is crates.io for the three Rust packages
-and npm for `@savvifi/meridian-web`; [DISTRIBUTION.md](DISTRIBUTION.md) records
+and npm for `@meridian-ux/web`; [DISTRIBUTION.md](DISTRIBUTION.md) records
 archive verification and release prerequisites. Preparation is not publication
 and does not close the remaining v1 contract/conformance work.
 

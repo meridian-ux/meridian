@@ -5,7 +5,7 @@
 // own DOM upsert but shares the same semantics.
 
 import { isActiveStatus, type Block, type ConversationEvent, type Status } from "./wire.js";
-import { conversationSequenceKey } from "@savvifi/meridian-schemas/uiview";
+import { conversationSequenceKey } from "@meridian-ux/schemas/uiview";
 
 export class ConversationModel {
   private order: string[] = [];

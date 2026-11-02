@@ -3,7 +3,7 @@
 // This is the entry esbuild bundles into a SINGLE self-contained ESM
 // (`meridian_web.bundle.js`) that hosts load directly in the browser — no
 // bundler on the host side. esbuild inlines @bufbuild/protobuf and
-// @savvifi/meridian-proto-ts, so the output has NO bare `@…` imports to resolve.
+// @meridian-ux/proto-ts, so the output has NO bare `@…` imports to resolve.
 //
 // It is the renderer surface for a host that drives meridian panels itself
 // (e.g. botnoc's plugin shell): the PanelDescriptor renderer (table / lro /
@@ -23,12 +23,12 @@ import {
 import {
   GalleryPanelSchema,
   type GalleryPanel,
-} from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
+} from "@meridian-ux/proto-ts/proto/gallery_pb.js";
 import {
   PanelBundleSchema,
   type PanelBundle,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 // The PanelDescriptor renderer (table / lro / adhoc / form) + its host-facing types.
 export {
@@ -50,7 +50,7 @@ export type { RenderViewOptions } from "./uiview/view_renderer.js";
 
 // The framework-neutral transport contracts the host implements (type-only;
 // erased at build time — re-exported so hosts can import them from the bundle).
-export type { RenderContext, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+export type { RenderContext, RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 // The chat-panel web component (lazy-registered by hosts that show chat panels).
 export { CHAT_PANEL_CSS, MChatPanel, registerChatPanel } from "./chat_panel.js";

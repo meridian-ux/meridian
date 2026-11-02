@@ -1,10 +1,10 @@
 import { clone } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { ConfirmSpecSchema, type ConfirmSpec } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { ConfirmSpecSchema, type ConfirmSpec } from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
 import { affordancePresentation, createAdmissionGate, createInvocationDispatcher, matchesRowFilter, NormalizedAction, safeNavigationHref,
   type AdmissionPolicy, type InvocationHost, type InvocationOutcome, type InvocationSnapshot, type RenderContext, type RpcInvoker,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 // Runtime-only bounded snapshot ownership, not an alternate request builder.
 // Actual request/binding admission remains in the shared Rust dispatcher.

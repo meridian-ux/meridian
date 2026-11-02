@@ -6,8 +6,8 @@ import { renderBlockInner } from "../src/render_html.js";
 import { BlockView, Conversation } from "../src/index.js";
 import type { Block } from "../src/wire.js";
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
-import { BlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
-import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { BlockSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
+import { PrincipalDisplay, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 
 describe("conversation list displays", () => {
   const renderers = [renderBlockInner, (block: Block) => renderToStaticMarkup(createElement(BlockView, { block }))];

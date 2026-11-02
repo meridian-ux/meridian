@@ -9,16 +9,16 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
-import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { StreamPanelSchema } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import { MediaKind, MediaPanelSchema } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { TerminalPanelSchema } from "@meridian-ux/proto-ts/proto/terminal_pb.js";
+import { StepsPanelSchema } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { DetailHeaderPanelSchema, RecordCardPanelSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PrincipalDisplay, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { htmlKit } from "../src/html_kit.js";
 import { shadcnKit } from "../src/shadcn_kit.js";

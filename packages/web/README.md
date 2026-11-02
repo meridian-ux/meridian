@@ -2,7 +2,7 @@
 
 ## npm distribution preparation
 
-The selected v1 npm name is `@savvifi/meridian-web`. The locally buildable
+The selected v1 npm name is `@meridian-ux/web`. The locally buildable
 `//packages/web:pkg` artifact exposes the renderer at the package root, toolkit
 helpers at `/toolkit`, the compiled theme binding at `/theme`, and CSS at
 `/theme.css`. The development manifest remains private; the generated
@@ -59,7 +59,7 @@ It ships:
 - **`//src:core`** — the web toolkit: the web-components `PanelDescriptor`
   renderer (`webComponentsRenderer`, `renderPanel`), a typed worker runtime, DOM
   patch helpers, template loader, and UI-kit CSS. It speaks the **canonical**
-  `@savvifi/meridian-proto-ts` types end to end and crosses the wasm boundary with
+  `@meridian-ux/proto-ts` types end to end and crosses the wasm boundary with
   protobuf **binary** (`toBinary` → `prost::decode`).
 
   Descriptor-originated RPCs can be constrained with `MountOptions.admission`:
@@ -80,7 +80,7 @@ It ships:
 The Rust render/request logic and WASM target live in
 [`crates/core/rust/uiview`](../../crates/core/rust/uiview); a host wires that
 initialized core into `webComponentsRenderer`. The design language is exposed
-through `@savvifi/meridian-schemas` and `@savvifi/meridian-proto-ts`, linked from
+through `@meridian-ux/schemas` and `@meridian-ux/proto-ts`, linked from
 the same monorepo during development and pinned together in npm artifacts.
 
 ## Composed views

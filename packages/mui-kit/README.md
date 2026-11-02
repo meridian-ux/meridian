@@ -1,9 +1,9 @@
-# @savvifi/meridian-mui-kit
+# @meridian-ux/mui-kit
 
 The **MUI ComponentKit** for the [meridian](https://github.com/meridian-ux) React
 renderer. It paints framework-neutral `meridian.ui.v1` **PanelDescriptor**s and
 **ViewDescriptor**s with **MUI** — its own table + form components (with
-CLIENT/OFFSET/CURSOR pagination) — over the `@savvifi/meridian-web-react`
+CLIENT/OFFSET/CURSOR pagination) — over the `@meridian-ux/web-react`
 `WebRenderer` seam.
 
 It is one implementation of the `ComponentKit` interface, a peer of `htmlKit` and
@@ -53,7 +53,7 @@ integer fractions are not truncated, and unsafe integers are rejected.
 ViewDescriptor / PanelDescriptor  (meridian-schemas, neutral protos)
         │
         ▼
-ViewRenderer / PanelRenderer      (@savvifi/meridian-web-react, kit-agnostic)
+ViewRenderer / PanelRenderer      (@meridian-ux/web-react, kit-agnostic)
         │  dispatches each shape to →
         ▼
 muiKit                            (this package: Table→MeridianTable, Form→MeridianForm, …)
@@ -65,8 +65,8 @@ muiKit                            (this package: Table→MeridianTable, Form→M
 ## Usage
 
 ```tsx
-import { MeridianMuiProvider } from "@savvifi/meridian-mui-kit";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
+import { MeridianMuiProvider } from "@meridian-ux/mui-kit";
+import { ViewRenderer } from "@meridian-ux/web-react";
 
 <MeridianMuiProvider invoker={rpcInvoker} theme={skin} adhoc={handlers}>
   <ViewRenderer view={viewDescriptor} />
@@ -134,8 +134,8 @@ semantics. MUI retains generic failure text and distinct admission-denial feedba
 For a single panel (no layout tier), use the kit as a `WebRenderer`:
 
 ```ts
-import { reactWebRenderer } from "@savvifi/meridian-web-react";
-import { muiKit } from "@savvifi/meridian-mui-kit";
+import { reactWebRenderer } from "@meridian-ux/web-react";
+import { muiKit } from "@meridian-ux/mui-kit";
 
 const renderer = reactWebRenderer(muiKit);
 const handle = renderer.mount({ container, descriptor, theme, invoker, adhoc });

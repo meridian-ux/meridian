@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
-import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { ChartPanel, ChartSpec } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import {
   buildBindingRequest,

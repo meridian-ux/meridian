@@ -8,10 +8,10 @@ import { useContext, type ReactNode } from "react";
 
 import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@savvifi/meridian-web-react";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { RecordCardPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@meridian-ux/web-react";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { RecordCardPanel } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { EMPTY_DISPLAY, displayValueList, formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";

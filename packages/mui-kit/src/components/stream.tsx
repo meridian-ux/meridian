@@ -8,7 +8,7 @@
 import type { ReactNode } from "react";
 
 import { Card, CardContent } from "@mui/material";
-import { StreamContent, type StreamPanelProps } from "@savvifi/meridian-web-react";
+import { StreamContent, type StreamPanelProps } from "@meridian-ux/web-react";
 
 export function MeridianStream({ panel, descriptor }: Pick<StreamPanelProps, "panel"> & Partial<Pick<StreamPanelProps, "descriptor">>): ReactNode {
   return (

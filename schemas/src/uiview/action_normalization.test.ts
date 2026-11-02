@@ -1,12 +1,12 @@
 import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbuild/protobuf";
 import { expect, it } from "vitest";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { AffordanceCollectionSchema } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
-import { ActionPlacement, SlotSchema, ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { AffordanceCollectionSchema } from "@meridian-ux/proto-ts/proto/interaction_pb.js";
+import { ActionPlacement, SlotSchema, ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { CommandSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { FormPanelSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import { normalizeAffordance, normalizeViewActions,
   normalizeTableActions, normalizeCommand, normalizeFormSubmit } from "./action_normalization.js";
 import { readFrozen } from "../../tests/frozen_affordance.js";

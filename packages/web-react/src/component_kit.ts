@@ -9,34 +9,34 @@
 
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 
-import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import type { ChartPanel } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
+import type { ActionPanel } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import type { ChartPanel } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import type { ResourceCardPanel } from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
+import type { ChoicePanel } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import type { CopyValuePanel } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import type { GalleryPanel } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import type { GrammarPanel } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import type { LlmPromptPanel } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import type { LroPanel } from "@meridian-ux/proto-ts/proto/lro_pb.js";
 import type {
   DetailHeaderPanel,
   FormPanel,
   PanelDescriptor,
   RecordCardPanel,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
-import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { PromptPanel } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import type { SnippetPanel } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import type { StreamPanel } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import type { TerminalPanel } from "@meridian-ux/proto-ts/proto/terminal_pb.js";
+import type { TablePanel } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import type { Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 /** Props every shape component receives: its panel, the parent descriptor, transport. */
 export interface ShapeProps<P> {
@@ -78,7 +78,7 @@ export interface ActionBarProps {
   actions: Affordance[];
   invoker: RpcInvoker;
   /** Normalized presence wins, including an explicitly empty array. */
-  normalizedActions?: readonly import("@savvifi/meridian-schemas/uiview").NormalizedAction[];
+  normalizedActions?: readonly import("@meridian-ux/schemas/uiview").NormalizedAction[];
 }
 
 /** A set of components + a theme binding that paints meridian panels. */

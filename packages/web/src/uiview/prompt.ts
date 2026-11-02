@@ -1,7 +1,7 @@
 import { clone } from "@bufbuild/protobuf";
-import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import { assertFormDefaultBudget, createPromptResponder, promptValues, validateFormValues, type PromptResponseHandler, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { FormFieldSchema, type FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { PromptPanel } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import { assertFormDefaultBudget, createPromptResponder, promptValues, validateFormValues, type PromptResponseHandler, type RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { buildFormField } from "./form.js";
 import { hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 

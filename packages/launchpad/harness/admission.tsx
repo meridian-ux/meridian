@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
-import { CommandSchema, LaunchpadSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+import { CommandSchema, LaunchpadSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Launchpad } from "../src/launchpad.js";

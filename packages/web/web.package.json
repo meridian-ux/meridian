@@ -1,5 +1,5 @@
 {
-  "name": "@savvifi/meridian-web",
+  "name": "@meridian-ux/web",
   "version": "1.0.0",
   "meridian": {
     "rendererIds": [
@@ -45,8 +45,8 @@
   ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@savvifi/meridian-proto-ts": "1.0.0",
-    "@savvifi/meridian-schemas": "1.0.0",
+    "@meridian-ux/proto-ts": "1.0.0",
+    "@meridian-ux/schemas": "1.0.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0"
   }

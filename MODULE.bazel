@@ -82,7 +82,7 @@ use_repo(rules_ts_ext, "npm_typescript")
 # "//:pnpm-lock.yaml")` over its OWN root lockfile, and in one module those are a
 # hard collision on the repo name `npm`. They are also the Bazel-side expression
 # of the same problem the pnpm workspace fixed: seven lockfiles resolving
-# @savvifi/meridian-proto-ts to five different versions. One lockfile, one
+# @meridian-ux/proto-ts to five different versions. One lockfile, one
 # extension, one node_modules tree.
 #
 # meridian-chat isolated its npm extension (`isolate = True`) so a host consuming

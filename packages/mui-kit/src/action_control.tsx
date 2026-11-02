@@ -1,6 +1,6 @@
 import { Button, IconButton, Menu, MenuItem, Typography } from "@mui/material";
-import { affordancePresentation, type NormalizedAction } from "@savvifi/meridian-schemas/uiview";
-import { useActionGroup, useActionInvocation, type ActionInvocationOptions } from "@savvifi/meridian-web-react";
+import { affordancePresentation, type NormalizedAction } from "@meridian-ux/schemas/uiview";
+import { useActionGroup, useActionInvocation, type ActionInvocationOptions } from "@meridian-ux/web-react";
 import { useId, useState, type ReactNode } from "react";
 
 export function NormalizedRowActionsMenu({ actions, row, subjectKind, refresh }: {

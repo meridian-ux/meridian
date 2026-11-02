@@ -14,7 +14,7 @@
 # Inside one workspace with `workspace:*`, a second copy is not a bug to be
 # guarded against. It is unrepresentable.
 #
-# `pnpm why @savvifi/meridian-proto-ts` returning exactly one version is the
+# `pnpm why @meridian-ux/proto-ts` returning exactly one version is the
 # check that this held.
 packages:
   - schemas

@@ -23,7 +23,7 @@
 // imports none — that host passes its `NavigationProvider` bindings (next/link + next/navigation),
 // hatch passes its own router, and neither is visible from inside.
 
-import type { AppShell, ScopeSelector } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
+import type { AppShell, ScopeSelector } from "@meridian-ux/proto-ts/proto/shell_pb.js";
 import type * as React from "react";
 
 /** A component that renders an anchor: `next/link`, a router's Link, or `"a"`. */
@@ -118,10 +118,10 @@ export interface AppShellSeams {
   onScopeChange?: (id: string) => void;
 
   /**
-   * The dock's content — normally `<Conversation>` from `@savvifi/meridian-chat`.
+   * The dock's content — normally `<Conversation>` from `@meridian-ux/chat`.
    *
    * A node, not a chat client. The shell owns the DOCK (width, the reflow of the main
-   * column, the toggle); it does not own the transport, and `@savvifi/meridian-chat` stays
+   * column, the toggle); it does not own the transport, and `@meridian-ux/chat` stays
    * an OPTIONAL peer so an app with no chat pays nothing. This is the seam that host's own
    * `chat-dock.tsx` predicted: it mounts `<Conversation>` as a sibling of the shell and says
    * that "if the dock ever needs to reflow the sidebar or share the shell's hotkey registry

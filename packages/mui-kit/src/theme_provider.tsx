@@ -3,7 +3,7 @@
 import { useEffect, useMemo, type ReactNode } from "react";
 import { CssBaseline, GlobalStyles, ScopedCssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 import { missingThemeFonts, themeProtoToCssVars, themeProtoToFontFaceCss, themeProtoToMuiTheme } from "./theme.js";
 
 declare const process: { env?: { NODE_ENV?: string } } | undefined;

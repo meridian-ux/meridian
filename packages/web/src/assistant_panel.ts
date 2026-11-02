@@ -14,8 +14,8 @@
 //               done   { stopReason } · error { message }
 
 import { fromJson, type JsonObject } from '@bufbuild/protobuf';
-import { ValueDisplaySchema, ValueType } from '@savvifi/meridian-proto-ts/proto/value_pb.js';
-import { formatByDisplay, type DisplayedValue, conversationSequenceKey, conversationToneRole, conversationToolState, conversationStatusState, CONVERSATION_TONE_CSS } from '@savvifi/meridian-schemas/uiview';
+import { ValueDisplaySchema, ValueType } from '@meridian-ux/proto-ts/proto/value_pb.js';
+import { formatByDisplay, type DisplayedValue, conversationSequenceKey, conversationToneRole, conversationToolState, conversationStatusState, CONVERSATION_TONE_CSS } from '@meridian-ux/schemas/uiview';
 
 import { escHtml as esc } from './dom.js';
 

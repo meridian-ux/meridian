@@ -3,7 +3,7 @@ import { create } from "@bufbuild/protobuf";
 import {
   LaunchpadSchema,
   type Launchpad,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 
 /**
  * A representative Launchpad exercising four canonical intent arms:

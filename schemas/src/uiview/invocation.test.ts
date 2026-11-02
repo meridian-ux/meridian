@@ -1,8 +1,8 @@
 import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
 import { expect, it, vi } from "vitest";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { CommandSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { normalizeAffordance, normalizeCommand } from "./action_normalization.js";
 import { readFrozen } from "../../tests/frozen_affordance.js";
 import { createInvocationDispatcher, type InvocationSnapshot, type InvocationCapabilities } from "./invocation.js";

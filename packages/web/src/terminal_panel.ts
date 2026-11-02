@@ -13,7 +13,7 @@
 
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
-import { safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
+import { safeWebSocketUrl } from "@meridian-ux/schemas/uiview";
 
 import { TERMINAL_PANEL_CSS } from "./terminal_panel_css.js";
 import { utf8ByteLength } from "./utf8.js";

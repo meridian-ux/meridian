@@ -6,8 +6,8 @@
 
 import { useContext, type CSSProperties } from "react";
 
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { formatByDisplay, isSafeHttpUrl, resolveValueLink, safeWebSocketUrl } from "@savvifi/meridian-schemas/uiview";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { formatByDisplay, isSafeHttpUrl, resolveValueLink, safeWebSocketUrl } from "@meridian-ux/schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 import {

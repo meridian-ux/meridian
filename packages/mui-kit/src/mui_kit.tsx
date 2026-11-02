@@ -1,6 +1,6 @@
 // muiKit — a meridian ComponentKit that paints panels with MUI. One
 // implementation of the ComponentKit interface exported by
-// @savvifi/meridian-web-react, a peer of htmlKit / shadcnKit: the kit-agnostic
+// @meridian-ux/web-react, a peer of htmlKit / shadcnKit: the kit-agnostic
 // PanelRenderer / ViewRenderer dispatch the descriptor shapes to these
 // components, so the same ViewDescriptor renders here as MUI tables + forms
 // (with CLIENT / OFFSET / CURSOR pagination) instead of plain HTML.
@@ -18,16 +18,16 @@ import { useFormOptions, validateFormOptions } from "./form_options.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Alert, Box, Button, Chip, IconButton, Link, Menu, Stack, Typography } from "@mui/material";
-import { affordancePresentation, normalizeFormSubmit, type NormalizedAction, normalizeAffordance, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@savvifi/meridian-schemas/uiview";
+import { affordancePresentation, normalizeFormSubmit, type NormalizedAction, normalizeAffordance, normalizeTableActions, AdmissionDeniedError, assertFormDefaultBudget, safeWebSocketUrl, validateFormValues, hasMaskedField, renderPromptTemplate, formatLegacyNumber } from "@meridian-ux/schemas/uiview";
 
 import type {
   ActionBarProps,
   ComponentKit,
   ShapeProps,
-} from "@savvifi/meridian-web-react";
+} from "@meridian-ux/web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "./display_format.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { ValueDisplay, ValueTone } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { ValueDisplay, ValueTone } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { useDisplayNow } from "./use_display_now.js";
 import {
   ActionGroup,
@@ -46,13 +46,13 @@ import {
   useHrefResolver,
   useMeridianSelection,
   usePagedRows,
-} from "@savvifi/meridian-web-react";
-import type { EnumSelection, FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import type { ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import type { TerminalPanel } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
+} from "@meridian-ux/web-react";
+import type { EnumSelection, FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { GalleryPanel } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import type { ResourceCardPanel } from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
+import type { LroPanel } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import type { LlmPromptPanel } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import type { TerminalPanel } from "@meridian-ux/proto-ts/proto/terminal_pb.js";
 import {
   FormMode,
   FormPanelSchema,
@@ -60,27 +60,27 @@ import {
   type FormPanel,
   type PanelDescriptor,
   type RecordCardPanel,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { PromptPanel } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import type { RpcCall } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   ColumnFormat,
   type TableColumn,
   type TablePanel,
-} from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValuePanel } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import type { SnippetPanel } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/table_pb.js";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { ActionPlacement } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { ActionPanel } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import type { CopyValuePanel } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import type { GrammarPanel } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import type { SnippetPanel } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import {
   ActionView,
@@ -1157,14 +1157,14 @@ export const muiKit: ComponentKit = {
   CopyValue: ({ panel }: ShapeProps<CopyValuePanel>) =>
     panel.value ? <CopyValueView value={panel.value} /> : null,
   Catalog: ({ panel }: ShapeProps<CatalogPanel>) => <CatalogView panel={panel} />,
-  Chart: ({ panel, invoker }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/chart_pb.js").ChartPanel>) => (
+  Chart: ({ panel, invoker }: ShapeProps<import("@meridian-ux/proto-ts/proto/chart_pb.js").ChartPanel>) => (
     <MeridianChart panel={panel} invoker={invoker} />
   ),
   Grammar: ({ panel }: ShapeProps<GrammarPanel>) => <GrammarView panel={panel} />,
   Stat: ({ panel }: ShapeProps<StatPanel>) => <StatView panel={panel} />,
   Steps: ({ panel }: ShapeProps<StepsPanel>) => <StepsView panel={panel} />,
   Media: ({ panel }: ShapeProps<MediaPanel>) => <MediaView panel={panel} />,
-  Stream: ({ panel, descriptor }: ShapeProps<import("@savvifi/meridian-proto-ts/proto/stream_pb.js").StreamPanel>) => (
+  Stream: ({ panel, descriptor }: ShapeProps<import("@meridian-ux/proto-ts/proto/stream_pb.js").StreamPanel>) => (
     <MeridianStream panel={panel} descriptor={descriptor} />
   ),
   Fallback,

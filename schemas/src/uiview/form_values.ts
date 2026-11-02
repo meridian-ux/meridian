@@ -1,4 +1,4 @@
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { coreValidation } from "./core_runtime.js";
 
 /** Allocation-free preflight for descriptor-driven initializers, including

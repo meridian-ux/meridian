@@ -1,4 +1,4 @@
-// @savvifi/meridian-chat/web — the VANILLA (framework-free) tier: the
+// @meridian-ux/chat/web — the VANILLA (framework-free) tier: the
 // <m-assistant-panel> web component + the shared renderer-neutral core. No React.
 // This is what botnoc consumes (via the esbuild browser bundle).
 

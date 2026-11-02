@@ -9,7 +9,7 @@
 // interface because the web surface decodes via the wasm bundle and does not
 // generate TS proto types. If the proto changes, change these in lockstep.
 
-import { resolveMetrics } from "@savvifi/meridian-schemas/theme";
+import { resolveMetrics } from "@meridian-ux/schemas/theme";
 
 export interface Palette {
   bg?: string;

@@ -13,7 +13,7 @@ export default defineConfig({
   // present from `npm run build`.
   resolve: {
     alias: {
-      "@savvifi/meridian-schemas/uiview": schemasUiView,
+      "@meridian-ux/schemas/uiview": schemasUiView,
     },
   },
   test: {

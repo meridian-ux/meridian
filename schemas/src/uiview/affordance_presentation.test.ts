@@ -1,5 +1,5 @@
 import { fromBinary, toBinary } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
 import { expect, it } from "vitest";
 import { affordancePresentation } from "./affordance_presentation.js";
 import { readFrozen } from "../../tests/frozen_affordance.js";

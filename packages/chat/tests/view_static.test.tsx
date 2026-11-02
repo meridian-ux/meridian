@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { create, fromBinary, toBinary, toJson } from "@bufbuild/protobuf";
-import { BlockSchema, ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { BlockSchema, ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
 import { createElement, act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { LAYOUT_CASES } from "../../../schemas/conformance/layout_cases.js";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
-import { staticViewText } from "@savvifi/meridian-schemas/uiview";
+import { staticViewText } from "@meridian-ux/schemas/uiview";
 import { renderBlockInner } from "../src/render_html.js";
 import { BlockView } from "../src/render_react.js";
 import { Conversation } from "../src/conversation.js";

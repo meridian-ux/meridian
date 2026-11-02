@@ -12,9 +12,9 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
-import { PanelRenderer, MeridianProvider } from "@savvifi/meridian-web-react";
+import { PanelRenderer, MeridianProvider } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";
 import { normalizeMarkup } from "../../../schemas/conformance/normalize_dom.js";

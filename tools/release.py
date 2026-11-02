@@ -30,7 +30,8 @@ NPM = (
     ("web", "packages/web/pkg"),
 )
 CRATES = ("meridian-uiview", "theme-proto", "meridian-tui")
-BOOTSTRAP = frozenset((*CRATES, "@savvifi/meridian-web"))
+LEGACY_NPM_NAMES = frozenset(f"@savvifi/meridian-{name}" for name, _ in NPM)
+BOOTSTRAP = frozenset((*CRATES, *FIRST_PARTY_NAMES))
 
 
 def require(condition, message):
@@ -51,7 +52,7 @@ def release_version():
 
 
 def filenames(version):
-    return ([f"savvifi-meridian-{name}-{version}.tgz" for name, _ in NPM]
+    return ([f"meridian-ux-{name}-{version}.tgz" for name, _ in NPM]
             + [f"{name}-{version}.crate" for name in CRATES])
 
 
@@ -79,16 +80,17 @@ def verify(directory, version):
     require(all((directory / name).is_file() and not (directory / name).is_symlink()
                 for name in expected | {"SHA256SUMS"}), "release artifacts must be regular files")
     require((directory / "SHA256SUMS").read_text() == checksums(directory, version), "release checksum mismatch")
-    require({f"@savvifi/meridian-{name}" for name, _ in NPM} == FIRST_PARTY_NAMES,
+    require({f"@meridian-ux/{name}" for name, _ in NPM} == FIRST_PARTY_NAMES,
             "release inventory differs from publication-manifest producer")
     preceding = set()
     for short, _ in NPM:
-        name = f"@savvifi/meridian-{short}"
-        manifest = json.loads(metadata(directory / f"savvifi-meridian-{short}-{version}.tgz", "package/package.json"))
+        name = f"@meridian-ux/{short}"
+        manifest = json.loads(metadata(directory / f"meridian-ux-{short}-{version}.tgz", "package/package.json"))
         require(manifest.get("name") == name and manifest.get("version") == version
                 and not manifest.get("private"), f"invalid npm identity: {name}")
         for field in ("dependencies", "peerDependencies", "optionalDependencies"):
             for dependency, pin in manifest.get(field, {}).items():
+                require(dependency not in LEGACY_NPM_NAMES, f"legacy npm dependency in release: {dependency}")
                 require(not pin.startswith(("workspace:", "link:", "file:")), "local npm dependency in release")
                 if dependency in FIRST_PARTY_NAMES:
                     require(pin == version, f"non-lockstep npm dependency: {name} / {dependency}")
@@ -123,7 +125,7 @@ def consumer(archives, work):
          "typescript@5.7.3", "esbuild@0.21.5", "jsdom@25.0.1", "react@19.2.7", "react-dom@19.2.7",
          "@types/react@19.2.17", "@types/react-dom@19.2.3"], work)
     run(["npm", "ls", "--all"], work)
-    imports = "\n".join(f"import * as p{i} from '@savvifi/meridian-{name}';" for i, (name, _) in enumerate(NPM))
+    imports = "\n".join(f"import * as p{i} from '@meridian-ux/{name}';" for i, (name, _) in enumerate(NPM))
     (work / "consumer.ts").write_text(imports + "\nexport const packages = [" + ",".join(f"p{i}" for i in range(7)) + "];\n")
     run(["node", "node_modules/typescript/bin/tsc", "--noEmit", "--strict", "--module", "ESNext",
          "--moduleResolution", "Bundler", "--target", "ES2022", "--lib", "ES2022,DOM,DOM.Iterable", "consumer.ts"], work)
@@ -140,8 +142,8 @@ dom.window.HTMLCanvasElement.prototype.getContext=()=>null;
 const {packages}=await import('./consumer.mjs');
 assert.equal(packages.length,7);
 assert(packages.every(p=>Object.keys(p).length>0));
-const proto=Object.keys(JSON.parse(readFileSync('inputs.json','utf8')).inputs).filter(p=>p.includes('meridian-proto-ts/'));
-assert(proto.length>0 && proto.every(p=>p.startsWith('node_modules/@savvifi/meridian-proto-ts/')));
+const proto=Object.keys(JSON.parse(readFileSync('inputs.json','utf8')).inputs).filter(p=>p.includes('@meridian-ux/proto-ts/'));
+assert(proto.length>0 && proto.every(p=>p.startsWith('node_modules/@meridian-ux/proto-ts/')));
 console.log('Seven installed browser packages share one proto-ts root.');
 """)
     run(["node", "smoke.mjs"], work)
@@ -192,7 +194,7 @@ def prepare(output):
             shutil.copyfile(ROOT / "packages/mui-kit/mui-kit.package.json", package / "package.json")
             shutil.copyfile(ROOT / "packages/mui-kit/README.md", package / "README.md")
         run(["npm", "pack", "--ignore-scripts", "--pack-destination", str(stage)], package)
-        require((stage / f"savvifi-meridian-{name}-{version}.tgz").is_file(), "unexpected npm pack output")
+        require((stage / f"meridian-ux-{name}-{version}.tgz").is_file(), "unexpected npm pack output")
     consumer([stage / name for name in filenames(version) if name.endswith(".tgz")], work / "consumer")
     rust_rehearsal(work / "rust")
     for name in CRATES:
@@ -241,8 +243,8 @@ def registry_state(directory, version, registry=None):
     # Scan the complete set before any upload, including packages outside the
     # bootstrap scope. Missing dependencies are still verified local artifacts.
     for short, _ in NPM:
-        name = f"@savvifi/meridian-{short}"
-        state[name] = registry.npm(name, version, directory / f"savvifi-meridian-{short}-{version}.tgz")
+        name = f"@meridian-ux/{short}"
+        state[name] = registry.npm(name, version, directory / f"meridian-ux-{short}-{version}.tgz")
     for name in CRATES:
         state[name] = registry.crate(name, version, directory / f"{name}-{version}.crate")
     return state
@@ -284,7 +286,7 @@ def publish(directory, target, env=None, runner=run, registry=None, bootstrap=Fa
     state = registry_state(directory, version, registry)
     plan = publication_plan(state, bootstrap)
     crates = [name for name in CRATES if name in plan]
-    npm = [short for short, _ in NPM if f"@savvifi/meridian-{short}" in plan]
+    npm = [short for short, _ in NPM if f"@meridian-ux/{short}" in plan]
     if bootstrap:
         # Fail before the first upload if either required credential is missing.
         require(not crates or bool(env.get("MERIDIAN_BOOTSTRAP_CRATES_TOKEN")), "bootstrap crate credential missing")
@@ -309,8 +311,8 @@ def publish(directory, target, env=None, runner=run, registry=None, bootstrap=Fa
                     f"crate upload not confirmed: {name}; stop and inspect before retry")
     tag = "next" if "-" in version else "latest"
     for short in npm:
-        name = f"@savvifi/meridian-{short}"
-        archive = directory / f"savvifi-meridian-{short}-{version}.tgz"
+        name = f"@meridian-ux/{short}"
+        archive = directory / f"meridian-ux-{short}-{version}.tgz"
         runner(["npm", "publish", str(archive), "--ignore-scripts", "--access", "public", "--tag", tag,
                 "--registry", "https://registry.npmjs.org"], env=upload_environment(env, npm_token, npm=True))
         require((registry or Registry()).npm(name, version, archive).published,

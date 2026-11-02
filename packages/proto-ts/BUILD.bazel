@@ -1,4 +1,4 @@
-# The pnpm workspace member for @savvifi/meridian-proto-ts.
+# The pnpm workspace member for @meridian-ux/proto-ts.
 #
 # This directory holds a package.json and nothing else that is committed: its
 # proto/ and google/ trees are written by `pnpm codegen` (buf + protoc-gen-es)
@@ -14,7 +14,7 @@
 # root and //:BUILD.bazel's npm_link_all_packages resolves every first-party
 # member to `//<package-dir>:pkg`. The member directory is here; the producer is
 # there. Without this file the store entry
-# `//:.aspect_rules_js/node_modules/@savvifi+meridian-proto-ts@0.0.0` fails with
+# `//:.aspect_rules_js/node_modules/@meridian-ux+proto-ts@0.0.0` fails with
 # "no such package 'packages/proto-ts'" — a BUILD file missing from a directory
 # that looks like it has no Bazel content at all, which is why it took a build
 # to find.

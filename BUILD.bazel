@@ -49,8 +49,8 @@ npm_link_all_packages(name = "node_modules")
 #   no such package 'packages/proto-ts'     (no BUILD file at all)
 #
 # The consumers were never the problem. Not one BUILD target in this repo
-# references `//:node_modules/@savvifi/...`; every one of them uses
-# `//<owner>:node_modules/@savvifi/...`, created by that package's own
+# references `//:node_modules/@meridian-ux/...`; every one of them uses
+# `//<owner>:node_modules/@meridian-ux/...`, created by that package's own
 # npm_link_all_packages. So the fix is a `pkg` target in each workspace
 # directory — an alias in schemas/, a new one in packages/proto-ts/ — and these
 # five calls simply go.
@@ -62,7 +62,7 @@ npm_link_all_packages(name = "node_modules")
 exports_files([
     # ── the npm side ──
     # ONE pnpm-lock.yaml, where there were seven. That is what makes two copies of
-    # @savvifi/meridian-proto-ts unrepresentable rather than merely discouraged.
+    # @meridian-ux/proto-ts unrepresentable rather than merely discouraged.
     "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",

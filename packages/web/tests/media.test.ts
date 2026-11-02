@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { create } from "@bufbuild/protobuf";
-import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { MediaKind, MediaPanelSchema } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
 import { renderPanel } from "../src/uiview/renderer.js";

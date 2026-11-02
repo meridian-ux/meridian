@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 const valueCases = JSON.parse(readFileSync(join(root, "../value_types.json"), "utf8")).cases as Array<{ name: string; expected: string }>;

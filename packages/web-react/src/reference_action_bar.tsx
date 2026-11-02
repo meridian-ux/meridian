@@ -1,6 +1,6 @@
 import { useContext, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { affordancePresentation, normalizeAffordance } from "@savvifi/meridian-schemas/uiview";
+import { ActionPlacement } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { affordancePresentation, normalizeAffordance } from "@meridian-ux/schemas/uiview";
 import type { ActionBarProps } from "./component_kit.js";
 import { ActionControl } from "./action_control.js";
 import { ActionGroup } from "./action_group.js";

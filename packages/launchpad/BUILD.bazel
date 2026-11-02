@@ -9,10 +9,10 @@ package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
 
-# @savvifi/meridian-launchpad — the command-palette renderer. Compiles the
+# @meridian-ux/launchpad — the command-palette renderer. Compiles the
 # <Launchpad> React component + the pure filter. Resolves the ComponentKit /
-# RpcInvoker / PanelRenderer seam from @savvifi/meridian-web-react and the
-# canonical descriptor types from @savvifi/meridian-proto-ts (both first-party
+# RpcInvoker / PanelRenderer seam from @meridian-ux/web-react and the
+# canonical descriptor types from @meridian-ux/proto-ts (both first-party
 # links in //:BUILD.bazel); react is its own.
 ts_project(
     name = "launchpad",
@@ -29,9 +29,9 @@ ts_project(
         ":node_modules/react",
         ":node_modules/react-dom",
         "//packages/launchpad:node_modules/@bufbuild/protobuf",
-        "//packages/launchpad:node_modules/@savvifi/meridian-schemas",
-        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
-        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/@meridian-ux/schemas",
+        "//packages/launchpad:node_modules/@meridian-ux/web-react",
+        "//packages/launchpad:node_modules/@meridian-ux/proto-ts",
     ],
 )
 
@@ -65,11 +65,11 @@ ts_project(
         ":launchpad",
         ":node_modules/@types/react",
         ":node_modules/react",
-        ":node_modules/@savvifi/meridian-proto-ts",
+        ":node_modules/@meridian-ux/proto-ts",
     ],
 )
 
-# The publishable @savvifi/meridian-launchpad npm package: package.json at the
+# The publishable @meridian-ux/launchpad npm package: package.json at the
 # root + the compiled src/*.{js,d.ts}. Published to npmjs (OIDC workflow in
 # .github/workflows/publish.yml).
 npm_package(
@@ -83,7 +83,7 @@ npm_package(
         ":launchpad",
     ],
     replace_prefixes = {"launchpad.package.json": "package.json"},
-    package = "@savvifi/meridian-launchpad",
+    package = "@meridian-ux/launchpad",
     visibility = ["//visibility:public"],
 )
 
@@ -97,7 +97,7 @@ vitest_test(
     deps = [
         ":launchpad_lib",
         "//packages/launchpad:node_modules/@bufbuild/protobuf",
-        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/@meridian-ux/proto-ts",
         "//packages/launchpad:node_modules/vitest",
     ],
 )
@@ -124,8 +124,8 @@ vitest_test(
         ":node_modules/react",
         ":node_modules/react-dom",
         "//packages/launchpad:node_modules/@bufbuild/protobuf",
-        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
-        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/@meridian-ux/web-react",
+        "//packages/launchpad:node_modules/@meridian-ux/proto-ts",
         "//packages/launchpad:node_modules/vitest",
     ],
 )
@@ -159,9 +159,9 @@ esbuild(
     tsconfig = "tsconfig.json",
     deps = [
         ":node_modules/@bufbuild/protobuf",
-        ":node_modules/@savvifi/meridian-proto-ts",
-        ":node_modules/@savvifi/meridian-schemas",
-        ":node_modules/@savvifi/meridian-web-react",
+        ":node_modules/@meridian-ux/proto-ts",
+        ":node_modules/@meridian-ux/schemas",
+        ":node_modules/@meridian-ux/web-react",
         ":node_modules/react",
         ":node_modules/react-dom",
     ],
@@ -192,8 +192,8 @@ vitest_test(
         ":node_modules/react-dom",
         ":launchpad_lib",
         "//packages/launchpad:node_modules/@bufbuild/protobuf",
-        "//packages/launchpad:node_modules/@savvifi/meridian-web-react",
-        "//packages/launchpad:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/launchpad:node_modules/@meridian-ux/web-react",
+        "//packages/launchpad:node_modules/@meridian-ux/proto-ts",
         "//packages/launchpad:node_modules/vitest",
     ],
 )

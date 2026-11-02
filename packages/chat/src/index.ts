@@ -1,4 +1,4 @@
-// @savvifi/meridian-chat — the conversation / agent-chat renderer of the meridian
+// @meridian-ux/chat — the conversation / agent-chat renderer of the meridian
 // renderer family. Renders a meridian.ui.v1 Conversation stream (conversation.proto
 // — the neutral promotion of botnoc chat.v1) over SSE + POST.
 //

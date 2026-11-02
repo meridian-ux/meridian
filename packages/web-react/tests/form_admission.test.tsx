@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
-import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { FormPanelSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
 import { act, createElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { InvocationHost } from "@meridian-ux/schemas/uiview";
 import { MeridianProvider } from "../src/provider.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { htmlKit } from "../src/html_kit.js";

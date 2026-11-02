@@ -1,8 +1,8 @@
 // In-memory renderer scenarios from canonical ValueDisplay/FormattedValue wire
 // cases. No formatter implementation is used to author expected results.
 import { fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
-import { ValueDisplaySchema, FormattedValueSchema } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ValueDisplaySchema, FormattedValueSchema } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import corpus from "./core.json";
 
 const wire = (text: string) => Uint8Array.from(atob(text), byte => byte.charCodeAt(0));

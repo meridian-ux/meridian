@@ -3,8 +3,8 @@ import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
-import type { PromptResponseHandler } from "@savvifi/meridian-schemas/uiview";
+import { PanelRenderer } from "@meridian-ux/web-react";
+import type { PromptResponseHandler } from "@meridian-ux/schemas/uiview";
 import { promptFixture, expectedPromptValues } from "../../../schemas/conformance/prompt.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 

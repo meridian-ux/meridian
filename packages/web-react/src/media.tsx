@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 
-import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { resolveMediaKind, safeAssetSrc } from "@savvifi/meridian-schemas/uiview";
+import { MediaKind, type MediaPanel } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { resolveMediaKind, safeAssetSrc } from "@meridian-ux/schemas/uiview";
 
 export interface MediaClasses {
   figure: string;

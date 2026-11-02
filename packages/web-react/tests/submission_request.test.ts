@@ -1,8 +1,8 @@
 import { create, toBinary } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { buildSubmissionRequest as coreSubmission } from "../../../schemas/src/uiview/generated/meridian_uiview.js";
 import { buildSubmissionRequest } from "../src/action_request.js";
 
