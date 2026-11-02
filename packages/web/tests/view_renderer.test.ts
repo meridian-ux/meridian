@@ -2,12 +2,12 @@
 
 import { create, fromBinary } from "@bufbuild/protobuf";
 import { describe, expect, it, vi } from "vitest";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   SlotSchema,
   TabbedLayoutSchema,
   ViewDescriptorSchema,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
 import { disposeView, renderView } from "../src/uiview/view_renderer.js";
 import { mermaidGrammarFixture } from "./fixtures.js";
 

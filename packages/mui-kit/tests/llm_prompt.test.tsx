@@ -3,11 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { promptFixture } from "../../../schemas/conformance/prompt.js";
 
-import { FormFieldSchema, TextInputSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { MeridianProvider, PanelRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { FormFieldSchema, TextInputSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { LlmPromptPanelSchema } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { MeridianProvider, PanelRenderer } from "@meridian-ux/web-react";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { muiKit } from "../src/mui_kit.js";
 

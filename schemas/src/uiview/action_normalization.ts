@@ -1,9 +1,9 @@
 import { create } from "@bufbuild/protobuf";
-import { AffordanceSchema, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { Slot, ViewDescriptor } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { Command } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { AffordanceSchema, type Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { Slot, ViewDescriptor } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { TablePanel } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import type { Command } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import type { FormPanel } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 /** In-process projection only. Protobuf intent never grants permission. */
 export class NormalizedAction {

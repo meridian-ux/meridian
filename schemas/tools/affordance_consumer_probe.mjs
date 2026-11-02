@@ -23,7 +23,7 @@ export function compileProject(config, generated) {
   // Preserve all original checking options. Only disable writes and redirect
   // the canonical package subpaths to this experiment's JS+dts generation.
   const options = { ...parsed.options, noEmit: true, paths: { ...parsed.options.paths,
-    "@savvifi/meridian-proto-ts/*": [join(generated, "*")],
+    "@meridian-ux/proto-ts/*": [join(generated, "*")],
   } };
   const program = ts.createProgram({ rootNames: parsed.fileNames, options, projectReferences: parsed.projectReferences });
   const generatedFiles = program.getSourceFiles().filter(file => resolve(file.fileName).startsWith(resolve(generated) + sep)).length;

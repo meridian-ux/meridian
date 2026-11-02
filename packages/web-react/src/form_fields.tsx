@@ -16,8 +16,8 @@
 
 import { createContext, useContext, useEffect, useId, useState } from "react";
 import { useRpcInvoker } from "./provider.js";
-import { defaultFormValue, formatByDisplay, hasMaskedField } from "@savvifi/meridian-schemas/uiview";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { defaultFormValue, formatByDisplay, hasMaskedField } from "@meridian-ux/schemas/uiview";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import type { ReactNode } from "react";
 
 import type {
@@ -26,7 +26,7 @@ import type {
   KeyValueMapField,
   NestedForm,
   RepeatedField,
-} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+} from "@meridian-ux/proto-ts/proto/form_pb.js";
 
 export const FormInitialValues = createContext<Record<string, unknown>>({});
 // Runtime-only validation registry; loaded option tokens are never taken from DOM markup.

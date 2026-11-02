@@ -8,29 +8,29 @@ import { create } from "@bufbuild/protobuf";
 
 import {
   ActionPanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { Emphasis } from "@savvifi/meridian-proto-ts/proto/interaction_pb.js";
-import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import { ChartPanelSchema } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
+} from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { Emphasis } from "@meridian-ux/proto-ts/proto/interaction_pb.js";
+import { CatalogPanelSchema } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import { ChartPanelSchema } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import { ChoicePanelSchema } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import { ConnectFlowPanelSchema } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import { CopyValuePanelSchema } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
 import {
   FormFieldSchema,
   NestedFormSchema,
   RepeatedFieldSchema,
   TextInputSchema,
-} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import { ResourceCardPanelSchema } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import { StreamPanelSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+} from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { GalleryPanelSchema } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import { StepsPanelSchema } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { MediaPanelSchema, MediaKind } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { LlmPromptPanelSchema } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import { LroPanelSchema } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import { GrammarPanelSchema } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import { ResourceCardPanelSchema } from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
+import { StreamPanelSchema } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import { TerminalPanelSchema } from "@meridian-ux/proto-ts/proto/terminal_pb.js";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import {
   AdhocPanelSchema,
   DetailHeaderPanelSchema,
@@ -38,12 +38,12 @@ import {
   FormPanelSchema,
   PanelDescriptorSchema,
   RecordCardPanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import { SnippetPanelSchema } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PromptPanelSchema } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import { SnippetPanelSchema } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import { StatPanelSchema } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 
 export interface Fixture {
   name: string;

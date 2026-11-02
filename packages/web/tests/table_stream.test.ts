@@ -9,18 +9,18 @@
 // declared three RowActions that no user could ever reach.
 
 import { create, fromBinary } from "@bufbuild/protobuf";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   DetailHeaderPanelSchema,
   PanelDescriptorSchema,
   RecordCardPanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PrincipalDisplay, TemporalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PrincipalDisplay, TemporalDisplay, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
-import type { StreamInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { StreamInvoker } from "@meridian-ux/schemas/uiview";
 import { streamFixture, tableWithActionsFixture } from "./fixtures.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 

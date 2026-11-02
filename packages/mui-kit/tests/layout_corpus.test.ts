@@ -2,7 +2,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { LAYOUT_CASES } from "../../../schemas/conformance/layout_cases.js";
-import { MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
+import { MeridianProvider, ViewRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 
 beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));

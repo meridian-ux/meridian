@@ -40,29 +40,29 @@ import {
   useMeridian,
   useStatData,
   useAffordanceInvocation,
-} from "@savvifi/meridian-web-react";
+} from "@meridian-ux/web-react";
 import {
   computeStat,
   affordancePresentation,
   safeAssetSrc,
   statSparklinePoints,
   trendArrow,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 import { formatByDisplay } from "../display_format.js";
-import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import type { MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { resolveMediaKind } from "@savvifi/meridian-schemas/uiview";
+import type { Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { ActionPanel } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import type { ChoicePanel } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import type { CopyValue } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { GrammarPanel } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import type { Snippet } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import type { StepsPanel } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import type { MediaPanel } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { MediaKind } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { resolveMediaKind } from "@meridian-ux/schemas/uiview";
 import { MeridianAssetContext } from "../asset_context.js";
 
 function copyText(text: string): void {

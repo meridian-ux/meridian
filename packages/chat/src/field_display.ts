@@ -1,8 +1,8 @@
 // Conversation SSE carries proto3 JSON, while the shared formatter consumes
 // decoded messages. Keep this conversion at one boundary for both web tiers.
 import { fromJson } from "@bufbuild/protobuf";
-import { ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { formatByDisplay, type DisplayedValue } from "@savvifi/meridian-schemas/uiview";
+import { ValueDisplaySchema, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { formatByDisplay, type DisplayedValue } from "@meridian-ux/schemas/uiview";
 import type { Field, TableRow } from "./wire.js";
 
 export function displayCell(row: TableRow, key: string): DisplayedValue {

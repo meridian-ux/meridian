@@ -8,7 +8,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 
 import { toBinary } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 import { FIXTURES } from "../conformance/fixtures.ts";
 

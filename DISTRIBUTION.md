@@ -18,6 +18,35 @@ because source policy is selected. Tags, uploads, private image/chart publicatio
 production consumer cutover and deployment require their own approval. The
 integrated release artifacts require exact-source packaging and detached checks.
 
+## npm namespace migration for v1
+
+The v1 candidate uses the project-owned `@meridian-ux` scope. These are new
+registry identities, not renamed versions of the historical packages:
+
+| Historical identity | v1 identity |
+| --- | --- |
+| `@savvifi/meridian-proto-ts` | `@meridian-ux/proto-ts` |
+| `@savvifi/meridian-schemas` | `@meridian-ux/schemas` |
+| `@savvifi/meridian-web-react` | `@meridian-ux/web-react` |
+| `@savvifi/meridian-mui-kit` | `@meridian-ux/mui-kit` |
+| `@savvifi/meridian-chat` | `@meridian-ux/chat` |
+| `@savvifi/meridian-launchpad` | `@meridian-ux/launchpad` |
+| Previously unshipped `@savvifi/meridian-web` | `@meridian-ux/web` |
+
+Consumers must update dependency keys and import specifiers together, including
+subpath imports. Install all selected first-party packages at the same exact
+version. The historical names do not forward automatically to the new scope;
+this migration does not publish wrappers, deprecate, transfer or remove them.
+Existing 0.x consumers keep their historical contract. The release verifier
+rejects legacy SDK dependencies in any new package, including peers and optional
+dependencies, rather than mixing old and new descriptor/runtime copies.
+
+All seven npm names and all three crate names now require separately approved
+initial publication. Prior `@savvifi` archives and checksums are not evidence
+for renamed package bytes; rehearse and approve a fresh complete artifact set.
+Account readiness, organization membership and a passing rehearsal do not
+configure trusted publishing or authorize that first publication.
+
 Aion is a downstream consumer, not a Meridian build or runtime dependency.
 Its application/installer rollout and whole-repository CI do not gate Meridian's
 release. The checked-in Studio catalog remains a renderer fixture; rendering
@@ -75,10 +104,10 @@ Public browser ESM entrypoints:
 
 | Import | Surface |
 | --- | --- |
-| `@savvifi/meridian-web` | Panel/view renderer, codec helpers, component registration |
-| `@savvifi/meridian-web/toolkit` | Worker/DOM toolkit |
-| `@savvifi/meridian-web/theme` | Compiled theme binding |
-| `@savvifi/meridian-web/theme.css` | Theme stylesheet |
+| `@meridian-ux/web` | Panel/view renderer, codec helpers, component registration |
+| `@meridian-ux/web/toolkit` | Worker/DOM toolkit |
+| `@meridian-ux/web/theme` | Compiled theme binding |
+| `@meridian-ux/web/theme.css` | Theme stylesheet |
 
 The package ships compiled JavaScript, declarations, the worker-command schema,
 and CSS, not raw TypeScript. It is a browser library, not a server-rendering API.
@@ -207,11 +236,12 @@ after the separately authorized release before announcing completion.
 ## Initial-name bootstrap and explicit resume
 
 Both registries' documented trusted-publisher setup requires an existing package.
-The initial new-name scope is exactly **`@savvifi/meridian-web`,
-`meridian-uiview`, `theme-proto`, and `meridian-tui` at 1.0.0**. Bootstrap is a
-distinct, initially disabled token-authenticated path, not a fallback when OIDC
-fails. It cannot publish the six existing npm packages or any other version.
-Preparing or merging this implementation does not authorize its execution.
+The initial new-name scope is all seven `@meridian-ux` npm packages in the
+inventory above plus **`meridian-uiview`, `theme-proto`, and `meridian-tui` at
+1.0.0**. Bootstrap is a distinct, initially disabled token-authenticated path,
+not a fallback when OIDC fails. It cannot publish the historical
+`@savvifi/meridian-*` packages, unrelated names, or another version. Preparing
+or merging this implementation does not authorize its execution.
 
 The read-only command uses the verified complete artifact set:
 
@@ -231,7 +261,7 @@ and the full seven-plus-three package inventory remain mandatory.
 For a future owner-approved first publication, all of these are prerequisites:
 
 1. Verify npm scope creation authority, the exact crates.io owner, availability of
-   all four names, and the reviewed 1.0.0 source/tag and same-run artifact set.
+   all ten names, and the reviewed 1.0.0 source/tag and same-run artifact set.
    A bootstrap name that already exists without the exact approved version is a
    conflict requiring owner review, not permission to publish to it.
 2. Configure the protected `meridian-release` environment with required reviewers,
@@ -260,14 +290,14 @@ either credential and compared to retained bytes before uploading; Cargo's
 verification stays enabled. The existing full-workspace rehearsal still runs.
 
 Bootstrap uploads only missing approved new names: core/theme before TUI, then
-the web package. Successful commands require public registry readback of the
-same bytes before proceeding. The six existing npm package names remain untouched.
-This is an intentionally partial release: web 1.0.0 depends on proto-ts/schemas
-1.0.0, so it may not install until the separately approved normal publication
-completes. That temporary availability impact belongs in publication approval;
-bootstrap success is not release completion or permission to announce v1.
+all seven npm tarballs in dependency order (proto-ts, schemas, web-react,
+mui-kit, chat, launchpad, web). Each successful command requires public registry
+readback of the same bytes before proceeding. Historical `@savvifi` packages
+remain untouched. The first bootstrap can publish the complete ten-artifact set;
+it is still not release completion or permission to announce v1. Consumer and
+registry verification plus the remaining release gates must pass first.
 
-After authorized bootstrap, an owner can configure the four new publisher
+After authorized bootstrap, an owner can configure all ten new publisher
 records. Then a separately approved normal `publish: true` run uses npm OIDC and,
 only if crates are still missing, the pinned crates.io OIDC action. Its preflight
 rejects any still-uncreated registry name before requesting that credential.

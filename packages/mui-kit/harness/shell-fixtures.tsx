@@ -16,14 +16,14 @@ import {
   CommandGroupSchema,
   CommandSchema,
   LaunchpadSchema,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { NavNodeSchema, NavTreeSchema } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { NavNodeSchema, NavTreeSchema } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
 import {
   AppShellSchema,
   ChatDockSchema,
   ScopeOptionSchema,
   ScopeSelectorSchema,
-} from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
+} from "@meridian-ux/proto-ts/proto/shell_pb.js";
 
 import { AppShellView, usePageActions } from "../src/shell/index.js";
 import type { AppShellSeams } from "../src/shell/index.js";

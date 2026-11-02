@@ -6,7 +6,7 @@
 // `RpcInvoker` indirection so the host plugs in whatever transport it uses
 // (Connect-ES, grpc-web, fetch against a REST gateway, mocked data for demos, …).
 //
-// The renderer speaks the CANONICAL protobuf-es types (@savvifi/meridian-proto-ts):
+// The renderer speaks the CANONICAL protobuf-es types (@meridian-ux/proto-ts):
 // it reads descriptor fields directly off the typed messages and serializes
 // whole messages to protobuf BINARY (`toBinary`) when calling the wasm — which
 // decodes them with prost. There is no JSON / snake_case DTO in between.
@@ -15,52 +15,52 @@ import { create, toBinary } from "@bufbuild/protobuf";
 import { buildFormField, buildInteractiveForm } from "./form.js";
 import { buildLlmPrompt, hasOptionsSource, resolveOptions } from "./llm_prompt.js";
 import { buildPrompt } from "./prompt.js";
-import { AffordanceSchema, type Affordance, type ActionPanel } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import type { CatalogPanel } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import type { ChoicePanel } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import type { ConnectFlowPanel } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import type { CopyValue } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { GalleryPanel } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import type { GrammarPanel } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import { MediaKind, type MediaPanel } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, normalizeTableActions, type InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { AffordanceSchema, type Affordance, type ActionPanel } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import type { CatalogPanel } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import type { ChartPanel, ChartSpec } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import type { ChoicePanel } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import type { ConnectFlowPanel } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import type { CopyValue } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { GalleryPanel } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import type { GrammarPanel } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import type { LroPanel } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import { MediaKind, type MediaPanel } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { assertFormDefaultBudget, defaultFormValues, resolveMediaKind, validateFormValues, normalizeAffordance, normalizeFormSubmit, normalizeTableActions, type InvocationHost } from "@meridian-ux/schemas/uiview";
 import { buildInvocationControl, createInvocationControl, ownInvocationData } from "./invocation_control.js";
 import {
   ActionStyle,
   type ResourceCardPanel,
   type ResourceAction,
   type ConfirmSpec,
-} from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
+} from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
 import type {
   DetailHeaderPanel,
   PanelDescriptor,
   RecordCardPanel,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { Snippet } from "@savvifi/meridian-proto-ts/proto/snippet_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import type { StreamPanel } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import type { StepsPanel } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { FollowMode } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
-import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcCall } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import type { Snippet } from "@meridian-ux/proto-ts/proto/snippet_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import type { StreamPanel } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import type { StepsPanel } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { FollowMode } from "@meridian-ux/proto-ts/proto/stream_pb.js";
+import type { TablePanel } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import type {
   RenderContext,
   RpcInvoker,
   StreamInvoker,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 import {
   createAdmissionGate,
   type AdmissionGate,
   type AdmissionPolicy,
   type GrammarHandle,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 import {
   computeStat,
   formatByDisplay,
@@ -70,7 +70,7 @@ import {
   safeNavigationHref,
   statSparklinePoints,
   trendArrow,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 import { renderLogTerminal, renderTerminalPanel } from "../terminal_panel.js";
 import type { LogTerminalHandle } from "../terminal_panel.js";
@@ -158,7 +158,7 @@ export interface RenderPanelOptions {
   /** Owned ambient row supplied by a repeated sub-view. No-populate record,
    * table, and form shapes read this without inventing a fetch. */
   record?: Record<string, unknown>;
-  onPromptResponse?: import("@savvifi/meridian-schemas/uiview").PromptResponseHandler;
+  onPromptResponse?: import("@meridian-ux/schemas/uiview").PromptResponseHandler;
   /** Initialized wasm bindings (the host calls `init()` first). */
   wasm: UiviewWasm;
   /** Where to draw the panel. The renderer replaces the element's content. */
@@ -1126,7 +1126,7 @@ function inlineMd(host: HTMLElement, text: string): HTMLElement {
 }
 
 // StatPanel — a KPI tile. Delta/trend/formatting come from the SHARED computeStat
-// (@savvifi/meridian-schemas/uiview), identical to the react kits + tui — the
+// (@meridian-ux/schemas/uiview), identical to the react kits + tui — the
 // delta/trend is COMPUTED, never author-marked. Semantic color (via
 // data-semantics) only when higher_is_better is set. Hand-drawn SVG sparkline
 // via the shared statSparklinePoints (no chart library).

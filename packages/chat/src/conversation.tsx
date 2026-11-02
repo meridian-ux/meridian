@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { ConversationModel } from "./model.js";
 import { BlockView, type ViewRenderer } from "./render_react.js";
 import { isActiveStatus, type ConversationEvent } from "./wire.js";
-import { conversationToneRole, conversationStatusState } from "@savvifi/meridian-schemas/uiview";
+import { conversationToneRole, conversationStatusState } from "@meridian-ux/schemas/uiview";
 
 export interface ConversationProps {
   /** SSE endpoint of ConversationEvent frames. Default `/api/noc-agent/view`. */

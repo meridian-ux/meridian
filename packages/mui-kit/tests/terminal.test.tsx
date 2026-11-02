@@ -1,9 +1,9 @@
 import { create } from "@bufbuild/protobuf";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { TerminalPanelSchema } from "@savvifi/meridian-proto-ts/proto/terminal_pb.js";
-import { MeridianProvider, PanelRenderer } from "@savvifi/meridian-web-react";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { TerminalPanelSchema } from "@meridian-ux/proto-ts/proto/terminal_pb.js";
+import { MeridianProvider, PanelRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 
 afterEach(cleanup);

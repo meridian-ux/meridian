@@ -1,6 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { ColumnFormat, type TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { normalizeAffordance, normalizeTableActions, formatByDisplay, formatLegacyNumber, isSafeHttpUrl, resolveValueLink, type NormalizedAction, type RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { ColumnFormat, type TablePanel } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { normalizeAffordance, normalizeTableActions, formatByDisplay, formatLegacyNumber, isSafeHttpUrl, resolveValueLink, type NormalizedAction, type RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { useDisplayNow } from "./display_now.js";
 import { resolvePath, selectionDeps, useMeridianSelection, usePagedRows } from "./pagination.js";
 import { useHrefResolver } from "./provider.js";

@@ -5,7 +5,7 @@
     tools/publish_manifests.py --check    # fail if any is stale (the CI gate)
 
 WHY THIS EXISTS. Development manifests use `workspace:*`, which is what makes two
-copies of @savvifi/meridian-proto-ts unrepresentable inside the repo. But
+copies of @meridian-ux/proto-ts unrepresentable inside the repo. But
 `workspace:*` NEVER REACHES THE TARBALL, and that is not a style preference:
 
   * nothing runs `pnpm publish` — every publish path ends in `npm publish`, and
@@ -114,7 +114,7 @@ def published(dev: dict, version: str) -> dict:
     # of the rules_js package store. The generated store entry then reads:
     #
     #   _npm_local_package_store(
-    #       package_store_name = "@savvifi+meridian-web-react@0.0.0",
+    #       package_store_name = "@meridian-ux+web-react@0.0.0",
     #       deps = {…protobuf, proto-ts, schemas…},   # and no react
     #
     # and every consumer that loads web-react through the link fails —

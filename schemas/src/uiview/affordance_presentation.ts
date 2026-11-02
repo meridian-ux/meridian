@@ -1,4 +1,4 @@
-import { Emphasis, type Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { Emphasis, type Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
 import { conversationToneRole } from "./conversation_tone.js";
 
 // Derived in-process presentation only. Serialized action data remains the

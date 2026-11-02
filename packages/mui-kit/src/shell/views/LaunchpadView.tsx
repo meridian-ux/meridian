@@ -3,9 +3,9 @@
 import { Box, Button, Dialog, DialogContent, Divider, InputAdornment, List,
   ListItemButton, ListItemIcon, ListItemText, TextField, Typography } from "@mui/material";
 import * as React from "react";
-import type { Command, Launchpad } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
-import { ActionGroup, useActionGroup, useActionInvocation, useIcon } from "@savvifi/meridian-web-react";
+import type { Command, Launchpad } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { normalizeCommand, safeNavigationHref } from "@meridian-ux/schemas/uiview";
+import { ActionGroup, useActionGroup, useActionInvocation, useIcon } from "@meridian-ux/web-react";
 import { useShell } from "../context.js";
 import { flatten, matchCommands, moveIndex } from "../launchpad.js";
 import { SearchGlyph } from "./glyphs.js";

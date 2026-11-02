@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Step } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { safeAssetSrc } from "@savvifi/meridian-schemas/uiview";
+import type { Step } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { safeAssetSrc } from "@meridian-ux/schemas/uiview";
 
 /** Shared media behavior; each kit supplies its own styling. */
 export function StepMedia({ step, className, fallbackClassName }: {

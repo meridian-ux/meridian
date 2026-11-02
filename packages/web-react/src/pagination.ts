@@ -19,13 +19,13 @@ import {
   PaginationMode,
   type Pagination,
   type TablePanel,
-} from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/table_pb.js";
+import type { RpcCall } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { actionRequestJson, boundedActionRequest, boundedPopulateRequest, boundedSelectionKey, hasDynamicBindings, hasSelectionSource } from "./action_request.js";
 export { bindingRequestJson, boundedJson as boundedDescriptorJson } from "./action_request.js";
 
-export { PaginationMode } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+export { PaginationMode } from "@meridian-ux/proto-ts/proto/table_pb.js";
 
 const DEFAULT_PAGE_SIZE = 20;
 

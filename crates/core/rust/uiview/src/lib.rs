@@ -11,11 +11,11 @@
 //     serde_json::Value request the host can submit over gRPC-Web /
 //     gRPC / whatever.
 //   * `filter_launchpad` — the Launchpad descriptor's fuzzy filter +
-//     ranking (the Rust twin of @savvifi/meridian-launchpad's
+//     ranking (the Rust twin of @meridian-ux/launchpad's
 //     src/filter.ts, so a query ranks identically in every modality).
 //   * `ConversationModel` — the ConversationEvent streaming model:
 //     dedup by seq, upsert blocks by block_id (the Rust twin of
-//     @savvifi/meridian-chat's src/model.ts).
+//     @meridian-ux/chat's src/model.ts).
 //
 // Two consumers:
 //   * `meridian-tui` — native Rust ratatui renderer. Uses these

@@ -1,9 +1,9 @@
 import { create } from "@bufbuild/protobuf";
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { ViewRenderer } from "@meridian-ux/web-react";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { validateFormOptions } from "../src/form_options.js";
 

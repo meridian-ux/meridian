@@ -10,7 +10,7 @@ ts_project(
     out_dir = ".",
     transpiler = "tsc",
     tsconfig = "tsconfig.json",
-    deps = ["//schemas:node_modules/@savvifi/meridian-proto-ts"],
+    deps = ["//schemas:node_modules/@meridian-ux/proto-ts"],
 )
 
 vitest_test(

@@ -1,14 +1,14 @@
 import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { FormPanelSchema, PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import { act } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { InvocationHost, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
+import type { InvocationHost, RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { PanelRenderer } from "@meridian-ux/web-react";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);

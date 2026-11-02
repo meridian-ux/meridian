@@ -3,9 +3,9 @@
 import { create, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { promptFixture, expectedPromptValues } from "../../../schemas/conformance/prompt.js";
-import { FormFieldSchema, TextInputSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
+import { FormFieldSchema, TextInputSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PromptPanelSchema } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { renderPanel, disposePanel } from "../src/uiview/renderer.js";

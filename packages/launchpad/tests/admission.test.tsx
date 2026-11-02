@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { create, fromJson, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { CommandSchema, LaunchpadSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import type { AdmissionPolicy, InvocationHost } from "@savvifi/meridian-schemas/uiview";
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { CommandSchema, LaunchpadSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import type { AdmissionPolicy, InvocationHost } from "@meridian-ux/schemas/uiview";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Launchpad } from "../src/index.js";

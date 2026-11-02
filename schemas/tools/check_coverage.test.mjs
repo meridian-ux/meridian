@@ -102,11 +102,13 @@ test("a new proto-dependent package without renderer metadata fails", (t) => {
   t.after(() => rmSync(repoRoot, { recursive: true, force: true }));
   mkdirSync(join(repoRoot, "packages", "new-renderer"), { recursive: true });
   mkdirSync(join(repoRoot, "crates"), { recursive: true });
-  writeFileSync(join(repoRoot, "packages", "new-renderer", "package.json"), JSON.stringify({
-    dependencies: { "@savvifi/meridian-proto-ts": "workspace:*" },
-  }));
-  const errors = checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot });
-  assert.ok(errors.some((error) => /new-renderer.*no meridian\.rendererIds array/.test(error)));
+  for (const name of ["@meridian-ux/proto-ts", "@savvifi/meridian-proto-ts"]) {
+    writeFileSync(join(repoRoot, "packages", "new-renderer", "package.json"), JSON.stringify({
+      dependencies: { [name]: "workspace:*" },
+    }));
+    const errors = checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot });
+    assert.ok(errors.some((error) => /new-renderer.*no meridian\.rendererIds array/.test(error)), name);
+  }
 });
 
 test("a declared new workspace renderer missing from the catalog fails", (t) => {
@@ -115,7 +117,7 @@ test("a declared new workspace renderer missing from the catalog fails", (t) => 
   mkdirSync(join(repoRoot, "packages", "new-renderer"), { recursive: true });
   mkdirSync(join(repoRoot, "crates"), { recursive: true });
   writeFileSync(join(repoRoot, "packages", "new-renderer", "package.json"), JSON.stringify({
-    dependencies: { "@savvifi/meridian-proto-ts": "workspace:*" },
+    dependencies: { "@meridian-ux/proto-ts": "workspace:*" },
     meridian: { rendererIds: ["new-renderer"] },
   }));
   const errors = checkWorkspaceRendererCoverage({ renderers: [] }, { repoRoot });

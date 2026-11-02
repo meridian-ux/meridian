@@ -10,7 +10,7 @@ import { shadcnKit } from "../src/shadcn_kit.js";
 import { MeridianProvider } from "../src/provider.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { reactWebRenderer } from "../src/react_web_renderer.js";
-import type { PromptResponseHandler } from "@savvifi/meridian-schemas/uiview";
+import type { PromptResponseHandler } from "@meridian-ux/schemas/uiview";
 
 beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterAll(() => vi.unstubAllGlobals());

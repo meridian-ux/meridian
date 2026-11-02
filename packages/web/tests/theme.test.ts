@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { fromJson } from "@bufbuild/protobuf";
-import { ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ThemeSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 import { applyTheme, themeToCss, themeToCssVars } from "../theme/web/theme.js";
 
 describe("web theme Typography fields 3–5", () => {

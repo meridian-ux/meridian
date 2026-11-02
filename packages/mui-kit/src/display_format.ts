@@ -11,5 +11,5 @@ export {
   isSafeHttpUrl,
   resolvePrincipalLink,
   resolveValueLink,
-} from "@savvifi/meridian-schemas/uiview";
-export type { DisplayedValue } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
+export type { DisplayedValue } from "@meridian-ux/schemas/uiview";

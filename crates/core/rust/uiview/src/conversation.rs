@@ -2,7 +2,7 @@
 // ConversationEvents (dedup by seq, upsert blocks by block_id in arrival order,
 // track the transient status + last error) and exposes an ordered block list.
 //
-// The Rust twin of the TypeScript model in @savvifi/meridian-chat (src/model.ts).
+// The Rust twin of the TypeScript model in @meridian-ux/chat (src/model.ts).
 // Both tiers ingest the SAME `meridian.ui.v1.ConversationEvent` stream, so the
 // upsert semantics have to match: a `tool` block that flips running→ok must
 // replace in place — not append a second row — in the terminal exactly as it does

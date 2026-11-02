@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { create } from "@bufbuild/protobuf";
-import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { Emphasis } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
 import { renderPanel } from "../src/uiview/renderer.js";

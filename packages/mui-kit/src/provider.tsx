@@ -12,7 +12,7 @@
 
 import type { ReactNode } from "react";
 
-import { MeridianProvider } from "@savvifi/meridian-web-react";
+import { MeridianProvider } from "@meridian-ux/web-react";
 import type {
   MeridianActionHandler,
   MeridianGrammarResolver,
@@ -20,9 +20,9 @@ import type {
   MeridianIconResolver,
   MeridianContextValue,
   ReactAdhocFactory,
-} from "@savvifi/meridian-web-react";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import type { AdmissionPolicy, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/web-react";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import type { AdmissionPolicy, RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianAssetContext, type MeridianAssetResolver } from "./asset_context.js";
 import { muiKit } from "./mui_kit.js";

@@ -26,9 +26,9 @@ import {
   selectionDeps,
   useMeridianSelection,
   resolvePath,
-} from "@savvifi/meridian-web-react";
-import type { ChartPanel, ChartSpec } from "@savvifi/meridian-proto-ts/proto/chart_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/web-react";
+import type { ChartPanel, ChartSpec } from "@meridian-ux/proto-ts/proto/chart_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 type Row = Record<string, unknown>;
 

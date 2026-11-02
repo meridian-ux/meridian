@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { create } from "@bufbuild/protobuf";
-import { TextInputSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { LlmPromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { TextInputSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { LlmPromptPanelSchema } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { describe, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";

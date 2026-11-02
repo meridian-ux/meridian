@@ -6,16 +6,16 @@
 import { createContext, useContext, useMemo } from "react";
 import type { ComponentType, ReactNode } from "react";
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import type { StreamFrame } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import type { StreamFrame } from "@meridian-ux/proto-ts/proto/stream_pb.js";
 import {
   createAdmissionGate,
   type AdmissionGate,
   type AdmissionPolicy,
   type RpcInvoker,
   type InvocationHost,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 import type { ComponentKit } from "./component_kit.js";
 
@@ -72,7 +72,7 @@ export type MeridianGrammarResolver = (opts: {
 }) => ReactNode;
 
 export interface MeridianContextValue {
-  onPromptResponse?: import("@savvifi/meridian-schemas/uiview").PromptResponseHandler;
+  onPromptResponse?: import("@meridian-ux/schemas/uiview").PromptResponseHandler;
   theme?: Theme;
   /** Bounded static stream snapshots keyed by panel ID; frames use the canonical proto envelope. */
   streamSnapshots?: Readonly<Record<string, readonly StreamFrame[]>>;

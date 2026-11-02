@@ -1,4 +1,4 @@
-# Generate @savvifi/meridian-proto-ts from the protos, without Bazel.
+# Generate @meridian-ux/proto-ts from the protos, without Bazel.
 # Run through `pnpm codegen`: its shared descriptor-derived facade step follows
 # this generator. Raw `buf generate` alone does not preserve relocated exports.
 #
@@ -9,7 +9,7 @@
 #
 # The output lands at the WORKSPACE PACKAGE, not in a build directory, because
 # that is the entire point: pnpm can only resolve `workspace:*` against a package
-# that exists on disk. Until this existed, @savvifi/meridian-proto-ts had no
+# that exists on disk. Until this existed, @meridian-ux/proto-ts had no
 # source directory at all — it was Bazel codegen output plus a hand-maintained
 # manifest kept deliberately outside the pnpm graph — so `workspace:*` had
 # nothing to point at, and every package in the repo resolved proto-ts from the

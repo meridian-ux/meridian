@@ -1,7 +1,7 @@
 // The pure heart of the launchpad: filtering a Launchpad descriptor by a query.
 // No terminal, no DOM — a renderer drives it.
 //
-// This is the Rust twin of the TypeScript filter in @savvifi/meridian-launchpad
+// This is the Rust twin of the TypeScript filter in @meridian-ux/launchpad
 // (src/filter.ts). The two MUST agree: the same descriptor + query has to rank
 // the same way whether the palette is painted by React or by ratatui, otherwise
 // "one descriptor, many modalities" is a claim rather than a property. The match

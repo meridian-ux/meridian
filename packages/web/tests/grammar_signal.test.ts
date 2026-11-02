@@ -3,11 +3,11 @@
 import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
-import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
+import { GrammarPanelSchema } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
 import {
   PanelDescriptorSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { GrammarHandle } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { GrammarHandle } from "@meridian-ux/schemas/uiview";
 
 import { renderPanel } from "../src/uiview/renderer.js";
 

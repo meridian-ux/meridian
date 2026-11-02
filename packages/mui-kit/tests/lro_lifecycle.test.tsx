@@ -2,9 +2,9 @@ import { create } from "@bufbuild/protobuf";
 import { act } from "react";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { MeridianRowActionsContext, PanelRenderer } from "@savvifi/meridian-web-react";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { MeridianRowActionsContext, PanelRenderer } from "@meridian-ux/web-react";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 
 afterEach(cleanup);

@@ -1,4 +1,4 @@
-// @savvifi/meridian-mui-kit/shell — the MUI renderer for meridian's application frame.
+// @meridian-ux/mui-kit/shell — the MUI renderer for meridian's application frame.
 //
 // The first implementation of three primitives that were specified and unrendered:
 // `AppShell` (shell.proto), `NavTree` (nav_tree.proto, landed 0.6.0) and `Launchpad`
@@ -9,7 +9,7 @@
 // It is not re-exported from the root: an app that renders panels and no frame should not
 // pay for a drawer.
 //
-//   import { AppShellView } from "@savvifi/meridian-mui-kit/shell";
+//   import { AppShellView } from "@meridian-ux/mui-kit/shell";
 
 export { AppShellView } from "./views/AppShellView.js";
 export { SidebarView, resolveSidebarSx } from "./views/SidebarView.js";

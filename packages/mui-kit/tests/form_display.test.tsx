@@ -2,7 +2,7 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { TemporalDisplay, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { TemporalDisplay, ValueDisplaySchema, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 
 import { MeridianForm } from "../src/components/form.js";
 

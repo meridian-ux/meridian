@@ -1,6 +1,6 @@
 import { create } from "@bufbuild/protobuf";
-import type { LroPanel } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import { FormPanelSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { LroPanel } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import { FormPanelSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { FormContent } from "./form.js";
 import type { FormFieldClasses } from "./form_fields.js";
 import { LroResult, useLroLifecycle } from "./lro_lifecycle.js";

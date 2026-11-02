@@ -1,7 +1,7 @@
 import { create, type JsonObject } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { InvocationHost, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { MeridianViewContext, PanelRenderer } from "@savvifi/meridian-web-react";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { InvocationHost, RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { MeridianViewContext, PanelRenderer } from "@meridian-ux/web-react";
 import { act } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";

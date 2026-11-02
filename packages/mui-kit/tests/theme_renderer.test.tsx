@@ -4,10 +4,10 @@ import { Box } from "@mui/material";
 import { useTheme, type Theme as MuiTheme } from "@mui/material/styles";
 import { create } from "@bufbuild/protobuf";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
-import { ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { PanelHandle } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
+import { ThemeSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { PanelHandle } from "@meridian-ux/schemas/uiview";
+import { PanelRenderer, reactWebRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 

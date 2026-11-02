@@ -10,11 +10,11 @@ It ships three things:
   to host) and `meridian.theme.v1.Theme` (style). Semantics and style are
   orthogonal proto layers, so a renderer or a skin can depend on one without the
   other. See [`proto/`](proto/).
-- **`@savvifi/meridian-proto-ts`** — the canonical TypeScript surface, generated from the
+- **`@meridian-ux/proto-ts`** — the canonical TypeScript surface, generated from the
   protos via [protobuf-es](https://github.com/bufbuild/protobuf-es)
   (`//bazel:proto_es.bzl`). The single source the web renderers and every emitting
   emitter consume.
-- **`@savvifi/meridian-schemas` (the WebRenderer seam)** — the framework-neutral
+- **`@meridian-ux/schemas` (the WebRenderer seam)** — the framework-neutral
   `mount(container, descriptor, theme, invoker) → { update, unmount }` interface
   plus the host transport/runtime contracts (`RpcInvoker`, `RenderContext`). Every
   *web* renderer implements it: `meridian-web` (web-components, reference),
@@ -27,7 +27,7 @@ It ships three things:
   JavaScript formatter. Host routing and renderer decoration remain separate.
 
 Static theme spacing is also available through the style-only
-`@savvifi/meridian-schemas/theme` entrypoint. It imports no WASM or renderer;
+`@meridian-ux/schemas/theme` entrypoint. It imports no WASM or renderer;
 see [METRICS.md](METRICS.md) for bounds, defaults, and modality limits.
 
 The shared native core lives under `crates/core` and depends only on the proto
@@ -54,7 +54,7 @@ The module stays brand- and framework-neutral; brand (a `Theme`) and framework
 ## Build
 
 ```bash
-bazel build //...        # proto contracts, @savvifi/meridian-proto-ts, the seam
+bazel build //...        # proto contracts, @meridian-ux/proto-ts, the seam
 ```
 
 For local source-based Node development and tests:

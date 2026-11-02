@@ -22,7 +22,7 @@ proto_es(
 )
 
 # Compile the generated protobuf-es TypeScript into .js + .d.ts — the
-# @savvifi/meridian-proto-ts surface (PanelDescriptor, Theme, …) the renderers and every
+# @meridian-ux/proto-ts surface (PanelDescriptor, Theme, …) the renderers and every
 # consume. root_dir = "es" (the proto_es out tree) ≠ out_dir = "lib" so the emit
 # mirrors the imports (proto/*_pb.js, google/api/field_behavior_pb.js).
 ts_project(
@@ -39,17 +39,17 @@ ts_project(
     deps = ["//schemas:node_modules/@bufbuild/protobuf"],
 )
 
-# Assemble the compiled types as the @savvifi/meridian-proto-ts npm package: package.json
+# Assemble the compiled types as the @meridian-ux/proto-ts npm package: package.json
 # at the root, then proto/*_pb.{js,d.ts} + google/api/*_pb.{js,d.ts}. Linked into
 # the workspace node_modules (see //:BUILD.bazel) so first-party code can
-# `import … from "@savvifi/meridian-proto-ts/proto/panel_pb.js"`.
+# `import … from "@meridian-ux/proto-ts/proto/panel_pb.js"`.
 npm_package(
     name = "proto_ts_pkg",
     srcs = [
         "proto-ts.package.json",
         ":proto_ts",
     ],
-    package = "@savvifi/meridian-proto-ts",
+    package = "@meridian-ux/proto-ts",
     replace_prefixes = {"proto-ts.package.json": "package.json"},
     # Workspace-relative, so these moved with the package. They said
     # "proto/lib" / "proto" while this directory WAS the repository root — the

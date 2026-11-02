@@ -1,7 +1,7 @@
 // Canonical protobuf fixture shared by browser prompt interaction tests.
 import { create, fromJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 export function promptFixture(confirmation = false) {
   return create(PanelDescriptorSchema, { panelId: "collect", title: "Collect parameters", body: { case: "prompt", value: {

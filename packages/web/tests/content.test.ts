@@ -10,10 +10,10 @@
 import { create } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { CopyValuePanelSchema } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { InvocationHost } from "@meridian-ux/schemas/uiview";
 import { renderPanel } from "../src/uiview/renderer.js";
 import type { RenderedRow, UiviewWasm } from "../src/uiview/renderer.js";
 import {

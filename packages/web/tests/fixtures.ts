@@ -1,5 +1,5 @@
 // Canonical PanelDescriptor fixtures — one per shape renderPanel handles — built
-// from the @savvifi/meridian-proto-ts schemas. These are the shared "crank" seed:
+// from the @meridian-ux/proto-ts schemas. These are the shared "crank" seed:
 // the same descriptors every renderer (web-components here, react, tui, …) must
 // render. Because they are real protobuf-es messages, they round-trip through
 // toBinary/fromBinary exactly as the wasm boundary requires.
@@ -8,7 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 export const tableFixture: PanelDescriptor = create(PanelDescriptorSchema, {
   panelId: "users",

@@ -1,7 +1,7 @@
 // Shared reference-kit projection. Serialized skins remain canonical Theme protos.
 import type { CSSProperties } from "react";
-import type { Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
-import { resolveMetrics } from "@savvifi/meridian-schemas/theme";
+import type { Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
+import { resolveMetrics } from "@meridian-ux/schemas/theme";
 
 export function referenceThemeStyle(theme: Theme | undefined): CSSProperties {
   if (!theme) return {};

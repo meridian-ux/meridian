@@ -26,10 +26,10 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
-      '@savvifi/meridian-proto-ts':
+      '@meridian-ux/proto-ts':
         specifier: workspace:*
         version: link:../proto-ts
-      '@savvifi/meridian-schemas':
+      '@meridian-ux/schemas':
         specifier: workspace:*
         version: link:../../schemas
     devDependencies:
@@ -63,14 +63,14 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
-      '@savvifi/meridian-schemas':
+      '@meridian-ux/schemas':
         specifier: workspace:*
         version: link:../../schemas
     devDependencies:
-      '@savvifi/meridian-proto-ts':
+      '@meridian-ux/proto-ts':
         specifier: workspace:*
         version: link:../proto-ts
-      '@savvifi/meridian-web-react':
+      '@meridian-ux/web-react':
         specifier: workspace:*
         version: link:../web-react
       '@testing-library/dom':
@@ -115,18 +115,18 @@ importers:
       '@emotion/styled':
         specifier: ^11.14.1
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      '@meridian-ux/proto-ts':
+        specifier: workspace:*
+        version: link:../proto-ts
+      '@meridian-ux/schemas':
+        specifier: workspace:*
+        version: link:../../schemas
+      '@meridian-ux/web-react':
+        specifier: workspace:*
+        version: link:../web-react
       '@mui/material':
         specifier: ^7.3.7
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@savvifi/meridian-proto-ts':
-        specifier: workspace:*
-        version: link:../proto-ts
-      '@savvifi/meridian-schemas':
-        specifier: workspace:*
-        version: link:../../schemas
-      '@savvifi/meridian-web-react':
-        specifier: workspace:*
-        version: link:../web-react
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.1
@@ -172,10 +172,10 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
-      '@savvifi/meridian-proto-ts':
+      '@meridian-ux/proto-ts':
         specifier: workspace:*
         version: link:../proto-ts
-      '@savvifi/meridian-schemas':
+      '@meridian-ux/schemas':
         specifier: workspace:*
         version: link:../../schemas
       '@xterm/addon-fit':
@@ -203,10 +203,10 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
-      '@savvifi/meridian-proto-ts':
+      '@meridian-ux/proto-ts':
         specifier: workspace:*
         version: link:../proto-ts
-      '@savvifi/meridian-schemas':
+      '@meridian-ux/schemas':
         specifier: workspace:*
         version: link:../../schemas
       react:
@@ -240,7 +240,7 @@ importers:
       '@bufbuild/protobuf':
         specifier: 2.12.1
         version: 2.12.1
-      '@savvifi/meridian-proto-ts':
+      '@meridian-ux/proto-ts':
         specifier: workspace:*
         version: link:../packages/proto-ts
     devDependencies:

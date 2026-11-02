@@ -24,8 +24,8 @@ import {
 import type { SxProps, Theme } from "@mui/material/styles";
 import * as React from "react";
 
-import type { NavNode } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
-import { useIcon } from "@savvifi/meridian-web-react";
+import type { NavNode } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
+import { useIcon } from "@meridian-ux/web-react";
 
 import { resolveScope } from "../config.js";
 import { useShell } from "../context.js";

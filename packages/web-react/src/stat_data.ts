@@ -1,7 +1,7 @@
 // Fetch state stays in this process. Authored data uses the canonical StatPanel
 // and RpcCall messages, and transport uses the existing host invoker seam.
 import { useContext, useEffect, useMemo, useState } from "react";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
 import { MeridianRecordContext, useMeridianSelection } from "./pagination.js";
 import { actionRequestJson, boundedJson } from "./action_request.js";
 import { useMeridian } from "./provider.js";

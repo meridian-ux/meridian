@@ -3,8 +3,8 @@ import { affordanceContract } from "../../web-react/tests/affordance_contract.js
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { MeridianProvider, PanelRenderer, ViewRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { MeridianProvider, PanelRenderer, ViewRenderer, reactWebRenderer } from "@meridian-ux/web-react";
 import { actionSourcesContract } from "../../web-react/tests/action_sources_contract.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { expect, it, vi } from "vitest";

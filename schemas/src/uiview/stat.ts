@@ -11,9 +11,9 @@
 //
 // Both legacy and declared numeric labels execute in core, not JavaScript twins.
 
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { ValueDisplay } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { StatPanel } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { ValueDisplay } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { StatPanel } from "@meridian-ux/proto-ts/proto/stat_pb.js";
 import { formatByDisplay } from "./value_display.js";
 import { coreFormatting } from "./core_runtime.js";
 

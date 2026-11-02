@@ -1,4 +1,4 @@
-// @savvifi/meridian-launchpad — the command-palette / launchpad renderer of the
+// @meridian-ux/launchpad — the command-palette / launchpad renderer of the
 // meridian renderer family.
 //
 // It renders a meridian.ui.v1 Launchpad descriptor (command_palette.proto) as a

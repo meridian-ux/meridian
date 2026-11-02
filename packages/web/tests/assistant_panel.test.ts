@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
 import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
-import { BlockSchema, ConversationEventSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { BlockSchema, ConversationEventSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
 import { CONVERSATION_VALUES, conversationValueBlocks } from "../../../schemas/conformance/conversation_values.js";
-import { ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { formatByDisplay } from "@savvifi/meridian-schemas/uiview";
+import { ValueDisplaySchema, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { formatByDisplay } from "@meridian-ux/schemas/uiview";
 import { describe, expect, it } from "vitest";
 
 import { registerAssistantPanel } from "../src/assistant_panel.js";

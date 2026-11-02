@@ -5,14 +5,14 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { MediaKind, MediaPanelSchema } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { MediaKind, MediaPanelSchema } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 
 import { htmlKit } from "../src/html_kit.js";
 import { PanelRenderer } from "../src/panel_renderer.js";
 import { MeridianProvider } from "../src/provider.js";
 import { shadcnKit } from "../src/shadcn_kit.js";
-import { resolveMediaKind } from "@savvifi/meridian-schemas/uiview";
+import { resolveMediaKind } from "@meridian-ux/schemas/uiview";
 
 beforeAll(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterAll(() => vi.unstubAllGlobals());

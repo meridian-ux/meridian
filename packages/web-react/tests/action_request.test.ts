@@ -1,6 +1,6 @@
 import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
-import { FieldBindingSchema, RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+import { FieldBindingSchema, RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import { actionRequestJson, boundedActionRequest, boundedJson, hasDynamicBindings } from "../src/action_request.js";
 
 const rowCall = () => create(RpcCallSchema, { service: "demo.Rows", method: "Run", bindings: [

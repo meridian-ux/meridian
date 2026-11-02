@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
-import type { PromptPanel } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import { createPromptResponder, promptValues } from "@savvifi/meridian-schemas/uiview";
+import type { PromptPanel } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import { createPromptResponder, promptValues } from "@meridian-ux/schemas/uiview";
 import { FormEnumValues, FormFieldRow, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
 import { formDefaultsError, readFormFields } from "./form.js";
 import { useMeridian } from "./provider.js";

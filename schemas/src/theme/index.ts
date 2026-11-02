@@ -1,5 +1,5 @@
 // Style-only projection of the canonical proto. No renderer, DOM, or WASM load.
-import type { Metrics } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import type { Metrics } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 
 type MetricInput = Partial<Pick<Metrics, "unitPx" | "spacingScalePx" | "densityScale" | "strokePx">>;
 

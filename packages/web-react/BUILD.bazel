@@ -8,10 +8,10 @@ package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
 
-# @savvifi/meridian-web-react — the React renderer tier (kit-agnostic) over the
+# @meridian-ux/web-react — the React renderer tier (kit-agnostic) over the
 # WebRenderer seam. Compiles the .tsx adapter + the html reference kit. Resolves
-# the seam from @savvifi/meridian-schemas/uiview and the canonical types from
-# @savvifi/meridian-proto-ts (both first-party links in //:BUILD.bazel); react is its own.
+# the seam from @meridian-ux/schemas/uiview and the canonical types from
+# @meridian-ux/proto-ts (both first-party links in //:BUILD.bazel); react is its own.
 ts_project(
     name = "web_react",
     srcs = glob([
@@ -27,8 +27,8 @@ ts_project(
         ":node_modules/react",
         ":node_modules/react-dom",
         "//packages/web-react:node_modules/@bufbuild/protobuf",
-        "//packages/web-react:node_modules/@savvifi/meridian-schemas",
-        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@meridian-ux/schemas",
+        "//packages/web-react:node_modules/@meridian-ux/proto-ts",
     ],
 )
 
@@ -49,13 +49,13 @@ js_library(
         ":node_modules/react-dom",
         ":node_modules/vitest",
         ":node_modules/@bufbuild/protobuf",
-        ":node_modules/@savvifi/meridian-proto-ts",
-        ":node_modules/@savvifi/meridian-schemas",
+        ":node_modules/@meridian-ux/proto-ts",
+        ":node_modules/@meridian-ux/schemas",
         "//schemas:frozen_affordance_test_data",
     ],
 )
 
-# The publishable @savvifi/meridian-web-react npm package: package.json at the
+# The publishable @meridian-ux/web-react npm package: package.json at the
 # root + the compiled src/*.{js,d.ts}. Published to npmjs (see the OIDC workflow
 # in .github/workflows/publish.yml).
 npm_package(
@@ -69,7 +69,7 @@ npm_package(
         ":web_react",
     ],
     replace_prefixes = {"web-react.package.json": "package.json"},
-    package = "@savvifi/meridian-web-react",
+    package = "@meridian-ux/web-react",
     visibility = ["//visibility:public"],
 )
 
@@ -82,7 +82,7 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//packages/web-react:node_modules/@bufbuild/protobuf",
-        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@meridian-ux/proto-ts",
         "//packages/web-react:node_modules/vitest",
     ],
 )
@@ -133,7 +133,7 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//packages/web-react:node_modules/@bufbuild/protobuf",
-        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@meridian-ux/proto-ts",
         "//packages/web-react:node_modules/vitest",
         "//schemas:conformance_fixtures",
         "//schemas:value_option_data",
@@ -153,7 +153,7 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//packages/web-react:node_modules/@bufbuild/protobuf",
-        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web-react:node_modules/@meridian-ux/proto-ts",
         "//packages/web-react:node_modules/vitest",
     ],
 )
@@ -169,8 +169,8 @@ vitest_test(
         ":node_modules/react-dom",
         ":web_react_lib",
         "//packages/web-react:node_modules/@bufbuild/protobuf",
-        "//packages/web-react:node_modules/@savvifi/meridian-proto-ts",
-        "//packages/web-react:node_modules/@savvifi/meridian-schemas",
+        "//packages/web-react:node_modules/@meridian-ux/proto-ts",
+        "//packages/web-react:node_modules/@meridian-ux/schemas",
         "//packages/web-react:node_modules/vitest",
         ":node_modules/jsdom",
     ],

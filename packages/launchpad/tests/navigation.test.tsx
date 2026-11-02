@@ -7,10 +7,10 @@ import {
   CommandSchema,
   LaunchpadSchema,
   type Command,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+import { safeNavigationHref } from "@meridian-ux/schemas/uiview";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

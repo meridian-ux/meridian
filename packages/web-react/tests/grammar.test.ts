@@ -11,12 +11,12 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
+import { GrammarPanelSchema } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import type { ComponentKit } from "../src/component_kit.js";
 import { htmlKit } from "../src/html_kit.js";

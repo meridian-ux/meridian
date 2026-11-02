@@ -10,18 +10,18 @@
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { clone } from "@bufbuild/protobuf";
-import { CommandSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import { CommandSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 import type { CSSProperties, ReactNode } from "react";
 
 import type {
   Command,
   Launchpad as LaunchpadDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { affordancePresentation, normalizeCommand, safeNavigationHref } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { affordancePresentation, normalizeCommand, safeNavigationHref } from "@meridian-ux/schemas/uiview";
 import {
   ActionGroup, boundedDescriptorJson, useActionGroup, useActionInvocation,
   useIcon,
-} from "@savvifi/meridian-web-react";
+} from "@meridian-ux/web-react";
 
 import { filterLaunchpad, flatten } from "./filter.js";
 

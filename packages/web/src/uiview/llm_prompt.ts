@@ -1,9 +1,9 @@
 import { clone } from "@bufbuild/protobuf";
-import { FormFieldSchema, type FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { FormFieldSchema, type FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { LlmPromptPanel } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { buildFormField } from "./form.js";
-import { assertFormDefaultBudget, hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { assertFormDefaultBudget, hasMaskedField, renderPromptTemplate } from "@meridian-ux/schemas/uiview";
 
 // All state here is local DOM state. The descriptor stays a canonical protobuf;
 // preview does not execute an LLM, invoke mutations, or serialize a new DTO.

@@ -7,17 +7,17 @@ import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { CardSpecSchema, GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { PrincipalDisplay, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { PanelRenderer, ViewRenderer } from "@savvifi/meridian-web-react";
+import { CardSpecSchema, GalleryPanelSchema } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { PrincipalDisplay, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { PanelRenderer, ViewRenderer } from "@meridian-ux/web-react";
 // Exercise the actual provider instance used by the installed React adapter,
 // without adding a test-only context to its public exports.
-import { MeridianRecordContext } from "../node_modules/@savvifi/meridian-web-react/src/pagination.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { MeridianRecordContext } from "../node_modules/@meridian-ux/web-react/src/pagination.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 import { MeridianGallery } from "../src/components/gallery.js";

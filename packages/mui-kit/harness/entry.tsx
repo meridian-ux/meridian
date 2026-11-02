@@ -27,31 +27,31 @@ import {
   NumberInputSchema,
   RepeatedFieldSchema,
   TextInputSchema,
-} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+} from "@meridian-ux/proto-ts/proto/form_pb.js";
 import {
   FormMode,
   FormPanelSchema,
   PanelDescriptorSchema,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PromptPanelSchema } from "@savvifi/meridian-proto-ts/proto/prompt_pb.js";
-import { MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { LroPanelSchema } from "@savvifi/meridian-proto-ts/proto/lro_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PromptPanelSchema } from "@meridian-ux/proto-ts/proto/prompt_pb.js";
+import { MediaKind } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { LroPanelSchema } from "@meridian-ux/proto-ts/proto/lro_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
 import {
   PaginationMode,
   PaginationSchema,
   TablePanelSchema,
-} from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { PaletteSchema, type Theme, ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+} from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { PaletteSchema, type Theme, ThemeSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 import {
   ActionPlacement,
   Column,
   type ViewDescriptor,
   ViewDescriptorSchema,
   ViewKind,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { PanelRenderer, ViewRenderer, MeridianProvider, MeridianViewContext, htmlKit, shadcnKit } from "@savvifi/meridian-web-react";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { PanelRenderer, ViewRenderer, MeridianProvider, MeridianViewContext, htmlKit, shadcnKit } from "@meridian-ux/web-react";
 
 import { MeridianMuiProvider } from "../src/index.js";
 import { SHELL_FIXTURES } from "./shell-fixtures.js";

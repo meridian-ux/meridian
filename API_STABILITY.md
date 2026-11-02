@@ -10,10 +10,10 @@ chat transport adapter, not a second serialization format.
 
 | Surface | Runtime exports |
 | --- | --- |
-| `@savvifi/meridian-chat` | `Conversation`, `BlockView`, `ConversationModel`, `CONVERSATION_CSS`, `isActiveStatus` |
-| `@savvifi/meridian-chat/web` | `MAssistantPanel`, `registerAssistantPanel`, `ASSISTANT_PANEL_CSS`, `ConversationModel`, `isActiveStatus`, `renderBlockInner`, `escHtml`, `mdInline`, `shortName` |
+| `@meridian-ux/chat` | `Conversation`, `BlockView`, `ConversationModel`, `CONVERSATION_CSS`, `isActiveStatus` |
+| `@meridian-ux/chat/web` | `MAssistantPanel`, `registerAssistantPanel`, `ASSISTANT_PANEL_CSS`, `ConversationModel`, `isActiveStatus`, `renderBlockInner`, `escHtml`, `mdInline`, `shortName` |
 | chat Bazel `browser_bundle` | `MAssistantPanel`, `registerAssistantPanel`, `ASSISTANT_PANEL_CSS` |
-| `@savvifi/meridian-launchpad` | `Launchpad`, `filterLaunchpad`, `flatten`, `matchScore`, `commandHaystack` |
+| `@meridian-ux/launchpad` | `Launchpad`, `filterLaunchpad`, `flatten`, `matchScore`, `commandHaystack` |
 
 The chat root is the React tier. Vanilla consumers use `/web`, not the root;
 React and React DOM are optional peers only for the vanilla tier. The standalone

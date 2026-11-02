@@ -1,8 +1,8 @@
-import type { FormPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { assertFormDefaultBudget, defaultFormValue, formatByDisplay, hasMaskedField, validateFormValues } from "@savvifi/meridian-schemas/uiview";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import type { FormPanel } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { RpcCall } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { assertFormDefaultBudget, defaultFormValue, formatByDisplay, hasMaskedField, validateFormValues } from "@meridian-ux/schemas/uiview";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { buildMaskedMultiline } from "./masked_multiline.js";
 import { assertInvocationDescriptorData, ownInvocationData, type createInvocationControl } from "./invocation_control.js";
 

@@ -1,8 +1,8 @@
 // In-process admission for React's JSON host seam. Authored bindings remain
 // RpcCall/FieldBinding protos; this budget and its owned tree never serialize.
-import type { FieldBinding, RpcCall } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { PaginationMode, type Pagination } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
+import type { FieldBinding, RpcCall } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { PaginationMode, type Pagination } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
 
 type Row = Record<string, unknown>;
 const WORK = 4 * 1024 * 1024;

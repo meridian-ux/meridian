@@ -12,11 +12,11 @@ import { useContext, type ReactNode } from "react";
 
 import { Box, Card, CardContent, Chip, Link, Skeleton, Stack, Typography } from "@mui/material";
 
-import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@savvifi/meridian-web-react";
+import { MeridianViewContext, useHrefResolver, useRecord, resolvePath } from "@meridian-ux/web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
-import type { DetailHeaderPanel } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { DetailHeaderPanel } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 /** Map a status string to an MUI Chip color — best-effort by common vocabulary
  *  (kept in sync with the table's isStatusColumn coloring). */

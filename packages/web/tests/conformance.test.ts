@@ -8,9 +8,9 @@
 // this proves the toBinary boundary the way the real wasm (prost::decode) needs.
 
 import { fromBinary } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { disposePanel, renderPanel } from "../src/uiview/renderer.js";

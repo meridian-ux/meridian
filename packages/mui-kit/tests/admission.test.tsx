@@ -5,10 +5,10 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { act, startTransition, Suspense, useState } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { ActionPlacement, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import type { AdmissionDenial, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { MeridianRecordContext, ViewRenderer } from "@savvifi/meridian-web-react";
+import { ActionPlacement, ViewDescriptorSchema, ViewKind } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import type { AdmissionDenial, RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { MeridianRecordContext, ViewRenderer } from "@meridian-ux/web-react";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 

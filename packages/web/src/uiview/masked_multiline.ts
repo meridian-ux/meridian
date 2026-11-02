@@ -1,4 +1,4 @@
-import { editMaskedSelection, maskedLines, replaceMaskedLine } from "@savvifi/meridian-schemas/uiview";
+import { editMaskedSelection, maskedLines, replaceMaskedLine } from "@meridian-ux/schemas/uiview";
 
 /** Native password lines, shared edit semantics, exact raw form value. */
 export function buildMaskedMultiline(name: string, label: string, initial: string, rows: number) {

@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Alert, Box, Button, Card, CardContent, Chip, Link, Stack, Typography } from "@mui/material";
-import type { ResourceAction, ResourceCardPanel } from "@savvifi/meridian-proto-ts/proto/resource_card_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
-import { buildActionBindingRequest, resolvePath, useHrefResolver, useMeridianSelection, useMutationRpcInvoker, useResourceCardRows } from "@savvifi/meridian-web-react";
+import type { ResourceAction, ResourceCardPanel } from "@meridian-ux/proto-ts/proto/resource_card_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
+import { buildActionBindingRequest, resolvePath, useHrefResolver, useMeridianSelection, useMutationRpcInvoker, useResourceCardRows } from "@meridian-ux/web-react";
 import { formatByDisplay, isSafeHttpUrl, resolveValueLink } from "../display_format.js";
 import { useDisplayNow } from "../use_display_now.js";
 import { useActionFeedback } from "../action_feedback.js";

@@ -26,26 +26,26 @@
 import { create, fromBinary, fromJson, toBinary, toJson, type JsonObject } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { readFrozen } from "../../../schemas/tests/frozen_affordance.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { GalleryPanelSchema } from "@savvifi/meridian-proto-ts/proto/gallery_pb.js";
-import { validateFormValues } from "@savvifi/meridian-schemas/uiview";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { GalleryPanelSchema } from "@meridian-ux/proto-ts/proto/gallery_pb.js";
+import { validateFormValues } from "@meridian-ux/schemas/uiview";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { TablePanelSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { FormattedValueSchema, PrincipalDisplay, ValueDisplaySchema, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { TablePanelSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { FormattedValueSchema, PrincipalDisplay, ValueDisplaySchema, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UiviewWasm } from "../src/uiview/renderer.js";
-import type { RpcInvoker, StreamInvoker } from "@savvifi/meridian-schemas/uiview";
-import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@savvifi/meridian-schemas/uiview";
+import type { RpcInvoker, StreamInvoker } from "@meridian-ux/schemas/uiview";
+import { formatByCore, formatByDisplay, type ValueFormatterWasm } from "@meridian-ux/schemas/uiview";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { LAYOUT_CASES } from "../../../schemas/conformance/layout_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES, OPTION_INPUT_CASES } from "../../../schemas/conformance/value_option_cases.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import { FORM_DEFAULT_BUDGET_CASES } from "../../../schemas/conformance/value_option_cases.js";
 
 // The project tsconfig sets `types: []` deliberately — this is browser code, and

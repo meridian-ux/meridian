@@ -16,8 +16,8 @@
     "types": [],
     "baseUrl": ".",
     "paths": {
-      "@savvifi/meridian-proto-ts": ["./node_modules/@savvifi/meridian-proto-ts"],
-      "@savvifi/meridian-proto-ts/*": ["./node_modules/@savvifi/meridian-proto-ts/*"]
+      "@meridian-ux/proto-ts": ["./node_modules/@meridian-ux/proto-ts"],
+      "@meridian-ux/proto-ts/*": ["./node_modules/@meridian-ux/proto-ts/*"]
     }
   },
   "include": ["src", "tests", "harness"]

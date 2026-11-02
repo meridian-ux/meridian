@@ -6,12 +6,12 @@
 // (./renderer.ts) reads typed fields off it and serializes whole messages to
 // protobuf binary for the wasm core. No JSON / snake_case DTO bridge.
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import type {
   MountOptions,
   RenderContext,
   WebRenderer,
-} from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/schemas/uiview";
 
 import { disposePanel, renderPanel } from "./renderer.js";
 import type { UiviewWasm } from "./renderer.js";

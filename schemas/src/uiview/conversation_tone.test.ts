@@ -1,8 +1,8 @@
 import { create, fromBinary, fromJson, toBinary } from "@bufbuild/protobuf";
-import { StatusSchema, Block_ToolBlockSchema } from "@savvifi/meridian-proto-ts/proto/conversation_pb.js";
+import { StatusSchema, Block_ToolBlockSchema } from "@meridian-ux/proto-ts/proto/conversation_pb.js";
 import { deriveToneCases, toneCases } from "../../conformance/tone_cases.js";
-import { ToneSchema } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { PaletteSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ToneSchema } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { PaletteSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 import { expect, it } from "vitest";
 import { conversationToneRole, conversationToolState, conversationStatusState } from "./conversation_tone.js";
 

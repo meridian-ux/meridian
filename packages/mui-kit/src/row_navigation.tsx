@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { normalizeAffordance } from "@savvifi/meridian-schemas/uiview";
-import { useActionGroup, useActionInvocation, useMeridian } from "@savvifi/meridian-web-react";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { normalizeAffordance } from "@meridian-ux/schemas/uiview";
+import { useActionGroup, useActionInvocation, useMeridian } from "@meridian-ux/web-react";
 import { Button, TableCell, TableRow, Typography } from "@mui/material";
 import { useId, useMemo, type ReactNode } from "react";
 

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { editMaskedSelection, maskedLines, replaceMaskedLine } from "@savvifi/meridian-schemas/uiview";
+import { editMaskedSelection, maskedLines, replaceMaskedLine } from "@meridian-ux/schemas/uiview";
 
 /** A multiline editor made of native password controls. No plaintext textarea,
  * CSS-only concealment, or secret-bearing visible text. Hidden form data keeps

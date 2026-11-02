@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { MeridianProvider, htmlKit } from "@savvifi/meridian-web-react";
+import { MeridianProvider, htmlKit } from "@meridian-ux/web-react";
 
 import { Launchpad } from "../src/index.js";
 import { demoLaunchpad } from "./fixtures.js";

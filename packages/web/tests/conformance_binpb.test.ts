@@ -5,7 +5,7 @@
 
 import { fromBinary, toBinary } from "@bufbuild/protobuf";
 import { equals } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
 import { describe, expect, it } from "vitest";
 
 import { FIXTURES } from "../../../schemas/conformance/fixtures.js";

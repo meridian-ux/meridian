@@ -10,7 +10,7 @@
 
 import * as React from "react";
 
-import type { AppShell } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
+import type { AppShell } from "@meridian-ux/proto-ts/proto/shell_pb.js";
 
 import { capabilitiesOf, matchHotkey, type ShellCapabilities } from "./chrome.js";
 import type { AppShellSeams } from "./config.js";

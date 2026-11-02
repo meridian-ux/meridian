@@ -7,12 +7,12 @@ import type { ReactNode } from "react";
 import { mdInline } from "./dom.js";
 import type { Block, ViewBlock } from "./wire.js";
 import { displayCell, displayField } from "./field_display.js";
-import { conversationToneRole, conversationToolState } from "@savvifi/meridian-schemas/uiview";
+import { conversationToneRole, conversationToolState } from "@meridian-ux/schemas/uiview";
 import { viewText } from "./view_text.js";
 
 /**
  * Draws a `view` block's ViewDescriptor. Supplied by the HOST, because drawing
- * one needs a full panel renderer (`@savvifi/meridian-web-react` + a ComponentKit)
+ * one needs a full panel renderer (`@meridian-ux/web-react` + a ComponentKit)
  * and this package stays independent of component kits — a chat transcript should not drag a
  * component library into a host that only wants text.
  *

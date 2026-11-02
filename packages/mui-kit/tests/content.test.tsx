@@ -7,20 +7,20 @@ import { create } from "@bufbuild/protobuf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { Emphasis } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { GrammarPanelSchema } from "@savvifi/meridian-proto-ts/proto/grammar_pb.js";
-import { StatPanelSchema } from "@savvifi/meridian-proto-ts/proto/stat_pb.js";
-import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { MediaPanelSchema, MediaKind } from "@savvifi/meridian-proto-ts/proto/media_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { PanelRenderer } from "@savvifi/meridian-web-react";
+import { Emphasis } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { ChoicePanelSchema } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import { ConnectFlowPanelSchema } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import { CatalogPanelSchema } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import { CopyValuePanelSchema } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { GrammarPanelSchema } from "@meridian-ux/proto-ts/proto/grammar_pb.js";
+import { StatPanelSchema } from "@meridian-ux/proto-ts/proto/stat_pb.js";
+import { StepsPanelSchema } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { MediaPanelSchema, MediaKind } from "@meridian-ux/proto-ts/proto/media_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { PanelRenderer } from "@meridian-ux/web-react";
 import { act, createElement } from "react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 

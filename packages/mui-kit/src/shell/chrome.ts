@@ -17,7 +17,7 @@
 // The practical consequence is that a host with a static descriptor gets the same behaviour
 // for free: omit `launchpad` and no ⌘K is bound, with no capability flag to keep in step.
 
-import type { AppShell } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
+import type { AppShell } from "@meridian-ux/proto-ts/proto/shell_pb.js";
 
 export interface ShellCapabilities {
   sidebar: boolean;

@@ -6,8 +6,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 import coverageManifest from "../../../schemas/conformance/coverage.json";
 
 import type { ComponentKit } from "../src/component_kit.js";

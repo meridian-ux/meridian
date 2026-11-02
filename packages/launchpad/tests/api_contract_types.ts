@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { Launchpad, filterLaunchpad, flatten, matchScore, commandHaystack } from "../src/index.js";
 import type { LaunchpadProps, FilteredGroup } from "../src/index.js";
-import type { Command, Launchpad as Descriptor } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import type { Command, Launchpad as Descriptor } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends
   (<T>() => T extends B ? 1 : 2) ? true : false;

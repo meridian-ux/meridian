@@ -6,7 +6,7 @@
 import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
-import { ThemeSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ThemeSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 
 import {
   createMuiThemeFromConfig,

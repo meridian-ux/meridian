@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { create } from "@bufbuild/protobuf";
-import { EnumOptionSchema } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import type { FormField } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { EnumOptionSchema } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import type { FormField } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 function path(value: unknown, key: string): unknown {
   return key.split(".").reduce<unknown>((item, part) => item && typeof item === "object" && Object.hasOwn(item, part)

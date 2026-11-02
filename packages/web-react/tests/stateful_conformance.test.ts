@@ -4,7 +4,7 @@ import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { StreamFrameSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { StreamFrameSchema } from "@meridian-ux/proto-ts/proto/stream_pb.js";
 import { STATE_CASES } from "../../../schemas/conformance/state_cases.js";
 import { normalizeDom } from "../../../schemas/conformance/normalize_dom.js";
 import { htmlKit } from "../src/html_kit.js";

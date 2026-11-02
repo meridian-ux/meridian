@@ -2,12 +2,12 @@ import { toBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
 import { FORM_DEFAULT_BUDGET_CASES } from "../../../schemas/conformance/value_option_cases.js";
 import { OPTION_INPUT_CASES, OPTION_INPUT_VALUES } from "../../../schemas/conformance/value_option_cases.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeAll, afterAll, expect, it, vi } from "vitest";
 import { OPTION_CONSTRAINED_CASES, OPTION_READ_CASES } from "../../../schemas/conformance/value_option_cases.js";
-import { MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
+import { MeridianProvider, ViewRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 
 // Inject the explicit clock boundary, not the formatter. Undefined simulates

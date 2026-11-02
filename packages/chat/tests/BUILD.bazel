@@ -42,7 +42,7 @@ vitest_test(
     deps = [
         "//packages/chat:chat_lib",
         "//packages/chat:node_modules/@bufbuild/protobuf",
-        "//packages/chat:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/chat:node_modules/@meridian-ux/proto-ts",
         "//packages/chat:node_modules/vitest",
     ],
 )
@@ -70,7 +70,7 @@ vitest_test(
         "//packages/chat:chat_lib",
         "//packages/chat:api_manifests",
         "//packages/chat:node_modules/@bufbuild/protobuf",
-        "//packages/chat:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/chat:node_modules/@meridian-ux/proto-ts",
         "//packages/chat:node_modules/vitest",
     ],
 )

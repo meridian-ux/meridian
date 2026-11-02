@@ -3,7 +3,7 @@
 // Pure, and outside the overlay, because this is where a palette is actually won or lost.
 // The rendering is a list; the ranking is the product.
 
-import type { Command, CommandGroup, Launchpad } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+import type { Command, CommandGroup, Launchpad } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 
 /** One group with its surviving commands. Groups that match nothing are dropped. */
 export interface MatchedGroup {

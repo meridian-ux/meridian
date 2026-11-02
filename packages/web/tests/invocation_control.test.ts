@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { create, fromJson, type JsonObject } from "@bufbuild/protobuf";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { StepsPanelSchema } from "@savvifi/meridian-proto-ts/proto/steps_pb.js";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { InvocationHost, RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { StepsPanelSchema } from "@meridian-ux/proto-ts/proto/steps_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { InvocationHost, RpcInvoker } from "@meridian-ux/schemas/uiview";
 import { afterEach, expect, it, vi } from "vitest";
 import { disposePanel, renderPanel, type RenderPanelOptions } from "../src/uiview/renderer.js";
 import { disposeView, renderView } from "../src/uiview/view_renderer.js";

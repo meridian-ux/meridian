@@ -6,7 +6,7 @@
 import type {
   Command,
   Launchpad,
-} from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
+} from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
 
 /**
  * A group header + the commands under it that survived (and are sorted by) the

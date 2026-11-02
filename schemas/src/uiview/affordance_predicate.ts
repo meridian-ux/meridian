@@ -1,5 +1,5 @@
 import { toBinary } from "@bufbuild/protobuf";
-import { RowFilterSchema, type RowFilter } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { RowFilterSchema, type RowFilter } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { coreValidation } from "./core_runtime.js";
 
 /** Pure bounded comparison, never host admission or permission to execute. */

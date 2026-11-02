@@ -17,8 +17,8 @@ esbuild(
     target = "es2022",
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/@xterm/addon-fit",
         "//packages/web:node_modules/@xterm/xterm",
     ],
@@ -42,7 +42,7 @@ vitest_test(
         "chat_formatting.test.ts",
     ],
     deps = [
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
@@ -53,7 +53,7 @@ vitest_test(
     srcs = ["theme.test.ts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//packages/web/theme:binding",
@@ -66,8 +66,8 @@ vitest_test(
     deps = [
         "//schemas:conversation_value_data",
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/vitest",
         ":src_lib",
     ],
@@ -97,7 +97,7 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
@@ -117,7 +117,7 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
@@ -134,7 +134,7 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
@@ -151,8 +151,8 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
@@ -172,8 +172,8 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
@@ -215,7 +215,7 @@ vitest_test(
     data = [":wasm_artifacts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:core_conformance_data",
@@ -234,7 +234,7 @@ vitest_test(
     srcs = ["supported_bodies.test.ts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
@@ -249,7 +249,7 @@ vitest_test(
     name = "terminal_panel",
     srcs = ["terminal_panel.test.ts", "utf8.test.ts"],
     deps = [
-        "//packages/web:node_modules/@savvifi/meridian-schemas",
+        "//packages/web:node_modules/@meridian-ux/schemas",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",
@@ -264,7 +264,7 @@ vitest_test(
     srcs = ["resource_cards.test.ts", "resource_admission.test.ts"],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         "//schemas:conformance_fixtures",
@@ -281,7 +281,7 @@ vitest_test(
     ],
     deps = [
         "//packages/web:node_modules/@bufbuild/protobuf",
-        "//packages/web:node_modules/@savvifi/meridian-proto-ts",
+        "//packages/web:node_modules/@meridian-ux/proto-ts",
         "//packages/web:node_modules/jsdom",
         "//packages/web:node_modules/vitest",
         ":src_lib",

@@ -1,18 +1,18 @@
 // Browser test seam: descriptors, context, and fake responses arrive only as
 // canonical protobuf bytes. No second view schema or live transport exists here.
 import { create, fromBinary, fromJson, toBinary, toJson } from "@bufbuild/protobuf";
-import { ColumnFormat } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { ColumnFormat } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { PanelHandle } from "@savvifi/meridian-schemas/uiview";
-import { ThemeSchema, type Theme } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { PanelHandle } from "@meridian-ux/schemas/uiview";
+import { ThemeSchema, type Theme } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 import { themeProtoToCssVars } from "../src/theme.js";
 import { MeridianMuiProvider } from "../src/provider.js";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer, reactWebRenderer } from "@savvifi/meridian-web-react";
+import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer, reactWebRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { disposeView, renderView } from "../../web/src/uiview/view_renderer.js";
 import type { UiviewWasm } from "../../web/src/uiview/renderer.js";

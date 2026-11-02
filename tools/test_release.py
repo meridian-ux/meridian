@@ -23,7 +23,7 @@ class FixtureRegistry(release_registry.Registry):
         self.reads = []
         super().__init__(reader=self.read)
         for short, _ in release.NPM:
-            self.known(f"@savvifi/meridian-{short}")
+            self.known(f"@meridian-ux/{short}")
         for name in release.CRATES:
             self.known(name)
 
@@ -48,7 +48,7 @@ class FixtureRegistry(release_registry.Registry):
     def publish(self, name):
         if name.startswith("@"):
             short = name.split("/")[-1]
-            data = (self.artifacts / f"savvifi-{short}-1.0.0.tgz").read_bytes()
+            data = (self.artifacts / f"meridian-ux-{short}-1.0.0.tgz").read_bytes()
             url = f"https://registry.npmjs.org/{name}/-/{short}-1.0.0.tgz"
             package = {"name": name, "version": "1.0.0", "dist": {"tarball": url,
                        "integrity": "sha512-" + base64.b64encode(hashlib.sha512(data).digest()).decode()}}
@@ -101,8 +101,8 @@ class ReleaseTests(unittest.TestCase):
         self.registry = FixtureRegistry(self.artifacts)
 
     def npm(self, short, **extra):
-        data = {"name": f"@savvifi/meridian-{short}", "version": "1.0.0", **extra}
-        archive(self.artifacts / f"savvifi-meridian-{short}-1.0.0.tgz", "package/package.json", json.dumps(data))
+        data = {"name": f"@meridian-ux/{short}", "version": "1.0.0", **extra}
+        archive(self.artifacts / f"meridian-ux-{short}-1.0.0.tgz", "package/package.json", json.dumps(data))
 
     def sums(self):
         (self.artifacts / "SHA256SUMS").write_text(release.checksums(self.artifacts, self.version))
@@ -127,8 +127,8 @@ class ReleaseTests(unittest.TestCase):
                     if item == "--package":
                         self.registry.publish(args[i + 1])
             if args[:2] == ["npm", "publish"]:
-                short = Path(args[2]).name.removeprefix("savvifi-meridian-").removesuffix("-1.0.0.tgz")
-                self.registry.publish(f"@savvifi/meridian-{short}")
+                short = Path(args[2]).name.removeprefix("meridian-ux-").removesuffix("-1.0.0.tgz")
+                self.registry.publish(f"@meridian-ux/{short}")
             return ""
         return execute
 
@@ -164,9 +164,9 @@ class ReleaseTests(unittest.TestCase):
 
     def test_rehashed_wrong_identity_and_dependency_skew_still_reject(self):
         for extra in ({"version": "0.25.1"}, {"private": True},
-                      {"dependencies": {"@savvifi/meridian-proto-ts": "^1.0.0"}},
+                      {"dependencies": {"@meridian-ux/proto-ts": "^1.0.0"}},
                       {"optionalDependencies": {"external": "file:../external"}},
-                      {"peerDependencies": {"@savvifi/meridian-schemas": "workspace:*"}}):
+                      {"peerDependencies": {"@meridian-ux/schemas": "workspace:*"}}):
             with self.subTest(extra=extra):
                 self.npm("web", **extra)
                 self.sums()
@@ -183,7 +183,7 @@ class ReleaseTests(unittest.TestCase):
                 release.verify(self.artifacts, self.version)
 
     def test_first_party_dependency_must_publish_before_its_consumer(self):
-        self.npm("proto-ts", dependencies={"@savvifi/meridian-web": "1.0.0"})
+        self.npm("proto-ts", dependencies={"@meridian-ux/web": "1.0.0"})
         self.sums()
         with self.assertRaisesRegex(ValueError, "publication order"):
             release.verify(self.artifacts, self.version)
@@ -240,7 +240,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertNotIn("--no-verify", uploads[0])
         self.assertNotIn("--allow-dirty", uploads[0])
         for args, (name, _) in zip(uploads[1:], release.NPM):
-            self.assertIn(f"savvifi-meridian-{name}-1.0.0.tgz", args[2])
+            self.assertIn(f"meridian-ux-{name}-1.0.0.tgz", args[2])
             self.assertIn("--ignore-scripts", args)
             self.assertEqual(args[args.index("--tag") + 1], "latest")
 
@@ -293,20 +293,23 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn("python3 tools/release.py registry-plan", prepare)
         self.assertIn("if: steps.preflight.outputs.crates_missing == 'true'", publish)
 
-    def test_bootstrap_uploads_only_four_new_names_with_separate_credentials(self):
+    def test_bootstrap_uploads_all_ten_new_names_with_separate_credentials(self):
         self.registry.new_names()
         calls = []
         release.publish(self.artifacts, self.target(), env=self.bootstrap_env(), bootstrap=True,
                         runner=self.runner(calls), registry=self.registry)
         uploads = [(a, k) for a, k in calls if a[:2] in (["cargo", "publish"], ["npm", "publish"])
                    and "--dry-run" not in a]
-        self.assertEqual(len(uploads), 2)
+        self.assertEqual(len(uploads), 8)
         self.assertEqual([uploads[0][0][i + 1] for i, a in enumerate(uploads[0][0]) if a == "--package"], list(release.CRATES))
-        self.assertIn("savvifi-meridian-web-1.0.0.tgz", uploads[1][0][2])
+        self.assertEqual([Path(args[2]).name for args, _ in uploads[1:]],
+                         [f"meridian-ux-{name}-1.0.0.tgz" for name in
+                          ("proto-ts", "schemas", "web-react", "mui-kit", "chat", "launchpad", "web")])
         self.assertEqual(uploads[0][1]["env"]["CARGO_REGISTRY_TOKEN"], "fixture-crate-credential")
         self.assertNotIn("NODE_AUTH_TOKEN", uploads[0][1]["env"])
-        self.assertEqual(uploads[1][1]["env"]["NODE_AUTH_TOKEN"], "fixture-npm-credential")
-        self.assertNotIn("CARGO_REGISTRY_TOKEN", uploads[1][1]["env"])
+        for _, kwargs in uploads[1:]:
+            self.assertEqual(kwargs["env"]["NODE_AUTH_TOKEN"], "fixture-npm-credential")
+            self.assertNotIn("CARGO_REGISTRY_TOKEN", kwargs["env"])
         for args, kwargs in calls:
             if args[:2] == ["cargo", "publish"]:
                 self.assertNotIn("MERIDIAN_BOOTSTRAP_NPM_TOKEN", kwargs["env"])
@@ -314,15 +317,13 @@ class ReleaseTests(unittest.TestCase):
                 if "--dry-run" in args:
                     self.assertNotIn("CARGO_REGISTRY_TOKEN", kwargs["env"])
 
-    def test_resume_after_bootstrap_only_uploads_six_existing_npm_packages(self):
+    def test_resume_after_complete_bootstrap_verifies_without_uploading(self):
         for name in release.BOOTSTRAP:
             self.registry.publish(name)
         calls = []
         release.publish(self.artifacts, self.target(), env=self.env, runner=self.runner(calls), registry=self.registry)
         uploads = [a for a, _ in calls if a[:2] in (["cargo", "publish"], ["npm", "publish"])]
-        self.assertEqual(len(uploads), 6)
-        self.assertTrue(all(a[:2] == ["npm", "publish"] for a in uploads))
-        self.assertTrue(all("savvifi-meridian-web-1.0.0.tgz" not in a[2] for a in uploads))
+        self.assertEqual(uploads, [])
 
     def test_partial_bootstrap_timeout_stops_then_explicit_retry_skips_confirmed_versions(self):
         self.registry.new_names()
@@ -354,7 +355,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse(any(a[:2] in (["npm", "publish"], ["cargo", "publish"]) for a, _ in calls))
 
     def test_partial_npm_timeout_requires_new_attempt_and_skips_confirmed_tarball(self):
-        for name in release.BOOTSTRAP:
+        for name in release.CRATES:
             self.registry.publish(name)
         calls = []
         real = self.runner(calls)
@@ -369,8 +370,16 @@ class ReleaseTests(unittest.TestCase):
         calls.clear()
         release.publish(self.artifacts, self.target(), env=self.env, runner=self.runner(calls), registry=self.registry)
         uploads = [a for a, _ in calls if a[:2] == ["npm", "publish"]]
-        self.assertEqual(len(uploads), 5)
-        self.assertTrue(all("meridian-proto-ts-1.0.0.tgz" not in a[2] for a in uploads))
+        self.assertEqual(len(uploads), 6)
+        self.assertTrue(all("meridian-ux-proto-ts-1.0.0.tgz" not in a[2] for a in uploads))
+
+    def test_namespace_migration_rejects_legacy_sdk_dependencies(self):
+        for field in ("dependencies", "peerDependencies", "optionalDependencies"):
+            with self.subTest(field=field):
+                self.npm("web", **{field: {"@savvifi/meridian-schemas": "1.0.0"}})
+                self.sums()
+                with self.assertRaisesRegex(ValueError, "legacy npm dependency"):
+                    release.verify(self.artifacts, self.version)
 
     def test_normal_lane_never_falls_back_to_bootstrap_credential(self):
         env = {**self.env, "CARGO_REGISTRY_TOKEN": "", "MERIDIAN_BOOTSTRAP_CRATES_TOKEN": "fixture-bootstrap"}
@@ -421,7 +430,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse(any(a[:2] in (["npm", "publish"], ["cargo", "publish"]) for a, _ in calls))
 
     def test_bad_npm_integrity_tarball_identity_and_dist_tag_reject(self):
-        name = "@savvifi/meridian-web"
+        name = "@meridian-ux/web"
         for field in ("integrity", "tarball", "name", "latest", "bytes"):
             self.registry.publish(name)
             url = self.registry.root(name)

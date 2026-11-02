@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Alert, Typography } from "@mui/material";
-import { useMeridian } from "@savvifi/meridian-web-react";
-import { createAdmissionGate } from "@savvifi/meridian-schemas/uiview";
+import { useMeridian } from "@meridian-ux/web-react";
+import { createAdmissionGate } from "@meridian-ux/schemas/uiview";
 
 /** Feedback for host-admitted mutations. The guarded invoker remains authoritative. */
 export function useActionFeedback(scope?: object) {

@@ -9,7 +9,7 @@ export default defineConfig({
   esbuild: { jsx: "automatic" },
   resolve: {
     alias: {
-      "@savvifi/meridian-schemas/uiview": schemasUiView,
+      "@meridian-ux/schemas/uiview": schemasUiView,
     },
   },
   test: {

@@ -1,4 +1,4 @@
-# @savvifi/meridian-chat
+# @meridian-ux/chat
 
 The **conversation / agent-chat** renderer of the [meridian](https://github.com/meridian-ux)
 renderer family. It renders a modality-neutral `meridian.ui.v1.Conversation`
@@ -10,8 +10,8 @@ Two renderer tiers, one wire:
 
 | tier | entry | deps | consumer |
 | --- | --- | --- | --- |
-| vanilla `<m-assistant-panel>` | `@savvifi/meridian-chat/web` + the Bazel `//:browser_bundle` | schemas, proto-ts, protobuf (bundled in browser ESM) | botnoc's static frontend |
-| React `<Conversation>` | `@savvifi/meridian-chat` | shared schema dependencies + `react` (optional peer) | a Next.js host + React hosts |
+| vanilla `<m-assistant-panel>` | `@meridian-ux/chat/web` + the Bazel `//:browser_bundle` | schemas, proto-ts, protobuf (bundled in browser ESM) | botnoc's static frontend |
+| React `<Conversation>` | `@meridian-ux/chat` | shared schema dependencies + `react` (optional peer) | a Next.js host + React hosts |
 
 The wire types (`src/wire.ts`) are **structural** (the proto3-JSON of
 `ConversationEvent`). Optional `Block.Field.display` metadata is decoded with
@@ -110,7 +110,7 @@ these lifecycle rules are not an authorization boundary.
 ## React usage
 
 ```tsx
-import { Conversation, CONVERSATION_CSS } from "@savvifi/meridian-chat";
+import { Conversation, CONVERSATION_CSS } from "@meridian-ux/chat";
 
 <style>{CONVERSATION_CSS}</style>
 <Conversation sseUrl="/api/noc-agent/view" turnUrl="/api/noc-agent/turn" />

@@ -3,7 +3,7 @@ load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
 package(default_visibility = ["//visibility:public"])
 
-# Links the npm deps (@savvifi/meridian-proto-ts + @savvifi/meridian-schemas +
+# Links the npm deps (@meridian-ux/proto-ts + @meridian-ux/schemas +
 # @bufbuild/protobuf, from the pnpm lockfile) into the workspace node_modules so
 # //src:core resolves them. The web-components toolkit is consumed by hosts as
 # the Bazel target //src:core (botnoc links it); it is not linked first-party here.
@@ -22,7 +22,7 @@ npm_package(
         "//packages/web/theme:css",
     ],
     replace_prefixes = {"web.package.json": "package.json"},
-    package = "@savvifi/meridian-web",
+    package = "@meridian-ux/web",
 )
 
 exports_files([

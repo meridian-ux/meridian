@@ -2,12 +2,12 @@
 // canonical ViewDescriptor/Struct bytes, not a second transport schema.
 import { create, fromBinary, toJson } from "@bufbuild/protobuf";
 import { StructSchema } from "@bufbuild/protobuf/wkt";
-import { ViewDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { StreamFrameSchema } from "@savvifi/meridian-proto-ts/proto/stream_pb.js";
+import { ViewDescriptorSchema } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { StreamFrameSchema } from "@meridian-ux/proto-ts/proto/stream_pb.js";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer } from "@savvifi/meridian-web-react";
+import { htmlKit, shadcnKit, MeridianProvider, ViewRenderer } from "@meridian-ux/web-react";
 import { muiKit } from "../src/mui_kit.js";
 import { renderView } from "../../web/src/uiview/view_renderer.js";
 import { disposePanel, type UiviewWasm } from "../../web/src/uiview/renderer.js";

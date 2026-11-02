@@ -1,5 +1,5 @@
 import { create } from "@bufbuild/protobuf";
-import { RowFilterSchema } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
+import { RowFilterSchema } from "@meridian-ux/proto-ts/proto/table_pb.js";
 import { expect, it } from "vitest";
 import { matchesRowFilter } from "./affordance_predicate.js";
 

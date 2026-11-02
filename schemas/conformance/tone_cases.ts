@@ -1,5 +1,5 @@
-import { ToneSchema } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
-import { PaletteSchema } from "@savvifi/meridian-proto-ts/proto/theme_pb.js";
+import { ToneSchema } from "@meridian-ux/proto-ts/proto/value_pb.js";
+import { PaletteSchema } from "@meridian-ux/proto-ts/proto/theme_pb.js";
 
 // Test-only, in-process metadata derived from canonical generated descriptors.
 // Expected roles do not call the production projection under test. A new Tone

@@ -17,10 +17,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import * as React from "react";
 
-import { CommandGroupSchema, CommandSchema, LaunchpadSchema } from "@savvifi/meridian-proto-ts/proto/command_palette_pb.js";
-import { NavNodeSchema, NavTreeSchema } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
-import { AppShellSchema } from "@savvifi/meridian-proto-ts/proto/shell_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+import { CommandGroupSchema, CommandSchema, LaunchpadSchema } from "@meridian-ux/proto-ts/proto/command_palette_pb.js";
+import { NavNodeSchema, NavTreeSchema } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
+import { AppShellSchema } from "@meridian-ux/proto-ts/proto/shell_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 import { AppShellView, usePageActions, displayKeys, SHELL_HOTKEYS } from "../src/shell/index.js";

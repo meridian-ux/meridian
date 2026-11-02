@@ -3,9 +3,9 @@ import { act, createElement, StrictMode } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { AffordanceSchema } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { InvocationCapabilities, InvocationHost } from "@savvifi/meridian-schemas/uiview";
+import { AffordanceSchema } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { InvocationCapabilities, InvocationHost } from "@meridian-ux/schemas/uiview";
 import type { ComponentKit } from "../src/component_kit.js";
 
 function deferred() {

@@ -6,7 +6,7 @@
 import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
 
-import { NavNodeSchema, NavTreeSchema } from "@savvifi/meridian-proto-ts/proto/nav_tree_pb.js";
+import { NavNodeSchema, NavTreeSchema } from "@meridian-ux/proto-ts/proto/nav_tree_pb.js";
 
 import type { AppShellSeams } from "../src/shell/config.js";
 import {

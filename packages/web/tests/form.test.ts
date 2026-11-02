@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { create, fromBinary, fromJson, toBinary, type JsonObject } from "@bufbuild/protobuf";
-import { PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { FormFieldSchema } from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { ValueTone, ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { FormFieldSchema } from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { ValueTone, ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import { expect, it, vi } from "vitest";
 import { renderPanel, disposePanel, type UiviewWasm } from "../src/uiview/renderer.js";
 const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };

@@ -9,16 +9,16 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { CatalogPanelSchema } from "@savvifi/meridian-proto-ts/proto/catalog_pb.js";
-import { ChoicePanelSchema } from "@savvifi/meridian-proto-ts/proto/choice_pb.js";
-import { ConnectFlowPanelSchema } from "@savvifi/meridian-proto-ts/proto/connect_flow_pb.js";
-import { CopyValuePanelSchema } from "@savvifi/meridian-proto-ts/proto/copy_value_pb.js";
-import { ValueType } from "@savvifi/meridian-proto-ts/proto/value_pb.js";
+import { CatalogPanelSchema } from "@meridian-ux/proto-ts/proto/catalog_pb.js";
+import { ChoicePanelSchema } from "@meridian-ux/proto-ts/proto/choice_pb.js";
+import { ConnectFlowPanelSchema } from "@meridian-ux/proto-ts/proto/connect_flow_pb.js";
+import { CopyValuePanelSchema } from "@meridian-ux/proto-ts/proto/copy_value_pb.js";
+import { ValueType } from "@meridian-ux/proto-ts/proto/value_pb.js";
 import {
   PanelDescriptorSchema,
   type PanelDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import type { ComponentKit } from "../src/component_kit.js";
 import { htmlKit } from "../src/html_kit.js";

@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
-import type { LlmPromptPanel } from "@savvifi/meridian-proto-ts/proto/llm_prompt_pb.js";
+import type { LlmPromptPanel } from "@meridian-ux/proto-ts/proto/llm_prompt_pb.js";
 import { FormEnumValues, FormFieldRow, FormRepeatedCounts, type FormFieldClasses } from "./form_fields.js";
 import { formDefaultsError, readFormFields } from "./form.js";
-import { hasMaskedField, renderPromptTemplate } from "@savvifi/meridian-schemas/uiview";
+import { hasMaskedField, renderPromptTemplate } from "@meridian-ux/schemas/uiview";
 import { MaskedMultiline } from "./masked_multiline.js";
 
 

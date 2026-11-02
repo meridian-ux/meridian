@@ -16,12 +16,12 @@ import {
   NestedFormSchema,
   RepeatedFieldSchema,
   TextInputSchema,
-} from "@savvifi/meridian-proto-ts/proto/form_pb.js";
-import { FormMode, FormPanelSchema, PanelDescriptorSchema } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import { RpcCallSchema } from "@savvifi/meridian-proto-ts/proto/rpc_pb.js";
-import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import { ViewRenderer } from "@savvifi/meridian-web-react";
-import type { RpcInvoker } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/form_pb.js";
+import { FormMode, FormPanelSchema, PanelDescriptorSchema } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import { RpcCallSchema } from "@meridian-ux/proto-ts/proto/rpc_pb.js";
+import { type ViewDescriptor, ViewDescriptorSchema, ViewKind } from "@meridian-ux/proto-ts/proto/view_pb.js";
+import { ViewRenderer } from "@meridian-ux/web-react";
+import type { RpcInvoker } from "@meridian-ux/schemas/uiview";
 
 import { MeridianMuiProvider } from "../src/provider.js";
 

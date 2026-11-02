@@ -9,15 +9,15 @@
 import { createContext, useContext, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-import type { PanelDescriptor } from "@savvifi/meridian-proto-ts/proto/panel_pb.js";
-import type { TablePanel } from "@savvifi/meridian-proto-ts/proto/table_pb.js";
-import { ActionPlacement } from "@savvifi/meridian-proto-ts/proto/view_pb.js";
+import type { PanelDescriptor } from "@meridian-ux/proto-ts/proto/panel_pb.js";
+import type { TablePanel } from "@meridian-ux/proto-ts/proto/table_pb.js";
+import { ActionPlacement } from "@meridian-ux/proto-ts/proto/view_pb.js";
 import type {
   Slot,
   ViewDescriptor,
-} from "@savvifi/meridian-proto-ts/proto/view_pb.js";
-import type { Affordance } from "@savvifi/meridian-proto-ts/proto/affordance_pb.js";
-import { normalizeViewActions, type NormalizedAction } from "@savvifi/meridian-schemas/uiview";
+} from "@meridian-ux/proto-ts/proto/view_pb.js";
+import type { Affordance } from "@meridian-ux/proto-ts/proto/affordance_pb.js";
+import { normalizeViewActions, type NormalizedAction } from "@meridian-ux/schemas/uiview";
 
 import { PanelRenderer } from "./panel_renderer.js";
 import { useMeridian } from "./provider.js";
