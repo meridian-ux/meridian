@@ -77,6 +77,20 @@ automation, publication and deployment require their separate approvals.
 SwiftUI remains the approved preview with explicit unverified coverage; full
 native parity is not a v1 gate. The generated matrix below retains those limits.
 
+### RC-first publication preparation — November 2, 2026
+
+The owner requested an RC-first release so actual registry consumers can be
+verified before stable publication. The current source prepares all seven npm
+packages and three Rust crates at `1.0.0-rc.1`, with exact first-party pins.
+Npm prereleases use `next`; stable `1.0.0` remains separately gated. The protected
+release environment and seven-day bootstrap credentials are configured, while
+both publication enable flags remain absent. This is preparation, not a tag or
+registry publication. The read-only post-publication probe and stable acceptance
+criteria are in [DISTRIBUTION.md](DISTRIBUTION.md#rc-first-publication-and-stable-acceptance).
+This checkpoint supersedes earlier unconfigured-environment and literal-stable
+metadata statements; it does not close #16 or #63 or authorize private integration,
+live automation, production cutover or deployment.
+
 ### Historical acceptance checkpoint — October 17, 2026
 
 The conformance corpus (#9) and theme/design-language contract (#13, including

@@ -1,6 +1,6 @@
 {
   "name": "@meridian-ux/chat",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.1",
   "type": "module",
   "description": "The conversation / agent-chat renderer of the meridian renderer family: renders a meridian.ui.v1 Conversation stream over SSE + POST. Ships the vanilla <m-assistant-panel> web component and a React <Conversation>, with shared schema value formatting.",
   "meridian": {
@@ -47,8 +47,8 @@
     }
   },
   "dependencies": {
-    "@meridian-ux/schemas": "1.0.0",
-    "@meridian-ux/proto-ts": "1.0.0",
+    "@meridian-ux/schemas": "1.0.0-rc.1",
+    "@meridian-ux/proto-ts": "1.0.0-rc.1",
     "@bufbuild/protobuf": "2.12.1"
   }
 }
