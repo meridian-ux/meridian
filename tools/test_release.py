@@ -17,8 +17,9 @@ import release_registry
 class FixtureRegistry(release_registry.Registry):
     """Real registry parsers/checksums, with HTTP and upload commands replaced."""
 
-    def __init__(self, artifacts):
+    def __init__(self, artifacts, version="1.0.0"):
         self.artifacts = artifacts
+        self.version = version
         self.responses = {}
         self.reads = []
         super().__init__(reader=self.read)
@@ -46,21 +47,22 @@ class FixtureRegistry(release_registry.Registry):
             self.responses.pop(self.root(name), None)
 
     def publish(self, name):
+        version = self.version
         if name.startswith("@"):
             short = name.split("/")[-1]
-            data = (self.artifacts / f"meridian-ux-{short}-1.0.0.tgz").read_bytes()
-            url = f"https://registry.npmjs.org/{name}/-/{short}-1.0.0.tgz"
-            package = {"name": name, "version": "1.0.0", "dist": {"tarball": url,
+            data = (self.artifacts / f"meridian-ux-{short}-{version}.tgz").read_bytes()
+            url = f"https://registry.npmjs.org/{name}/-/{short}-{version}.tgz"
+            package = {"name": name, "version": version, "dist": {"tarball": url,
                        "integrity": "sha512-" + base64.b64encode(hashlib.sha512(data).digest()).decode()}}
-            document = {"name": name, "versions": {"1.0.0": package}, "dist-tags": {"latest": "1.0.0"}}
+            document = {"name": name, "versions": {version: package}, "dist-tags": {"next" if "-" in version else "latest": version}}
             self.responses[self.root(name)] = json.dumps(document).encode()
         else:
             self.known(name)
-            data = (self.artifacts / f"{name}-1.0.0.crate").read_bytes()
-            url = f"https://static.crates.io/crates/{name}/{name}-1.0.0.crate"
-            document = {"version": {"crate": name, "num": "1.0.0", "yanked": False,
+            data = (self.artifacts / f"{name}-{version}.crate").read_bytes()
+            url = f"https://static.crates.io/crates/{name}/{name}-{version}.crate"
+            document = {"version": {"crate": name, "num": version, "yanked": False,
                                    "checksum": hashlib.sha256(data).hexdigest()}}
-            self.responses[self.root(name) + "/1.0.0"] = json.dumps(document).encode()
+            self.responses[self.root(name) + "/" + version] = json.dumps(document).encode()
         self.responses[url] = data
 
 
@@ -72,10 +74,10 @@ def archive(path, member, text):
         package.addfile(info, io.BytesIO(data))
 
 
-def workspace(extra=()):
+def workspace(extra=(), version="1.0.0"):
     names = [*release.CRATES, *extra]
     return json.dumps({"workspace_members": names,
-                       "packages": [{"id": n, "name": n, "version": "1.0.0", "publish": None} for n in names]})
+                       "packages": [{"id": n, "name": n, "version": version, "publish": None} for n in names]})
 
 
 class ReleaseTests(unittest.TestCase):
@@ -86,6 +88,9 @@ class ReleaseTests(unittest.TestCase):
         self.artifacts = self.root / "artifacts"
         self.artifacts.mkdir()
         self.version = "1.0.0"
+        version_patch = patch.object(release, "module_version", side_effect=lambda: self.version)
+        version_patch.start()
+        self.addCleanup(version_patch.stop)
         for name, _ in release.NPM:
             self.npm(name)
         for name in release.CRATES:
@@ -101,8 +106,8 @@ class ReleaseTests(unittest.TestCase):
         self.registry = FixtureRegistry(self.artifacts)
 
     def npm(self, short, **extra):
-        data = {"name": f"@meridian-ux/{short}", "version": "1.0.0", **extra}
-        archive(self.artifacts / f"meridian-ux-{short}-1.0.0.tgz", "package/package.json", json.dumps(data))
+        data = {"name": f"@meridian-ux/{short}", "version": self.version, **extra}
+        archive(self.artifacts / f"meridian-ux-{short}-{self.version}.tgz", "package/package.json", json.dumps(data))
 
     def sums(self):
         (self.artifacts / "SHA256SUMS").write_text(release.checksums(self.artifacts, self.version))
@@ -111,7 +116,7 @@ class ReleaseTests(unittest.TestCase):
         target = self.root / "rust"
         (target / "package/tmp-crate").mkdir(parents=True, exist_ok=True)
         for name in release.CRATES:
-            filename = f"{name}-1.0.0.crate"
+            filename = f"{name}-{self.version}.crate"
             release.rust_archive(target, filename).write_bytes((self.artifacts / filename).read_bytes())
         return target
 
@@ -119,7 +124,7 @@ class ReleaseTests(unittest.TestCase):
         def execute(args, **kwargs):
             calls.append((args, kwargs))
             if args[:2] == ["cargo", "metadata"]:
-                return workspace()
+                return workspace(version=self.version)
             if args[:2] == ["git", "rev-parse"]:
                 return "a" * 40 + "\n"
             if args[:2] == ["cargo", "publish"] and "--dry-run" not in args:
@@ -127,7 +132,7 @@ class ReleaseTests(unittest.TestCase):
                     if item == "--package":
                         self.registry.publish(args[i + 1])
             if args[:2] == ["npm", "publish"]:
-                short = Path(args[2]).name.removeprefix("meridian-ux-").removesuffix("-1.0.0.tgz")
+                short = Path(args[2]).name.removeprefix("meridian-ux-").removesuffix(f"-{self.version}.tgz")
                 self.registry.publish(f"@meridian-ux/{short}")
             return ""
         return execute
@@ -137,6 +142,100 @@ class ReleaseTests(unittest.TestCase):
                 "MERIDIAN_RELEASE_BOOTSTRAP_ENABLED": "true", "MERIDIAN_RELEASE_BOOTSTRAP_REQUESTED": "true",
                 "MERIDIAN_BOOTSTRAP_NPM_TOKEN": "fixture-npm-credential",
                 "MERIDIAN_BOOTSTRAP_CRATES_TOKEN": "fixture-crate-credential"}
+
+    def use_rc_artifacts(self):
+        self.version = "1.0.0-rc.1"
+        for path in self.artifacts.iterdir():
+            path.unlink()
+        for short, _ in release.NPM:
+            self.npm(short, dependencies={"@meridian-ux/proto-ts": self.version} if short != "proto-ts" else {})
+        for name in release.CRATES:
+            text = f'[package]\nname = "{name}"\nversion = "{self.version}"\n'
+            if name == "meridian-tui":
+                text += f'[dependencies.meridian-uiview]\nversion = "={self.version}"\n'
+            archive(self.artifacts / f"{name}-{self.version}.crate", f"{name}-{self.version}/Cargo.toml", text)
+        self.sums()
+        self.env["GITHUB_REF"] = "refs/tags/v" + self.version
+        self.registry = FixtureRegistry(self.artifacts, self.version)
+
+    def test_rc_bootstrap_uses_next_and_exact_prerelease_dependencies(self):
+        self.use_rc_artifacts()
+        self.registry.new_names()
+        calls = []
+        release.publish(self.artifacts, self.target(), env=self.bootstrap_env(), bootstrap=True,
+                        runner=self.runner(calls), registry=self.registry)
+        npm = [args for args, _ in calls if args[:2] == ["npm", "publish"]]
+        self.assertEqual(len(npm), 7)
+        for args in npm:
+            self.assertEqual(args[args.index("--tag") + 1], "next")
+            self.assertTrue(args[2].endswith("-1.0.0-rc.1.tgz"))
+        for name in release.FIRST_PARTY_NAMES:
+            document = json.loads(self.registry.responses[self.registry.root(name)])
+            self.assertEqual(document["dist-tags"], {"next": self.version})
+        # A separately approved resume of this same RC must upload nothing.
+        calls.clear()
+        release.publish(self.artifacts, self.target(), env=self.bootstrap_env(), bootstrap=True,
+                        runner=self.runner(calls), registry=self.registry)
+        self.assertFalse(any(args[:2] in (["npm", "publish"], ["cargo", "publish"]) for args, _ in calls))
+
+    def test_rc_wrong_dist_tag_rejects_and_stable_tag_cannot_authorize_rc(self):
+        self.use_rc_artifacts()
+        name = "@meridian-ux/web"
+        self.registry.publish(name)
+        document = json.loads(self.registry.responses[self.registry.root(name)])
+        document["dist-tags"] = {"latest": self.version}
+        self.registry.responses[self.registry.root(name)] = json.dumps(document).encode()
+        with self.assertRaisesRegex(ValueError, "npm next differs"):
+            release.registry_state(self.artifacts, self.version, self.registry)
+        calls = []
+        with self.assertRaisesRegex(ValueError, "matching version tag"):
+            release.publish(self.artifacts, self.target(),
+                            env={**self.bootstrap_env(), "GITHUB_REF": "refs/tags/v1.0.0"}, bootstrap=True,
+                            runner=self.runner(calls), registry=self.registry)
+        self.assertEqual(calls, [])
+        for version in ("1.0.0-rc.2", "1.0.0-beta.1", "1.0.1", "1.1.0"):
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "initial 1.0.0 boundary"):
+                release.authorize({**self.bootstrap_env(), "GITHUB_REF": "refs/tags/v" + version}, version, True)
+
+    def test_post_publication_probe_requires_all_ten_registry_versions(self):
+        self.use_rc_artifacts()
+        for name in [*release.FIRST_PARTY_NAMES, *release.CRATES[:-1]]:
+            self.registry.publish(name)
+        with patch.object(release, "Registry", return_value=self.registry), \
+                patch.object(release, "consumer") as consumer, patch.object(release, "run") as runner:
+            with self.assertRaisesRegex(ValueError, "all ten versions"):
+                release.verify_published(self.artifacts, self.root / "post")
+        consumer.assert_not_called()
+        runner.assert_not_called()
+
+    def test_post_publication_probe_uses_registry_specs_and_checks_rust_origin(self):
+        self.use_rc_artifacts()
+        for name in [*release.FIRST_PARTY_NAMES, *release.CRATES]:
+            self.registry.publish(name)
+        metadata = {"packages": [{"name": name, "version": self.version,
+                    "source": "registry+https://github.com/rust-lang/crates.io-index"} for name in release.CRATES]}
+        for source in ("registry+https://github.com/rust-lang/crates.io-index", None, "git+https://example.invalid/repo"):
+            metadata["packages"][0]["source"] = source
+            calls = []
+            def runner(args, **kwargs):
+                calls.append(args)
+                return json.dumps(metadata) if args[:2] == ["cargo", "metadata"] else ""
+            with self.subTest(source=source), patch.object(release, "Registry", return_value=self.registry), \
+                    patch.object(release, "consumer") as consumer, patch.object(release, "run", side_effect=runner):
+                work = self.root / f"post-{len(list(self.root.iterdir()))}"
+                if source is None or source.startswith("git+"):
+                    with self.assertRaisesRegex(ValueError, "different source or version"):
+                        release.verify_published(self.artifacts, work)
+                    self.assertEqual(len(calls), 1)
+                else:
+                    release.verify_published(self.artifacts, work)
+                    self.assertEqual(calls[-1][:3], ["cargo", "check", "--locked"])
+                    manifest = (work / "rust/Cargo.toml").read_text()
+                    for name in release.CRATES:
+                        self.assertIn(f'{name} = "={self.version}"', manifest)
+                consumer.assert_called_once_with(
+                    [f"@meridian-ux/{short}@{self.version}" for short, _ in release.NPM], work / "npm", registry=True)
+                self.assertFalse(any(args[:2] in (["npm", "publish"], ["cargo", "publish"]) for args in calls))
 
     def test_complete_set_has_seven_npm_packages_and_three_crates(self):
         self.assertEqual(len(release.filenames(self.version)), 10)

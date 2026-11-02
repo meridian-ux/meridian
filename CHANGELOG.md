@@ -1,8 +1,8 @@
 # Change summary
 
-## Unreleased — 1.0.0 candidate
+## Unreleased — 1.0.0-rc.1 candidate
 
-This unreleased major-1 source line uses `1.0.0` metadata and the canonical
+This unreleased major-1 source line uses `1.0.0-rc.1` metadata and the canonical
 Affordance removal contract. Required node CI explicitly selects the reviewed
 major-1 FILE reference; both old-line FILE rejections remain required evidence.
 This is not a tag, registry publication or deployment announcement. The prior

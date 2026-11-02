@@ -7,7 +7,7 @@ announce a release, reserve registry names, configure credentials, publish
 packages, or authorize a deployment.
 
 All artifacts follow `MODULE.bazel` and the Cargo workspace version. This
-unreleased source line prepares **1.0.0** for the canonical removal contract.
+unreleased source line prepares **1.0.0-rc.1** for the canonical removal contract.
 Required node CI explicitly selects the reviewed major-1 FILE reference while
 preserving both frozen old-line references and their expected rejection reports.
 The earlier 1.0.0-alpha.1 preparation supplied verification evidence without an
@@ -17,6 +17,50 @@ to an old reader. No registry artifact or service deployment changes merely
 because source policy is selected. Tags, uploads, private image/chart publication,
 production consumer cutover and deployment require their own approval. The
 integrated release artifacts require exact-source packaging and detached checks.
+
+## RC-first publication and stable acceptance
+
+The first proposed public publication is **1.0.0-rc.1**, not stable 1.0.0. All
+seven npm packages and all three crates use the same RC version, with exact
+first-party dependency pins. Npm publishes this version with `--tag next` and
+verifies that tag on readback; it does not deliberately assign `latest` to the
+RC. Crates.io uses the prerelease version rather than an npm-style channel;
+consumers must explicitly select the RC, preferably with `=1.0.0-rc.1`.
+
+Preparation and merging do not authorize a version tag, bootstrap flag, upload,
+private integration, live automation, production cutover or deployment. A first
+RC still creates public registry identities and immutable version contents.
+The protected environment's independent review remains required. The exact
+bootstrap version allowlist is `1.0.0-rc.1` and `1.0.0`; later RCs require normal
+existing-name publication setup or a separately reviewed bootstrap change.
+
+After separately approved publication, retain the original same-run archives and
+run this read-only check from the exact tagged checkout:
+
+```sh
+python3 tools/release.py verify-published --artifacts /path/to/original-release-packages
+```
+
+It requires all ten versions to exist, compares canonical downloaded registry
+bytes and checksums against those retained archives, verifies npm `next`, and
+installs all seven exact-version npm registry specs in a fresh directory. It
+checks the resolved dependency graph, TypeScript imports, browser bundling,
+browser-DOM loading and a single proto-ts root. A separate Rust consumer resolves
+all three exact-version crates from crates.io, rejects a path/git source or
+version mismatch, and compiles with its generated lockfile. It performs no
+publication, tag or registry configuration. Do not count these checks as passed
+until the RC actually exists and this command succeeds. Existing preparation
+continues to test local archives before any upload.
+
+Stable publication requires a recorded passing RC registry probe, review of any
+post-publication findings, explicit supported-host testing with that RC, and a
+separate owner approval. Private or production host tests need their existing
+integration/deployment authority. The probe does not prove every host or renderer
+behavior; SwiftUI remains a preview. Fixes use a new RC version with a new reviewed
+source and fresh artifacts. Stable 1.0.0 then gets its own metadata, exact pins,
+checks, tag and immutable artifacts; moving the RC's dist-tag does not turn its
+contents into stable 1.0.0. Never overwrite or blindly republish an RC. Ambiguous
+or partial uploads retain the existing stop-and-approved-resume policy.
 
 ## npm namespace migration for v1
 
@@ -238,7 +282,8 @@ after the separately authorized release before announcing completion.
 Both registries' documented trusted-publisher setup requires an existing package.
 The initial new-name scope is all seven `@meridian-ux` npm packages in the
 inventory above plus **`meridian-uiview`, `theme-proto`, and `meridian-tui` at
-1.0.0**. Bootstrap is a distinct, initially disabled token-authenticated path,
+1.0.0-rc.1**. The reviewed stable boundary remains `1.0.0`, with separate
+publication approval. Bootstrap is a distinct, initially disabled token-authenticated path,
 not a fallback when OIDC fails. It cannot publish the historical
 `@savvifi/meridian-*` packages, unrelated names, or another version. Preparing
 or merging this implementation does not authorize its execution.
@@ -261,7 +306,7 @@ and the full seven-plus-three package inventory remain mandatory.
 For a future owner-approved first publication, all of these are prerequisites:
 
 1. Verify npm scope creation authority, the exact crates.io owner, availability of
-   all ten names, and the reviewed 1.0.0 source/tag and same-run artifact set.
+   all ten names, and the reviewed 1.0.0-rc.1 source/tag and same-run artifact set.
    A bootstrap name that already exists without the exact approved version is a
    conflict requiring owner review, not permission to publish to it.
 2. Configure the protected `meridian-release` environment with required reviewers,
@@ -275,7 +320,7 @@ For a future owner-approved first publication, all of these are prerequisites:
    credential authority needs explicit review before provisioning. Do not reuse
    the roadmap App key or any unrelated credential.
 4. Separately approve `MERIDIAN_RELEASE_BOOTSTRAP_ENABLED=true` and a manual
-   matching `v1.0.0` tag dispatch with only `bootstrap: true`. Bootstrap checks its
+   matching `v1.0.0-rc.1` tag dispatch with only `bootstrap: true`. Bootstrap checks its
    own enable/request flags, official repository, manual event, tag, clean exact
    source SHA and main ancestry. Normal publication's enable flag does not enable
    bootstrap, and bootstrap's flag does not enable normal publication.

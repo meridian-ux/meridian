@@ -156,7 +156,7 @@ reference for major-1 FILE evaluation; historical references remain audit inputs
 New source revisions require their own checks rather than inheriting
 8727ba0's CI result.
 
-Literal 1.0.0 metadata now covers the module, three Rust crates and all seven
+The current 1.0.0-rc.1 preparation metadata covers the module, three Rust crates and all seven
 generated npm manifests. Final-version Rust archives and all seven installed
 npm packages have candidate verification; this does not publish them or verify
 a later integration revision. Existing main's scoped, owner-gated automation is

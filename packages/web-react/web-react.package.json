@@ -1,6 +1,6 @@
 {
   "name": "@meridian-ux/web-react",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.1",
   "meridian": {
     "rendererIds": [
       "web-react",
@@ -33,8 +33,8 @@
   ],
   "dependencies": {
     "@bufbuild/protobuf": "2.12.1",
-    "@meridian-ux/proto-ts": "1.0.0",
-    "@meridian-ux/schemas": "1.0.0"
+    "@meridian-ux/proto-ts": "1.0.0-rc.1",
+    "@meridian-ux/schemas": "1.0.0-rc.1"
   },
   "peerDependencies": {
     "react": "^19.0.0",

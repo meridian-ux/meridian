@@ -117,11 +117,12 @@ def verify(directory, version):
     return directory
 
 
-def consumer(archives, work):
+def consumer(archives, work, registry=False):
     """Install real archives, check their dependency graph, types and browser imports."""
     work.mkdir()
     (work / "package.json").write_text('{"private":true,"type":"module"}\n')
-    run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund", *map(str, archives),
+    run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund",
+         *(["--registry", "https://registry.npmjs.org"] if registry else []), *map(str, archives),
          "typescript@5.7.3", "esbuild@0.21.5", "jsdom@25.0.1", "react@19.2.7", "react-dom@19.2.7",
          "@types/react@19.2.17", "@types/react-dom@19.2.3"], work)
     run(["npm", "ls", "--all"], work)
@@ -221,7 +222,8 @@ def authorize(env, version, bootstrap=False):
             and env.get(f"MERIDIAN_RELEASE_{mode}_REQUESTED") == "true", "publication is not enabled and requested")
     require(env.get(f"MERIDIAN_RELEASE_{other}_REQUESTED") != "true", "bootstrap and publish are mutually exclusive")
     if bootstrap:
-        require(version == "1.0.0", "bootstrap is restricted to the reviewed initial 1.0.0 boundary")
+        require(version in {"1.0.0-rc.1", "1.0.0"},
+                "bootstrap is restricted to the reviewed initial 1.0.0 boundary (rc.1 or stable)")
 
 
 def compare_crates(directory, target, version):
@@ -323,10 +325,36 @@ def publish(directory, target, env=None, runner=run, registry=None, bootstrap=Fa
     print(f"Verified {'bootstrap' if bootstrap else 'release'} scope; uploaded only {len(plan)} missing versions.")
 
 
+def verify_published(directory, work):
+    """Read-only registry proof plus fresh exact-version consumers; never upload."""
+    version = release_version()
+    directory = verify(directory, version)
+    state = registry_state(directory, version)
+    require(all(item.published for item in state.values()), "all ten versions must be published before consumer verification")
+    # These are registry package specs, not local archives or workspace links.
+    consumer([f"@meridian-ux/{short}@{version}" for short, _ in NPM], work / "npm", registry=True)
+    rust = work / "rust"
+    (rust / "src").mkdir(parents=True)
+    dependencies = "".join(f'{name} = "={version}"\n' for name in CRATES)
+    (rust / "Cargo.toml").write_text(
+        '[package]\nname = "meridian-registry-consumer"\nversion = "0.0.0"\nedition = "2021"\npublish = false\n'
+        '[workspace]\n[dependencies]\n' + dependencies)
+    (rust / "src/main.rs").write_text(
+        'use meridian_uiview as _;\nuse theme_proto as _;\nuse meridian_tui as _;\nfn main() {}\n')
+    data = json.loads(run(["cargo", "metadata", "--manifest-path", str(rust / "Cargo.toml"),
+                           "--format-version", "1"], capture=True))
+    first_party = [p for p in data["packages"] if p["name"] in CRATES]
+    require(len(first_party) == len(CRATES) and {p["name"] for p in first_party} == set(CRATES)
+            and all(p["version"] == version and p.get("source") == "registry+https://github.com/rust-lang/crates.io-index"
+                    for p in first_party), "Rust registry consumer resolved a different source or version")
+    run(["cargo", "check", "--locked", "--manifest-path", str(rust / "Cargo.toml")])
+    print(f"Verified registry bytes and fresh exact-version npm/Rust consumers at {version}.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("prepare", "verify", "authorize", "authorize-bootstrap", "registry-plan",
-                                           "preflight-publish", "preflight-bootstrap", "rehearse-rust", "publish", "bootstrap"))
+                                           "preflight-publish", "preflight-bootstrap", "rehearse-rust", "publish", "bootstrap", "verify-published"))
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--rust-target", type=Path)
     args = parser.parse_args()
@@ -335,7 +363,10 @@ def main():
         return
     version = release_version()
     verify(args.artifacts, version)
-    if args.command in ("authorize", "authorize-bootstrap", "preflight-publish", "preflight-bootstrap"):
+    if args.command == "verify-published":
+        with tempfile.TemporaryDirectory(prefix="meridian-registry-consumer-") as temporary:
+            verify_published(args.artifacts, Path(temporary))
+    elif args.command in ("authorize", "authorize-bootstrap", "preflight-publish", "preflight-bootstrap"):
         bootstrap = args.command.endswith("bootstrap")
         authorize(os.environ, version, bootstrap)
         source_identity(os.environ)
