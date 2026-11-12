@@ -117,14 +117,14 @@ def verify(directory, version):
     return directory
 
 
-def consumer(archives, work, registry=False):
+def consumer(archives, work, registry=False, env=None):
     """Install real archives, check their dependency graph, types and browser imports."""
     work.mkdir()
     (work / "package.json").write_text('{"private":true,"type":"module"}\n')
     run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund",
          *(["--registry", "https://registry.npmjs.org"] if registry else []), *map(str, archives),
          "typescript@5.7.3", "esbuild@0.21.5", "jsdom@25.0.1", "react@19.2.7", "react-dom@19.2.7",
-         "@types/react@19.2.17", "@types/react-dom@19.2.3"], work)
+         "@types/react@19.2.17", "@types/react-dom@19.2.3"], work, env=env)
     run(["npm", "ls", "--all"], work)
     imports = "\n".join(f"import * as p{i} from '@meridian-ux/{name}';" for i, (name, _) in enumerate(NPM))
     (work / "consumer.ts").write_text(imports + "\nexport const packages = [" + ",".join(f"p{i}" for i in range(7)) + "];\n")

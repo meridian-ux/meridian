@@ -1,0 +1,77 @@
+name: Disposable staging registries
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/staging-registries.yml
+      - tools/staging_*
+      - tools/release.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CANDIDATE: 080b586335fc988c9e4ddf2350bde3f630297257
+  CANDIDATE_ARTIFACT: "13195544735"
+  CANDIDATE_DIGEST: 17c8af3c25afc67aafaeb4652595dafd971a53324b6d6540d3fd04d5289360c3
+
+jobs:
+  stage:
+    if: github.repository == 'meridian-ux/meridian'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - name: Verify the retained candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir "$RUNNER_TEMP/staging-evidence"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$CANDIDATE_ARTIFACT/zip" > "$RUNNER_TEMP/candidate.zip"
+          echo "$CANDIDATE_DIGEST  $RUNNER_TEMP/candidate.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/candidate.zip" -d "$RUNNER_TEMP/staging-evidence/candidate"
+          test "$(git -C candidate rev-parse HEAD)" = "$CANDIDATE"
+          {
+            echo "Candidate: $CANDIDATE"
+            echo "Tree: $(git -C candidate rev-parse HEAD^{tree})"
+            echo "Source artifact: $CANDIDATE_ARTIFACT"
+            echo "Source ZIP SHA-256: $CANDIDATE_DIGEST"
+            echo "Workflow SHA: $GITHUB_SHA"
+            echo "Run: $GITHUB_RUN_ID attempt $GITHUB_RUN_ATTEMPT"
+          } | tee "$RUNNER_TEMP/staging-evidence/source.txt"
+      - name: Rehearse the original crates.io packages
+        working-directory: candidate
+        run: |
+          python3 tools/release.py rehearse-rust \
+            --artifacts "$RUNNER_TEMP/staging-evidence/candidate" \
+            --rust-target "$RUNNER_TEMP/staging-rehearsal" \
+            2>&1 | tee "$RUNNER_TEMP/staging-evidence/crates-io.log"
+      - name: Exercise teardown after a forced failure
+        run: bash tools/staging_registries.sh failure-probe
+      - name: Upload, download, install and run staged packages
+        run: bash tools/staging_registries.sh stage
+      - name: Retain staging evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/staging-evidence/
+          retention-days: 30
+          if-no-files-found: error
