@@ -46,9 +46,10 @@ packages:
 log: { type: stdout, format: pretty, level: warn }
 web: { enable: false }
 YAML
-    export STAGING_CARGO_TOKEN=$(openssl rand -hex 32)
+    STAGING_CARGO_TOKEN=$(openssl rand -hex 32)
+    KELLNR_SETUP__ADMIN_PWD=$(openssl rand -hex 32)
+    export STAGING_CARGO_TOKEN KELLNR_SETUP__ADMIN_PWD
     export KELLNR_SETUP__ADMIN_TOKEN="$STAGING_CARGO_TOKEN"
-    export KELLNR_SETUP__ADMIN_PWD=$(openssl rand -hex 32)
     echo "::add-mask::$STAGING_CARGO_TOKEN"
     echo "::add-mask::$KELLNR_SETUP__ADMIN_PWD"
     docker run -d --name "$npm_container" -p 127.0.0.1:4873:4873 \
@@ -58,7 +59,7 @@ YAML
         --tmpfs /staging:mode=1777 \
         -e KELLNR_SETUP__ADMIN_TOKEN -e KELLNR_SETUP__ADMIN_PWD \
         -e KELLNR_REGISTRY__DATA_DIR=/staging -e KELLNR_ORIGIN__HOSTNAME=127.0.0.1 \
-        -e KELLNR_DOCS__ENABLED=false "$kellnr"
+        -e KELLNR_DOCS__ENABLED=false -e KELLNR_PROXY__ENABLED=false "$kellnr"
     unset KELLNR_SETUP__ADMIN_TOKEN KELLNR_SETUP__ADMIN_PWD
     for url in http://127.0.0.1:4873/-/ping http://127.0.0.1:8000/api/v1/crates/config.json; do
         curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 1 --max-time 5 "$url" >/dev/null

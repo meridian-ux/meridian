@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 
 const dom = new JSDOM("<!doctype html><body></body>", { url: "https://staging.invalid/" });
-for (const key of ["window", "document", "navigator", "HTMLElement", "customElements", "HTMLCanvasElement", "MutationObserver", "CustomEvent"]) {
+for (const key of ["window", "document", "navigator", "HTMLElement", "customElements", "HTMLCanvasElement",
+  "HTMLTextAreaElement", "HTMLInputElement", "HTMLSelectElement", "MutationObserver", "CustomEvent"]) {
   Object.defineProperty(globalThis, key, { value: dom.window[key], configurable: true });
 }
 dom.window.HTMLCanvasElement.prototype.getContext = () => null;
@@ -16,7 +17,7 @@ const { ViewDescriptorSchema } = await import("@meridian-ux/proto-ts/proto/view_
 const { PanelDescriptorSchema } = await import("@meridian-ux/proto-ts/proto/panel_pb.js");
 const { staticViewText } = await import("@meridian-ux/schemas/uiview");
 const { renderView, disposeView } = await import("@meridian-ux/web");
-const { reactWebRenderer } = await import("@meridian-ux/web-react");
+const { reactWebRenderer, MeridianProvider, htmlKit } = await import("@meridian-ux/web-react");
 const { muiKit } = await import("@meridian-ux/mui-kit");
 const { Conversation } = await import("@meridian-ux/chat");
 const { Launchpad } = await import("@meridian-ux/launchpad");
@@ -69,6 +70,7 @@ await renderView({ root: web, view, wasm: {}, context, invoker, admission,
 assert.match(web.textContent, /Record request/);
 assert.equal(calls.length, 0);
 const input = web.querySelector('input[name="name"]');
+assert(input, web.textContent);
 assert.equal(input.value, "before");
 input.value = "after";
 web.querySelector("form").dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
@@ -91,9 +93,9 @@ chatRoot.unmount();
 
 const launchpad = mount();
 const launchpadRoot = createRoot(launchpad);
-launchpadRoot.render(createElement(Launchpad, { open: true, onClose: () => {},
+launchpadRoot.render(createElement(MeridianProvider, { kit: htmlKit, invoker, adhoc: {} }, createElement(Launchpad, { open: true, onClose: () => {},
   descriptor: create(LaunchpadSchema, { groups: [{ id: "commands", commands: [{ id: "open", title: "Open staging" }] }] }),
-}));
+})));
 await until(() => document.querySelector('[role="option"]')?.textContent.includes("Open staging"),
   "Installed launchpad did not render a command");
 launchpadRoot.unmount();

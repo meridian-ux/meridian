@@ -48,7 +48,6 @@ def npm_stage(candidate, version, work, sums):
         "type": "user", "roles": [],
     }).encode(), {"Content-Type": "application/json"}))
     token = response["token"]
-    print(f"::add-mask::{token}", flush=True)
     config.write_text(f"@meridian-ux:registry={NPM_URL}/\n//127.0.0.1:4873/:_authToken={token}\n")
     for short, _ in NPM:
         name = f"@meridian-ux/{short}"
@@ -154,6 +153,8 @@ def cargo_stage(candidate, version, work, evidence, sums):
 
 def main(work, evidence):
     # Read the version from the checked-out candidate rather than the PR's source.
+    version = run([sys.executable, "-c", "from release import release_version; print(release_version())"],
+                  ROOT / "candidate/tools", capture=True).strip()
     candidate = verify(evidence / "candidate", version)
     for name in CRATES:
         file = f"{name}-{version}"
