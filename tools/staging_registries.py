@@ -150,7 +150,8 @@ def cargo_stage(candidate, version, work, evidence, sums):
     for name in CRATES:
         matches = [p for p in packages if p["name"] == name]
         require(len(matches) == 1 and matches[0]["version"] == version
-                and matches[0]["source"] == "registry+" + CARGO_INDEX, f"unexpected Cargo source: {name}")
+                and matches[0]["source"] == CARGO_INDEX,
+                f"unexpected Cargo source or version for {name}: {[(p['source'], p['version']) for p in matches]}")
     print(f"All three Rust crates resolved from Kellnr at {version}.", flush=True)
     run(["cargo", "run", "--locked"], app, env=env)
 
