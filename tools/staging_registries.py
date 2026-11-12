@@ -71,6 +71,9 @@ def npm_stage(candidate, version, work, sums):
         entries = [v for k, v in lock.items() if k == key or k.endswith("/" + key)]
         require(len(entries) == 1 and entries[0]["version"] == version
                 and entries[0]["resolved"].startswith(NPM_URL + "/"), f"unexpected npm source: {short}")
+    print(f"All seven npm packages resolved from Verdaccio at {version}.", flush=True)
+    shutil.copyfile(ROOT / "candidate/packages/mui-kit/harness/proto-viewdescriptors.json",
+                    app / "projector-catalog.json")
     shutil.copyfile(ROOT / "tools/staging_browser.mjs", app / "staging_browser.mjs")
     run(["node", "node_modules/esbuild/bin/esbuild", "staging_browser.mjs", "--bundle",
          "--platform=browser", "--format=esm", "--external:jsdom", "--external:node:*",
@@ -148,6 +151,7 @@ def cargo_stage(candidate, version, work, evidence, sums):
         matches = [p for p in packages if p["name"] == name]
         require(len(matches) == 1 and matches[0]["version"] == version
                 and matches[0]["source"] == "registry+" + CARGO_INDEX, f"unexpected Cargo source: {name}")
+    print(f"All three Rust crates resolved from Kellnr at {version}.", flush=True)
     run(["cargo", "run", "--locked"], app, env=env)
 
 

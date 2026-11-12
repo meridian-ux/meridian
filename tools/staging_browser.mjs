@@ -11,10 +11,9 @@ dom.window.HTMLCanvasElement.prototype.getContext = () => null;
 dom.window.HTMLElement.prototype.scrollTo = () => {};
 globalThis.EventSource = class { close() {} };
 
-const { create, toBinary } = await import("@bufbuild/protobuf");
+const { create, fromJson, toBinary } = await import("@bufbuild/protobuf");
 const { LaunchpadSchema } = await import("@meridian-ux/proto-ts/proto/command_palette_pb.js");
 const { ViewDescriptorSchema } = await import("@meridian-ux/proto-ts/proto/view_pb.js");
-const { PanelDescriptorSchema } = await import("@meridian-ux/proto-ts/proto/panel_pb.js");
 const { staticViewText } = await import("@meridian-ux/schemas/uiview");
 const { renderView, disposeView } = await import("@meridian-ux/web");
 const { reactWebRenderer, MeridianProvider, htmlKit } = await import("@meridian-ux/web-react");
@@ -32,23 +31,13 @@ for (const entry of Object.values(manifest.exports)) {
   }
 }
 assert(JSON.parse(readFileSync(webDir + "/src/worker-command.schema.json")));
-const descriptor = create(PanelDescriptorSchema, {
-  id: "edit-record", title: "Edit record",
-  body: { case: "form", value: {
-    mode: 2,
-    fields: [{ fieldId: "name", label: "Record name", kind: { case: "text", value: { defaultValue: "before" } } }],
-    submitAffordance: { label: "Save record", invoke: { case: "rpc", value: {
-      service: "staging.Records", method: "Save",
-      bindings: [{ requestField: "copied", source: { case: "formField", value: "name" } }],
-    } } },
-  } },
-});
-const view = create(ViewDescriptorSchema, {
-  id: "record-request", title: "Record request",
-  layout: { mode: { case: "stacked", value: {} } },
-  slots: [{ id: "edit", panel: descriptor }],
-});
-assert.match(staticViewText(toBinary(ViewDescriptorSchema, view)), /Record name|Edit record/);
+const catalog = JSON.parse(readFileSync("projector-catalog.json", "utf8"));
+const requestName = "method.meridian.proto.v1.ProjectionService.RefreshTarget";
+const request = catalog.entries.find(entry => entry.name === requestName);
+assert(request, "missing reviewed projector request view");
+const view = fromJson(ViewDescriptorSchema, request.view);
+const descriptor = view.slots.find(slot => slot.id === "request").panel;
+assert.match(staticViewText(toBinary(ViewDescriptorSchema, view)), /Refresh Target/);
 console.log("Installed browser exports, worker schema and embedded WASM initialized");
 
 const mount = () => document.body.appendChild(document.createElement("div"));
@@ -64,24 +53,25 @@ const web = mount();
 const calls = [];
 const invoker = { invoke: async (...args) => { calls.push(args); return {}; } };
 const context = { currentResourcePath: null, uiIdentity: null, selectedRow: null, formValues: { ignored: true } };
-const admission = { mutations: ["staging.Records/Save"] };
+const admission = { mutations: ["meridian.proto.v1.ProjectionService/RefreshTarget"] };
 await renderView({ root: web, view, wasm: {}, context, invoker, admission,
   invocation: { context, admit: () => true } });
-assert.match(web.textContent, /Record request/);
+assert.match(web.textContent, /Refresh Target/);
 assert.equal(calls.length, 0);
 const input = web.querySelector('input[name="name"]');
 assert(input, web.textContent);
-assert.equal(input.value, "before");
-input.value = "after";
+assert.equal(input.value, "");
+const resource = "targets/staging-target";
+input.value = resource;
 web.querySelector("form").dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
 await until(() => calls.length > 0, "Installed request view did not submit: " + web.textContent);
-assert.deepEqual(calls.map(call => call.slice(0, 3)), [["staging.Records", "Save", { name: "after", copied: "after" }]]);
+assert.deepEqual(calls.map(call => call.slice(0, 3)), [["meridian.proto.v1.ProjectionService", "RefreshTarget", { name: resource }]]);
 disposeView(web);
 console.log("Installed web request view rendered and submitted edited data through WASM");
 
 const mui = mount();
 const panel = reactWebRenderer(muiKit).mount({ container: mui, descriptor, invoker, admission });
-await until(() => mui.querySelector(".MuiFormControl-root") && mui.textContent.includes("Record name"),
+await until(() => mui.querySelector(".MuiFormControl-root") && mui.textContent.includes("Name *"),
   "Installed React/MUI renderer did not render the form");
 panel.unmount();
 
