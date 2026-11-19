@@ -1,0 +1,5 @@
+schema: spec-driven
+context: |
+  Use American English. Use protobuf for public wire contracts.
+  GitHub issues track execution and OpenSpec changes define acceptance.
+  Registry publication and release tags require separate approval.
