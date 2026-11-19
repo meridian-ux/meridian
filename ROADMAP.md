@@ -3,7 +3,7 @@
 ## Current delivery status — November 19, 2026
 
 The [release roadmap](docs/release-roadmap.md) tracks remaining work, acceptance
-gates, and the completion baseline. Public staging verified all ten candidate
+gates, and the completion baseline. Disposable staging verified all ten candidate
 artifacts, and private source integration merged. Public RC and stable
 publication remain open under [#16](../../issues/16) and [#63](../../issues/63).
 The dated checkpoints below preserve the order of earlier decisions.

@@ -2,7 +2,7 @@
 
 Baseline captured November 19, 2026. GitHub tracks execution and owners. OpenSpec tasks and scenarios define closure evidence. [GitHub Project](https://github.com/orgs/meridian-ux/projects/1)
 
-## Work in delivery order
+## Release gates and independent follow-ups
 
 | Work | Entry condition | Closure evidence |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Baseline captured November 19, 2026. GitHub tracks execution and owners. OpenSpe
 
 The proposed public tag source is `080b5863`, which produced the staged archives. The later staging workflow and private source integration have their own provenance. Follow the [distribution runbook](../DISTRIBUTION.md) for release preflight, exact-byte verification, and partial-upload recovery.
 
-The supported-host acceptance gate precedes stable publication. Production deployment and the public FILE/schema selection retain independent decisions. The private repository maintains its host qualification, rollout, and backlog ledger.
+Supported-host inventory and fixture selection can start before RC publication. Acceptance requires exact-version installs from the public registries and precedes stable publication. Production deployment and public FILE/schema selection retain independent decisions. The private repository maintains its host qualification, rollout, and backlog ledger.
 
 ## Completion baseline
 
@@ -26,3 +26,4 @@ The supported-host acceptance gate precedes stable publication. Production deplo
 | Conversation and Launchpad | 24/27 and 7/7 render | Count the separate modality cells in the generated roadmap matrix. Three conversation cells have declared alternative entry points or exclusions. |
 
 Each measure has a different denominator. Issue closure measures tracker progress, staging measures candidate distribution, and panel cells measure declared coverage. Avoid aggregating them into a single project percentage. Keep the original issue baseline fixed and report new scope through the workstream ledger. Update each measure when an issue closes or new acceptance evidence lands.
+

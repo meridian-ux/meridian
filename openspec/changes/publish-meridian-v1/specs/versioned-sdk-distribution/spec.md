@@ -10,3 +10,10 @@ The release process SHALL publish versioned npm and Rust artifacts from an appro
 - **THEN** all ten exact versions SHALL resolve from their intended public registries and match the retained release archives
 - **AND** npm SHALL expose the RC under `next`
 - **AND** supported-host results SHALL be recorded before stable publication
+
+#### Scenario: A stable release is published
+
+- **WHEN** the public RC has passed registry and supported-host acceptance and stable publication has separate approval
+- **THEN** the stable release SHALL use its own reviewed tag and retained artifacts
+- **AND** all ten exact stable versions SHALL resolve from the intended public registries and match those artifacts
+
