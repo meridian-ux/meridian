@@ -3,14 +3,14 @@ import SwiftUI
 
 /// Runtime identity, not a serialized artifact. Deterministic protobuf bytes
 /// avoid both dictionary-order churn and String canonical-equivalence aliases.
-struct NativeStatIdentity: Equatable {
+struct NativeReadIdentity: Equatable {
     let panel: Data
     let context: Data
     let host: UUID
     let capability: UUID?
 
     @MainActor
-    init(panel: Meridian_Ui_V1_StatPanel, host: MeridianHost) throws {
+    init(panel: some SwiftProtobuf.Message, host: MeridianHost) throws {
         var options = BinaryEncodingOptions()
         options.useDeterministicOrdering = true
         self.panel = try panel.serializedData(options: options)
@@ -19,6 +19,8 @@ struct NativeStatIdentity: Equatable {
         capability = host.rpc?.identity
     }
 }
+
+typealias NativeStatIdentity = NativeReadIdentity
 
 @MainActor
 final class NativeStatState: ObservableObject {

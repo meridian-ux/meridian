@@ -60,6 +60,29 @@ public enum MeridianCore {
         return try Meridian_Ui_V1_ComputedStat(serializedBytes: Data(bytes: output, count: count))
     }
 
+    static func renderTable(
+        _ panel: Meridian_Ui_V1_TablePanel, response: Google_Protobuf_Value
+    ) throws -> [[String]] {
+        guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
+            throw MeridianCoreError.incompatibleABI
+        }
+        let declaration = try panel.serializedData(), input = try response.serializedData()
+        var output: UnsafeMutablePointer<UInt8>?
+        var count = 0
+        let status = declaration.withUnsafeBytes { declarationBytes in
+            input.withUnsafeBytes { inputBytes in
+                meridian_core_render_table(
+                    declarationBytes.bindMemory(to: UInt8.self).baseAddress, declarationBytes.count,
+                    inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count, &output, &count
+                )
+            }
+        }
+        defer { meridian_core_buffer_free(output, count) }
+        guard status == 0, let output else { throw MeridianCoreError.nativeStatus(status) }
+        let rows = try Google_Protobuf_ListValue(serializedBytes: Data(bytes: output, count: count))
+        return rows.values.map { $0.listValue.values.map(\.stringValue) }
+    }
+
     public static func buildRequest(
         _ call: Meridian_Ui_V1_RpcCall, context: Meridian_Ui_V1_RequestContext
     ) throws -> Google_Protobuf_Value {

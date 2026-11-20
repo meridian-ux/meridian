@@ -22,6 +22,7 @@ public struct MeridianPanel: View {
             case .copyValue(let panel): CopyValueContent(value: panel.value, host: host)
             case .connectFlow(let panel): ConnectFlowPanelContent(panel: panel, host: host)
             case .steps(let panel): StepsContent(panel: panel, host: host)
+            case .table(let panel): TablePanelContent(panel: panel, host: host)
             case .stat(let panel): StatPanelContent(panel: panel, host: host)
             case .action(let panel):
                 Text(panel.description_p)

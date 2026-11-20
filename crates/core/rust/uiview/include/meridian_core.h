@@ -38,6 +38,13 @@ int32_t meridian_core_compute_stat(
     const uint8_t *panel, size_t panel_len, uint8_t has_response,
     const uint8_t *response, size_t response_len,
     uint8_t **output, size_t *output_len);
+
+/* TablePanel and host-admitted google.protobuf.Value in. A ListValue of
+   row ListValues containing formatted strings out. Free with buffer_free. */
+int32_t meridian_core_render_table(
+    const uint8_t *panel, size_t panel_len,
+    const uint8_t *response, size_t response_len,
+    uint8_t **output, size_t *output_len);
 /* RpcCall (64 KiB) + RequestContext (1 MiB) -> google.protobuf.Value (4 MiB).
    Assembles through RequestBuilder; performs no admission or transport.
    Cumulative intermediate-copy work is capped at 4 MiB (JSON value sizes plus

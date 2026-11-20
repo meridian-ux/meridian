@@ -1,7 +1,7 @@
 //! Bounded in-process C ABI for native renderers. Semantic inputs/results are
 //! protobuf bytes; pointers, lengths and status codes are runtime ownership
 //! metadata, not an alternate serialized DTO contract.
-use crate::proto::{ComputedStat, StatPanel, Tone, Trend, ValueDisplay};
+use crate::proto::{ComputedStat, StatPanel, TablePanel, Tone, Trend, ValueDisplay};
 use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -211,6 +211,77 @@ pub unsafe extern "C" fn meridian_core_compute_stat(
                 crate::StatSemantics::Neutral => Tone::Neutral,
             } as i32,
             series: computed.series,
+        }
+        .encode_to_vec();
+        if result.len() > MAX_RESULT_BYTES {
+            return Err(LIMIT_EXCEEDED);
+        }
+        Ok(result.into_boxed_slice())
+    }));
+    match result {
+        Ok(Ok(result)) => {
+            let len = result.len();
+            let pointer = Box::into_raw(result) as *mut u8;
+            unsafe {
+                output.write(pointer);
+                output_len.write(len);
+            }
+            OK
+        }
+        Ok(Err(status)) => status,
+        Err(_) => INTERNAL_FAILURE,
+    }
+}
+
+/// Project host-admitted table rows using the shared bounded renderer.
+///
+/// # Safety
+/// Inputs and output slots must satisfy the same ownership and aliasing rules
+/// as meridian_core_format_value.
+#[no_mangle]
+pub unsafe extern "C" fn meridian_core_render_table(
+    panel: *const u8,
+    panel_len: usize,
+    response: *const u8,
+    response_len: usize,
+    output: *mut *mut u8,
+    output_len: *mut usize,
+) -> i32 {
+    if output.is_null() || output_len.is_null() {
+        return INVALID_ARGUMENT;
+    }
+    unsafe {
+        output.write(std::ptr::null_mut());
+        output_len.write(0);
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<Box<[u8]>, i32> {
+        let panel = TablePanel::decode(unsafe { bytes(panel, panel_len, MAX_VALUE_BYTES)? })
+            .map_err(|_| INVALID_PAYLOAD)?;
+        let response = json(
+            prost_types::Value::decode(unsafe { bytes(response, response_len, MAX_VALUE_BYTES)? })
+                .map_err(|_| INVALID_PAYLOAD)?,
+            0,
+        )?;
+        if !response.is_object() {
+            return Err(INVALID_PAYLOAD);
+        }
+        let rows = crate::render_table_bounded(&response, &panel).map_err(|_| LIMIT_EXCEEDED)?;
+        use prost_types::{value::Kind, ListValue, Value};
+        let result = ListValue {
+            values: rows
+                .into_iter()
+                .map(|row| Value {
+                    kind: Some(Kind::ListValue(ListValue {
+                        values: row
+                            .cells
+                            .into_iter()
+                            .map(|text| Value {
+                                kind: Some(Kind::StringValue(text)),
+                            })
+                            .collect(),
+                    })),
+                })
+                .collect(),
         }
         .encode_to_vec();
         if result.len() > MAX_RESULT_BYTES {

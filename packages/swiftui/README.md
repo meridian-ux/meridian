@@ -75,6 +75,13 @@ JSON/list fallback drift such as 1 versus 1.0. Unwinding panics are contained;
 the library is built with unwind enabled. Invalid foreign pointers, double frees,
 and process-level allocation failures are not recoverable API inputs.
 
+## Native Table
+
+Table renders the declared columns and client-side pages from a host-admitted
+populate response. The shared Rust core resolves row and column paths and
+formats cells. The preview displays links as text. Server pagination and row
+actions still need native support.
+
 ## Native Stat and admitted populate requests
 
 Stat displays the Rust-computed value, direction, delta, and caption. Semantic

@@ -36,6 +36,19 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(try MeridianCore.matchesFormPattern("a\\x00b", value: "a\0b"))
     }
 
+    func testRealRustTableCellsMatchSharedGoldens() throws {
+        let cases = try Self.corpus().tables
+        XCTAssertFalse(cases.isEmpty)
+        for test in cases {
+            let panel = try Meridian_Ui_V1_TablePanel(serializedBytes: test.table)
+            let expected = test.expected.listValue.values.map {
+                $0.structValue.fields["cells"]?.listValue.values.map(\.stringValue) ?? []
+            }
+            XCTAssertEqual(try MeridianCore.renderTable(panel, response: test.response), expected, test.name)
+        }
+        XCTAssertThrowsError(try MeridianCore.renderTable(.init(), response: .init()))
+    }
+
     func testBridgeRejectsOversizedInputAndNonJSONNumbers() throws {
         var input = Google_Protobuf_Value()
         input.stringValue = String(repeating: "x", count: 1024 * 1024)
