@@ -56,6 +56,14 @@ int32_t meridian_core_build_request(
     const uint8_t *call, size_t call_len,
     const uint8_t *context, size_t context_len,
     uint8_t **output, size_t *output_len);
+
+/* FormPanel, collected Value, and RequestContext in. Validated request Value out.
+   Free successful output with meridian_core_buffer_free. */
+int32_t meridian_core_build_form_submission(
+    const uint8_t *panel, size_t panel_len,
+    const uint8_t *values, size_t values_len,
+    const uint8_t *context, size_t context_len,
+    uint8_t **output, size_t *output_len);
 /* RowFilter (64 KiB) + selected google.protobuf.Value (1 MiB) -> runtime bool.
    Pure comparison, never authorization. matched resets to zero on failure. */
 int32_t meridian_core_matches_row_filter(

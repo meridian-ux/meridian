@@ -83,6 +83,34 @@ public enum MeridianCore {
         return rows.values.map { $0.listValue.values.map(\.stringValue) }
     }
 
+    static func buildFormSubmission(
+        _ panel: Meridian_Ui_V1_FormPanel, values: Google_Protobuf_Value,
+        context: Meridian_Ui_V1_RequestContext
+    ) throws -> Google_Protobuf_Value {
+        guard meridian_core_abi_version() == MERIDIAN_CORE_ABI_VERSION else {
+            throw MeridianCoreError.incompatibleABI
+        }
+        let declaration = try panel.serializedData()
+        let input = try values.serializedData()
+        let ambient = try context.serializedData()
+        var output: UnsafeMutablePointer<UInt8>?
+        var count = 0
+        let status = declaration.withUnsafeBytes { declarationBytes in
+            input.withUnsafeBytes { inputBytes in
+                ambient.withUnsafeBytes { ambientBytes in
+                    meridian_core_build_form_submission(
+                        declarationBytes.bindMemory(to: UInt8.self).baseAddress, declarationBytes.count,
+                        inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count,
+                        ambientBytes.bindMemory(to: UInt8.self).baseAddress, ambientBytes.count, &output, &count
+                    )
+                }
+            }
+        }
+        defer { meridian_core_buffer_free(output, count) }
+        guard status == 0, let output else { throw MeridianCoreError.nativeStatus(status) }
+        return try Google_Protobuf_Value(serializedBytes: Data(bytes: output, count: count))
+    }
+
     public static func buildRequest(
         _ call: Meridian_Ui_V1_RpcCall, context: Meridian_Ui_V1_RequestContext
     ) throws -> Google_Protobuf_Value {

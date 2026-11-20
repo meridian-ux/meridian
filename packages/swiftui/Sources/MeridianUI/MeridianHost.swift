@@ -81,10 +81,22 @@ public final class MeridianHost: ObservableObject {
 
     public func request(_ call: Meridian_Ui_V1_RpcCall, context: Meridian_Ui_V1_RequestContext,
                         tier: MeridianRpcTier = .read) async throws -> Google_Protobuf_Value {
+        try await request(call, context: context, tier: tier, form: nil)
+    }
+
+    private func request(_ call: Meridian_Ui_V1_RpcCall, context: Meridian_Ui_V1_RequestContext,
+                         tier: MeridianRpcTier,
+                         form: (Meridian_Ui_V1_FormPanel, Google_Protobuf_Value)?) async throws -> Google_Protobuf_Value {
         try Task.checkCancellation()
         guard !call.service.isEmpty, !call.method.isEmpty else { throw MeridianRpcError.invalidCall }
         let request: Google_Protobuf_Value
-        do { request = try MeridianCore.buildRequest(call, context: context) }
+        do {
+            if let (panel, values) = form {
+                request = try MeridianCore.buildFormSubmission(panel, values: values, context: context)
+            } else {
+                request = try MeridianCore.buildRequest(call, context: context)
+            }
+        }
         catch { throw MeridianRpcError.invalidRequest }
         guard let rpc else { throw MeridianRpcError.unavailable }
         let admission = tier == .mutation ? rpc.admitMutation(call, request) : rpc.admit(call, request)
@@ -104,6 +116,16 @@ public final class MeridianHost: ObservableObject {
     }
 
     public func activate(_ request: MeridianActivation) async {
+        await activate(request, form: nil)
+    }
+
+    func submit(_ panel: Meridian_Ui_V1_FormPanel, values: Google_Protobuf_Value) async {
+        guard panel.mode == .edit, case .rpc = panel.submitAffordance.invoke else { return }
+        await activate(.affordance(panel.submitAffordance), form: (panel, values))
+    }
+
+    private func activate(_ request: MeridianActivation,
+                          form: (Meridian_Ui_V1_FormPanel, Google_Protobuf_Value)?) async {
         guard !pending else { return }
         // Normalize the legacy runtime copy request before the one typed
         // dispatcher. Retain its policy envelope during the compatibility window.
@@ -130,11 +152,18 @@ public final class MeridianHost: ObservableObject {
             feedback = "This action has no usable target."
             return
         }
+        let formIdentity = form.flatMap { try? NativeReadIdentity(panel: $0.0, host: self) }
         switch admit(request) {
         case .deny(let reason):
             feedback = reason.isEmpty ? "This action is not permitted." : reason
             return
         case .allow: break
+        }
+        if let (panel, _) = form {
+            guard let formIdentity, (try? NativeReadIdentity(panel: panel, host: self)) == formIdentity else {
+                feedback = "This action request is not permitted."
+                return
+            }
         }
         let context = rpcContext
         if action.hasEnabledWhen {
@@ -172,7 +201,7 @@ public final class MeridianHost: ObservableObject {
                 else if case .copy = request, let execute { try await execute(request) }
                 else { throw MeridianRpcError.unavailable }
             case .rpc(let call):
-                _ = try await self.request(call, context: context, tier: .mutation)
+                _ = try await self.request(call, context: context, tier: .mutation, form: form)
             case nil:
                 feedback = "This action has no supported target."
                 return
@@ -183,6 +212,8 @@ public final class MeridianHost: ObservableObject {
             feedback = "This host has not installed the required capability."
         } catch MeridianRpcError.denied {
             feedback = "This action request is not permitted."
+        } catch MeridianRpcError.invalidRequest where form != nil {
+            feedback = "Check the form values and try again."
         } catch is CancellationError {
             feedback = "Canceled."
         } catch {

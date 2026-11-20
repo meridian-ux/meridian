@@ -1,3 +1,6 @@
 SwiftUI view projection v1 — not OS accessibility
 text view(MeridianPanel.self).vStack().descendants(0indexed:) "Navigation"
-text view(MeridianPanel.self).vStack().descendants(1indexed:) "This panel is not supported by this SwiftUI preview yet."
+text view(MeridianPanel.self).vStack().view(FormPanelContent.self, 1).view(NativeFormSession.self).vStack().scrollView(1).view(NativeFormFields.self).vStack().forEach(0).view(NativeFormField.self, 0).vStack().descendants(0indexed:) "Navigation groups"
+text view(MeridianPanel.self).vStack().view(FormPanelContent.self, 1).view(NativeFormSession.self).vStack().scrollView(1).view(NativeFormFields.self).vStack().forEach(0).view(NativeFormField.self, 0).vStack().view(NativeRepeatedField.self, 1).vStack().descendants(0indexed:) "No items yet."
+text view(MeridianPanel.self).vStack().view(FormPanelContent.self, 1).view(NativeFormSession.self).vStack().scrollView(1).view(NativeFormFields.self).vStack().forEach(0).view(NativeFormField.self, 0).vStack().view(NativeRepeatedField.self, 1).vStack().button(2).labelView().init(type:genericTypeName:children:supplementary:) "Add section"
+button view(MeridianPanel.self).vStack().view(FormPanelContent.self, 1).view(NativeFormSession.self).vStack().scrollView(1).view(NativeFormFields.self).vStack().forEach(0).view(NativeFormField.self, 0).vStack().view(NativeRepeatedField.self, 1).vStack().descendants(2indexed:) label="Add section" disabled=false

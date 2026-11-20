@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Runtime identity, not a serialized artifact. Deterministic protobuf bytes
 /// avoid both dictionary-order churn and String canonical-equivalence aliases.
-struct NativeReadIdentity: Equatable {
+struct NativeReadIdentity: Hashable {
     let panel: Data
     let context: Data
     let host: UUID

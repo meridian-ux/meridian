@@ -82,6 +82,15 @@ populate response. The shared Rust core resolves row and column paths and
 formats cells. The preview displays links as text. Server pagination and row
 actions still need native support.
 
+## Native Form
+
+Form uses SwiftUI text and secure fields, toggles, static pickers, and editors
+for nested objects, arrays, and string maps. Edit mode supports optional
+host-admitted prefill and RPC submission. The shared Rust core validates
+collected values and builds the request before mutation admission. Read-only
+mode displays declared defaults and masks secret fields. RPC-backed option
+lists and non-RPC submit affordances are outside this preview's scope.
+
 ## Native Stat and admitted populate requests
 
 Stat displays the Rust-computed value, direction, delta, and caption. Semantic

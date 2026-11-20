@@ -354,6 +354,88 @@ fn context_bag(entries: Vec<crate::proto::ContextValue>) -> Result<HashMap<Strin
     Ok(result)
 }
 
+fn request_context(context: crate::proto::RequestContext) -> Result<crate::Context, i32> {
+    Ok(crate::Context {
+        current_resource_path: context.current_resource_path,
+        ui_identity: context.ui_identity.map(context_json).transpose()?,
+        selected_row: context.selected_row.map(context_json).transpose()?,
+        form_values: context_bag(context.form_values)?,
+        signals: context_bag(context.signals)?,
+        selections: context_bag(context.selections)?,
+    })
+}
+
+/// Validate a FormPanel and build its authored RPC submission without executing it.
+///
+/// # Safety
+/// Inputs and output slots must satisfy the ownership rules of meridian_core_build_request.
+#[no_mangle]
+pub unsafe extern "C" fn meridian_core_build_form_submission(
+    panel: *const u8,
+    panel_len: usize,
+    values: *const u8,
+    values_len: usize,
+    context: *const u8,
+    context_len: usize,
+    output: *mut *mut u8,
+    output_len: *mut usize,
+) -> i32 {
+    if output.is_null() || output_len.is_null() {
+        return INVALID_ARGUMENT;
+    }
+    unsafe {
+        output.write(std::ptr::null_mut());
+        output_len.write(0);
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<Box<[u8]>, i32> {
+        use crate::proto::{affordance::Invoke, FormMode, FormPanel, RequestContext};
+        let panel = FormPanel::decode(unsafe { bytes(panel, panel_len, MAX_VALUE_BYTES)? })
+            .map_err(|_| INVALID_PAYLOAD)?;
+        let Some(Invoke::Rpc(call)) = panel.submit_affordance.and_then(|a| a.invoke) else {
+            return Err(INVALID_PAYLOAD);
+        };
+        if panel.mode != FormMode::Edit as i32 {
+            return Err(INVALID_PAYLOAD);
+        }
+        let values = json(
+            prost_types::Value::decode(unsafe { bytes(values, values_len, MAX_VALUE_BYTES)? })
+                .map_err(|_| INVALID_PAYLOAD)?,
+            0,
+        )?;
+        crate::validate_form_values(&panel.fields, &values).map_err(|_| INVALID_PAYLOAD)?;
+        let mut context =
+            RequestContext::decode(unsafe { bytes(context, context_len, MAX_VALUE_BYTES)? })
+                .map_err(|_| INVALID_PAYLOAD)?;
+        context.form_values.clear();
+        let request = crate::RequestBuilder::build_submission(
+            &call,
+            &request_context(context)?,
+            &panel.fields,
+            &values,
+            crate::SubmissionKind::Form,
+        )
+        .map_err(|_| LIMIT_EXCEEDED)?;
+        let result = protobuf_value(request, 0)?.encode_to_vec();
+        if result.len() > MAX_RESULT_BYTES {
+            return Err(LIMIT_EXCEEDED);
+        }
+        Ok(result.into_boxed_slice())
+    }));
+    match result {
+        Ok(Ok(result)) => {
+            let len = result.len();
+            let pointer = Box::into_raw(result) as *mut u8;
+            unsafe {
+                output.write(pointer);
+                output_len.write(len);
+            }
+            OK
+        }
+        Ok(Err(status)) => status,
+        Err(_) => INTERNAL_FAILURE,
+    }
+}
+
 /// RpcCall + RequestContext -> google.protobuf.Value request object, through
 /// the existing shared RequestBuilder. Pure assembly, not RPC execution.
 ///
@@ -388,14 +470,7 @@ pub unsafe extern "C" fn meridian_core_build_request(
             bytes(context, context_len, MAX_VALUE_BYTES)?
         })
         .map_err(|_| INVALID_PAYLOAD)?;
-        let context = crate::Context {
-            current_resource_path: context.current_resource_path,
-            ui_identity: context.ui_identity.map(context_json).transpose()?,
-            selected_row: context.selected_row.map(context_json).transpose()?,
-            form_values: context_bag(context.form_values)?,
-            signals: context_bag(context.signals)?,
-            selections: context_bag(context.selections)?,
-        };
+        let context = request_context(context)?;
         let request = crate::RequestBuilder::build_for_boundary(&call, &context)
             .map_err(|_| LIMIT_EXCEEDED)?;
         let result = protobuf_value(request, 0)?.encode_to_vec();
