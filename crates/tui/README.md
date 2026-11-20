@@ -433,3 +433,24 @@ cargo test --locked -p meridian-tui
 Run these commands from the monorepo root. Bazel and Cargo both exercise the
 native renderer; Bazel's shared conformance target additionally verifies the
 committed descriptor corpus through TestBackend.
+
+## Browser preview
+
+The browser host feeds the same `PanelView` a static protobuf descriptor and
+draws into `ratatui::backend::TestBackend`. Its WASM exports accept local keyboard
+events and return an ANSI frame for xterm.js. The browser target excludes the
+Crossterm event loop and one-shot prompt functions that own a native terminal.
+The native renderer keeps its existing keyboard types and entry points.
+
+Build the browser library with:
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo rustc --locked --lib -p meridian-tui --release \
+  --target wasm32-unknown-unknown --crate-type cdylib
+```
+
+Run wasm-bindgen 0.2.105 with the web target over
+`target/wasm32-unknown-unknown/release/meridian_tui.wasm` to generate the browser
+adapter. This host supports offline stat and prompt examples. It supplies no
+RPC transport or effect capabilities.

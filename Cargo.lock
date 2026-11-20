@@ -342,6 +342,8 @@ dependencies = [
  "serde_json",
  "theme-proto",
  "thiserror",
+ "unicode-width 0.2.0",
+ "wasm-bindgen",
 ]
 
 [[package]]

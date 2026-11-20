@@ -16,22 +16,23 @@
 use std::collections::{HashMap, HashSet};
 use std::io;
 
-use crossterm::{
-    cursor, event,
-    event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
-    execute, terminal,
-};
+#[cfg(not(target_arch = "wasm32"))]
+use crossterm::{cursor, event, event::Event, execute, terminal};
+
+use crate::keys::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use meridian_uiview::proto::{
     form_field::Kind, repeated_field::Element, BooleanToggle, FormField, IntegerSpinner,
     KeyValueMapField, MaskedInput, NumberInput, PromptPanel, RepeatedField, TextInput,
 };
 use ratatui::{
-    backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Wrap},
-    Frame, Terminal,
+    Frame,
 };
+
+#[cfg(not(target_arch = "wasm32"))]
+use ratatui::{backend::CrosstermBackend, Terminal};
 
 use crate::theme::Palette;
 
@@ -114,6 +115,7 @@ pub enum PromptError {
 /// All look comes from `palette` (derive it from a `meridian.theme.v1.Theme`
 /// via `Palette::from_theme`, or pass `Palette::default()` for the neutral
 /// look). No `Color::` / `Style::` literal lives in this renderer.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn render_prompt(
     panel: &PromptPanel,
     palette: &Palette,
@@ -185,6 +187,7 @@ fn validate_repeated_shape(field: &FormField, spec: &RepeatedField) -> Result<()
 // Confirmation mode
 // ──────────────────────────────────────────────────────────────
 
+#[cfg(not(target_arch = "wasm32"))]
 fn run_state<B: ratatui::backend::Backend>(
     term: &mut Terminal<B>,
     panel: &PromptPanel,

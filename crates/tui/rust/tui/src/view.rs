@@ -4,7 +4,7 @@ use std::{
     sync::Arc,
 };
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::keys::{KeyCode, KeyEvent, KeyModifiers};
 use meridian_uiview::{
     proto::{
         layout, panel_descriptor::Body, AffordanceCollection, PanelDescriptor, Slot, ViewDescriptor,

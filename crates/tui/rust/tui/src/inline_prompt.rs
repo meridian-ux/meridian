@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crate::keys::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use meridian_uiview::proto::{
     form_field::Kind, panel_descriptor::Body, FormField, PanelDescriptor,
 };

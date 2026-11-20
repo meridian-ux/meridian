@@ -35,6 +35,14 @@
 // RequestBuilder produces serde_json::Value requests, and the host
 // `RpcInvoker` deals with marshaling.
 
+#[cfg(target_arch = "wasm32")]
+mod browser;
+#[cfg(target_arch = "wasm32")]
+#[path = "browser_keys.rs"]
+pub mod keys;
+#[cfg(not(target_arch = "wasm32"))]
+pub use crossterm::event as keys;
+
 mod content;
 mod conversation;
 mod enum_options;
@@ -67,9 +75,13 @@ pub use launchpad::{
     command_outcome, LaunchpadOutcome, LaunchpadResponse, LaunchpadState,
     NativeLaunchpadQueryToken, NativeLaunchpadResponse, AGENT_GROUP_ID,
 };
-pub use llm_prompt::{render_llm_prompt, LlmPromptResponse};
+#[cfg(not(target_arch = "wasm32"))]
+pub use llm_prompt::render_llm_prompt;
+pub use llm_prompt::LlmPromptResponse;
 pub use lro::LroRunId;
-pub use prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
+#[cfg(not(target_arch = "wasm32"))]
+pub use prompt::render_prompt;
+pub use prompt::{FieldValue, PromptError, PromptResponse};
 pub use state::PanelAppState;
 pub use theme::{parse_hex, Mode, Palette, Theme};
 pub use view::{ViewHost, ViewResponse};
@@ -81,6 +93,7 @@ pub use widget::{FormSubmission, LroSubmission, PanelView};
 // universes (rules_rust++_crate+++crate vs rules_rust++crate+crate)
 // surface two distinct `ratatui::Frame` types and a Frame passed
 // from cli into PanelView::draw fails to type-check.
+#[cfg(not(target_arch = "wasm32"))]
 pub use crossterm;
 pub use ratatui;
 // The embedded prompt response's canonical WKT payload must be the same Rust

@@ -23,7 +23,7 @@
 // uses the shared native dispatcher and supplies no default transport or raw
 // response handoff.
 
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crate::keys::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use meridian_uiview::proto::{Affordance, Command, Launchpad};
 use meridian_uiview::{filter_launchpad, flatten, Context, FilteredGroup};
 use prost::Message;

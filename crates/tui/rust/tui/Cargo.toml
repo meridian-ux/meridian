@@ -16,8 +16,6 @@ renderer_ids = ["tui"]
 # land the same crate names, so no source file changes.
 meridian-uiview = { workspace = true }
 theme-proto = { workspace = true }
-ratatui = { workspace = true }
-crossterm = { workspace = true }
 prost = { workspace = true }
 prost-types = { workspace = true }
 regex = { workspace = true }
@@ -28,6 +26,15 @@ regex = { workspace = true }
 # exactly one serde_json in the graph.
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ratatui = { workspace = true, features = ["crossterm", "underline-color"] }
+crossterm = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+ratatui = { workspace = true }
+wasm-bindgen = { workspace = true }
+unicode-width = "=0.2.0"
 
 # The TUI is a binary as well as a library. It could not be one before: the crate
 # depended on types only Bazel could generate, so there was nothing to run.

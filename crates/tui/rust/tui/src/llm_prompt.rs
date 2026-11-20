@@ -28,8 +28,9 @@ use std::collections::HashMap;
 
 use meridian_uiview::proto::{LlmPromptPanel, PromptPanel};
 
-use crate::prompt::{render_prompt, FieldValue, PromptError, PromptResponse};
-use crate::theme::Palette;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::{prompt::{render_prompt, PromptError, PromptResponse}, theme::Palette};
+use crate::prompt::FieldValue;
 
 /// Result of rendering an `LlmPromptPanel` interactively.
 #[derive(Debug, Clone)]
@@ -50,6 +51,7 @@ pub enum LlmPromptResponse {
 /// TUI form renderer, then substitute into the templates. Drives
 /// crossterm + raw mode internally (via the underlying
 /// `render_prompt`).
+#[cfg(not(target_arch = "wasm32"))]
 pub fn render_llm_prompt(
     panel: &LlmPromptPanel,
     palette: &Palette,

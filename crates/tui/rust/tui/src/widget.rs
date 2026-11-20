@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crate::keys::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use meridian_uiview::proto::panel_descriptor::Body;
 use meridian_uiview::proto::{
     form_field::Kind, ChartPanel, FormField, FormMode, FormPanel, GalleryPanel, LroPanel,
