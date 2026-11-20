@@ -3,13 +3,18 @@
 
 use std::fmt::Write as _;
 
-use meridian_uiview::{proto::PanelDescriptor, Context};
+use meridian_uiview::{
+    proto::{panel_descriptor::Body, PanelDescriptor, RpcCall},
+    Context,
+};
 use prost::Message;
+use prost_types::{value::Kind, Struct, Value};
 use ratatui::{
     backend::TestBackend,
     style::{Color, Modifier},
     Terminal,
 };
+use serde_json::Value as Json;
 use unicode_width::UnicodeWidthStr;
 use wasm_bindgen::prelude::*;
 
@@ -18,18 +23,47 @@ use crate::{
     PanelView, RpcError, RpcInvoker,
 };
 
-struct Offline;
+#[derive(Default)]
+struct RecordedRead {
+    response: Option<(String, String, Json)>,
+}
 
-impl RpcInvoker for Offline {
-    fn invoke(
-        &self,
-        _: &str,
-        _: &str,
-        _: serde_json::Value,
-    ) -> Result<serde_json::Value, RpcError> {
+impl RpcInvoker for RecordedRead {
+    fn invoke(&self, service: &str, method: &str, _: Json) -> Result<Json, RpcError> {
+        if let Some((expected_service, expected_method, payload)) = &self.response {
+            if expected_service == service && expected_method == method {
+                return Ok(payload.clone());
+            }
+        }
         Err(RpcError::Transport(
-            "The browser preview has no RPC transport.".into(),
+            "No recorded response for this preview.".into(),
         ))
+    }
+}
+
+fn json(value: Value) -> Json {
+    match value.kind {
+        None | Some(Kind::NullValue(_)) => Json::Null,
+        Some(Kind::BoolValue(value)) => Json::Bool(value),
+        Some(Kind::NumberValue(value)) => Json::from(value),
+        Some(Kind::StringValue(value)) => Json::String(value),
+        Some(Kind::ListValue(value)) => Json::Array(value.values.into_iter().map(json).collect()),
+        Some(Kind::StructValue(value)) => Json::Object(
+            value
+                .fields
+                .into_iter()
+                .map(|(key, value)| (key, json(value)))
+                .collect(),
+        ),
+    }
+}
+
+fn recorded_call(descriptor: &PanelDescriptor) -> Option<&RpcCall> {
+    match descriptor.body.as_ref()? {
+        Body::Table(panel) => panel.populate.as_ref(),
+        Body::Gallery(panel) => panel.populate.as_ref(),
+        Body::ResourceCards(panel) => panel.populate.as_ref(),
+        _ => None,
     }
 }
 
@@ -37,6 +71,7 @@ impl RpcInvoker for Offline {
 pub struct BrowserPanel {
     descriptor: PanelDescriptor,
     panel: PanelView,
+    recording: RecordedRead,
 }
 
 #[wasm_bindgen]
@@ -48,7 +83,25 @@ impl BrowserPanel {
         Ok(Self {
             descriptor,
             panel: PanelView::new(),
+            recording: RecordedRead::default(),
         })
+    }
+
+    /// Supply a recorded protobuf response for the panel's declared populate RPC.
+    pub fn set_recording(&mut self, bytes: &[u8]) -> Result<(), JsError> {
+        let call = recorded_call(&self.descriptor)
+            .ok_or_else(|| JsError::new("This preview has no supported populate call."))?;
+        if bytes.len() > 64 * 1024 {
+            return Err(JsError::new("Preview recording is too large."));
+        }
+        let value =
+            Struct::decode(bytes).map_err(|_| JsError::new("Invalid preview recording."))?;
+        let payload = json(Value {
+            kind: Some(Kind::StructValue(value)),
+        });
+        self.recording.response = Some((call.service.clone(), call.method.clone(), payload));
+        self.panel = PanelView::new();
+        Ok(())
     }
 
     pub fn key(&mut self, key: &str, shift: bool, control: bool) -> bool {
@@ -95,7 +148,7 @@ impl BrowserPanel {
                     frame.area(),
                     &self.descriptor,
                     &Context::default(),
-                    &Offline,
+                    &self.recording,
                 );
             })
             .map_err(|_| JsError::new("Could not draw the preview."))?;
